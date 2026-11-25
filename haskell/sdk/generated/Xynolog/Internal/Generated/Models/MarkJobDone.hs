@@ -9,18 +9,18 @@ import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Internal.Codec
 
 data MarkJobDone = MarkJobDone
-  { markJobDoneByCategory :: Maybe MarkJobDoneByCategory,
-    markJobDoneErrors :: Maybe Integer,
-    markJobDoneFound :: Integer,
+  { markJobDoneFound :: Integer,
     markJobDonePersisted :: Integer,
-    markJobDoneUncheckedPieces :: Maybe Integer,
-    markJobDoneUnderReportedPieces :: Maybe Integer
+    markJobDoneErrors :: Maybe Integer,
+    markJobDoneByCategory :: Maybe MarkJobDoneByCategory,
+    markJobDoneUnderReportedPieces :: Maybe Integer,
+    markJobDoneUncheckedPieces :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkJobDone where parseJSON = checked "MarkJobDone" $ withObject "MarkJobDone" (\fields -> MarkJobDone <$> optional fields "byCategory" <*> optional fields "errors" <*> (fields .: "found") <*> (fields .: "persisted") <*> optional fields "uncheckedPieces" <*> optional fields "underReportedPieces")
+instance FromJSON MarkJobDone where parseJSON = checked "MarkJobDone" $ withObject "MarkJobDone" (\fields -> MarkJobDone <$> (fields .: "found") <*> (fields .: "persisted") <*> optional fields "errors" <*> optional fields "byCategory" <*> optional fields "underReportedPieces" <*> optional fields "uncheckedPieces")
 
-instance ToJSON MarkJobDone where toJSON value = Object (KM.fromList (concat [optionalPair "byCategory" (markJobDoneByCategory value), optionalPair "errors" (markJobDoneErrors value), [("found", toJSON (markJobDoneFound value))], [("persisted", toJSON (markJobDonePersisted value))], optionalPair "uncheckedPieces" (markJobDoneUncheckedPieces value), optionalPair "underReportedPieces" (markJobDoneUnderReportedPieces value)]))
+instance ToJSON MarkJobDone where toJSON value = Object (KM.fromList (concat [[("found", toJSON (markJobDoneFound value))], [("persisted", toJSON (markJobDonePersisted value))], optionalPair "errors" (markJobDoneErrors value), optionalPair "byCategory" (markJobDoneByCategory value), optionalPair "underReportedPieces" (markJobDoneUnderReportedPieces value), optionalPair "uncheckedPieces" (markJobDoneUncheckedPieces value)]))
 
 data MarkJobDoneByCategory = MarkJobDoneByCategory
   { markJobDoneByCategoryAdditionalProperties :: KM.KeyMap Integer

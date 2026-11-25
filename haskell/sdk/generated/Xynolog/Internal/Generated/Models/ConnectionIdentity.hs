@@ -11,11 +11,11 @@ import Xynolog.Internal.Generated.Models.KbDescription
 import Xynolog.Internal.Generated.Models.UserId
 
 data ConnectionIdentity = ConnectionIdentity
-  { connectionIdentityDescription :: KbDescription,
-    connectionIdentityDid :: UserId
+  { connectionIdentityDid :: UserId,
+    connectionIdentityDescription :: KbDescription
   }
   deriving (Eq, Show)
 
-instance FromJSON ConnectionIdentity where parseJSON = checked "ConnectionIdentity" $ withObject "ConnectionIdentity" (\fields -> ConnectionIdentity <$> (fields .: "description") <*> (fields .: "did"))
+instance FromJSON ConnectionIdentity where parseJSON = checked "ConnectionIdentity" $ withObject "ConnectionIdentity" (\fields -> ConnectionIdentity <$> (fields .: "did") <*> (fields .: "description"))
 
-instance ToJSON ConnectionIdentity where toJSON value = Object (KM.fromList (concat [[("description", toJSON (connectionIdentityDescription value))], [("did", toJSON (connectionIdentityDid value))]]))
+instance ToJSON ConnectionIdentity where toJSON value = Object (KM.fromList (concat [[("did", toJSON (connectionIdentityDid value))], [("description", toJSON (connectionIdentityDescription value))]]))

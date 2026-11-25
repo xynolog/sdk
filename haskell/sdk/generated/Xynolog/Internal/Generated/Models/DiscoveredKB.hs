@@ -10,20 +10,19 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data DiscoveredKB = DiscoveredKB
-  { discoveredKBDid :: Text,
-    discoveredKBHost :: Text,
-    discoveredKBManagedBy :: Text,
-    discoveredKBPlacement :: DiscoveredKBPlacement,
+  { discoveredKBHost :: Text,
     discoveredKBPort :: Integer,
+    discoveredKBPlacement :: DiscoveredKBPlacement,
     discoveredKBRepo :: Maybe Text,
+    discoveredKBDid :: Text,
     discoveredKBSiteName :: Maybe Text,
-    discoveredKBAdditionalProperties :: KM.KeyMap Value
+    discoveredKBManagedBy :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON DiscoveredKB where parseJSON = checked "DiscoveredKB" $ withObject "DiscoveredKB" (\fields -> DiscoveredKB <$> (fields .: "did") <*> (fields .: "host") <*> (fields .: "managedBy") <*> (fields .: "placement") <*> (fields .: "port") <*> optional fields "repo" <*> optional fields "siteName" <*> traverse parseJSON (withoutFields ["did", "host", "managedBy", "placement", "port", "repo", "siteName"] fields))
+instance FromJSON DiscoveredKB where parseJSON = checked "DiscoveredKB" $ withObject "DiscoveredKB" (\fields -> DiscoveredKB <$> (fields .: "host") <*> (fields .: "port") <*> (fields .: "placement") <*> optional fields "repo" <*> (fields .: "did") <*> optional fields "siteName" <*> (fields .: "managedBy"))
 
-instance ToJSON DiscoveredKB where toJSON value = Object (KM.fromList (concat [[("did", toJSON (discoveredKBDid value))], [("host", toJSON (discoveredKBHost value))], [("managedBy", toJSON (discoveredKBManagedBy value))], [("placement", toJSON (discoveredKBPlacement value))], [("port", toJSON (discoveredKBPort value))], optionalPair "repo" (discoveredKBRepo value), optionalPair "siteName" (discoveredKBSiteName value)]) <> fmap toJSON (withoutFields ["did", "host", "managedBy", "placement", "port", "repo", "siteName"] (discoveredKBAdditionalProperties value)))
+instance ToJSON DiscoveredKB where toJSON value = Object (KM.fromList (concat [[("host", toJSON (discoveredKBHost value))], [("port", toJSON (discoveredKBPort value))], [("placement", toJSON (discoveredKBPlacement value))], optionalPair "repo" (discoveredKBRepo value), [("did", toJSON (discoveredKBDid value))], optionalPair "siteName" (discoveredKBSiteName value), [("managedBy", toJSON (discoveredKBManagedBy value))]]))
 
 data DiscoveredKBPlacement = DiscoveredKBPlacementLocal | DiscoveredKBPlacementCodespace deriving (Eq, Show)
 

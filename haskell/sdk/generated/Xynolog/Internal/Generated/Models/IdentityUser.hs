@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 
 data IdentityUser = IdentityUser
   { identityUserEmail :: Text,
-    identityUserEnabled :: Bool,
-    identityUserIdentity :: Text
+    identityUserIdentity :: Text,
+    identityUserEnabled :: Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON IdentityUser where parseJSON = checked "IdentityUser" $ withObject "IdentityUser" (\fields -> IdentityUser <$> (fields .: "email") <*> (fields .: "enabled") <*> (fields .: "identity"))
+instance FromJSON IdentityUser where parseJSON = checked "IdentityUser" $ withObject "IdentityUser" (\fields -> IdentityUser <$> (fields .: "email") <*> (fields .: "identity") <*> (fields .: "enabled"))
 
-instance ToJSON IdentityUser where toJSON value = Object (KM.fromList (concat [[("email", toJSON (identityUserEmail value))], [("enabled", toJSON (identityUserEnabled value))], [("identity", toJSON (identityUserIdentity value))]]))
+instance ToJSON IdentityUser where toJSON value = Object (KM.fromList (concat [[("email", toJSON (identityUserEmail value))], [("identity", toJSON (identityUserIdentity value))], [("enabled", toJSON (identityUserEnabled value))]]))

@@ -172,7 +172,7 @@ writeCases fixtures = withCarrier $ \carrier input local -> do
       require "enriched event did not write its value" . (== Just updated) =<< atomically (Cache.get cache identity)
       Time.advance time (2 * Timing.invalidationWindowMs Timing.protocolSettings * 1000000)
       readTVarIO requests >>= require "a known-value write left an older invalidation owed" . (== 1)
-      let gone = MarkDeleteOk (MarkDeleteOkResponse identity KM.empty) KM.empty
+      let gone = MarkDeleteOk (MarkDeleteOkResponse identity)
       Transport.receive input (BusFrame (Channel.channelName Channel.MarkDeleteOk) Nothing (payload gone) Nothing)
       Time.settle
       state <- atomically (Cache.current (Cache.query cache identity))

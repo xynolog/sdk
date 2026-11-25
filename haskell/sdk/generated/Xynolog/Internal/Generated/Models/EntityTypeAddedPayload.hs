@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data EntityTypeAddedPayload = EntityTypeAddedPayload
-  { entityTypeAddedPayloadEntityType :: Text,
-    entityTypeAddedPayloadAdditionalProperties :: KM.KeyMap Value
+  { entityTypeAddedPayloadEntityType :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON EntityTypeAddedPayload where parseJSON = checked "EntityTypeAddedPayload" $ withObject "EntityTypeAddedPayload" (\fields -> EntityTypeAddedPayload <$> (fields .: "entityType") <*> traverse parseJSON (withoutFields ["entityType"] fields))
+instance FromJSON EntityTypeAddedPayload where parseJSON = checked "EntityTypeAddedPayload" $ withObject "EntityTypeAddedPayload" (\fields -> EntityTypeAddedPayload <$> (fields .: "entityType"))
 
-instance ToJSON EntityTypeAddedPayload where toJSON value = Object (KM.fromList (concat [[("entityType", toJSON (entityTypeAddedPayloadEntityType value))]]) <> fmap toJSON (withoutFields ["entityType"] (entityTypeAddedPayloadAdditionalProperties value)))
+instance ToJSON EntityTypeAddedPayload where toJSON value = Object (KM.fromList (concat [[("entityType", toJSON (entityTypeAddedPayloadEntityType value))]]))

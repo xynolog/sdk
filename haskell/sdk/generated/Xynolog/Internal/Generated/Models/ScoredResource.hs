@@ -17,38 +17,38 @@ import Xynolog.Internal.Generated.Models.ResourceDescriptor
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ScoredResource = ScoredResource
-  { scoredResourceU40_context :: ResourceDescriptorU40_context,
-    scoredResourceU40_id :: ResourceId,
-    scoredResourceU40_type :: Maybe OneOrMoreStrings,
+  { scoredResourceContext :: ResourceDescriptorContext,
+    scoredResourceId :: ResourceId,
+    scoredResourceType :: Maybe OneOrMoreStrings,
+    scoredResourceName :: Text,
+    scoredResourceDescription :: Maybe Text,
+    scoredResourceIdentifier :: Maybe ResourceDescriptorIdentifier,
     scoredResourceAbout :: Maybe OneOrMoreStrings,
-    scoredResourceArchived :: Maybe Bool,
-    scoredResourceAvailableFormats :: Maybe [Text],
-    scoredResourceConformsTo :: Maybe OneOrMoreUris,
+    scoredResourceSameAs :: Maybe [Text],
+    scoredResourceIsPartOf :: Maybe [Text],
+    scoredResourceHasPart :: Maybe [Text],
+    scoredResourceLicense :: Maybe Text,
+    scoredResourceVersion :: Maybe Text,
     scoredResourceDateCreated :: Maybe Text,
     scoredResourceDateModified :: Maybe Text,
-    scoredResourceDescription :: Maybe Text,
-    scoredResourceEntityTypes :: Maybe [Text],
+    scoredResourceWasDerivedFrom :: Maybe ResourceDescriptorWasDerivedFrom,
+    scoredResourceWasAttributedTo :: Maybe OneOrMoreAgents,
     scoredResourceGenerator :: Maybe OneOrMoreAgents,
-    scoredResourceHasPart :: Maybe [Text],
-    scoredResourceIdentifier :: Maybe ResourceDescriptorIdentifier,
-    scoredResourceIsDraft :: Maybe Bool,
-    scoredResourceIsPartOf :: Maybe [Text],
-    scoredResourceLicense :: Maybe Text,
-    scoredResourceMatchReason :: Maybe Text,
-    scoredResourceName :: Text,
-    scoredResourceOriginatedFrom :: Maybe Text,
+    scoredResourceConformsTo :: Maybe OneOrMoreUris,
+    scoredResourceAvailableFormats :: Maybe [Text],
     scoredResourceRepresentations :: ResourceDescriptorRepresentations,
-    scoredResourceSameAs :: Maybe [Text],
-    scoredResourceScore :: Maybe Scientific,
+    scoredResourceArchived :: Maybe Bool,
+    scoredResourceEntityTypes :: Maybe [Text],
+    scoredResourceIsDraft :: Maybe Bool,
     scoredResourceSourceAnnotationId :: Maybe AnnotationId,
     scoredResourceSourceResourceId :: Maybe ResourceId,
-    scoredResourceVersion :: Maybe Text,
-    scoredResourceWasAttributedTo :: Maybe OneOrMoreAgents,
-    scoredResourceWasDerivedFrom :: Maybe ResourceDescriptorWasDerivedFrom,
+    scoredResourceOriginatedFrom :: Maybe Text,
+    scoredResourceScore :: Maybe Scientific,
+    scoredResourceMatchReason :: Maybe Text,
     scoredResourceAdditionalProperties :: KM.KeyMap Value
   }
   deriving (Eq, Show)
 
-instance FromJSON ScoredResource where parseJSON = checked "ScoredResource" $ withObject "ScoredResource" (\fields -> ScoredResource <$> (fields .: "@context") <*> (fields .: "@id") <*> optional fields "@type" <*> optional fields "about" <*> optional fields "archived" <*> optional fields "availableFormats" <*> optional fields "conformsTo" <*> optional fields "dateCreated" <*> optional fields "dateModified" <*> optional fields "description" <*> optional fields "entityTypes" <*> optional fields "generator" <*> optional fields "hasPart" <*> optional fields "identifier" <*> optional fields "isDraft" <*> optional fields "isPartOf" <*> optional fields "license" <*> optional fields "matchReason" <*> (fields .: "name") <*> optional fields "originatedFrom" <*> (fields .: "representations") <*> optional fields "sameAs" <*> optional fields "score" <*> optional fields "sourceAnnotationId" <*> optional fields "sourceResourceId" <*> optional fields "version" <*> optional fields "wasAttributedTo" <*> optional fields "wasDerivedFrom" <*> traverse parseJSON (withoutFields ["@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo", "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart", "identifier", "isDraft", "isPartOf", "license", "matchReason", "name", "originatedFrom", "representations", "sameAs", "score", "sourceAnnotationId", "sourceResourceId", "version", "wasAttributedTo", "wasDerivedFrom"] fields))
+instance FromJSON ScoredResource where parseJSON = checked "ScoredResource" $ withObject "ScoredResource" (\fields -> ScoredResource <$> (fields .: "@context") <*> (fields .: "@id") <*> optional fields "@type" <*> (fields .: "name") <*> optional fields "description" <*> optional fields "identifier" <*> optional fields "about" <*> optional fields "sameAs" <*> optional fields "isPartOf" <*> optional fields "hasPart" <*> optional fields "license" <*> optional fields "version" <*> optional fields "dateCreated" <*> optional fields "dateModified" <*> optional fields "wasDerivedFrom" <*> optional fields "wasAttributedTo" <*> optional fields "generator" <*> optional fields "conformsTo" <*> optional fields "availableFormats" <*> (fields .: "representations") <*> optional fields "archived" <*> optional fields "entityTypes" <*> optional fields "isDraft" <*> optional fields "sourceAnnotationId" <*> optional fields "sourceResourceId" <*> optional fields "originatedFrom" <*> optional fields "score" <*> optional fields "matchReason" <*> traverse parseJSON (withoutFields ["@context", "@id", "@type", "name", "description", "identifier", "about", "sameAs", "isPartOf", "hasPart", "license", "version", "dateCreated", "dateModified", "wasDerivedFrom", "wasAttributedTo", "generator", "conformsTo", "availableFormats", "representations", "archived", "entityTypes", "isDraft", "sourceAnnotationId", "sourceResourceId", "originatedFrom", "score", "matchReason"] fields))
 
-instance ToJSON ScoredResource where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (scoredResourceU40_context value))], [("@id", toJSON (scoredResourceU40_id value))], optionalPair "@type" (scoredResourceU40_type value), optionalPair "about" (scoredResourceAbout value), optionalPair "archived" (scoredResourceArchived value), optionalPair "availableFormats" (scoredResourceAvailableFormats value), optionalPair "conformsTo" (scoredResourceConformsTo value), optionalPair "dateCreated" (scoredResourceDateCreated value), optionalPair "dateModified" (scoredResourceDateModified value), optionalPair "description" (scoredResourceDescription value), optionalPair "entityTypes" (scoredResourceEntityTypes value), optionalPair "generator" (scoredResourceGenerator value), optionalPair "hasPart" (scoredResourceHasPart value), optionalPair "identifier" (scoredResourceIdentifier value), optionalPair "isDraft" (scoredResourceIsDraft value), optionalPair "isPartOf" (scoredResourceIsPartOf value), optionalPair "license" (scoredResourceLicense value), optionalPair "matchReason" (scoredResourceMatchReason value), [("name", toJSON (scoredResourceName value))], optionalPair "originatedFrom" (scoredResourceOriginatedFrom value), [("representations", toJSON (scoredResourceRepresentations value))], optionalPair "sameAs" (scoredResourceSameAs value), optionalPair "score" (scoredResourceScore value), optionalPair "sourceAnnotationId" (scoredResourceSourceAnnotationId value), optionalPair "sourceResourceId" (scoredResourceSourceResourceId value), optionalPair "version" (scoredResourceVersion value), optionalPair "wasAttributedTo" (scoredResourceWasAttributedTo value), optionalPair "wasDerivedFrom" (scoredResourceWasDerivedFrom value)]) <> fmap toJSON (withoutFields ["@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo", "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart", "identifier", "isDraft", "isPartOf", "license", "matchReason", "name", "originatedFrom", "representations", "sameAs", "score", "sourceAnnotationId", "sourceResourceId", "version", "wasAttributedTo", "wasDerivedFrom"] (scoredResourceAdditionalProperties value)))
+instance ToJSON ScoredResource where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (scoredResourceContext value))], [("@id", toJSON (scoredResourceId value))], optionalPair "@type" (scoredResourceType value), [("name", toJSON (scoredResourceName value))], optionalPair "description" (scoredResourceDescription value), optionalPair "identifier" (scoredResourceIdentifier value), optionalPair "about" (scoredResourceAbout value), optionalPair "sameAs" (scoredResourceSameAs value), optionalPair "isPartOf" (scoredResourceIsPartOf value), optionalPair "hasPart" (scoredResourceHasPart value), optionalPair "license" (scoredResourceLicense value), optionalPair "version" (scoredResourceVersion value), optionalPair "dateCreated" (scoredResourceDateCreated value), optionalPair "dateModified" (scoredResourceDateModified value), optionalPair "wasDerivedFrom" (scoredResourceWasDerivedFrom value), optionalPair "wasAttributedTo" (scoredResourceWasAttributedTo value), optionalPair "generator" (scoredResourceGenerator value), optionalPair "conformsTo" (scoredResourceConformsTo value), optionalPair "availableFormats" (scoredResourceAvailableFormats value), [("representations", toJSON (scoredResourceRepresentations value))], optionalPair "archived" (scoredResourceArchived value), optionalPair "entityTypes" (scoredResourceEntityTypes value), optionalPair "isDraft" (scoredResourceIsDraft value), optionalPair "sourceAnnotationId" (scoredResourceSourceAnnotationId value), optionalPair "sourceResourceId" (scoredResourceSourceResourceId value), optionalPair "originatedFrom" (scoredResourceOriginatedFrom value), optionalPair "score" (scoredResourceScore value), optionalPair "matchReason" (scoredResourceMatchReason value)]) <> fmap toJSON (withoutFields ["@context", "@id", "@type", "name", "description", "identifier", "about", "sameAs", "isPartOf", "hasPart", "license", "version", "dateCreated", "dateModified", "wasDerivedFrom", "wasAttributedTo", "generator", "conformsTo", "availableFormats", "representations", "archived", "entityTypes", "isDraft", "sourceAnnotationId", "sourceResourceId", "originatedFrom", "score", "matchReason"] (scoredResourceAdditionalProperties value)))

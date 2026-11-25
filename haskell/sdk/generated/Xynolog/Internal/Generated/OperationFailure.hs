@@ -103,7 +103,7 @@ code YieldCloneTokenRequestedOperation = fromCommandErrorCode . Types.commandErr
 fromCommandErrorCode :: Maybe Types.CommandErrorCode -> BusRequestCode
 fromCommandErrorCode value = case value of
   Nothing -> BusRequestRejected
-  (Just Types.CommandErrorCodePeerU2d_unavailable) -> BusRequestPeerUnavailable
-  (Just Types.CommandErrorCodeNotU2d_found) -> BusRequestNotFound
+  (Just Types.CommandErrorCodePeerUnavailable) -> BusRequestPeerUnavailable
+  (Just Types.CommandErrorCodeNotFound) -> BusRequestNotFound
   (Just Types.CommandErrorCodeUnauthorized) -> BusRequestUnauthorized
-  (Just Types.CommandErrorCodeNoneU2d_pending) -> BusRequestNonePending
+  (Just Types.CommandErrorCodeNonePending) -> BusRequestNonePending

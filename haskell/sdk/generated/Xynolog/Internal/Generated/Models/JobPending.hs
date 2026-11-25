@@ -12,15 +12,15 @@ import Xynolog.Internal.Generated.Models.JobMetadata
 import Xynolog.Internal.Generated.Models.JobParams
 
 data JobPending = JobPending
-  { jobPendingMetadata :: JobMetadata,
-    jobPendingParams :: JobParams,
-    jobPendingStatus :: JobPendingStatus
+  { jobPendingStatus :: JobPendingStatus,
+    jobPendingMetadata :: JobMetadata,
+    jobPendingParams :: JobParams
   }
   deriving (Eq, Show)
 
-instance FromJSON JobPending where parseJSON = checked "JobPending" $ withObject "JobPending" (\fields -> JobPending <$> (fields .: "metadata") <*> (fields .: "params") <*> (fields .: "status"))
+instance FromJSON JobPending where parseJSON = checked "JobPending" $ withObject "JobPending" (\fields -> JobPending <$> (fields .: "status") <*> (fields .: "metadata") <*> (fields .: "params"))
 
-instance ToJSON JobPending where toJSON value = Object (KM.fromList (concat [[("metadata", toJSON (jobPendingMetadata value))], [("params", toJSON (jobPendingParams value))], [("status", toJSON (jobPendingStatus value))]]))
+instance ToJSON JobPending where toJSON value = Object (KM.fromList (concat [[("status", toJSON (jobPendingStatus value))], [("metadata", toJSON (jobPendingMetadata value))], [("params", toJSON (jobPendingParams value))]]))
 
 data JobPendingStatus = JobPendingStatusPending deriving (Eq, Show)
 

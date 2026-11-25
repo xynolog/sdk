@@ -10,12 +10,12 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AuthLoginResult = AuthLoginResult
-  { authLoginResultIssuer :: Text,
-    authLoginResultKey :: Text,
-    authLoginResultWho :: Text
+  { authLoginResultKey :: Text,
+    authLoginResultWho :: Text,
+    authLoginResultIssuer :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON AuthLoginResult where parseJSON = checked "AuthLoginResult" $ withObject "AuthLoginResult" (\fields -> AuthLoginResult <$> (fields .: "issuer") <*> (fields .: "key") <*> (fields .: "who"))
+instance FromJSON AuthLoginResult where parseJSON = checked "AuthLoginResult" $ withObject "AuthLoginResult" (\fields -> AuthLoginResult <$> (fields .: "key") <*> (fields .: "who") <*> (fields .: "issuer"))
 
-instance ToJSON AuthLoginResult where toJSON value = Object (KM.fromList (concat [[("issuer", toJSON (authLoginResultIssuer value))], [("key", toJSON (authLoginResultKey value))], [("who", toJSON (authLoginResultWho value))]]))
+instance ToJSON AuthLoginResult where toJSON value = Object (KM.fromList (concat [[("key", toJSON (authLoginResultKey value))], [("who", toJSON (authLoginResultWho value))], [("issuer", toJSON (authLoginResultIssuer value))]]))

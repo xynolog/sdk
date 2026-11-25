@@ -277,7 +277,7 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
           refuse Error_codes.Span_refusal.Exact_mismatch;
         [
           Selector.TextPositionSelector
-            { start = Z.of_int start; end_ = Z.of_int end_; extra = [] };
+            { start = Z.of_int start; end_ = Z.of_int end_ };
         ]
     | Some items ->
         let overlap, rectangles = locate_pdf items start end_ in
@@ -297,7 +297,6 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
               {
                 value = fragment rectangle;
                 conforms_to = Some "http://tools.ietf.org/rfc/rfc3778";
-                extra = [];
               })
           rectangles
   in
@@ -313,7 +312,7 @@ let annotation_of_span ~created ~resource ~motivation ~generator ?body content
     suffix;
   let quote_selector =
     Selector.TextQuoteSelector
-      { exact; prefix = nonempty prefix; suffix = nonempty suffix; extra = [] }
+      { exact; prefix = nonempty prefix; suffix = nonempty suffix }
   in
   let target =
     `Assoc

@@ -10,12 +10,12 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data RootsForgetResult = RootsForgetResult
-  { rootsForgetResultDirectoryMissing :: Bool,
-    rootsForgetResultPath :: Text,
+  { rootsForgetResultPath :: Text,
+    rootsForgetResultDirectoryMissing :: Bool,
     rootsForgetResultPersistentState :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON RootsForgetResult where parseJSON = checked "RootsForgetResult" $ withObject "RootsForgetResult" (\fields -> RootsForgetResult <$> (fields .: "directoryMissing") <*> (fields .: "path") <*> optional fields "persistentState")
+instance FromJSON RootsForgetResult where parseJSON = checked "RootsForgetResult" $ withObject "RootsForgetResult" (\fields -> RootsForgetResult <$> (fields .: "path") <*> (fields .: "directoryMissing") <*> optional fields "persistentState")
 
-instance ToJSON RootsForgetResult where toJSON value = Object (KM.fromList (concat [[("directoryMissing", toJSON (rootsForgetResultDirectoryMissing value))], [("path", toJSON (rootsForgetResultPath value))], optionalPair "persistentState" (rootsForgetResultPersistentState value)]))
+instance ToJSON RootsForgetResult where toJSON value = Object (KM.fromList (concat [[("path", toJSON (rootsForgetResultPath value))], [("directoryMissing", toJSON (rootsForgetResultDirectoryMissing value))], optionalPair "persistentState" (rootsForgetResultPersistentState value)]))

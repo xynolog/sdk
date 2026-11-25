@@ -12,13 +12,13 @@ import Xynolog.Internal.Generated.Models.Engine
 import Xynolog.Internal.Generated.Models.JobFilter
 
 data WorkerEngineConfig = WorkerEngineConfig
-  { workerEngineConfigApiKeyEnv :: Maybe Text,
+  { workerEngineConfigEngine :: Engine,
+    workerEngineConfigJobs :: [JobFilter],
     workerEngineConfigBaseUrl :: Text,
-    workerEngineConfigEngine :: Engine,
-    workerEngineConfigJobs :: [JobFilter]
+    workerEngineConfigApiKeyEnv :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerEngineConfig where parseJSON = checked "WorkerEngineConfig" $ withObject "WorkerEngineConfig" (\fields -> WorkerEngineConfig <$> optional fields "apiKeyEnv" <*> (fields .: "baseUrl") <*> (fields .: "engine") <*> (fields .: "jobs"))
+instance FromJSON WorkerEngineConfig where parseJSON = checked "WorkerEngineConfig" $ withObject "WorkerEngineConfig" (\fields -> WorkerEngineConfig <$> (fields .: "engine") <*> (fields .: "jobs") <*> (fields .: "baseUrl") <*> optional fields "apiKeyEnv")
 
-instance ToJSON WorkerEngineConfig where toJSON value = Object (KM.fromList (concat [optionalPair "apiKeyEnv" (workerEngineConfigApiKeyEnv value), [("baseUrl", toJSON (workerEngineConfigBaseUrl value))], [("engine", toJSON (workerEngineConfigEngine value))], [("jobs", toJSON (workerEngineConfigJobs value))]]))
+instance ToJSON WorkerEngineConfig where toJSON value = Object (KM.fromList (concat [[("engine", toJSON (workerEngineConfigEngine value))], [("jobs", toJSON (workerEngineConfigJobs value))], [("baseUrl", toJSON (workerEngineConfigBaseUrl value))], optionalPair "apiKeyEnv" (workerEngineConfigApiKeyEnv value)]))

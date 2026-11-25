@@ -12,17 +12,17 @@ import Xynolog.Internal.Generated.Models.JobMetadata
 import Xynolog.Internal.Generated.Models.JobParams
 
 data JobCancelled = JobCancelled
-  { jobCancelledCompletedAt :: Text,
+  { jobCancelledStatus :: JobCancelledStatus,
     jobCancelledMetadata :: JobMetadata,
     jobCancelledParams :: JobParams,
     jobCancelledStartedAt :: Maybe Text,
-    jobCancelledStatus :: JobCancelledStatus
+    jobCancelledCompletedAt :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON JobCancelled where parseJSON = checked "JobCancelled" $ withObject "JobCancelled" (\fields -> JobCancelled <$> (fields .: "completedAt") <*> (fields .: "metadata") <*> (fields .: "params") <*> optional fields "startedAt" <*> (fields .: "status"))
+instance FromJSON JobCancelled where parseJSON = checked "JobCancelled" $ withObject "JobCancelled" (\fields -> JobCancelled <$> (fields .: "status") <*> (fields .: "metadata") <*> (fields .: "params") <*> optional fields "startedAt" <*> (fields .: "completedAt"))
 
-instance ToJSON JobCancelled where toJSON value = Object (KM.fromList (concat [[("completedAt", toJSON (jobCancelledCompletedAt value))], [("metadata", toJSON (jobCancelledMetadata value))], [("params", toJSON (jobCancelledParams value))], optionalPair "startedAt" (jobCancelledStartedAt value), [("status", toJSON (jobCancelledStatus value))]]))
+instance ToJSON JobCancelled where toJSON value = Object (KM.fromList (concat [[("status", toJSON (jobCancelledStatus value))], [("metadata", toJSON (jobCancelledMetadata value))], [("params", toJSON (jobCancelledParams value))], optionalPair "startedAt" (jobCancelledStartedAt value), [("completedAt", toJSON (jobCancelledCompletedAt value))]]))
 
 data JobCancelledStatus = JobCancelledStatusCancelled deriving (Eq, Show)
 

@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data CreateResourceResponse = CreateResourceResponse
-  { createResourceResponseResourceId :: ResourceId,
-    createResourceResponseAdditionalProperties :: KM.KeyMap Value
+  { createResourceResponseResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON CreateResourceResponse where parseJSON = checked "CreateResourceResponse" $ withObject "CreateResourceResponse" (\fields -> CreateResourceResponse <$> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["resourceId"] fields))
+instance FromJSON CreateResourceResponse where parseJSON = checked "CreateResourceResponse" $ withObject "CreateResourceResponse" (\fields -> CreateResourceResponse <$> (fields .: "resourceId"))
 
-instance ToJSON CreateResourceResponse where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (createResourceResponseResourceId value))]]) <> fmap toJSON (withoutFields ["resourceId"] (createResourceResponseAdditionalProperties value)))
+instance ToJSON CreateResourceResponse where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (createResourceResponseResourceId value))]]))

@@ -11,11 +11,10 @@ import Xynolog.Internal.Codec
 
 data KbRead = KbRead
   { kbReadAt :: Text,
-    kbReadGitBranch :: Maybe Text,
-    kbReadAdditionalProperties :: KM.KeyMap Value
+    kbReadGitBranch :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON KbRead where parseJSON = checked "KbRead" $ withObject "KbRead" (\fields -> KbRead <$> (fields .: "at") <*> optional fields "gitBranch" <*> traverse parseJSON (withoutFields ["at", "gitBranch"] fields))
+instance FromJSON KbRead where parseJSON = checked "KbRead" $ withObject "KbRead" (\fields -> KbRead <$> (fields .: "at") <*> optional fields "gitBranch")
 
-instance ToJSON KbRead where toJSON value = Object (KM.fromList (concat [[("at", toJSON (kbReadAt value))], optionalPair "gitBranch" (kbReadGitBranch value)]) <> fmap toJSON (withoutFields ["at", "gitBranch"] (kbReadAdditionalProperties value)))
+instance ToJSON KbRead where toJSON value = Object (KM.fromList (concat [[("at", toJSON (kbReadAt value))], optionalPair "gitBranch" (kbReadGitBranch value)]))

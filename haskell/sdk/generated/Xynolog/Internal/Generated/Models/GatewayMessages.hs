@@ -11,16 +11,16 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.HttpStatus
 
 data GatewayMessages = GatewayMessages
-  { gatewayMessagesU24_comment :: Text,
-    gatewayMessagesChallenges :: GatewayMessagesChallenges,
+  { gatewayMessagesComment :: Text,
+    gatewayMessagesMessages :: [GatewayMessagesMessagesItem],
     gatewayMessagesFailures :: [GatewayMessagesFailuresItem],
-    gatewayMessagesMessages :: [GatewayMessagesMessagesItem]
+    gatewayMessagesChallenges :: GatewayMessagesChallenges
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMessages where parseJSON = checked "GatewayMessages" $ withObject "GatewayMessages" (\fields -> GatewayMessages <$> (fields .: "$comment") <*> (fields .: "challenges") <*> (fields .: "failures") <*> (fields .: "messages"))
+instance FromJSON GatewayMessages where parseJSON = checked "GatewayMessages" $ withObject "GatewayMessages" (\fields -> GatewayMessages <$> (fields .: "$comment") <*> (fields .: "messages") <*> (fields .: "failures") <*> (fields .: "challenges"))
 
-instance ToJSON GatewayMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayMessagesU24_comment value))], [("challenges", toJSON (gatewayMessagesChallenges value))], [("failures", toJSON (gatewayMessagesFailures value))], [("messages", toJSON (gatewayMessagesMessages value))]]))
+instance ToJSON GatewayMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayMessagesComment value))], [("messages", toJSON (gatewayMessagesMessages value))], [("failures", toJSON (gatewayMessagesFailures value))], [("challenges", toJSON (gatewayMessagesChallenges value))]]))
 
 data GatewayMessagesChallenges = GatewayMessagesChallenges
   { gatewayMessagesChallengesNoCredential :: Text,
@@ -33,27 +33,27 @@ instance FromJSON GatewayMessagesChallenges where parseJSON = checked "GatewayMe
 instance ToJSON GatewayMessagesChallenges where toJSON value = Object (KM.fromList (concat [[("noCredential", toJSON (gatewayMessagesChallengesNoCredential value))], [("refused", toJSON (gatewayMessagesChallengesRefused value))]]))
 
 data GatewayMessagesFailuresItem = GatewayMessagesFailuresItem
-  { gatewayMessagesFailuresItemCode :: Text,
-    gatewayMessagesFailuresItemMessage :: Text,
-    gatewayMessagesFailuresItemName :: Text,
-    gatewayMessagesFailuresItemSituation :: Text
+  { gatewayMessagesFailuresItemName :: Text,
+    gatewayMessagesFailuresItemCode :: Text,
+    gatewayMessagesFailuresItemSituation :: Text,
+    gatewayMessagesFailuresItemMessage :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMessagesFailuresItem where parseJSON = checked "GatewayMessagesFailuresItem" $ withObject "GatewayMessagesFailuresItem" (\fields -> GatewayMessagesFailuresItem <$> (fields .: "code") <*> (fields .: "message") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON GatewayMessagesFailuresItem where parseJSON = checked "GatewayMessagesFailuresItem" $ withObject "GatewayMessagesFailuresItem" (\fields -> GatewayMessagesFailuresItem <$> (fields .: "name") <*> (fields .: "code") <*> (fields .: "situation") <*> (fields .: "message"))
 
-instance ToJSON GatewayMessagesFailuresItem where toJSON value = Object (KM.fromList (concat [[("code", toJSON (gatewayMessagesFailuresItemCode value))], [("message", toJSON (gatewayMessagesFailuresItemMessage value))], [("name", toJSON (gatewayMessagesFailuresItemName value))], [("situation", toJSON (gatewayMessagesFailuresItemSituation value))]]))
+instance ToJSON GatewayMessagesFailuresItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (gatewayMessagesFailuresItemName value))], [("code", toJSON (gatewayMessagesFailuresItemCode value))], [("situation", toJSON (gatewayMessagesFailuresItemSituation value))], [("message", toJSON (gatewayMessagesFailuresItemMessage value))]]))
 
 data GatewayMessagesMessagesItem = GatewayMessagesMessagesItem
-  { gatewayMessagesMessagesItemCode :: Maybe Text,
-    gatewayMessagesMessagesItemError :: Text,
-    gatewayMessagesMessagesItemHint :: Maybe Text,
-    gatewayMessagesMessagesItemName :: Text,
+  { gatewayMessagesMessagesItemName :: Text,
+    gatewayMessagesMessagesItemStatus :: HttpStatus,
+    gatewayMessagesMessagesItemCode :: Maybe Text,
     gatewayMessagesMessagesItemSituation :: Text,
-    gatewayMessagesMessagesItemStatus :: HttpStatus
+    gatewayMessagesMessagesItemError :: Text,
+    gatewayMessagesMessagesItemHint :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMessagesMessagesItem where parseJSON = checked "GatewayMessagesMessagesItem" $ withObject "GatewayMessagesMessagesItem" (\fields -> GatewayMessagesMessagesItem <$> optional fields "code" <*> (fields .: "error") <*> optional fields "hint" <*> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "status"))
+instance FromJSON GatewayMessagesMessagesItem where parseJSON = checked "GatewayMessagesMessagesItem" $ withObject "GatewayMessagesMessagesItem" (\fields -> GatewayMessagesMessagesItem <$> (fields .: "name") <*> (fields .: "status") <*> optional fields "code" <*> (fields .: "situation") <*> (fields .: "error") <*> optional fields "hint")
 
-instance ToJSON GatewayMessagesMessagesItem where toJSON value = Object (KM.fromList (concat [optionalPair "code" (gatewayMessagesMessagesItemCode value), [("error", toJSON (gatewayMessagesMessagesItemError value))], optionalPair "hint" (gatewayMessagesMessagesItemHint value), [("name", toJSON (gatewayMessagesMessagesItemName value))], [("situation", toJSON (gatewayMessagesMessagesItemSituation value))], [("status", toJSON (gatewayMessagesMessagesItemStatus value))]]))
+instance ToJSON GatewayMessagesMessagesItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (gatewayMessagesMessagesItemName value))], [("status", toJSON (gatewayMessagesMessagesItemStatus value))], optionalPair "code" (gatewayMessagesMessagesItemCode value), [("situation", toJSON (gatewayMessagesMessagesItemSituation value))], [("error", toJSON (gatewayMessagesMessagesItemError value))], optionalPair "hint" (gatewayMessagesMessagesItemHint value)]))

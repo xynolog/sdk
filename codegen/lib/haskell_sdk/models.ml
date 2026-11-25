@@ -1,51 +1,42 @@
 (* The Haskell SDK's models: a type, and its FromJSON and ToJSON, for every
    schema the SDK reads or writes, each in the module of its strongly
    connected component of references, so a module imports only those it
-   needs and none imports back.
+   needs and none imports back. What each schema and member is, is its
+   declaration in [Typing], made of the SDK's definitions; the schema itself
+   is kept beside it, as the SDK validates a value against it.
 
-   Haskell's own choices are this writer's rules. A schema's type is named as
-   the schema is; one stated in place takes the name of the schema that
-   states its member (through an allOf, the member's own schema) and the
-   member's, made unique by "Inline". A string, integer, number and boolean
-   are Text, Integer, Scientific and Bool. Words are a type of constructors,
-   with a function that gives each its word, branches a type of one
-   constructor each, an object a record, and anything
-   else a newtype; an identifier's newtype is opaque, made only by its
-   module's mk. A member the object needn't state is a Maybe, and an object
-   open to other members keeps them. *)
+   Haskell's own choices are this writer's rules, and where they are not
+   [Typing]'s they are [Deviations]. A type is named as [Typing] names it,
+   a union's constructor as the union and its member's variant, a field as
+   its record and its member, and an enumeration's constructor as the
+   enumeration and its value. A string, integer, number and boolean are
+   Text, Integer, Scientific and Bool. Words are a type of constructors, with
+   a function that gives each its word, branches a type of one constructor
+   each, an object a record, and anything else a newtype;
+   an identifier's newtype is opaque, made only by its module's mk. A member
+   the object needn't state is a Maybe, and an object open to other members
+   keeps them. *)
 
 module H = Haskell_syntax
+module T = Typing
 
 let ( let* ) = Result.bind
 
 module Names = Set.Make (String)
 module Named = Map.Make (String)
 
-(* What a name is in Haskell: its letters and digits, every other character
-   by its code point between U and _, begun upper case, and V before it if it
-   would begin with a digit. *)
-let identifier value =
-  let out = Buffer.create (String.length value) in
-  Text.fold_uchars
-    (fun () u ->
-      match Uchar.to_int u with
-      | c
-        when (c >= Char.code 'a' && c <= Char.code 'z')
-             || (c >= Char.code 'A' && c <= Char.code 'Z')
-             || (c >= Char.code '0' && c <= Char.code '9') ->
-          Buffer.add_char out (Char.chr c)
-      | c -> Buffer.add_string out (Printf.sprintf "U%x_" c))
-    () value;
-  match Buffer.contents out with
-  | "" -> "Value"
-  | encoded when encoded.[0] >= '0' && encoded.[0] <= '9' -> "V" ^ encoded
-  | encoded -> String.capitalize_ascii encoded
-
 let lower = String.uncapitalize_ascii
 
-(* The name of the type written in place for member [key] of [owner], the
-   schema that states it. *)
-let member_type owner key = owner ^ identifier key
+(* A record's field for its member [key]: the record's name begun lower case
+   and the member's in Pascal case. *)
+let field record key = lower record ^ Text.pascal key
+
+(* An enumeration's constructor for [value]: the enumeration's name and the
+   value's ([Naming.variant]). *)
+let constructor enumeration : Schema.literal -> string = function
+  | String_literal text -> enumeration ^ Naming.variant text
+  | Int_literal n -> enumeration ^ Naming.variant (string_of_int n)
+  | Bool_literal b -> enumeration ^ if b then "True" else "False"
 
 (* A number as Haskell's Scientific shows it: a whole number below ten
    million with ".0" after it. *)
@@ -72,6 +63,11 @@ type state = {
   mutable dependencies : Names.t Named.t;
   ids : Decode.ids;  (** Each schema's [$id]: what a reference names. *)
   identifiers : Names.t;
+  mutable enumerations : (string * Schema.literal list) list;
+      (** Every enumeration declared, and its values. *)
+  mutable union_members : Names.t;
+      (** The types written in place as a union's members. *)
+  typing : T.t;
 }
 
 let find state name =
@@ -83,22 +79,6 @@ let normalize state schema =
   Normalize.normalize state.ids
     ~find:(fun r -> find state (Definitions.referenced r))
     schema
-
-let scalar_type : Schema.type_name -> H.type_ option = function
-  | String -> Some (T_name "Text")
-  | Integer -> Some (T_name "Integer")
-  | Number -> Some (T_name "Scientific")
-  | Boolean -> Some (T_name "Bool")
-  | Array | Object | Null -> None
-
-let one_type name (s : Schema.schema) =
-  match s.type_ with
-  | None -> Ok None
-  | Some [ t ] -> Ok (Some t)
-  | Some _ -> Error (name ^ ": a type of more than one name")
-
-let stated_only keep (s : Schema.schema) =
-  List.for_all (fun k -> List.mem k keep) (Schema.keywords s)
 
 let checked name = H.Apply (Name "checked", [ Str name ])
 
@@ -131,115 +111,26 @@ let depend state component =
         Some (Names.add component (Option.value found ~default:Names.empty)))
       state.dependencies
 
-let rec type_of state proposed original : (H.type_, string) result =
-  let* raw = Normalize.layer original in
-  match raw.ref_ with
-  | Some r ->
-      let target = Definitions.referenced r in
-      let* _ = find state target in
-      depend state target;
-      Ok (H.T_name target)
-  | None -> (
-      match raw.all_of with
-      | Some [ part ] -> type_of state proposed part
-      | _ -> structural state proposed original)
+(* The function that gives each value of the enumeration [name] its word. *)
+let words_of name = lower name ^ "Text"
 
-and structural state proposed original =
-  let* s = normalize state original in
-  match s.ref_ with
-  | Some r -> Ok (H.T_name (Definitions.referenced r))
-  | None when s.one_of <> None || s.any_of <> None || s.enum <> None ->
-      inline state proposed original
-  | None -> (
-      let* t = one_type proposed s in
-      match t with
-      | Some Array -> (
-          match s.items with
-          | Some item ->
-              Result.map
-                (fun t -> H.T_list t)
-                (type_of state (proposed ^ "Item") item)
-          | None -> Error "array schema has no items")
-      | Some Object -> inline state proposed original
-      | Some t -> Ok (Option.get (scalar_type t))
-      | None when stated_only [ "description"; "$comment" ] s ->
-          Ok (H.T_name "Value")
-      | None -> Error (proposed ^ ": unsupported type shape"))
+(* The words of an enumeration of [values] that is one of words, and so has
+   [words_of]. *)
+let words values =
+  let words =
+    List.filter_map
+      (fun (v : Schema.literal) ->
+        match v with
+        | String_literal text -> Some text
+        | Int_literal _ | Bool_literal _ -> None)
+      values
+  in
+  if List.length words = List.length values then Some words else None
 
-and inline state proposed schema =
-  match
-    ( Named.find_opt proposed state.definitions,
-      Named.find_opt proposed state.declarations )
-  with
-  | Some written, Some (Some { owner; _ }) when written = schema ->
-      if owner <> state.owner then depend state owner;
-      Ok (H.T_name proposed)
-  | _ ->
-      let rec unique candidate =
-        if Named.mem candidate state.definitions then
-          unique (candidate ^ "Inline")
-        else candidate
-      in
-      let name = unique proposed in
-      state.definitions <- Named.add name schema state.definitions;
-      let* () = declare state name schema in
-      Ok (H.T_name name)
-
-(* [component] declared as its own module's, before a schema that inherits
-   its properties refers to the types written in place for them. *)
-and declare_parent state component =
-  let holder = state.owner in
-  let* schema = find state component in
-  state.owner <- component;
-  let declared = declare state component schema in
-  state.owner <- holder;
-  declared
-
-and declare state name original =
-  if Named.mem name state.declarations then Ok ()
-  else (
-    state.declarations <- Named.add name None state.declarations;
-    let owner = state.owner in
-    let* s = normalize state original in
-    let* () =
-      match Null_form.without_null Fun.id s with
-      | Ok None -> Ok ()
-      | Ok (Some _) ->
-          Error
-            (name ^ ": nullable named schemas need an explicit representation")
-      | Error message -> Error (name ^ ": " ^ message)
-    in
-    let* decls =
-      match (s.enum, s.one_of, s.any_of) with
-      | Some values, _, _ -> enumeration name values
-      | None, Some parts, _ | None, None, Some parts -> union state name parts
-      | None, None, None -> (
-          let* t = one_type name s in
-          match t with
-          | Some Object ->
-              object_ state name
-                ~owner:
-                  (Inherited.of_schemas
-                     ~find:(fun n -> Named.find n state.definitions)
-                     ~referenced:Definitions.referenced name original)
-                s
-          | _ -> scalar state name original (Names.mem name state.identifiers))
-    in
-    state.declarations <-
-      Named.add name (Some { owner; decls }) state.declarations;
-    Ok ())
-
-and enumeration name values =
+let enumeration name values =
   let members =
     List.map
-      (fun (v : Schema.literal) ->
-        let constructor =
-          match v with
-          | String_literal text -> name ^ identifier text
-          | Int_literal n -> name ^ identifier (scientific (Float.of_int n))
-          | Bool_literal b -> name ^ if b then "True" else "False"
-        in
-        (constructor, literal_value v))
+      (fun (v : Schema.literal) -> (constructor name v, literal_value v))
       values
   in
   let constructors = List.map fst members in
@@ -258,31 +149,26 @@ and enumeration name values =
         members
         (H.Apply (Name "fail", [ Str "unknown enumeration member" ]))
     in
-    let words =
-      List.filter_map
-        (fun (v : Schema.literal) ->
-          match v with String_literal text -> Some text | _ -> None)
-        values
-    in
     let text =
-      if List.length words <> List.length values then []
-      else
-        [
-          H.Value
-            {
-              about = [];
-              name = lower name ^ "Text";
-              type_ = T_fun (T_name name, T_name "Text");
-              clauses =
-                List.map2
-                  (fun constructor word ->
-                    {
-                      H.patterns = [ Constructor (constructor, []) ];
-                      body = Str word;
-                    })
-                  constructors words;
-            };
-        ]
+      match words values with
+      | None -> []
+      | Some words ->
+          [
+            H.Value
+              {
+                about = [];
+                name = words_of name;
+                type_ = T_fun (T_name name, T_name "Text");
+                clauses =
+                  List.map2
+                    (fun constructor word ->
+                      {
+                        H.patterns = [ Constructor (constructor, []) ];
+                        body = Str word;
+                      })
+                    constructors words;
+              };
+          ]
     in
     Ok
       ([
@@ -298,53 +184,9 @@ and enumeration name values =
        ]
       @ text)
 
-(* What a union's member is named by: the schema it names, its kind when it
-   is a list or a scalar, and, stated in place as an object, the one string
-   its discriminating property admits, else its title. *)
-and branch name part =
-  let* raw = Normalize.layer part in
-  match (raw.ref_, raw.all_of) with
-  | Some r, _ -> Ok (Definitions.referenced r)
-  | None, Some [ only ] -> branch name only
-  | None, _ -> (
-      let* t = one_type name raw in
-      match t with
-      | Some Array -> Ok "List"
-      | Some Object | None -> (
-          let discriminant =
-            List.find_map
-              (fun (_, property) ->
-                match property with
-                | Schema.Schema { const = Some (String_literal v); _ }
-                | Schema.Schema { enum = Some [ String_literal v ]; _ } ->
-                    Some v
-                | _ -> None)
-              (Option.value raw.properties ~default:[])
-          in
-          match (discriminant, raw.title) with
-          | Some value, _ -> Ok (Text.pascal value)
-          | None, Some title -> Ok (Text.pascal title)
-          | None, None -> Ok "Object")
-      | Some scalar -> (
-          match scalar_type scalar with
-          | Some (T_name haskell) -> Ok haskell
-          | _ -> Error (name ^ ": a union member of no Haskell scalar")))
-
-and union state name parts =
-  let* members =
-    Result.map List.rev
-      (List.fold_left
-         (fun found part ->
-           let* found = found in
-           let* named = branch name part in
-           let constructor = name ^ named in
-           if List.mem_assoc constructor found then
-             Error (name ^ ": two union members would both be " ^ constructor)
-           else
-             let* t = type_of state (constructor ^ "Value") part in
-             Ok ((constructor, t) :: found))
-         (Ok []) parts)
-  in
+(* A union's type, a constructor of each member's type, read as the first
+   member that parses: [Deviations.haskell_first_fit]. *)
+let union_decls name members =
   let parse (constructor, _) =
     H.Infix
       (Name constructor, [ ("<$>", Apply (Name "parseJSON", [ Name "value" ])) ])
@@ -373,26 +215,9 @@ and union state name parts =
         name;
     ]
 
-and scalar state name original opaque =
-  let* shape = normalize state original in
-  let* value_type =
-    match shape.ref_ with
-    | Some _ -> type_of state name original
-    | None -> (
-        let* t = one_type name shape in
-        match t with
-        | Some Array -> (
-            match shape.items with
-            | Some item ->
-                Result.map
-                  (fun t -> H.T_list t)
-                  (type_of state (name ^ "Item") item)
-            | None -> Error "array has no item schema")
-        | Some Object -> Error (name ^ ": unsupported scalar")
-        | Some t -> Ok (Option.get (scalar_type t))
-        | None when Schema.keywords shape = [] -> Ok (H.T_name "Value")
-        | None -> Error (name ^ ": unsupported scalar"))
-  in
+(* A newtype of [value_type]: an identifier's opaque, made only by its
+   module's mk. *)
+let newtype_decls name ~constructor value_type opaque =
   let accessor = lower name ^ "Value" in
   let maker = "mk" ^ name in
   let newtype =
@@ -400,6 +225,7 @@ and scalar state name original opaque =
       {
         about = [];
         name;
+        constructor;
         field = (if opaque then None else Some accessor);
         type_ = value_type;
         opaque;
@@ -413,12 +239,12 @@ and scalar state name original opaque =
         (Lambda
            ( "value",
              Infix
-               ( Name name,
+               ( Name constructor,
                  [ ("<$>", Apply (Name "parseJSON", [ Name "value" ])) ] ) ));
       to_json
         [
           {
-            H.patterns = [ Constructor (name, [ Var "value" ]) ];
+            H.patterns = [ Constructor (constructor, [ Var "value" ]) ];
             body = Apply (Name "toJSON", [ Name "value" ]);
           };
         ]
@@ -437,7 +263,7 @@ and scalar state name original opaque =
               clauses =
                 [
                   {
-                    patterns = [ Constructor (name, [ Var "value" ]) ];
+                    patterns = [ Constructor (constructor, [ Var "value" ]) ];
                     body = Name "value";
                   };
                 ];
@@ -467,50 +293,9 @@ and scalar state name original opaque =
         ])
   else Ok (newtype :: instances)
 
-and object_ state name ~owner (s : Schema.schema) =
-  let properties =
-    List.sort
-      (fun (a, _) (b, _) -> String.compare a b)
-      (Option.value s.properties ~default:[])
-  in
-  let required = Option.value s.required ~default:[] in
-  let open_ = s.additional_properties <> Some (Boolean_schema false) in
-  let names = H.List (List.map (fun (k, _) -> H.Str k) properties) in
-  let* members =
-    Result.map List.rev
-      (List.fold_left
-         (fun found (key, property) ->
-           let* found = found in
-           let* fields = Normalize.layer property in
-           let suffix = identifier key in
-           let field = lower name ^ suffix in
-           let* beside =
-             Result.map_error
-               (fun message -> name ^ "." ^ key ^ ": " ^ message)
-               (Null_form.without_null Fun.id fields)
-           in
-           let nullable = Option.is_some beside in
-           let mandatory = List.mem key required in
-           let owner = owner key in
-           let* () =
-             if owner = name then Ok () else declare_parent state owner
-           in
-           let* t =
-             type_of state (member_type owner key)
-               (Schema (Option.value beside ~default:fields))
-           in
-           let held = H.Apply (Name field, [ Name "value" ]) in
-           let typ, parser, encoder =
-             member ~row:"fields" ~key ~held ~nullable ~mandatory t
-           in
-           Ok ((field, typ, parser, encoder) :: found))
-         (Ok []) properties)
-  in
-  let* extra_type =
-    match s.additional_properties with
-    | Some (Schema _ as typed) -> type_of state (name ^ "AdditionalValue") typed
-    | _ -> Ok (H.T_name "Value")
-  in
+(* A record of [members], each its field, type, parser and encoder, and the
+   members of an open object beside them. *)
+let object_decls name ~constructor ~open_ ~names ~extra_type members =
   let extras = lower name ^ "AdditionalProperties" in
   let without held = H.Apply (Name "withoutFields", [ names; held ]) in
   let fields =
@@ -529,18 +314,18 @@ and object_ state name ~owner (s : Schema.schema) =
   in
   let declaration =
     match fields with
-    | [] -> H.data name ~deriving:[ "Eq"; "Show" ] [ H.constructor name ]
-    | fields -> H.record name ~deriving:[ "Eq"; "Show" ] fields
+    | [] -> H.data name ~deriving:[ "Eq"; "Show" ] [ H.constructor constructor ]
+    | fields -> H.record name ~constructor ~deriving:[ "Eq"; "Show" ] fields
   in
   let reader =
     match parsers with
-    | [] -> H.Lambda ("_", Apply (Name "pure", [ Name name ]))
+    | [] -> H.Lambda ("_", Apply (Name "pure", [ Name constructor ]))
     | first :: rest ->
         Lambda
           ( "fields",
             Infix
-              (Name name, ("<$>", first) :: List.map (fun p -> ("<*>", p)) rest)
-          )
+              ( Name constructor,
+                ("<$>", first) :: List.map (fun p -> ("<*>", p)) rest ) )
   in
   let known =
     H.Apply
@@ -581,6 +366,232 @@ and object_ state name ~owner (s : Schema.schema) =
         ]
         name;
     ]
+
+let scalar_of : T.scalar -> H.type_ = function
+  | Text _ -> T_name "Text"
+  | Integer _ -> T_name "Integer"
+  | Number -> T_name "Scientific"
+  | Boolean -> T_name "Bool"
+
+(* The schema [original] states in place at [part]: its property [key], its
+   items, or its union's members, after its [allOf] merges. *)
+let property state name original key =
+  let* s = normalize state original in
+  match Option.bind s.properties (List.assoc_opt key) with
+  | Some p -> Ok p
+  | None -> Error (name ^ " has no property " ^ key)
+
+let items state name original =
+  let* s = normalize state original in
+  match s.items with
+  | Some item -> Ok item
+  | None -> Error (name ^ ": array schema has no items")
+
+let union_parts state name original =
+  let* s = normalize state original in
+  match (s.one_of, s.any_of) with
+  | Some parts, _ | None, Some parts -> Ok parts
+  | None, None -> Error (name ^ ": a union of no members")
+
+(* The schema beside null of [original], or [original]. *)
+let beside_null name original =
+  let* fields = Normalize.layer original in
+  let* beside =
+    Result.map_error
+      (fun message -> name ^ ": " ^ message)
+      (Null_form.without_null Fun.id fields)
+  in
+  Ok (Schema.Schema (Option.value beside ~default:fields))
+
+(* The type [ty] is in Haskell, [original] the schema it is read from, at
+   [at]. *)
+let rec type_of state at original (ty : T.ty) : (H.type_, string) result =
+  let* raw = Normalize.layer original in
+  match (raw.ref_, raw.all_of, ty) with
+  | None, Some [ part ], _ -> (
+      (* Deviations.haskell_one_all_of *)
+      match part with
+      | Schema.Schema { ref_ = Some r; _ } ->
+          let target = Definitions.referenced r in
+          depend state target;
+          Ok (H.T_name target)
+      | _ -> type_of state at part ty)
+  | _, _, Inline { form = Enum { base = Some s; _ }; _ } ->
+      let* merged = normalize state original in
+      if Deviations.haskell_enumeration merged then stated state at original ty
+      else Ok (scalar_of s)
+  | _ -> stated state at original ty
+
+and stated state at original (ty : T.ty) =
+  match ty with
+  | Named target ->
+      depend state target;
+      Ok (H.T_name target)
+  | Scalar s -> Ok (scalar_of s)
+  | List (Some item) ->
+      let* item_schema = items state at original in
+      Result.map (fun t -> H.T_list t) (type_of state at item_schema item)
+  | Any -> Ok (H.T_name "Value")
+  | Inline i -> inline state original i
+  | List None | Null | Nothing | Nullable _ ->
+      Error (at ^ ": unsupported type shape")
+
+(* The type written in place as [i], declared once, by [Typing]'s name. *)
+and inline state schema (i : T.inline) =
+  let* () =
+    match Named.find_opt i.name state.declarations with
+    | Some (Some { owner; _ }) ->
+        if owner <> state.owner then depend state owner;
+        Ok ()
+    | Some None -> Ok ()
+    | None when Named.mem i.name state.definitions ->
+        Error ("two schemas written in place would both be " ^ i.name)
+    | None ->
+        state.definitions <- Named.add i.name schema state.definitions;
+        declare state i.name schema i.form
+  in
+  Ok (H.T_name i.name)
+
+(* [component] declared as its own module's, before a schema that inherits
+   its properties refers to the types written in place for them. *)
+and declare_parent state component =
+  let holder = state.owner in
+  let* schema = find state component in
+  state.owner <- component;
+  let declared =
+    declare state component schema (state.typing.find component).form
+  in
+  state.owner <- holder;
+  declared
+
+and declare state name original (form : T.form) =
+  if Named.mem name state.declarations then Ok ()
+  else (
+    state.declarations <- Named.add name None state.declarations;
+    let owner = state.owner in
+    let* decls =
+      match form with
+      | Alias (Nullable _) ->
+          Error
+            (name ^ ": nullable named schemas need an explicit representation")
+      | Enum { values; _ }
+        when Result.fold ~ok:Deviations.haskell_enumeration
+               ~error:(fun _ -> false)
+               (normalize state original) ->
+          state.enumerations <- (name, values) :: state.enumerations;
+          enumeration name values
+      | Union u -> union state name original u
+      | Record { members; rest } ->
+          object_ state name original members rest
+            ~open_:
+              (match rest with
+              | Open | Of _ -> true
+              | Closed | Unstated -> false)
+      (* Deviations: an object that names no member and says nothing of
+         others holds whatever members it is given. *)
+      | Empty { rest; _ } ->
+          object_ state name original [] rest ~open_:(rest <> Closed)
+      | Map { value; _ } ->
+          object_ state name original [] (Of value) ~open_:true
+      | Enum { base; _ } -> (
+          match base with
+          | Some s -> newtype state name (scalar_of s)
+          | None -> newtype state name (H.T_name "Value"))
+      | Identifier _ -> newtype state name (H.T_name "Text")
+      | Json -> newtype state name (H.T_name "Value")
+      | Alias ty ->
+          let* value_type = type_of state name original ty in
+          newtype state name value_type
+    in
+    state.declarations <-
+      Named.add name (Some { owner; decls }) state.declarations;
+    Ok ())
+
+and union state name original (u : T.union) =
+  let* parts = union_parts state name original in
+  let* () =
+    if List.length parts = List.length u.branches then Ok ()
+    else Error (name ^ ": its members are not Typing's")
+  in
+  let* members =
+    Result.map List.rev
+      (List.fold_left2
+         (fun found part (b : T.branch) ->
+           let* found = found in
+           (match b.ty with
+           | Inline i ->
+               state.union_members <- Names.add i.name state.union_members
+           | _ -> ());
+           let* t = type_of state name part b.ty in
+           Ok ((name ^ b.variant, t) :: found))
+         (Ok []) parts u.branches)
+  in
+  union_decls name members
+
+(* What constructs the record or newtype [name]:
+   [Deviations.haskell_union_member]. *)
+and constructed state name =
+  if Names.mem name state.union_members then "Mk" ^ name else name
+
+and newtype state name value_type =
+  newtype_decls name ~constructor:(constructed state name) value_type
+    (Names.mem name state.identifiers)
+
+and object_ state name original (members : T.member list) (rest : T.rest) ~open_
+    =
+  let names = H.List (List.map (fun (m : T.member) -> H.Str m.wire) members) in
+  let* fields =
+    Result.map List.rev
+      (List.fold_left
+         (fun found (m : T.member) ->
+           let* found = found in
+           let key = m.wire in
+           let accessor = field name key in
+           let nullable, ty =
+             match m.ty with Nullable ty -> (true, ty) | ty -> (false, ty)
+           in
+           (* A member a named schema states is its; one stated in place, the
+              record's. *)
+           let owner =
+             if m.owner <> name && state.typing.defined m.owner then m.owner
+             else name
+           in
+           let* () =
+             if owner = name then Ok () else declare_parent state owner
+           in
+           let* stated = property state name original key in
+           let* beside = beside_null (name ^ "." ^ key) stated in
+           let* t = type_of state (name ^ "." ^ key) beside ty in
+           let held = H.Apply (Name accessor, [ Name "value" ]) in
+           let typ, parser, encoder =
+             member ~row:"fields" ~key ~held ~nullable ~mandatory:m.required t
+           in
+           Ok ((accessor, typ, parser, encoder) :: found))
+         (Ok []) members)
+  in
+  let* extra_type =
+    match rest with
+    | Of value ->
+        let* s = normalize state original in
+        let additional =
+          match s.additional_properties with
+          | Some (Schema _ as typed) -> typed
+          | _ -> Schema.Boolean_schema true
+        in
+        type_of state name additional value
+    | Closed | Unstated | Open -> Ok (H.T_name "Value")
+  in
+  object_decls name ~constructor:(constructed state name) ~open_ ~names
+    ~extra_type fields
+
+(* The type [typing] writes in place for member [key] of record [record]. *)
+let member_type (typing : T.t) record key =
+  match (typing.find record).form with
+  | Record { members; _ } -> (
+      match List.find_opt (fun (m : T.member) -> m.wire = key) members with
+      | Some { ty = Inline i | Nullable (Inline i); _ } -> Ok i.name
+      | _ -> Error (record ^ "." ^ key ^ " is no type written in place"))
+  | _ -> Error (record ^ " is no record")
 
 (* Tarjan's strongly connected components of [names] by [edges], each sorted
    by name. *)
@@ -626,6 +637,9 @@ type t = {
   definitions : (string * Schema.t) list;
       (** Every schema a type was made for, those stated in place among them, by
           name. *)
+  typing : T.t;
+  enumerations : (string * Schema.literal list) list;
+      (** Every enumeration declared, and its values, by name. *)
 }
 
 let prefix = "Xynolog.Internal.Generated.Models."
@@ -679,7 +693,49 @@ let imports body dependencies =
       (H.import "Xynolog.Internal.Codec")
   @ List.map (fun m -> H.import m) dependencies
 
+(* What [Typing] makes of [definitions]: each schema under its name's file
+   and under every key a reference to it resolves to, a reference naming the
+   schema of its file's base name ([Definitions.referenced]). *)
+let typing ~ids ~identifiers definitions =
+  let by_name = Hashtbl.create 512 in
+  List.iter
+    (fun (name, s) -> Hashtbl.replace by_name name (Normalize.shape_only s))
+    definitions;
+  let stem key = Filename.remove_extension (Filename.basename key) in
+  let schemas = Hashtbl.create 1024 in
+  let keep key =
+    match Hashtbl.find_opt by_name (stem key) with
+    | Some s -> Hashtbl.replace schemas key s
+    | None -> ()
+  in
+  List.iter
+    (fun (name, s) ->
+      keep (name ^ ".json");
+      List.iter
+        (fun r -> keep (Table_records.key ids r))
+        (Schema.cata
+           ~boolean:(fun _ -> [])
+           ~schema:(fun l ->
+             Option.to_list l.ref_ @ List.concat (Schema.children l))
+           s))
+    definitions;
+  let named key =
+    if Hashtbl.mem by_name (stem key) then Some (stem key) else None
+  in
+  let view = T.D.view ~ids ~named ~schemas in
+  match
+    T.make
+      {
+        names = List.map fst definitions;
+        schema = (fun name -> view (Hashtbl.find by_name name));
+      }
+      ~roots:(List.map fst definitions) ~identifiers ~keys:[]
+  with
+  | typing -> Ok typing
+  | exception T.D.Refused message -> Error message
+
 let generate ~banner ~ids ~identifiers definitions =
+  let* typing = typing ~ids ~identifiers definitions in
   let state =
     {
       definitions = Named.of_list definitions;
@@ -688,6 +744,9 @@ let generate ~banner ~ids ~identifiers definitions =
       dependencies = Named.empty;
       ids;
       identifiers = Names.of_list identifiers;
+      enumerations = [];
+      union_members = Names.empty;
+      typing;
     }
   in
   let* () =
@@ -695,7 +754,7 @@ let generate ~banner ~ids ~identifiers definitions =
       (fun ok (name, schema) ->
         let* () = ok in
         state.owner <- name;
-        declare state name schema)
+        declare state name schema (typing.find name).form)
       (Ok ())
       (Named.bindings state.definitions)
   in
@@ -748,4 +807,7 @@ let generate ~banner ~ids ~identifiers definitions =
       module_names =
         List.sort String.compare (List.map (fun m -> m.H.name) modules);
       definitions = Named.bindings state.definitions;
+      typing;
+      enumerations =
+        List.sort (fun (a, _) (b, _) -> String.compare a b) state.enumerations;
     }

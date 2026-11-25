@@ -39,33 +39,33 @@ knowledgeIndexKindText :: KnowledgeIndexKind -> Text
 knowledgeIndexKindText KnowledgeIndexKindKnowledgeIndex = "KnowledgeIndex"
 
 data KnowledgeIndexSpec = KnowledgeIndexSpec
-  { knowledgeIndexSpecEmbedding :: KnowledgeIndexSpecEmbedding,
-    knowledgeIndexSpecGraph :: Runner,
-    knowledgeIndexSpecKnowledgeBase :: Text,
-    knowledgeIndexSpecLibrarian :: KnowledgeIndexSpecLibrarian,
+  { knowledgeIndexSpecKnowledgeBase :: Text,
     knowledgeIndexSpecLogLevel :: LogLevel,
-    knowledgeIndexSpecSmelter :: KnowledgeIndexSpecSmelter,
+    knowledgeIndexSpecGraph :: Runner,
     knowledgeIndexSpecVectors :: KnowledgeIndexSpecVectors,
+    knowledgeIndexSpecEmbedding :: KnowledgeIndexSpecEmbedding,
+    knowledgeIndexSpecLibrarian :: KnowledgeIndexSpecLibrarian,
+    knowledgeIndexSpecSmelter :: KnowledgeIndexSpecSmelter,
     knowledgeIndexSpecWeaver :: KnowledgeIndexSpecWeaver
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeIndexSpec where parseJSON = checked "KnowledgeIndexSpec" $ withObject "KnowledgeIndexSpec" (\fields -> KnowledgeIndexSpec <$> (fields .: "embedding") <*> (fields .: "graph") <*> (fields .: "knowledgeBase") <*> (fields .: "librarian") <*> (fields .: "logLevel") <*> (fields .: "smelter") <*> (fields .: "vectors") <*> (fields .: "weaver"))
+instance FromJSON KnowledgeIndexSpec where parseJSON = checked "KnowledgeIndexSpec" $ withObject "KnowledgeIndexSpec" (\fields -> KnowledgeIndexSpec <$> (fields .: "knowledgeBase") <*> (fields .: "logLevel") <*> (fields .: "graph") <*> (fields .: "vectors") <*> (fields .: "embedding") <*> (fields .: "librarian") <*> (fields .: "smelter") <*> (fields .: "weaver"))
 
-instance ToJSON KnowledgeIndexSpec where toJSON value = Object (KM.fromList (concat [[("embedding", toJSON (knowledgeIndexSpecEmbedding value))], [("graph", toJSON (knowledgeIndexSpecGraph value))], [("knowledgeBase", toJSON (knowledgeIndexSpecKnowledgeBase value))], [("librarian", toJSON (knowledgeIndexSpecLibrarian value))], [("logLevel", toJSON (knowledgeIndexSpecLogLevel value))], [("smelter", toJSON (knowledgeIndexSpecSmelter value))], [("vectors", toJSON (knowledgeIndexSpecVectors value))], [("weaver", toJSON (knowledgeIndexSpecWeaver value))]]))
+instance ToJSON KnowledgeIndexSpec where toJSON value = Object (KM.fromList (concat [[("knowledgeBase", toJSON (knowledgeIndexSpecKnowledgeBase value))], [("logLevel", toJSON (knowledgeIndexSpecLogLevel value))], [("graph", toJSON (knowledgeIndexSpecGraph value))], [("vectors", toJSON (knowledgeIndexSpecVectors value))], [("embedding", toJSON (knowledgeIndexSpecEmbedding value))], [("librarian", toJSON (knowledgeIndexSpecLibrarian value))], [("smelter", toJSON (knowledgeIndexSpecSmelter value))], [("weaver", toJSON (knowledgeIndexSpecWeaver value))]]))
 
 data KnowledgeIndexSpecEmbedding = KnowledgeIndexSpecEmbedding
-  { knowledgeIndexSpecEmbeddingApiKey :: Maybe SecretRef,
+  { knowledgeIndexSpecEmbeddingType :: Text,
+    knowledgeIndexSpecEmbeddingModel :: Text,
     knowledgeIndexSpecEmbeddingChunking :: KnowledgeIndexSpecEmbeddingChunking,
     knowledgeIndexSpecEmbeddingEndpoint :: Maybe Text,
-    knowledgeIndexSpecEmbeddingModel :: Text,
-    knowledgeIndexSpecEmbeddingType :: Text
+    knowledgeIndexSpecEmbeddingApiKey :: Maybe SecretRef
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeIndexSpecEmbedding where parseJSON = checked "KnowledgeIndexSpecEmbedding" $ withObject "KnowledgeIndexSpecEmbedding" (\fields -> KnowledgeIndexSpecEmbedding <$> optional fields "apiKey" <*> (fields .: "chunking") <*> optional fields "endpoint" <*> (fields .: "model") <*> (fields .: "type"))
+instance FromJSON KnowledgeIndexSpecEmbedding where parseJSON = checked "KnowledgeIndexSpecEmbedding" $ withObject "KnowledgeIndexSpecEmbedding" (\fields -> KnowledgeIndexSpecEmbedding <$> (fields .: "type") <*> (fields .: "model") <*> (fields .: "chunking") <*> optional fields "endpoint" <*> optional fields "apiKey")
 
-instance ToJSON KnowledgeIndexSpecEmbedding where toJSON value = Object (KM.fromList (concat [optionalPair "apiKey" (knowledgeIndexSpecEmbeddingApiKey value), [("chunking", toJSON (knowledgeIndexSpecEmbeddingChunking value))], optionalPair "endpoint" (knowledgeIndexSpecEmbeddingEndpoint value), [("model", toJSON (knowledgeIndexSpecEmbeddingModel value))], [("type", toJSON (knowledgeIndexSpecEmbeddingType value))]]))
+instance ToJSON KnowledgeIndexSpecEmbedding where toJSON value = Object (KM.fromList (concat [[("type", toJSON (knowledgeIndexSpecEmbeddingType value))], [("model", toJSON (knowledgeIndexSpecEmbeddingModel value))], [("chunking", toJSON (knowledgeIndexSpecEmbeddingChunking value))], optionalPair "endpoint" (knowledgeIndexSpecEmbeddingEndpoint value), optionalPair "apiKey" (knowledgeIndexSpecEmbeddingApiKey value)]))
 
 data KnowledgeIndexSpecEmbeddingChunking = KnowledgeIndexSpecEmbeddingChunking
   { knowledgeIndexSpecEmbeddingChunkingChunkSize :: Integer,
@@ -78,16 +78,16 @@ instance FromJSON KnowledgeIndexSpecEmbeddingChunking where parseJSON = checked 
 instance ToJSON KnowledgeIndexSpecEmbeddingChunking where toJSON value = Object (KM.fromList (concat [[("chunkSize", toJSON (knowledgeIndexSpecEmbeddingChunkingChunkSize value))], [("overlap", toJSON (knowledgeIndexSpecEmbeddingChunkingOverlap value))]]))
 
 data KnowledgeIndexSpecLibrarian = KnowledgeIndexSpecLibrarian
-  { knowledgeIndexSpecLibrarianGather :: KnowledgeIndexSpecLibrarianGather,
-    knowledgeIndexSpecLibrarianImage :: Image,
+  { knowledgeIndexSpecLibrarianImage :: Image,
     knowledgeIndexSpecLibrarianResources :: Resources,
+    knowledgeIndexSpecLibrarianGather :: KnowledgeIndexSpecLibrarianGather,
     knowledgeIndexSpecLibrarianSearch :: KnowledgeIndexSpecLibrarianSearch
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeIndexSpecLibrarian where parseJSON = checked "KnowledgeIndexSpecLibrarian" $ withObject "KnowledgeIndexSpecLibrarian" (\fields -> KnowledgeIndexSpecLibrarian <$> (fields .: "gather") <*> (fields .: "image") <*> (fields .: "resources") <*> (fields .: "search"))
+instance FromJSON KnowledgeIndexSpecLibrarian where parseJSON = checked "KnowledgeIndexSpecLibrarian" $ withObject "KnowledgeIndexSpecLibrarian" (\fields -> KnowledgeIndexSpecLibrarian <$> (fields .: "image") <*> (fields .: "resources") <*> (fields .: "gather") <*> (fields .: "search"))
 
-instance ToJSON KnowledgeIndexSpecLibrarian where toJSON value = Object (KM.fromList (concat [[("gather", toJSON (knowledgeIndexSpecLibrarianGather value))], [("image", toJSON (knowledgeIndexSpecLibrarianImage value))], [("resources", toJSON (knowledgeIndexSpecLibrarianResources value))], [("search", toJSON (knowledgeIndexSpecLibrarianSearch value))]]))
+instance ToJSON KnowledgeIndexSpecLibrarian where toJSON value = Object (KM.fromList (concat [[("image", toJSON (knowledgeIndexSpecLibrarianImage value))], [("resources", toJSON (knowledgeIndexSpecLibrarianResources value))], [("gather", toJSON (knowledgeIndexSpecLibrarianGather value))], [("search", toJSON (knowledgeIndexSpecLibrarianSearch value))]]))
 
 data KnowledgeIndexSpecLibrarianGather = KnowledgeIndexSpecLibrarianGather
   { knowledgeIndexSpecLibrarianGatherSettleTimeoutMs :: Integer
@@ -109,39 +109,39 @@ instance ToJSON KnowledgeIndexSpecLibrarianSearch where toJSON value = Object (K
 
 data KnowledgeIndexSpecSmelter = KnowledgeIndexSpecSmelter
   { knowledgeIndexSpecSmelterImage :: Image,
-    knowledgeIndexSpecSmelterPdfsAtOnce :: Integer,
-    knowledgeIndexSpecSmelterResources :: Resources
+    knowledgeIndexSpecSmelterResources :: Resources,
+    knowledgeIndexSpecSmelterPdfsAtOnce :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeIndexSpecSmelter where parseJSON = checked "KnowledgeIndexSpecSmelter" $ withObject "KnowledgeIndexSpecSmelter" (\fields -> KnowledgeIndexSpecSmelter <$> (fields .: "image") <*> (fields .: "pdfsAtOnce") <*> (fields .: "resources"))
+instance FromJSON KnowledgeIndexSpecSmelter where parseJSON = checked "KnowledgeIndexSpecSmelter" $ withObject "KnowledgeIndexSpecSmelter" (\fields -> KnowledgeIndexSpecSmelter <$> (fields .: "image") <*> (fields .: "resources") <*> (fields .: "pdfsAtOnce"))
 
-instance ToJSON KnowledgeIndexSpecSmelter where toJSON value = Object (KM.fromList (concat [[("image", toJSON (knowledgeIndexSpecSmelterImage value))], [("pdfsAtOnce", toJSON (knowledgeIndexSpecSmelterPdfsAtOnce value))], [("resources", toJSON (knowledgeIndexSpecSmelterResources value))]]))
+instance ToJSON KnowledgeIndexSpecSmelter where toJSON value = Object (KM.fromList (concat [[("image", toJSON (knowledgeIndexSpecSmelterImage value))], [("resources", toJSON (knowledgeIndexSpecSmelterResources value))], [("pdfsAtOnce", toJSON (knowledgeIndexSpecSmelterPdfsAtOnce value))]]))
 
 data KnowledgeIndexSpecVectors = KnowledgeIndexSpecVectors
-  { knowledgeIndexSpecVectorsExternal :: Maybe KnowledgeIndexSpecVectorsExternal,
+  { knowledgeIndexSpecVectorsType :: Text,
+    knowledgeIndexSpecVectorsShared :: Maybe KnowledgeIndexSpecVectorsShared,
     knowledgeIndexSpecVectorsImage :: Maybe Image,
     knowledgeIndexSpecVectorsResources :: Maybe Resources,
-    knowledgeIndexSpecVectorsShared :: Maybe KnowledgeIndexSpecVectorsShared,
-    knowledgeIndexSpecVectorsType :: Text
+    knowledgeIndexSpecVectorsExternal :: Maybe KnowledgeIndexSpecVectorsExternal
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeIndexSpecVectors where parseJSON = checked "KnowledgeIndexSpecVectors" $ withObject "KnowledgeIndexSpecVectors" (\fields -> KnowledgeIndexSpecVectors <$> optional fields "external" <*> optional fields "image" <*> optional fields "resources" <*> optional fields "shared" <*> (fields .: "type"))
+instance FromJSON KnowledgeIndexSpecVectors where parseJSON = checked "KnowledgeIndexSpecVectors" $ withObject "KnowledgeIndexSpecVectors" (\fields -> KnowledgeIndexSpecVectors <$> (fields .: "type") <*> optional fields "shared" <*> optional fields "image" <*> optional fields "resources" <*> optional fields "external")
 
-instance ToJSON KnowledgeIndexSpecVectors where toJSON value = Object (KM.fromList (concat [optionalPair "external" (knowledgeIndexSpecVectorsExternal value), optionalPair "image" (knowledgeIndexSpecVectorsImage value), optionalPair "resources" (knowledgeIndexSpecVectorsResources value), optionalPair "shared" (knowledgeIndexSpecVectorsShared value), [("type", toJSON (knowledgeIndexSpecVectorsType value))]]))
+instance ToJSON KnowledgeIndexSpecVectors where toJSON value = Object (KM.fromList (concat [[("type", toJSON (knowledgeIndexSpecVectorsType value))], optionalPair "shared" (knowledgeIndexSpecVectorsShared value), optionalPair "image" (knowledgeIndexSpecVectorsImage value), optionalPair "resources" (knowledgeIndexSpecVectorsResources value), optionalPair "external" (knowledgeIndexSpecVectorsExternal value)]))
 
 data KnowledgeIndexSpecVectorsExternal = KnowledgeIndexSpecVectorsExternal
   { knowledgeIndexSpecVectorsExternalHost :: Text,
-    knowledgeIndexSpecVectorsExternalLibrarianToken :: SecretRef,
     knowledgeIndexSpecVectorsExternalPort :: Integer,
-    knowledgeIndexSpecVectorsExternalSmelterToken :: SecretRef
+    knowledgeIndexSpecVectorsExternalSmelterToken :: SecretRef,
+    knowledgeIndexSpecVectorsExternalLibrarianToken :: SecretRef
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeIndexSpecVectorsExternal where parseJSON = checked "KnowledgeIndexSpecVectorsExternal" $ withObject "KnowledgeIndexSpecVectorsExternal" (\fields -> KnowledgeIndexSpecVectorsExternal <$> (fields .: "host") <*> (fields .: "librarianToken") <*> (fields .: "port") <*> (fields .: "smelterToken"))
+instance FromJSON KnowledgeIndexSpecVectorsExternal where parseJSON = checked "KnowledgeIndexSpecVectorsExternal" $ withObject "KnowledgeIndexSpecVectorsExternal" (\fields -> KnowledgeIndexSpecVectorsExternal <$> (fields .: "host") <*> (fields .: "port") <*> (fields .: "smelterToken") <*> (fields .: "librarianToken"))
 
-instance ToJSON KnowledgeIndexSpecVectorsExternal where toJSON value = Object (KM.fromList (concat [[("host", toJSON (knowledgeIndexSpecVectorsExternalHost value))], [("librarianToken", toJSON (knowledgeIndexSpecVectorsExternalLibrarianToken value))], [("port", toJSON (knowledgeIndexSpecVectorsExternalPort value))], [("smelterToken", toJSON (knowledgeIndexSpecVectorsExternalSmelterToken value))]]))
+instance ToJSON KnowledgeIndexSpecVectorsExternal where toJSON value = Object (KM.fromList (concat [[("host", toJSON (knowledgeIndexSpecVectorsExternalHost value))], [("port", toJSON (knowledgeIndexSpecVectorsExternalPort value))], [("smelterToken", toJSON (knowledgeIndexSpecVectorsExternalSmelterToken value))], [("librarianToken", toJSON (knowledgeIndexSpecVectorsExternalLibrarianToken value))]]))
 
 data KnowledgeIndexSpecVectorsShared = KnowledgeIndexSpecVectorsShared deriving (Eq, Show)
 

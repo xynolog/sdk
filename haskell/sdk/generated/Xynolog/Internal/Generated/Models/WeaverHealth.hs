@@ -12,27 +12,27 @@ import Xynolog.Internal.Generated.Models.FollowerFollowing
 import Xynolog.Internal.Generated.Models.KbDid
 
 data WeaverHealth = WeaverHealth
-  { weaverHealthFollowing :: FollowerFollowing,
+  { weaverHealthStatus :: WeaverHealthStatus,
     weaverHealthKb :: KbDid,
-    weaverHealthReconcile :: WeaverHealthReconcile,
-    weaverHealthStatus :: WeaverHealthStatus
+    weaverHealthFollowing :: FollowerFollowing,
+    weaverHealthReconcile :: WeaverHealthReconcile
   }
   deriving (Eq, Show)
 
-instance FromJSON WeaverHealth where parseJSON = checked "WeaverHealth" $ withObject "WeaverHealth" (\fields -> WeaverHealth <$> (fields .: "following") <*> (fields .: "kb") <*> (fields .: "reconcile") <*> (fields .: "status"))
+instance FromJSON WeaverHealth where parseJSON = checked "WeaverHealth" $ withObject "WeaverHealth" (\fields -> WeaverHealth <$> (fields .: "status") <*> (fields .: "kb") <*> (fields .: "following") <*> (fields .: "reconcile"))
 
-instance ToJSON WeaverHealth where toJSON value = Object (KM.fromList (concat [[("following", toJSON (weaverHealthFollowing value))], [("kb", toJSON (weaverHealthKb value))], [("reconcile", toJSON (weaverHealthReconcile value))], [("status", toJSON (weaverHealthStatus value))]]))
+instance ToJSON WeaverHealth where toJSON value = Object (KM.fromList (concat [[("status", toJSON (weaverHealthStatus value))], [("kb", toJSON (weaverHealthKb value))], [("following", toJSON (weaverHealthFollowing value))], [("reconcile", toJSON (weaverHealthReconcile value))]]))
 
 data WeaverHealthReconcile = WeaverHealthReconcile
-  { weaverHealthReconcileError :: Maybe Text,
-    weaverHealthReconcilePhase :: WeaverHealthReconcilePhase,
-    weaverHealthReconcileSummary :: Maybe WeaverHealthReconcileSummary
+  { weaverHealthReconcilePhase :: WeaverHealthReconcilePhase,
+    weaverHealthReconcileSummary :: Maybe WeaverHealthReconcileSummary,
+    weaverHealthReconcileError :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WeaverHealthReconcile where parseJSON = checked "WeaverHealthReconcile" $ withObject "WeaverHealthReconcile" (\fields -> WeaverHealthReconcile <$> optional fields "error" <*> (fields .: "phase") <*> optional fields "summary")
+instance FromJSON WeaverHealthReconcile where parseJSON = checked "WeaverHealthReconcile" $ withObject "WeaverHealthReconcile" (\fields -> WeaverHealthReconcile <$> (fields .: "phase") <*> optional fields "summary" <*> optional fields "error")
 
-instance ToJSON WeaverHealthReconcile where toJSON value = Object (KM.fromList (concat [optionalPair "error" (weaverHealthReconcileError value), [("phase", toJSON (weaverHealthReconcilePhase value))], optionalPair "summary" (weaverHealthReconcileSummary value)]))
+instance ToJSON WeaverHealthReconcile where toJSON value = Object (KM.fromList (concat [[("phase", toJSON (weaverHealthReconcilePhase value))], optionalPair "summary" (weaverHealthReconcileSummary value), optionalPair "error" (weaverHealthReconcileError value)]))
 
 data WeaverHealthReconcilePhase = WeaverHealthReconcilePhasePending | WeaverHealthReconcilePhaseRunning | WeaverHealthReconcilePhaseDone | WeaverHealthReconcilePhaseFailed deriving (Eq, Show)
 
@@ -51,17 +51,17 @@ weaverHealthReconcilePhaseText WeaverHealthReconcilePhaseDone = "done"
 weaverHealthReconcilePhaseText WeaverHealthReconcilePhaseFailed = "failed"
 
 data WeaverHealthReconcileSummary = WeaverHealthReconcileSummary
-  { weaverHealthReconcileSummaryDivergent :: Integer,
-    weaverHealthReconcileSummaryHealFailures :: Integer,
+  { weaverHealthReconcileSummaryResourcesChecked :: Integer,
+    weaverHealthReconcileSummaryDivergent :: Integer,
     weaverHealthReconcileSummaryHealed :: Integer,
-    weaverHealthReconcileSummaryOrphaned :: Integer,
-    weaverHealthReconcileSummaryResourcesChecked :: Integer
+    weaverHealthReconcileSummaryHealFailures :: Integer,
+    weaverHealthReconcileSummaryOrphaned :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON WeaverHealthReconcileSummary where parseJSON = checked "WeaverHealthReconcileSummary" $ withObject "WeaverHealthReconcileSummary" (\fields -> WeaverHealthReconcileSummary <$> (fields .: "divergent") <*> (fields .: "healFailures") <*> (fields .: "healed") <*> (fields .: "orphaned") <*> (fields .: "resourcesChecked"))
+instance FromJSON WeaverHealthReconcileSummary where parseJSON = checked "WeaverHealthReconcileSummary" $ withObject "WeaverHealthReconcileSummary" (\fields -> WeaverHealthReconcileSummary <$> (fields .: "resourcesChecked") <*> (fields .: "divergent") <*> (fields .: "healed") <*> (fields .: "healFailures") <*> (fields .: "orphaned"))
 
-instance ToJSON WeaverHealthReconcileSummary where toJSON value = Object (KM.fromList (concat [[("divergent", toJSON (weaverHealthReconcileSummaryDivergent value))], [("healFailures", toJSON (weaverHealthReconcileSummaryHealFailures value))], [("healed", toJSON (weaverHealthReconcileSummaryHealed value))], [("orphaned", toJSON (weaverHealthReconcileSummaryOrphaned value))], [("resourcesChecked", toJSON (weaverHealthReconcileSummaryResourcesChecked value))]]))
+instance ToJSON WeaverHealthReconcileSummary where toJSON value = Object (KM.fromList (concat [[("resourcesChecked", toJSON (weaverHealthReconcileSummaryResourcesChecked value))], [("divergent", toJSON (weaverHealthReconcileSummaryDivergent value))], [("healed", toJSON (weaverHealthReconcileSummaryHealed value))], [("healFailures", toJSON (weaverHealthReconcileSummaryHealFailures value))], [("orphaned", toJSON (weaverHealthReconcileSummaryOrphaned value))]]))
 
 data WeaverHealthStatus = WeaverHealthStatusOk deriving (Eq, Show)
 

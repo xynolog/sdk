@@ -38,29 +38,29 @@ stackKnowledgeBaseKindText :: StackKnowledgeBaseKind -> Text
 stackKnowledgeBaseKindText StackKnowledgeBaseKindKnowledgeBase = "KnowledgeBase"
 
 data StackKnowledgeBaseSpec = StackKnowledgeBaseSpec
-  { stackKnowledgeBaseSpecArchivist :: StackKnowledgeBaseSpecArchivist,
-    stackKnowledgeBaseSpecDispatcher :: StackKnowledgeBaseSpecDispatcher,
+  { stackKnowledgeBaseSpecLogLevel :: LogLevel,
     stackKnowledgeBaseSpecGateway :: StackKnowledgeBaseSpecGateway,
-    stackKnowledgeBaseSpecIssuer :: StackKnowledgeBaseSpecIssuer,
-    stackKnowledgeBaseSpecLogLevel :: LogLevel,
-    stackKnowledgeBaseSpecMessaging :: Runner
+    stackKnowledgeBaseSpecDispatcher :: StackKnowledgeBaseSpecDispatcher,
+    stackKnowledgeBaseSpecArchivist :: StackKnowledgeBaseSpecArchivist,
+    stackKnowledgeBaseSpecMessaging :: Runner,
+    stackKnowledgeBaseSpecIssuer :: StackKnowledgeBaseSpecIssuer
   }
   deriving (Eq, Show)
 
-instance FromJSON StackKnowledgeBaseSpec where parseJSON = checked "StackKnowledgeBaseSpec" $ withObject "StackKnowledgeBaseSpec" (\fields -> StackKnowledgeBaseSpec <$> (fields .: "archivist") <*> (fields .: "dispatcher") <*> (fields .: "gateway") <*> (fields .: "issuer") <*> (fields .: "logLevel") <*> (fields .: "messaging"))
+instance FromJSON StackKnowledgeBaseSpec where parseJSON = checked "StackKnowledgeBaseSpec" $ withObject "StackKnowledgeBaseSpec" (\fields -> StackKnowledgeBaseSpec <$> (fields .: "logLevel") <*> (fields .: "gateway") <*> (fields .: "dispatcher") <*> (fields .: "archivist") <*> (fields .: "messaging") <*> (fields .: "issuer"))
 
-instance ToJSON StackKnowledgeBaseSpec where toJSON value = Object (KM.fromList (concat [[("archivist", toJSON (stackKnowledgeBaseSpecArchivist value))], [("dispatcher", toJSON (stackKnowledgeBaseSpecDispatcher value))], [("gateway", toJSON (stackKnowledgeBaseSpecGateway value))], [("issuer", toJSON (stackKnowledgeBaseSpecIssuer value))], [("logLevel", toJSON (stackKnowledgeBaseSpecLogLevel value))], [("messaging", toJSON (stackKnowledgeBaseSpecMessaging value))]]))
+instance ToJSON StackKnowledgeBaseSpec where toJSON value = Object (KM.fromList (concat [[("logLevel", toJSON (stackKnowledgeBaseSpecLogLevel value))], [("gateway", toJSON (stackKnowledgeBaseSpecGateway value))], [("dispatcher", toJSON (stackKnowledgeBaseSpecDispatcher value))], [("archivist", toJSON (stackKnowledgeBaseSpecArchivist value))], [("messaging", toJSON (stackKnowledgeBaseSpecMessaging value))], [("issuer", toJSON (stackKnowledgeBaseSpecIssuer value))]]))
 
 data StackKnowledgeBaseSpecArchivist = StackKnowledgeBaseSpecArchivist
-  { stackKnowledgeBaseSpecArchivistAddress :: Maybe HostPort,
-    stackKnowledgeBaseSpecArchivistImage :: Image,
-    stackKnowledgeBaseSpecArchivistResources :: Resources
+  { stackKnowledgeBaseSpecArchivistImage :: Image,
+    stackKnowledgeBaseSpecArchivistResources :: Resources,
+    stackKnowledgeBaseSpecArchivistAddress :: Maybe HostPort
   }
   deriving (Eq, Show)
 
-instance FromJSON StackKnowledgeBaseSpecArchivist where parseJSON = checked "StackKnowledgeBaseSpecArchivist" $ withObject "StackKnowledgeBaseSpecArchivist" (\fields -> StackKnowledgeBaseSpecArchivist <$> optional fields "address" <*> (fields .: "image") <*> (fields .: "resources"))
+instance FromJSON StackKnowledgeBaseSpecArchivist where parseJSON = checked "StackKnowledgeBaseSpecArchivist" $ withObject "StackKnowledgeBaseSpecArchivist" (\fields -> StackKnowledgeBaseSpecArchivist <$> (fields .: "image") <*> (fields .: "resources") <*> optional fields "address")
 
-instance ToJSON StackKnowledgeBaseSpecArchivist where toJSON value = Object (KM.fromList (concat [optionalPair "address" (stackKnowledgeBaseSpecArchivistAddress value), [("image", toJSON (stackKnowledgeBaseSpecArchivistImage value))], [("resources", toJSON (stackKnowledgeBaseSpecArchivistResources value))]]))
+instance ToJSON StackKnowledgeBaseSpecArchivist where toJSON value = Object (KM.fromList (concat [[("image", toJSON (stackKnowledgeBaseSpecArchivistImage value))], [("resources", toJSON (stackKnowledgeBaseSpecArchivistResources value))], optionalPair "address" (stackKnowledgeBaseSpecArchivistAddress value)]))
 
 data StackKnowledgeBaseSpecDispatcher = StackKnowledgeBaseSpecDispatcher
   { stackKnowledgeBaseSpecDispatcherImage :: Image,
@@ -74,26 +74,26 @@ instance ToJSON StackKnowledgeBaseSpecDispatcher where toJSON value = Object (KM
 
 data StackKnowledgeBaseSpecGateway = StackKnowledgeBaseSpecGateway
   { stackKnowledgeBaseSpecGatewayImage :: Image,
+    stackKnowledgeBaseSpecGatewayResources :: Resources,
     stackKnowledgeBaseSpecGatewayPort :: Integer,
-    stackKnowledgeBaseSpecGatewayPublicURL :: Text,
-    stackKnowledgeBaseSpecGatewayResources :: Resources
+    stackKnowledgeBaseSpecGatewayPublicURL :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON StackKnowledgeBaseSpecGateway where parseJSON = checked "StackKnowledgeBaseSpecGateway" $ withObject "StackKnowledgeBaseSpecGateway" (\fields -> StackKnowledgeBaseSpecGateway <$> (fields .: "image") <*> (fields .: "port") <*> (fields .: "publicURL") <*> (fields .: "resources"))
+instance FromJSON StackKnowledgeBaseSpecGateway where parseJSON = checked "StackKnowledgeBaseSpecGateway" $ withObject "StackKnowledgeBaseSpecGateway" (\fields -> StackKnowledgeBaseSpecGateway <$> (fields .: "image") <*> (fields .: "resources") <*> (fields .: "port") <*> (fields .: "publicURL"))
 
-instance ToJSON StackKnowledgeBaseSpecGateway where toJSON value = Object (KM.fromList (concat [[("image", toJSON (stackKnowledgeBaseSpecGatewayImage value))], [("port", toJSON (stackKnowledgeBaseSpecGatewayPort value))], [("publicURL", toJSON (stackKnowledgeBaseSpecGatewayPublicURL value))], [("resources", toJSON (stackKnowledgeBaseSpecGatewayResources value))]]))
+instance ToJSON StackKnowledgeBaseSpecGateway where toJSON value = Object (KM.fromList (concat [[("image", toJSON (stackKnowledgeBaseSpecGatewayImage value))], [("resources", toJSON (stackKnowledgeBaseSpecGatewayResources value))], [("port", toJSON (stackKnowledgeBaseSpecGatewayPort value))], [("publicURL", toJSON (stackKnowledgeBaseSpecGatewayPublicURL value))]]))
 
 data StackKnowledgeBaseSpecIssuer = StackKnowledgeBaseSpecIssuer
-  { stackKnowledgeBaseSpecIssuerExternal :: Maybe StackKnowledgeBaseSpecIssuerExternal,
-    stackKnowledgeBaseSpecIssuerShared :: Maybe StackKnowledgeBaseSpecIssuerShared,
+  { stackKnowledgeBaseSpecIssuerShared :: Maybe StackKnowledgeBaseSpecIssuerShared,
+    stackKnowledgeBaseSpecIssuerExternal :: Maybe StackKnowledgeBaseSpecIssuerExternal,
     stackKnowledgeBaseSpecIssuerSubjectClaim :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON StackKnowledgeBaseSpecIssuer where parseJSON = checked "StackKnowledgeBaseSpecIssuer" $ withObject "StackKnowledgeBaseSpecIssuer" (\fields -> StackKnowledgeBaseSpecIssuer <$> optional fields "external" <*> optional fields "shared" <*> (fields .: "subjectClaim"))
+instance FromJSON StackKnowledgeBaseSpecIssuer where parseJSON = checked "StackKnowledgeBaseSpecIssuer" $ withObject "StackKnowledgeBaseSpecIssuer" (\fields -> StackKnowledgeBaseSpecIssuer <$> optional fields "shared" <*> optional fields "external" <*> (fields .: "subjectClaim"))
 
-instance ToJSON StackKnowledgeBaseSpecIssuer where toJSON value = Object (KM.fromList (concat [optionalPair "external" (stackKnowledgeBaseSpecIssuerExternal value), optionalPair "shared" (stackKnowledgeBaseSpecIssuerShared value), [("subjectClaim", toJSON (stackKnowledgeBaseSpecIssuerSubjectClaim value))]]))
+instance ToJSON StackKnowledgeBaseSpecIssuer where toJSON value = Object (KM.fromList (concat [optionalPair "shared" (stackKnowledgeBaseSpecIssuerShared value), optionalPair "external" (stackKnowledgeBaseSpecIssuerExternal value), [("subjectClaim", toJSON (stackKnowledgeBaseSpecIssuerSubjectClaim value))]]))
 
 data StackKnowledgeBaseSpecIssuerExternal = StackKnowledgeBaseSpecIssuerExternal
   { stackKnowledgeBaseSpecIssuerExternalType :: Text,

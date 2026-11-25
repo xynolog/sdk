@@ -110,11 +110,11 @@ let save_knowledge_bases (storage : storage) values =
 
 let same_place a b =
   match (Records.Kb_endpoint.of_model a, Records.Kb_endpoint.of_model b) with
-  | Some (Http a), Some (Http b) ->
+  | HttpEndpoint a, HttpEndpoint b ->
       a.protocol = b.protocol
       && String.lowercase_ascii a.host = String.lowercase_ascii b.host
       && a.port = b.port
-  | Some (Local a), Some (Local b) -> a.kb_id = b.kb_id
+  | LocalEndpoint a, LocalEndpoint b -> a.kb_id = b.kb_id
   | _ -> false
 
 let sort_open_resources tabs =
@@ -208,8 +208,8 @@ let id kb = (Records.Knowledge_base.of_model kb).id
 let did kb = (Records.Knowledge_base.of_model kb).did
 
 let endpoint kb =
-  let value = (Records.Knowledge_base.of_model kb).endpoint in
-  Result.get_ok (Models.decode Models.kb_endpoint (Yojson.Raw.to_string value))
+  Result.get_ok
+    (Records.Kb_endpoint.to_model (Records.Knowledge_base.of_model kb).endpoint)
 
 let describe_connection client =
   match Bus_registry.decode Bus_registry.Channels.browse_kb_requested "{}" with

@@ -11,15 +11,15 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.RequestId
 
 data Progress = Progress
-  { progressKind :: ProgressKind,
-    progressRequestId :: RequestId,
+  { progressRequestId :: RequestId,
+    progressKind :: ProgressKind,
     progressText :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON Progress where parseJSON = checked "Progress" $ withObject "Progress" (\fields -> Progress <$> (fields .: "kind") <*> (fields .: "requestId") <*> (fields .: "text"))
+instance FromJSON Progress where parseJSON = checked "Progress" $ withObject "Progress" (\fields -> Progress <$> (fields .: "requestId") <*> (fields .: "kind") <*> (fields .: "text"))
 
-instance ToJSON Progress where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (progressKind value))], [("requestId", toJSON (progressRequestId value))], [("text", toJSON (progressText value))]]))
+instance ToJSON Progress where toJSON value = Object (KM.fromList (concat [[("requestId", toJSON (progressRequestId value))], [("kind", toJSON (progressKind value))], [("text", toJSON (progressText value))]]))
 
 data ProgressKind = ProgressKindLog | ProgressKindNote | ProgressKindOk | ProgressKindWarn | ProgressKindFail | ProgressKindBanner | ProgressKindSection | ProgressKindStamp | ProgressKindCommand | ProgressKindOutput deriving (Eq, Show)
 

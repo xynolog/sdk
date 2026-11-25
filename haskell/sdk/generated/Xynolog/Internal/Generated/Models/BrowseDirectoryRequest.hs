@@ -11,14 +11,13 @@ import Xynolog.Internal.Codec
 
 data BrowseDirectoryRequest = BrowseDirectoryRequest
   { browseDirectoryRequestPath :: Text,
-    browseDirectoryRequestSort :: Maybe BrowseDirectoryRequestSort,
-    browseDirectoryRequestAdditionalProperties :: KM.KeyMap Value
+    browseDirectoryRequestSort :: Maybe BrowseDirectoryRequestSort
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseDirectoryRequest where parseJSON = checked "BrowseDirectoryRequest" $ withObject "BrowseDirectoryRequest" (\fields -> BrowseDirectoryRequest <$> (fields .: "path") <*> optional fields "sort" <*> traverse parseJSON (withoutFields ["path", "sort"] fields))
+instance FromJSON BrowseDirectoryRequest where parseJSON = checked "BrowseDirectoryRequest" $ withObject "BrowseDirectoryRequest" (\fields -> BrowseDirectoryRequest <$> (fields .: "path") <*> optional fields "sort")
 
-instance ToJSON BrowseDirectoryRequest where toJSON value = Object (KM.fromList (concat [[("path", toJSON (browseDirectoryRequestPath value))], optionalPair "sort" (browseDirectoryRequestSort value)]) <> fmap toJSON (withoutFields ["path", "sort"] (browseDirectoryRequestAdditionalProperties value)))
+instance ToJSON BrowseDirectoryRequest where toJSON value = Object (KM.fromList (concat [[("path", toJSON (browseDirectoryRequestPath value))], optionalPair "sort" (browseDirectoryRequestSort value)]))
 
 data BrowseDirectoryRequestSort = BrowseDirectoryRequestSortName | BrowseDirectoryRequestSortMtime | BrowseDirectoryRequestSortAnnotationCount deriving (Eq, Show)
 

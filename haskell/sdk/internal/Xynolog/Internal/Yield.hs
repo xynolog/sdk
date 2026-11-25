@@ -32,27 +32,27 @@ delegate :: YieldNamespace -> GenerationJobParams -> Maybe Scientific -> IO (Run
 delegate (YieldNamespace _ _ _ timing follower) params stall =
   Delegation.follow
     follower
-    (JobCreateCommandYieldJobCreateCommand (YieldJobCreateCommand Nothing Nothing YieldJobCreateCommandJobTypeYield params))
+    (JobCreateCommandYieldJobCreateCommand (YieldJobCreateCommand {yieldJobCreateCommandRoles = Nothing, yieldJobCreateCommandUserId = Nothing, yieldJobCreateCommandJobType = YieldJobCreateCommandJobTypeYield, yieldJobCreateCommandParams = params}))
     Verb.yield
     identity
     (Just (fromMaybe (Delegation.deriveStallDeadlineMs timing (generationJobParamsMaxTokens params)) stall))
   where
     identity = case gatheredContextFocus (generationJobParamsContext params) of
-      GatheredContextFocusAnnotation focus -> resourceDescriptorU40_id (gatheredContextFocusAnnotationValueSourceResource focus)
-      GatheredContextFocusResource focus -> resourceDescriptorU40_id (gatheredContextFocusResourceValueResource focus)
+      GatheredContextFocusAnnotation focus -> resourceDescriptorId (gatheredContextFocusAnnotationSourceResource focus)
+      GatheredContextFocusResource focus -> resourceDescriptorId (gatheredContextFocusResourceResource focus)
 
 cloneToken :: YieldNamespace -> ResourceId -> IO CloneResourceWithTokenResponse
 cloneToken (YieldNamespace wire _ _ timing _) identity =
   cloneResourceWithTokenResponseBusEnvelopeResponse
-    <$> Bus.request wire YieldCloneTokenRequestedOperation (YieldCloneTokenRequest identity mempty) (Timing.busRequestTimeoutMs timing)
+    <$> Bus.request wire YieldCloneTokenRequestedOperation (YieldCloneTokenRequest identity) (Timing.busRequestTimeoutMs timing)
 
 fromToken :: YieldNamespace -> Text -> IO ResourceDescriptor
 fromToken (YieldNamespace wire _ _ timing _) token =
   getResourceByTokenResponseSourceResource . getResourceByTokenResponseBusEnvelopeResponse
-    <$> Bus.request wire YieldCloneResourceRequestedOperation (YieldCloneResourceRequest token mempty) (Timing.busRequestTimeoutMs timing)
+    <$> Bus.request wire YieldCloneResourceRequestedOperation (YieldCloneResourceRequest token) (Timing.busRequestTimeoutMs timing)
 
 createFromToken :: YieldNamespace -> CreateFromTokenOptions -> IO CreateResourceResponse
-createFromToken namespace@(YieldNamespace _ _ content _ follower) (CreateFromTokenOptions archiveOriginal text name token) = Delegation.run follower $ do
+createFromToken namespace@(YieldNamespace _ _ content _ follower) (CreateFromTokenOptions {createFromTokenOptionsArchiveOriginal = archiveOriginal, createFromTokenOptionsContent = text, createFromTokenOptionsName = name, createFromTokenOptionsToken = token}) = Delegation.run follower $ do
   source <- fromToken namespace token
   let format = Media.cloneFormat (Resources.getPrimaryMediaType source)
   file <- either (ioError . userError . show) pure (Media.storageFileName name format)
@@ -70,8 +70,7 @@ createFromToken namespace@(YieldNamespace _ _ content _ follower) (CreateFromTok
             resourceUploadMetadataName = name,
             resourceUploadMetadataSourceAnnotationId = Nothing,
             resourceUploadMetadataSourceResourceId = Nothing,
-            resourceUploadMetadataStorageUri = "file://" <> file,
-            resourceUploadMetadataAdditionalProperties = mempty
+            resourceUploadMetadataStorageUri = "file://" <> file
           }
   Content.putBinary content Nothing metadata (Content.bytesBody (encodeUtf8 text)) (const (pure ()))
 

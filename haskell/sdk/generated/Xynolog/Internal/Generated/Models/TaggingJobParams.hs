@@ -10,17 +10,17 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data TaggingJobParams = TaggingJobParams
-  { taggingJobParamsCategories :: [Text],
-    taggingJobParamsLanguage :: Maybe Text,
-    taggingJobParamsMotivation :: TaggingJobParamsMotivation,
+  { taggingJobParamsMotivation :: TaggingJobParamsMotivation,
     taggingJobParamsSchemaId :: Text,
+    taggingJobParamsCategories :: [Text],
+    taggingJobParamsLanguage :: Maybe Text,
     taggingJobParamsSourceLanguage :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON TaggingJobParams where parseJSON = checked "TaggingJobParams" $ withObject "TaggingJobParams" (\fields -> TaggingJobParams <$> (fields .: "categories") <*> optional fields "language" <*> (fields .: "motivation") <*> (fields .: "schemaId") <*> optional fields "sourceLanguage")
+instance FromJSON TaggingJobParams where parseJSON = checked "TaggingJobParams" $ withObject "TaggingJobParams" (\fields -> TaggingJobParams <$> (fields .: "motivation") <*> (fields .: "schemaId") <*> (fields .: "categories") <*> optional fields "language" <*> optional fields "sourceLanguage")
 
-instance ToJSON TaggingJobParams where toJSON value = Object (KM.fromList (concat [[("categories", toJSON (taggingJobParamsCategories value))], optionalPair "language" (taggingJobParamsLanguage value), [("motivation", toJSON (taggingJobParamsMotivation value))], [("schemaId", toJSON (taggingJobParamsSchemaId value))], optionalPair "sourceLanguage" (taggingJobParamsSourceLanguage value)]))
+instance ToJSON TaggingJobParams where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (taggingJobParamsMotivation value))], [("schemaId", toJSON (taggingJobParamsSchemaId value))], [("categories", toJSON (taggingJobParamsCategories value))], optionalPair "language" (taggingJobParamsLanguage value), optionalPair "sourceLanguage" (taggingJobParamsSourceLanguage value)]))
 
 data TaggingJobParamsMotivation = TaggingJobParamsMotivationTagging deriving (Eq, Show)
 

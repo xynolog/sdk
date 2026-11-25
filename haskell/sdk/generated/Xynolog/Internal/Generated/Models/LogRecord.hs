@@ -12,14 +12,14 @@ import Xynolog.Internal.Generated.Models.OutputStream
 import Xynolog.Internal.Generated.Models.RequestId
 
 data LogRecord = LogRecord
-  { logRecordLine :: Text,
-    logRecordReceivedAt :: Text,
-    logRecordRequestId :: RequestId,
+  { logRecordRequestId :: RequestId,
     logRecordService :: Text,
-    logRecordStream :: OutputStream
+    logRecordStream :: OutputStream,
+    logRecordLine :: Text,
+    logRecordReceivedAt :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON LogRecord where parseJSON = checked "LogRecord" $ withObject "LogRecord" (\fields -> LogRecord <$> (fields .: "line") <*> (fields .: "receivedAt") <*> (fields .: "requestId") <*> (fields .: "service") <*> (fields .: "stream"))
+instance FromJSON LogRecord where parseJSON = checked "LogRecord" $ withObject "LogRecord" (\fields -> LogRecord <$> (fields .: "requestId") <*> (fields .: "service") <*> (fields .: "stream") <*> (fields .: "line") <*> (fields .: "receivedAt"))
 
-instance ToJSON LogRecord where toJSON value = Object (KM.fromList (concat [[("line", toJSON (logRecordLine value))], [("receivedAt", toJSON (logRecordReceivedAt value))], [("requestId", toJSON (logRecordRequestId value))], [("service", toJSON (logRecordService value))], [("stream", toJSON (logRecordStream value))]]))
+instance ToJSON LogRecord where toJSON value = Object (KM.fromList (concat [[("requestId", toJSON (logRecordRequestId value))], [("service", toJSON (logRecordService value))], [("stream", toJSON (logRecordStream value))], [("line", toJSON (logRecordLine value))], [("receivedAt", toJSON (logRecordReceivedAt value))]]))

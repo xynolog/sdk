@@ -89,7 +89,7 @@ let module_ ~banner (t : C.t) =
                     \ answered with a @result@.";
                   ]
                 ~params:[ "params"; "result" ] ~deriving:[ "Eq"; "Show" ]
-                "ControlMethod"
+                ~constructor:"ControlMethod" "ControlMethod"
                 [
                   ("controlMethodName", text);
                   ("controlMethodExclusive", H.T_name "Bool");
@@ -102,7 +102,7 @@ let module_ ~banner (t : C.t) =
                      @params@.";
                   ]
                 ~params:[ "params" ] ~deriving:[ "Eq"; "Show" ]
-                "ControlNotification"
+                ~constructor:"ControlNotification" "ControlNotification"
                 [
                   ("controlNotificationName", text);
                   ("controlNotificationFrom", H.T_name "ControlSender");

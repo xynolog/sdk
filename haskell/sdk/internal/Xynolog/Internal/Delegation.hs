@@ -164,7 +164,7 @@ follow (Follower wire local clock timing lifetime) command verb resource stallMs
                 result <-
                   try
                     $ withParent parent
-                    $ jobStatusResultResponse <$> Bus.request wire JobStatusRequestedOperation (JobStatusRequest identity mempty) (Timing.busRequestTimeoutMs timing)
+                    $ jobStatusResultResponse <$> Bus.request wire JobStatusRequestedOperation (JobStatusRequest identity) (Timing.busRequestTimeoutMs timing)
                 case result of
                   Left problem | Just (_ :: SomeAsyncException) <- fromException problem -> throwIO problem
                   _ -> atomically (writeTQueue events (Status generation result))
@@ -265,7 +265,7 @@ follow (Follower wire local clock timing lifetime) command verb resource stallMs
                   identity <- readTVarIO activeId
                   mapM_
                     ( \jobId -> void $ Lifetime.start lifetime $ withParent parent $ do
-                        result <- try (Bus.request wire JobCancelRequestedOperation (JobCancelRequest jobId mempty) (Timing.busRequestTimeoutMs timing))
+                        result <- try (Bus.request wire JobCancelRequestedOperation (JobCancelRequest jobId) (Timing.busRequestTimeoutMs timing))
                         case result of
                           Left problem | Just (_ :: SomeAsyncException) <- fromException problem -> throwIO problem
                           _ -> pure ()

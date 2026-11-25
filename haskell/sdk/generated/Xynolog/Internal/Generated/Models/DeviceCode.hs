@@ -10,13 +10,13 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data DeviceCode = DeviceCode
-  { deviceCodeExpiresIn :: Integer,
-    deviceCodeUserCode :: Text,
+  { deviceCodeUserCode :: Text,
     deviceCodeVerificationUri :: Text,
-    deviceCodeVerificationUriComplete :: Maybe Text
+    deviceCodeVerificationUriComplete :: Maybe Text,
+    deviceCodeExpiresIn :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON DeviceCode where parseJSON = checked "DeviceCode" $ withObject "DeviceCode" (\fields -> DeviceCode <$> (fields .: "expiresIn") <*> (fields .: "userCode") <*> (fields .: "verificationUri") <*> optional fields "verificationUriComplete")
+instance FromJSON DeviceCode where parseJSON = checked "DeviceCode" $ withObject "DeviceCode" (\fields -> DeviceCode <$> (fields .: "userCode") <*> (fields .: "verificationUri") <*> optional fields "verificationUriComplete" <*> (fields .: "expiresIn"))
 
-instance ToJSON DeviceCode where toJSON value = Object (KM.fromList (concat [[("expiresIn", toJSON (deviceCodeExpiresIn value))], [("userCode", toJSON (deviceCodeUserCode value))], [("verificationUri", toJSON (deviceCodeVerificationUri value))], optionalPair "verificationUriComplete" (deviceCodeVerificationUriComplete value)]))
+instance ToJSON DeviceCode where toJSON value = Object (KM.fromList (concat [[("userCode", toJSON (deviceCodeUserCode value))], [("verificationUri", toJSON (deviceCodeVerificationUri value))], optionalPair "verificationUriComplete" (deviceCodeVerificationUriComplete value), [("expiresIn", toJSON (deviceCodeExpiresIn value))]]))

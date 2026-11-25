@@ -10,14 +10,14 @@ import Data.Scientific (Scientific)
 import Xynolog.Internal.Codec
 
 data PdfCoordinate = PdfCoordinate
-  { pdfCoordinateHeight :: Scientific,
-    pdfCoordinatePage :: Integer,
-    pdfCoordinateWidth :: Scientific,
+  { pdfCoordinatePage :: Integer,
     pdfCoordinateX :: Scientific,
-    pdfCoordinateY :: Scientific
+    pdfCoordinateY :: Scientific,
+    pdfCoordinateWidth :: Scientific,
+    pdfCoordinateHeight :: Scientific
   }
   deriving (Eq, Show)
 
-instance FromJSON PdfCoordinate where parseJSON = checked "PdfCoordinate" $ withObject "PdfCoordinate" (\fields -> PdfCoordinate <$> (fields .: "height") <*> (fields .: "page") <*> (fields .: "width") <*> (fields .: "x") <*> (fields .: "y"))
+instance FromJSON PdfCoordinate where parseJSON = checked "PdfCoordinate" $ withObject "PdfCoordinate" (\fields -> PdfCoordinate <$> (fields .: "page") <*> (fields .: "x") <*> (fields .: "y") <*> (fields .: "width") <*> (fields .: "height"))
 
-instance ToJSON PdfCoordinate where toJSON value = Object (KM.fromList (concat [[("height", toJSON (pdfCoordinateHeight value))], [("page", toJSON (pdfCoordinatePage value))], [("width", toJSON (pdfCoordinateWidth value))], [("x", toJSON (pdfCoordinateX value))], [("y", toJSON (pdfCoordinateY value))]]))
+instance ToJSON PdfCoordinate where toJSON value = Object (KM.fromList (concat [[("page", toJSON (pdfCoordinatePage value))], [("x", toJSON (pdfCoordinateX value))], [("y", toJSON (pdfCoordinateY value))], [("width", toJSON (pdfCoordinateWidth value))], [("height", toJSON (pdfCoordinateHeight value))]]))

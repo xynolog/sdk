@@ -15,23 +15,22 @@ import Xynolog.Internal.Generated.Models.JobType
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data JobCompletedPayload = JobCompletedPayload
-  { jobCompletedPayloadAnnotationId :: Maybe AnnotationId,
-    jobCompletedPayloadAnnotationUri :: Maybe Text,
-    jobCompletedPayloadAttempt :: Maybe Integer,
-    jobCompletedPayloadDurability :: Maybe DurabilityEvidence,
-    jobCompletedPayloadFoundCount :: Maybe Integer,
-    jobCompletedPayloadJobId :: JobId,
+  { jobCompletedPayloadJobId :: JobId,
     jobCompletedPayloadJobType :: JobType,
-    jobCompletedPayloadResult :: Maybe JobCompletedPayloadResult,
-    jobCompletedPayloadResultResourceId :: Maybe ResourceId,
+    jobCompletedPayloadAttempt :: Maybe Integer,
+    jobCompletedPayloadAnnotationId :: Maybe AnnotationId,
     jobCompletedPayloadTotalSteps :: Maybe Integer,
-    jobCompletedPayloadAdditionalProperties :: KM.KeyMap Value
+    jobCompletedPayloadFoundCount :: Maybe Integer,
+    jobCompletedPayloadResultResourceId :: Maybe ResourceId,
+    jobCompletedPayloadAnnotationUri :: Maybe Text,
+    jobCompletedPayloadResult :: Maybe JobCompletedPayloadResult,
+    jobCompletedPayloadDurability :: Maybe DurabilityEvidence
   }
   deriving (Eq, Show)
 
-instance FromJSON JobCompletedPayload where parseJSON = checked "JobCompletedPayload" $ withObject "JobCompletedPayload" (\fields -> JobCompletedPayload <$> optional fields "annotationId" <*> optional fields "annotationUri" <*> optional fields "attempt" <*> optional fields "durability" <*> optional fields "foundCount" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "result" <*> optional fields "resultResourceId" <*> optional fields "totalSteps" <*> traverse parseJSON (withoutFields ["annotationId", "annotationUri", "attempt", "durability", "foundCount", "jobId", "jobType", "result", "resultResourceId", "totalSteps"] fields))
+instance FromJSON JobCompletedPayload where parseJSON = checked "JobCompletedPayload" $ withObject "JobCompletedPayload" (\fields -> JobCompletedPayload <$> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "attempt" <*> optional fields "annotationId" <*> optional fields "totalSteps" <*> optional fields "foundCount" <*> optional fields "resultResourceId" <*> optional fields "annotationUri" <*> optional fields "result" <*> optional fields "durability")
 
-instance ToJSON JobCompletedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (jobCompletedPayloadAnnotationId value), optionalPair "annotationUri" (jobCompletedPayloadAnnotationUri value), optionalPair "attempt" (jobCompletedPayloadAttempt value), optionalPair "durability" (jobCompletedPayloadDurability value), optionalPair "foundCount" (jobCompletedPayloadFoundCount value), [("jobId", toJSON (jobCompletedPayloadJobId value))], [("jobType", toJSON (jobCompletedPayloadJobType value))], optionalPair "result" (jobCompletedPayloadResult value), optionalPair "resultResourceId" (jobCompletedPayloadResultResourceId value), optionalPair "totalSteps" (jobCompletedPayloadTotalSteps value)]) <> fmap toJSON (withoutFields ["annotationId", "annotationUri", "attempt", "durability", "foundCount", "jobId", "jobType", "result", "resultResourceId", "totalSteps"] (jobCompletedPayloadAdditionalProperties value)))
+instance ToJSON JobCompletedPayload where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (jobCompletedPayloadJobId value))], [("jobType", toJSON (jobCompletedPayloadJobType value))], optionalPair "attempt" (jobCompletedPayloadAttempt value), optionalPair "annotationId" (jobCompletedPayloadAnnotationId value), optionalPair "totalSteps" (jobCompletedPayloadTotalSteps value), optionalPair "foundCount" (jobCompletedPayloadFoundCount value), optionalPair "resultResourceId" (jobCompletedPayloadResultResourceId value), optionalPair "annotationUri" (jobCompletedPayloadAnnotationUri value), optionalPair "result" (jobCompletedPayloadResult value), optionalPair "durability" (jobCompletedPayloadDurability value)]))
 
 data JobCompletedPayloadResult = JobCompletedPayloadResult
   { jobCompletedPayloadResultAdditionalProperties :: KM.KeyMap Value

@@ -11,15 +11,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationBody
 
 data BodyOperationAdd = BodyOperationAdd
-  { bodyOperationAddItem :: AnnotationBody,
-    bodyOperationAddOp :: BodyOperationAddOp,
-    bodyOperationAddAdditionalProperties :: KM.KeyMap Value
+  { bodyOperationAddOp :: BodyOperationAddOp,
+    bodyOperationAddItem :: AnnotationBody
   }
   deriving (Eq, Show)
 
-instance FromJSON BodyOperationAdd where parseJSON = checked "BodyOperationAdd" $ withObject "BodyOperationAdd" (\fields -> BodyOperationAdd <$> (fields .: "item") <*> (fields .: "op") <*> traverse parseJSON (withoutFields ["item", "op"] fields))
+instance FromJSON BodyOperationAdd where parseJSON = checked "BodyOperationAdd" $ withObject "BodyOperationAdd" (\fields -> BodyOperationAdd <$> (fields .: "op") <*> (fields .: "item"))
 
-instance ToJSON BodyOperationAdd where toJSON value = Object (KM.fromList (concat [[("item", toJSON (bodyOperationAddItem value))], [("op", toJSON (bodyOperationAddOp value))]]) <> fmap toJSON (withoutFields ["item", "op"] (bodyOperationAddAdditionalProperties value)))
+instance ToJSON BodyOperationAdd where toJSON value = Object (KM.fromList (concat [[("op", toJSON (bodyOperationAddOp value))], [("item", toJSON (bodyOperationAddItem value))]]))
 
 data BodyOperationAddOp = BodyOperationAddOpAdd deriving (Eq, Show)
 

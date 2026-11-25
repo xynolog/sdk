@@ -37,7 +37,7 @@ newHttpTransport options = do
       operations =
         GatewayOperations
           { getCurrentUser = \override -> Internal.json http GetCurrentUser Nothing override empty,
-            getMediaToken = \resource -> Internal.json http CreateMediaToken Nothing Nothing (MediaTokenRequest resource mempty),
+            getMediaToken = \resource -> Internal.json http CreateMediaToken Nothing Nothing (MediaTokenRequest resource),
             getProtectedResourceMetadata = Internal.json http GetProtectedResourceMetadata Nothing Nothing empty,
             healthCheck = Internal.json http GetHealth Nothing Nothing empty,
             getStatus = Internal.json http GetStatus Nothing Nothing empty

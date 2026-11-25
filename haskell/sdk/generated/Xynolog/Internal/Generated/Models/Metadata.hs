@@ -10,16 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data Metadata = Metadata
-  { metadataAnnotations :: Maybe MetadataAnnotations,
+  { metadataName :: Text,
+    metadataNamespace :: Maybe Text,
     metadataLabels :: Maybe MetadataLabels,
-    metadataName :: Text,
-    metadataNamespace :: Maybe Text
+    metadataAnnotations :: Maybe MetadataAnnotations
   }
   deriving (Eq, Show)
 
-instance FromJSON Metadata where parseJSON = checked "Metadata" $ withObject "Metadata" (\fields -> Metadata <$> optional fields "annotations" <*> optional fields "labels" <*> (fields .: "name") <*> optional fields "namespace")
+instance FromJSON Metadata where parseJSON = checked "Metadata" $ withObject "Metadata" (\fields -> Metadata <$> (fields .: "name") <*> optional fields "namespace" <*> optional fields "labels" <*> optional fields "annotations")
 
-instance ToJSON Metadata where toJSON value = Object (KM.fromList (concat [optionalPair "annotations" (metadataAnnotations value), optionalPair "labels" (metadataLabels value), [("name", toJSON (metadataName value))], optionalPair "namespace" (metadataNamespace value)]))
+instance ToJSON Metadata where toJSON value = Object (KM.fromList (concat [[("name", toJSON (metadataName value))], optionalPair "namespace" (metadataNamespace value), optionalPair "labels" (metadataLabels value), optionalPair "annotations" (metadataAnnotations value)]))
 
 data MetadataAnnotations = MetadataAnnotations
   { metadataAnnotationsAdditionalProperties :: KM.KeyMap Text

@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
 
 data AnnotationRemovedPayload = AnnotationRemovedPayload
-  { annotationRemovedPayloadAnnotationId :: AnnotationId,
-    annotationRemovedPayloadAdditionalProperties :: KM.KeyMap Value
+  { annotationRemovedPayloadAnnotationId :: AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON AnnotationRemovedPayload where parseJSON = checked "AnnotationRemovedPayload" $ withObject "AnnotationRemovedPayload" (\fields -> AnnotationRemovedPayload <$> (fields .: "annotationId") <*> traverse parseJSON (withoutFields ["annotationId"] fields))
+instance FromJSON AnnotationRemovedPayload where parseJSON = checked "AnnotationRemovedPayload" $ withObject "AnnotationRemovedPayload" (\fields -> AnnotationRemovedPayload <$> (fields .: "annotationId"))
 
-instance ToJSON AnnotationRemovedPayload where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (annotationRemovedPayloadAnnotationId value))]]) <> fmap toJSON (withoutFields ["annotationId"] (annotationRemovedPayloadAdditionalProperties value)))
+instance ToJSON AnnotationRemovedPayload where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (annotationRemovedPayloadAnnotationId value))]]))

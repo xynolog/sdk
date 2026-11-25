@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.GetAnnotationResponse
 
 data BrowseAnnotationResult = BrowseAnnotationResult
-  { browseAnnotationResultResponse :: GetAnnotationResponse,
-    browseAnnotationResultAdditionalProperties :: KM.KeyMap Value
+  { browseAnnotationResultResponse :: GetAnnotationResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseAnnotationResult where parseJSON = checked "BrowseAnnotationResult" $ withObject "BrowseAnnotationResult" (\fields -> BrowseAnnotationResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON BrowseAnnotationResult where parseJSON = checked "BrowseAnnotationResult" $ withObject "BrowseAnnotationResult" (\fields -> BrowseAnnotationResult <$> (fields .: "response"))
 
-instance ToJSON BrowseAnnotationResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseAnnotationResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (browseAnnotationResultAdditionalProperties value)))
+instance ToJSON BrowseAnnotationResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseAnnotationResultResponse value))]]))

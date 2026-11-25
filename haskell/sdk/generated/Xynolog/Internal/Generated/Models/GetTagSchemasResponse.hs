@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.TagSchema
 
 data GetTagSchemasResponse = GetTagSchemasResponse
-  { getTagSchemasResponseTagSchemas :: [TagSchema],
-    getTagSchemasResponseAdditionalProperties :: KM.KeyMap Value
+  { getTagSchemasResponseTagSchemas :: [TagSchema]
   }
   deriving (Eq, Show)
 
-instance FromJSON GetTagSchemasResponse where parseJSON = checked "GetTagSchemasResponse" $ withObject "GetTagSchemasResponse" (\fields -> GetTagSchemasResponse <$> (fields .: "tagSchemas") <*> traverse parseJSON (withoutFields ["tagSchemas"] fields))
+instance FromJSON GetTagSchemasResponse where parseJSON = checked "GetTagSchemasResponse" $ withObject "GetTagSchemasResponse" (\fields -> GetTagSchemasResponse <$> (fields .: "tagSchemas"))
 
-instance ToJSON GetTagSchemasResponse where toJSON value = Object (KM.fromList (concat [[("tagSchemas", toJSON (getTagSchemasResponseTagSchemas value))]]) <> fmap toJSON (withoutFields ["tagSchemas"] (getTagSchemasResponseAdditionalProperties value)))
+instance ToJSON GetTagSchemasResponse where toJSON value = Object (KM.fromList (concat [[("tagSchemas", toJSON (getTagSchemasResponseTagSchemas value))]]))

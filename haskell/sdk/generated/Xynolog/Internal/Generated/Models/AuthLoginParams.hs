@@ -13,11 +13,11 @@ import Xynolog.Internal.Generated.Models.Target
 
 data AuthLoginParams = AuthLoginParams
   { authLoginParamsApiVersion :: ApiVersion,
-    authLoginParamsRuntime :: Maybe Runtime,
-    authLoginParamsTarget :: Maybe Target
+    authLoginParamsTarget :: Maybe Target,
+    authLoginParamsRuntime :: Maybe Runtime
   }
   deriving (Eq, Show)
 
-instance FromJSON AuthLoginParams where parseJSON = checked "AuthLoginParams" $ withObject "AuthLoginParams" (\fields -> AuthLoginParams <$> (fields .: "apiVersion") <*> optional fields "runtime" <*> optional fields "target")
+instance FromJSON AuthLoginParams where parseJSON = checked "AuthLoginParams" $ withObject "AuthLoginParams" (\fields -> AuthLoginParams <$> (fields .: "apiVersion") <*> optional fields "target" <*> optional fields "runtime")
 
-instance ToJSON AuthLoginParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (authLoginParamsApiVersion value))], optionalPair "runtime" (authLoginParamsRuntime value), optionalPair "target" (authLoginParamsTarget value)]))
+instance ToJSON AuthLoginParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (authLoginParamsApiVersion value))], optionalPair "target" (authLoginParamsTarget value), optionalPair "runtime" (authLoginParamsRuntime value)]))

@@ -9,12 +9,11 @@ import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Internal.Codec
 
 data BrowseResourceReorderEvent = BrowseResourceReorderEvent
-  { browseResourceReorderEventNewIndex :: Integer,
-    browseResourceReorderEventOldIndex :: Integer,
-    browseResourceReorderEventAdditionalProperties :: KM.KeyMap Value
+  { browseResourceReorderEventOldIndex :: Integer,
+    browseResourceReorderEventNewIndex :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseResourceReorderEvent where parseJSON = checked "BrowseResourceReorderEvent" $ withObject "BrowseResourceReorderEvent" (\fields -> BrowseResourceReorderEvent <$> (fields .: "newIndex") <*> (fields .: "oldIndex") <*> traverse parseJSON (withoutFields ["newIndex", "oldIndex"] fields))
+instance FromJSON BrowseResourceReorderEvent where parseJSON = checked "BrowseResourceReorderEvent" $ withObject "BrowseResourceReorderEvent" (\fields -> BrowseResourceReorderEvent <$> (fields .: "oldIndex") <*> (fields .: "newIndex"))
 
-instance ToJSON BrowseResourceReorderEvent where toJSON value = Object (KM.fromList (concat [[("newIndex", toJSON (browseResourceReorderEventNewIndex value))], [("oldIndex", toJSON (browseResourceReorderEventOldIndex value))]]) <> fmap toJSON (withoutFields ["newIndex", "oldIndex"] (browseResourceReorderEventAdditionalProperties value)))
+instance ToJSON BrowseResourceReorderEvent where toJSON value = Object (KM.fromList (concat [[("oldIndex", toJSON (browseResourceReorderEventOldIndex value))], [("newIndex", toJSON (browseResourceReorderEventNewIndex value))]]))

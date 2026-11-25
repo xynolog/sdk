@@ -124,3 +124,14 @@
  (target strict_json.ml)
  (deps ../lib/strict_json.ml)
  (action (copy %{deps} %{target})))
+
+(test
+ (name record_reader_behavior)
+ (modules record_reader_behavior union_members record_reader)
+ (flags (:standard -open Xynolog))
+ (libraries xynolog yojson alcotest))
+
+(rule
+ (target record_reader.ml)
+ (deps ../lib/record_reader.ml)
+ (action (copy %{deps} %{target})))

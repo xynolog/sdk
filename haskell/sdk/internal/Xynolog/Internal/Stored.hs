@@ -14,7 +14,6 @@ module Xynolog.Internal.Stored
     kbOfSessionKey,
     loadKnowledgeBases,
     saveKnowledgeBases,
-    projectKnowledgeBase,
     swapStoredSession,
     takeStoredSession,
     forgetNamed,
@@ -24,7 +23,6 @@ module Xynolog.Internal.Stored
 where
 
 import Data.Aeson (Result (..), Value (..), eitherDecodeStrict', encode, fromJSON)
-import Data.Aeson.KeyMap qualified as KM
 import Data.ByteString.Lazy qualified as Lazy
 import Data.Foldable (toList)
 import Data.Maybe (mapMaybe)
@@ -35,7 +33,7 @@ import Xynolog.Internal.Generated.Stored (activeKey, knowledgeBasesKey, lastView
 import Xynolog.Internal.Generated.Stored qualified as Stored
 import Xynolog.Internal.Kept (forgetKept)
 import Xynolog.SessionStorage (SessionStorage (..))
-import Xynolog.Types (HttpEndpoint (..), KbEndpoint (..), KbRead (..), KnowledgeBase (..), LocalEndpoint (..), StoredSession (..))
+import Xynolog.Types (KnowledgeBase (..), StoredSession (..))
 
 sessionKey :: Text -> Text
 sessionKey = (Stored.sessionKeyPrefix <>)
@@ -93,22 +91,12 @@ recordPersonKey storage identity access person = do
 kbOfSessionKey :: Text -> Maybe Text
 kbOfSessionKey key = Text.stripPrefix Stored.sessionKeyPrefix key >>= \identity -> if Text.null identity then Nothing else Just identity
 
-projectKnowledgeBase :: KnowledgeBase -> KnowledgeBase
-projectKnowledgeBase kb =
-  kb
-    { knowledgeBaseAdditionalProperties = KM.empty,
-      knowledgeBaseEndpoint = case knowledgeBaseEndpoint kb of
-        KbEndpointHttpEndpoint endpoint -> KbEndpointHttpEndpoint endpoint {httpEndpointAdditionalProperties = KM.empty}
-        KbEndpointLocalEndpoint endpoint -> KbEndpointLocalEndpoint endpoint {localEndpointAdditionalProperties = KM.empty},
-      knowledgeBaseLastRead = fmap (\readBack -> readBack {kbReadAdditionalProperties = KM.empty}) (knowledgeBaseLastRead kb)
-    }
-
 loadKnowledgeBases :: SessionStorage -> IO [KnowledgeBase]
 loadKnowledgeBases storage = do
   raw <- get storage knowledgeBasesKey
   pure $ case raw >>= either (const Nothing) Just . eitherDecodeStrict' . encodeUtf8 of
-    Just (Array entries) -> mapMaybe (\value -> case fromJSON value of Success parsed -> Just (projectKnowledgeBase parsed); Error _ -> Nothing) (toList entries)
+    Just (Array entries) -> mapMaybe (\value -> case fromJSON value of Success parsed -> Just parsed; Error _ -> Nothing) (toList entries)
     _ -> []
 
 saveKnowledgeBases :: SessionStorage -> [KnowledgeBase] -> IO ()
-saveKnowledgeBases storage values = set storage knowledgeBasesKey (decodeUtf8 (Lazy.toStrict (encode (map projectKnowledgeBase values))))
+saveKnowledgeBases storage values = set storage knowledgeBasesKey (decodeUtf8 (Lazy.toStrict (encode values)))

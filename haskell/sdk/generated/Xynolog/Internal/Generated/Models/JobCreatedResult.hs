@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.JobCreatedResultResponse
 
 data JobCreatedResult = JobCreatedResult
-  { jobCreatedResultResponse :: JobCreatedResultResponse,
-    jobCreatedResultAdditionalProperties :: KM.KeyMap Value
+  { jobCreatedResultResponse :: JobCreatedResultResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON JobCreatedResult where parseJSON = checked "JobCreatedResult" $ withObject "JobCreatedResult" (\fields -> JobCreatedResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON JobCreatedResult where parseJSON = checked "JobCreatedResult" $ withObject "JobCreatedResult" (\fields -> JobCreatedResult <$> (fields .: "response"))
 
-instance ToJSON JobCreatedResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (jobCreatedResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (jobCreatedResultAdditionalProperties value)))
+instance ToJSON JobCreatedResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (jobCreatedResultResponse value))]]))

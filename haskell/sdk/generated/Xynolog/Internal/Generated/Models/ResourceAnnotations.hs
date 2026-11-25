@@ -12,13 +12,13 @@ import Xynolog.Internal.Generated.Models.Annotation
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ResourceAnnotations = ResourceAnnotations
-  { resourceAnnotationsAnnotations :: [Annotation],
-    resourceAnnotationsResourceId :: ResourceId,
-    resourceAnnotationsUpdatedAt :: Text,
-    resourceAnnotationsVersion :: Integer
+  { resourceAnnotationsResourceId :: ResourceId,
+    resourceAnnotationsAnnotations :: [Annotation],
+    resourceAnnotationsVersion :: Integer,
+    resourceAnnotationsUpdatedAt :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceAnnotations where parseJSON = checked "ResourceAnnotations" $ withObject "ResourceAnnotations" (\fields -> ResourceAnnotations <$> (fields .: "annotations") <*> (fields .: "resourceId") <*> (fields .: "updatedAt") <*> (fields .: "version"))
+instance FromJSON ResourceAnnotations where parseJSON = checked "ResourceAnnotations" $ withObject "ResourceAnnotations" (\fields -> ResourceAnnotations <$> (fields .: "resourceId") <*> (fields .: "annotations") <*> (fields .: "version") <*> (fields .: "updatedAt"))
 
-instance ToJSON ResourceAnnotations where toJSON value = Object (KM.fromList (concat [[("annotations", toJSON (resourceAnnotationsAnnotations value))], [("resourceId", toJSON (resourceAnnotationsResourceId value))], [("updatedAt", toJSON (resourceAnnotationsUpdatedAt value))], [("version", toJSON (resourceAnnotationsVersion value))]]))
+instance ToJSON ResourceAnnotations where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (resourceAnnotationsResourceId value))], [("annotations", toJSON (resourceAnnotationsAnnotations value))], [("version", toJSON (resourceAnnotationsVersion value))], [("updatedAt", toJSON (resourceAnnotationsUpdatedAt value))]]))
