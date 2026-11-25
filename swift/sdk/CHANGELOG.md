@@ -8,8 +8,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
-- A type for each of Protocol's other tables, the ones no service keeps,
-  typed by the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+- A type for ten of Protocol's tables that no service keeps, each typed by
+  the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
   `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
   `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
   `SignInStoreOwnerOnly`.

@@ -52,6 +52,14 @@ let unrooted_tables =
     (* A method's returns is a null form no writer reads, as the registry's
        validate is. *)
     "client/surface.json";
+    (* Its schema describes the document alone, whose contents each SDK
+       generates; a ClientTiming of an SDK's is the options record a caller
+       hands its client. *)
+    "client/timing.json";
+    (* Its schema describes the document alone, whose contents each SDK
+       generates; a ControlMethods of an SDK's is the catalog of methods
+       generated from it. *)
+    "control/methods.json";
     (* The Haskell SDK carries it, typed by its schema, in Xynolog.Tables. *)
     "locales/registry.json";
     (* The TypeScript, Swift and Haskell SDKs carry it, typed by its schema. *)
