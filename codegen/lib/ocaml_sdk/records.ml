@@ -1053,8 +1053,32 @@ let files (entries, tabled) =
          of Protocol's tables"
       __FILE__
   in
+  (* Every union, by its module, and what each of its members admits: the
+     cases ocaml/sdk/test/record_reader_behavior.ml reads a value of each
+     member by. *)
+  let unions =
+    O.list
+      (List.filter_map
+         (fun (e : entry) ->
+           match e.shape with
+           | Members branches ->
+               Some
+                 (O.tuple
+                    [
+                      O.string e.module_;
+                      O.list
+                        (List.map
+                           (fun (b : held_branch) ->
+                             O.list (List.map signature b.branch.signature))
+                           branches);
+                    ])
+           | Object _ -> None)
+         entries)
+  in
   [
     O.implementation ~path:"ocaml/sdk/lib/records.ml" ~banner
       ((O.open_ "Record_reader" :: List.map table tabled)
       @ List.map entry entries);
+    O.implementation ~path:"ocaml/sdk/test/union_members.ml" ~banner
+      [ O.open_ "Record_reader"; O.let_ "unions" unions ];
   ]
