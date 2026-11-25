@@ -25,25 +25,6 @@ type held = {
 
 type claim = Held of held | Empty | Refused of string option
 
-let channels =
-  let open B.Channels in
-  [
-    B.Channel job_cancel_requested;
-    B.Channel job_claim_failed;
-    B.Channel job_claimed;
-    B.Channel job_queued;
-  ]
-
-let commit_channels =
-  let replies (B.Operation operation) =
-    [ B.Channel (B.result operation); B.Channel (B.failure operation) ]
-  in
-  List.concat_map replies
-    [
-      B.Operation B.Operations.mark_commit;
-      B.Operation B.Operations.browse_annotation_requested;
-    ]
-
 let string name value = J.member name value |> J.to_string
 let int name value = J.member name value |> J.to_int
 

@@ -76,7 +76,8 @@ from xynolog import telemetry
 from xynolog._instant import instant
 from xynolog._kept_for_first_reader import KeptForFirstReader, Latest
 from xynolog._reading import Reading
-from xynolog.bus import Bus, answer_of, reply_channels_for, request
+from xynolog._worker_channels import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS
+from xynolog.bus import Bus, answer_of, request
 from xynolog.channel import Operation
 from xynolog.channels import (
     JOB_CANCEL,
@@ -138,23 +139,6 @@ __all__ = [
     "WorkerVitals",
     "will_retry_after",
 ]
-
-JOB_CLAIM_CHANNELS: Final[tuple[str, ...]] = (*reply_channels_for(JOB_CLAIM), JOB_QUEUED.name, JOB_CANCEL_REQUESTED.name)
-"""What a worker's stream names for its claims: the replies of `job:claim`, and the two broadcasts a worker reads.
-
-`job:queued` and `job:cancel-requested` reach only a stream that names them,
-so a transport made for a worker is given these beside the reply channels of
-whatever else the worker awaits.
-"""
-
-JOB_COMMIT_CHANNELS: Final[tuple[str, ...]] = reply_channels_for(MARK_COMMIT, BROWSE_ANNOTATION_REQUESTED)
-"""What a worker's stream names for its commits: the replies of `mark:commit`, and of the question it asks when one goes unacknowledged.
-
-The question is the read of ONE annotation, and not of a resource's list of
-them. Reply channels reach every stream that names them, and the list's
-replies are the frames of many megabytes a worker's stream exists to keep
-out; one annotation's frame is small.
-"""
 
 _STOPPED_WHILE_HELD: Final = "The worker stopped while it held the job"
 """The error of a job failed because its worker stopped, and not because the work failed."""

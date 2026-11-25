@@ -3,8 +3,6 @@
 type held
 type claim = Held of held | Empty | Refused of string option
 
-val channels : Bus_registry.packed_channel list
-val commit_channels : Bus_registry.packed_channel list
 val accepts : filters:Yojson.Safe.t -> announcement:Yojson.Safe.t -> bool
 
 val claim :

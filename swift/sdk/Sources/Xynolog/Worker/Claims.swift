@@ -1,17 +1,6 @@
 import Foundation
 import Synchronization
 
-public let jobClaimChannels = [
-  Operations.jobClaim.result.name, Operations.jobClaim.failure.name,
-  Channels.jobQueued.name, Channels.jobCancelRequested.name,
-].sorted()
-
-public let jobCommitChannels = [
-  Operations.markCommit.result.name, Operations.markCommit.failure.name,
-  Operations.browseAnnotationRequested.result.name,
-  Operations.browseAnnotationRequested.failure.name,
-].sorted()
-
 /// Each wait a claiming keeps: the one its options name, else client/timing.json's of that name.
 extension ClaimOptions {
   var claimTimeoutMs: Int { jobClaimTimeoutMs ?? Timings.jobClaimTimeoutMs }

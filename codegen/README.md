@@ -146,6 +146,11 @@ writes:
   `MarkJobParams` is told apart by, for the TypeScript SDK.
 - `limits`: each gateway operation's `x-xynolog-limits` and each component
   property's `maxItems`, from `openapi.json`, for the TypeScript SDK.
+- `worker-channels`: each constant of `client/surface.json` that is the
+  channels a stream names (`jobClaimChannels`, `jobCommitChannels`), each
+  operation's result and failure channel from `bus/registry.json` then each
+  other channel, for every SDK but Haskell, whose `haskell-sdk` group writes
+  them from the same resolution.
 - `client-types`: the shapes an SDK hands its callers that no wire message
   carries, from `client/types`, and the form a service account posts with a
   client secret, from `session/ClientSecretForm.json`, for the Haskell SDK:

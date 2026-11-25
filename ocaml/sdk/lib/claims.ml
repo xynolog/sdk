@@ -249,6 +249,5 @@ let stop ?(settle = true) t =
     Kept_for_first_reader.close t.refusals;
     Kept_for_first_reader.close t.stalls)
 
-let job_claim_channels = Worker.channels
-let job_commit_channels = Worker.commit_channels
+include Worker_facts
 let will_retry_after = Worker.will_retry_after

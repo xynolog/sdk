@@ -15,7 +15,6 @@ import xynolog.bus.Bus
 import xynolog.bus.Operations
 import xynolog.bus.decoded
 import xynolog.bus.heard
-import xynolog.bus.replyChannelsFor
 import xynolog.bus.resultOf
 import xynolog.channels.Channels
 import xynolog.errors.BusRequestError
@@ -45,12 +44,6 @@ import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
-
-/** What a worker's stream names for its claims: the replies of `job:claim`, and the two broadcasts a worker reads. */
-public val JOB_CLAIM_CHANNELS: List<String> = replyChannelsFor(Operations.JOB_CLAIM) + Channels.JOB_QUEUED.name + Channels.JOB_CANCEL_REQUESTED.name
-
-/** What a worker's stream names for its commits as well: the replies of `mark:commit`, and of the question whether a batch is recorded. */
-public val JOB_COMMIT_CHANNELS: List<String> = replyChannelsFor(Operations.MARK_COMMIT, Operations.BROWSE_ANNOTATION_REQUESTED)
 
 /** What one claim came to: a job held, a refusal, or nothing pending. */
 private sealed interface Answer {

@@ -670,13 +670,6 @@ func TestARefusalIsHandedOutWithItsCodeAndAReplyThatNamesNoJobIsRefusedHere(t *t
 }
 
 func TestAStreamThatDoesNotNameWhatClaimingReadsCannotCarryAWorkersClaims(t *testing.T) {
-	names := []bus.Channel{"job:claimed", "job:claim-failed", "job:queued", "job:cancel-requested"}
-	if !slices.Equal(JobClaimChannels, names) {
-		t.Fatalf("JobClaimChannels is %v", JobClaimChannels)
-	}
-	if want := []bus.Channel{"mark:commit-ok", "mark:commit-failed", "browse:annotation-result", "browse:annotation-failed"}; !slices.Equal(JobCommitChannels, want) {
-		t.Fatalf("JobCommitChannels is %v", JobCommitChannels)
-	}
 	w := newClaimWorld(t, DefaultTiming())
 	// A worker on such a stream would claim once and never be woken, with nothing to show for it.
 	w.wire.channels = []bus.Channel{"job:claimed", "job:claim-failed"}

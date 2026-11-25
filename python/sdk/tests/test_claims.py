@@ -537,8 +537,6 @@ def test_of_the_refusals_nobody_has_read_the_latest_are_kept_in_order_and_the_jo
 
 
 def test_a_stream_that_does_not_name_what_claiming_reads_cannot_carry_a_workers_claims() -> None:
-    assert JOB_CLAIM_CHANNELS == ("job:claimed", "job:claim-failed", "job:queued", "job:cancel-requested")
-
     async def scenario() -> None:
         # A worker on such a stream would claim once and never be woken, with nothing to show for it.
         w = World(channels=("job:claimed", "job:claim-failed"))
@@ -727,8 +725,6 @@ def test_a_worker_that_stops_fails_the_job_it_holds_and_a_job_left_unsettled_is_
 
 
 def test_a_stream_that_does_not_name_what_a_commit_awaits_carries_a_workers_claims_and_none_of_its_commits() -> None:
-    assert JOB_COMMIT_CHANNELS == ("mark:commit-ok", "mark:commit-failed", "browse:annotation-result", "browse:annotation-failed")
-
     async def scenario() -> None:
         # A worker that never commits names nothing more, and claims as any other.
         w = World(channels=JOB_CLAIM_CHANNELS)

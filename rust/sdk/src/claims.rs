@@ -85,31 +85,7 @@ use std::time::{Duration, SystemTime};
 use tokio::sync::{Notify, mpsc, watch};
 use tokio::time::{Instant, MissedTickBehavior};
 
-/// What a worker's stream names for its claims: the replies of `job:claim`,
-/// and the two broadcasts a worker reads. `job:queued` and
-/// `job:cancel-requested` reach only a stream that names them, so a transport
-/// made for a worker is given these beside the reply channels of whatever
-/// else the worker awaits.
-pub const JOB_CLAIM_CHANNELS: [&str; 4] = [
-    <<JobClaim as Request>::Result as Channel>::NAME,
-    <<JobClaim as Request>::Failure as Channel>::NAME,
-    JobQueued::NAME,
-    JobCancelRequested::NAME,
-];
-
-/// What a worker's stream names for its commits: the replies of `mark:commit`
-/// and of the question it asks when one goes unacknowledged.
-///
-/// The question is the read of ONE annotation, and not of a resource's list
-/// of them. Reply channels reach every stream that names them, and the list's
-/// replies are the frames of many megabytes a worker's stream exists to keep
-/// out; one annotation's frame is small.
-pub const JOB_COMMIT_CHANNELS: [&str; 4] = [
-    <<MarkCommit as Request>::Result as Channel>::NAME,
-    <<MarkCommit as Request>::Failure as Channel>::NAME,
-    <<BrowseAnnotationRequested as Request>::Result as Channel>::NAME,
-    <<BrowseAnnotationRequested as Request>::Failure as Channel>::NAME,
-];
+include!("generated/worker_channels.rs");
 
 /// How weak an observation of a commit is, as evidence that the batch is on
 /// the record. The two a commit is not established by are equally weak: one

@@ -103,6 +103,6 @@ Use `Client.Mark.delegate` or `Client.Yield.delegate` with `Client.delegation cl
 
 ## Run a worker
 
-Use `Client.Job.claim` and `Claims.next` to take a job, then use `Worker` to start it, report progress, checkpoint, and settle it. Include `Worker.channels` in the client's subscription and add `Worker.commit_channels` for annotation commits. `Claims.refused` and `Claims.stalled` say each claim refused and each held job that stalls: the first reader of each is first given the latest said before it came, in order, and a reader who comes after `Claims.stop` hears only the end.
+Use `Client.Job.claim` and `Claims.next` to take a job, then use `Worker` to start it, report progress, checkpoint, and settle it. Include `Claims.job_claim_channels` in the client's subscription and add `Claims.job_commit_channels` for annotation commits. `Claims.refused` and `Claims.stalled` say each claim refused and each held job that stalls: the first reader of each is first given the latest said before it came, in order, and a reader who comes after `Claims.stop` hears only the end.
 
 Working on the SDK itself? See [CONTRIBUTING.md](https://github.com/xynolog/sdk/blob/main/CONTRIBUTING.md).

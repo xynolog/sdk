@@ -82,24 +82,6 @@ import (
 	"github.com/xynolog/sdk/go/internal/kept"
 )
 
-// JobClaimChannels is what a worker's stream names for its claims: the
-// replies of job:claim, and the two broadcasts a worker reads. job:queued and
-// job:cancel-requested reach only a stream that names them, so a transport
-// made for a worker is given these beside the reply channels of whatever else
-// the worker awaits.
-var JobClaimChannels = append(bus.ReplyChannelsFor(bus.JobClaim.Request().Channel()),
-	bus.JobQueued.Channel(),
-	bus.JobCancelRequested.Request().Channel(),
-)
-
-// JobCommitChannels is what a worker's stream names for its commits: the
-// replies of mark:commit, and of the question it asks when one goes
-// unacknowledged. The question is the read of ONE annotation, and not of a
-// resource's list of them: reply channels reach every stream that names them,
-// and the list's replies are the frames of many megabytes a worker's stream
-// exists to keep out; one annotation's frame is small.
-var JobCommitChannels = bus.ReplyChannelsFor(bus.MarkCommit.Request().Channel(), bus.BrowseAnnotationRequested.Request().Channel())
-
 // stoppedWhileHeld is the error of a job failed because its worker stopped,
 // and not because the work failed.
 const stoppedWhileHeld = "The worker stopped while it held the job"

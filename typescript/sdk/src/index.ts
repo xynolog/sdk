@@ -48,8 +48,6 @@ export {
 // hands out, and what a transport made for a worker names.
 export {
   ClaimsObservable,
-  JOB_CLAIM_CHANNELS,
-  JOB_COMMIT_CHANNELS,
   willRetryAfter,
   type ClaimRefusal,
   type HeldJob,
@@ -60,6 +58,10 @@ export {
   type JobFailure,
   type WorkerVitals,
 } from './claims';
+export {
+  JOB_CLAIM_CHANNELS,
+  JOB_COMMIT_CHANNELS,
+} from './worker-channels';
 
 // The SWR cache primitive behind every `browse.*` live query. Exported so
 // consumers of its observables (react-ui's `trackList`) can be tested against

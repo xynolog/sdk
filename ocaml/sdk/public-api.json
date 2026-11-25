@@ -33580,16 +33580,6 @@
     },
     {
       "kind": "value",
-      "path": "Xynolog.Worker.channels",
-      "declaration": "val channels : Xynolog__.Bus_registry.packed_channel list"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.commit_channels",
-      "declaration": "val commit_channels : Xynolog__.Bus_registry.packed_channel list"
-    },
-    {
-      "kind": "value",
       "path": "Xynolog.Worker.accepts",
       "declaration": "val accepts : filters:Yojson.Safe.t -> announcement:Yojson.Safe.t -> bool"
     },

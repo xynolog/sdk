@@ -65,12 +65,10 @@ import {
   isString,
   jobMatchesFilter,
   KeptForFirstReader,
-  replyChannelsFor,
 } from '@xynolog/core';
 import type {
   Annotation,
   AnnotationId,
-  BusOperationKey,
   BusRequestErrorCode,
   BusPrimitive,
   ClaimOptions,
@@ -88,6 +86,7 @@ import {
   withTraceparent,
   withoutTrace,
 } from '@xynolog/observability';
+import { JOB_CLAIM_CHANNELS, type JobCommitChannelsOperation } from './worker-channels';
 
 /** The job a `job:claimed` reply carries, running under this worker: the spec's `JobRunning`. */
 type ClaimedJob = EventMap['job:claimed']['response'];
@@ -96,38 +95,6 @@ type YieldJobResult = components['schemas']['YieldJobResult'];
 type JobProgress = components['schemas']['JobProgress'];
 type DurabilityEvidence = components['schemas']['DurabilityEvidence'];
 type FailureClass = NonNullable<EventMap['job:fail']['failureClass']>;
-
-/**
- * What a worker's stream names for its claims: the replies of `job:claim`,
- * and the two broadcasts a worker reads. `job:queued` and
- * `job:cancel-requested` reach only a stream that names them, so a transport
- * made for a worker is given these beside the reply channels of whatever
- * else the worker awaits.
- */
-export const JOB_CLAIM_CHANNELS: readonly (keyof EventMap)[] = [
-  ...replyChannelsFor(['job:claim']),
-  'job:queued',
-  'job:cancel-requested',
-];
-
-/**
- * The requests a commit makes: the commit, and the question it asks when the
- * commit goes unacknowledged.
- *
- * The question is the read of ONE annotation, and not of a resource's list
- * of them. Reply channels reach every stream that names them, and the list's
- * replies are the frames of many megabytes a worker's stream exists to keep
- * out; one annotation's frame is small.
- */
-const COMMIT_OPERATIONS = [
-  'mark:commit',
-  'browse:annotation-requested',
-] as const satisfies readonly BusOperationKey[];
-type CommitOperation = (typeof COMMIT_OPERATIONS)[number];
-
-/** What a worker's stream names for its commits: the replies of `mark:commit` and of the question it asks when one goes unacknowledged. */
-export const JOB_COMMIT_CHANNELS: readonly (keyof EventMap)[] =
-  replyChannelsFor(COMMIT_OPERATIONS);
 
 /**
  * How weak each observation of a commit is, as evidence that the batch is on
@@ -336,7 +303,7 @@ interface Holder {
     payload: EventMap[K],
   ): Promise<unknown>;
   /** One of a commit's requests, awaited for `markCommitTimeoutMs`. It fails as `Bus.request` fails. */
-  request<Op extends CommitOperation>(
+  request<Op extends JobCommitChannelsOperation>(
     operation: Op,
     payload: EventMap[Op],
   ): Promise<unknown>;
@@ -716,7 +683,7 @@ class ClaimLoop implements Holder {
     return this.wire.emit(channel, payload);
   }
 
-  request<Op extends CommitOperation>(
+  request<Op extends JobCommitChannelsOperation>(
     operation: Op,
     payload: EventMap[Op],
   ): Promise<unknown> {
