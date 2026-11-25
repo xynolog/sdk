@@ -97,7 +97,7 @@ jwt instant name expired =
     <> "."
 
 held :: Text -> Text -> StoredSession
-held access refresh = StoredSession access Issuer.scriptClientId Nothing refresh Nothing "http://issuer.test/token" KM.empty
+held access refresh = StoredSession {storedSessionAccess = access, storedSessionClientId = Issuer.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "http://issuer.test/token"}
 
 clockOptions :: Time.ControlledTime -> Retry.RetryOptions
 clockOptions time = Retry.RetryOptions (Time.now time) (Time.waitUntil time) (pure 0)
@@ -192,7 +192,7 @@ nativeFileCases root = withDirectory $ \directory -> do
   void (SignIn.renewed kept current (IssuedTokens (jwt now "rotated" False) "rotated-refresh"))
   written <- readJSON (Store.path store)
   require "file renewal erased an unknown document member" (member "futureEntry" written == future)
-  require "file renewal erased an unknown sign-in member" (member "futureProperty" (member "local:main" written) == future)
+  require "file renewal kept a member SignIn does not name" (optional "futureProperty" (member "local:main" written) == Null)
   renewed <- Store.signIn store "local:main" >>= maybe (ioError (userError "renewal was not kept")) pure
   require "renewal replaced the identity learned at sign-in" (signInEmail renewed == signInEmail initial && signInIssuer renewed == signInIssuer initial)
   forM_ ["null", "[]", "{unfinished", "\"text\""] $ \bad -> do

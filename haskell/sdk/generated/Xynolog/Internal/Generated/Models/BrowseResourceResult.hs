@@ -10,21 +10,20 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceDescriptor
 
 data BrowseResourceResult = BrowseResourceResult
-  { browseResourceResultResponse :: BrowseResourceResultResponse,
-    browseResourceResultAdditionalProperties :: KM.KeyMap Value
+  { browseResourceResultResponse :: BrowseResourceResultResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseResourceResult where parseJSON = checked "BrowseResourceResult" $ withObject "BrowseResourceResult" (\fields -> BrowseResourceResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON BrowseResourceResult where parseJSON = checked "BrowseResourceResult" $ withObject "BrowseResourceResult" (\fields -> BrowseResourceResult <$> (fields .: "response"))
 
-instance ToJSON BrowseResourceResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseResourceResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (browseResourceResultAdditionalProperties value)))
+instance ToJSON BrowseResourceResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseResourceResultResponse value))]]))
 
 data BrowseResourceResultResponse = BrowseResourceResultResponse
-  { browseResourceResultResponseLastSequence :: Integer,
-    browseResourceResultResponseResource :: ResourceDescriptor
+  { browseResourceResultResponseResource :: ResourceDescriptor,
+    browseResourceResultResponseLastSequence :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseResourceResultResponse where parseJSON = checked "BrowseResourceResultResponse" $ withObject "BrowseResourceResultResponse" (\fields -> BrowseResourceResultResponse <$> (fields .: "lastSequence") <*> (fields .: "resource"))
+instance FromJSON BrowseResourceResultResponse where parseJSON = checked "BrowseResourceResultResponse" $ withObject "BrowseResourceResultResponse" (\fields -> BrowseResourceResultResponse <$> (fields .: "resource") <*> (fields .: "lastSequence"))
 
-instance ToJSON BrowseResourceResultResponse where toJSON value = Object (KM.fromList (concat [[("lastSequence", toJSON (browseResourceResultResponseLastSequence value))], [("resource", toJSON (browseResourceResultResponseResource value))]]))
+instance ToJSON BrowseResourceResultResponse where toJSON value = Object (KM.fromList (concat [[("resource", toJSON (browseResourceResultResponseResource value))], [("lastSequence", toJSON (browseResourceResultResponseLastSequence value))]]))

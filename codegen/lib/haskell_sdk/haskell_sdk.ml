@@ -169,7 +169,8 @@ let files ~root (spec : Spec.t) =
   let* limits = within "bus/registry.json" (Channels.limits bus) in
   let* readers =
     within "bus/registry.json"
-      (Channels.readers bus ~normalize ~definition spec.tables.errors_codes)
+      (Channels.readers bus ~normalize ~definition ~typing:models.typing
+         spec.tables.errors_codes)
   in
   let* credential =
     within Http.classifier
@@ -258,6 +259,7 @@ let files ~root (spec : Spec.t) =
         file ~under:"test"
           (Companions.round_trip_module
              ~banner:(banner "protocol/specs/src")
+             ~enumerations:models.enumerations
              (List.map fst models.definitions));
         file ~under:"src"
           (Http.file

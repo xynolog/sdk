@@ -16,35 +16,33 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data YieldCreateCommand = YieldCreateCommand
-  { yieldCreateCommandU5f_roles :: Maybe [Text],
-    yieldCreateCommandU5f_userId :: Maybe UserId,
-    yieldCreateCommandByteSize :: Integer,
-    yieldCreateCommandContentChecksum :: Text,
-    yieldCreateCommandEntityTypes :: Maybe [Text],
-    yieldCreateCommandFormat :: ContentFormat,
-    yieldCreateCommandGeneratedFrom :: Maybe YieldCreateCommandGeneratedFrom,
-    yieldCreateCommandGenerationPrompt :: Maybe Text,
-    yieldCreateCommandGenerator :: Maybe OneOrMoreAgents,
-    yieldCreateCommandIsDraft :: Maybe Bool,
+  { yieldCreateCommandUserId :: Maybe UserId,
+    yieldCreateCommandRoles :: Maybe [Text],
     yieldCreateCommandJobId :: Maybe JobId,
-    yieldCreateCommandLanguage :: Maybe Text,
     yieldCreateCommandName :: Text,
     yieldCreateCommandStorageUri :: Text,
-    yieldCreateCommandAdditionalProperties :: KM.KeyMap Value
+    yieldCreateCommandContentChecksum :: Text,
+    yieldCreateCommandByteSize :: Integer,
+    yieldCreateCommandFormat :: ContentFormat,
+    yieldCreateCommandLanguage :: Maybe Text,
+    yieldCreateCommandEntityTypes :: Maybe [Text],
+    yieldCreateCommandIsDraft :: Maybe Bool,
+    yieldCreateCommandGeneratedFrom :: Maybe YieldCreateCommandGeneratedFrom,
+    yieldCreateCommandGenerationPrompt :: Maybe Text,
+    yieldCreateCommandGenerator :: Maybe OneOrMoreAgents
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldCreateCommand where parseJSON = checked "YieldCreateCommand" $ withObject "YieldCreateCommand" (\fields -> YieldCreateCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "byteSize") <*> (fields .: "contentChecksum") <*> optional fields "entityTypes" <*> (fields .: "format") <*> optional fields "generatedFrom" <*> optional fields "generationPrompt" <*> optional fields "generator" <*> optional fields "isDraft" <*> optional fields "jobId" <*> optional fields "language" <*> (fields .: "name") <*> (fields .: "storageUri") <*> traverse parseJSON (withoutFields ["_roles", "_userId", "byteSize", "contentChecksum", "entityTypes", "format", "generatedFrom", "generationPrompt", "generator", "isDraft", "jobId", "language", "name", "storageUri"] fields))
+instance FromJSON YieldCreateCommand where parseJSON = checked "YieldCreateCommand" $ withObject "YieldCreateCommand" (\fields -> YieldCreateCommand <$> optional fields "_userId" <*> optional fields "_roles" <*> optional fields "jobId" <*> (fields .: "name") <*> (fields .: "storageUri") <*> (fields .: "contentChecksum") <*> (fields .: "byteSize") <*> (fields .: "format") <*> optional fields "language" <*> optional fields "entityTypes" <*> optional fields "isDraft" <*> optional fields "generatedFrom" <*> optional fields "generationPrompt" <*> optional fields "generator")
 
-instance ToJSON YieldCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (yieldCreateCommandU5f_roles value), optionalPair "_userId" (yieldCreateCommandU5f_userId value), [("byteSize", toJSON (yieldCreateCommandByteSize value))], [("contentChecksum", toJSON (yieldCreateCommandContentChecksum value))], optionalPair "entityTypes" (yieldCreateCommandEntityTypes value), [("format", toJSON (yieldCreateCommandFormat value))], optionalPair "generatedFrom" (yieldCreateCommandGeneratedFrom value), optionalPair "generationPrompt" (yieldCreateCommandGenerationPrompt value), optionalPair "generator" (yieldCreateCommandGenerator value), optionalPair "isDraft" (yieldCreateCommandIsDraft value), optionalPair "jobId" (yieldCreateCommandJobId value), optionalPair "language" (yieldCreateCommandLanguage value), [("name", toJSON (yieldCreateCommandName value))], [("storageUri", toJSON (yieldCreateCommandStorageUri value))]]) <> fmap toJSON (withoutFields ["_roles", "_userId", "byteSize", "contentChecksum", "entityTypes", "format", "generatedFrom", "generationPrompt", "generator", "isDraft", "jobId", "language", "name", "storageUri"] (yieldCreateCommandAdditionalProperties value)))
+instance ToJSON YieldCreateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldCreateCommandUserId value), optionalPair "_roles" (yieldCreateCommandRoles value), optionalPair "jobId" (yieldCreateCommandJobId value), [("name", toJSON (yieldCreateCommandName value))], [("storageUri", toJSON (yieldCreateCommandStorageUri value))], [("contentChecksum", toJSON (yieldCreateCommandContentChecksum value))], [("byteSize", toJSON (yieldCreateCommandByteSize value))], [("format", toJSON (yieldCreateCommandFormat value))], optionalPair "language" (yieldCreateCommandLanguage value), optionalPair "entityTypes" (yieldCreateCommandEntityTypes value), optionalPair "isDraft" (yieldCreateCommandIsDraft value), optionalPair "generatedFrom" (yieldCreateCommandGeneratedFrom value), optionalPair "generationPrompt" (yieldCreateCommandGenerationPrompt value), optionalPair "generator" (yieldCreateCommandGenerator value)]))
 
 data YieldCreateCommandGeneratedFrom = YieldCreateCommandGeneratedFrom
-  { yieldCreateCommandGeneratedFromAnnotationId :: Maybe AnnotationId,
-    yieldCreateCommandGeneratedFromResourceId :: Maybe ResourceId,
-    yieldCreateCommandGeneratedFromAdditionalProperties :: KM.KeyMap Value
+  { yieldCreateCommandGeneratedFromResourceId :: Maybe ResourceId,
+    yieldCreateCommandGeneratedFromAnnotationId :: Maybe AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldCreateCommandGeneratedFrom where parseJSON = checked "YieldCreateCommandGeneratedFrom" $ withObject "YieldCreateCommandGeneratedFrom" (\fields -> YieldCreateCommandGeneratedFrom <$> optional fields "annotationId" <*> optional fields "resourceId" <*> traverse parseJSON (withoutFields ["annotationId", "resourceId"] fields))
+instance FromJSON YieldCreateCommandGeneratedFrom where parseJSON = checked "YieldCreateCommandGeneratedFrom" $ withObject "YieldCreateCommandGeneratedFrom" (\fields -> YieldCreateCommandGeneratedFrom <$> optional fields "resourceId" <*> optional fields "annotationId")
 
-instance ToJSON YieldCreateCommandGeneratedFrom where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (yieldCreateCommandGeneratedFromAnnotationId value), optionalPair "resourceId" (yieldCreateCommandGeneratedFromResourceId value)]) <> fmap toJSON (withoutFields ["annotationId", "resourceId"] (yieldCreateCommandGeneratedFromAdditionalProperties value)))
+instance ToJSON YieldCreateCommandGeneratedFrom where toJSON value = Object (KM.fromList (concat [optionalPair "resourceId" (yieldCreateCommandGeneratedFromResourceId value), optionalPair "annotationId" (yieldCreateCommandGeneratedFromAnnotationId value)]))

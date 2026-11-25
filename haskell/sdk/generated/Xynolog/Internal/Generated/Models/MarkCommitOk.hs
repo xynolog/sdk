@@ -10,22 +10,20 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
 
 data MarkCommitOk = MarkCommitOk
-  { markCommitOkResponse :: MarkCommitOkResponse,
-    markCommitOkAdditionalProperties :: KM.KeyMap Value
+  { markCommitOkResponse :: MarkCommitOkResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkCommitOk where parseJSON = checked "MarkCommitOk" $ withObject "MarkCommitOk" (\fields -> MarkCommitOk <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON MarkCommitOk where parseJSON = checked "MarkCommitOk" $ withObject "MarkCommitOk" (\fields -> MarkCommitOk <$> (fields .: "response"))
 
-instance ToJSON MarkCommitOk where toJSON value = Object (KM.fromList (concat [[("response", toJSON (markCommitOkResponse value))]]) <> fmap toJSON (withoutFields ["response"] (markCommitOkAdditionalProperties value)))
+instance ToJSON MarkCommitOk where toJSON value = Object (KM.fromList (concat [[("response", toJSON (markCommitOkResponse value))]]))
 
 data MarkCommitOkResponse = MarkCommitOkResponse
-  { markCommitOkResponseAnnotationIds :: [AnnotationId],
-    markCommitOkResponsePersisted :: Integer,
-    markCommitOkResponseAdditionalProperties :: KM.KeyMap Value
+  { markCommitOkResponsePersisted :: Integer,
+    markCommitOkResponseAnnotationIds :: [AnnotationId]
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkCommitOkResponse where parseJSON = checked "MarkCommitOkResponse" $ withObject "MarkCommitOkResponse" (\fields -> MarkCommitOkResponse <$> (fields .: "annotationIds") <*> (fields .: "persisted") <*> traverse parseJSON (withoutFields ["annotationIds", "persisted"] fields))
+instance FromJSON MarkCommitOkResponse where parseJSON = checked "MarkCommitOkResponse" $ withObject "MarkCommitOkResponse" (\fields -> MarkCommitOkResponse <$> (fields .: "persisted") <*> (fields .: "annotationIds"))
 
-instance ToJSON MarkCommitOkResponse where toJSON value = Object (KM.fromList (concat [[("annotationIds", toJSON (markCommitOkResponseAnnotationIds value))], [("persisted", toJSON (markCommitOkResponsePersisted value))]]) <> fmap toJSON (withoutFields ["annotationIds", "persisted"] (markCommitOkResponseAdditionalProperties value)))
+instance ToJSON MarkCommitOkResponse where toJSON value = Object (KM.fromList (concat [[("persisted", toJSON (markCommitOkResponsePersisted value))], [("annotationIds", toJSON (markCommitOkResponseAnnotationIds value))]]))

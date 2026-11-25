@@ -8,11 +8,11 @@ import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 
-data StackApiVersion = StackApiVersionXynologU2e_orgU2f_v1alpha1 deriving (Eq, Show)
+data StackApiVersion = StackApiVersionXynologOrgV1alpha1 deriving (Eq, Show)
 
-instance FromJSON StackApiVersion where parseJSON = checked "StackApiVersion" $ \value -> if value == String "xynolog.org/v1alpha1" then pure StackApiVersionXynologU2e_orgU2f_v1alpha1 else fail "unknown enumeration member"
+instance FromJSON StackApiVersion where parseJSON = checked "StackApiVersion" $ \value -> if value == String "xynolog.org/v1alpha1" then pure StackApiVersionXynologOrgV1alpha1 else fail "unknown enumeration member"
 
-instance ToJSON StackApiVersion where toJSON StackApiVersionXynologU2e_orgU2f_v1alpha1 = String "xynolog.org/v1alpha1"
+instance ToJSON StackApiVersion where toJSON StackApiVersionXynologOrgV1alpha1 = String "xynolog.org/v1alpha1"
 
 stackApiVersionText :: StackApiVersion -> Text
-stackApiVersionText StackApiVersionXynologU2e_orgU2f_v1alpha1 = "xynolog.org/v1alpha1"
+stackApiVersionText StackApiVersionXynologOrgV1alpha1 = "xynolog.org/v1alpha1"

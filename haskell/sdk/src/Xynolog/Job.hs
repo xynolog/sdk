@@ -42,7 +42,7 @@ status namespace@(JobNamespace _ _ _ _ timing) identity = statusWithin namespace
 statusWithin :: JobNamespace -> JobId -> Integer -> IO JobStatusResponse
 statusWithin (JobNamespace wire _ _ _ _) identity timeoutMs =
   jobStatusResultResponse
-    <$> Bus.request wire JobStatusRequestedOperation (JobStatusRequest identity mempty) timeoutMs
+    <$> Bus.request wire JobStatusRequestedOperation (JobStatusRequest identity) timeoutMs
 
 -- | Asks at once, then every interval, and fails as timed out at the limit
 -- from its first ask: an ask then in flight, or a wait, ends there. Each
@@ -76,7 +76,7 @@ pollUntilComplete namespace@(JobNamespace _ _ _ clock timing) identity options o
 cancel :: JobNamespace -> JobId -> IO Bool
 cancel (JobNamespace wire _ _ _ timing) identity =
   jobCancelResultCancelled . jobCancelResultBusEnvelopeResponse
-    <$> Bus.request wire JobCancelRequestedOperation (JobCancelRequest identity mempty) (Timing.busRequestTimeoutMs timing)
+    <$> Bus.request wire JobCancelRequestedOperation (JobCancelRequest identity) (Timing.busRequestTimeoutMs timing)
 
 claim :: JobNamespace -> ClaimOptions -> IO Worker.Claims
 claim (JobNamespace _ _ carrier clock timing) = Worker.newClaims carrier clock timing

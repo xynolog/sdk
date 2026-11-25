@@ -11,11 +11,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data WeaveApplied = WeaveApplied
   { weaveAppliedResourceId :: ResourceId,
-    weaveAppliedSequenceNumber :: Integer,
-    weaveAppliedAdditionalProperties :: KM.KeyMap Value
+    weaveAppliedSequenceNumber :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON WeaveApplied where parseJSON = checked "WeaveApplied" $ withObject "WeaveApplied" (\fields -> WeaveApplied <$> (fields .: "resourceId") <*> (fields .: "sequenceNumber") <*> traverse parseJSON (withoutFields ["resourceId", "sequenceNumber"] fields))
+instance FromJSON WeaveApplied where parseJSON = checked "WeaveApplied" $ withObject "WeaveApplied" (\fields -> WeaveApplied <$> (fields .: "resourceId") <*> (fields .: "sequenceNumber"))
 
-instance ToJSON WeaveApplied where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (weaveAppliedResourceId value))], [("sequenceNumber", toJSON (weaveAppliedSequenceNumber value))]]) <> fmap toJSON (withoutFields ["resourceId", "sequenceNumber"] (weaveAppliedAdditionalProperties value)))
+instance ToJSON WeaveApplied where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (weaveAppliedResourceId value))], [("sequenceNumber", toJSON (weaveAppliedSequenceNumber value))]]))

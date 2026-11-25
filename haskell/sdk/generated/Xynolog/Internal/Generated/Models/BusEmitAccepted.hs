@@ -9,11 +9,10 @@ import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Internal.Codec
 
 data BusEmitAccepted = BusEmitAccepted
-  { busEmitAcceptedSubscribers :: Maybe Integer,
-    busEmitAcceptedAdditionalProperties :: KM.KeyMap Value
+  { busEmitAcceptedSubscribers :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON BusEmitAccepted where parseJSON = checked "BusEmitAccepted" $ withObject "BusEmitAccepted" (\fields -> BusEmitAccepted <$> optional fields "subscribers" <*> traverse parseJSON (withoutFields ["subscribers"] fields))
+instance FromJSON BusEmitAccepted where parseJSON = checked "BusEmitAccepted" $ withObject "BusEmitAccepted" (\fields -> BusEmitAccepted <$> optional fields "subscribers")
 
-instance ToJSON BusEmitAccepted where toJSON value = Object (KM.fromList (concat [optionalPair "subscribers" (busEmitAcceptedSubscribers value)]) <> fmap toJSON (withoutFields ["subscribers"] (busEmitAcceptedAdditionalProperties value)))
+instance ToJSON BusEmitAccepted where toJSON value = Object (KM.fromList (concat [optionalPair "subscribers" (busEmitAcceptedSubscribers value)]))

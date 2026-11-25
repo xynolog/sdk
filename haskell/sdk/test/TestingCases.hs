@@ -166,7 +166,7 @@ sessionCases fixtures = do
   Sessions.saysWho scripted (Just user)
   store <- Storage.newMemoryStorage
   Stored.storeSession store "consumer-kb" grant
-  let kb = KnowledgeBase "did:web:consumer.test" (KbEndpointLocalEndpoint (LocalEndpoint "consumer-kb" LocalEndpointKindLocal mempty)) "consumer-kb" "Consumer" Nothing mempty
+  let kb = KnowledgeBase {knowledgeBaseDid = "did:web:consumer.test", knowledgeBaseEndpoint = (KbEndpointLocalEndpoint (LocalEndpoint {localEndpointKbId = "consumer-kb", localEndpointKind = LocalEndpointKindLocal})), knowledgeBaseId = "consumer-kb", knowledgeBaseLabel = "Consumer", knowledgeBaseLastRead = Nothing}
   bracket Signals.newSessionSignals Signals.dispose $ \signals -> do
     let inputs = Factory.SessionFactoryOptions kb store signals
     bracket (Factory.openSession (Sessions.factory scripted) inputs) Session.closeOpenedSession $ \opened -> do

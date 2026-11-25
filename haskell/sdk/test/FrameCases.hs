@@ -138,7 +138,7 @@ runCases root = do
         forM_ (KM.lookup "request" fields) $ \expected -> Transport.errors transport $ \observations -> do
           resource <- either (ioError . userError) pure (mkResourceId "res-1")
           let action =
-                try (Bus.request bus BrowseResourceRequestedOperation (BrowseResourceRequest resource mempty) 100) ::
+                try (Bus.request bus BrowseResourceRequestedOperation (BrowseResourceRequest resource) 100) ::
                   IO (Either SomeException BrowseResourceResult)
           withAsync action $ \pending -> do
             atomically (takeTMVar asked)

@@ -11,18 +11,18 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AssessingJobParams = AssessingJobParams
-  { assessingJobParamsDensity :: Maybe Scientific,
+  { assessingJobParamsMotivation :: AssessingJobParamsMotivation,
     assessingJobParamsInstructions :: Maybe Text,
+    assessingJobParamsTone :: Maybe AssessingJobParamsTone,
+    assessingJobParamsDensity :: Maybe Scientific,
     assessingJobParamsLanguage :: Maybe Text,
-    assessingJobParamsMotivation :: AssessingJobParamsMotivation,
-    assessingJobParamsSourceLanguage :: Maybe Text,
-    assessingJobParamsTone :: Maybe AssessingJobParamsTone
+    assessingJobParamsSourceLanguage :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON AssessingJobParams where parseJSON = checked "AssessingJobParams" $ withObject "AssessingJobParams" (\fields -> AssessingJobParams <$> optional fields "density" <*> optional fields "instructions" <*> optional fields "language" <*> (fields .: "motivation") <*> optional fields "sourceLanguage" <*> optional fields "tone")
+instance FromJSON AssessingJobParams where parseJSON = checked "AssessingJobParams" $ withObject "AssessingJobParams" (\fields -> AssessingJobParams <$> (fields .: "motivation") <*> optional fields "instructions" <*> optional fields "tone" <*> optional fields "density" <*> optional fields "language" <*> optional fields "sourceLanguage")
 
-instance ToJSON AssessingJobParams where toJSON value = Object (KM.fromList (concat [optionalPair "density" (assessingJobParamsDensity value), optionalPair "instructions" (assessingJobParamsInstructions value), optionalPair "language" (assessingJobParamsLanguage value), [("motivation", toJSON (assessingJobParamsMotivation value))], optionalPair "sourceLanguage" (assessingJobParamsSourceLanguage value), optionalPair "tone" (assessingJobParamsTone value)]))
+instance ToJSON AssessingJobParams where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (assessingJobParamsMotivation value))], optionalPair "instructions" (assessingJobParamsInstructions value), optionalPair "tone" (assessingJobParamsTone value), optionalPair "density" (assessingJobParamsDensity value), optionalPair "language" (assessingJobParamsLanguage value), optionalPair "sourceLanguage" (assessingJobParamsSourceLanguage value)]))
 
 data AssessingJobParamsMotivation = AssessingJobParamsMotivationAssessing deriving (Eq, Show)
 

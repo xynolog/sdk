@@ -12,15 +12,15 @@ import Xynolog.Internal.Generated.Models.FieldFault
 import Xynolog.Internal.Generated.Models.Target
 
 data ErrorData = ErrorData
-  { errorDataChoices :: Maybe [Target],
-    errorDataCode :: Text,
-    errorDataFields :: Maybe [FieldFault],
-    errorDataMayStillRun :: Maybe Bool,
+  { errorDataCode :: Text,
     errorDataRetryable :: Bool,
-    errorDataSupported :: Maybe [Text]
+    errorDataFields :: Maybe [FieldFault],
+    errorDataChoices :: Maybe [Target],
+    errorDataSupported :: Maybe [Text],
+    errorDataMayStillRun :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON ErrorData where parseJSON = checked "ErrorData" $ withObject "ErrorData" (\fields -> ErrorData <$> optional fields "choices" <*> (fields .: "code") <*> optional fields "fields" <*> optional fields "mayStillRun" <*> (fields .: "retryable") <*> optional fields "supported")
+instance FromJSON ErrorData where parseJSON = checked "ErrorData" $ withObject "ErrorData" (\fields -> ErrorData <$> (fields .: "code") <*> (fields .: "retryable") <*> optional fields "fields" <*> optional fields "choices" <*> optional fields "supported" <*> optional fields "mayStillRun")
 
-instance ToJSON ErrorData where toJSON value = Object (KM.fromList (concat [optionalPair "choices" (errorDataChoices value), [("code", toJSON (errorDataCode value))], optionalPair "fields" (errorDataFields value), optionalPair "mayStillRun" (errorDataMayStillRun value), [("retryable", toJSON (errorDataRetryable value))], optionalPair "supported" (errorDataSupported value)]))
+instance ToJSON ErrorData where toJSON value = Object (KM.fromList (concat [[("code", toJSON (errorDataCode value))], [("retryable", toJSON (errorDataRetryable value))], optionalPair "fields" (errorDataFields value), optionalPair "choices" (errorDataChoices value), optionalPair "supported" (errorDataSupported value), optionalPair "mayStillRun" (errorDataMayStillRun value)]))

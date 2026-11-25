@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.JobId
 
 data JobCancelRequest = JobCancelRequest
-  { jobCancelRequestJobId :: JobId,
-    jobCancelRequestAdditionalProperties :: KM.KeyMap Value
+  { jobCancelRequestJobId :: JobId
   }
   deriving (Eq, Show)
 
-instance FromJSON JobCancelRequest where parseJSON = checked "JobCancelRequest" $ withObject "JobCancelRequest" (\fields -> JobCancelRequest <$> (fields .: "jobId") <*> traverse parseJSON (withoutFields ["jobId"] fields))
+instance FromJSON JobCancelRequest where parseJSON = checked "JobCancelRequest" $ withObject "JobCancelRequest" (\fields -> JobCancelRequest <$> (fields .: "jobId"))
 
-instance ToJSON JobCancelRequest where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (jobCancelRequestJobId value))]]) <> fmap toJSON (withoutFields ["jobId"] (jobCancelRequestAdditionalProperties value)))
+instance ToJSON JobCancelRequest where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (jobCancelRequestJobId value))]]))

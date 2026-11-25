@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.TagSchema
 
 data TagSchemaAddedPayload = TagSchemaAddedPayload
-  { tagSchemaAddedPayloadSchema :: TagSchema,
-    tagSchemaAddedPayloadAdditionalProperties :: KM.KeyMap Value
+  { tagSchemaAddedPayloadSchema :: TagSchema
   }
   deriving (Eq, Show)
 
-instance FromJSON TagSchemaAddedPayload where parseJSON = checked "TagSchemaAddedPayload" $ withObject "TagSchemaAddedPayload" (\fields -> TagSchemaAddedPayload <$> (fields .: "schema") <*> traverse parseJSON (withoutFields ["schema"] fields))
+instance FromJSON TagSchemaAddedPayload where parseJSON = checked "TagSchemaAddedPayload" $ withObject "TagSchemaAddedPayload" (\fields -> TagSchemaAddedPayload <$> (fields .: "schema"))
 
-instance ToJSON TagSchemaAddedPayload where toJSON value = Object (KM.fromList (concat [[("schema", toJSON (tagSchemaAddedPayloadSchema value))]]) <> fmap toJSON (withoutFields ["schema"] (tagSchemaAddedPayloadAdditionalProperties value)))
+instance ToJSON TagSchemaAddedPayload where toJSON value = Object (KM.fromList (concat [[("schema", toJSON (tagSchemaAddedPayloadSchema value))]]))

@@ -133,7 +133,64 @@ let types_module ~banner module_names =
     body = List.map (fun m -> H.Reexport m) module_names;
   }
 
-let round_trip_module ~banner names =
+(* Each value of every enumeration the models declare: its enumeration's
+   name, the value, what its constructor is written as, what the value is
+   read and written back as, and, of words, its constructor's word. *)
+let enumeration_cases enumerations =
+  let case name worded (v : Schema.literal) =
+    let constructor = Models.constructor name v in
+    let wire = Models.literal_value v in
+    H.Tuple
+      [
+        Str name;
+        wire;
+        Apply (Name "toJSON", [ Name constructor ]);
+        Apply
+          ( Name "fmap",
+            [
+              Name "toJSON";
+              Typed
+                ( Apply (Name "parseEither", [ Name "parseJSON"; wire ]),
+                  T_apply ("Either", [ T_name "String"; T_name name ]) );
+            ] );
+        (if worded then
+           Apply
+             ( Name "Just",
+               [ Apply (Name (Models.words_of name), [ Name constructor ]) ] )
+         else Name "Nothing");
+      ]
+  in
+  H.Value
+    {
+      about = [];
+      name = "enumerationCases";
+      type_ =
+        T_list
+          (T_tuple
+             [
+               T_name "Text";
+               T_name "Value";
+               T_name "Value";
+               T_apply ("Either", [ T_name "String"; T_name "Value" ]);
+               T_apply ("Maybe", [ T_name "Text" ]);
+             ]);
+      clauses =
+        [
+          {
+            patterns = [];
+            body =
+              List
+                (List.concat_map
+                   (fun (name, values) ->
+                     List.map
+                       (case name (Option.is_some (Models.words values)))
+                       values)
+                   enumerations);
+          };
+        ];
+    }
+
+let round_trip_module ~banner ~enumerations names =
   {
     H.banner;
     extensions = [ "OverloadedStrings" ];
@@ -141,7 +198,7 @@ let round_trip_module ~banner names =
     imports =
       [
         H.import "Data.Aeson"
-          ~items:[ Plain "Value"; Plain "parseJSON"; Plain "toJSON" ];
+          ~items:[ All "Value"; Plain "parseJSON"; Plain "toJSON" ];
         H.import "Data.Aeson.Types" ~items:[ Plain "parseEither" ];
         H.import "Data.Text" ~items:[ Plain "Text" ];
         H.import "Xynolog.Types";
@@ -196,5 +253,6 @@ let round_trip_module ~banner names =
                 };
               ];
           };
+        enumeration_cases enumerations;
       ];
   }

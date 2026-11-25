@@ -13,13 +13,13 @@ import Xynolog.Internal.Generated.Models.RequestId
 import Xynolog.Internal.Generated.Models.RunInstance
 
 data ServiceOutput = ServiceOutput
-  { serviceOutputInstance :: RunInstance,
-    serviceOutputLine :: Text,
-    serviceOutputRequestId :: RequestId,
-    serviceOutputStream :: OutputStream
+  { serviceOutputRequestId :: RequestId,
+    serviceOutputInstance :: RunInstance,
+    serviceOutputStream :: OutputStream,
+    serviceOutputLine :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceOutput where parseJSON = checked "ServiceOutput" $ withObject "ServiceOutput" (\fields -> ServiceOutput <$> (fields .: "instance") <*> (fields .: "line") <*> (fields .: "requestId") <*> (fields .: "stream"))
+instance FromJSON ServiceOutput where parseJSON = checked "ServiceOutput" $ withObject "ServiceOutput" (\fields -> ServiceOutput <$> (fields .: "requestId") <*> (fields .: "instance") <*> (fields .: "stream") <*> (fields .: "line"))
 
-instance ToJSON ServiceOutput where toJSON value = Object (KM.fromList (concat [[("instance", toJSON (serviceOutputInstance value))], [("line", toJSON (serviceOutputLine value))], [("requestId", toJSON (serviceOutputRequestId value))], [("stream", toJSON (serviceOutputStream value))]]))
+instance ToJSON ServiceOutput where toJSON value = Object (KM.fromList (concat [[("requestId", toJSON (serviceOutputRequestId value))], [("instance", toJSON (serviceOutputInstance value))], [("stream", toJSON (serviceOutputStream value))], [("line", toJSON (serviceOutputLine value))]]))

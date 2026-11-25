@@ -8,18 +8,18 @@ import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 
-data DurabilityEvidence = DurabilityEvidenceAcknowledged | DurabilityEvidenceProbeU2d_confirmed | DurabilityEvidenceProbeU2d_refused | DurabilityEvidenceProbeU2d_unreachable deriving (Eq, Show)
+data DurabilityEvidence = DurabilityEvidenceAcknowledged | DurabilityEvidenceProbeConfirmed | DurabilityEvidenceProbeRefused | DurabilityEvidenceProbeUnreachable deriving (Eq, Show)
 
-instance FromJSON DurabilityEvidence where parseJSON = checked "DurabilityEvidence" $ \value -> if value == String "acknowledged" then pure DurabilityEvidenceAcknowledged else if value == String "probe-confirmed" then pure DurabilityEvidenceProbeU2d_confirmed else if value == String "probe-refused" then pure DurabilityEvidenceProbeU2d_refused else if value == String "probe-unreachable" then pure DurabilityEvidenceProbeU2d_unreachable else fail "unknown enumeration member"
+instance FromJSON DurabilityEvidence where parseJSON = checked "DurabilityEvidence" $ \value -> if value == String "acknowledged" then pure DurabilityEvidenceAcknowledged else if value == String "probe-confirmed" then pure DurabilityEvidenceProbeConfirmed else if value == String "probe-refused" then pure DurabilityEvidenceProbeRefused else if value == String "probe-unreachable" then pure DurabilityEvidenceProbeUnreachable else fail "unknown enumeration member"
 
 instance ToJSON DurabilityEvidence where
   toJSON DurabilityEvidenceAcknowledged = String "acknowledged"
-  toJSON DurabilityEvidenceProbeU2d_confirmed = String "probe-confirmed"
-  toJSON DurabilityEvidenceProbeU2d_refused = String "probe-refused"
-  toJSON DurabilityEvidenceProbeU2d_unreachable = String "probe-unreachable"
+  toJSON DurabilityEvidenceProbeConfirmed = String "probe-confirmed"
+  toJSON DurabilityEvidenceProbeRefused = String "probe-refused"
+  toJSON DurabilityEvidenceProbeUnreachable = String "probe-unreachable"
 
 durabilityEvidenceText :: DurabilityEvidence -> Text
 durabilityEvidenceText DurabilityEvidenceAcknowledged = "acknowledged"
-durabilityEvidenceText DurabilityEvidenceProbeU2d_confirmed = "probe-confirmed"
-durabilityEvidenceText DurabilityEvidenceProbeU2d_refused = "probe-refused"
-durabilityEvidenceText DurabilityEvidenceProbeU2d_unreachable = "probe-unreachable"
+durabilityEvidenceText DurabilityEvidenceProbeConfirmed = "probe-confirmed"
+durabilityEvidenceText DurabilityEvidenceProbeRefused = "probe-refused"
+durabilityEvidenceText DurabilityEvidenceProbeUnreachable = "probe-unreachable"

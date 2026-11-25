@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.SecretRef
 
 data Provider = Provider
-  { providerApiKey :: Maybe SecretRef,
-    providerBaseURL :: Maybe Text
+  { providerBaseURL :: Maybe Text,
+    providerApiKey :: Maybe SecretRef
   }
   deriving (Eq, Show)
 
-instance FromJSON Provider where parseJSON = checked "Provider" $ withObject "Provider" (\fields -> Provider <$> optional fields "apiKey" <*> optional fields "baseURL")
+instance FromJSON Provider where parseJSON = checked "Provider" $ withObject "Provider" (\fields -> Provider <$> optional fields "baseURL" <*> optional fields "apiKey")
 
-instance ToJSON Provider where toJSON value = Object (KM.fromList (concat [optionalPair "apiKey" (providerApiKey value), optionalPair "baseURL" (providerBaseURL value)]))
+instance ToJSON Provider where toJSON value = Object (KM.fromList (concat [optionalPair "baseURL" (providerBaseURL value), optionalPair "apiKey" (providerApiKey value)]))

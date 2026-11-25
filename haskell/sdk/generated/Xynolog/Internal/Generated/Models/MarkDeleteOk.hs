@@ -10,21 +10,19 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
 
 data MarkDeleteOk = MarkDeleteOk
-  { markDeleteOkResponse :: MarkDeleteOkResponse,
-    markDeleteOkAdditionalProperties :: KM.KeyMap Value
+  { markDeleteOkResponse :: MarkDeleteOkResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkDeleteOk where parseJSON = checked "MarkDeleteOk" $ withObject "MarkDeleteOk" (\fields -> MarkDeleteOk <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON MarkDeleteOk where parseJSON = checked "MarkDeleteOk" $ withObject "MarkDeleteOk" (\fields -> MarkDeleteOk <$> (fields .: "response"))
 
-instance ToJSON MarkDeleteOk where toJSON value = Object (KM.fromList (concat [[("response", toJSON (markDeleteOkResponse value))]]) <> fmap toJSON (withoutFields ["response"] (markDeleteOkAdditionalProperties value)))
+instance ToJSON MarkDeleteOk where toJSON value = Object (KM.fromList (concat [[("response", toJSON (markDeleteOkResponse value))]]))
 
 data MarkDeleteOkResponse = MarkDeleteOkResponse
-  { markDeleteOkResponseAnnotationId :: AnnotationId,
-    markDeleteOkResponseAdditionalProperties :: KM.KeyMap Value
+  { markDeleteOkResponseAnnotationId :: AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkDeleteOkResponse where parseJSON = checked "MarkDeleteOkResponse" $ withObject "MarkDeleteOkResponse" (\fields -> MarkDeleteOkResponse <$> (fields .: "annotationId") <*> traverse parseJSON (withoutFields ["annotationId"] fields))
+instance FromJSON MarkDeleteOkResponse where parseJSON = checked "MarkDeleteOkResponse" $ withObject "MarkDeleteOkResponse" (\fields -> MarkDeleteOkResponse <$> (fields .: "annotationId"))
 
-instance ToJSON MarkDeleteOkResponse where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (markDeleteOkResponseAnnotationId value))]]) <> fmap toJSON (withoutFields ["annotationId"] (markDeleteOkResponseAdditionalProperties value)))
+instance ToJSON MarkDeleteOkResponse where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (markDeleteOkResponseAnnotationId value))]]))

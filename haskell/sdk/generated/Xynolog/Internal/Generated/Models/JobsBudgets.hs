@@ -11,14 +11,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.JobType
 
 data JobsBudgets = JobsBudgets
-  { jobsBudgetsU24_comment :: Text,
+  { jobsBudgetsComment :: Text,
     jobsBudgetsBudgets :: [JobsBudgetsBudgetsItem]
   }
   deriving (Eq, Show)
 
 instance FromJSON JobsBudgets where parseJSON = checked "JobsBudgets" $ withObject "JobsBudgets" (\fields -> JobsBudgets <$> (fields .: "$comment") <*> (fields .: "budgets"))
 
-instance ToJSON JobsBudgets where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (jobsBudgetsU24_comment value))], [("budgets", toJSON (jobsBudgetsBudgets value))]]))
+instance ToJSON JobsBudgets where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (jobsBudgetsComment value))], [("budgets", toJSON (jobsBudgetsBudgets value))]]))
 
 data JobsBudgetsBudgetsItem = JobsBudgetsBudgetsItem
   { jobsBudgetsBudgetsItemJobType :: JobType,

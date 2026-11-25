@@ -1,4 +1,5 @@
-(* Every schema Protocol roots ([Roots.all]) that is a string enum, the
+(* Every schema Protocol roots ([Roots.all]) that is a string enum or a
+   string constant, the
    client types below, why no launcher was found
    (protocol/specs/src/client/discovery-absent.json), and every record
    Protocol states in a table ([Table_records]) that is one but a union's
@@ -39,23 +40,14 @@ let constructor value =
 
 let module_name name = String.capitalize_ascii (Text.snake name)
 
-(* The members of [schema] when it is a string enum. *)
+(* The members of [schema] when it is a string enum, or a string constant:
+   the enum of its one value. *)
 let members_of = function
   | Schema.Schema { type_ = Some [ String ]; enum = Some members; _ } ->
       Some members
+  | Schema.Schema { type_ = Some [ String ]; const = Some member; _ } ->
+      Some [ member ]
   | _ -> None
-
-(* The module of the rooted schema [file] is ([Roots.all]), when it is a
-   string enum. *)
-let rooted (spec : Spec.t) file =
-  Option.bind (List.assoc_opt file spec.schemas) (fun schema ->
-      Option.bind (members_of schema) (fun _ ->
-          List.find_map
-            (fun (name, reference) ->
-              if fst (Decode.resolve spec.ids reference) = file then
-                Some (module_name name)
-              else None)
-            (Roots.all spec)))
 
 (* The file and the pointer of a table record's [Table_records.key]. *)
 let place key =

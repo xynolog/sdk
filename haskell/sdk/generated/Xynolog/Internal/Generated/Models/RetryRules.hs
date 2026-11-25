@@ -11,17 +11,17 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.HttpStatus
 
 data RetryRules = RetryRules
-  { retryRulesU24_comment :: Text,
+  { retryRulesComment :: Text,
     retryRulesBoot :: RetryRulesBoot,
     retryRulesJob :: RetryRulesJob,
-    retryRulesRefresh :: RetryRulesRefresh,
-    retryRulesTransport :: RetryRulesTransport
+    retryRulesTransport :: RetryRulesTransport,
+    retryRulesRefresh :: RetryRulesRefresh
   }
   deriving (Eq, Show)
 
-instance FromJSON RetryRules where parseJSON = checked "RetryRules" $ withObject "RetryRules" (\fields -> RetryRules <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "job") <*> (fields .: "refresh") <*> (fields .: "transport"))
+instance FromJSON RetryRules where parseJSON = checked "RetryRules" $ withObject "RetryRules" (\fields -> RetryRules <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "job") <*> (fields .: "transport") <*> (fields .: "refresh"))
 
-instance ToJSON RetryRules where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (retryRulesU24_comment value))], [("boot", toJSON (retryRulesBoot value))], [("job", toJSON (retryRulesJob value))], [("refresh", toJSON (retryRulesRefresh value))], [("transport", toJSON (retryRulesTransport value))]]))
+instance ToJSON RetryRules where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (retryRulesComment value))], [("boot", toJSON (retryRulesBoot value))], [("job", toJSON (retryRulesJob value))], [("transport", toJSON (retryRulesTransport value))], [("refresh", toJSON (retryRulesRefresh value))]]))
 
 data RetryRulesBoot = RetryRulesBoot
   { retryRulesBootStatuses :: [HttpStatus]
@@ -33,32 +33,32 @@ instance FromJSON RetryRulesBoot where parseJSON = checked "RetryRulesBoot" $ wi
 instance ToJSON RetryRulesBoot where toJSON value = Object (KM.fromList (concat [[("statuses", toJSON (retryRulesBootStatuses value))]]))
 
 data RetryRulesJob = RetryRulesJob
-  { retryRulesJobStatusFrom :: HttpStatus,
-    retryRulesJobStatuses :: [HttpStatus]
+  { retryRulesJobStatuses :: [HttpStatus],
+    retryRulesJobStatusFrom :: HttpStatus
   }
   deriving (Eq, Show)
 
-instance FromJSON RetryRulesJob where parseJSON = checked "RetryRulesJob" $ withObject "RetryRulesJob" (\fields -> RetryRulesJob <$> (fields .: "statusFrom") <*> (fields .: "statuses"))
+instance FromJSON RetryRulesJob where parseJSON = checked "RetryRulesJob" $ withObject "RetryRulesJob" (\fields -> RetryRulesJob <$> (fields .: "statuses") <*> (fields .: "statusFrom"))
 
-instance ToJSON RetryRulesJob where toJSON value = Object (KM.fromList (concat [[("statusFrom", toJSON (retryRulesJobStatusFrom value))], [("statuses", toJSON (retryRulesJobStatuses value))]]))
+instance ToJSON RetryRulesJob where toJSON value = Object (KM.fromList (concat [[("statuses", toJSON (retryRulesJobStatuses value))], [("statusFrom", toJSON (retryRulesJobStatusFrom value))]]))
 
 data RetryRulesRefresh = RetryRulesRefresh
-  { retryRulesRefreshNoResponse :: Bool,
+  { retryRulesRefreshStatuses :: [HttpStatus],
     retryRulesRefreshStatusFrom :: HttpStatus,
-    retryRulesRefreshStatuses :: [HttpStatus]
+    retryRulesRefreshNoResponse :: Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON RetryRulesRefresh where parseJSON = checked "RetryRulesRefresh" $ withObject "RetryRulesRefresh" (\fields -> RetryRulesRefresh <$> (fields .: "noResponse") <*> (fields .: "statusFrom") <*> (fields .: "statuses"))
+instance FromJSON RetryRulesRefresh where parseJSON = checked "RetryRulesRefresh" $ withObject "RetryRulesRefresh" (\fields -> RetryRulesRefresh <$> (fields .: "statuses") <*> (fields .: "statusFrom") <*> (fields .: "noResponse"))
 
-instance ToJSON RetryRulesRefresh where toJSON value = Object (KM.fromList (concat [[("noResponse", toJSON (retryRulesRefreshNoResponse value))], [("statusFrom", toJSON (retryRulesRefreshStatusFrom value))], [("statuses", toJSON (retryRulesRefreshStatuses value))]]))
+instance ToJSON RetryRulesRefresh where toJSON value = Object (KM.fromList (concat [[("statuses", toJSON (retryRulesRefreshStatuses value))], [("statusFrom", toJSON (retryRulesRefreshStatusFrom value))], [("noResponse", toJSON (retryRulesRefreshNoResponse value))]]))
 
 data RetryRulesTransport = RetryRulesTransport
-  { retryRulesTransportIdempotentMethods :: [Text],
-    retryRulesTransportStatuses :: [HttpStatus]
+  { retryRulesTransportStatuses :: [HttpStatus],
+    retryRulesTransportIdempotentMethods :: [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON RetryRulesTransport where parseJSON = checked "RetryRulesTransport" $ withObject "RetryRulesTransport" (\fields -> RetryRulesTransport <$> (fields .: "idempotentMethods") <*> (fields .: "statuses"))
+instance FromJSON RetryRulesTransport where parseJSON = checked "RetryRulesTransport" $ withObject "RetryRulesTransport" (\fields -> RetryRulesTransport <$> (fields .: "statuses") <*> (fields .: "idempotentMethods"))
 
-instance ToJSON RetryRulesTransport where toJSON value = Object (KM.fromList (concat [[("idempotentMethods", toJSON (retryRulesTransportIdempotentMethods value))], [("statuses", toJSON (retryRulesTransportStatuses value))]]))
+instance ToJSON RetryRulesTransport where toJSON value = Object (KM.fromList (concat [[("statuses", toJSON (retryRulesTransportStatuses value))], [("idempotentMethods", toJSON (retryRulesTransportIdempotentMethods value))]]))

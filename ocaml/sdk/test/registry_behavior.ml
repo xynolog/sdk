@@ -802,7 +802,6 @@ let open_resource_census () =
         order = 0;
         media_type = Some "text/plain";
         storage_uri = Some "file://store/res-1";
-        extra = [];
       };
     ];
   let key = R.open_resources_by_kb_key in

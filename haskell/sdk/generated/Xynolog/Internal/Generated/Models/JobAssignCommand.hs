@@ -13,16 +13,15 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobAssignCommand = JobAssignCommand
-  { jobAssignCommandU5f_userId :: Maybe UserId,
-    jobAssignCommandHolder :: UserId,
+  { jobAssignCommandUserId :: Maybe UserId,
     jobAssignCommandJobId :: JobId,
     jobAssignCommandJobType :: JobType,
-    jobAssignCommandRequester :: UserId,
     jobAssignCommandResourceId :: ResourceId,
-    jobAssignCommandAdditionalProperties :: KM.KeyMap Value
+    jobAssignCommandHolder :: UserId,
+    jobAssignCommandRequester :: UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON JobAssignCommand where parseJSON = checked "JobAssignCommand" $ withObject "JobAssignCommand" (\fields -> JobAssignCommand <$> optional fields "_userId" <*> (fields .: "holder") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "requester") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["_userId", "holder", "jobId", "jobType", "requester", "resourceId"] fields))
+instance FromJSON JobAssignCommand where parseJSON = checked "JobAssignCommand" $ withObject "JobAssignCommand" (\fields -> JobAssignCommand <$> optional fields "_userId" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> (fields .: "holder") <*> (fields .: "requester"))
 
-instance ToJSON JobAssignCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobAssignCommandU5f_userId value), [("holder", toJSON (jobAssignCommandHolder value))], [("jobId", toJSON (jobAssignCommandJobId value))], [("jobType", toJSON (jobAssignCommandJobType value))], [("requester", toJSON (jobAssignCommandRequester value))], [("resourceId", toJSON (jobAssignCommandResourceId value))]]) <> fmap toJSON (withoutFields ["_userId", "holder", "jobId", "jobType", "requester", "resourceId"] (jobAssignCommandAdditionalProperties value)))
+instance ToJSON JobAssignCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobAssignCommandUserId value), [("jobId", toJSON (jobAssignCommandJobId value))], [("jobType", toJSON (jobAssignCommandJobType value))], [("resourceId", toJSON (jobAssignCommandResourceId value))], [("holder", toJSON (jobAssignCommandHolder value))], [("requester", toJSON (jobAssignCommandRequester value))]]))

@@ -12,12 +12,12 @@ import Xynolog.Internal.Generated.Models.ApiVersion
 
 data SettingsUnsetParams = SettingsUnsetParams
   { settingsUnsetParamsApiVersion :: ApiVersion,
-    settingsUnsetParamsDefault :: Maybe Bool,
     settingsUnsetParamsName :: Text,
+    settingsUnsetParamsDefault :: Maybe Bool,
     settingsUnsetParamsRoot :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SettingsUnsetParams where parseJSON = checked "SettingsUnsetParams" $ withObject "SettingsUnsetParams" (\fields -> SettingsUnsetParams <$> (fields .: "apiVersion") <*> optional fields "default" <*> (fields .: "name") <*> optional fields "root")
+instance FromJSON SettingsUnsetParams where parseJSON = checked "SettingsUnsetParams" $ withObject "SettingsUnsetParams" (\fields -> SettingsUnsetParams <$> (fields .: "apiVersion") <*> (fields .: "name") <*> optional fields "default" <*> optional fields "root")
 
-instance ToJSON SettingsUnsetParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (settingsUnsetParamsApiVersion value))], optionalPair "default" (settingsUnsetParamsDefault value), [("name", toJSON (settingsUnsetParamsName value))], optionalPair "root" (settingsUnsetParamsRoot value)]))
+instance ToJSON SettingsUnsetParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (settingsUnsetParamsApiVersion value))], [("name", toJSON (settingsUnsetParamsName value))], optionalPair "default" (settingsUnsetParamsDefault value), optionalPair "root" (settingsUnsetParamsRoot value)]))

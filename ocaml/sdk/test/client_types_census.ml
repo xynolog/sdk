@@ -85,14 +85,13 @@ let vitals () =
         Records.Engine.of_model
           (Result.get_ok
              (Models.decode Models.engine {|{"provider":"ollama","model":"m"}|}));
-      jobs = Yojson.Raw.from_string {|[{"jobType":"yield"}]|};
+      jobs = [ YieldJobFilter { job_type = Yield } ];
       last_queued_event_at = stamp last_queued_event_at;
       last_claim_at = stamp last_claim_at;
       last_finished_at = stamp last_finished_at;
       last_activity_at = stamp last_activity_at;
-      active_job = `Null;
+      active_job = None;
       jobs_completed;
-      extra = [];
     }
   in
   match Records.Worker_engine_health.to_model health with

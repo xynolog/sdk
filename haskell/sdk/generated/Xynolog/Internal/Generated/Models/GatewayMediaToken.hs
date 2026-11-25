@@ -10,36 +10,36 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data GatewayMediaToken = GatewayMediaToken
-  { gatewayMediaTokenU24_comment :: Text,
-    gatewayMediaTokenClaims :: GatewayMediaTokenClaims,
+  { gatewayMediaTokenComment :: Text,
     gatewayMediaTokenHeader :: GatewayMediaTokenHeader,
+    gatewayMediaTokenClaims :: GatewayMediaTokenClaims,
     gatewayMediaTokenLifetimeSeconds :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMediaToken where parseJSON = checked "GatewayMediaToken" $ withObject "GatewayMediaToken" (\fields -> GatewayMediaToken <$> (fields .: "$comment") <*> (fields .: "claims") <*> (fields .: "header") <*> (fields .: "lifetimeSeconds"))
+instance FromJSON GatewayMediaToken where parseJSON = checked "GatewayMediaToken" $ withObject "GatewayMediaToken" (\fields -> GatewayMediaToken <$> (fields .: "$comment") <*> (fields .: "header") <*> (fields .: "claims") <*> (fields .: "lifetimeSeconds"))
 
-instance ToJSON GatewayMediaToken where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayMediaTokenU24_comment value))], [("claims", toJSON (gatewayMediaTokenClaims value))], [("header", toJSON (gatewayMediaTokenHeader value))], [("lifetimeSeconds", toJSON (gatewayMediaTokenLifetimeSeconds value))]]))
+instance ToJSON GatewayMediaToken where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (gatewayMediaTokenComment value))], [("header", toJSON (gatewayMediaTokenHeader value))], [("claims", toJSON (gatewayMediaTokenClaims value))], [("lifetimeSeconds", toJSON (gatewayMediaTokenLifetimeSeconds value))]]))
 
 data GatewayMediaTokenClaims = GatewayMediaTokenClaims
-  { gatewayMediaTokenClaimsIss :: GatewayMediaTokenClaimsIss,
-    gatewayMediaTokenClaimsPurpose :: GatewayMediaTokenClaimsPurpose,
+  { gatewayMediaTokenClaimsPurpose :: GatewayMediaTokenClaimsPurpose,
+    gatewayMediaTokenClaimsIss :: GatewayMediaTokenClaimsIss,
     gatewayMediaTokenClaimsSub :: GatewayMediaTokenClaimsSub
   }
   deriving (Eq, Show)
 
-instance FromJSON GatewayMediaTokenClaims where parseJSON = checked "GatewayMediaTokenClaims" $ withObject "GatewayMediaTokenClaims" (\fields -> GatewayMediaTokenClaims <$> (fields .: "iss") <*> (fields .: "purpose") <*> (fields .: "sub"))
+instance FromJSON GatewayMediaTokenClaims where parseJSON = checked "GatewayMediaTokenClaims" $ withObject "GatewayMediaTokenClaims" (\fields -> GatewayMediaTokenClaims <$> (fields .: "purpose") <*> (fields .: "iss") <*> (fields .: "sub"))
 
-instance ToJSON GatewayMediaTokenClaims where toJSON value = Object (KM.fromList (concat [[("iss", toJSON (gatewayMediaTokenClaimsIss value))], [("purpose", toJSON (gatewayMediaTokenClaimsPurpose value))], [("sub", toJSON (gatewayMediaTokenClaimsSub value))]]))
+instance ToJSON GatewayMediaTokenClaims where toJSON value = Object (KM.fromList (concat [[("purpose", toJSON (gatewayMediaTokenClaimsPurpose value))], [("iss", toJSON (gatewayMediaTokenClaimsIss value))], [("sub", toJSON (gatewayMediaTokenClaimsSub value))]]))
 
-data GatewayMediaTokenClaimsIss = GatewayMediaTokenClaimsIssU7b_domainU7d_ deriving (Eq, Show)
+data GatewayMediaTokenClaimsIss = GatewayMediaTokenClaimsIssDomain deriving (Eq, Show)
 
-instance FromJSON GatewayMediaTokenClaimsIss where parseJSON = checked "GatewayMediaTokenClaimsIss" $ \value -> if value == String "{domain}" then pure GatewayMediaTokenClaimsIssU7b_domainU7d_ else fail "unknown enumeration member"
+instance FromJSON GatewayMediaTokenClaimsIss where parseJSON = checked "GatewayMediaTokenClaimsIss" $ \value -> if value == String "{domain}" then pure GatewayMediaTokenClaimsIssDomain else fail "unknown enumeration member"
 
-instance ToJSON GatewayMediaTokenClaimsIss where toJSON GatewayMediaTokenClaimsIssU7b_domainU7d_ = String "{domain}"
+instance ToJSON GatewayMediaTokenClaimsIss where toJSON GatewayMediaTokenClaimsIssDomain = String "{domain}"
 
 gatewayMediaTokenClaimsIssText :: GatewayMediaTokenClaimsIss -> Text
-gatewayMediaTokenClaimsIssText GatewayMediaTokenClaimsIssU7b_domainU7d_ = "{domain}"
+gatewayMediaTokenClaimsIssText GatewayMediaTokenClaimsIssDomain = "{domain}"
 
 data GatewayMediaTokenClaimsPurpose = GatewayMediaTokenClaimsPurposeMedia deriving (Eq, Show)
 
@@ -50,14 +50,14 @@ instance ToJSON GatewayMediaTokenClaimsPurpose where toJSON GatewayMediaTokenCla
 gatewayMediaTokenClaimsPurposeText :: GatewayMediaTokenClaimsPurpose -> Text
 gatewayMediaTokenClaimsPurposeText GatewayMediaTokenClaimsPurposeMedia = "media"
 
-data GatewayMediaTokenClaimsSub = GatewayMediaTokenClaimsSubU7b_resourceIdU7d_ deriving (Eq, Show)
+data GatewayMediaTokenClaimsSub = GatewayMediaTokenClaimsSubResourceId deriving (Eq, Show)
 
-instance FromJSON GatewayMediaTokenClaimsSub where parseJSON = checked "GatewayMediaTokenClaimsSub" $ \value -> if value == String "{resourceId}" then pure GatewayMediaTokenClaimsSubU7b_resourceIdU7d_ else fail "unknown enumeration member"
+instance FromJSON GatewayMediaTokenClaimsSub where parseJSON = checked "GatewayMediaTokenClaimsSub" $ \value -> if value == String "{resourceId}" then pure GatewayMediaTokenClaimsSubResourceId else fail "unknown enumeration member"
 
-instance ToJSON GatewayMediaTokenClaimsSub where toJSON GatewayMediaTokenClaimsSubU7b_resourceIdU7d_ = String "{resourceId}"
+instance ToJSON GatewayMediaTokenClaimsSub where toJSON GatewayMediaTokenClaimsSubResourceId = String "{resourceId}"
 
 gatewayMediaTokenClaimsSubText :: GatewayMediaTokenClaimsSub -> Text
-gatewayMediaTokenClaimsSubText GatewayMediaTokenClaimsSubU7b_resourceIdU7d_ = "{resourceId}"
+gatewayMediaTokenClaimsSubText GatewayMediaTokenClaimsSubResourceId = "{resourceId}"
 
 data GatewayMediaTokenHeader = GatewayMediaTokenHeader
   { gatewayMediaTokenHeaderAlg :: GatewayMediaTokenHeaderAlg,

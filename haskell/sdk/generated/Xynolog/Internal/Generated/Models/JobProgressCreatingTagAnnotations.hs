@@ -11,20 +11,19 @@ import Xynolog.Internal.Codec
 
 data JobProgressCreatingTagAnnotations = JobProgressCreatingTagAnnotations
   { jobProgressCreatingTagAnnotationsCode :: JobProgressCreatingTagAnnotationsCode,
-    jobProgressCreatingTagAnnotationsCount :: Integer,
-    jobProgressCreatingTagAnnotationsAdditionalProperties :: KM.KeyMap Value
+    jobProgressCreatingTagAnnotationsCount :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCreatingTagAnnotations where parseJSON = checked "JobProgressCreatingTagAnnotations" $ withObject "JobProgressCreatingTagAnnotations" (\fields -> JobProgressCreatingTagAnnotations <$> (fields .: "code") <*> (fields .: "count") <*> traverse parseJSON (withoutFields ["code", "count"] fields))
+instance FromJSON JobProgressCreatingTagAnnotations where parseJSON = checked "JobProgressCreatingTagAnnotations" $ withObject "JobProgressCreatingTagAnnotations" (\fields -> JobProgressCreatingTagAnnotations <$> (fields .: "code") <*> (fields .: "count"))
 
-instance ToJSON JobProgressCreatingTagAnnotations where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingTagAnnotationsCode value))], [("count", toJSON (jobProgressCreatingTagAnnotationsCount value))]]) <> fmap toJSON (withoutFields ["code", "count"] (jobProgressCreatingTagAnnotationsAdditionalProperties value)))
+instance ToJSON JobProgressCreatingTagAnnotations where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingTagAnnotationsCode value))], [("count", toJSON (jobProgressCreatingTagAnnotationsCount value))]]))
 
-data JobProgressCreatingTagAnnotationsCode = JobProgressCreatingTagAnnotationsCodeCreatingU2d_tagU2d_annotations deriving (Eq, Show)
+data JobProgressCreatingTagAnnotationsCode = JobProgressCreatingTagAnnotationsCodeCreatingTagAnnotations deriving (Eq, Show)
 
-instance FromJSON JobProgressCreatingTagAnnotationsCode where parseJSON = checked "JobProgressCreatingTagAnnotationsCode" $ \value -> if value == String "creating-tag-annotations" then pure JobProgressCreatingTagAnnotationsCodeCreatingU2d_tagU2d_annotations else fail "unknown enumeration member"
+instance FromJSON JobProgressCreatingTagAnnotationsCode where parseJSON = checked "JobProgressCreatingTagAnnotationsCode" $ \value -> if value == String "creating-tag-annotations" then pure JobProgressCreatingTagAnnotationsCodeCreatingTagAnnotations else fail "unknown enumeration member"
 
-instance ToJSON JobProgressCreatingTagAnnotationsCode where toJSON JobProgressCreatingTagAnnotationsCodeCreatingU2d_tagU2d_annotations = String "creating-tag-annotations"
+instance ToJSON JobProgressCreatingTagAnnotationsCode where toJSON JobProgressCreatingTagAnnotationsCodeCreatingTagAnnotations = String "creating-tag-annotations"
 
 jobProgressCreatingTagAnnotationsCodeText :: JobProgressCreatingTagAnnotationsCode -> Text
-jobProgressCreatingTagAnnotationsCodeText JobProgressCreatingTagAnnotationsCodeCreatingU2d_tagU2d_annotations = "creating-tag-annotations"
+jobProgressCreatingTagAnnotationsCodeText JobProgressCreatingTagAnnotationsCodeCreatingTagAnnotations = "creating-tag-annotations"

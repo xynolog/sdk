@@ -158,6 +158,43 @@ let frame (row : Frames.cases_item) =
               Alcotest.fail "a read is stated on a channel not read by type"
           | false, _ -> ()))
 
+(* Protocol's first delivered frame, its payload carrying a trace: the
+   frame's trace is read from it, and its payload is read without it. *)
+let traced () =
+  let frame =
+    match
+      List.find_map
+        (function Frames.Delivered { frame; _ } -> Some frame | _ -> None)
+        Frames.table.cases
+    with
+    | Some frame -> frame
+    | None -> Alcotest.fail "bus/frame-cases.json delivers no frame"
+  in
+  let carrier =
+    `Assoc
+      [ ("traceparent", `String "00-a-b-01"); ("tracestate", `String "k=v") ]
+  in
+  let payload =
+    match frame.payload with
+    | `Assoc members -> `Assoc ((Bus_registry.trace_field, carrier) :: members)
+    | _ -> Alcotest.fail "a delivered frame's payload is no object"
+  in
+  let source =
+    Yojson.Safe.to_string (Frames.bus_frame_json { frame with payload })
+  in
+  let input =
+    Eio.Flow.string_source ("event: bus-event\ndata: " ^ source ^ "\n\n")
+  in
+  match
+    Wire_stream.read (Eio.Buf_read.of_flow ~max_size:65536 input) |> Option.get
+  with
+  | Ok (Wire_stream.Frame { trace; _ }) ->
+      Alcotest.(check (option (pair string (option string))))
+        "trace"
+        (Some ("00-a-b-01", Some "k=v"))
+        (Option.map (fun (t : Wire_stream.trace) -> (t.parent, t.state)) trace)
+  | _ -> Alcotest.fail "the traced frame was not delivered"
+
 (* Shared cases from annotations/reader-cases.json. *)
 let annotation (row : Readers.cases_item) =
   let module A = Annotations in
@@ -236,7 +273,8 @@ let resource (row : Resource_cases.cases_item) =
             (nullable Fun.id primary_representation)
             (nullable
                (fun value ->
-                 Yojson.Safe.from_string (Yojson.Raw.to_string value))
+                 Yojson.Safe.from_string
+                   (Yojson.Raw.to_string (Records.Representation.to_json value)))
                (Resources.primary_representation model));
           Alcotest.(check (option string))
             "primary media type" primary_media_type
@@ -465,7 +503,8 @@ let () =
             | Frame_refused { why; _ }
             | Line_refused { why; _ } ->
                 why)
-          frame );
+          frame
+        @ [ Alcotest.test_case "a frame's trace" `Quick traced ] );
       ( "annotations",
         cases Readers.table.cases
           (fun (r : Readers.cases_item) -> r.why)

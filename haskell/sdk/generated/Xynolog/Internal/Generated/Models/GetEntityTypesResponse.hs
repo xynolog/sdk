@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data GetEntityTypesResponse = GetEntityTypesResponse
-  { getEntityTypesResponseEntityTypes :: [Text],
-    getEntityTypesResponseAdditionalProperties :: KM.KeyMap Value
+  { getEntityTypesResponseEntityTypes :: [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON GetEntityTypesResponse where parseJSON = checked "GetEntityTypesResponse" $ withObject "GetEntityTypesResponse" (\fields -> GetEntityTypesResponse <$> (fields .: "entityTypes") <*> traverse parseJSON (withoutFields ["entityTypes"] fields))
+instance FromJSON GetEntityTypesResponse where parseJSON = checked "GetEntityTypesResponse" $ withObject "GetEntityTypesResponse" (\fields -> GetEntityTypesResponse <$> (fields .: "entityTypes"))
 
-instance ToJSON GetEntityTypesResponse where toJSON value = Object (KM.fromList (concat [[("entityTypes", toJSON (getEntityTypesResponseEntityTypes value))]]) <> fmap toJSON (withoutFields ["entityTypes"] (getEntityTypesResponseAdditionalProperties value)))
+instance ToJSON GetEntityTypesResponse where toJSON value = Object (KM.fromList (concat [[("entityTypes", toJSON (getEntityTypesResponseEntityTypes value))]]))

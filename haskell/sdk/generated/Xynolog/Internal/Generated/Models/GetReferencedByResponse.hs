@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.GetReferencedByResponseReferencedByItem
 
 data GetReferencedByResponse = GetReferencedByResponse
-  { getReferencedByResponseReferencedBy :: [GetReferencedByResponseReferencedByItem],
-    getReferencedByResponseAdditionalProperties :: KM.KeyMap Value
+  { getReferencedByResponseReferencedBy :: [GetReferencedByResponseReferencedByItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON GetReferencedByResponse where parseJSON = checked "GetReferencedByResponse" $ withObject "GetReferencedByResponse" (\fields -> GetReferencedByResponse <$> (fields .: "referencedBy") <*> traverse parseJSON (withoutFields ["referencedBy"] fields))
+instance FromJSON GetReferencedByResponse where parseJSON = checked "GetReferencedByResponse" $ withObject "GetReferencedByResponse" (\fields -> GetReferencedByResponse <$> (fields .: "referencedBy"))
 
-instance ToJSON GetReferencedByResponse where toJSON value = Object (KM.fromList (concat [[("referencedBy", toJSON (getReferencedByResponseReferencedBy value))]]) <> fmap toJSON (withoutFields ["referencedBy"] (getReferencedByResponseAdditionalProperties value)))
+instance ToJSON GetReferencedByResponse where toJSON value = Object (KM.fromList (concat [[("referencedBy", toJSON (getReferencedByResponseReferencedBy value))]]))

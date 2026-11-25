@@ -10,14 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data Engine = Engine
-  { engineModel :: Text,
-    engineProvider :: EngineProvider
+  { engineProvider :: EngineProvider,
+    engineModel :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON Engine where parseJSON = checked "Engine" $ withObject "Engine" (\fields -> Engine <$> (fields .: "model") <*> (fields .: "provider"))
+instance FromJSON Engine where parseJSON = checked "Engine" $ withObject "Engine" (\fields -> Engine <$> (fields .: "provider") <*> (fields .: "model"))
 
-instance ToJSON Engine where toJSON value = Object (KM.fromList (concat [[("model", toJSON (engineModel value))], [("provider", toJSON (engineProvider value))]]))
+instance ToJSON Engine where toJSON value = Object (KM.fromList (concat [[("provider", toJSON (engineProvider value))], [("model", toJSON (engineModel value))]]))
 
 data EngineProvider = EngineProviderAnthropic | EngineProviderGoogle | EngineProviderLlamacpp | EngineProviderOllama | EngineProviderOpenai | EngineProviderTogether | EngineProviderVllm deriving (Eq, Show)
 

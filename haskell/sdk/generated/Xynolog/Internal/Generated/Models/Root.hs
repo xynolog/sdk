@@ -10,42 +10,42 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data Root = Root
-  { rootCodespace :: Maybe Text,
-    rootCodespaceState :: Maybe Text,
+  { rootPlacement :: RootPlacement,
+    rootPath :: Maybe Text,
+    rootPresent :: Maybe Bool,
+    rootCurrent :: Maybe RootCurrent,
+    rootRegistered :: Bool,
+    rootRunning :: Bool,
+    rootLastUsed :: Maybe Text,
+    rootDid :: Maybe Text,
+    rootSiteName :: Maybe Text,
+    rootIdentityError :: Maybe Text,
     rootConfig :: Maybe Text,
     rootConfigs :: Maybe [Text],
-    rootCurrent :: Maybe RootCurrent,
-    rootDid :: Maybe Text,
+    rootRepo :: Maybe Text,
+    rootCodespace :: Maybe Text,
+    rootCodespaceState :: Maybe Text,
     rootForwardPort :: Maybe Integer,
     rootForwarded :: Maybe Bool,
-    rootIdentityError :: Maybe Text,
-    rootLastUsed :: Maybe Text,
-    rootPath :: Maybe Text,
-    rootPlacement :: RootPlacement,
-    rootPresent :: Maybe Bool,
-    rootReachable :: Maybe Bool,
-    rootRegistered :: Bool,
-    rootRepo :: Maybe Text,
-    rootRunning :: Bool,
-    rootSiteName :: Maybe Text
+    rootReachable :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON Root where parseJSON = checked "Root" $ withObject "Root" (\fields -> Root <$> optional fields "codespace" <*> optional fields "codespaceState" <*> optional fields "config" <*> optional fields "configs" <*> optional fields "current" <*> optional fields "did" <*> optional fields "forwardPort" <*> optional fields "forwarded" <*> optional fields "identityError" <*> optional fields "lastUsed" <*> optional fields "path" <*> (fields .: "placement") <*> optional fields "present" <*> optional fields "reachable" <*> (fields .: "registered") <*> optional fields "repo" <*> (fields .: "running") <*> optional fields "siteName")
+instance FromJSON Root where parseJSON = checked "Root" $ withObject "Root" (\fields -> Root <$> (fields .: "placement") <*> optional fields "path" <*> optional fields "present" <*> optional fields "current" <*> (fields .: "registered") <*> (fields .: "running") <*> optional fields "lastUsed" <*> optional fields "did" <*> optional fields "siteName" <*> optional fields "identityError" <*> optional fields "config" <*> optional fields "configs" <*> optional fields "repo" <*> optional fields "codespace" <*> optional fields "codespaceState" <*> optional fields "forwardPort" <*> optional fields "forwarded" <*> optional fields "reachable")
 
-instance ToJSON Root where toJSON value = Object (KM.fromList (concat [optionalPair "codespace" (rootCodespace value), optionalPair "codespaceState" (rootCodespaceState value), optionalPair "config" (rootConfig value), optionalPair "configs" (rootConfigs value), optionalPair "current" (rootCurrent value), optionalPair "did" (rootDid value), optionalPair "forwardPort" (rootForwardPort value), optionalPair "forwarded" (rootForwarded value), optionalPair "identityError" (rootIdentityError value), optionalPair "lastUsed" (rootLastUsed value), optionalPair "path" (rootPath value), [("placement", toJSON (rootPlacement value))], optionalPair "present" (rootPresent value), optionalPair "reachable" (rootReachable value), [("registered", toJSON (rootRegistered value))], optionalPair "repo" (rootRepo value), [("running", toJSON (rootRunning value))], optionalPair "siteName" (rootSiteName value)]))
+instance ToJSON Root where toJSON value = Object (KM.fromList (concat [[("placement", toJSON (rootPlacement value))], optionalPair "path" (rootPath value), optionalPair "present" (rootPresent value), optionalPair "current" (rootCurrent value), [("registered", toJSON (rootRegistered value))], [("running", toJSON (rootRunning value))], optionalPair "lastUsed" (rootLastUsed value), optionalPair "did" (rootDid value), optionalPair "siteName" (rootSiteName value), optionalPair "identityError" (rootIdentityError value), optionalPair "config" (rootConfig value), optionalPair "configs" (rootConfigs value), optionalPair "repo" (rootRepo value), optionalPair "codespace" (rootCodespace value), optionalPair "codespaceState" (rootCodespaceState value), optionalPair "forwardPort" (rootForwardPort value), optionalPair "forwarded" (rootForwarded value), optionalPair "reachable" (rootReachable value)]))
 
-data RootCurrent = RootCurrentCwd | RootCurrentXynologU2d_root deriving (Eq, Show)
+data RootCurrent = RootCurrentCwd | RootCurrentXynologRoot deriving (Eq, Show)
 
-instance FromJSON RootCurrent where parseJSON = checked "RootCurrent" $ \value -> if value == String "cwd" then pure RootCurrentCwd else if value == String "xynolog-root" then pure RootCurrentXynologU2d_root else fail "unknown enumeration member"
+instance FromJSON RootCurrent where parseJSON = checked "RootCurrent" $ \value -> if value == String "cwd" then pure RootCurrentCwd else if value == String "xynolog-root" then pure RootCurrentXynologRoot else fail "unknown enumeration member"
 
 instance ToJSON RootCurrent where
   toJSON RootCurrentCwd = String "cwd"
-  toJSON RootCurrentXynologU2d_root = String "xynolog-root"
+  toJSON RootCurrentXynologRoot = String "xynolog-root"
 
 rootCurrentText :: RootCurrent -> Text
 rootCurrentText RootCurrentCwd = "cwd"
-rootCurrentText RootCurrentXynologU2d_root = "xynolog-root"
+rootCurrentText RootCurrentXynologRoot = "xynolog-root"
 
 data RootPlacement = RootPlacementLocal | RootPlacementCodespace deriving (Eq, Show)
 

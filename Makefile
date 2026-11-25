@@ -57,7 +57,7 @@ generate:
 check-generated:
 	bash scripts/make-target.sh check-generated
 
-## test-codegen: The generator's own tests and checks: its model reads every file of the pinned Protocol, each case table is run by a named test of each SDK or absent for a reason, each surface item an SDK lacks is one Protocol has, every sdk path that Protocol names is here, every SDK declares every item of every contract Protocol states, and Typing gives each schema a form and reads every keyword Protocol states
+## test-codegen: The generator's own tests and checks: its model reads every file of the pinned Protocol, each case table is run by a named test of each SDK or absent for a reason, each surface item an SDK lacks is one Protocol has, every sdk path that Protocol names is here, every SDK declares every item of every contract Protocol states, Typing gives each schema a form and reads every keyword Protocol states, and the OCaml SDK holds as raw JSON only what Typing gives no type
 test-codegen:
 	bash scripts/make-target.sh test-codegen
 

@@ -13,17 +13,16 @@ import Xynolog.Internal.Generated.Models.UnitCursor
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobCheckpointCommand = JobCheckpointCommand
-  { jobCheckpointCommandU5f_userId :: Maybe UserId,
-    jobCheckpointCommandCompletedUnits :: [Text],
+  { jobCheckpointCommandUserId :: Maybe UserId,
     jobCheckpointCommandJobId :: JobId,
-    jobCheckpointCommandUnitCursors :: Maybe JobCheckpointCommandUnitCursors,
-    jobCheckpointCommandAdditionalProperties :: KM.KeyMap Value
+    jobCheckpointCommandCompletedUnits :: [Text],
+    jobCheckpointCommandUnitCursors :: Maybe JobCheckpointCommandUnitCursors
   }
   deriving (Eq, Show)
 
-instance FromJSON JobCheckpointCommand where parseJSON = checked "JobCheckpointCommand" $ withObject "JobCheckpointCommand" (\fields -> JobCheckpointCommand <$> optional fields "_userId" <*> (fields .: "completedUnits") <*> (fields .: "jobId") <*> optional fields "unitCursors" <*> traverse parseJSON (withoutFields ["_userId", "completedUnits", "jobId", "unitCursors"] fields))
+instance FromJSON JobCheckpointCommand where parseJSON = checked "JobCheckpointCommand" $ withObject "JobCheckpointCommand" (\fields -> JobCheckpointCommand <$> optional fields "_userId" <*> (fields .: "jobId") <*> (fields .: "completedUnits") <*> optional fields "unitCursors")
 
-instance ToJSON JobCheckpointCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobCheckpointCommandU5f_userId value), [("completedUnits", toJSON (jobCheckpointCommandCompletedUnits value))], [("jobId", toJSON (jobCheckpointCommandJobId value))], optionalPair "unitCursors" (jobCheckpointCommandUnitCursors value)]) <> fmap toJSON (withoutFields ["_userId", "completedUnits", "jobId", "unitCursors"] (jobCheckpointCommandAdditionalProperties value)))
+instance ToJSON JobCheckpointCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobCheckpointCommandUserId value), [("jobId", toJSON (jobCheckpointCommandJobId value))], [("completedUnits", toJSON (jobCheckpointCommandCompletedUnits value))], optionalPair "unitCursors" (jobCheckpointCommandUnitCursors value)]))
 
 data JobCheckpointCommandUnitCursors = JobCheckpointCommandUnitCursors
   { jobCheckpointCommandUnitCursorsAdditionalProperties :: KM.KeyMap UnitCursor

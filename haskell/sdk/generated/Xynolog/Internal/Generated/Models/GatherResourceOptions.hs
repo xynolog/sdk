@@ -11,13 +11,13 @@ import Xynolog.Internal.Codec
 
 data GatherResourceOptions = GatherResourceOptions
   { gatherResourceOptionsDepth :: Maybe Integer,
-    gatherResourceOptionsExcludeEntityTypes :: Maybe [Text],
+    gatherResourceOptionsMaxResources :: Maybe Integer,
     gatherResourceOptionsIncludeContent :: Maybe Bool,
     gatherResourceOptionsIncludeSummary :: Maybe Bool,
-    gatherResourceOptionsMaxResources :: Maybe Integer
+    gatherResourceOptionsExcludeEntityTypes :: Maybe [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherResourceOptions where parseJSON = checked "GatherResourceOptions" $ withObject "GatherResourceOptions" (\fields -> GatherResourceOptions <$> optional fields "depth" <*> optional fields "excludeEntityTypes" <*> optional fields "includeContent" <*> optional fields "includeSummary" <*> optional fields "maxResources")
+instance FromJSON GatherResourceOptions where parseJSON = checked "GatherResourceOptions" $ withObject "GatherResourceOptions" (\fields -> GatherResourceOptions <$> optional fields "depth" <*> optional fields "maxResources" <*> optional fields "includeContent" <*> optional fields "includeSummary" <*> optional fields "excludeEntityTypes")
 
-instance ToJSON GatherResourceOptions where toJSON value = Object (KM.fromList (concat [optionalPair "depth" (gatherResourceOptionsDepth value), optionalPair "excludeEntityTypes" (gatherResourceOptionsExcludeEntityTypes value), optionalPair "includeContent" (gatherResourceOptionsIncludeContent value), optionalPair "includeSummary" (gatherResourceOptionsIncludeSummary value), optionalPair "maxResources" (gatherResourceOptionsMaxResources value)]))
+instance ToJSON GatherResourceOptions where toJSON value = Object (KM.fromList (concat [optionalPair "depth" (gatherResourceOptionsDepth value), optionalPair "maxResources" (gatherResourceOptionsMaxResources value), optionalPair "includeContent" (gatherResourceOptionsIncludeContent value), optionalPair "includeSummary" (gatherResourceOptionsIncludeSummary value), optionalPair "excludeEntityTypes" (gatherResourceOptionsExcludeEntityTypes value)]))

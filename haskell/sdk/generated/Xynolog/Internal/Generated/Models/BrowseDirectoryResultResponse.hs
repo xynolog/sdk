@@ -11,12 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.DirectoryEntry
 
 data BrowseDirectoryResultResponse = BrowseDirectoryResultResponse
-  { browseDirectoryResultResponseEntries :: [DirectoryEntry],
-    browseDirectoryResultResponsePath :: Text,
-    browseDirectoryResultResponseAdditionalProperties :: KM.KeyMap Value
+  { browseDirectoryResultResponsePath :: Text,
+    browseDirectoryResultResponseEntries :: [DirectoryEntry]
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseDirectoryResultResponse where parseJSON = checked "BrowseDirectoryResultResponse" $ withObject "BrowseDirectoryResultResponse" (\fields -> BrowseDirectoryResultResponse <$> (fields .: "entries") <*> (fields .: "path") <*> traverse parseJSON (withoutFields ["entries", "path"] fields))
+instance FromJSON BrowseDirectoryResultResponse where parseJSON = checked "BrowseDirectoryResultResponse" $ withObject "BrowseDirectoryResultResponse" (\fields -> BrowseDirectoryResultResponse <$> (fields .: "path") <*> (fields .: "entries"))
 
-instance ToJSON BrowseDirectoryResultResponse where toJSON value = Object (KM.fromList (concat [[("entries", toJSON (browseDirectoryResultResponseEntries value))], [("path", toJSON (browseDirectoryResultResponsePath value))]]) <> fmap toJSON (withoutFields ["entries", "path"] (browseDirectoryResultResponseAdditionalProperties value)))
+instance ToJSON BrowseDirectoryResultResponse where toJSON value = Object (KM.fromList (concat [[("path", toJSON (browseDirectoryResultResponsePath value))], [("entries", toJSON (browseDirectoryResultResponseEntries value))]]))

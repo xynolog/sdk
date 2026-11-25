@@ -11,12 +11,12 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.Engine
 
 data LibrarianEngineConfig = LibrarianEngineConfig
-  { librarianEngineConfigApiKeyEnv :: Maybe Text,
+  { librarianEngineConfigEngine :: Engine,
     librarianEngineConfigBaseUrl :: Text,
-    librarianEngineConfigEngine :: Engine
+    librarianEngineConfigApiKeyEnv :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON LibrarianEngineConfig where parseJSON = checked "LibrarianEngineConfig" $ withObject "LibrarianEngineConfig" (\fields -> LibrarianEngineConfig <$> optional fields "apiKeyEnv" <*> (fields .: "baseUrl") <*> (fields .: "engine"))
+instance FromJSON LibrarianEngineConfig where parseJSON = checked "LibrarianEngineConfig" $ withObject "LibrarianEngineConfig" (\fields -> LibrarianEngineConfig <$> (fields .: "engine") <*> (fields .: "baseUrl") <*> optional fields "apiKeyEnv")
 
-instance ToJSON LibrarianEngineConfig where toJSON value = Object (KM.fromList (concat [optionalPair "apiKeyEnv" (librarianEngineConfigApiKeyEnv value), [("baseUrl", toJSON (librarianEngineConfigBaseUrl value))], [("engine", toJSON (librarianEngineConfigEngine value))]]))
+instance ToJSON LibrarianEngineConfig where toJSON value = Object (KM.fromList (concat [[("engine", toJSON (librarianEngineConfigEngine value))], [("baseUrl", toJSON (librarianEngineConfigBaseUrl value))], optionalPair "apiKeyEnv" (librarianEngineConfigApiKeyEnv value)]))

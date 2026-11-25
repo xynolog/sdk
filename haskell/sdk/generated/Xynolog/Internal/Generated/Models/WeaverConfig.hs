@@ -17,18 +17,18 @@ import Xynolog.Internal.Generated.Models.ServiceAddress
 import Xynolog.Internal.Generated.Models.ServiceIdentity
 
 data WeaverConfig = WeaverConfig
-  { weaverConfigArchivist :: ServiceAddress,
-    weaverConfigCursorsPath :: CursorsPath,
+  { weaverConfigKb :: KbIdentity,
     weaverConfigGatewayUrl :: Text,
-    weaverConfigGraph :: GraphConfig,
     weaverConfigIdentity :: ServiceIdentity,
-    weaverConfigKb :: KbIdentity,
-    weaverConfigLogFormat :: LogFormat,
+    weaverConfigArchivist :: ServiceAddress,
+    weaverConfigGraph :: GraphConfig,
+    weaverConfigCursorsPath :: CursorsPath,
+    weaverConfigPort :: Integer,
     weaverConfigLogLevel :: LogLevel,
-    weaverConfigPort :: Integer
+    weaverConfigLogFormat :: LogFormat
   }
   deriving (Eq, Show)
 
-instance FromJSON WeaverConfig where parseJSON = checked "WeaverConfig" $ withObject "WeaverConfig" (\fields -> WeaverConfig <$> (fields .: "archivist") <*> (fields .: "cursorsPath") <*> (fields .: "gatewayUrl") <*> (fields .: "graph") <*> (fields .: "identity") <*> (fields .: "kb") <*> (fields .: "logFormat") <*> (fields .: "logLevel") <*> (fields .: "port"))
+instance FromJSON WeaverConfig where parseJSON = checked "WeaverConfig" $ withObject "WeaverConfig" (\fields -> WeaverConfig <$> (fields .: "kb") <*> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "archivist") <*> (fields .: "graph") <*> (fields .: "cursorsPath") <*> (fields .: "port") <*> (fields .: "logLevel") <*> (fields .: "logFormat"))
 
-instance ToJSON WeaverConfig where toJSON value = Object (KM.fromList (concat [[("archivist", toJSON (weaverConfigArchivist value))], [("cursorsPath", toJSON (weaverConfigCursorsPath value))], [("gatewayUrl", toJSON (weaverConfigGatewayUrl value))], [("graph", toJSON (weaverConfigGraph value))], [("identity", toJSON (weaverConfigIdentity value))], [("kb", toJSON (weaverConfigKb value))], [("logFormat", toJSON (weaverConfigLogFormat value))], [("logLevel", toJSON (weaverConfigLogLevel value))], [("port", toJSON (weaverConfigPort value))]]))
+instance ToJSON WeaverConfig where toJSON value = Object (KM.fromList (concat [[("kb", toJSON (weaverConfigKb value))], [("gatewayUrl", toJSON (weaverConfigGatewayUrl value))], [("identity", toJSON (weaverConfigIdentity value))], [("archivist", toJSON (weaverConfigArchivist value))], [("graph", toJSON (weaverConfigGraph value))], [("cursorsPath", toJSON (weaverConfigCursorsPath value))], [("port", toJSON (weaverConfigPort value))], [("logLevel", toJSON (weaverConfigLogLevel value))], [("logFormat", toJSON (weaverConfigLogFormat value))]]))

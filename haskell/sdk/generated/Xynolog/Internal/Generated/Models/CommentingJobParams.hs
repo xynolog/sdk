@@ -11,18 +11,18 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data CommentingJobParams = CommentingJobParams
-  { commentingJobParamsDensity :: Maybe Scientific,
+  { commentingJobParamsMotivation :: CommentingJobParamsMotivation,
     commentingJobParamsInstructions :: Maybe Text,
+    commentingJobParamsTone :: Maybe CommentingJobParamsTone,
+    commentingJobParamsDensity :: Maybe Scientific,
     commentingJobParamsLanguage :: Maybe Text,
-    commentingJobParamsMotivation :: CommentingJobParamsMotivation,
-    commentingJobParamsSourceLanguage :: Maybe Text,
-    commentingJobParamsTone :: Maybe CommentingJobParamsTone
+    commentingJobParamsSourceLanguage :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON CommentingJobParams where parseJSON = checked "CommentingJobParams" $ withObject "CommentingJobParams" (\fields -> CommentingJobParams <$> optional fields "density" <*> optional fields "instructions" <*> optional fields "language" <*> (fields .: "motivation") <*> optional fields "sourceLanguage" <*> optional fields "tone")
+instance FromJSON CommentingJobParams where parseJSON = checked "CommentingJobParams" $ withObject "CommentingJobParams" (\fields -> CommentingJobParams <$> (fields .: "motivation") <*> optional fields "instructions" <*> optional fields "tone" <*> optional fields "density" <*> optional fields "language" <*> optional fields "sourceLanguage")
 
-instance ToJSON CommentingJobParams where toJSON value = Object (KM.fromList (concat [optionalPair "density" (commentingJobParamsDensity value), optionalPair "instructions" (commentingJobParamsInstructions value), optionalPair "language" (commentingJobParamsLanguage value), [("motivation", toJSON (commentingJobParamsMotivation value))], optionalPair "sourceLanguage" (commentingJobParamsSourceLanguage value), optionalPair "tone" (commentingJobParamsTone value)]))
+instance ToJSON CommentingJobParams where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (commentingJobParamsMotivation value))], optionalPair "instructions" (commentingJobParamsInstructions value), optionalPair "tone" (commentingJobParamsTone value), optionalPair "density" (commentingJobParamsDensity value), optionalPair "language" (commentingJobParamsLanguage value), optionalPair "sourceLanguage" (commentingJobParamsSourceLanguage value)]))
 
 data CommentingJobParamsMotivation = CommentingJobParamsMotivationCommenting deriving (Eq, Show)
 

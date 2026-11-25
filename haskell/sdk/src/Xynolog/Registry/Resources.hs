@@ -13,8 +13,8 @@ applyTabChecks opened checks = concatMap apply opened
       Just (TabCheckGone _) -> []
       Just (TabCheckReady checked) ->
         [ resource
-            { openResourceName = tabCheckReadyValueName checked,
-              openResourceMediaType = case tabCheckReadyValueMediaType checked of Nothing -> openResourceMediaType resource; Just media -> Just media
+            { openResourceName = tabCheckReadyName checked,
+              openResourceMediaType = case tabCheckReadyMediaType checked of Nothing -> openResourceMediaType resource; Just media -> Just media
             }
         ]
       Just (TabCheckUnknown _) -> [resource]

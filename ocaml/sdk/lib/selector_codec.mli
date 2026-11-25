@@ -1,7 +1,6 @@
-(** How {!Selector} reads and writes a branch's members. Each read names the
-    member it reads, and the members no read named are the branch's [extra]; a
-    write states each member once, and [extra] adds the members it does not
-    state. *)
+(** How {!Selector} reads and writes a branch's members: each read takes the
+    member it names, and a write states each member once. A member no read names
+    is dropped, as no selector's schema says it holds other members. *)
 
 type fault = Schema_codec.fault
 type t
@@ -25,15 +24,8 @@ val optional :
   string ->
   ('a option, fault) result
 
-val rest : t -> (string * Yojson.Safe.t) list
-(** The members no read named, in the object's order. *)
-
 val json_string : string -> Yojson.Safe.t
 val json_integer : Z.t -> Yojson.Safe.t
 
-val write :
-  (string * Yojson.Safe.t option) list ->
-  (string * Yojson.Safe.t) list ->
-  Yojson.Safe.t
-(** The stated members that are present, then each [extra] member no stated one
-    names, present or not. *)
+val write : (string * Yojson.Safe.t option) list -> Yojson.Safe.t
+(** The stated members that are present. *)

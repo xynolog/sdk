@@ -10,12 +10,12 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ConformanceBusFetch = ConformanceBusFetch
-  { conformanceBusFetchAs :: Text,
-    conformanceBusFetchFetch :: Text,
-    conformanceBusFetchPayload :: Maybe Value
+  { conformanceBusFetchFetch :: Text,
+    conformanceBusFetchPayload :: Maybe Value,
+    conformanceBusFetchAs :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceBusFetch where parseJSON = checked "ConformanceBusFetch" $ withObject "ConformanceBusFetch" (\fields -> ConformanceBusFetch <$> (fields .: "as") <*> (fields .: "fetch") <*> optional fields "payload")
+instance FromJSON ConformanceBusFetch where parseJSON = checked "ConformanceBusFetch" $ withObject "ConformanceBusFetch" (\fields -> ConformanceBusFetch <$> (fields .: "fetch") <*> optional fields "payload" <*> (fields .: "as"))
 
-instance ToJSON ConformanceBusFetch where toJSON value = Object (KM.fromList (concat [[("as", toJSON (conformanceBusFetchAs value))], [("fetch", toJSON (conformanceBusFetchFetch value))], optionalPair "payload" (conformanceBusFetchPayload value)]))
+instance ToJSON ConformanceBusFetch where toJSON value = Object (KM.fromList (concat [[("fetch", toJSON (conformanceBusFetchFetch value))], optionalPair "payload" (conformanceBusFetchPayload value), [("as", toJSON (conformanceBusFetchAs value))]]))

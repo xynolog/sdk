@@ -20,27 +20,27 @@ import Xynolog.Internal.Generated.Models.ServiceIdentity
 import Xynolog.Internal.Generated.Models.VectorsConfig
 
 data LibrarianConfig = LibrarianConfig
-  { librarianConfigArchivist :: ServiceAddress,
-    librarianConfigEmbedding :: EmbeddingConfig,
+  { librarianConfigKb :: KbIdentity,
     librarianConfigGatewayUrl :: Text,
-    librarianConfigGather :: LibrarianConfigGather,
-    librarianConfigGatherer :: LibrarianEngineConfig,
-    librarianConfigGraph :: GraphConfig,
     librarianConfigIdentity :: ServiceIdentity,
-    librarianConfigKb :: KbIdentity,
-    librarianConfigLogFormat :: LogFormat,
-    librarianConfigLogLevel :: LogLevel,
+    librarianConfigArchivist :: ServiceAddress,
+    librarianConfigGraph :: GraphConfig,
+    librarianConfigVectors :: VectorsConfig,
+    librarianConfigEmbedding :: EmbeddingConfig,
     librarianConfigMatcher :: LibrarianEngineConfig,
+    librarianConfigGatherer :: LibrarianEngineConfig,
     librarianConfigModelCatalogue :: Text,
-    librarianConfigPort :: Integer,
+    librarianConfigGather :: LibrarianConfigGather,
     librarianConfigSearch :: LibrarianConfigSearch,
-    librarianConfigVectors :: VectorsConfig
+    librarianConfigPort :: Integer,
+    librarianConfigLogLevel :: LogLevel,
+    librarianConfigLogFormat :: LogFormat
   }
   deriving (Eq, Show)
 
-instance FromJSON LibrarianConfig where parseJSON = checked "LibrarianConfig" $ withObject "LibrarianConfig" (\fields -> LibrarianConfig <$> (fields .: "archivist") <*> (fields .: "embedding") <*> (fields .: "gatewayUrl") <*> (fields .: "gather") <*> (fields .: "gatherer") <*> (fields .: "graph") <*> (fields .: "identity") <*> (fields .: "kb") <*> (fields .: "logFormat") <*> (fields .: "logLevel") <*> (fields .: "matcher") <*> (fields .: "modelCatalogue") <*> (fields .: "port") <*> (fields .: "search") <*> (fields .: "vectors"))
+instance FromJSON LibrarianConfig where parseJSON = checked "LibrarianConfig" $ withObject "LibrarianConfig" (\fields -> LibrarianConfig <$> (fields .: "kb") <*> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "archivist") <*> (fields .: "graph") <*> (fields .: "vectors") <*> (fields .: "embedding") <*> (fields .: "matcher") <*> (fields .: "gatherer") <*> (fields .: "modelCatalogue") <*> (fields .: "gather") <*> (fields .: "search") <*> (fields .: "port") <*> (fields .: "logLevel") <*> (fields .: "logFormat"))
 
-instance ToJSON LibrarianConfig where toJSON value = Object (KM.fromList (concat [[("archivist", toJSON (librarianConfigArchivist value))], [("embedding", toJSON (librarianConfigEmbedding value))], [("gatewayUrl", toJSON (librarianConfigGatewayUrl value))], [("gather", toJSON (librarianConfigGather value))], [("gatherer", toJSON (librarianConfigGatherer value))], [("graph", toJSON (librarianConfigGraph value))], [("identity", toJSON (librarianConfigIdentity value))], [("kb", toJSON (librarianConfigKb value))], [("logFormat", toJSON (librarianConfigLogFormat value))], [("logLevel", toJSON (librarianConfigLogLevel value))], [("matcher", toJSON (librarianConfigMatcher value))], [("modelCatalogue", toJSON (librarianConfigModelCatalogue value))], [("port", toJSON (librarianConfigPort value))], [("search", toJSON (librarianConfigSearch value))], [("vectors", toJSON (librarianConfigVectors value))]]))
+instance ToJSON LibrarianConfig where toJSON value = Object (KM.fromList (concat [[("kb", toJSON (librarianConfigKb value))], [("gatewayUrl", toJSON (librarianConfigGatewayUrl value))], [("identity", toJSON (librarianConfigIdentity value))], [("archivist", toJSON (librarianConfigArchivist value))], [("graph", toJSON (librarianConfigGraph value))], [("vectors", toJSON (librarianConfigVectors value))], [("embedding", toJSON (librarianConfigEmbedding value))], [("matcher", toJSON (librarianConfigMatcher value))], [("gatherer", toJSON (librarianConfigGatherer value))], [("modelCatalogue", toJSON (librarianConfigModelCatalogue value))], [("gather", toJSON (librarianConfigGather value))], [("search", toJSON (librarianConfigSearch value))], [("port", toJSON (librarianConfigPort value))], [("logLevel", toJSON (librarianConfigLogLevel value))], [("logFormat", toJSON (librarianConfigLogFormat value))]]))
 
 data LibrarianConfigGather = LibrarianConfigGather
   { librarianConfigGatherSettleTimeoutMs :: Integer

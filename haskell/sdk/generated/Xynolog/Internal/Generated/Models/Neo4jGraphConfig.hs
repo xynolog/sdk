@@ -10,17 +10,17 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data Neo4jGraphConfig = Neo4jGraphConfig
-  { neo4jGraphConfigDatabase :: Text,
-    neo4jGraphConfigPasswordEnv :: Text,
-    neo4jGraphConfigType :: Neo4jGraphConfigType,
+  { neo4jGraphConfigType :: Neo4jGraphConfigType,
     neo4jGraphConfigUri :: Text,
-    neo4jGraphConfigUsername :: Text
+    neo4jGraphConfigUsername :: Text,
+    neo4jGraphConfigPasswordEnv :: Text,
+    neo4jGraphConfigDatabase :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON Neo4jGraphConfig where parseJSON = checked "Neo4jGraphConfig" $ withObject "Neo4jGraphConfig" (\fields -> Neo4jGraphConfig <$> (fields .: "database") <*> (fields .: "passwordEnv") <*> (fields .: "type") <*> (fields .: "uri") <*> (fields .: "username"))
+instance FromJSON Neo4jGraphConfig where parseJSON = checked "Neo4jGraphConfig" $ withObject "Neo4jGraphConfig" (\fields -> Neo4jGraphConfig <$> (fields .: "type") <*> (fields .: "uri") <*> (fields .: "username") <*> (fields .: "passwordEnv") <*> (fields .: "database"))
 
-instance ToJSON Neo4jGraphConfig where toJSON value = Object (KM.fromList (concat [[("database", toJSON (neo4jGraphConfigDatabase value))], [("passwordEnv", toJSON (neo4jGraphConfigPasswordEnv value))], [("type", toJSON (neo4jGraphConfigType value))], [("uri", toJSON (neo4jGraphConfigUri value))], [("username", toJSON (neo4jGraphConfigUsername value))]]))
+instance ToJSON Neo4jGraphConfig where toJSON value = Object (KM.fromList (concat [[("type", toJSON (neo4jGraphConfigType value))], [("uri", toJSON (neo4jGraphConfigUri value))], [("username", toJSON (neo4jGraphConfigUsername value))], [("passwordEnv", toJSON (neo4jGraphConfigPasswordEnv value))], [("database", toJSON (neo4jGraphConfigDatabase value))]]))
 
 data Neo4jGraphConfigType = Neo4jGraphConfigTypeNeo4j deriving (Eq, Show)
 

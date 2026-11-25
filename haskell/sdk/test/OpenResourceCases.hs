@@ -148,11 +148,11 @@ runCase fixtures row = do
   store <- Storage.newMemoryStorage
   Browser.saveKnowledgeBases
     store
-    [KnowledgeBase (either error userIdValue (Identity.kbDid kbDomain)) (KbEndpointLocalEndpoint (LocalEndpoint kbId LocalEndpointKindLocal mempty)) kbId "Open" Nothing mempty]
+    [KnowledgeBase {knowledgeBaseDid = (either error userIdValue (Identity.kbDid kbDomain)), knowledgeBaseEndpoint = (KbEndpointLocalEndpoint (LocalEndpoint {localEndpointKbId = kbId, localEndpointKind = LocalEndpointKindLocal})), knowledgeBaseId = kbId, knowledgeBaseLabel = "Open", knowledgeBaseLastRead = Nothing}]
   Browser.storeSession store kbId grant {storedSessionAccess = jwt 3600 1}
   tabs <- forM (zip [0 ..] open) $ \(order, resource) -> do
     identity <- either (failure why) pure (mkResourceId resource)
-    pure (OpenResource identity Nothing resource 1800000000000 order Nothing mempty)
+    pure (OpenResource {openResourceId = identity, openResourceMediaType = Nothing, openResourceName = resource, openResourceOpenedAt = 1800000000000, openResourceOrder = order, openResourceStorageUri = Nothing})
   Storage.set store Browser.openResourcesByKbKey (decodeUtf8 (Lazy.toStrict (encode (object [Key.fromText kbId .= tabs]))))
   pool <- Http.newHttpClient noProxy defaultManagerSettings
   let http =

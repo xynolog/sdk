@@ -12,15 +12,14 @@ import Xynolog.Internal.Generated.Models.GatheredContext
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data MatchSearchRequest = MatchSearchRequest
-  { matchSearchRequestContext :: GatheredContext,
-    matchSearchRequestLimit :: Maybe Integer,
+  { matchSearchRequestResourceId :: ResourceId,
     matchSearchRequestReferenceId :: AnnotationId,
-    matchSearchRequestResourceId :: ResourceId,
-    matchSearchRequestUseSemanticScoring :: Maybe Bool,
-    matchSearchRequestAdditionalProperties :: KM.KeyMap Value
+    matchSearchRequestContext :: GatheredContext,
+    matchSearchRequestLimit :: Maybe Integer,
+    matchSearchRequestUseSemanticScoring :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON MatchSearchRequest where parseJSON = checked "MatchSearchRequest" $ withObject "MatchSearchRequest" (\fields -> MatchSearchRequest <$> (fields .: "context") <*> optional fields "limit" <*> (fields .: "referenceId") <*> (fields .: "resourceId") <*> optional fields "useSemanticScoring" <*> traverse parseJSON (withoutFields ["context", "limit", "referenceId", "resourceId", "useSemanticScoring"] fields))
+instance FromJSON MatchSearchRequest where parseJSON = checked "MatchSearchRequest" $ withObject "MatchSearchRequest" (\fields -> MatchSearchRequest <$> (fields .: "resourceId") <*> (fields .: "referenceId") <*> (fields .: "context") <*> optional fields "limit" <*> optional fields "useSemanticScoring")
 
-instance ToJSON MatchSearchRequest where toJSON value = Object (KM.fromList (concat [[("context", toJSON (matchSearchRequestContext value))], optionalPair "limit" (matchSearchRequestLimit value), [("referenceId", toJSON (matchSearchRequestReferenceId value))], [("resourceId", toJSON (matchSearchRequestResourceId value))], optionalPair "useSemanticScoring" (matchSearchRequestUseSemanticScoring value)]) <> fmap toJSON (withoutFields ["context", "limit", "referenceId", "resourceId", "useSemanticScoring"] (matchSearchRequestAdditionalProperties value)))
+instance ToJSON MatchSearchRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (matchSearchRequestResourceId value))], [("referenceId", toJSON (matchSearchRequestReferenceId value))], [("context", toJSON (matchSearchRequestContext value))], optionalPair "limit" (matchSearchRequestLimit value), optionalPair "useSemanticScoring" (matchSearchRequestUseSemanticScoring value)]))

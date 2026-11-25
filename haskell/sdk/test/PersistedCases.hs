@@ -199,7 +199,7 @@ grantOf base serial person =
     }
 
 knowledgeBase :: Text -> KnowledgeBase
-knowledgeBase key = KnowledgeBase (either error userIdValue (Identity.kbDid (key <> ".example.test"))) (KbEndpointLocalEndpoint (LocalEndpoint key LocalEndpointKindLocal mempty)) key key Nothing mempty
+knowledgeBase key = KnowledgeBase {knowledgeBaseDid = (either error userIdValue (Identity.kbDid (key <> ".example.test"))), knowledgeBaseEndpoint = (KbEndpointLocalEndpoint (LocalEndpoint {localEndpointKbId = key, localEndpointKind = LocalEndpointKindLocal})), knowledgeBaseId = key, knowledgeBaseLabel = key, knowledgeBaseLastRead = Nothing}
 
 -- | A row of `forget` the registry performs: signing out of kb-a, removing it, or signing in to it again with a new
 -- sign-in, with kb-a and kb-b registered and kb-b active unless kb-a is open. The sessions are scripted, and one of
@@ -587,7 +587,7 @@ inProcessPart table jo = do
         options =
           Session.SessionOptions
             "kb-a"
-            (KbTarget (knowledgeBaseEndpoint kb) "kb-a" "KB A" mempty)
+            (KbTarget {kbTargetEndpoint = (knowledgeBaseEndpoint kb), kbTargetId = "kb-a", kbTargetLabel = "KB A"})
             memory
             Nothing
             Nothing
