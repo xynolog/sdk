@@ -13,96 +13,91 @@ import Xynolog.Internal.Generated.Models.AnnotationId
 import Xynolog.Internal.Generated.Models.JobProgressMessage
 
 data JobProgress = JobProgress
-  { jobProgressAnnotationId :: Maybe AnnotationId,
-    jobProgressCompletedItems :: Maybe [JobProgressCompletedItemsItem],
-    jobProgressCurrent :: Maybe JobProgressCurrent,
-    jobProgressEntitiesEmitted :: Maybe Integer,
-    jobProgressEntitiesExpected :: Maybe Integer,
-    jobProgressEntitiesFound :: Maybe Integer,
+  { jobProgressPercentage :: Scientific,
     jobProgressMessage :: Maybe JobProgressMessage,
-    jobProgressPercentage :: Scientific,
+    jobProgressAnnotationId :: Maybe AnnotationId,
+    jobProgressCurrent :: Maybe JobProgressCurrent,
     jobProgressProcessed :: Maybe Integer,
-    jobProgressRequestParams :: Maybe [JobProgressRequestParamsItem],
     jobProgressTotal :: Maybe Integer,
-    jobProgressAdditionalProperties :: KM.KeyMap Value
+    jobProgressEntitiesFound :: Maybe Integer,
+    jobProgressEntitiesExpected :: Maybe Integer,
+    jobProgressEntitiesEmitted :: Maybe Integer,
+    jobProgressCompletedItems :: Maybe [JobProgressCompletedItemsItem],
+    jobProgressRequestParams :: Maybe [JobProgressRequestParamsItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgress where parseJSON = checked "JobProgress" $ withObject "JobProgress" (\fields -> JobProgress <$> optional fields "annotationId" <*> optional fields "completedItems" <*> optional fields "current" <*> optional fields "entitiesEmitted" <*> optional fields "entitiesExpected" <*> optional fields "entitiesFound" <*> optional fields "message" <*> (fields .: "percentage") <*> optional fields "processed" <*> optional fields "requestParams" <*> optional fields "total" <*> traverse parseJSON (withoutFields ["annotationId", "completedItems", "current", "entitiesEmitted", "entitiesExpected", "entitiesFound", "message", "percentage", "processed", "requestParams", "total"] fields))
+instance FromJSON JobProgress where parseJSON = checked "JobProgress" $ withObject "JobProgress" (\fields -> JobProgress <$> (fields .: "percentage") <*> optional fields "message" <*> optional fields "annotationId" <*> optional fields "current" <*> optional fields "processed" <*> optional fields "total" <*> optional fields "entitiesFound" <*> optional fields "entitiesExpected" <*> optional fields "entitiesEmitted" <*> optional fields "completedItems" <*> optional fields "requestParams")
 
-instance ToJSON JobProgress where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (jobProgressAnnotationId value), optionalPair "completedItems" (jobProgressCompletedItems value), optionalPair "current" (jobProgressCurrent value), optionalPair "entitiesEmitted" (jobProgressEntitiesEmitted value), optionalPair "entitiesExpected" (jobProgressEntitiesExpected value), optionalPair "entitiesFound" (jobProgressEntitiesFound value), optionalPair "message" (jobProgressMessage value), [("percentage", toJSON (jobProgressPercentage value))], optionalPair "processed" (jobProgressProcessed value), optionalPair "requestParams" (jobProgressRequestParams value), optionalPair "total" (jobProgressTotal value)]) <> fmap toJSON (withoutFields ["annotationId", "completedItems", "current", "entitiesEmitted", "entitiesExpected", "entitiesFound", "message", "percentage", "processed", "requestParams", "total"] (jobProgressAdditionalProperties value)))
+instance ToJSON JobProgress where toJSON value = Object (KM.fromList (concat [[("percentage", toJSON (jobProgressPercentage value))], optionalPair "message" (jobProgressMessage value), optionalPair "annotationId" (jobProgressAnnotationId value), optionalPair "current" (jobProgressCurrent value), optionalPair "processed" (jobProgressProcessed value), optionalPair "total" (jobProgressTotal value), optionalPair "entitiesFound" (jobProgressEntitiesFound value), optionalPair "entitiesExpected" (jobProgressEntitiesExpected value), optionalPair "entitiesEmitted" (jobProgressEntitiesEmitted value), optionalPair "completedItems" (jobProgressCompletedItems value), optionalPair "requestParams" (jobProgressRequestParams value)]))
 
 data JobProgressCompletedItemsItem = JobProgressCompletedItemsItem
-  { jobProgressCompletedItemsItemFoundCount :: Integer,
+  { jobProgressCompletedItemsItemValue :: Text,
+    jobProgressCompletedItemsItemFoundCount :: Integer,
     jobProgressCompletedItemsItemPersistedCount :: Maybe Integer,
-    jobProgressCompletedItemsItemUnderReported :: Maybe JobProgressCompletedItemsItemUnderReported,
-    jobProgressCompletedItemsItemValue :: Text,
-    jobProgressCompletedItemsItemAdditionalProperties :: KM.KeyMap Value
+    jobProgressCompletedItemsItemUnderReported :: Maybe JobProgressCompletedItemsItemUnderReported
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCompletedItemsItem where parseJSON = checked "JobProgressCompletedItemsItem" $ withObject "JobProgressCompletedItemsItem" (\fields -> JobProgressCompletedItemsItem <$> (fields .: "foundCount") <*> optional fields "persistedCount" <*> optional fields "underReported" <*> (fields .: "value") <*> traverse parseJSON (withoutFields ["foundCount", "persistedCount", "underReported", "value"] fields))
+instance FromJSON JobProgressCompletedItemsItem where parseJSON = checked "JobProgressCompletedItemsItem" $ withObject "JobProgressCompletedItemsItem" (\fields -> JobProgressCompletedItemsItem <$> (fields .: "value") <*> (fields .: "foundCount") <*> optional fields "persistedCount" <*> optional fields "underReported")
 
-instance ToJSON JobProgressCompletedItemsItem where toJSON value = Object (KM.fromList (concat [[("foundCount", toJSON (jobProgressCompletedItemsItemFoundCount value))], optionalPair "persistedCount" (jobProgressCompletedItemsItemPersistedCount value), optionalPair "underReported" (jobProgressCompletedItemsItemUnderReported value), [("value", toJSON (jobProgressCompletedItemsItemValue value))]]) <> fmap toJSON (withoutFields ["foundCount", "persistedCount", "underReported", "value"] (jobProgressCompletedItemsItemAdditionalProperties value)))
+instance ToJSON JobProgressCompletedItemsItem where toJSON value = Object (KM.fromList (concat [[("value", toJSON (jobProgressCompletedItemsItemValue value))], [("foundCount", toJSON (jobProgressCompletedItemsItemFoundCount value))], optionalPair "persistedCount" (jobProgressCompletedItemsItemPersistedCount value), optionalPair "underReported" (jobProgressCompletedItemsItemUnderReported value)]))
 
 data JobProgressCompletedItemsItemUnderReported = JobProgressCompletedItemsItemUnderReported
-  { jobProgressCompletedItemsItemUnderReportedCounted :: Integer,
+  { jobProgressCompletedItemsItemUnderReportedPieces :: Integer,
     jobProgressCompletedItemsItemUnderReportedFound :: Integer,
-    jobProgressCompletedItemsItemUnderReportedPieces :: Integer,
-    jobProgressCompletedItemsItemUnderReportedAdditionalProperties :: KM.KeyMap Value
+    jobProgressCompletedItemsItemUnderReportedCounted :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCompletedItemsItemUnderReported where parseJSON = checked "JobProgressCompletedItemsItemUnderReported" $ withObject "JobProgressCompletedItemsItemUnderReported" (\fields -> JobProgressCompletedItemsItemUnderReported <$> (fields .: "counted") <*> (fields .: "found") <*> (fields .: "pieces") <*> traverse parseJSON (withoutFields ["counted", "found", "pieces"] fields))
+instance FromJSON JobProgressCompletedItemsItemUnderReported where parseJSON = checked "JobProgressCompletedItemsItemUnderReported" $ withObject "JobProgressCompletedItemsItemUnderReported" (\fields -> JobProgressCompletedItemsItemUnderReported <$> (fields .: "pieces") <*> (fields .: "found") <*> (fields .: "counted"))
 
-instance ToJSON JobProgressCompletedItemsItemUnderReported where toJSON value = Object (KM.fromList (concat [[("counted", toJSON (jobProgressCompletedItemsItemUnderReportedCounted value))], [("found", toJSON (jobProgressCompletedItemsItemUnderReportedFound value))], [("pieces", toJSON (jobProgressCompletedItemsItemUnderReportedPieces value))]]) <> fmap toJSON (withoutFields ["counted", "found", "pieces"] (jobProgressCompletedItemsItemUnderReportedAdditionalProperties value)))
+instance ToJSON JobProgressCompletedItemsItemUnderReported where toJSON value = Object (KM.fromList (concat [[("pieces", toJSON (jobProgressCompletedItemsItemUnderReportedPieces value))], [("found", toJSON (jobProgressCompletedItemsItemUnderReportedFound value))], [("counted", toJSON (jobProgressCompletedItemsItemUnderReportedCounted value))]]))
 
 data JobProgressCurrent = JobProgressCurrent
   { jobProgressCurrentKind :: JobProgressCurrentKind,
-    jobProgressCurrentValue :: Text,
-    jobProgressCurrentAdditionalProperties :: KM.KeyMap Value
+    jobProgressCurrentValue :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCurrent where parseJSON = checked "JobProgressCurrent" $ withObject "JobProgressCurrent" (\fields -> JobProgressCurrent <$> (fields .: "kind") <*> (fields .: "value") <*> traverse parseJSON (withoutFields ["kind", "value"] fields))
+instance FromJSON JobProgressCurrent where parseJSON = checked "JobProgressCurrent" $ withObject "JobProgressCurrent" (\fields -> JobProgressCurrent <$> (fields .: "kind") <*> (fields .: "value"))
 
-instance ToJSON JobProgressCurrent where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (jobProgressCurrentKind value))], [("value", toJSON (jobProgressCurrentValue value))]]) <> fmap toJSON (withoutFields ["kind", "value"] (jobProgressCurrentAdditionalProperties value)))
+instance ToJSON JobProgressCurrent where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (jobProgressCurrentKind value))], [("value", toJSON (jobProgressCurrentValue value))]]))
 
-data JobProgressCurrentKind = JobProgressCurrentKindEntityU2d_type | JobProgressCurrentKindCategory deriving (Eq, Show)
+data JobProgressCurrentKind = JobProgressCurrentKindEntityType | JobProgressCurrentKindCategory deriving (Eq, Show)
 
-instance FromJSON JobProgressCurrentKind where parseJSON = checked "JobProgressCurrentKind" $ \value -> if value == String "entity-type" then pure JobProgressCurrentKindEntityU2d_type else if value == String "category" then pure JobProgressCurrentKindCategory else fail "unknown enumeration member"
+instance FromJSON JobProgressCurrentKind where parseJSON = checked "JobProgressCurrentKind" $ \value -> if value == String "entity-type" then pure JobProgressCurrentKindEntityType else if value == String "category" then pure JobProgressCurrentKindCategory else fail "unknown enumeration member"
 
 instance ToJSON JobProgressCurrentKind where
-  toJSON JobProgressCurrentKindEntityU2d_type = String "entity-type"
+  toJSON JobProgressCurrentKindEntityType = String "entity-type"
   toJSON JobProgressCurrentKindCategory = String "category"
 
 jobProgressCurrentKindText :: JobProgressCurrentKind -> Text
-jobProgressCurrentKindText JobProgressCurrentKindEntityU2d_type = "entity-type"
+jobProgressCurrentKindText JobProgressCurrentKindEntityType = "entity-type"
 jobProgressCurrentKindText JobProgressCurrentKindCategory = "category"
 
 data JobProgressRequestParamsItem = JobProgressRequestParamsItem
   { jobProgressRequestParamsItemLabel :: JobProgressRequestParamsItemLabel,
-    jobProgressRequestParamsItemValue :: Text,
-    jobProgressRequestParamsItemAdditionalProperties :: KM.KeyMap Value
+    jobProgressRequestParamsItemValue :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressRequestParamsItem where parseJSON = checked "JobProgressRequestParamsItem" $ withObject "JobProgressRequestParamsItem" (\fields -> JobProgressRequestParamsItem <$> (fields .: "label") <*> (fields .: "value") <*> traverse parseJSON (withoutFields ["label", "value"] fields))
+instance FromJSON JobProgressRequestParamsItem where parseJSON = checked "JobProgressRequestParamsItem" $ withObject "JobProgressRequestParamsItem" (\fields -> JobProgressRequestParamsItem <$> (fields .: "label") <*> (fields .: "value"))
 
-instance ToJSON JobProgressRequestParamsItem where toJSON value = Object (KM.fromList (concat [[("label", toJSON (jobProgressRequestParamsItemLabel value))], [("value", toJSON (jobProgressRequestParamsItemValue value))]]) <> fmap toJSON (withoutFields ["label", "value"] (jobProgressRequestParamsItemAdditionalProperties value)))
+instance ToJSON JobProgressRequestParamsItem where toJSON value = Object (KM.fromList (concat [[("label", toJSON (jobProgressRequestParamsItemLabel value))], [("value", toJSON (jobProgressRequestParamsItemValue value))]]))
 
-data JobProgressRequestParamsItemLabel = JobProgressRequestParamsItemLabelEntityU2d_types | JobProgressRequestParamsItemLabelInstructions | JobProgressRequestParamsItemLabelTone | JobProgressRequestParamsItemLabelDensity deriving (Eq, Show)
+data JobProgressRequestParamsItemLabel = JobProgressRequestParamsItemLabelEntityTypes | JobProgressRequestParamsItemLabelInstructions | JobProgressRequestParamsItemLabelTone | JobProgressRequestParamsItemLabelDensity deriving (Eq, Show)
 
-instance FromJSON JobProgressRequestParamsItemLabel where parseJSON = checked "JobProgressRequestParamsItemLabel" $ \value -> if value == String "entity-types" then pure JobProgressRequestParamsItemLabelEntityU2d_types else if value == String "instructions" then pure JobProgressRequestParamsItemLabelInstructions else if value == String "tone" then pure JobProgressRequestParamsItemLabelTone else if value == String "density" then pure JobProgressRequestParamsItemLabelDensity else fail "unknown enumeration member"
+instance FromJSON JobProgressRequestParamsItemLabel where parseJSON = checked "JobProgressRequestParamsItemLabel" $ \value -> if value == String "entity-types" then pure JobProgressRequestParamsItemLabelEntityTypes else if value == String "instructions" then pure JobProgressRequestParamsItemLabelInstructions else if value == String "tone" then pure JobProgressRequestParamsItemLabelTone else if value == String "density" then pure JobProgressRequestParamsItemLabelDensity else fail "unknown enumeration member"
 
 instance ToJSON JobProgressRequestParamsItemLabel where
-  toJSON JobProgressRequestParamsItemLabelEntityU2d_types = String "entity-types"
+  toJSON JobProgressRequestParamsItemLabelEntityTypes = String "entity-types"
   toJSON JobProgressRequestParamsItemLabelInstructions = String "instructions"
   toJSON JobProgressRequestParamsItemLabelTone = String "tone"
   toJSON JobProgressRequestParamsItemLabelDensity = String "density"
 
 jobProgressRequestParamsItemLabelText :: JobProgressRequestParamsItemLabel -> Text
-jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelEntityU2d_types = "entity-types"
+jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelEntityTypes = "entity-types"
 jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelInstructions = "instructions"
 jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelTone = "tone"
 jobProgressRequestParamsItemLabelText JobProgressRequestParamsItemLabelDensity = "density"

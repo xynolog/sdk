@@ -7,11 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ReconciledSpanFirstOfMany
 {
-    public const string AnchorMethodValue = "first-of-many";
-    [global::Xynolog.Serialization.Wire("anchorMethod")] public string AnchorMethod => AnchorMethodValue;
+    [global::Xynolog.Serialization.Wire("start")] public required long Start { get; init; }
     [global::Xynolog.Serialization.Wire("end")] public required long End { get; init; }
     [global::Xynolog.Serialization.Wire("exact")] public required string Exact { get; init; }
     [global::Xynolog.Serialization.Wire("prefix")] public string? Prefix { get; init; }
-    [global::Xynolog.Serialization.Wire("start")] public required long Start { get; init; }
     [global::Xynolog.Serialization.Wire("suffix")] public string? Suffix { get; init; }
+    [global::Xynolog.Serialization.Wire("anchorMethod")] public global::Xynolog.Types.ReconciledSpanFirstOfManyAnchorMethod AnchorMethod => global::Xynolog.Types.ReconciledSpanFirstOfManyAnchorMethod.FirstOfMany;
 }

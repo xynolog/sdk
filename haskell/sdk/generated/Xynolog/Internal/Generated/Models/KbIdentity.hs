@@ -10,11 +10,11 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data KbIdentity = KbIdentity
-  { kbIdentityDomain :: Text,
-    kbIdentityName :: Text
+  { kbIdentityName :: Text,
+    kbIdentityDomain :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON KbIdentity where parseJSON = checked "KbIdentity" $ withObject "KbIdentity" (\fields -> KbIdentity <$> (fields .: "domain") <*> (fields .: "name"))
+instance FromJSON KbIdentity where parseJSON = checked "KbIdentity" $ withObject "KbIdentity" (\fields -> KbIdentity <$> (fields .: "name") <*> (fields .: "domain"))
 
-instance ToJSON KbIdentity where toJSON value = Object (KM.fromList (concat [[("domain", toJSON (kbIdentityDomain value))], [("name", toJSON (kbIdentityName value))]]))
+instance ToJSON KbIdentity where toJSON value = Object (KM.fromList (concat [[("name", toJSON (kbIdentityName value))], [("domain", toJSON (kbIdentityDomain value))]]))

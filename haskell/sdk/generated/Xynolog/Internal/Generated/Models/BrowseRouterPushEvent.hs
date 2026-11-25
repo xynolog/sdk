@@ -11,11 +11,10 @@ import Xynolog.Internal.Codec
 
 data BrowseRouterPushEvent = BrowseRouterPushEvent
   { browseRouterPushEventPath :: Text,
-    browseRouterPushEventReason :: Maybe Text,
-    browseRouterPushEventAdditionalProperties :: KM.KeyMap Value
+    browseRouterPushEventReason :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseRouterPushEvent where parseJSON = checked "BrowseRouterPushEvent" $ withObject "BrowseRouterPushEvent" (\fields -> BrowseRouterPushEvent <$> (fields .: "path") <*> optional fields "reason" <*> traverse parseJSON (withoutFields ["path", "reason"] fields))
+instance FromJSON BrowseRouterPushEvent where parseJSON = checked "BrowseRouterPushEvent" $ withObject "BrowseRouterPushEvent" (\fields -> BrowseRouterPushEvent <$> (fields .: "path") <*> optional fields "reason")
 
-instance ToJSON BrowseRouterPushEvent where toJSON value = Object (KM.fromList (concat [[("path", toJSON (browseRouterPushEventPath value))], optionalPair "reason" (browseRouterPushEventReason value)]) <> fmap toJSON (withoutFields ["path", "reason"] (browseRouterPushEventAdditionalProperties value)))
+instance ToJSON BrowseRouterPushEvent where toJSON value = Object (KM.fromList (concat [[("path", toJSON (browseRouterPushEventPath value))], optionalPair "reason" (browseRouterPushEventReason value)]))

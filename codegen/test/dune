@@ -95,12 +95,12 @@
 (test
  (name kotlin_sdk)
  (modules kotlin_sdk)
- (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))
+ (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))
 
 (test
  (name kotlin_tables)
  (modules kotlin_tables)
- (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))
+ (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))
 
 (test
  (name csharp_syntax)
@@ -110,7 +110,7 @@
 (test
  (name csharp_sdk)
  (modules csharp_sdk)
- (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))
+ (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))
 
 (test
  (name rust_syntax)
@@ -233,3 +233,8 @@
  (name typing)
  (modules typing)
  (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))
+
+(executable
+ (name ocaml_raw_census)
+ (modules ocaml_raw_census)
+ (libraries xynolog_codegen))

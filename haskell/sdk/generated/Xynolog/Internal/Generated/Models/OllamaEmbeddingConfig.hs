@@ -10,15 +10,15 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data OllamaEmbeddingConfig = OllamaEmbeddingConfig
-  { ollamaEmbeddingConfigBaseUrl :: Text,
+  { ollamaEmbeddingConfigType :: OllamaEmbeddingConfigType,
     ollamaEmbeddingConfigModel :: Text,
-    ollamaEmbeddingConfigType :: OllamaEmbeddingConfigType
+    ollamaEmbeddingConfigBaseUrl :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON OllamaEmbeddingConfig where parseJSON = checked "OllamaEmbeddingConfig" $ withObject "OllamaEmbeddingConfig" (\fields -> OllamaEmbeddingConfig <$> (fields .: "baseUrl") <*> (fields .: "model") <*> (fields .: "type"))
+instance FromJSON OllamaEmbeddingConfig where parseJSON = checked "OllamaEmbeddingConfig" $ withObject "OllamaEmbeddingConfig" (\fields -> OllamaEmbeddingConfig <$> (fields .: "type") <*> (fields .: "model") <*> (fields .: "baseUrl"))
 
-instance ToJSON OllamaEmbeddingConfig where toJSON value = Object (KM.fromList (concat [[("baseUrl", toJSON (ollamaEmbeddingConfigBaseUrl value))], [("model", toJSON (ollamaEmbeddingConfigModel value))], [("type", toJSON (ollamaEmbeddingConfigType value))]]))
+instance ToJSON OllamaEmbeddingConfig where toJSON value = Object (KM.fromList (concat [[("type", toJSON (ollamaEmbeddingConfigType value))], [("model", toJSON (ollamaEmbeddingConfigModel value))], [("baseUrl", toJSON (ollamaEmbeddingConfigBaseUrl value))]]))
 
 data OllamaEmbeddingConfigType = OllamaEmbeddingConfigTypeOllama deriving (Eq, Show)
 

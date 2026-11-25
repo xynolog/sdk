@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record GatherResourceRequestOptions
 {
     [global::Xynolog.Serialization.Wire("depth")] public required long Depth { get; init; }
-    [global::Xynolog.Serialization.Wire("excludeEntityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? ExcludeEntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("maxResources")] public required long MaxResources { get; init; }
     [global::Xynolog.Serialization.Wire("includeContent")] public required bool IncludeContent { get; init; }
     [global::Xynolog.Serialization.Wire("includeSummary")] public required bool IncludeSummary { get; init; }
-    [global::Xynolog.Serialization.Wire("maxResources")] public required long MaxResources { get; init; }
+    [global::Xynolog.Serialization.Wire("excludeEntityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? ExcludeEntityTypes { get; init; }
 }

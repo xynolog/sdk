@@ -9,10 +9,32 @@ import kotlinx.serialization.Serializable
 @Serializable(with = MarkJobResultSerializer::class)
 public sealed interface MarkJobResult
 
-internal object MarkJobResultSerializer : KindsUnionSerializer<MarkJobResult>(
+internal object MarkJobResultSerializer : SignatureUnionSerializer<MarkJobResult>(
     MarkJobResult::class,
-    strings = { emptyList() },
-    scalars = { emptyList() },
-    arrays = { emptyList() },
-    objects = { listOf(MarkJobDone.serializer(), JobDeclined.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("found", "persisted"),
+                allowed = listOf("found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("declined", "reason"),
+                allowed = listOf("declined", "reason"),
+                fixed = listOf("declined" to listOf(Literal.Boolean(true)), "reason" to listOf(Literal.Text("no-text-layer"), Literal.Text("encrypted"), Literal.Text("corrupt"), Literal.Text("too-large"), Literal.Text("empty"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            MarkJobDone.serializer(),
+            JobDeclined.serializer(),
+        )
+    },
 )

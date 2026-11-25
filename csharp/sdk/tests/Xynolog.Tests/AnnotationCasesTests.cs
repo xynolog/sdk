@@ -135,7 +135,7 @@ public sealed partial class TransportTests
 
             // A reconciled span is one the builder takes as it is.
             var built = AnnotationOfSpan(new OfSpan(ResourceId.Parse("res-1"), Motivation.Highlighting,
-                new Agent.AgentSoftwareCase(new AgentSoftware { Provider = "ollama", Model = "gemma3" }), result, new Spanned.Text(Text(row, "text"))));
+                new Agent.AgentSoftware(new AgentSoftware { Provider = "ollama", Model = "gemma3" }), result, new Spanned.Text(Text(row, "text"))));
             var quote = TextQuoteSelector(TargetSelector(built.Target)) ?? throw new InvalidOperationException("No quote selector");
             Assert.Equal(Text(expected, "exact"), quote.Exact);
             Assert.Equal(expected.TryGetProperty("prefix", out var prefix) ? prefix.GetString() : null, quote.Prefix);

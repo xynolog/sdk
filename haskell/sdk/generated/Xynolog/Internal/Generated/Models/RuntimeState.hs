@@ -10,11 +10,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.Runtime
 
 data RuntimeState = RuntimeState
-  { runtimeStateFound :: Bool,
-    runtimeStateName :: Runtime
+  { runtimeStateName :: Runtime,
+    runtimeStateFound :: Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON RuntimeState where parseJSON = checked "RuntimeState" $ withObject "RuntimeState" (\fields -> RuntimeState <$> (fields .: "found") <*> (fields .: "name"))
+instance FromJSON RuntimeState where parseJSON = checked "RuntimeState" $ withObject "RuntimeState" (\fields -> RuntimeState <$> (fields .: "name") <*> (fields .: "found"))
 
-instance ToJSON RuntimeState where toJSON value = Object (KM.fromList (concat [[("found", toJSON (runtimeStateFound value))], [("name", toJSON (runtimeStateName value))]]))
+instance ToJSON RuntimeState where toJSON value = Object (KM.fromList (concat [[("name", toJSON (runtimeStateName value))], [("found", toJSON (runtimeStateFound value))]]))

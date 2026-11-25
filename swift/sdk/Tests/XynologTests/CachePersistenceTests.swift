@@ -156,8 +156,8 @@ private func saved(
   let jo = try joKey()
   let kept = MemorySignIn(
     StoredSession(
-      access: "access", clientId: scriptClientID, personKey: jo, refresh: "refresh",
-      tokenEndpoint: "http://issuer.test/token"))
+      access: "access", refresh: "refresh", clientId: scriptClientID,
+      tokenEndpoint: "http://issuer.test/token", personKey: jo))
   let resource = try ResourceId("res-1")
   let other = try ResourceId("res-2")
   // A session's client: its disposal's flush waits on the sign-in check, after the gate is read.
@@ -257,7 +257,7 @@ private func saved(
     }
     return try wirePayload(
       BrowseResourceResult(
-        response: BrowseResourceResultResponse(lastSequence: 1, resource: fresh)))
+        response: BrowseResourceResultResponse(resource: fresh, lastSequence: 1)))
   }
   let client = try await XynologClient(
     transport: probe,
@@ -296,7 +296,7 @@ private func saved(
     return try wirePayload(
       BrowseResourceResult(
         response: BrowseResourceResultResponse(
-          lastSequence: 1, resource: try keptDescriptor("fresh"))))
+          resource: try keptDescriptor("fresh"), lastSequence: 1)))
   }
   let client = try await XynologClient(
     transport: probe,
@@ -341,9 +341,9 @@ private func saved(
 /// A `mark:archived` event of `resource` whose id is `id`, as the stream delivers it.
 private func archived(_ resource: ResourceId, id: String) throws -> ReceivedFrame {
   let event = StoredEventResponse(
-    id: id, metadata: EventMetadata(sequenceNumber: 1), payload: [:], resourceId: resource,
-    timestamp: "2026-11-07T00:00:00.000Z", type: Channels.markArchived.name,
-    userId: try UserId("did:web:example.org:users:alice"), version: 1)
+    id: id, type: Channels.markArchived.name, timestamp: "2026-11-07T00:00:00.000Z",
+    userId: try UserId("did:web:example.org:users:alice"), resourceId: resource, version: 1,
+    payload: [:], metadata: EventMetadata(sequenceNumber: 1))
   return ReceivedFrame(
     channel: Channels.markArchived.name, eventId: id, payload: try wirePayload(event),
     scope: resource)
@@ -393,13 +393,13 @@ private func drained(_ probe: ProbeTransport, _ client: XynologClient) async thr
     guard count > 1 else {
       return try wirePayload(
         BrowseResourceResult(
-          response: BrowseResourceResultResponse(lastSequence: 1, resource: firstAnswer)))
+          response: BrowseResourceResultResponse(resource: firstAnswer, lastSequence: 1)))
     }
     reached.yield()
     for await _ in answered { break }
     return try wirePayload(
       BrowseResourceResult(
-        response: BrowseResourceResultResponse(lastSequence: 2, resource: refetchAnswer)))
+        response: BrowseResourceResultResponse(resource: refetchAnswer, lastSequence: 2)))
   }
   let client = try await XynologClient(
     transport: probe, persistence: CachePersistence(storage: storage, kbId: "kb", personKey: jo),

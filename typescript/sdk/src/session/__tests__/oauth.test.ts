@@ -8,6 +8,7 @@ import util from 'node:util';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   HTTP_REQUEST_TIMEOUT_MS,
+  PENDING_AUTHORIZATION_KEY,
   REFRESH_RETRY,
   SignInError,
   faultOf,
@@ -17,7 +18,6 @@ import { keptIn, renewKept } from '../../index';
 import { InMemorySessionStorage } from '../session-storage';
 import {
   BROWSER_CLIENT_ID,
-  PENDING_AUTHORIZATION_KEY,
   SCRIPT_CLIENT_ID,
   beginAuthorization,
   codeChallenge,

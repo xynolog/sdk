@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MarkCommitOkResponse
 {
-    [global::Xynolog.Serialization.Wire("annotationIds")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Identifiers.AnnotationId> AnnotationIds { get; init; }
     [global::Xynolog.Serialization.Wire("persisted")] public required long Persisted { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationIds")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Identifiers.AnnotationId> AnnotationIds { get; init; }
 }

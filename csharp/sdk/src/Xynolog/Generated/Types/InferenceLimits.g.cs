@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record InferenceLimits
 {
-    [global::Xynolog.Serialization.Wire("acceptsTemperature")] public bool? AcceptsTemperature { get; init; }
     [global::Xynolog.Serialization.Wire("contextTokens")] public required double ContextTokens { get; init; }
     [global::Xynolog.Serialization.Wire("maxOutputTokens")] public required double MaxOutputTokens { get; init; }
+    [global::Xynolog.Serialization.Wire("acceptsTemperature")] public bool? AcceptsTemperature { get; init; }
 }

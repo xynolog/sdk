@@ -13,11 +13,11 @@ import Xynolog.Internal.Generated.Models.Target
 
 data AuthLogoutParams = AuthLogoutParams
   { authLogoutParamsApiVersion :: ApiVersion,
-    authLogoutParamsRuntime :: Maybe Runtime,
-    authLogoutParamsTarget :: Maybe Target
+    authLogoutParamsTarget :: Maybe Target,
+    authLogoutParamsRuntime :: Maybe Runtime
   }
   deriving (Eq, Show)
 
-instance FromJSON AuthLogoutParams where parseJSON = checked "AuthLogoutParams" $ withObject "AuthLogoutParams" (\fields -> AuthLogoutParams <$> (fields .: "apiVersion") <*> optional fields "runtime" <*> optional fields "target")
+instance FromJSON AuthLogoutParams where parseJSON = checked "AuthLogoutParams" $ withObject "AuthLogoutParams" (\fields -> AuthLogoutParams <$> (fields .: "apiVersion") <*> optional fields "target" <*> optional fields "runtime")
 
-instance ToJSON AuthLogoutParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (authLogoutParamsApiVersion value))], optionalPair "runtime" (authLogoutParamsRuntime value), optionalPair "target" (authLogoutParamsTarget value)]))
+instance ToJSON AuthLogoutParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (authLogoutParamsApiVersion value))], optionalPair "target" (authLogoutParamsTarget value), optionalPair "runtime" (authLogoutParamsRuntime value)]))

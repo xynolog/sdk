@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record FrameAddEntityTypeCommand
 {
-    [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
     [global::Xynolog.Serialization.Wire("tag")] public required string Tag { get; init; }
+    [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
 }

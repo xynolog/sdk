@@ -11,16 +11,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data HighlightingJobParams = HighlightingJobParams
-  { highlightingJobParamsDensity :: Maybe Scientific,
+  { highlightingJobParamsMotivation :: HighlightingJobParamsMotivation,
     highlightingJobParamsInstructions :: Maybe Text,
-    highlightingJobParamsMotivation :: HighlightingJobParamsMotivation,
+    highlightingJobParamsDensity :: Maybe Scientific,
     highlightingJobParamsSourceLanguage :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON HighlightingJobParams where parseJSON = checked "HighlightingJobParams" $ withObject "HighlightingJobParams" (\fields -> HighlightingJobParams <$> optional fields "density" <*> optional fields "instructions" <*> (fields .: "motivation") <*> optional fields "sourceLanguage")
+instance FromJSON HighlightingJobParams where parseJSON = checked "HighlightingJobParams" $ withObject "HighlightingJobParams" (\fields -> HighlightingJobParams <$> (fields .: "motivation") <*> optional fields "instructions" <*> optional fields "density" <*> optional fields "sourceLanguage")
 
-instance ToJSON HighlightingJobParams where toJSON value = Object (KM.fromList (concat [optionalPair "density" (highlightingJobParamsDensity value), optionalPair "instructions" (highlightingJobParamsInstructions value), [("motivation", toJSON (highlightingJobParamsMotivation value))], optionalPair "sourceLanguage" (highlightingJobParamsSourceLanguage value)]))
+instance ToJSON HighlightingJobParams where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (highlightingJobParamsMotivation value))], optionalPair "instructions" (highlightingJobParamsInstructions value), optionalPair "density" (highlightingJobParamsDensity value), optionalPair "sourceLanguage" (highlightingJobParamsSourceLanguage value)]))
 
 data HighlightingJobParamsMotivation = HighlightingJobParamsMotivationHighlighting deriving (Eq, Show)
 

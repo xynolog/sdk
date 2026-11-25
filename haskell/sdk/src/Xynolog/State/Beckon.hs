@@ -30,7 +30,7 @@ newBeckonStateUnit client resource = do
         Right value -> atomically $ do
           let annotation = beckonHoverEventAnnotationId value
           State.update (hoveredAnnotationId unit) annotation
-          mapM_ (\identity -> Local.signal (Client.bus client) BeckonSparkle (BeckonSparkleEvent identity mempty) NoScope) annotation
+          mapM_ (\identity -> Local.signal (Client.bus client) BeckonSparkle (BeckonSparkleEvent identity) NoScope) annotation
       else case decodePayload BrowseClick payload of
         Left _ -> pure ()
         Right value -> focus unit (browseClickEventAnnotationId value)
@@ -42,7 +42,7 @@ hoveredAnnotationId (BeckonStateUnit _ _ _ value) = value
 focus :: BeckonStateUnit -> AnnotationId -> IO ()
 focus (BeckonStateUnit tasks client resource _) identity = atomically $ do
   over <- Tasks.closed tasks
-  unless over (Local.signal (Client.bus client) BeckonFocus (BeckonFocusEvent (Just identity) resource mempty) NoScope)
+  unless over (Local.signal (Client.bus client) BeckonFocus (BeckonFocusEvent (Just identity) resource) NoScope)
 
 dispose :: BeckonStateUnit -> IO ()
 dispose unit@(BeckonStateUnit tasks _ _ _) = Tasks.dispose tasks `finally` atomically (State.complete (hoveredAnnotationId unit))

@@ -12,22 +12,22 @@ import Xynolog.Internal.Generated.Models.WorkerEngineConfig
 
 data WorkerKnowledgeBaseConfig = WorkerKnowledgeBaseConfig
   { workerKnowledgeBaseConfigDomain :: Text,
-    workerKnowledgeBaseConfigEngines :: [WorkerEngineConfig],
     workerKnowledgeBaseConfigGatewayUrl :: Text,
-    workerKnowledgeBaseConfigIdentity :: WorkerKnowledgeBaseConfigIdentity
+    workerKnowledgeBaseConfigIdentity :: WorkerKnowledgeBaseConfigIdentity,
+    workerKnowledgeBaseConfigEngines :: [WorkerEngineConfig]
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerKnowledgeBaseConfig where parseJSON = checked "WorkerKnowledgeBaseConfig" $ withObject "WorkerKnowledgeBaseConfig" (\fields -> WorkerKnowledgeBaseConfig <$> (fields .: "domain") <*> (fields .: "engines") <*> (fields .: "gatewayUrl") <*> (fields .: "identity"))
+instance FromJSON WorkerKnowledgeBaseConfig where parseJSON = checked "WorkerKnowledgeBaseConfig" $ withObject "WorkerKnowledgeBaseConfig" (\fields -> WorkerKnowledgeBaseConfig <$> (fields .: "domain") <*> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "engines"))
 
-instance ToJSON WorkerKnowledgeBaseConfig where toJSON value = Object (KM.fromList (concat [[("domain", toJSON (workerKnowledgeBaseConfigDomain value))], [("engines", toJSON (workerKnowledgeBaseConfigEngines value))], [("gatewayUrl", toJSON (workerKnowledgeBaseConfigGatewayUrl value))], [("identity", toJSON (workerKnowledgeBaseConfigIdentity value))]]))
+instance ToJSON WorkerKnowledgeBaseConfig where toJSON value = Object (KM.fromList (concat [[("domain", toJSON (workerKnowledgeBaseConfigDomain value))], [("gatewayUrl", toJSON (workerKnowledgeBaseConfigGatewayUrl value))], [("identity", toJSON (workerKnowledgeBaseConfigIdentity value))], [("engines", toJSON (workerKnowledgeBaseConfigEngines value))]]))
 
 data WorkerKnowledgeBaseConfigIdentity = WorkerKnowledgeBaseConfigIdentity
-  { workerKnowledgeBaseConfigIdentityClientId :: Text,
-    workerKnowledgeBaseConfigIdentityIssuer :: Text
+  { workerKnowledgeBaseConfigIdentityIssuer :: Text,
+    workerKnowledgeBaseConfigIdentityClientId :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerKnowledgeBaseConfigIdentity where parseJSON = checked "WorkerKnowledgeBaseConfigIdentity" $ withObject "WorkerKnowledgeBaseConfigIdentity" (\fields -> WorkerKnowledgeBaseConfigIdentity <$> (fields .: "clientId") <*> (fields .: "issuer"))
+instance FromJSON WorkerKnowledgeBaseConfigIdentity where parseJSON = checked "WorkerKnowledgeBaseConfigIdentity" $ withObject "WorkerKnowledgeBaseConfigIdentity" (\fields -> WorkerKnowledgeBaseConfigIdentity <$> (fields .: "issuer") <*> (fields .: "clientId"))
 
-instance ToJSON WorkerKnowledgeBaseConfigIdentity where toJSON value = Object (KM.fromList (concat [[("clientId", toJSON (workerKnowledgeBaseConfigIdentityClientId value))], [("issuer", toJSON (workerKnowledgeBaseConfigIdentityIssuer value))]]))
+instance ToJSON WorkerKnowledgeBaseConfigIdentity where toJSON value = Object (KM.fromList (concat [[("issuer", toJSON (workerKnowledgeBaseConfigIdentityIssuer value))], [("clientId", toJSON (workerKnowledgeBaseConfigIdentityClientId value))]]))

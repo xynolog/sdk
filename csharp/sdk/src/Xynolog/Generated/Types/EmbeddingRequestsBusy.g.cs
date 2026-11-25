@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record EmbeddingRequestsBusy
 {
-    [global::Xynolog.Serialization.Wire("againAfterSeconds")] public required global::System.Collections.Generic.IReadOnlyList<long> AgainAfterSeconds { get; init; }
     [global::Xynolog.Serialization.Wire("statuses")] public required global::System.Collections.Generic.IReadOnlyList<long> Statuses { get; init; }
+    [global::Xynolog.Serialization.Wire("againAfterSeconds")] public required global::System.Collections.Generic.IReadOnlyList<long> AgainAfterSeconds { get; init; }
 }

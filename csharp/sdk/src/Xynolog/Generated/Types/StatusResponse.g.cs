@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record StatusResponse
 {
-    [global::Xynolog.Serialization.Wire("authenticatedAs")] public string? AuthenticatedAs { get; init; }
-    [global::Xynolog.Serialization.Wire("features")] public required global::Xynolog.Types.StatusResponseFeatures Features { get; init; }
-    [global::Xynolog.Serialization.Wire("message")] public required string Message { get; init; }
     [global::Xynolog.Serialization.Wire("status")] public required string Status { get; init; }
     [global::Xynolog.Serialization.Wire("version")] public required string Version { get; init; }
+    [global::Xynolog.Serialization.Wire("features")] public required global::Xynolog.Types.StatusResponseFeatures Features { get; init; }
+    [global::Xynolog.Serialization.Wire("message")] public required string Message { get; init; }
+    [global::Xynolog.Serialization.Wire("authenticatedAs")] public string? AuthenticatedAs { get; init; }
 }

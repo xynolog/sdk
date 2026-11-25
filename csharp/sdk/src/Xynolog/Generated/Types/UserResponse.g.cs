@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record UserResponse
 {
     [global::Xynolog.Serialization.Wire("did")] public required global::Xynolog.Identifiers.UserId Did { get; init; }
-    [global::Xynolog.Serialization.Wire("domain")] public required string Domain { get; init; }
     [global::Xynolog.Serialization.Wire("email")] public required string? Email { get; init; }
-    [global::Xynolog.Serialization.Wire("image")] public required string? Image { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string? Name { get; init; }
+    [global::Xynolog.Serialization.Wire("image")] public required string? Image { get; init; }
+    [global::Xynolog.Serialization.Wire("domain")] public required string Domain { get; init; }
 }

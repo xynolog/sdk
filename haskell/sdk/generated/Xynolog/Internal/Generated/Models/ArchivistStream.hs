@@ -10,11 +10,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ArchivistStream = ArchivistStream
-  { archivistStreamLastSequence :: Integer,
-    archivistStreamResourceId :: ResourceId
+  { archivistStreamResourceId :: ResourceId,
+    archivistStreamLastSequence :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistStream where parseJSON = checked "ArchivistStream" $ withObject "ArchivistStream" (\fields -> ArchivistStream <$> (fields .: "lastSequence") <*> (fields .: "resourceId"))
+instance FromJSON ArchivistStream where parseJSON = checked "ArchivistStream" $ withObject "ArchivistStream" (\fields -> ArchivistStream <$> (fields .: "resourceId") <*> (fields .: "lastSequence"))
 
-instance ToJSON ArchivistStream where toJSON value = Object (KM.fromList (concat [[("lastSequence", toJSON (archivistStreamLastSequence value))], [("resourceId", toJSON (archivistStreamResourceId value))]]))
+instance ToJSON ArchivistStream where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (archivistStreamResourceId value))], [("lastSequence", toJSON (archivistStreamLastSequence value))]]))

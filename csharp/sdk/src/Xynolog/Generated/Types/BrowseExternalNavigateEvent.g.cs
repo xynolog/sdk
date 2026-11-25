@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BrowseExternalNavigateEvent
 {
-    [global::Xynolog.Serialization.Wire("resourceId")] public global::Xynolog.Identifiers.ResourceId? ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("url")] public required string Url { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceId")] public global::Xynolog.Identifiers.ResourceId? ResourceId { get; init; }
 }

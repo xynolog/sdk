@@ -78,6 +78,36 @@ the coming release's, and gathers its changes as they land.
   go: the issuer's members are read directly.
 - An optional member that may not be null is an `option`; `Types.presence`
   is left to a member that may be absent and may be null.
+- A record's member that names a union, a record stated in place, a map, a
+  list of records or unions, or a schema of another file is typed as its
+  schema states it, where it was its raw JSON: a union is a module of
+  `Records` with a constructor per member (`Records.Kb_endpoint.t`,
+  `Records.Resource_descriptor_representations.t`), and a map is an
+  association list (`Records.Bus_frame.t`'s `payload`). Only a value whose
+  schema constrains nothing, or an object that names no member, is still
+  `Yojson.Raw.t`. `Resources.primary_representation` hands a
+  `Records.Representation.t`, and `Testing.deliver`'s payload is an object,
+  as a bus frame's is.
+- A union is a constructor per member, named as Protocol names the member,
+  and its value is the first member whose schema admits it, where a union a
+  tag told apart was a constructor per value of its tag:
+  `Records.Anchored_text_answer.t` is `ExtractedText | ExtractionDeclined |
+  AnchoredTextAbsent`, where it was five, and `Records.Kb_endpoint.t` is
+  `HttpEndpoint | LocalEndpoint`. Each union's `of_model` is the union, not
+  an option. Every union Protocol roots is a module of `Records`, among them
+  `Bus_stream_message` and `Conformance_driver_line`.
+- A record drops the members its schema does not name, where it kept them
+  in `extra` and wrote them back: only the records Protocol states hold
+  other members keep `extra` (`Agent_organization`, `Agent_person`,
+  `Agent_software`, `Job_params`, `Representation`, `Resource_descriptor`,
+  `Resource_descriptor_identifier_object` and `Scored_resource`). A
+  `Selector` branch has no `extra` either.
+- A string constant is a type of its own, where a record held it as a
+  `string`: a schema that is one is a module of `Enums`
+  (`Enums.Api_version.t`, `Enums.Stack_api_version.t`), and one stated in
+  place a module of its record's (a stack document's `kind`, as
+  `Records.Inference.Kind.t`). Annotation's `@context` is
+  `Records.Annotation.Field_context.t`.
 
 - `Retry.retry_with_backoff` takes its `budget` as a `Records.Retry_budget.t`,
   the record of Protocol's `client/RetryBudget.json`, in place of

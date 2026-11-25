@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MatchSearchRequest
 {
+    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("referenceId")] public required global::Xynolog.Identifiers.AnnotationId ReferenceId { get; init; }
     [global::Xynolog.Serialization.Wire("context")] public required global::Xynolog.Types.GatheredContext Context { get; init; }
     [global::Xynolog.Serialization.Wire("limit")] public long? Limit { get; init; }
-    [global::Xynolog.Serialization.Wire("referenceId")] public required global::Xynolog.Identifiers.AnnotationId ReferenceId { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("useSemanticScoring")] public bool? UseSemanticScoring { get; init; }
 }

@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceOutput
 {
-    [global::Xynolog.Serialization.Wire("instance")] public required string Instance { get; init; }
-    [global::Xynolog.Serialization.Wire("line")] public required string Line { get; init; }
     [global::Xynolog.Serialization.Wire("requestId")] public required global::Xynolog.Types.RequestId RequestId { get; init; }
+    [global::Xynolog.Serialization.Wire("instance")] public required string Instance { get; init; }
     [global::Xynolog.Serialization.Wire("stream")] public required global::Xynolog.Types.OutputStream Stream { get; init; }
+    [global::Xynolog.Serialization.Wire("line")] public required string Line { get; init; }
 }

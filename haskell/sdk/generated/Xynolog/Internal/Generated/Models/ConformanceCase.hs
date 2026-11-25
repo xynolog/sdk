@@ -12,28 +12,28 @@ import Xynolog.Internal.Generated.Models.ConformanceStep
 
 data ConformanceCase = ConformanceCase
   { conformanceCaseAbout :: Text,
-    conformanceCasePlanes :: Maybe [ConformanceCasePlanesItem],
     conformanceCaseSource :: Text,
-    conformanceCaseSteps :: [ConformanceStep],
+    conformanceCasePlanes :: Maybe [ConformanceCasePlanesItem],
+    conformanceCaseTier :: Maybe ConformanceCaseTier,
     conformanceCaseTelemetry :: Maybe ConformanceCaseTelemetry,
-    conformanceCaseTier :: Maybe ConformanceCaseTier
+    conformanceCaseSteps :: [ConformanceStep]
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceCase where parseJSON = checked "ConformanceCase" $ withObject "ConformanceCase" (\fields -> ConformanceCase <$> (fields .: "about") <*> optional fields "planes" <*> (fields .: "source") <*> (fields .: "steps") <*> optional fields "telemetry" <*> optional fields "tier")
+instance FromJSON ConformanceCase where parseJSON = checked "ConformanceCase" $ withObject "ConformanceCase" (\fields -> ConformanceCase <$> (fields .: "about") <*> (fields .: "source") <*> optional fields "planes" <*> optional fields "tier" <*> optional fields "telemetry" <*> (fields .: "steps"))
 
-instance ToJSON ConformanceCase where toJSON value = Object (KM.fromList (concat [[("about", toJSON (conformanceCaseAbout value))], optionalPair "planes" (conformanceCasePlanes value), [("source", toJSON (conformanceCaseSource value))], [("steps", toJSON (conformanceCaseSteps value))], optionalPair "telemetry" (conformanceCaseTelemetry value), optionalPair "tier" (conformanceCaseTier value)]))
+instance ToJSON ConformanceCase where toJSON value = Object (KM.fromList (concat [[("about", toJSON (conformanceCaseAbout value))], [("source", toJSON (conformanceCaseSource value))], optionalPair "planes" (conformanceCasePlanes value), optionalPair "tier" (conformanceCaseTier value), optionalPair "telemetry" (conformanceCaseTelemetry value), [("steps", toJSON (conformanceCaseSteps value))]]))
 
-data ConformanceCasePlanesItem = ConformanceCasePlanesItemInU2d_process | ConformanceCasePlanesItemNats deriving (Eq, Show)
+data ConformanceCasePlanesItem = ConformanceCasePlanesItemInProcess | ConformanceCasePlanesItemNats deriving (Eq, Show)
 
-instance FromJSON ConformanceCasePlanesItem where parseJSON = checked "ConformanceCasePlanesItem" $ \value -> if value == String "in-process" then pure ConformanceCasePlanesItemInU2d_process else if value == String "nats" then pure ConformanceCasePlanesItemNats else fail "unknown enumeration member"
+instance FromJSON ConformanceCasePlanesItem where parseJSON = checked "ConformanceCasePlanesItem" $ \value -> if value == String "in-process" then pure ConformanceCasePlanesItemInProcess else if value == String "nats" then pure ConformanceCasePlanesItemNats else fail "unknown enumeration member"
 
 instance ToJSON ConformanceCasePlanesItem where
-  toJSON ConformanceCasePlanesItemInU2d_process = String "in-process"
+  toJSON ConformanceCasePlanesItemInProcess = String "in-process"
   toJSON ConformanceCasePlanesItemNats = String "nats"
 
 conformanceCasePlanesItemText :: ConformanceCasePlanesItem -> Text
-conformanceCasePlanesItemText ConformanceCasePlanesItemInU2d_process = "in-process"
+conformanceCasePlanesItemText ConformanceCasePlanesItemInProcess = "in-process"
 conformanceCasePlanesItemText ConformanceCasePlanesItemNats = "nats"
 
 data ConformanceCaseTelemetry = ConformanceCaseTelemetryTrue deriving (Eq, Show)

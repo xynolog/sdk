@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
 
 data MarkCreateOkResponse = MarkCreateOkResponse
-  { markCreateOkResponseAnnotationId :: AnnotationId,
-    markCreateOkResponseAdditionalProperties :: KM.KeyMap Value
+  { markCreateOkResponseAnnotationId :: AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkCreateOkResponse where parseJSON = checked "MarkCreateOkResponse" $ withObject "MarkCreateOkResponse" (\fields -> MarkCreateOkResponse <$> (fields .: "annotationId") <*> traverse parseJSON (withoutFields ["annotationId"] fields))
+instance FromJSON MarkCreateOkResponse where parseJSON = checked "MarkCreateOkResponse" $ withObject "MarkCreateOkResponse" (\fields -> MarkCreateOkResponse <$> (fields .: "annotationId"))
 
-instance ToJSON MarkCreateOkResponse where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (markCreateOkResponseAnnotationId value))]]) <> fmap toJSON (withoutFields ["annotationId"] (markCreateOkResponseAdditionalProperties value)))
+instance ToJSON MarkCreateOkResponse where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (markCreateOkResponseAnnotationId value))]]))

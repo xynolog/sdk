@@ -8,8 +8,7 @@ namespace Xynolog.Types;
 public sealed record Browser
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.StackApiVersion ApiVersion { get; init; }
-    public const string KindValue = "Browser";
-    [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.BrowserKind Kind => global::Xynolog.Types.BrowserKind.Browser;
     [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.Metadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("spec")] public required global::Xynolog.Types.BrowserSpec Spec { get; init; }
 }

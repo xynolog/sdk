@@ -10,40 +10,40 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceEnvironmentBootRefusals = ServiceEnvironmentBootRefusals
-  { serviceEnvironmentBootRefusalsU24_comment :: Text,
-    serviceEnvironmentBootRefusalsExitCode :: Integer,
+  { serviceEnvironmentBootRefusalsComment :: Text,
+    serviceEnvironmentBootRefusalsServices :: [ServiceEnvironmentBootRefusalsServicesItem],
     serviceEnvironmentBootRefusalsLine :: Text,
-    serviceEnvironmentBootRefusalsMembers :: [ServiceEnvironmentBootRefusalsMembersItem],
+    serviceEnvironmentBootRefusalsExitCode :: Integer,
     serviceEnvironmentBootRefusalsRefusals :: [ServiceEnvironmentBootRefusalsRefusalsItem],
-    serviceEnvironmentBootRefusalsServices :: [ServiceEnvironmentBootRefusalsServicesItem]
+    serviceEnvironmentBootRefusalsMembers :: [ServiceEnvironmentBootRefusalsMembersItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceEnvironmentBootRefusals where parseJSON = checked "ServiceEnvironmentBootRefusals" $ withObject "ServiceEnvironmentBootRefusals" (\fields -> ServiceEnvironmentBootRefusals <$> (fields .: "$comment") <*> (fields .: "exitCode") <*> (fields .: "line") <*> (fields .: "members") <*> (fields .: "refusals") <*> (fields .: "services"))
+instance FromJSON ServiceEnvironmentBootRefusals where parseJSON = checked "ServiceEnvironmentBootRefusals" $ withObject "ServiceEnvironmentBootRefusals" (\fields -> ServiceEnvironmentBootRefusals <$> (fields .: "$comment") <*> (fields .: "services") <*> (fields .: "line") <*> (fields .: "exitCode") <*> (fields .: "refusals") <*> (fields .: "members"))
 
-instance ToJSON ServiceEnvironmentBootRefusals where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceEnvironmentBootRefusalsU24_comment value))], [("exitCode", toJSON (serviceEnvironmentBootRefusalsExitCode value))], [("line", toJSON (serviceEnvironmentBootRefusalsLine value))], [("members", toJSON (serviceEnvironmentBootRefusalsMembers value))], [("refusals", toJSON (serviceEnvironmentBootRefusalsRefusals value))], [("services", toJSON (serviceEnvironmentBootRefusalsServices value))]]))
+instance ToJSON ServiceEnvironmentBootRefusals where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceEnvironmentBootRefusalsComment value))], [("services", toJSON (serviceEnvironmentBootRefusalsServices value))], [("line", toJSON (serviceEnvironmentBootRefusalsLine value))], [("exitCode", toJSON (serviceEnvironmentBootRefusalsExitCode value))], [("refusals", toJSON (serviceEnvironmentBootRefusalsRefusals value))], [("members", toJSON (serviceEnvironmentBootRefusalsMembers value))]]))
 
 data ServiceEnvironmentBootRefusalsMembersItem = ServiceEnvironmentBootRefusalsMembersItem
-  { serviceEnvironmentBootRefusalsMembersItemLine :: Text,
-    serviceEnvironmentBootRefusalsMembersItemName :: Text,
-    serviceEnvironmentBootRefusalsMembersItemSituation :: Text
+  { serviceEnvironmentBootRefusalsMembersItemName :: Text,
+    serviceEnvironmentBootRefusalsMembersItemSituation :: Text,
+    serviceEnvironmentBootRefusalsMembersItemLine :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceEnvironmentBootRefusalsMembersItem where parseJSON = checked "ServiceEnvironmentBootRefusalsMembersItem" $ withObject "ServiceEnvironmentBootRefusalsMembersItem" (\fields -> ServiceEnvironmentBootRefusalsMembersItem <$> (fields .: "line") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON ServiceEnvironmentBootRefusalsMembersItem where parseJSON = checked "ServiceEnvironmentBootRefusalsMembersItem" $ withObject "ServiceEnvironmentBootRefusalsMembersItem" (\fields -> ServiceEnvironmentBootRefusalsMembersItem <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "line"))
 
-instance ToJSON ServiceEnvironmentBootRefusalsMembersItem where toJSON value = Object (KM.fromList (concat [[("line", toJSON (serviceEnvironmentBootRefusalsMembersItemLine value))], [("name", toJSON (serviceEnvironmentBootRefusalsMembersItemName value))], [("situation", toJSON (serviceEnvironmentBootRefusalsMembersItemSituation value))]]))
+instance ToJSON ServiceEnvironmentBootRefusalsMembersItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (serviceEnvironmentBootRefusalsMembersItemName value))], [("situation", toJSON (serviceEnvironmentBootRefusalsMembersItemSituation value))], [("line", toJSON (serviceEnvironmentBootRefusalsMembersItemLine value))]]))
 
 data ServiceEnvironmentBootRefusalsRefusalsItem = ServiceEnvironmentBootRefusalsRefusalsItem
   { serviceEnvironmentBootRefusalsRefusalsItemName :: Text,
-    serviceEnvironmentBootRefusalsRefusalsItemRefusal :: Text,
-    serviceEnvironmentBootRefusalsRefusalsItemSituation :: Text
+    serviceEnvironmentBootRefusalsRefusalsItemSituation :: Text,
+    serviceEnvironmentBootRefusalsRefusalsItemRefusal :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceEnvironmentBootRefusalsRefusalsItem where parseJSON = checked "ServiceEnvironmentBootRefusalsRefusalsItem" $ withObject "ServiceEnvironmentBootRefusalsRefusalsItem" (\fields -> ServiceEnvironmentBootRefusalsRefusalsItem <$> (fields .: "name") <*> (fields .: "refusal") <*> (fields .: "situation"))
+instance FromJSON ServiceEnvironmentBootRefusalsRefusalsItem where parseJSON = checked "ServiceEnvironmentBootRefusalsRefusalsItem" $ withObject "ServiceEnvironmentBootRefusalsRefusalsItem" (\fields -> ServiceEnvironmentBootRefusalsRefusalsItem <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "refusal"))
 
-instance ToJSON ServiceEnvironmentBootRefusalsRefusalsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (serviceEnvironmentBootRefusalsRefusalsItemName value))], [("refusal", toJSON (serviceEnvironmentBootRefusalsRefusalsItemRefusal value))], [("situation", toJSON (serviceEnvironmentBootRefusalsRefusalsItemSituation value))]]))
+instance ToJSON ServiceEnvironmentBootRefusalsRefusalsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (serviceEnvironmentBootRefusalsRefusalsItemName value))], [("situation", toJSON (serviceEnvironmentBootRefusalsRefusalsItemSituation value))], [("refusal", toJSON (serviceEnvironmentBootRefusalsRefusalsItemRefusal value))]]))
 
 data ServiceEnvironmentBootRefusalsServicesItem = ServiceEnvironmentBootRefusalsServicesItemArchivist | ServiceEnvironmentBootRefusalsServicesItemDispatcher | ServiceEnvironmentBootRefusalsServicesItemGateway | ServiceEnvironmentBootRefusalsServicesItemLibrarian | ServiceEnvironmentBootRefusalsServicesItemSmelter | ServiceEnvironmentBootRefusalsServicesItemWeaver | ServiceEnvironmentBootRefusalsServicesItemWorker deriving (Eq, Show)
 

@@ -10,16 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data VoyageEmbeddingConfig = VoyageEmbeddingConfig
-  { voyageEmbeddingConfigApiKeyEnv :: Text,
-    voyageEmbeddingConfigEndpoint :: Text,
+  { voyageEmbeddingConfigType :: VoyageEmbeddingConfigType,
     voyageEmbeddingConfigModel :: Text,
-    voyageEmbeddingConfigType :: VoyageEmbeddingConfigType
+    voyageEmbeddingConfigEndpoint :: Text,
+    voyageEmbeddingConfigApiKeyEnv :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON VoyageEmbeddingConfig where parseJSON = checked "VoyageEmbeddingConfig" $ withObject "VoyageEmbeddingConfig" (\fields -> VoyageEmbeddingConfig <$> (fields .: "apiKeyEnv") <*> (fields .: "endpoint") <*> (fields .: "model") <*> (fields .: "type"))
+instance FromJSON VoyageEmbeddingConfig where parseJSON = checked "VoyageEmbeddingConfig" $ withObject "VoyageEmbeddingConfig" (\fields -> VoyageEmbeddingConfig <$> (fields .: "type") <*> (fields .: "model") <*> (fields .: "endpoint") <*> (fields .: "apiKeyEnv"))
 
-instance ToJSON VoyageEmbeddingConfig where toJSON value = Object (KM.fromList (concat [[("apiKeyEnv", toJSON (voyageEmbeddingConfigApiKeyEnv value))], [("endpoint", toJSON (voyageEmbeddingConfigEndpoint value))], [("model", toJSON (voyageEmbeddingConfigModel value))], [("type", toJSON (voyageEmbeddingConfigType value))]]))
+instance ToJSON VoyageEmbeddingConfig where toJSON value = Object (KM.fromList (concat [[("type", toJSON (voyageEmbeddingConfigType value))], [("model", toJSON (voyageEmbeddingConfigModel value))], [("endpoint", toJSON (voyageEmbeddingConfigEndpoint value))], [("apiKeyEnv", toJSON (voyageEmbeddingConfigApiKeyEnv value))]]))
 
 data VoyageEmbeddingConfigType = VoyageEmbeddingConfigTypeVoyage deriving (Eq, Show)
 

@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record TagSchema
 {
-    [global::Xynolog.Serialization.Wire("description")] public required string Description { get; init; }
-    [global::Xynolog.Serialization.Wire("domain")] public required string Domain { get; init; }
     [global::Xynolog.Serialization.Wire("id")] public required string Id { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("description")] public required string Description { get; init; }
+    [global::Xynolog.Serialization.Wire("domain")] public required string Domain { get; init; }
     [global::Xynolog.Serialization.Wire("tags")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.TagCategory> Tags { get; init; }
 }

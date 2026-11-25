@@ -17,7 +17,7 @@ public data class ConformanceCase(
     /** A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does. */
     public val tier: ConformanceCaseTier? = null,
     /** Run the client exporting to an OTLP receiver, and once it has exited hold what it exported to specs/src/sdk-telemetry/telemetry.json. A worker case also holds the worker to a trace of its own for each job it ran (conformance/worker/README.md). */
-    public val telemetry: Boolean? = null,
+    public val telemetry: ConformanceCaseTelemetry? = null,
     /** The steps, run in order. */
     public val steps: kotlin.collections.List<ConformanceStep>,
 ) {
@@ -29,11 +29,11 @@ public data class ConformanceCase(
     ) {
         private var planes: kotlin.collections.List<ConformanceCasePlanesItem>? = null
         private var tier: ConformanceCaseTier? = null
-        private var telemetry: Boolean? = null
+        private var telemetry: ConformanceCaseTelemetry? = null
 
         public fun planes(planes: kotlin.collections.List<ConformanceCasePlanesItem>?): Builder = apply { this.planes = planes }
         public fun tier(tier: ConformanceCaseTier?): Builder = apply { this.tier = tier }
-        public fun telemetry(telemetry: Boolean?): Builder = apply { this.telemetry = telemetry }
+        public fun telemetry(telemetry: ConformanceCaseTelemetry?): Builder = apply { this.telemetry = telemetry }
 
         public fun build(): ConformanceCase = ConformanceCase(about = about, source = source, planes = planes, tier = tier, telemetry = telemetry, steps = steps)
     }

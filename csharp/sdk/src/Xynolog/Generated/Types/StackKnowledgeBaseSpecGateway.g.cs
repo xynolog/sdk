@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record StackKnowledgeBaseSpecGateway
 {
     [global::Xynolog.Serialization.Wire("image")] public required string Image { get; init; }
+    [global::Xynolog.Serialization.Wire("resources")] public required global::Xynolog.Types.Resources Resources { get; init; }
     [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     [global::Xynolog.Serialization.Wire("publicURL")] public required string PublicURL { get; init; }
-    [global::Xynolog.Serialization.Wire("resources")] public required global::Xynolog.Types.Resources Resources { get; init; }
 }

@@ -10,14 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data Session = Session
-  { sessionEmail :: Maybe Text,
-    sessionState :: SessionState
+  { sessionState :: SessionState,
+    sessionEmail :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON Session where parseJSON = checked "Session" $ withObject "Session" (\fields -> Session <$> optional fields "email" <*> (fields .: "state"))
+instance FromJSON Session where parseJSON = checked "Session" $ withObject "Session" (\fields -> Session <$> (fields .: "state") <*> optional fields "email")
 
-instance ToJSON Session where toJSON value = Object (KM.fromList (concat [optionalPair "email" (sessionEmail value), [("state", toJSON (sessionState value))]]))
+instance ToJSON Session where toJSON value = Object (KM.fromList (concat [[("state", toJSON (sessionState value))], optionalPair "email" (sessionEmail value)]))
 
 data SessionState = SessionStateValid | SessionStateExpired | SessionStateUnverified | SessionStateNone deriving (Eq, Show)
 

@@ -22,9 +22,8 @@ let each f xs =
 
 exception Unresolved of string
 
-(* [schema] as the models compare and name it: a reference by what it names,
-   rewritten by [rewrite] if that names it otherwise, and members in order of
-   name. *)
+(* [schema] as the models name it: a reference by what it names, rewritten by
+   [rewrite] if that names it otherwise. *)
 let canonical ~rewrite : Schema.t -> Schema.t =
   Schema.cata
     ~boolean:(fun b -> Schema.Boolean_schema b)
@@ -36,10 +35,6 @@ let canonical ~rewrite : Schema.t -> Schema.t =
             Option.map
               (fun r -> { Decode.target = rewrite r; file = ""; pointer = "" })
               s.ref_;
-          properties =
-            Option.map
-              (List.sort (fun (a, _) (b, _) -> String.compare a b))
-              s.properties;
           examples = Option.map (List.map Yojson.Safe.sort) s.examples;
         })
 

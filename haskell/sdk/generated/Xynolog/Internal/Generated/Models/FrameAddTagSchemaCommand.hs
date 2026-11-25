@@ -11,12 +11,11 @@ import Xynolog.Internal.Generated.Models.TagSchema
 import Xynolog.Internal.Generated.Models.UserId
 
 data FrameAddTagSchemaCommand = FrameAddTagSchemaCommand
-  { frameAddTagSchemaCommandU5f_userId :: Maybe UserId,
-    frameAddTagSchemaCommandSchema :: TagSchema,
-    frameAddTagSchemaCommandAdditionalProperties :: KM.KeyMap Value
+  { frameAddTagSchemaCommandSchema :: TagSchema,
+    frameAddTagSchemaCommandUserId :: Maybe UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON FrameAddTagSchemaCommand where parseJSON = checked "FrameAddTagSchemaCommand" $ withObject "FrameAddTagSchemaCommand" (\fields -> FrameAddTagSchemaCommand <$> optional fields "_userId" <*> (fields .: "schema") <*> traverse parseJSON (withoutFields ["_userId", "schema"] fields))
+instance FromJSON FrameAddTagSchemaCommand where parseJSON = checked "FrameAddTagSchemaCommand" $ withObject "FrameAddTagSchemaCommand" (\fields -> FrameAddTagSchemaCommand <$> (fields .: "schema") <*> optional fields "_userId")
 
-instance ToJSON FrameAddTagSchemaCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (frameAddTagSchemaCommandU5f_userId value), [("schema", toJSON (frameAddTagSchemaCommandSchema value))]]) <> fmap toJSON (withoutFields ["_userId", "schema"] (frameAddTagSchemaCommandAdditionalProperties value)))
+instance ToJSON FrameAddTagSchemaCommand where toJSON value = Object (KM.fromList (concat [[("schema", toJSON (frameAddTagSchemaCommandSchema value))], optionalPair "_userId" (frameAddTagSchemaCommandUserId value)]))

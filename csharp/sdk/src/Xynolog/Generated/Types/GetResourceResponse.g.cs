@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GetResourceResponse
 {
-    [global::Xynolog.Serialization.Wire("annotations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Annotation> Annotations { get; init; }
     [global::Xynolog.Serialization.Wire("resource")] public required global::Xynolog.Types.ResourceDescriptor Resource { get; init; }
+    [global::Xynolog.Serialization.Wire("annotations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Annotation> Annotations { get; init; }
 }

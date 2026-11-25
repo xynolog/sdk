@@ -102,11 +102,7 @@ runActor http = do
               case live of { Nothing -> unless (before == Connecting) (transition Connecting); Just _ -> pure () }
               saved <- Map.union <$> readTVarIO (positions http) <*> httpLoadPositions (options http)
               let body =
-                    BusSubscribeRequest
-                      (clientId http)
-                      (Just (Set.toAscList (httpGlobalChannels (options http))))
-                      (Just pending)
-                      (Just [BusSubscribeRequestScopedItem scopedChannels (Map.lookup scope saved) scope | scope <- scopes])
+                    BusSubscribeRequest {busSubscribeRequestClientId = (clientId http), busSubscribeRequestGlobal = (Just (Set.toAscList (httpGlobalChannels (options http)))), busSubscribeRequestPendingReplies = (Just pending), busSubscribeRequestScoped = (Just [BusSubscribeRequestScopedItem {busSubscribeRequestScopedItemChannels = scopedChannels, busSubscribeRequestScopedItemLastEventId = (Map.lookup scope saved), busSubscribeRequestScopedItemScope = scope} | scope <- scopes])}
               connection <- connect seen token body
               let awaitOpen = case connection of
                     Connection worker opened ->

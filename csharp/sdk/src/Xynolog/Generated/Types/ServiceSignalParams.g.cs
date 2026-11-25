@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record ServiceSignalParams
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.ApiVersion ApiVersion { get; init; }
-    [global::Xynolog.Serialization.Wire("instance")] public required string Instance { get; init; }
-    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
-    [global::Xynolog.Serialization.Wire("signal")] public required global::Xynolog.Types.ServiceSignalParamsSignal Signal { get; init; }
     [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.LocalTarget Target { get; init; }
+    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
+    [global::Xynolog.Serialization.Wire("instance")] public required string Instance { get; init; }
+    [global::Xynolog.Serialization.Wire("signal")] public required global::Xynolog.Types.ServiceSignalParamsSignal Signal { get; init; }
 }

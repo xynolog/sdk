@@ -8,16 +8,16 @@ namespace Xynolog.Types;
 public sealed record StackStartParams
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.ApiVersion ApiVersion { get; init; }
-    [global::Xynolog.Serialization.Wire("codespaceName")] public string? CodespaceName { get; init; }
+    [global::Xynolog.Serialization.Wire("target")] public global::Xynolog.Types.Target? Target { get; init; }
+    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
     [global::Xynolog.Serialization.Wire("config")] public string? Config { get; init; }
-    [global::Xynolog.Serialization.Wire("dryRun")] public bool? DryRun { get; init; }
+    [global::Xynolog.Serialization.Wire("service")] public string? Service { get; init; }
     [global::Xynolog.Serialization.Wire("group")] public global::Xynolog.Types.ServiceGroup? Group { get; init; }
-    [global::Xynolog.Serialization.Wire("idleTimeout")] public string? IdleTimeout { get; init; }
+    [global::Xynolog.Serialization.Wire("codespaceName")] public string? CodespaceName { get; init; }
     [global::Xynolog.Serialization.Wire("machine")] public string? Machine { get; init; }
+    [global::Xynolog.Serialization.Wire("idleTimeout")] public string? IdleTimeout { get; init; }
+    [global::Xynolog.Serialization.Wire("retentionPeriod")] public string? RetentionPeriod { get; init; }
     [global::Xynolog.Serialization.Wire("observe")] public bool? Observe { get; init; }
     [global::Xynolog.Serialization.Wire("ollamaCache")] public global::Xynolog.Types.StackStartParamsOllamaCache? OllamaCache { get; init; }
-    [global::Xynolog.Serialization.Wire("retentionPeriod")] public string? RetentionPeriod { get; init; }
-    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
-    [global::Xynolog.Serialization.Wire("service")] public string? Service { get; init; }
-    [global::Xynolog.Serialization.Wire("target")] public global::Xynolog.Types.Target? Target { get; init; }
+    [global::Xynolog.Serialization.Wire("dryRun")] public bool? DryRun { get; init; }
 }

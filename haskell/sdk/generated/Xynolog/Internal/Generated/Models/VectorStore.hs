@@ -35,13 +35,13 @@ vectorStoreKindText :: VectorStoreKind -> Text
 vectorStoreKindText VectorStoreKindVectorStore = "VectorStore"
 
 data VectorStoreSpec = VectorStoreSpec
-  { vectorStoreSpecImage :: Image,
-    vectorStoreSpecPort :: Integer,
+  { vectorStoreSpecType :: Text,
+    vectorStoreSpecImage :: Image,
     vectorStoreSpecResources :: Resources,
-    vectorStoreSpecType :: Text
+    vectorStoreSpecPort :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON VectorStoreSpec where parseJSON = checked "VectorStoreSpec" $ withObject "VectorStoreSpec" (\fields -> VectorStoreSpec <$> (fields .: "image") <*> (fields .: "port") <*> (fields .: "resources") <*> (fields .: "type"))
+instance FromJSON VectorStoreSpec where parseJSON = checked "VectorStoreSpec" $ withObject "VectorStoreSpec" (\fields -> VectorStoreSpec <$> (fields .: "type") <*> (fields .: "image") <*> (fields .: "resources") <*> (fields .: "port"))
 
-instance ToJSON VectorStoreSpec where toJSON value = Object (KM.fromList (concat [[("image", toJSON (vectorStoreSpecImage value))], [("port", toJSON (vectorStoreSpecPort value))], [("resources", toJSON (vectorStoreSpecResources value))], [("type", toJSON (vectorStoreSpecType value))]]))
+instance ToJSON VectorStoreSpec where toJSON value = Object (KM.fromList (concat [[("type", toJSON (vectorStoreSpecType value))], [("image", toJSON (vectorStoreSpecImage value))], [("resources", toJSON (vectorStoreSpecResources value))], [("port", toJSON (vectorStoreSpecPort value))]]))

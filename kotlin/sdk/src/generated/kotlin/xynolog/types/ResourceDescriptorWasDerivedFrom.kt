@@ -22,10 +22,32 @@ public sealed interface ResourceDescriptorWasDerivedFrom {
     }
 }
 
-internal object ResourceDescriptorWasDerivedFromSerializer : KindsUnionSerializer<ResourceDescriptorWasDerivedFrom>(
+internal object ResourceDescriptorWasDerivedFromSerializer : SignatureUnionSerializer<ResourceDescriptorWasDerivedFrom>(
     ResourceDescriptorWasDerivedFrom::class,
-    strings = { listOf(ResourceDescriptorWasDerivedFrom.ResourceId.serializer()) },
-    scalars = { emptyList() },
-    arrays = { listOf(ResourceDescriptorWasDerivedFrom.List.serializer()) },
-    objects = { emptyList() },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.TEXT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.LIST,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            ResourceDescriptorWasDerivedFrom.ResourceId.serializer(),
+            ResourceDescriptorWasDerivedFrom.List.serializer(),
+        )
+    },
 )

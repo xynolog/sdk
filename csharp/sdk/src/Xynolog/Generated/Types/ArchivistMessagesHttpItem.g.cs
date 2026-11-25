@@ -7,11 +7,11 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistMessagesHttpItem
 {
-    [global::Xynolog.Serialization.Wire("code")] public string? Code { get; init; }
-    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
-    [global::Xynolog.Serialization.Wire("method")] public required global::Xynolog.Types.ArchivistMessagesHttpItemMethod Method { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("method")] public required global::Xynolog.Types.ArchivistMessagesHttpItemMethod Method { get; init; }
     [global::Xynolog.Serialization.Wire("route")] public required string Route { get; init; }
-    [global::Xynolog.Serialization.Wire("situation")] public required string Situation { get; init; }
     [global::Xynolog.Serialization.Wire("status")] public required long Status { get; init; }
+    [global::Xynolog.Serialization.Wire("code")] public string? Code { get; init; }
+    [global::Xynolog.Serialization.Wire("situation")] public required string Situation { get; init; }
+    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
 }

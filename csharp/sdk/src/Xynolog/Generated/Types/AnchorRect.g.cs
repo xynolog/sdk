@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AnchorRect
 {
-    [global::Xynolog.Serialization.Wire("bottom")] public required double Bottom { get; init; }
-    [global::Xynolog.Serialization.Wire("height")] public required double Height { get; init; }
-    [global::Xynolog.Serialization.Wire("left")] public required double Left { get; init; }
-    [global::Xynolog.Serialization.Wire("right")] public required double Right { get; init; }
-    [global::Xynolog.Serialization.Wire("top")] public required double Top { get; init; }
-    [global::Xynolog.Serialization.Wire("width")] public required double Width { get; init; }
     [global::Xynolog.Serialization.Wire("x")] public required double X { get; init; }
     [global::Xynolog.Serialization.Wire("y")] public required double Y { get; init; }
+    [global::Xynolog.Serialization.Wire("width")] public required double Width { get; init; }
+    [global::Xynolog.Serialization.Wire("height")] public required double Height { get; init; }
+    [global::Xynolog.Serialization.Wire("top")] public required double Top { get; init; }
+    [global::Xynolog.Serialization.Wire("right")] public required double Right { get; init; }
+    [global::Xynolog.Serialization.Wire("bottom")] public required double Bottom { get; init; }
+    [global::Xynolog.Serialization.Wire("left")] public required double Left { get; init; }
 }

@@ -11,32 +11,32 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceTelemetryTelemetry = ServiceTelemetryTelemetry
-  { serviceTelemetryTelemetryU24_comment :: Text,
-    serviceTelemetryTelemetryMetrics :: [ServiceTelemetryTelemetryMetricsItem],
-    serviceTelemetryTelemetryResource :: [ServiceTelemetryTelemetryResourceItem],
+  { serviceTelemetryTelemetryComment :: Text,
     serviceTelemetryTelemetrySdk :: ServiceTelemetryTelemetrySdk,
-    serviceTelemetryTelemetrySpans :: [ServiceTelemetryTelemetrySpansItem]
+    serviceTelemetryTelemetryResource :: [ServiceTelemetryTelemetryResourceItem],
+    serviceTelemetryTelemetrySpans :: [ServiceTelemetryTelemetrySpansItem],
+    serviceTelemetryTelemetryMetrics :: [ServiceTelemetryTelemetryMetricsItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetry where parseJSON = checked "ServiceTelemetryTelemetry" $ withObject "ServiceTelemetryTelemetry" (\fields -> ServiceTelemetryTelemetry <$> (fields .: "$comment") <*> (fields .: "metrics") <*> (fields .: "resource") <*> (fields .: "sdk") <*> (fields .: "spans"))
+instance FromJSON ServiceTelemetryTelemetry where parseJSON = checked "ServiceTelemetryTelemetry" $ withObject "ServiceTelemetryTelemetry" (\fields -> ServiceTelemetryTelemetry <$> (fields .: "$comment") <*> (fields .: "sdk") <*> (fields .: "resource") <*> (fields .: "spans") <*> (fields .: "metrics"))
 
-instance ToJSON ServiceTelemetryTelemetry where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceTelemetryTelemetryU24_comment value))], [("metrics", toJSON (serviceTelemetryTelemetryMetrics value))], [("resource", toJSON (serviceTelemetryTelemetryResource value))], [("sdk", toJSON (serviceTelemetryTelemetrySdk value))], [("spans", toJSON (serviceTelemetryTelemetrySpans value))]]))
+instance ToJSON ServiceTelemetryTelemetry where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceTelemetryTelemetryComment value))], [("sdk", toJSON (serviceTelemetryTelemetrySdk value))], [("resource", toJSON (serviceTelemetryTelemetryResource value))], [("spans", toJSON (serviceTelemetryTelemetrySpans value))], [("metrics", toJSON (serviceTelemetryTelemetryMetrics value))]]))
 
 data ServiceTelemetryTelemetryMetricsItem = ServiceTelemetryTelemetryMetricsItem
-  { serviceTelemetryTelemetryMetricsItemAttributes :: [ServiceTelemetryTelemetryMetricsItemAttributesItem],
-    serviceTelemetryTelemetryMetricsItemInstrument :: ServiceTelemetryTelemetryMetricsItemInstrument,
-    serviceTelemetryTelemetryMetricsItemMeaning :: Text,
-    serviceTelemetryTelemetryMetricsItemName :: Text,
-    serviceTelemetryTelemetryMetricsItemPlanes :: Maybe [ServiceTelemetryTelemetryMetricsItemPlanesItem],
+  { serviceTelemetryTelemetryMetricsItemName :: Text,
     serviceTelemetryTelemetryMetricsItemServices :: [ServiceTelemetryTelemetryMetricsItemServicesItem],
-    serviceTelemetryTelemetryMetricsItemWhen :: ServiceTelemetryTelemetryMetricsItemWhen
+    serviceTelemetryTelemetryMetricsItemInstrument :: ServiceTelemetryTelemetryMetricsItemInstrument,
+    serviceTelemetryTelemetryMetricsItemWhen :: ServiceTelemetryTelemetryMetricsItemWhen,
+    serviceTelemetryTelemetryMetricsItemPlanes :: Maybe [ServiceTelemetryTelemetryMetricsItemPlanesItem],
+    serviceTelemetryTelemetryMetricsItemMeaning :: Text,
+    serviceTelemetryTelemetryMetricsItemAttributes :: [ServiceTelemetryTelemetryMetricsItemAttributesItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetryMetricsItem where parseJSON = checked "ServiceTelemetryTelemetryMetricsItem" $ withObject "ServiceTelemetryTelemetryMetricsItem" (\fields -> ServiceTelemetryTelemetryMetricsItem <$> (fields .: "attributes") <*> (fields .: "instrument") <*> (fields .: "meaning") <*> (fields .: "name") <*> optional fields "planes" <*> (fields .: "services") <*> (fields .: "when"))
+instance FromJSON ServiceTelemetryTelemetryMetricsItem where parseJSON = checked "ServiceTelemetryTelemetryMetricsItem" $ withObject "ServiceTelemetryTelemetryMetricsItem" (\fields -> ServiceTelemetryTelemetryMetricsItem <$> (fields .: "name") <*> (fields .: "services") <*> (fields .: "instrument") <*> (fields .: "when") <*> optional fields "planes" <*> (fields .: "meaning") <*> (fields .: "attributes"))
 
-instance ToJSON ServiceTelemetryTelemetryMetricsItem where toJSON value = Object (KM.fromList (concat [[("attributes", toJSON (serviceTelemetryTelemetryMetricsItemAttributes value))], [("instrument", toJSON (serviceTelemetryTelemetryMetricsItemInstrument value))], [("meaning", toJSON (serviceTelemetryTelemetryMetricsItemMeaning value))], [("name", toJSON (serviceTelemetryTelemetryMetricsItemName value))], optionalPair "planes" (serviceTelemetryTelemetryMetricsItemPlanes value), [("services", toJSON (serviceTelemetryTelemetryMetricsItemServices value))], [("when", toJSON (serviceTelemetryTelemetryMetricsItemWhen value))]]))
+instance ToJSON ServiceTelemetryTelemetryMetricsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (serviceTelemetryTelemetryMetricsItemName value))], [("services", toJSON (serviceTelemetryTelemetryMetricsItemServices value))], [("instrument", toJSON (serviceTelemetryTelemetryMetricsItemInstrument value))], [("when", toJSON (serviceTelemetryTelemetryMetricsItemWhen value))], optionalPair "planes" (serviceTelemetryTelemetryMetricsItemPlanes value), [("meaning", toJSON (serviceTelemetryTelemetryMetricsItemMeaning value))], [("attributes", toJSON (serviceTelemetryTelemetryMetricsItemAttributes value))]]))
 
 data ServiceTelemetryTelemetryMetricsItemAttributesItem = ServiceTelemetryTelemetryMetricsItemAttributesItem
   { serviceTelemetryTelemetryMetricsItemAttributesItemKey :: Text,
@@ -49,40 +49,40 @@ instance FromJSON ServiceTelemetryTelemetryMetricsItemAttributesItem where parse
 
 instance ToJSON ServiceTelemetryTelemetryMetricsItemAttributesItem where toJSON value = Object (KM.fromList (concat [[("key", toJSON (serviceTelemetryTelemetryMetricsItemAttributesItemKey value))], optionalPair "only" (serviceTelemetryTelemetryMetricsItemAttributesItemOnly value), optionalPair "values" (serviceTelemetryTelemetryMetricsItemAttributesItemValues value)]))
 
-data ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem = ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText Text | ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBool Bool deriving (Eq, Show)
+data ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem = ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText Text | ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean Bool deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem" $ \value -> (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText <$> parseJSON value) <|> (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBool <$> parseJSON value)
+instance FromJSON ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem" $ \value -> (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText <$> parseJSON value) <|> (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean <$> parseJSON value)
 
 instance ToJSON ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem where
   toJSON (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemText value) = toJSON value
-  toJSON (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBool value) = toJSON value
+  toJSON (ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean value) = toJSON value
 
-data ServiceTelemetryTelemetryMetricsItemInstrument = ServiceTelemetryTelemetryMetricsItemInstrumentCounter | ServiceTelemetryTelemetryMetricsItemInstrumentUpU2d_downU20_counter | ServiceTelemetryTelemetryMetricsItemInstrumentGauge | ServiceTelemetryTelemetryMetricsItemInstrumentHistogram deriving (Eq, Show)
+data ServiceTelemetryTelemetryMetricsItemInstrument = ServiceTelemetryTelemetryMetricsItemInstrumentCounter | ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter | ServiceTelemetryTelemetryMetricsItemInstrumentGauge | ServiceTelemetryTelemetryMetricsItemInstrumentHistogram deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetryMetricsItemInstrument where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemInstrument" $ \value -> if value == String "counter" then pure ServiceTelemetryTelemetryMetricsItemInstrumentCounter else if value == String "up-down counter" then pure ServiceTelemetryTelemetryMetricsItemInstrumentUpU2d_downU20_counter else if value == String "gauge" then pure ServiceTelemetryTelemetryMetricsItemInstrumentGauge else if value == String "histogram" then pure ServiceTelemetryTelemetryMetricsItemInstrumentHistogram else fail "unknown enumeration member"
+instance FromJSON ServiceTelemetryTelemetryMetricsItemInstrument where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemInstrument" $ \value -> if value == String "counter" then pure ServiceTelemetryTelemetryMetricsItemInstrumentCounter else if value == String "up-down counter" then pure ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter else if value == String "gauge" then pure ServiceTelemetryTelemetryMetricsItemInstrumentGauge else if value == String "histogram" then pure ServiceTelemetryTelemetryMetricsItemInstrumentHistogram else fail "unknown enumeration member"
 
 instance ToJSON ServiceTelemetryTelemetryMetricsItemInstrument where
   toJSON ServiceTelemetryTelemetryMetricsItemInstrumentCounter = String "counter"
-  toJSON ServiceTelemetryTelemetryMetricsItemInstrumentUpU2d_downU20_counter = String "up-down counter"
+  toJSON ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter = String "up-down counter"
   toJSON ServiceTelemetryTelemetryMetricsItemInstrumentGauge = String "gauge"
   toJSON ServiceTelemetryTelemetryMetricsItemInstrumentHistogram = String "histogram"
 
 serviceTelemetryTelemetryMetricsItemInstrumentText :: ServiceTelemetryTelemetryMetricsItemInstrument -> Text
 serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentCounter = "counter"
-serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentUpU2d_downU20_counter = "up-down counter"
+serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter = "up-down counter"
 serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentGauge = "gauge"
 serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentHistogram = "histogram"
 
-data ServiceTelemetryTelemetryMetricsItemPlanesItem = ServiceTelemetryTelemetryMetricsItemPlanesItemInU2d_process | ServiceTelemetryTelemetryMetricsItemPlanesItemNats deriving (Eq, Show)
+data ServiceTelemetryTelemetryMetricsItemPlanesItem = ServiceTelemetryTelemetryMetricsItemPlanesItemInProcess | ServiceTelemetryTelemetryMetricsItemPlanesItemNats deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetryMetricsItemPlanesItem where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemPlanesItem" $ \value -> if value == String "in-process" then pure ServiceTelemetryTelemetryMetricsItemPlanesItemInU2d_process else if value == String "nats" then pure ServiceTelemetryTelemetryMetricsItemPlanesItemNats else fail "unknown enumeration member"
+instance FromJSON ServiceTelemetryTelemetryMetricsItemPlanesItem where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemPlanesItem" $ \value -> if value == String "in-process" then pure ServiceTelemetryTelemetryMetricsItemPlanesItemInProcess else if value == String "nats" then pure ServiceTelemetryTelemetryMetricsItemPlanesItemNats else fail "unknown enumeration member"
 
 instance ToJSON ServiceTelemetryTelemetryMetricsItemPlanesItem where
-  toJSON ServiceTelemetryTelemetryMetricsItemPlanesItemInU2d_process = String "in-process"
+  toJSON ServiceTelemetryTelemetryMetricsItemPlanesItemInProcess = String "in-process"
   toJSON ServiceTelemetryTelemetryMetricsItemPlanesItemNats = String "nats"
 
 serviceTelemetryTelemetryMetricsItemPlanesItemText :: ServiceTelemetryTelemetryMetricsItemPlanesItem -> Text
-serviceTelemetryTelemetryMetricsItemPlanesItemText ServiceTelemetryTelemetryMetricsItemPlanesItemInU2d_process = "in-process"
+serviceTelemetryTelemetryMetricsItemPlanesItemText ServiceTelemetryTelemetryMetricsItemPlanesItemInProcess = "in-process"
 serviceTelemetryTelemetryMetricsItemPlanesItemText ServiceTelemetryTelemetryMetricsItemPlanesItemNats = "nats"
 
 data ServiceTelemetryTelemetryMetricsItemServicesItem = ServiceTelemetryTelemetryMetricsItemServicesItemArchivist | ServiceTelemetryTelemetryMetricsItemServicesItemDispatcher | ServiceTelemetryTelemetryMetricsItemServicesItemGateway | ServiceTelemetryTelemetryMetricsItemServicesItemLibrarian | ServiceTelemetryTelemetryMetricsItemServicesItemSmelter | ServiceTelemetryTelemetryMetricsItemServicesItemWeaver | ServiceTelemetryTelemetryMetricsItemServicesItemWorker deriving (Eq, Show)
@@ -124,16 +124,16 @@ serviceTelemetryTelemetryMetricsItemWhenText ServiceTelemetryTelemetryMetricsIte
 serviceTelemetryTelemetryMetricsItemWhenText ServiceTelemetryTelemetryMetricsItemWhenFatal = "fatal"
 
 data ServiceTelemetryTelemetryResourceItem = ServiceTelemetryTelemetryResourceItem
-  { serviceTelemetryTelemetryResourceItemDefault :: Maybe Text,
-    serviceTelemetryTelemetryResourceItemKey :: Text,
+  { serviceTelemetryTelemetryResourceItemKey :: Text,
+    serviceTelemetryTelemetryResourceItemServices :: [ServiceTelemetryTelemetryResourceItemServicesItem],
     serviceTelemetryTelemetryResourceItemMeaning :: Text,
-    serviceTelemetryTelemetryResourceItemServices :: [ServiceTelemetryTelemetryResourceItemServicesItem]
+    serviceTelemetryTelemetryResourceItemDefault :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetryResourceItem where parseJSON = checked "ServiceTelemetryTelemetryResourceItem" $ withObject "ServiceTelemetryTelemetryResourceItem" (\fields -> ServiceTelemetryTelemetryResourceItem <$> optional fields "default" <*> (fields .: "key") <*> (fields .: "meaning") <*> (fields .: "services"))
+instance FromJSON ServiceTelemetryTelemetryResourceItem where parseJSON = checked "ServiceTelemetryTelemetryResourceItem" $ withObject "ServiceTelemetryTelemetryResourceItem" (\fields -> ServiceTelemetryTelemetryResourceItem <$> (fields .: "key") <*> (fields .: "services") <*> (fields .: "meaning") <*> optional fields "default")
 
-instance ToJSON ServiceTelemetryTelemetryResourceItem where toJSON value = Object (KM.fromList (concat [optionalPair "default" (serviceTelemetryTelemetryResourceItemDefault value), [("key", toJSON (serviceTelemetryTelemetryResourceItemKey value))], [("meaning", toJSON (serviceTelemetryTelemetryResourceItemMeaning value))], [("services", toJSON (serviceTelemetryTelemetryResourceItemServices value))]]))
+instance ToJSON ServiceTelemetryTelemetryResourceItem where toJSON value = Object (KM.fromList (concat [[("key", toJSON (serviceTelemetryTelemetryResourceItemKey value))], [("services", toJSON (serviceTelemetryTelemetryResourceItemServices value))], [("meaning", toJSON (serviceTelemetryTelemetryResourceItemMeaning value))], optionalPair "default" (serviceTelemetryTelemetryResourceItemDefault value)]))
 
 data ServiceTelemetryTelemetryResourceItemServicesItem = ServiceTelemetryTelemetryResourceItemServicesItemArchivist | ServiceTelemetryTelemetryResourceItemServicesItemDispatcher | ServiceTelemetryTelemetryResourceItemServicesItemGateway | ServiceTelemetryTelemetryResourceItemServicesItemLibrarian | ServiceTelemetryTelemetryResourceItemServicesItemSmelter | ServiceTelemetryTelemetryResourceItemServicesItemWeaver | ServiceTelemetryTelemetryResourceItemServicesItemWorker deriving (Eq, Show)
 
@@ -167,18 +167,18 @@ instance FromJSON ServiceTelemetryTelemetrySdk where parseJSON = checked "Servic
 instance ToJSON ServiceTelemetryTelemetrySdk where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (serviceTelemetryTelemetrySdkAdditionalProperties value)))
 
 data ServiceTelemetryTelemetrySpansItem = ServiceTelemetryTelemetrySpansItem
-  { serviceTelemetryTelemetrySpansItemAttributes :: [ServiceTelemetryTelemetrySpansItemAttributesItem],
-    serviceTelemetryTelemetrySpansItemKind :: ServiceTelemetryTelemetrySpansItemKind,
-    serviceTelemetryTelemetrySpansItemMeaning :: Text,
-    serviceTelemetryTelemetrySpansItemName :: Text,
+  { serviceTelemetryTelemetrySpansItemName :: Text,
     serviceTelemetryTelemetrySpansItemServices :: [ServiceTelemetryTelemetrySpansItemServicesItem],
-    serviceTelemetryTelemetrySpansItemWhen :: ServiceTelemetryTelemetrySpansItemWhen
+    serviceTelemetryTelemetrySpansItemKind :: ServiceTelemetryTelemetrySpansItemKind,
+    serviceTelemetryTelemetrySpansItemWhen :: ServiceTelemetryTelemetrySpansItemWhen,
+    serviceTelemetryTelemetrySpansItemMeaning :: Text,
+    serviceTelemetryTelemetrySpansItemAttributes :: [ServiceTelemetryTelemetrySpansItemAttributesItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetrySpansItem where parseJSON = checked "ServiceTelemetryTelemetrySpansItem" $ withObject "ServiceTelemetryTelemetrySpansItem" (\fields -> ServiceTelemetryTelemetrySpansItem <$> (fields .: "attributes") <*> (fields .: "kind") <*> (fields .: "meaning") <*> (fields .: "name") <*> (fields .: "services") <*> (fields .: "when"))
+instance FromJSON ServiceTelemetryTelemetrySpansItem where parseJSON = checked "ServiceTelemetryTelemetrySpansItem" $ withObject "ServiceTelemetryTelemetrySpansItem" (\fields -> ServiceTelemetryTelemetrySpansItem <$> (fields .: "name") <*> (fields .: "services") <*> (fields .: "kind") <*> (fields .: "when") <*> (fields .: "meaning") <*> (fields .: "attributes"))
 
-instance ToJSON ServiceTelemetryTelemetrySpansItem where toJSON value = Object (KM.fromList (concat [[("attributes", toJSON (serviceTelemetryTelemetrySpansItemAttributes value))], [("kind", toJSON (serviceTelemetryTelemetrySpansItemKind value))], [("meaning", toJSON (serviceTelemetryTelemetrySpansItemMeaning value))], [("name", toJSON (serviceTelemetryTelemetrySpansItemName value))], [("services", toJSON (serviceTelemetryTelemetrySpansItemServices value))], [("when", toJSON (serviceTelemetryTelemetrySpansItemWhen value))]]))
+instance ToJSON ServiceTelemetryTelemetrySpansItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (serviceTelemetryTelemetrySpansItemName value))], [("services", toJSON (serviceTelemetryTelemetrySpansItemServices value))], [("kind", toJSON (serviceTelemetryTelemetrySpansItemKind value))], [("when", toJSON (serviceTelemetryTelemetrySpansItemWhen value))], [("meaning", toJSON (serviceTelemetryTelemetrySpansItemMeaning value))], [("attributes", toJSON (serviceTelemetryTelemetrySpansItemAttributes value))]]))
 
 data ServiceTelemetryTelemetrySpansItemAttributesItem = ServiceTelemetryTelemetrySpansItemAttributesItem
   { serviceTelemetryTelemetrySpansItemAttributesItemKey :: Text,
@@ -191,13 +191,13 @@ instance FromJSON ServiceTelemetryTelemetrySpansItemAttributesItem where parseJS
 
 instance ToJSON ServiceTelemetryTelemetrySpansItemAttributesItem where toJSON value = Object (KM.fromList (concat [[("key", toJSON (serviceTelemetryTelemetrySpansItemAttributesItemKey value))], optionalPair "only" (serviceTelemetryTelemetrySpansItemAttributesItemOnly value), optionalPair "values" (serviceTelemetryTelemetrySpansItemAttributesItemValues value)]))
 
-data ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem = ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText Text | ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBool Bool deriving (Eq, Show)
+data ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem = ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText Text | ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean Bool deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem where parseJSON = checked "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem" $ \value -> (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText <$> parseJSON value) <|> (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBool <$> parseJSON value)
+instance FromJSON ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem where parseJSON = checked "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem" $ \value -> (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText <$> parseJSON value) <|> (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean <$> parseJSON value)
 
 instance ToJSON ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem where
   toJSON (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemText value) = toJSON value
-  toJSON (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBool value) = toJSON value
+  toJSON (ServiceTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean value) = toJSON value
 
 data ServiceTelemetryTelemetrySpansItemKind = ServiceTelemetryTelemetrySpansItemKindClient | ServiceTelemetryTelemetrySpansItemKindConsumer | ServiceTelemetryTelemetrySpansItemKindInternal | ServiceTelemetryTelemetrySpansItemKindProducer | ServiceTelemetryTelemetrySpansItemKindServer deriving (Eq, Show)
 

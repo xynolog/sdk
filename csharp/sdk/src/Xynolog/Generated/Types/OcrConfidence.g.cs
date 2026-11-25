@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record OcrConfidence
 {
-    [global::Xynolog.Serialization.Wire("lowConfidenceWords")] public required long LowConfidenceWords { get; init; }
     [global::Xynolog.Serialization.Wire("mean")] public required double Mean { get; init; }
+    [global::Xynolog.Serialization.Wire("lowConfidenceWords")] public required long LowConfidenceWords { get; init; }
     [global::Xynolog.Serialization.Wire("totalWords")] public required long TotalWords { get; init; }
 }

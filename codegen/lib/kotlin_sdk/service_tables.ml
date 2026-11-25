@@ -15,16 +15,6 @@ let generated = K.annotation "Generated"
 let type_of table =
   Filename.remove_extension (Filename.basename (Places.schema_of table))
 
-(* Each table's schema, named as its type, which the types write. *)
-let schemas (spec : Spec.t) =
-  List.map
-    (fun table ->
-      let file = Places.schema_of table in
-      match List.assoc_opt file spec.schemas with
-      | Some s -> (type_of table, file, s)
-      | None -> refuse "%s has no schema %s" table file)
-    (Roots.service_tables spec)
-
 (* [service-environment/variables.json] as [SERVICE_ENVIRONMENT_VARIABLES]. *)
 let constant table = Names.constant_name (Filename.remove_extension table)
 

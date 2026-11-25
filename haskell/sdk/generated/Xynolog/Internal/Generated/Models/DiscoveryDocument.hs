@@ -10,18 +10,17 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.DiscoveredKB
 
 data DiscoveryDocument = DiscoveryDocument
-  { discoveryDocumentKbs :: [DiscoveredKB],
-    discoveryDocumentVersion :: DiscoveryDocumentVersion,
-    discoveryDocumentAdditionalProperties :: KM.KeyMap Value
+  { discoveryDocumentVersion :: DiscoveryDocumentVersion,
+    discoveryDocumentKbs :: [DiscoveredKB]
   }
   deriving (Eq, Show)
 
-instance FromJSON DiscoveryDocument where parseJSON = checked "DiscoveryDocument" $ withObject "DiscoveryDocument" (\fields -> DiscoveryDocument <$> (fields .: "kbs") <*> (fields .: "version") <*> traverse parseJSON (withoutFields ["kbs", "version"] fields))
+instance FromJSON DiscoveryDocument where parseJSON = checked "DiscoveryDocument" $ withObject "DiscoveryDocument" (\fields -> DiscoveryDocument <$> (fields .: "version") <*> (fields .: "kbs"))
 
-instance ToJSON DiscoveryDocument where toJSON value = Object (KM.fromList (concat [[("kbs", toJSON (discoveryDocumentKbs value))], [("version", toJSON (discoveryDocumentVersion value))]]) <> fmap toJSON (withoutFields ["kbs", "version"] (discoveryDocumentAdditionalProperties value)))
+instance ToJSON DiscoveryDocument where toJSON value = Object (KM.fromList (concat [[("version", toJSON (discoveryDocumentVersion value))], [("kbs", toJSON (discoveryDocumentKbs value))]]))
 
-data DiscoveryDocumentVersion = DiscoveryDocumentVersionV1U2e_0 deriving (Eq, Show)
+data DiscoveryDocumentVersion = DiscoveryDocumentVersion1 deriving (Eq, Show)
 
-instance FromJSON DiscoveryDocumentVersion where parseJSON = checked "DiscoveryDocumentVersion" $ \value -> if value == Number (read "1.0") then pure DiscoveryDocumentVersionV1U2e_0 else fail "unknown enumeration member"
+instance FromJSON DiscoveryDocumentVersion where parseJSON = checked "DiscoveryDocumentVersion" $ \value -> if value == Number (read "1.0") then pure DiscoveryDocumentVersion1 else fail "unknown enumeration member"
 
-instance ToJSON DiscoveryDocumentVersion where toJSON DiscoveryDocumentVersionV1U2e_0 = Number (read "1.0")
+instance ToJSON DiscoveryDocumentVersion where toJSON DiscoveryDocumentVersion1 = Number (read "1.0")

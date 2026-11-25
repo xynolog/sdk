@@ -11,16 +11,16 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.RuntimeState
 
 data AboutResult = AboutResult
-  { aboutResultApiVersions :: [Text],
-    aboutResultBuilt :: Maybe Text,
-    aboutResultCommit :: Maybe Text,
+  { aboutResultVersion :: Maybe Text,
     aboutResultDevelopment :: Bool,
+    aboutResultCommit :: Maybe Text,
+    aboutResultBuilt :: Maybe Text,
+    aboutResultApiVersions :: [Text],
     aboutResultImageRegistry :: Text,
-    aboutResultRuntimes :: [RuntimeState],
-    aboutResultVersion :: Maybe Text
+    aboutResultRuntimes :: [RuntimeState]
   }
   deriving (Eq, Show)
 
-instance FromJSON AboutResult where parseJSON = checked "AboutResult" $ withObject "AboutResult" (\fields -> AboutResult <$> (fields .: "apiVersions") <*> optional fields "built" <*> optional fields "commit" <*> (fields .: "development") <*> (fields .: "imageRegistry") <*> (fields .: "runtimes") <*> optional fields "version")
+instance FromJSON AboutResult where parseJSON = checked "AboutResult" $ withObject "AboutResult" (\fields -> AboutResult <$> optional fields "version" <*> (fields .: "development") <*> optional fields "commit" <*> optional fields "built" <*> (fields .: "apiVersions") <*> (fields .: "imageRegistry") <*> (fields .: "runtimes"))
 
-instance ToJSON AboutResult where toJSON value = Object (KM.fromList (concat [[("apiVersions", toJSON (aboutResultApiVersions value))], optionalPair "built" (aboutResultBuilt value), optionalPair "commit" (aboutResultCommit value), [("development", toJSON (aboutResultDevelopment value))], [("imageRegistry", toJSON (aboutResultImageRegistry value))], [("runtimes", toJSON (aboutResultRuntimes value))], optionalPair "version" (aboutResultVersion value)]))
+instance ToJSON AboutResult where toJSON value = Object (KM.fromList (concat [optionalPair "version" (aboutResultVersion value), [("development", toJSON (aboutResultDevelopment value))], optionalPair "commit" (aboutResultCommit value), optionalPair "built" (aboutResultBuilt value), [("apiVersions", toJSON (aboutResultApiVersions value))], [("imageRegistry", toJSON (aboutResultImageRegistry value))], [("runtimes", toJSON (aboutResultRuntimes value))]]))

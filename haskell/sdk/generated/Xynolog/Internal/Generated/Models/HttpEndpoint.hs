@@ -10,17 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data HttpEndpoint = HttpEndpoint
-  { httpEndpointHost :: Text,
-    httpEndpointKind :: HttpEndpointKind,
+  { httpEndpointKind :: HttpEndpointKind,
+    httpEndpointHost :: Text,
     httpEndpointPort :: Integer,
-    httpEndpointProtocol :: HttpEndpointProtocol,
-    httpEndpointAdditionalProperties :: KM.KeyMap Value
+    httpEndpointProtocol :: HttpEndpointProtocol
   }
   deriving (Eq, Show)
 
-instance FromJSON HttpEndpoint where parseJSON = checked "HttpEndpoint" $ withObject "HttpEndpoint" (\fields -> HttpEndpoint <$> (fields .: "host") <*> (fields .: "kind") <*> (fields .: "port") <*> (fields .: "protocol") <*> traverse parseJSON (withoutFields ["host", "kind", "port", "protocol"] fields))
+instance FromJSON HttpEndpoint where parseJSON = checked "HttpEndpoint" $ withObject "HttpEndpoint" (\fields -> HttpEndpoint <$> (fields .: "kind") <*> (fields .: "host") <*> (fields .: "port") <*> (fields .: "protocol"))
 
-instance ToJSON HttpEndpoint where toJSON value = Object (KM.fromList (concat [[("host", toJSON (httpEndpointHost value))], [("kind", toJSON (httpEndpointKind value))], [("port", toJSON (httpEndpointPort value))], [("protocol", toJSON (httpEndpointProtocol value))]]) <> fmap toJSON (withoutFields ["host", "kind", "port", "protocol"] (httpEndpointAdditionalProperties value)))
+instance ToJSON HttpEndpoint where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (httpEndpointKind value))], [("host", toJSON (httpEndpointHost value))], [("port", toJSON (httpEndpointPort value))], [("protocol", toJSON (httpEndpointProtocol value))]]))
 
 data HttpEndpointKind = HttpEndpointKindHttp deriving (Eq, Show)
 

@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SmelterHealthIndexStamp
 {
-    [global::Xynolog.Serialization.Wire("chunking")] public required global::Xynolog.Types.SmelterChunking Chunking { get; init; }
     [global::Xynolog.Serialization.Wire("embedding")] public required global::Xynolog.Types.SmelterHealthIndexStampEmbedding Embedding { get; init; }
+    [global::Xynolog.Serialization.Wire("chunking")] public required global::Xynolog.Types.SmelterChunking Chunking { get; init; }
 }

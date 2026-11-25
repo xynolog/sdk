@@ -7,6 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record TabCheckGone
 {
-    public const string VerdictValue = "gone";
-    [global::Xynolog.Serialization.Wire("verdict")] public string Verdict => VerdictValue;
+    [global::Xynolog.Serialization.Wire("verdict")] public global::Xynolog.Types.TabCheckGoneVerdict Verdict => global::Xynolog.Types.TabCheckGoneVerdict.Gone;
 }

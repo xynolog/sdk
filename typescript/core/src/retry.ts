@@ -1,11 +1,9 @@
 /**
  * Retry: the mechanism, and the classifications core itself owns.
  *
- * At its centre is `retryWithBackoff`, for startup-critical calls in long-running
- * peers — each authenticates the moment its container starts, the gateway may not
- * be reachable for a few seconds, and orchestration runs them with `--rm` and no
- * restart policy, so a process that dies on the first `TypeError: fetch failed` is
- * dead for good.
+ * At its centre is `retryWithBackoff`, which makes a request again inside a
+ * budget `protocol/specs/src/client/timing.json` states: one emit inside
+ * `emitRetry` (http-transport), one renewal inside `refreshRetry` (sdk).
  *
  * **What lives HERE — the mechanism, because it is one fact each:**
  *   - `RetryBudget` / `retryWithBackoff` — the loop, deadline-aware
@@ -14,18 +12,11 @@
  *     over `fetch`'s `TypeError`, `isRetryableRequestError` over `HttpStatusError`)
  *
  * **What deliberately does NOT — the judgment, because each is local knowledge:**
- *   - **policies.** `EMIT_RETRY` (http-transport). A policy answers *how long
- *     does THIS wait*, and a centralized one gets borrowed: a path waiting out
- *     a model download on `STARTUP_FETCH_RETRY` — sized for "until a peer
- *     starts listening" — sees its ceiling expire just before the thing it is
- *     waiting for arrives. Two facts that happen to be measured in seconds are
- *     still two facts.
+ *   - **budgets.** Each is client timing, generated into `client-timing.ts`,
+ *     and taken by the call it bounds.
  *   - **deadlines.** Each sits with the call it bounds.
  *   - **predicates over another package's errors.** Core has no business
  *     knowing that a provider's 404 means "not pulled yet".
- *
- * `STARTUP_FETCH_RETRY` is the one policy here, and only because every boot
- * path asks the one question it answers.
  *
  * **Deadlines beat budgets.** `retryWithBackoff` takes an optional `AbortSignal`
  * so a caller with its own deadline stops the retry when it falls due, instead
@@ -51,10 +42,10 @@ export type RetryBudget = components['schemas']['RetryBudget'];
  * capped); only the jitter is shared, which is the part that must not diverge.
  *
  * Unconditional in `retryWithBackoff`, not an option. Every caller of
- * `retryWithBackoff` is a container in a fleet that boots together and retries
- * against ONE gateway, which is precisely the lockstep this exists to break: N
- * peers backing off by an identical schedule re-converge on the same instant and
- * re-deliver the burst that caused the failure. A flag would leave that hazard
+ * `retryWithBackoff` may be one of many clients retrying against ONE gateway,
+ * which is precisely the lockstep this exists to break: N peers backing off by
+ * an identical schedule re-converge on the same instant and re-deliver the
+ * burst that caused the failure. A flag would leave that hazard
  * reachable by default-choosing, and nobody would ever pass `false`.
  *
  * The worst case is unchanged — `delay <= cap` still holds, so the patience
@@ -63,27 +54,6 @@ export type RetryBudget = components['schemas']['RetryBudget'];
 export function equalJitter(cap: number): number {
   return cap / 2 + Math.random() * (cap / 2);
 }
-
-export interface RetryAttemptInfo {
-  /** 1-based number of the attempt that just failed. */
-  attempt: number;
-  /** Total attempt budget from the policy. */
-  attempts: number;
-  /** How long we wait before the next attempt. */
-  delayMs: number;
-  error: unknown;
-}
-
-/**
- * Default policy for startup connections to the gateway: 8 attempts with delay
- * ceilings 1s, 2s, 4s, then capped at 8s. The equal-jittered backoff means
- * the expected wait is ~75% of the sum of those ceilings.
- */
-export const STARTUP_FETCH_RETRY: RetryBudget = {
-  attempts: 8,
-  initialDelayMs: 1_000,
-  maxDelayMs: 8_000,
-};
 
 /**
  * True for the errors `fetch` throws when the connection itself fails —
@@ -185,10 +155,8 @@ function waited(ms: number, signal: AbortSignal | undefined): Promise<boolean> {
 
 /**
  * Run `fn`, retrying on errors `isRetryable` accepts, with equal-jitter
- * exponential backoff per `policy`. `onRetry` fires before each wait — the
- * caller's hook for logging the attempt, and it reports the actual jittered
- * delay. The final error (retryable budget exhausted, or the first
- * non-retryable one) is rethrown verbatim.
+ * exponential backoff per `policy`. The final error (retryable budget
+ * exhausted, or the first non-retryable one) is rethrown verbatim.
  *
  * `signal` is the caller's deadline. Once it aborts no attempt is made: an
  * aborted signal rejects with its reason before the first, and a wait between
@@ -199,7 +167,6 @@ export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   isRetryable: (error: unknown) => boolean,
   policy: RetryBudget,
-  onRetry?: (info: RetryAttemptInfo) => void,
   signal?: AbortSignal,
 ): Promise<T> {
   signal?.throwIfAborted();
@@ -214,16 +181,13 @@ export async function retryWithBackoff<T>(
       // race kills a retry that was about to succeed.
       if (signal?.aborted) throw error;
       if (attempt >= policy.attempts || !isRetryable(error)) throw error;
-      // `delayMs` reported to `onRetry` is the ACTUAL wait, not the ceiling —
-      // a log that printed the ceiling would describe a schedule nobody ran.
-      // A wait the server stated (`Retry-After`) is a floor under it: a
-      // refused caller backs off by the server's clock, not its own.
+      // A wait the server stated (`Retry-After`) is a floor under the jittered
+      // one: a refused caller backs off by the server's clock, not its own.
       const stated = (error as { retryAfterMs?: unknown }).retryAfterMs;
       const delayMs = Math.max(
         equalJitter(cap),
         typeof stated === 'number' ? stated : 0,
       );
-      onRetry?.({ attempt, attempts: policy.attempts, delayMs, error });
       if (!(await waited(delayMs, signal))) throw error;
       cap = Math.min(cap * 2, policy.maxDelayMs);
     }

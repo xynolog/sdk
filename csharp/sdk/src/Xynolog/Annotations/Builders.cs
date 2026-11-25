@@ -45,13 +45,13 @@ public sealed record OfSpan(ResourceId ResourceId, Motivation Motivation, Agent 
 
     private static TextSpan SpanOf(ReconciledSpan reconciled) => reconciled switch
     {
-        ReconciledSpan.UniqueMatchCase(var span) =>
+        ReconciledSpan.UniqueMatch(var span) =>
             new TextSpan { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix },
-        ReconciledSpan.ContextRecoveredCase(var span) =>
+        ReconciledSpan.ContextRecovered(var span) =>
             new TextSpan { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix },
-        ReconciledSpan.FirstOfManyCase(var span) =>
+        ReconciledSpan.FirstOfMany(var span) =>
             new TextSpan { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix },
-        ReconciledSpan.FuzzyMatchCase(var span) =>
+        ReconciledSpan.FuzzyMatch(var span) =>
             new TextSpan { Start = span.Start, End = span.End, Exact = span.Exact, Prefix = span.Prefix, Suffix = span.Suffix },
     };
 }
@@ -87,7 +87,7 @@ public static partial class AnnotationTools
             throw Refused(SpanRefusal.PrefixMismatch);
         if (span.Suffix is string suffix && !text.Slice((int)span.End, text.Length).StartsWith(suffix, StringComparison.Ordinal))
             throw Refused(SpanRefusal.SuffixMismatch);
-        selectors.Add(new Selector.TextQuoteSelectorCase(new TextQuoteSelector
+        selectors.Add(new Selector.TextQuoteSelector(new TextQuoteSelector
         {
             Exact = span.Exact,
             Prefix = span.Prefix is { Length: > 0 } ? span.Prefix : null,
@@ -97,7 +97,7 @@ public static partial class AnnotationTools
         {
             Source = input.ResourceId,
             Type = AnnotationTargetType.SpecificResource,
-            Selector = new AnnotationSelector.ArrayCase(selectors.ToArray()),
+            Selector = new AnnotationSelector.List(selectors.ToArray()),
         };
         return Build(target, input.Motivation, FormattableString.Invariant($"{span.Start}:{span.End}:{span.Exact}"),
             input.Generator, input.Body, timeProvider);
@@ -111,7 +111,7 @@ public static partial class AnnotationTools
     {
         if (!string.Equals(text.Slice((int)span.Start, (int)span.End), span.Exact, StringComparison.Ordinal))
             throw Refused(SpanRefusal.ExactMismatch);
-        return [new Selector.TextPositionSelectorCase(new TextPositionSelector { Start = span.Start, End = span.End })];
+        return [new Selector.TextPositionSelector(new TextPositionSelector { Start = span.Start, End = span.End })];
     }
 
     private static List<Selector> PdfSelectors(ScalarText text, AnchoredText anchored, TextSpan span)
@@ -122,7 +122,7 @@ public static partial class AnnotationTools
         var words = ScalarText.Collapse(span.Exact);
         if (words.Length == 0 || !ScalarText.Collapse(covered).Contains(words, StringComparison.Ordinal))
             throw Refused(SpanRefusal.ExactNotCovered);
-        return rectangles.Select(rectangle => (Selector)new Selector.FragmentSelectorCase(new FragmentSelector
+        return rectangles.Select(rectangle => (Selector)new Selector.FragmentSelector(new FragmentSelector
         {
             ConformsTo = "http://tools.ietf.org/rfc/rfc3778",
             Value = PdfLocation.Fragment(rectangle),
@@ -135,9 +135,9 @@ public static partial class AnnotationTools
         {
             Id = AnnotationIdentity.Derive(target.Source, motivation, anchor, body is null ? null : JsonSerializer.SerializeToElement(body)),
             Created = (timeProvider ?? TimeProvider.System).GetUtcNow().ToString("O", CultureInfo.InvariantCulture),
-            Target = new AnnotationTargetValue.AnnotationTargetCase(target),
+            Target = new AnnotationTargetValue.AnnotationTarget(target),
             Motivation = motivation,
-            Generator = generator is null ? null : new OneOrMoreAgents.AgentCase(generator),
+            Generator = generator is null ? null : new OneOrMoreAgents.Agent(generator),
             Body = body,
         };
 

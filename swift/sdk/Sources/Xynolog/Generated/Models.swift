@@ -19,47 +19,47 @@ public struct AboutParams: Codable, Sendable, Hashable {
 }
 
 public struct AboutResult: Codable, Sendable, Hashable {
-  public var apiVersions: [String]
-  public var built: String?
-  public var commit: String?
+  public var version: String?
   public var development: Bool
+  public var commit: String?
+  public var built: String?
+  public var apiVersions: [String]
   public var imageRegistry: String
   public var runtimes: [RuntimeState]
-  public var version: String?
   public init(
-    apiVersions: [String], built: String? = nil, commit: String? = nil, development: Bool,
-    imageRegistry: String, runtimes: [RuntimeState], version: String? = nil
+    version: String? = nil, development: Bool, commit: String? = nil, built: String? = nil,
+    apiVersions: [String], imageRegistry: String, runtimes: [RuntimeState]
   ) {
-    self.apiVersions = apiVersions
-    self.built = built
-    self.commit = commit
+    self.version = version
     self.development = development
+    self.commit = commit
+    self.built = built
+    self.apiVersions = apiVersions
     self.imageRegistry = imageRegistry
     self.runtimes = runtimes
-    self.version = version
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["apiVersions", "built", "commit", "development", "imageRegistry", "runtimes", "version"],
+      ["version", "development", "commit", "built", "apiVersions", "imageRegistry", "runtimes"],
       in: "AboutResult")
-    self.apiVersions = try c.value("apiVersions")
-    self.built = try c.ifPresent("built")
-    self.commit = try c.ifPresent("commit")
+    self.version = try c.ifPresent("version")
     self.development = try c.value("development")
+    self.commit = try c.ifPresent("commit")
+    self.built = try c.ifPresent("built")
+    self.apiVersions = try c.value("apiVersions")
     self.imageRegistry = try c.value("imageRegistry")
     self.runtimes = try c.value("runtimes")
-    self.version = try c.ifPresent("version")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.apiVersions, as: "apiVersions")
-    try c.encodeIfPresent(self.built, as: "built")
-    try c.encodeIfPresent(self.commit, as: "commit")
+    try c.encodeIfPresent(self.version, as: "version")
     try c.encode(self.development, as: "development")
+    try c.encodeIfPresent(self.commit, as: "commit")
+    try c.encodeIfPresent(self.built, as: "built")
+    try c.encode(self.apiVersions, as: "apiVersions")
     try c.encode(self.imageRegistry, as: "imageRegistry")
     try c.encode(self.runtimes, as: "runtimes")
-    try c.encodeIfPresent(self.version, as: "version")
   }
 }
 
@@ -67,17 +67,34 @@ public indirect enum Agent: Codable, Sendable, Hashable {
   case agentPerson(AgentPerson)
   case agentOrganization(AgentOrganization)
   case agentSoftware(AgentSoftware)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["@type"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Person")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["@type", "name"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Organization")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["@type"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Software")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("@type"))
-    switch tag {
-    case "Person": self = .agentPerson(try AgentPerson(from: decoder))
-    case "Organization": self = .agentOrganization(try AgentOrganization(from: decoder))
-    case "Software": self = .agentSoftware(try AgentSoftware(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("@type"), in: c, debugDescription: "unknown Agent discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "Agent", members: Self.members,
+      variants: [
+        ("agentPerson", { decoder in try Self.agentPerson(AgentPerson(from: decoder)) }),
+        (
+          "agentOrganization",
+          { decoder in try Self.agentOrganization(AgentOrganization(from: decoder)) }
+        ),
+        ("agentSoftware", { decoder in try Self.agentSoftware(AgentSoftware(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -89,36 +106,36 @@ public indirect enum Agent: Codable, Sendable, Hashable {
 }
 
 public struct AgentOrganization: Codable, Sendable, Hashable {
-  public var id: String?
   public let type: AgentOrganizationType
-  public var homepage: String?
+  public var id: String?
   public var name: String
+  public var homepage: String?
   public var rest: [String: JSONValue]
   public init(
-    id: String? = nil, homepage: String? = nil, name: String, rest: [String: JSONValue] = [:]
+    id: String? = nil, name: String, homepage: String? = nil, rest: [String: JSONValue] = [:]
   ) {
-    self.id = id
     self.type = .organization
-    self.homepage = homepage
+    self.id = id
     self.name = name
+    self.homepage = homepage
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.id = try c.ifPresent("@id")
     self.type = try c.value("@type")
-    self.homepage = try c.ifPresent("homepage")
+    self.id = try c.ifPresent("@id")
     self.name = try c.value("name")
-    rest = try c.rest(excluding: ["@id", "@type", "homepage", "name"])
+    self.homepage = try c.ifPresent("homepage")
+    rest = try c.rest(excluding: ["@type", "@id", "name", "homepage"])
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(
-      rest: rest, excluding: ["@id", "@type", "homepage", "name"], of: "AgentOrganization")
-    try c.encodeIfPresent(self.id, as: "@id")
+      rest: rest, excluding: ["@type", "@id", "name", "homepage"], of: "AgentOrganization")
     try c.encode(self.type, as: "@type")
-    try c.encodeIfPresent(self.homepage, as: "homepage")
+    try c.encodeIfPresent(self.id, as: "@id")
     try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.homepage, as: "homepage")
   }
 }
 
@@ -127,53 +144,53 @@ public enum AgentOrganizationType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct AgentPerson: Codable, Sendable, Hashable {
-  public var id: String?
   public let type: AgentPersonType
+  public var id: String?
+  public var name: String?
+  public var nickname: String?
   public var email: String?
   public var emailSha1: String?
   public var homepage: String?
-  public var name: String?
-  public var nickname: String?
   public var rest: [String: JSONValue]
   public init(
-    id: String? = nil, email: String? = nil, emailSha1: String? = nil, homepage: String? = nil,
-    name: String? = nil, nickname: String? = nil, rest: [String: JSONValue] = [:]
+    id: String? = nil, name: String? = nil, nickname: String? = nil, email: String? = nil,
+    emailSha1: String? = nil, homepage: String? = nil, rest: [String: JSONValue] = [:]
   ) {
-    self.id = id
     self.type = .person
+    self.id = id
+    self.name = name
+    self.nickname = nickname
     self.email = email
     self.emailSha1 = emailSha1
     self.homepage = homepage
-    self.name = name
-    self.nickname = nickname
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.id = try c.ifPresent("@id")
     self.type = try c.value("@type")
+    self.id = try c.ifPresent("@id")
+    self.name = try c.ifPresent("name")
+    self.nickname = try c.ifPresent("nickname")
     self.email = try c.ifPresent("email")
     self.emailSha1 = try c.ifPresent("email_sha1")
     self.homepage = try c.ifPresent("homepage")
-    self.name = try c.ifPresent("name")
-    self.nickname = try c.ifPresent("nickname")
     rest = try c.rest(excluding: [
-      "@id", "@type", "email", "email_sha1", "homepage", "name", "nickname",
+      "@type", "@id", "name", "nickname", "email", "email_sha1", "homepage",
     ])
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(
       rest: rest,
-      excluding: ["@id", "@type", "email", "email_sha1", "homepage", "name", "nickname"],
+      excluding: ["@type", "@id", "name", "nickname", "email", "email_sha1", "homepage"],
       of: "AgentPerson")
-    try c.encodeIfPresent(self.id, as: "@id")
     try c.encode(self.type, as: "@type")
+    try c.encodeIfPresent(self.id, as: "@id")
+    try c.encodeIfPresent(self.name, as: "name")
+    try c.encodeIfPresent(self.nickname, as: "nickname")
     try c.encodeIfPresent(self.email, as: "email")
     try c.encodeIfPresent(self.emailSha1, as: "email_sha1")
     try c.encodeIfPresent(self.homepage, as: "homepage")
-    try c.encodeIfPresent(self.name, as: "name")
-    try c.encodeIfPresent(self.nickname, as: "nickname")
   }
 }
 
@@ -182,46 +199,46 @@ public enum AgentPersonType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct AgentSoftware: Codable, Sendable, Hashable {
-  public var id: String?
   public let type: AgentSoftwareType
-  public var model: String?
+  public var id: String?
   public var name: String?
-  public var parameters: [String: JSONValue]?
   public var provider: String?
+  public var model: String?
+  public var parameters: [String: JSONValue]?
   public var rest: [String: JSONValue]
   public init(
-    id: String? = nil, model: String? = nil, name: String? = nil,
-    parameters: [String: JSONValue]? = nil, provider: String? = nil, rest: [String: JSONValue] = [:]
+    id: String? = nil, name: String? = nil, provider: String? = nil, model: String? = nil,
+    parameters: [String: JSONValue]? = nil, rest: [String: JSONValue] = [:]
   ) {
-    self.id = id
     self.type = .software
-    self.model = model
+    self.id = id
     self.name = name
-    self.parameters = parameters
     self.provider = provider
+    self.model = model
+    self.parameters = parameters
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.id = try c.ifPresent("@id")
     self.type = try c.value("@type")
-    self.model = try c.ifPresent("model")
+    self.id = try c.ifPresent("@id")
     self.name = try c.ifPresent("name")
-    self.parameters = try c.ifPresent("parameters")
     self.provider = try c.ifPresent("provider")
-    rest = try c.rest(excluding: ["@id", "@type", "model", "name", "parameters", "provider"])
+    self.model = try c.ifPresent("model")
+    self.parameters = try c.ifPresent("parameters")
+    rest = try c.rest(excluding: ["@type", "@id", "name", "provider", "model", "parameters"])
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(
-      rest: rest, excluding: ["@id", "@type", "model", "name", "parameters", "provider"],
+      rest: rest, excluding: ["@type", "@id", "name", "provider", "model", "parameters"],
       of: "AgentSoftware")
-    try c.encodeIfPresent(self.id, as: "@id")
     try c.encode(self.type, as: "@type")
-    try c.encodeIfPresent(self.model, as: "model")
+    try c.encodeIfPresent(self.id, as: "@id")
     try c.encodeIfPresent(self.name, as: "name")
-    try c.encodeIfPresent(self.parameters, as: "parameters")
     try c.encodeIfPresent(self.provider, as: "provider")
+    try c.encodeIfPresent(self.model, as: "model")
+    try c.encodeIfPresent(self.parameters, as: "parameters")
   }
 }
 
@@ -237,67 +254,67 @@ public enum AnchorMethod: String, Codable, Sendable, CaseIterable {
 }
 
 public struct AnchorRect: Codable, Sendable, Hashable {
-  public var bottom: Double
-  public var height: Double
-  public var left: Double
-  public var right: Double
-  public var top: Double
-  public var width: Double
   public var x: Double
   public var y: Double
+  public var width: Double
+  public var height: Double
+  public var top: Double
+  public var right: Double
+  public var bottom: Double
+  public var left: Double
   public init(
-    bottom: Double, height: Double, left: Double, right: Double, top: Double, width: Double,
-    x: Double, y: Double
+    x: Double, y: Double, width: Double, height: Double, top: Double, right: Double, bottom: Double,
+    left: Double
   ) {
-    self.bottom = bottom
-    self.height = height
-    self.left = left
-    self.right = right
-    self.top = top
-    self.width = width
     self.x = x
     self.y = y
+    self.width = width
+    self.height = height
+    self.top = top
+    self.right = right
+    self.bottom = bottom
+    self.left = left
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.bottom = try c.value("bottom")
-    self.height = try c.value("height")
-    self.left = try c.value("left")
-    self.right = try c.value("right")
-    self.top = try c.value("top")
-    self.width = try c.value("width")
     self.x = try c.value("x")
     self.y = try c.value("y")
+    self.width = try c.value("width")
+    self.height = try c.value("height")
+    self.top = try c.value("top")
+    self.right = try c.value("right")
+    self.bottom = try c.value("bottom")
+    self.left = try c.value("left")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.bottom, as: "bottom")
-    try c.encode(self.height, as: "height")
-    try c.encode(self.left, as: "left")
-    try c.encode(self.right, as: "right")
-    try c.encode(self.top, as: "top")
-    try c.encode(self.width, as: "width")
     try c.encode(self.x, as: "x")
     try c.encode(self.y, as: "y")
+    try c.encode(self.width, as: "width")
+    try c.encode(self.height, as: "height")
+    try c.encode(self.top, as: "top")
+    try c.encode(self.right, as: "right")
+    try c.encode(self.bottom, as: "bottom")
+    try c.encode(self.left, as: "left")
   }
 }
 
 public struct AnchoredText: Codable, Sendable, Hashable {
-  public var items: [PdfTextItem]
   public var text: String
-  public init(items: [PdfTextItem], text: String) {
-    self.items = items
+  public var items: [PdfTextItem]
+  public init(text: String, items: [PdfTextItem]) {
     self.text = text
+    self.items = items
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.items = try c.value("items")
     self.text = try c.value("text")
+    self.items = try c.value("items")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.items, as: "items")
     try c.encode(self.text, as: "text")
+    try c.encode(self.items, as: "items")
   }
 }
 
@@ -326,19 +343,59 @@ public indirect enum AnchoredTextAnswer: Codable, Sendable, Hashable {
   case extractedText(ExtractedText)
   case extractionDeclined(ExtractionDeclined)
   case anchoredTextAbsent(AnchoredTextAbsent)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["text", "items", "kind", "method"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("extracted")]),
+          .init(
+            property: "method",
+            values: [
+              .text("text-passthrough"), .text("pdf-text-layer"), .text("table"), .text("form"),
+              .text("ocr"),
+            ]),
+          .init(
+            property: "pdfClass",
+            values: [
+              .text("A"), .text("B"), .text("C"), .text("D"), .text("E"), .text("F"), .text("G"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "declined"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("declined")]),
+          .init(
+            property: "declined",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("not-yet"), .text("no-map"), .text("unknown")])
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("kind"))
-    switch tag {
-    case "extracted": self = .extractedText(try ExtractedText(from: decoder))
-    case "declined": self = .extractionDeclined(try ExtractionDeclined(from: decoder))
-    case "not-yet", "no-map", "unknown":
-      self = .anchoredTextAbsent(try AnchoredTextAbsent(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("kind"), in: c, debugDescription: "unknown AnchoredTextAnswer discriminator"
-      )
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnchoredTextAnswer", members: Self.members,
+      variants: [
+        ("extractedText", { decoder in try Self.extractedText(ExtractedText(from: decoder)) }),
+        (
+          "extractionDeclined",
+          { decoder in try Self.extractionDeclined(ExtractionDeclined(from: decoder)) }
+        ),
+        (
+          "anchoredTextAbsent",
+          { decoder in try Self.anchoredTextAbsent(AnchoredTextAbsent(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -350,26 +407,26 @@ public indirect enum AnchoredTextAnswer: Codable, Sendable, Hashable {
 }
 
 public struct AnchoredTextDeclinedEntry: Codable, Sendable, Hashable {
-  public var declined: ExtractionDeclinedReason
-  public var stamp: String
   public let v: AnchoredTextDeclinedEntryV
-  public init(declined: ExtractionDeclinedReason, stamp: String) {
-    self.declined = declined
-    self.stamp = stamp
+  public var stamp: String
+  public var declined: ExtractionDeclinedReason
+  public init(stamp: String, declined: ExtractionDeclinedReason) {
     self.v = .value
+    self.stamp = stamp
+    self.declined = declined
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["declined", "stamp", "v"], in: "AnchoredTextDeclinedEntry")
-    self.declined = try c.value("declined")
-    self.stamp = try c.value("stamp")
+    try c.refuseUnknown(["v", "stamp", "declined"], in: "AnchoredTextDeclinedEntry")
     self.v = try c.value("v")
+    self.stamp = try c.value("stamp")
+    self.declined = try c.value("declined")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.declined, as: "declined")
-    try c.encode(self.stamp, as: "stamp")
     try c.encode(self.v, as: "v")
+    try c.encode(self.stamp, as: "stamp")
+    try c.encode(self.declined, as: "declined")
   }
 }
 
@@ -407,18 +464,57 @@ public struct AnchoredTextEntries: Codable, Sendable, Hashable {
 public indirect enum AnchoredTextEntry: Codable, Sendable, Hashable {
   case anchoredTextExtractedEntry(AnchoredTextExtractedEntry)
   case anchoredTextDeclinedEntry(AnchoredTextDeclinedEntry)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["v", "stamp", "text", "lines", "method"],
+        allowed: [
+          "v", "stamp", "text", "lines", "method", "pdfClass", "ocrConfidence", "unreadPages",
+        ],
+        fixed: [
+          .init(property: "v", values: [.integer(3)]),
+          .init(
+            property: "method",
+            values: [
+              .text("text-passthrough"), .text("pdf-text-layer"), .text("table"), .text("form"),
+              .text("ocr"),
+            ]),
+          .init(
+            property: "pdfClass",
+            values: [
+              .text("A"), .text("B"), .text("C"), .text("D"), .text("E"), .text("F"), .text("G"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["v", "stamp", "declined"], allowed: ["v", "stamp", "declined"],
+        fixed: [
+          .init(property: "v", values: [.integer(3)]),
+          .init(
+            property: "declined",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? AnchoredTextExtractedEntry(from: decoder) {
-      self = .anchoredTextExtractedEntry(value)
-      return
-    }
-    if let value = try? AnchoredTextDeclinedEntry(from: decoder) {
-      self = .anchoredTextDeclinedEntry(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of AnchoredTextEntry fits")
-    )
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnchoredTextEntry", members: Self.members,
+      variants: [
+        (
+          "anchoredTextExtractedEntry",
+          { decoder in
+            try Self.anchoredTextExtractedEntry(AnchoredTextExtractedEntry(from: decoder))
+          }
+        ),
+        (
+          "anchoredTextDeclinedEntry",
+          { decoder in try Self.anchoredTextDeclinedEntry(AnchoredTextDeclinedEntry(from: decoder))
+          }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -429,80 +525,80 @@ public indirect enum AnchoredTextEntry: Codable, Sendable, Hashable {
 }
 
 public struct AnchoredTextExtractedEntry: Codable, Sendable, Hashable {
-  public var lines: [AnchoredTextExtractedEntryLinesItem]
-  public var method: ExtractionMethod
-  public var ocrConfidence: OcrConfidence?
-  public var pdfClass: PdfClass?
+  public let v: AnchoredTextExtractedEntryV
   public var stamp: String
   public var text: String
+  public var lines: [AnchoredTextExtractedEntryLinesItem]
+  public var method: ExtractionMethod
+  public var pdfClass: PdfClass?
+  public var ocrConfidence: OcrConfidence?
   public var unreadPages: [Int]?
-  public let v: AnchoredTextExtractedEntryV
   public init(
-    lines: [AnchoredTextExtractedEntryLinesItem], method: ExtractionMethod,
-    ocrConfidence: OcrConfidence? = nil, pdfClass: PdfClass? = nil, stamp: String, text: String,
+    stamp: String, text: String, lines: [AnchoredTextExtractedEntryLinesItem],
+    method: ExtractionMethod, pdfClass: PdfClass? = nil, ocrConfidence: OcrConfidence? = nil,
     unreadPages: [Int]? = nil
   ) {
-    self.lines = lines
-    self.method = method
-    self.ocrConfidence = ocrConfidence
-    self.pdfClass = pdfClass
+    self.v = .value
     self.stamp = stamp
     self.text = text
+    self.lines = lines
+    self.method = method
+    self.pdfClass = pdfClass
+    self.ocrConfidence = ocrConfidence
     self.unreadPages = unreadPages
-    self.v = .value
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["lines", "method", "ocrConfidence", "pdfClass", "stamp", "text", "unreadPages", "v"],
+      ["v", "stamp", "text", "lines", "method", "pdfClass", "ocrConfidence", "unreadPages"],
       in: "AnchoredTextExtractedEntry")
-    self.lines = try c.value("lines")
-    self.method = try c.value("method")
-    self.ocrConfidence = try c.ifPresent("ocrConfidence")
-    self.pdfClass = try c.ifPresent("pdfClass")
+    self.v = try c.value("v")
     self.stamp = try c.value("stamp")
     self.text = try c.value("text")
+    self.lines = try c.value("lines")
+    self.method = try c.value("method")
+    self.pdfClass = try c.ifPresent("pdfClass")
+    self.ocrConfidence = try c.ifPresent("ocrConfidence")
     self.unreadPages = try c.ifPresent("unreadPages")
-    self.v = try c.value("v")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.lines, as: "lines")
-    try c.encode(self.method, as: "method")
-    try c.encodeIfPresent(self.ocrConfidence, as: "ocrConfidence")
-    try c.encodeIfPresent(self.pdfClass, as: "pdfClass")
+    try c.encode(self.v, as: "v")
     try c.encode(self.stamp, as: "stamp")
     try c.encode(self.text, as: "text")
+    try c.encode(self.lines, as: "lines")
+    try c.encode(self.method, as: "method")
+    try c.encodeIfPresent(self.pdfClass, as: "pdfClass")
+    try c.encodeIfPresent(self.ocrConfidence, as: "ocrConfidence")
     try c.encodeIfPresent(self.unreadPages, as: "unreadPages")
-    try c.encode(self.v, as: "v")
   }
 }
 
 public struct AnchoredTextExtractedEntryLinesItem: Codable, Sendable, Hashable {
-  public var h: Double
   public var p: Int
-  public var words: [[Double]]
   public var y: Double
-  public init(h: Double, p: Int, words: [[Double]], y: Double) {
-    self.h = h
+  public var h: Double
+  public var words: [[Double]]
+  public init(p: Int, y: Double, h: Double, words: [[Double]]) {
     self.p = p
-    self.words = words
     self.y = y
+    self.h = h
+    self.words = words
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["h", "p", "words", "y"], in: "AnchoredTextExtractedEntryLinesItem")
-    self.h = try c.value("h")
+    try c.refuseUnknown(["p", "y", "h", "words"], in: "AnchoredTextExtractedEntryLinesItem")
     self.p = try c.value("p")
-    self.words = try c.value("words")
     self.y = try c.value("y")
+    self.h = try c.value("h")
+    self.words = try c.value("words")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.h, as: "h")
     try c.encode(self.p, as: "p")
-    try c.encode(self.words, as: "words")
     try c.encode(self.y, as: "y")
+    try c.encode(self.h, as: "h")
+    try c.encode(self.words, as: "words")
   }
 }
 
@@ -559,59 +655,59 @@ public struct AnchoredTextWrite: Codable, Sendable, Hashable {
 
 public struct Annotation: Codable, Sendable, Hashable {
   public let context: AnnotationContext
-  public var body: AnnotationBodies?
-  public var created: String
-  public var creator: Agent?
-  public var generator: OneOrMoreAgents?
+  public let type: AnnotationType
   public var id: AnnotationId
-  public var modified: String?
   public var motivation: Motivation
   public var target: AnnotationTargetValue
-  public let type: AnnotationType
+  public var body: AnnotationBodies?
+  public var creator: Agent?
+  public var created: String
+  public var modified: String?
+  public var generator: OneOrMoreAgents?
   public var wasAttributedTo: OneOrMoreAgents?
   public init(
-    body: AnnotationBodies? = nil, created: String, creator: Agent? = nil,
-    generator: OneOrMoreAgents? = nil, id: AnnotationId, modified: String? = nil,
-    motivation: Motivation, target: AnnotationTargetValue, wasAttributedTo: OneOrMoreAgents? = nil
+    id: AnnotationId, motivation: Motivation, target: AnnotationTargetValue,
+    body: AnnotationBodies? = nil, creator: Agent? = nil, created: String, modified: String? = nil,
+    generator: OneOrMoreAgents? = nil, wasAttributedTo: OneOrMoreAgents? = nil
   ) {
     self.context = .httpWwwW3OrgNsAnnoJsonld
-    self.body = body
-    self.created = created
-    self.creator = creator
-    self.generator = generator
+    self.type = .annotation
     self.id = id
-    self.modified = modified
     self.motivation = motivation
     self.target = target
-    self.type = .annotation
+    self.body = body
+    self.creator = creator
+    self.created = created
+    self.modified = modified
+    self.generator = generator
     self.wasAttributedTo = wasAttributedTo
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.context = try c.value("@context")
-    self.body = try c.ifPresent("body")
-    self.created = try c.value("created")
-    self.creator = try c.ifPresent("creator")
-    self.generator = try c.ifPresent("generator")
+    self.type = try c.value("type")
     self.id = try c.value("id")
-    self.modified = try c.ifPresent("modified")
     self.motivation = try c.value("motivation")
     self.target = try c.value("target")
-    self.type = try c.value("type")
+    self.body = try c.ifPresent("body")
+    self.creator = try c.ifPresent("creator")
+    self.created = try c.value("created")
+    self.modified = try c.ifPresent("modified")
+    self.generator = try c.ifPresent("generator")
     self.wasAttributedTo = try c.ifPresent("wasAttributedTo")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.context, as: "@context")
-    try c.encodeIfPresent(self.body, as: "body")
-    try c.encode(self.created, as: "created")
-    try c.encodeIfPresent(self.creator, as: "creator")
-    try c.encodeIfPresent(self.generator, as: "generator")
+    try c.encode(self.type, as: "type")
     try c.encode(self.id, as: "id")
-    try c.encodeIfPresent(self.modified, as: "modified")
     try c.encode(self.motivation, as: "motivation")
     try c.encode(self.target, as: "target")
-    try c.encode(self.type, as: "type")
+    try c.encodeIfPresent(self.body, as: "body")
+    try c.encodeIfPresent(self.creator, as: "creator")
+    try c.encode(self.created, as: "created")
+    try c.encodeIfPresent(self.modified, as: "modified")
+    try c.encodeIfPresent(self.generator, as: "generator")
     try c.encodeIfPresent(self.wasAttributedTo, as: "wasAttributedTo")
   }
 }
@@ -638,17 +734,46 @@ public struct AnnotationAddedPayload: Codable, Sendable, Hashable {
 public indirect enum AnnotationBodies: Codable, Sendable, Hashable {
   case annotationBody(AnnotationBody)
   case list([AnnotationBody])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [
+          .init(property: "type", values: [.text("TextualBody")]),
+          .init(
+            property: "purpose",
+            values: [
+              .text("assessing"), .text("bookmarking"), .text("classifying"), .text("commenting"),
+              .text("describing"), .text("editing"), .text("highlighting"), .text("identifying"),
+              .text("linking"), .text("moderating"), .text("questioning"), .text("replying"),
+              .text("tagging"),
+            ]),
+        ], values: nil),
+      UnionSignature(
+        kind: .object, required: ["type", "source"], allowed: nil,
+        fixed: [
+          .init(property: "type", values: [.text("SpecificResource")]),
+          .init(
+            property: "purpose",
+            values: [
+              .text("assessing"), .text("bookmarking"), .text("classifying"), .text("commenting"),
+              .text("describing"), .text("editing"), .text("highlighting"), .text("identifying"),
+              .text("linking"), .text("moderating"), .text("questioning"), .text("replying"),
+              .text("tagging"),
+            ]),
+        ], values: nil),
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? AnnotationBody(from: decoder) {
-      self = .annotationBody(value)
-      return
-    }
-    if let value = try? [AnnotationBody](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of AnnotationBodies fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnnotationBodies", members: Self.members,
+      variants: [
+        ("annotationBody", { decoder in try Self.annotationBody(AnnotationBody(from: decoder)) }),
+        ("list", { decoder in try Self.list([AnnotationBody](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -661,16 +786,48 @@ public indirect enum AnnotationBodies: Codable, Sendable, Hashable {
 public indirect enum AnnotationBody: Codable, Sendable, Hashable {
   case textualBody(TextualBody)
   case specificResource(SpecificResource)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [
+          .init(property: "type", values: [.text("TextualBody")]),
+          .init(
+            property: "purpose",
+            values: [
+              .text("assessing"), .text("bookmarking"), .text("classifying"), .text("commenting"),
+              .text("describing"), .text("editing"), .text("highlighting"), .text("identifying"),
+              .text("linking"), .text("moderating"), .text("questioning"), .text("replying"),
+              .text("tagging"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "source"], allowed: nil,
+        fixed: [
+          .init(property: "type", values: [.text("SpecificResource")]),
+          .init(
+            property: "purpose",
+            values: [
+              .text("assessing"), .text("bookmarking"), .text("classifying"), .text("commenting"),
+              .text("describing"), .text("editing"), .text("highlighting"), .text("identifying"),
+              .text("linking"), .text("moderating"), .text("questioning"), .text("replying"),
+              .text("tagging"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "TextualBody": self = .textualBody(try TextualBody(from: decoder))
-    case "SpecificResource": self = .specificResource(try SpecificResource(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown AnnotationBody discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnnotationBody", members: Self.members,
+      variants: [
+        ("textualBody", { decoder in try Self.textualBody(TextualBody(from: decoder)) }),
+        (
+          "specificResource",
+          { decoder in try Self.specificResource(SpecificResource(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -757,18 +914,32 @@ public struct AnnotationRemovedPayload: Codable, Sendable, Hashable {
 public indirect enum AnnotationSelector: Codable, Sendable, Hashable {
   case selector(Selector)
   case list([Selector])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "start", "end"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("TextPositionSelector")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["type", "exact"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("TextQuoteSelector")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("SvgSelector")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("FragmentSelector")])], values: nil),
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? Selector(from: decoder) {
-      self = .selector(value)
-      return
-    }
-    if let value = try? [Selector](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of AnnotationSelector fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnnotationSelector", members: Self.members,
+      variants: [
+        ("selector", { decoder in try Self.selector(Selector(from: decoder)) }),
+        ("list", { decoder in try Self.list([Selector](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -779,27 +950,27 @@ public indirect enum AnnotationSelector: Codable, Sendable, Hashable {
 }
 
 public struct AnnotationTarget: Codable, Sendable, Hashable {
-  public var selector: AnnotationSelector?
-  public var source: ResourceId
   public var type: AnnotationTargetType?
+  public var source: ResourceId
+  public var selector: AnnotationSelector?
   public init(
-    selector: AnnotationSelector? = nil, source: ResourceId, type: AnnotationTargetType? = nil
+    type: AnnotationTargetType? = nil, source: ResourceId, selector: AnnotationSelector? = nil
   ) {
-    self.selector = selector
-    self.source = source
     self.type = type
+    self.source = source
+    self.selector = selector
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.selector = try c.ifPresent("selector")
-    self.source = try c.value("source")
     self.type = try c.ifPresent("type")
+    self.source = try c.value("source")
+    self.selector = try c.ifPresent("selector")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.selector, as: "selector")
-    try c.encode(self.source, as: "source")
     try c.encodeIfPresent(self.type, as: "type")
+    try c.encode(self.source, as: "source")
+    try c.encodeIfPresent(self.selector, as: "selector")
   }
 }
 
@@ -810,19 +981,26 @@ public enum AnnotationTargetType: String, Codable, Sendable, CaseIterable {
 public indirect enum AnnotationTargetValue: Codable, Sendable, Hashable {
   case resourceId(ResourceId)
   case annotationTarget(AnnotationTarget)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["source"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("SpecificResource")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ResourceId(from: decoder) {
-      self = .resourceId(value)
-      return
-    }
-    if let value = try? AnnotationTarget(from: decoder) {
-      self = .annotationTarget(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of AnnotationTargetValue fits")
-    )
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnnotationTargetValue", members: Self.members,
+      variants: [
+        ("resourceId", { decoder in try Self.resourceId(ResourceId(from: decoder)) }),
+        (
+          "annotationTarget",
+          { decoder in try Self.annotationTarget(AnnotationTarget(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -841,66 +1019,66 @@ public enum ApiVersion: String, Codable, Sendable, CaseIterable {
 }
 
 public struct ArchivistConfig: Codable, Sendable, Hashable {
-  public var anchoredTextDir: String
-  public var engines: ArchivistEngines
   public var gatewayUrl: String
   public var identity: ServiceIdentity
-  public var logFormat: LogFormat
-  public var logLevel: LogLevel
-  public var port: Int
   public var root: String
+  public var stateHome: String
+  public var anchoredTextDir: String
+  public var engines: ArchivistEngines
+  public var port: Int
   public var skipRebuild: Bool
   public var staging: ArchivistConfigStaging
-  public var stateHome: String
+  public var logLevel: LogLevel
+  public var logFormat: LogFormat
   public init(
-    anchoredTextDir: String, engines: ArchivistEngines, gatewayUrl: String,
-    identity: ServiceIdentity, logFormat: LogFormat, logLevel: LogLevel, port: Int, root: String,
-    skipRebuild: Bool, staging: ArchivistConfigStaging, stateHome: String
+    gatewayUrl: String, identity: ServiceIdentity, root: String, stateHome: String,
+    anchoredTextDir: String, engines: ArchivistEngines, port: Int, skipRebuild: Bool,
+    staging: ArchivistConfigStaging, logLevel: LogLevel, logFormat: LogFormat
   ) {
-    self.anchoredTextDir = anchoredTextDir
-    self.engines = engines
     self.gatewayUrl = gatewayUrl
     self.identity = identity
-    self.logFormat = logFormat
-    self.logLevel = logLevel
-    self.port = port
     self.root = root
+    self.stateHome = stateHome
+    self.anchoredTextDir = anchoredTextDir
+    self.engines = engines
+    self.port = port
     self.skipRebuild = skipRebuild
     self.staging = staging
-    self.stateHome = stateHome
+    self.logLevel = logLevel
+    self.logFormat = logFormat
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "anchoredTextDir", "engines", "gatewayUrl", "identity", "logFormat", "logLevel", "port",
-        "root", "skipRebuild", "staging", "stateHome",
+        "gatewayUrl", "identity", "root", "stateHome", "anchoredTextDir", "engines", "port",
+        "skipRebuild", "staging", "logLevel", "logFormat",
       ], in: "ArchivistConfig")
-    self.anchoredTextDir = try c.value("anchoredTextDir")
-    self.engines = try c.value("engines")
     self.gatewayUrl = try c.value("gatewayUrl")
     self.identity = try c.value("identity")
-    self.logFormat = try c.value("logFormat")
-    self.logLevel = try c.value("logLevel")
-    self.port = try c.value("port")
     self.root = try c.value("root")
+    self.stateHome = try c.value("stateHome")
+    self.anchoredTextDir = try c.value("anchoredTextDir")
+    self.engines = try c.value("engines")
+    self.port = try c.value("port")
     self.skipRebuild = try c.value("skipRebuild")
     self.staging = try c.value("staging")
-    self.stateHome = try c.value("stateHome")
+    self.logLevel = try c.value("logLevel")
+    self.logFormat = try c.value("logFormat")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.anchoredTextDir, as: "anchoredTextDir")
-    try c.encode(self.engines, as: "engines")
     try c.encode(self.gatewayUrl, as: "gatewayUrl")
     try c.encode(self.identity, as: "identity")
-    try c.encode(self.logFormat, as: "logFormat")
-    try c.encode(self.logLevel, as: "logLevel")
-    try c.encode(self.port, as: "port")
     try c.encode(self.root, as: "root")
+    try c.encode(self.stateHome, as: "stateHome")
+    try c.encode(self.anchoredTextDir, as: "anchoredTextDir")
+    try c.encode(self.engines, as: "engines")
+    try c.encode(self.port, as: "port")
     try c.encode(self.skipRebuild, as: "skipRebuild")
     try c.encode(self.staging, as: "staging")
-    try c.encode(self.stateHome, as: "stateHome")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.logFormat, as: "logFormat")
   }
 }
 
@@ -945,22 +1123,22 @@ public struct ArchivistDefaultEntityTypes: Codable, Sendable, Hashable {
 }
 
 public struct ArchivistEngines: Codable, Sendable, Hashable {
-  public var actors: ArchivistEnginesActors
   public var jobs: ArchivistEnginesJobs
-  public init(actors: ArchivistEnginesActors, jobs: ArchivistEnginesJobs) {
-    self.actors = actors
+  public var actors: ArchivistEnginesActors
+  public init(jobs: ArchivistEnginesJobs, actors: ArchivistEnginesActors) {
     self.jobs = jobs
+    self.actors = actors
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["actors", "jobs"], in: "ArchivistEngines")
-    self.actors = try c.value("actors")
+    try c.refuseUnknown(["jobs", "actors"], in: "ArchivistEngines")
     self.jobs = try c.value("jobs")
+    self.actors = try c.value("actors")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.actors, as: "actors")
     try c.encode(self.jobs, as: "jobs")
+    try c.encode(self.actors, as: "actors")
   }
 }
 
@@ -1005,37 +1183,37 @@ public struct ArchivistEnginesJobs: Codable, Sendable, Hashable {
 }
 
 public struct ArchivistEnginesJobsMark: Codable, Sendable, Hashable {
-  public var assessing: Engine?
-  public var commenting: Engine?
   public var highlighting: Engine?
+  public var commenting: Engine?
+  public var assessing: Engine?
   public var linking: Engine?
   public var tagging: Engine?
   public init(
-    assessing: Engine? = nil, commenting: Engine? = nil, highlighting: Engine? = nil,
+    highlighting: Engine? = nil, commenting: Engine? = nil, assessing: Engine? = nil,
     linking: Engine? = nil, tagging: Engine? = nil
   ) {
-    self.assessing = assessing
-    self.commenting = commenting
     self.highlighting = highlighting
+    self.commenting = commenting
+    self.assessing = assessing
     self.linking = linking
     self.tagging = tagging
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["assessing", "commenting", "highlighting", "linking", "tagging"],
+      ["highlighting", "commenting", "assessing", "linking", "tagging"],
       in: "ArchivistEnginesJobsMark")
-    self.assessing = try c.ifPresent("assessing")
-    self.commenting = try c.ifPresent("commenting")
     self.highlighting = try c.ifPresent("highlighting")
+    self.commenting = try c.ifPresent("commenting")
+    self.assessing = try c.ifPresent("assessing")
     self.linking = try c.ifPresent("linking")
     self.tagging = try c.ifPresent("tagging")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.assessing, as: "assessing")
-    try c.encodeIfPresent(self.commenting, as: "commenting")
     try c.encodeIfPresent(self.highlighting, as: "highlighting")
+    try c.encodeIfPresent(self.commenting, as: "commenting")
+    try c.encodeIfPresent(self.assessing, as: "assessing")
     try c.encodeIfPresent(self.linking, as: "linking")
     try c.encodeIfPresent(self.tagging, as: "tagging")
   }
@@ -1061,21 +1239,21 @@ public struct ArchivistEventsResponse: Codable, Sendable, Hashable {
 }
 
 public struct ArchivistHealth: Codable, Sendable, Hashable {
-  public var actors: [ArchivistHealthActorsItem]
   public let status: ArchivistHealthStatus
+  public var actors: [ArchivistHealthActorsItem]
   public init(actors: [ArchivistHealthActorsItem]) {
-    self.actors = actors
     self.status = .ok
+    self.actors = actors
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.actors = try c.value("actors")
     self.status = try c.value("status")
+    self.actors = try c.value("actors")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.actors, as: "actors")
     try c.encode(self.status, as: "status")
+    try c.encode(self.actors, as: "actors")
   }
 }
 
@@ -1091,87 +1269,89 @@ public enum ArchivistHealthStatus: String, Codable, Sendable, CaseIterable {
 
 public struct ArchivistLayout: Codable, Sendable, Hashable {
   public var comment: String
+  public var eventStream: ArchivistLayoutEventStream
+  public var systemStream: ArchivistLayoutSystemStream
+  public var eventFile: ArchivistLayoutEventFile
+  public var storedEvent: JSONValue
+  public var view: ArchivistLayoutView
+  public var systemProjections: ArchivistLayoutSystemProjections
+  public var storageUriIndex: ArchivistLayoutStorageUriIndex
   public var anchoredTextEntry: ArchivistLayoutAnchoredTextEntry
   public var anchoredTextStamp: ArchivistLayoutAnchoredTextStamp
-  public var eventFile: ArchivistLayoutEventFile
-  public var eventStream: ArchivistLayoutEventStream
-  public var storageUriIndex: ArchivistLayoutStorageUriIndex
-  public var storedEvent: JSONValue
-  public var systemProjections: ArchivistLayoutSystemProjections
-  public var systemStream: ArchivistLayoutSystemStream
-  public var view: ArchivistLayoutView
   public init(
-    comment: String, anchoredTextEntry: ArchivistLayoutAnchoredTextEntry,
-    anchoredTextStamp: ArchivistLayoutAnchoredTextStamp, eventFile: ArchivistLayoutEventFile,
-    eventStream: ArchivistLayoutEventStream, storageUriIndex: ArchivistLayoutStorageUriIndex,
-    storedEvent: JSONValue, systemProjections: ArchivistLayoutSystemProjections,
-    systemStream: ArchivistLayoutSystemStream, view: ArchivistLayoutView
+    comment: String, eventStream: ArchivistLayoutEventStream,
+    systemStream: ArchivistLayoutSystemStream, eventFile: ArchivistLayoutEventFile,
+    storedEvent: JSONValue, view: ArchivistLayoutView,
+    systemProjections: ArchivistLayoutSystemProjections,
+    storageUriIndex: ArchivistLayoutStorageUriIndex,
+    anchoredTextEntry: ArchivistLayoutAnchoredTextEntry,
+    anchoredTextStamp: ArchivistLayoutAnchoredTextStamp
   ) {
     self.comment = comment
+    self.eventStream = eventStream
+    self.systemStream = systemStream
+    self.eventFile = eventFile
+    self.storedEvent = storedEvent
+    self.view = view
+    self.systemProjections = systemProjections
+    self.storageUriIndex = storageUriIndex
     self.anchoredTextEntry = anchoredTextEntry
     self.anchoredTextStamp = anchoredTextStamp
-    self.eventFile = eventFile
-    self.eventStream = eventStream
-    self.storageUriIndex = storageUriIndex
-    self.storedEvent = storedEvent
-    self.systemProjections = systemProjections
-    self.systemStream = systemStream
-    self.view = view
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "$comment", "anchoredTextEntry", "anchoredTextStamp", "eventFile", "eventStream",
-        "storageUriIndex", "storedEvent", "systemProjections", "systemStream", "view",
+        "$comment", "eventStream", "systemStream", "eventFile", "storedEvent", "view",
+        "systemProjections", "storageUriIndex", "anchoredTextEntry", "anchoredTextStamp",
       ], in: "ArchivistLayout")
     self.comment = try c.value("$comment")
+    self.eventStream = try c.value("eventStream")
+    self.systemStream = try c.value("systemStream")
+    self.eventFile = try c.value("eventFile")
+    self.storedEvent = try c.value("storedEvent")
+    self.view = try c.value("view")
+    self.systemProjections = try c.value("systemProjections")
+    self.storageUriIndex = try c.value("storageUriIndex")
     self.anchoredTextEntry = try c.value("anchoredTextEntry")
     self.anchoredTextStamp = try c.value("anchoredTextStamp")
-    self.eventFile = try c.value("eventFile")
-    self.eventStream = try c.value("eventStream")
-    self.storageUriIndex = try c.value("storageUriIndex")
-    self.storedEvent = try c.value("storedEvent")
-    self.systemProjections = try c.value("systemProjections")
-    self.systemStream = try c.value("systemStream")
-    self.view = try c.value("view")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
+    try c.encode(self.eventStream, as: "eventStream")
+    try c.encode(self.systemStream, as: "systemStream")
+    try c.encode(self.eventFile, as: "eventFile")
+    try c.encode(self.storedEvent, as: "storedEvent")
+    try c.encode(self.view, as: "view")
+    try c.encode(self.systemProjections, as: "systemProjections")
+    try c.encode(self.storageUriIndex, as: "storageUriIndex")
     try c.encode(self.anchoredTextEntry, as: "anchoredTextEntry")
     try c.encode(self.anchoredTextStamp, as: "anchoredTextStamp")
-    try c.encode(self.eventFile, as: "eventFile")
-    try c.encode(self.eventStream, as: "eventStream")
-    try c.encode(self.storageUriIndex, as: "storageUriIndex")
-    try c.encode(self.storedEvent, as: "storedEvent")
-    try c.encode(self.systemProjections, as: "systemProjections")
-    try c.encode(self.systemStream, as: "systemStream")
-    try c.encode(self.view, as: "view")
   }
 }
 
 public struct ArchivistLayoutAnchoredTextEntry: Codable, Sendable, Hashable {
+  public var tree: ArchivistLayoutAnchoredTextEntryTree
   public var path: String
   public var schema: JSONValue
-  public var tree: ArchivistLayoutAnchoredTextEntryTree
-  public init(path: String, schema: JSONValue, tree: ArchivistLayoutAnchoredTextEntryTree) {
+  public init(tree: ArchivistLayoutAnchoredTextEntryTree, path: String, schema: JSONValue) {
+    self.tree = tree
     self.path = path
     self.schema = schema
-    self.tree = tree
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["path", "schema", "tree"], in: "ArchivistLayoutAnchoredTextEntry")
+    try c.refuseUnknown(["tree", "path", "schema"], in: "ArchivistLayoutAnchoredTextEntry")
+    self.tree = try c.value("tree")
     self.path = try c.value("path")
     self.schema = try c.value("schema")
-    self.tree = try c.value("tree")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.tree, as: "tree")
     try c.encode(self.path, as: "path")
     try c.encode(self.schema, as: "schema")
-    try c.encode(self.tree, as: "tree")
   }
 }
 
@@ -1182,22 +1362,22 @@ public enum ArchivistLayoutAnchoredTextEntryTree: String, Codable, Sendable, Cas
 }
 
 public struct ArchivistLayoutAnchoredTextStamp: Codable, Sendable, Hashable {
-  public var path: String
   public var tree: ArchivistLayoutAnchoredTextStampTree
-  public init(path: String, tree: ArchivistLayoutAnchoredTextStampTree) {
-    self.path = path
+  public var path: String
+  public init(tree: ArchivistLayoutAnchoredTextStampTree, path: String) {
     self.tree = tree
+    self.path = path
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["path", "tree"], in: "ArchivistLayoutAnchoredTextStamp")
-    self.path = try c.value("path")
+    try c.refuseUnknown(["tree", "path"], in: "ArchivistLayoutAnchoredTextStamp")
     self.tree = try c.value("tree")
+    self.path = try c.value("path")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.path, as: "path")
     try c.encode(self.tree, as: "tree")
+    try c.encode(self.path, as: "path")
   }
 }
 
@@ -1208,50 +1388,50 @@ public enum ArchivistLayoutAnchoredTextStampTree: String, Codable, Sendable, Cas
 }
 
 public struct ArchivistLayoutEventFile: Codable, Sendable, Hashable {
+  public var name: String
   public var digits: Int
   public var first: Int
   public var maxEvents: Int
-  public var name: String
-  public init(digits: Int, first: Int, maxEvents: Int, name: String) {
+  public init(name: String, digits: Int, first: Int, maxEvents: Int) {
+    self.name = name
     self.digits = digits
     self.first = first
     self.maxEvents = maxEvents
-    self.name = name
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["digits", "first", "maxEvents", "name"], in: "ArchivistLayoutEventFile")
+    try c.refuseUnknown(["name", "digits", "first", "maxEvents"], in: "ArchivistLayoutEventFile")
+    self.name = try c.value("name")
     self.digits = try c.value("digits")
     self.first = try c.value("first")
     self.maxEvents = try c.value("maxEvents")
-    self.name = try c.value("name")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
     try c.encode(self.digits, as: "digits")
     try c.encode(self.first, as: "first")
     try c.encode(self.maxEvents, as: "maxEvents")
-    try c.encode(self.name, as: "name")
   }
 }
 
 public struct ArchivistLayoutEventStream: Codable, Sendable, Hashable {
-  public var path: String
   public var tree: ArchivistLayoutEventStreamTree
-  public init(path: String, tree: ArchivistLayoutEventStreamTree) {
-    self.path = path
+  public var path: String
+  public init(tree: ArchivistLayoutEventStreamTree, path: String) {
     self.tree = tree
+    self.path = path
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["path", "tree"], in: "ArchivistLayoutEventStream")
-    self.path = try c.value("path")
+    try c.refuseUnknown(["tree", "path"], in: "ArchivistLayoutEventStream")
     self.tree = try c.value("tree")
+    self.path = try c.value("path")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.path, as: "path")
     try c.encode(self.tree, as: "tree")
+    try c.encode(self.path, as: "path")
   }
 }
 
@@ -1262,26 +1442,26 @@ public enum ArchivistLayoutEventStreamTree: String, Codable, Sendable, CaseItera
 }
 
 public struct ArchivistLayoutStorageUriIndex: Codable, Sendable, Hashable {
+  public var tree: ArchivistLayoutStorageUriIndexTree
   public var path: String
   public var schema: JSONValue
-  public var tree: ArchivistLayoutStorageUriIndexTree
-  public init(path: String, schema: JSONValue, tree: ArchivistLayoutStorageUriIndexTree) {
+  public init(tree: ArchivistLayoutStorageUriIndexTree, path: String, schema: JSONValue) {
+    self.tree = tree
     self.path = path
     self.schema = schema
-    self.tree = tree
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["path", "schema", "tree"], in: "ArchivistLayoutStorageUriIndex")
+    try c.refuseUnknown(["tree", "path", "schema"], in: "ArchivistLayoutStorageUriIndex")
+    self.tree = try c.value("tree")
     self.path = try c.value("path")
     self.schema = try c.value("schema")
-    self.tree = try c.value("tree")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.tree, as: "tree")
     try c.encode(self.path, as: "path")
     try c.encode(self.schema, as: "schema")
-    try c.encode(self.tree, as: "tree")
   }
 }
 
@@ -1292,29 +1472,29 @@ public enum ArchivistLayoutStorageUriIndexTree: String, Codable, Sendable, CaseI
 }
 
 public struct ArchivistLayoutSystemProjections: Codable, Sendable, Hashable {
-  public var files: [ArchivistLayoutSystemProjectionsFilesItem]
-  public var path: String
   public var tree: ArchivistLayoutSystemProjectionsTree
+  public var path: String
+  public var files: [ArchivistLayoutSystemProjectionsFilesItem]
   public init(
-    files: [ArchivistLayoutSystemProjectionsFilesItem], path: String,
-    tree: ArchivistLayoutSystemProjectionsTree
+    tree: ArchivistLayoutSystemProjectionsTree, path: String,
+    files: [ArchivistLayoutSystemProjectionsFilesItem]
   ) {
-    self.files = files
-    self.path = path
     self.tree = tree
+    self.path = path
+    self.files = files
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["files", "path", "tree"], in: "ArchivistLayoutSystemProjections")
-    self.files = try c.value("files")
-    self.path = try c.value("path")
+    try c.refuseUnknown(["tree", "path", "files"], in: "ArchivistLayoutSystemProjections")
     self.tree = try c.value("tree")
+    self.path = try c.value("path")
+    self.files = try c.value("files")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.files, as: "files")
-    try c.encode(self.path, as: "path")
     try c.encode(self.tree, as: "tree")
+    try c.encode(self.path, as: "path")
+    try c.encode(self.files, as: "files")
   }
 }
 
@@ -1345,22 +1525,22 @@ public enum ArchivistLayoutSystemProjectionsTree: String, Codable, Sendable, Cas
 }
 
 public struct ArchivistLayoutSystemStream: Codable, Sendable, Hashable {
-  public var path: String
   public var tree: ArchivistLayoutSystemStreamTree
-  public init(path: String, tree: ArchivistLayoutSystemStreamTree) {
-    self.path = path
+  public var path: String
+  public init(tree: ArchivistLayoutSystemStreamTree, path: String) {
     self.tree = tree
+    self.path = path
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["path", "tree"], in: "ArchivistLayoutSystemStream")
-    self.path = try c.value("path")
+    try c.refuseUnknown(["tree", "path"], in: "ArchivistLayoutSystemStream")
     self.tree = try c.value("tree")
+    self.path = try c.value("path")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.path, as: "path")
     try c.encode(self.tree, as: "tree")
+    try c.encode(self.path, as: "path")
   }
 }
 
@@ -1371,26 +1551,26 @@ public enum ArchivistLayoutSystemStreamTree: String, Codable, Sendable, CaseIter
 }
 
 public struct ArchivistLayoutView: Codable, Sendable, Hashable {
+  public var tree: ArchivistLayoutViewTree
   public var path: String
   public var schema: JSONValue
-  public var tree: ArchivistLayoutViewTree
-  public init(path: String, schema: JSONValue, tree: ArchivistLayoutViewTree) {
+  public init(tree: ArchivistLayoutViewTree, path: String, schema: JSONValue) {
+    self.tree = tree
     self.path = path
     self.schema = schema
-    self.tree = tree
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["path", "schema", "tree"], in: "ArchivistLayoutView")
+    try c.refuseUnknown(["tree", "path", "schema"], in: "ArchivistLayoutView")
+    self.tree = try c.value("tree")
     self.path = try c.value("path")
     self.schema = try c.value("schema")
-    self.tree = try c.value("tree")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.tree, as: "tree")
     try c.encode(self.path, as: "path")
     try c.encode(self.schema, as: "schema")
-    try c.encode(self.tree, as: "tree")
   }
 }
 
@@ -1403,115 +1583,115 @@ public enum ArchivistLayoutViewTree: String, Codable, Sendable, CaseIterable {
 public struct ArchivistMessages: Codable, Sendable, Hashable {
   public var comment: String
   public var boot: [ArchivistMessagesBootItem]
-  public var http: [ArchivistMessagesHttpItem]
-  public var logged: [ArchivistMessagesLoggedItem]
+  public var unsent: [ArchivistMessagesUnsentItem]
   public var refusals: [ArchivistMessagesRefusalsItem]
   public var unauthorized: ArchivistMessagesUnauthorized
-  public var unsent: [ArchivistMessagesUnsentItem]
+  public var http: [ArchivistMessagesHttpItem]
+  public var logged: [ArchivistMessagesLoggedItem]
   public init(
-    comment: String, boot: [ArchivistMessagesBootItem], http: [ArchivistMessagesHttpItem],
-    logged: [ArchivistMessagesLoggedItem], refusals: [ArchivistMessagesRefusalsItem],
-    unauthorized: ArchivistMessagesUnauthorized, unsent: [ArchivistMessagesUnsentItem]
+    comment: String, boot: [ArchivistMessagesBootItem], unsent: [ArchivistMessagesUnsentItem],
+    refusals: [ArchivistMessagesRefusalsItem], unauthorized: ArchivistMessagesUnauthorized,
+    http: [ArchivistMessagesHttpItem], logged: [ArchivistMessagesLoggedItem]
   ) {
     self.comment = comment
     self.boot = boot
-    self.http = http
-    self.logged = logged
+    self.unsent = unsent
     self.refusals = refusals
     self.unauthorized = unauthorized
-    self.unsent = unsent
+    self.http = http
+    self.logged = logged
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["$comment", "boot", "http", "logged", "refusals", "unauthorized", "unsent"],
+      ["$comment", "boot", "unsent", "refusals", "unauthorized", "http", "logged"],
       in: "ArchivistMessages")
     self.comment = try c.value("$comment")
     self.boot = try c.value("boot")
-    self.http = try c.value("http")
-    self.logged = try c.value("logged")
+    self.unsent = try c.value("unsent")
     self.refusals = try c.value("refusals")
     self.unauthorized = try c.value("unauthorized")
-    self.unsent = try c.value("unsent")
+    self.http = try c.value("http")
+    self.logged = try c.value("logged")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
     try c.encode(self.boot, as: "boot")
-    try c.encode(self.http, as: "http")
-    try c.encode(self.logged, as: "logged")
+    try c.encode(self.unsent, as: "unsent")
     try c.encode(self.refusals, as: "refusals")
     try c.encode(self.unauthorized, as: "unauthorized")
-    try c.encode(self.unsent, as: "unsent")
+    try c.encode(self.http, as: "http")
+    try c.encode(self.logged, as: "logged")
   }
 }
 
 public struct ArchivistMessagesBootItem: Codable, Sendable, Hashable {
   public var name: String
-  public var refusal: String
   public var situation: String
-  public init(name: String, refusal: String, situation: String) {
+  public var refusal: String
+  public init(name: String, situation: String, refusal: String) {
     self.name = name
-    self.refusal = refusal
     self.situation = situation
+    self.refusal = refusal
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["name", "refusal", "situation"], in: "ArchivistMessagesBootItem")
+    try c.refuseUnknown(["name", "situation", "refusal"], in: "ArchivistMessagesBootItem")
     self.name = try c.value("name")
-    self.refusal = try c.value("refusal")
     self.situation = try c.value("situation")
+    self.refusal = try c.value("refusal")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.name, as: "name")
-    try c.encode(self.refusal, as: "refusal")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.refusal, as: "refusal")
   }
 }
 
 public struct ArchivistMessagesHttpItem: Codable, Sendable, Hashable {
-  public var code: String?
-  public var error: String
-  public var method: ArchivistMessagesHttpItemMethod
   public var name: String
+  public var method: ArchivistMessagesHttpItemMethod
   public var route: String
-  public var situation: String
   public var status: HttpStatus
+  public var code: String?
+  public var situation: String
+  public var error: String
   public init(
-    code: String? = nil, error: String, method: ArchivistMessagesHttpItemMethod, name: String,
-    route: String, situation: String, status: HttpStatus
+    name: String, method: ArchivistMessagesHttpItemMethod, route: String, status: HttpStatus,
+    code: String? = nil, situation: String, error: String
   ) {
-    self.code = code
-    self.error = error
-    self.method = method
     self.name = name
+    self.method = method
     self.route = route
-    self.situation = situation
     self.status = status
+    self.code = code
+    self.situation = situation
+    self.error = error
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["code", "error", "method", "name", "route", "situation", "status"],
+      ["name", "method", "route", "status", "code", "situation", "error"],
       in: "ArchivistMessagesHttpItem")
-    self.code = try c.ifPresent("code")
-    self.error = try c.value("error")
-    self.method = try c.value("method")
     self.name = try c.value("name")
+    self.method = try c.value("method")
     self.route = try c.value("route")
-    self.situation = try c.value("situation")
     self.status = try c.value("status")
+    self.code = try c.ifPresent("code")
+    self.situation = try c.value("situation")
+    self.error = try c.value("error")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.code, as: "code")
-    try c.encode(self.error, as: "error")
-    try c.encode(self.method, as: "method")
     try c.encode(self.name, as: "name")
+    try c.encode(self.method, as: "method")
     try c.encode(self.route, as: "route")
-    try c.encode(self.situation, as: "situation")
     try c.encode(self.status, as: "status")
+    try c.encodeIfPresent(self.code, as: "code")
+    try c.encode(self.situation, as: "situation")
+    try c.encode(self.error, as: "error")
   }
 }
 
@@ -1522,73 +1702,73 @@ public enum ArchivistMessagesHttpItemMethod: String, Codable, Sendable, CaseIter
 }
 
 public struct ArchivistMessagesLoggedItem: Codable, Sendable, Hashable {
-  public var fields: [String: String]
-  public var level: LogLevel
-  public var message: String
   public var name: String
+  public var level: LogLevel
   public var situation: String
+  public var message: String
+  public var fields: [String: String]
   public init(
-    fields: [String: String], level: LogLevel, message: String, name: String, situation: String
+    name: String, level: LogLevel, situation: String, message: String, fields: [String: String]
   ) {
-    self.fields = fields
-    self.level = level
-    self.message = message
     self.name = name
+    self.level = level
     self.situation = situation
+    self.message = message
+    self.fields = fields
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["fields", "level", "message", "name", "situation"], in: "ArchivistMessagesLoggedItem")
-    self.fields = try c.value("fields")
-    self.level = try c.value("level")
-    self.message = try c.value("message")
+      ["name", "level", "situation", "message", "fields"], in: "ArchivistMessagesLoggedItem")
     self.name = try c.value("name")
+    self.level = try c.value("level")
     self.situation = try c.value("situation")
+    self.message = try c.value("message")
+    self.fields = try c.value("fields")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.fields, as: "fields")
-    try c.encode(self.level, as: "level")
-    try c.encode(self.message, as: "message")
     try c.encode(self.name, as: "name")
+    try c.encode(self.level, as: "level")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.fields, as: "fields")
   }
 }
 
 public struct ArchivistMessagesRefusalsItem: Codable, Sendable, Hashable {
-  public var code: ArchivistMessagesRefusalsItemCode?
-  public var message: String
   public var name: String
   public var operations: [String]
+  public var code: ArchivistMessagesRefusalsItemCode?
   public var situation: String
+  public var message: String
   public init(
-    code: ArchivistMessagesRefusalsItemCode? = nil, message: String, name: String,
-    operations: [String], situation: String
+    name: String, operations: [String], code: ArchivistMessagesRefusalsItemCode? = nil,
+    situation: String, message: String
   ) {
-    self.code = code
-    self.message = message
     self.name = name
     self.operations = operations
+    self.code = code
     self.situation = situation
+    self.message = message
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["code", "message", "name", "operations", "situation"], in: "ArchivistMessagesRefusalsItem")
-    self.code = try c.ifPresent("code")
-    self.message = try c.value("message")
+      ["name", "operations", "code", "situation", "message"], in: "ArchivistMessagesRefusalsItem")
     self.name = try c.value("name")
     self.operations = try c.value("operations")
+    self.code = try c.ifPresent("code")
     self.situation = try c.value("situation")
+    self.message = try c.value("message")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.code, as: "code")
-    try c.encode(self.message, as: "message")
     try c.encode(self.name, as: "name")
     try c.encode(self.operations, as: "operations")
+    try c.encodeIfPresent(self.code, as: "code")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.message, as: "message")
   }
 }
 
@@ -1600,75 +1780,75 @@ public enum ArchivistMessagesRefusalsItemCode: String, Codable, Sendable, CaseIt
 }
 
 public struct ArchivistMessagesUnauthorized: Codable, Sendable, Hashable {
-  public var absent: String
+  public var status: HttpStatus
   public var error: String
   public var presented: String
-  public var status: HttpStatus
-  public init(absent: String, error: String, presented: String, status: HttpStatus) {
-    self.absent = absent
+  public var absent: String
+  public init(status: HttpStatus, error: String, presented: String, absent: String) {
+    self.status = status
     self.error = error
     self.presented = presented
-    self.status = status
+    self.absent = absent
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["absent", "error", "presented", "status"], in: "ArchivistMessagesUnauthorized")
-    self.absent = try c.value("absent")
+      ["status", "error", "presented", "absent"], in: "ArchivistMessagesUnauthorized")
+    self.status = try c.value("status")
     self.error = try c.value("error")
     self.presented = try c.value("presented")
-    self.status = try c.value("status")
+    self.absent = try c.value("absent")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.absent, as: "absent")
+    try c.encode(self.status, as: "status")
     try c.encode(self.error, as: "error")
     try c.encode(self.presented, as: "presented")
-    try c.encode(self.status, as: "status")
+    try c.encode(self.absent, as: "absent")
   }
 }
 
 public struct ArchivistMessagesUnsentItem: Codable, Sendable, Hashable {
-  public var message: String
   public var name: String
   public var situation: String
-  public init(message: String, name: String, situation: String) {
-    self.message = message
+  public var message: String
+  public init(name: String, situation: String, message: String) {
     self.name = name
     self.situation = situation
+    self.message = message
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["message", "name", "situation"], in: "ArchivistMessagesUnsentItem")
-    self.message = try c.value("message")
+    try c.refuseUnknown(["name", "situation", "message"], in: "ArchivistMessagesUnsentItem")
     self.name = try c.value("name")
     self.situation = try c.value("situation")
+    self.message = try c.value("message")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.message, as: "message")
     try c.encode(self.name, as: "name")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.message, as: "message")
   }
 }
 
 public struct ArchivistStream: Codable, Sendable, Hashable {
-  public var lastSequence: Int
   public var resourceId: ResourceId
-  public init(lastSequence: Int, resourceId: ResourceId) {
-    self.lastSequence = lastSequence
+  public var lastSequence: Int
+  public init(resourceId: ResourceId, lastSequence: Int) {
     self.resourceId = resourceId
+    self.lastSequence = lastSequence
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["lastSequence", "resourceId"], in: "ArchivistStream")
-    self.lastSequence = try c.value("lastSequence")
+    try c.refuseUnknown(["resourceId", "lastSequence"], in: "ArchivistStream")
     self.resourceId = try c.value("resourceId")
+    self.lastSequence = try c.value("lastSequence")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.lastSequence, as: "lastSequence")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.lastSequence, as: "lastSequence")
   }
 }
 
@@ -1689,43 +1869,43 @@ public struct ArchivistStreamsResponse: Codable, Sendable, Hashable {
 }
 
 public struct AssessingJobParams: Codable, Sendable, Hashable {
-  public var density: Double?
-  public var instructions: String?
-  public var language: String?
   public let motivation: AssessingJobParamsMotivation
-  public var sourceLanguage: String?
+  public var instructions: String?
   public var tone: AssessingJobParamsTone?
+  public var density: Double?
+  public var language: String?
+  public var sourceLanguage: String?
   public init(
-    density: Double? = nil, instructions: String? = nil, language: String? = nil,
-    sourceLanguage: String? = nil, tone: AssessingJobParamsTone? = nil
+    instructions: String? = nil, tone: AssessingJobParamsTone? = nil, density: Double? = nil,
+    language: String? = nil, sourceLanguage: String? = nil
   ) {
-    self.density = density
-    self.instructions = instructions
-    self.language = language
     self.motivation = .assessing
-    self.sourceLanguage = sourceLanguage
+    self.instructions = instructions
     self.tone = tone
+    self.density = density
+    self.language = language
+    self.sourceLanguage = sourceLanguage
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["density", "instructions", "language", "motivation", "sourceLanguage", "tone"],
+      ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"],
       in: "AssessingJobParams")
-    self.density = try c.ifPresent("density")
-    self.instructions = try c.ifPresent("instructions")
-    self.language = try c.ifPresent("language")
     self.motivation = try c.value("motivation")
-    self.sourceLanguage = try c.ifPresent("sourceLanguage")
+    self.instructions = try c.ifPresent("instructions")
     self.tone = try c.ifPresent("tone")
+    self.density = try c.ifPresent("density")
+    self.language = try c.ifPresent("language")
+    self.sourceLanguage = try c.ifPresent("sourceLanguage")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.density, as: "density")
-    try c.encodeIfPresent(self.instructions, as: "instructions")
-    try c.encodeIfPresent(self.language, as: "language")
     try c.encode(self.motivation, as: "motivation")
-    try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
+    try c.encodeIfPresent(self.instructions, as: "instructions")
     try c.encodeIfPresent(self.tone, as: "tone")
+    try c.encodeIfPresent(self.density, as: "density")
+    try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
   }
 }
 
@@ -1741,148 +1921,148 @@ public enum AssessingJobParamsTone: String, Codable, Sendable, CaseIterable {
 }
 
 public struct AttributedEvent: Codable, Sendable, Hashable {
-  public var agent: Agent
   public var id: String
-  public var metadata: EventMetadata
-  public var payload: [String: JSONValue]
-  public var resourceId: ResourceId?
-  public var timestamp: String
   public var type: String
+  public var timestamp: String
   public var userId: UserId
+  public var resourceId: ResourceId?
   public var version: Int
+  public var payload: [String: JSONValue]
+  public var metadata: EventMetadata
+  public var agent: Agent
   public init(
-    agent: Agent, id: String, metadata: EventMetadata, payload: [String: JSONValue],
-    resourceId: ResourceId? = nil, timestamp: String, type: String, userId: UserId, version: Int
+    id: String, type: String, timestamp: String, userId: UserId, resourceId: ResourceId? = nil,
+    version: Int, payload: [String: JSONValue], metadata: EventMetadata, agent: Agent
   ) {
-    self.agent = agent
     self.id = id
-    self.metadata = metadata
-    self.payload = payload
-    self.resourceId = resourceId
-    self.timestamp = timestamp
     self.type = type
+    self.timestamp = timestamp
     self.userId = userId
+    self.resourceId = resourceId
     self.version = version
+    self.payload = payload
+    self.metadata = metadata
+    self.agent = agent
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.agent = try c.value("agent")
     self.id = try c.value("id")
-    self.metadata = try c.value("metadata")
-    self.payload = try c.value("payload")
-    self.resourceId = try c.ifPresent("resourceId")
-    self.timestamp = try c.value("timestamp")
     self.type = try c.value("type")
+    self.timestamp = try c.value("timestamp")
     self.userId = try c.value("userId")
+    self.resourceId = try c.ifPresent("resourceId")
     self.version = try c.value("version")
+    self.payload = try c.value("payload")
+    self.metadata = try c.value("metadata")
+    self.agent = try c.value("agent")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.agent, as: "agent")
     try c.encode(self.id, as: "id")
-    try c.encode(self.metadata, as: "metadata")
-    try c.encode(self.payload, as: "payload")
-    try c.encodeIfPresent(self.resourceId, as: "resourceId")
-    try c.encode(self.timestamp, as: "timestamp")
     try c.encode(self.type, as: "type")
+    try c.encode(self.timestamp, as: "timestamp")
     try c.encode(self.userId, as: "userId")
+    try c.encodeIfPresent(self.resourceId, as: "resourceId")
     try c.encode(self.version, as: "version")
+    try c.encode(self.payload, as: "payload")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encode(self.agent, as: "agent")
   }
 }
 
 public struct AuthLoginParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var runtime: Runtime?
   public var target: Target?
-  public init(apiVersion: ApiVersion, runtime: Runtime? = nil, target: Target? = nil) {
+  public var runtime: Runtime?
+  public init(apiVersion: ApiVersion, target: Target? = nil, runtime: Runtime? = nil) {
     self.apiVersion = apiVersion
-    self.runtime = runtime
     self.target = target
+    self.runtime = runtime
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiVersion", "runtime", "target"], in: "AuthLoginParams")
+    try c.refuseUnknown(["apiVersion", "target", "runtime"], in: "AuthLoginParams")
     self.apiVersion = try c.value("apiVersion")
-    self.runtime = try c.ifPresent("runtime")
     self.target = try c.ifPresent("target")
+    self.runtime = try c.ifPresent("runtime")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.runtime, as: "runtime")
     try c.encodeIfPresent(self.target, as: "target")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
   }
 }
 
 public struct AuthLoginResult: Codable, Sendable, Hashable {
-  public var issuer: String
   public var key: String
   public var who: String
-  public init(issuer: String, key: String, who: String) {
-    self.issuer = issuer
+  public var issuer: String
+  public init(key: String, who: String, issuer: String) {
     self.key = key
     self.who = who
+    self.issuer = issuer
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["issuer", "key", "who"], in: "AuthLoginResult")
-    self.issuer = try c.value("issuer")
+    try c.refuseUnknown(["key", "who", "issuer"], in: "AuthLoginResult")
     self.key = try c.value("key")
     self.who = try c.value("who")
+    self.issuer = try c.value("issuer")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.issuer, as: "issuer")
     try c.encode(self.key, as: "key")
     try c.encode(self.who, as: "who")
+    try c.encode(self.issuer, as: "issuer")
   }
 }
 
 public struct AuthLogoutParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var runtime: Runtime?
   public var target: Target?
-  public init(apiVersion: ApiVersion, runtime: Runtime? = nil, target: Target? = nil) {
+  public var runtime: Runtime?
+  public init(apiVersion: ApiVersion, target: Target? = nil, runtime: Runtime? = nil) {
     self.apiVersion = apiVersion
-    self.runtime = runtime
     self.target = target
+    self.runtime = runtime
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiVersion", "runtime", "target"], in: "AuthLogoutParams")
+    try c.refuseUnknown(["apiVersion", "target", "runtime"], in: "AuthLogoutParams")
     self.apiVersion = try c.value("apiVersion")
-    self.runtime = try c.ifPresent("runtime")
     self.target = try c.ifPresent("target")
+    self.runtime = try c.ifPresent("runtime")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.runtime, as: "runtime")
     try c.encodeIfPresent(self.target, as: "target")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
   }
 }
 
 public struct AuthLogoutResult: Codable, Sendable, Hashable {
   public var key: String?
-  public var revoked: Bool
   public var wasSignedIn: Bool
-  public init(key: String? = nil, revoked: Bool, wasSignedIn: Bool) {
+  public var revoked: Bool
+  public init(key: String? = nil, wasSignedIn: Bool, revoked: Bool) {
     self.key = key
-    self.revoked = revoked
     self.wasSignedIn = wasSignedIn
+    self.revoked = revoked
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["key", "revoked", "wasSignedIn"], in: "AuthLogoutResult")
+    try c.refuseUnknown(["key", "wasSignedIn", "revoked"], in: "AuthLogoutResult")
     self.key = try c.ifPresent("key")
-    self.revoked = try c.value("revoked")
     self.wasSignedIn = try c.value("wasSignedIn")
+    self.revoked = try c.value("revoked")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.key, as: "key")
-    try c.encode(self.revoked, as: "revoked")
     try c.encode(self.wasSignedIn, as: "wasSignedIn")
+    try c.encode(self.revoked, as: "revoked")
   }
 }
 
@@ -1936,71 +2116,71 @@ public struct BeckonSparkleEvent: Codable, Sendable, Hashable {
 }
 
 public struct BeginAuthorizationOptions: Codable, Sendable, Hashable {
+  public var target: HttpEndpoint
+  public var redirectUri: String
+  public var kbId: String?
   public var expectedDid: String?
   public var expectedName: String?
-  public var kbId: String?
-  public var redirectUri: String
-  public var target: HttpEndpoint
   public init(
-    expectedDid: String? = nil, expectedName: String? = nil, kbId: String? = nil,
-    redirectUri: String, target: HttpEndpoint
+    target: HttpEndpoint, redirectUri: String, kbId: String? = nil, expectedDid: String? = nil,
+    expectedName: String? = nil
   ) {
+    self.target = target
+    self.redirectUri = redirectUri
+    self.kbId = kbId
     self.expectedDid = expectedDid
     self.expectedName = expectedName
-    self.kbId = kbId
-    self.redirectUri = redirectUri
-    self.target = target
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["expectedDid", "expectedName", "kbId", "redirectUri", "target"],
+      ["target", "redirectUri", "kbId", "expectedDid", "expectedName"],
       in: "BeginAuthorizationOptions")
+    self.target = try c.value("target")
+    self.redirectUri = try c.value("redirectUri")
+    self.kbId = try c.ifPresent("kbId")
     self.expectedDid = try c.ifPresent("expectedDid")
     self.expectedName = try c.ifPresent("expectedName")
-    self.kbId = try c.ifPresent("kbId")
-    self.redirectUri = try c.value("redirectUri")
-    self.target = try c.value("target")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.target, as: "target")
+    try c.encode(self.redirectUri, as: "redirectUri")
+    try c.encodeIfPresent(self.kbId, as: "kbId")
     try c.encodeIfPresent(self.expectedDid, as: "expectedDid")
     try c.encodeIfPresent(self.expectedName, as: "expectedName")
-    try c.encodeIfPresent(self.kbId, as: "kbId")
-    try c.encode(self.redirectUri, as: "redirectUri")
-    try c.encode(self.target, as: "target")
   }
 }
 
 public typealias Binary = String
 
 public struct BindBodyOperation: Codable, Sendable, Hashable {
-  public var item: AnnotationBody?
-  public var newItem: AnnotationBody?
-  public var oldItem: AnnotationBody?
   public var op: BindBodyOperationOp
+  public var item: AnnotationBody?
+  public var oldItem: AnnotationBody?
+  public var newItem: AnnotationBody?
   public init(
-    item: AnnotationBody? = nil, newItem: AnnotationBody? = nil, oldItem: AnnotationBody? = nil,
-    op: BindBodyOperationOp
+    op: BindBodyOperationOp, item: AnnotationBody? = nil, oldItem: AnnotationBody? = nil,
+    newItem: AnnotationBody? = nil
   ) {
-    self.item = item
-    self.newItem = newItem
-    self.oldItem = oldItem
     self.op = op
+    self.item = item
+    self.oldItem = oldItem
+    self.newItem = newItem
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.item = try c.ifPresent("item")
-    self.newItem = try c.ifPresent("newItem")
-    self.oldItem = try c.ifPresent("oldItem")
     self.op = try c.value("op")
+    self.item = try c.ifPresent("item")
+    self.oldItem = try c.ifPresent("oldItem")
+    self.newItem = try c.ifPresent("newItem")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.item, as: "item")
-    try c.encodeIfPresent(self.newItem, as: "newItem")
-    try c.encodeIfPresent(self.oldItem, as: "oldItem")
     try c.encode(self.op, as: "op")
+    try c.encodeIfPresent(self.item, as: "item")
+    try c.encodeIfPresent(self.oldItem, as: "oldItem")
+    try c.encodeIfPresent(self.newItem, as: "newItem")
   }
 }
 
@@ -2023,60 +2203,60 @@ public struct BindBodyUpdated: Codable, Sendable, Hashable {
 
 public struct BindInitiateCommand: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
+  public var resourceId: ResourceId
   public var defaultTitle: String
   public var entityTypes: [String]
-  public var resourceId: ResourceId
   public init(
-    annotationId: AnnotationId, defaultTitle: String, entityTypes: [String], resourceId: ResourceId
+    annotationId: AnnotationId, resourceId: ResourceId, defaultTitle: String, entityTypes: [String]
   ) {
     self.annotationId = annotationId
+    self.resourceId = resourceId
     self.defaultTitle = defaultTitle
     self.entityTypes = entityTypes
-    self.resourceId = resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.annotationId = try c.value("annotationId")
+    self.resourceId = try c.value("resourceId")
     self.defaultTitle = try c.value("defaultTitle")
     self.entityTypes = try c.value("entityTypes")
-    self.resourceId = try c.value("resourceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.annotationId, as: "annotationId")
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.defaultTitle, as: "defaultTitle")
     try c.encode(self.entityTypes, as: "entityTypes")
-    try c.encode(self.resourceId, as: "resourceId")
   }
 }
 
 public struct BindUpdateBodyCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId
-  public var operations: [BindBodyOperation]
   public var resourceId: ResourceId
+  public var operations: [BindBodyOperation]
   public init(
-    _userId: UserId? = nil, annotationId: AnnotationId, operations: [BindBodyOperation],
-    resourceId: ResourceId
+    _userId: UserId? = nil, annotationId: AnnotationId, resourceId: ResourceId,
+    operations: [BindBodyOperation]
   ) {
     self._userId = _userId
     self.annotationId = annotationId
-    self.operations = operations
     self.resourceId = resourceId
+    self.operations = operations
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
     self.annotationId = try c.value("annotationId")
-    self.operations = try c.value("operations")
     self.resourceId = try c.value("resourceId")
+    self.operations = try c.value("operations")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
     try c.encode(self.annotationId, as: "annotationId")
-    try c.encode(self.operations, as: "operations")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.operations, as: "operations")
   }
 }
 
@@ -2084,21 +2264,40 @@ public indirect enum BodyOperation: Codable, Sendable, Hashable {
   case bodyOperationAdd(BodyOperationAdd)
   case bodyOperationRemove(BodyOperationRemove)
   case bodyOperationReplace(BodyOperationReplace)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["op", "item"], allowed: nil,
+        fixed: [.init(property: "op", values: [.text("add")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["op", "item"], allowed: nil,
+        fixed: [.init(property: "op", values: [.text("remove")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["op", "oldItem", "newItem"], allowed: nil,
+        fixed: [.init(property: "op", values: [.text("replace")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? BodyOperationAdd(from: decoder) {
-      self = .bodyOperationAdd(value)
-      return
-    }
-    if let value = try? BodyOperationRemove(from: decoder) {
-      self = .bodyOperationRemove(value)
-      return
-    }
-    if let value = try? BodyOperationReplace(from: decoder) {
-      self = .bodyOperationReplace(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of BodyOperation fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "BodyOperation", members: Self.members,
+      variants: [
+        (
+          "bodyOperationAdd",
+          { decoder in try Self.bodyOperationAdd(BodyOperationAdd(from: decoder)) }
+        ),
+        (
+          "bodyOperationRemove",
+          { decoder in try Self.bodyOperationRemove(BodyOperationRemove(from: decoder)) }
+        ),
+        (
+          "bodyOperationReplace",
+          { decoder in try Self.bodyOperationReplace(BodyOperationReplace(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -2110,21 +2309,21 @@ public indirect enum BodyOperation: Codable, Sendable, Hashable {
 }
 
 public struct BodyOperationAdd: Codable, Sendable, Hashable {
-  public var item: AnnotationBody
   public let op: BodyOperationAddOp
+  public var item: AnnotationBody
   public init(item: AnnotationBody) {
-    self.item = item
     self.op = .add
+    self.item = item
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.item = try c.value("item")
     self.op = try c.value("op")
+    self.item = try c.value("item")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.item, as: "item")
     try c.encode(self.op, as: "op")
+    try c.encode(self.item, as: "item")
   }
 }
 
@@ -2133,21 +2332,21 @@ public enum BodyOperationAddOp: String, Codable, Sendable, CaseIterable {
 }
 
 public struct BodyOperationRemove: Codable, Sendable, Hashable {
-  public var item: AnnotationBody
   public let op: BodyOperationRemoveOp
+  public var item: AnnotationBody
   public init(item: AnnotationBody) {
-    self.item = item
     self.op = .remove
+    self.item = item
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.item = try c.value("item")
     self.op = try c.value("op")
+    self.item = try c.value("item")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.item, as: "item")
     try c.encode(self.op, as: "op")
+    try c.encode(self.item, as: "item")
   }
 }
 
@@ -2156,25 +2355,25 @@ public enum BodyOperationRemoveOp: String, Codable, Sendable, CaseIterable {
 }
 
 public struct BodyOperationReplace: Codable, Sendable, Hashable {
-  public var newItem: AnnotationBody
-  public var oldItem: AnnotationBody
   public let op: BodyOperationReplaceOp
-  public init(newItem: AnnotationBody, oldItem: AnnotationBody) {
-    self.newItem = newItem
-    self.oldItem = oldItem
+  public var oldItem: AnnotationBody
+  public var newItem: AnnotationBody
+  public init(oldItem: AnnotationBody, newItem: AnnotationBody) {
     self.op = .replace
+    self.oldItem = oldItem
+    self.newItem = newItem
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.newItem = try c.value("newItem")
-    self.oldItem = try c.value("oldItem")
     self.op = try c.value("op")
+    self.oldItem = try c.value("oldItem")
+    self.newItem = try c.value("newItem")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.newItem, as: "newItem")
-    try c.encode(self.oldItem, as: "oldItem")
     try c.encode(self.op, as: "op")
+    try c.encode(self.oldItem, as: "oldItem")
+    try c.encode(self.newItem, as: "newItem")
   }
 }
 
@@ -2199,21 +2398,21 @@ public enum BodyPurpose: String, Codable, Sendable, CaseIterable {
 }
 
 public struct BrowseAnnotationHistoryRequest: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId
   public var resourceId: ResourceId
-  public init(annotationId: AnnotationId, resourceId: ResourceId) {
-    self.annotationId = annotationId
+  public var annotationId: AnnotationId
+  public init(resourceId: ResourceId, annotationId: AnnotationId) {
     self.resourceId = resourceId
+    self.annotationId = annotationId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.value("annotationId")
     self.resourceId = try c.value("resourceId")
+    self.annotationId = try c.value("annotationId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotationId, as: "annotationId")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.annotationId, as: "annotationId")
   }
 }
 
@@ -2233,21 +2432,21 @@ public struct BrowseAnnotationHistoryResult: Codable, Sendable, Hashable {
 }
 
 public struct BrowseAnnotationRequest: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId
   public var resourceId: ResourceId
-  public init(annotationId: AnnotationId, resourceId: ResourceId) {
-    self.annotationId = annotationId
+  public var annotationId: AnnotationId
+  public init(resourceId: ResourceId, annotationId: AnnotationId) {
     self.resourceId = resourceId
+    self.annotationId = annotationId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.value("annotationId")
     self.resourceId = try c.value("resourceId")
+    self.annotationId = try c.value("annotationId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotationId, as: "annotationId")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.annotationId, as: "annotationId")
   }
 }
 
@@ -2267,48 +2466,48 @@ public struct BrowseAnnotationResult: Codable, Sendable, Hashable {
 }
 
 public struct BrowseClickEvent: Codable, Sendable, Hashable {
-  public var anchorRect: AnchorRect?
   public var annotationId: AnnotationId
-  public init(anchorRect: AnchorRect? = nil, annotationId: AnnotationId) {
-    self.anchorRect = anchorRect
+  public var anchorRect: AnchorRect?
+  public init(annotationId: AnnotationId, anchorRect: AnchorRect? = nil) {
     self.annotationId = annotationId
+    self.anchorRect = anchorRect
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.anchorRect = try c.ifPresent("anchorRect")
     self.annotationId = try c.value("annotationId")
+    self.anchorRect = try c.ifPresent("anchorRect")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.anchorRect, as: "anchorRect")
     try c.encode(self.annotationId, as: "annotationId")
+    try c.encodeIfPresent(self.anchorRect, as: "anchorRect")
   }
 }
 
 public struct BrowseDirectoryFailed: Codable, Sendable, Hashable {
   public var code: CommandErrorCode?
-  public var details: String?
   public var message: String
+  public var details: String?
   public var path: String
-  public init(code: CommandErrorCode? = nil, details: String? = nil, message: String, path: String)
+  public init(code: CommandErrorCode? = nil, message: String, details: String? = nil, path: String)
   {
     self.code = code
-    self.details = details
     self.message = message
+    self.details = details
     self.path = path
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.code = try c.ifPresent("code")
-    self.details = try c.ifPresent("details")
     self.message = try c.value("message")
+    self.details = try c.ifPresent("details")
     self.path = try c.value("path")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.code, as: "code")
-    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.message, as: "message")
+    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.path, as: "path")
   }
 }
@@ -2354,21 +2553,21 @@ public struct BrowseDirectoryResult: Codable, Sendable, Hashable {
 }
 
 public struct BrowseDirectoryResultResponse: Codable, Sendable, Hashable {
-  public var entries: [DirectoryEntry]
   public var path: String
-  public init(entries: [DirectoryEntry], path: String) {
-    self.entries = entries
+  public var entries: [DirectoryEntry]
+  public init(path: String, entries: [DirectoryEntry]) {
     self.path = path
+    self.entries = entries
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.entries = try c.value("entries")
     self.path = try c.value("path")
+    self.entries = try c.value("entries")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.entries, as: "entries")
     try c.encode(self.path, as: "path")
+    try c.encode(self.entries, as: "entries")
   }
 }
 
@@ -2455,30 +2654,30 @@ public struct BrowseEntityTypesResult: Codable, Sendable, Hashable {
 }
 
 public struct BrowseEventsRequest: Codable, Sendable, Hashable {
-  public var limit: Int?
   public var resourceId: ResourceId
   public var type: String?
   public var userId: UserId?
-  public init(limit: Int? = nil, resourceId: ResourceId, type: String? = nil, userId: UserId? = nil)
+  public var limit: Int?
+  public init(resourceId: ResourceId, type: String? = nil, userId: UserId? = nil, limit: Int? = nil)
   {
-    self.limit = limit
     self.resourceId = resourceId
     self.type = type
     self.userId = userId
+    self.limit = limit
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.limit = try c.ifPresent("limit")
     self.resourceId = try c.value("resourceId")
     self.type = try c.ifPresent("type")
     self.userId = try c.ifPresent("userId")
+    self.limit = try c.ifPresent("limit")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.limit, as: "limit")
     try c.encode(self.resourceId, as: "resourceId")
     try c.encodeIfPresent(self.type, as: "type")
     try c.encodeIfPresent(self.userId, as: "userId")
+    try c.encodeIfPresent(self.limit, as: "limit")
   }
 }
 
@@ -2498,41 +2697,41 @@ public struct BrowseEventsResult: Codable, Sendable, Hashable {
 }
 
 public struct BrowseExternalNavigateEvent: Codable, Sendable, Hashable {
-  public var resourceId: ResourceId?
   public var url: String
-  public init(resourceId: ResourceId? = nil, url: String) {
-    self.resourceId = resourceId
+  public var resourceId: ResourceId?
+  public init(url: String, resourceId: ResourceId? = nil) {
     self.url = url
+    self.resourceId = resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.resourceId = try c.ifPresent("resourceId")
     self.url = try c.value("url")
+    self.resourceId = try c.ifPresent("resourceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.resourceId, as: "resourceId")
     try c.encode(self.url, as: "url")
+    try c.encodeIfPresent(self.resourceId, as: "resourceId")
   }
 }
 
 public struct BrowseFilesResponse: Codable, Sendable, Hashable {
-  public var entries: [DirectoryEntry]
   public var path: String
-  public init(entries: [DirectoryEntry], path: String) {
-    self.entries = entries
+  public var entries: [DirectoryEntry]
+  public init(path: String, entries: [DirectoryEntry]) {
     self.path = path
+    self.entries = entries
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["entries", "path"], in: "BrowseFilesResponse")
-    self.entries = try c.value("entries")
+    try c.refuseUnknown(["path", "entries"], in: "BrowseFilesResponse")
     self.path = try c.value("path")
+    self.entries = try c.value("entries")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.entries, as: "entries")
     try c.encode(self.path, as: "path")
+    try c.encode(self.entries, as: "entries")
   }
 }
 
@@ -2582,27 +2781,27 @@ public struct BrowseLinkClickedEvent: Codable, Sendable, Hashable {
 }
 
 public struct BrowsePanelOpenEvent: Codable, Sendable, Hashable {
-  public var motivation: Motivation?
   public var panel: String
   public var scrollToAnnotationId: AnnotationId?
+  public var motivation: Motivation?
   public init(
-    motivation: Motivation? = nil, panel: String, scrollToAnnotationId: AnnotationId? = nil
+    panel: String, scrollToAnnotationId: AnnotationId? = nil, motivation: Motivation? = nil
   ) {
-    self.motivation = motivation
     self.panel = panel
     self.scrollToAnnotationId = scrollToAnnotationId
+    self.motivation = motivation
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.motivation = try c.ifPresent("motivation")
     self.panel = try c.value("panel")
     self.scrollToAnnotationId = try c.ifPresent("scrollToAnnotationId")
+    self.motivation = try c.ifPresent("motivation")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.motivation, as: "motivation")
     try c.encode(self.panel, as: "panel")
     try c.encodeIfPresent(self.scrollToAnnotationId, as: "scrollToAnnotationId")
+    try c.encodeIfPresent(self.motivation, as: "motivation")
   }
 }
 
@@ -2699,21 +2898,21 @@ public struct BrowseResourceOpenEvent: Codable, Sendable, Hashable {
 }
 
 public struct BrowseResourceReorderEvent: Codable, Sendable, Hashable {
-  public var newIndex: Int
   public var oldIndex: Int
-  public init(newIndex: Int, oldIndex: Int) {
-    self.newIndex = newIndex
+  public var newIndex: Int
+  public init(oldIndex: Int, newIndex: Int) {
     self.oldIndex = oldIndex
+    self.newIndex = newIndex
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.newIndex = try c.value("newIndex")
     self.oldIndex = try c.value("oldIndex")
+    self.newIndex = try c.value("newIndex")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.newIndex, as: "newIndex")
     try c.encode(self.oldIndex, as: "oldIndex")
+    try c.encode(self.newIndex, as: "newIndex")
   }
 }
 
@@ -2748,22 +2947,22 @@ public struct BrowseResourceResult: Codable, Sendable, Hashable {
 }
 
 public struct BrowseResourceResultResponse: Codable, Sendable, Hashable {
-  public var lastSequence: Int
   public var resource: ResourceDescriptor
-  public init(lastSequence: Int, resource: ResourceDescriptor) {
-    self.lastSequence = lastSequence
+  public var lastSequence: Int
+  public init(resource: ResourceDescriptor, lastSequence: Int) {
     self.resource = resource
+    self.lastSequence = lastSequence
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["lastSequence", "resource"], in: "BrowseResourceResultResponse")
-    self.lastSequence = try c.value("lastSequence")
+    try c.refuseUnknown(["resource", "lastSequence"], in: "BrowseResourceResultResponse")
     self.resource = try c.value("resource")
+    self.lastSequence = try c.value("lastSequence")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.lastSequence, as: "lastSequence")
     try c.encode(self.resource, as: "resource")
+    try c.encode(self.lastSequence, as: "lastSequence")
   }
 }
 
@@ -2785,29 +2984,29 @@ public struct BrowseResourceViewedEvent: Codable, Sendable, Hashable {
 public struct BrowseResourcesRequest: Codable, Sendable, Hashable {
   public var archived: Bool?
   public var entityType: String?
-  public var limit: Int?
   public var offset: Int?
+  public var limit: Int?
   public init(
-    archived: Bool? = nil, entityType: String? = nil, limit: Int? = nil, offset: Int? = nil
+    archived: Bool? = nil, entityType: String? = nil, offset: Int? = nil, limit: Int? = nil
   ) {
     self.archived = archived
     self.entityType = entityType
-    self.limit = limit
     self.offset = offset
+    self.limit = limit
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.archived = try c.ifPresent("archived")
     self.entityType = try c.ifPresent("entityType")
-    self.limit = try c.ifPresent("limit")
     self.offset = try c.ifPresent("offset")
+    self.limit = try c.ifPresent("limit")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.archived, as: "archived")
     try c.encodeIfPresent(self.entityType, as: "entityType")
-    try c.encodeIfPresent(self.limit, as: "limit")
     try c.encodeIfPresent(self.offset, as: "offset")
+    try c.encodeIfPresent(self.limit, as: "limit")
   }
 }
 
@@ -2905,25 +3104,25 @@ public enum BrowserKind: String, Codable, Sendable, CaseIterable {
 
 public struct BrowserSpec: Codable, Sendable, Hashable {
   public var image: Image
-  public var port: Int
   public var resources: Resources
-  public init(image: Image, port: Int, resources: Resources) {
+  public var port: Int
+  public init(image: Image, resources: Resources, port: Int) {
     self.image = image
-    self.port = port
     self.resources = resources
+    self.port = port
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["image", "port", "resources"], in: "BrowserSpec")
+    try c.refuseUnknown(["image", "resources", "port"], in: "BrowserSpec")
     self.image = try c.value("image")
-    self.port = try c.value("port")
     self.resources = try c.value("resources")
+    self.port = try c.value("port")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.image, as: "image")
-    try c.encode(self.port, as: "port")
     try c.encode(self.resources, as: "resources")
+    try c.encode(self.port, as: "port")
   }
 }
 
@@ -2944,35 +3143,35 @@ public struct BusEmitAccepted: Codable, Sendable, Hashable {
 
 public struct BusEmitRequest: Codable, Sendable, Hashable {
   public var channel: String
-  public var clientId: String?
-  public var correlationId: String?
   public var payload: [String: JSONValue]
   public var scope: ResourceId?
+  public var clientId: String?
+  public var correlationId: String?
   public init(
-    channel: String, clientId: String? = nil, correlationId: String? = nil,
-    payload: [String: JSONValue], scope: ResourceId? = nil
+    channel: String, payload: [String: JSONValue], scope: ResourceId? = nil,
+    clientId: String? = nil, correlationId: String? = nil
   ) {
     self.channel = channel
-    self.clientId = clientId
-    self.correlationId = correlationId
     self.payload = payload
     self.scope = scope
+    self.clientId = clientId
+    self.correlationId = correlationId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.channel = try c.value("channel")
-    self.clientId = try c.ifPresent("clientId")
-    self.correlationId = try c.ifPresent("correlationId")
     self.payload = try c.value("payload")
     self.scope = try c.ifPresent("scope")
+    self.clientId = try c.ifPresent("clientId")
+    self.correlationId = try c.ifPresent("correlationId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.channel, as: "channel")
-    try c.encodeIfPresent(self.clientId, as: "clientId")
-    try c.encodeIfPresent(self.correlationId, as: "correlationId")
     try c.encode(self.payload, as: "payload")
     try c.encodeIfPresent(self.scope, as: "scope")
+    try c.encodeIfPresent(self.clientId, as: "clientId")
+    try c.encodeIfPresent(self.correlationId, as: "correlationId")
   }
 }
 
@@ -2989,61 +3188,31 @@ public struct BusEmptyPayload: Codable, Sendable, Hashable {
 }
 
 public struct BusEventMessage: Codable, Sendable, Hashable {
-  public var data: BusFrame
   public let event: BusEventMessageEvent
-  public var id: BusEventMessageId
-  public init(data: BusFrame, id: BusEventMessageId) {
-    self.data = data
+  public var id: String
+  public var data: BusFrame
+  public init(id: String, data: BusFrame) {
     self.event = .busEvent
     self.id = id
+    self.data = data
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["data", "event", "id"], in: "BusEventMessage")
-    self.data = try c.value("data")
+    try c.refuseUnknown(["event", "id", "data"], in: "BusEventMessage")
     self.event = try c.value("event")
     self.id = try c.value("id")
+    self.data = try c.value("data")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.data, as: "data")
     try c.encode(self.event, as: "event")
     try c.encode(self.id, as: "id")
+    try c.encode(self.data, as: "data")
   }
 }
 
 public enum BusEventMessageEvent: String, Codable, Sendable, CaseIterable {
   case busEvent = "bus-event"
-}
-
-public indirect enum BusEventMessageId: Codable, Sendable, Hashable {
-  case persistedEventId(PersistedEventId)
-  case replyEventId(ReplyEventId)
-  case ephemeralEventId(EphemeralEventId)
-  public init(from decoder: any Decoder) throws {
-    if let value = try? PersistedEventId(from: decoder) {
-      self = .persistedEventId(value)
-      return
-    }
-    if let value = try? ReplyEventId(from: decoder) {
-      self = .replyEventId(value)
-      return
-    }
-    if let value = try? EphemeralEventId(from: decoder) {
-      self = .ephemeralEventId(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of BusEventMessageId fits")
-    )
-  }
-  public func encode(to encoder: any Encoder) throws {
-    switch self {
-    case .persistedEventId(let value): try value.encode(to: encoder)
-    case .replyEventId(let value): try value.encode(to: encoder)
-    case .ephemeralEventId(let value): try value.encode(to: encoder)
-    }
-  }
 }
 
 public struct BusFrame: Codable, Sendable, Hashable {
@@ -3078,22 +3247,22 @@ public struct BusFrame: Codable, Sendable, Hashable {
 }
 
 public struct BusPingMessage: Codable, Sendable, Hashable {
-  public var data: String
   public let event: BusPingMessageEvent
+  public var data: String
   public init(data: String) {
-    self.data = data
     self.event = .ping
+    self.data = data
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["data", "event"], in: "BusPingMessage")
-    self.data = try c.value("data")
+    try c.refuseUnknown(["event", "data"], in: "BusPingMessage")
     self.event = try c.value("event")
+    self.data = try c.value("data")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.data, as: "data")
     try c.encode(self.event, as: "event")
+    try c.encode(self.data, as: "data")
   }
 }
 
@@ -3124,19 +3293,24 @@ public struct BusReplyBounds: Codable, Sendable, Hashable {
 public indirect enum BusReplyBoundsRepliesValueValue: Codable, Sendable, Hashable {
   case by(BusReplyBoundsRepliesValueValueBy)
   case grows(BusReplyBoundsRepliesValueValueGrows)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .object, required: ["by"], allowed: ["by"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["grows"], allowed: ["grows"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? BusReplyBoundsRepliesValueValueBy(from: decoder) {
-      self = .by(value)
-      return
-    }
-    if let value = try? BusReplyBoundsRepliesValueValueGrows(from: decoder) {
-      self = .grows(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of BusReplyBoundsRepliesValueValue fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "BusReplyBoundsRepliesValueValue", members: Self.members,
+      variants: [
+        ("by", { decoder in try Self.by(BusReplyBoundsRepliesValueValueBy(from: decoder)) }),
+        (
+          "grows",
+          { decoder in try Self.grows(BusReplyBoundsRepliesValueValueGrows(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -3179,26 +3353,26 @@ public struct BusReplyBoundsRepliesValueValueGrows: Codable, Sendable, Hashable 
 }
 
 public struct BusResumeGap: Codable, Sendable, Hashable {
+  public var scope: ResourceId
   public var lastSeenId: String
   public var reason: BusResumeGapReason
-  public var scope: ResourceId
-  public init(lastSeenId: String, reason: BusResumeGapReason, scope: ResourceId) {
+  public init(scope: ResourceId, lastSeenId: String, reason: BusResumeGapReason) {
+    self.scope = scope
     self.lastSeenId = lastSeenId
     self.reason = reason
-    self.scope = scope
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["lastSeenId", "reason", "scope"], in: "BusResumeGap")
+    try c.refuseUnknown(["scope", "lastSeenId", "reason"], in: "BusResumeGap")
+    self.scope = try c.value("scope")
     self.lastSeenId = try c.value("lastSeenId")
     self.reason = try c.value("reason")
-    self.scope = try c.value("scope")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.scope, as: "scope")
     try c.encode(self.lastSeenId, as: "lastSeenId")
     try c.encode(self.reason, as: "reason")
-    try c.encode(self.scope, as: "scope")
   }
 }
 
@@ -3212,17 +3386,27 @@ public enum BusResumeGapReason: String, Codable, Sendable, CaseIterable {
 public indirect enum BusStreamMessage: Codable, Sendable, Hashable {
   case busEventMessage(BusEventMessage)
   case busPingMessage(BusPingMessage)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["event", "id", "data"], allowed: ["event", "id", "data"],
+        fixed: [.init(property: "event", values: [.text("bus-event")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["event", "data"], allowed: ["event", "data"],
+        fixed: [.init(property: "event", values: [.text("ping")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? BusEventMessage(from: decoder) {
-      self = .busEventMessage(value)
-      return
-    }
-    if let value = try? BusPingMessage(from: decoder) {
-      self = .busPingMessage(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of BusStreamMessage fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "BusStreamMessage", members: Self.members,
+      variants: [
+        (
+          "busEventMessage", { decoder in try Self.busEventMessage(BusEventMessage(from: decoder)) }
+        ),
+        ("busPingMessage", { decoder in try Self.busPingMessage(BusPingMessage(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -3233,140 +3417,140 @@ public indirect enum BusStreamMessage: Codable, Sendable, Hashable {
 }
 
 public struct BusSubscribeRequest: Codable, Sendable, Hashable {
-  public var clientId: String
   public var global: [String]?
   public var pendingReplies: [String]?
   public var scoped: [BusSubscribeRequestScopedItem]?
+  public var clientId: String
   public init(
-    clientId: String, global: [String]? = nil, pendingReplies: [String]? = nil,
-    scoped: [BusSubscribeRequestScopedItem]? = nil
+    global: [String]? = nil, pendingReplies: [String]? = nil,
+    scoped: [BusSubscribeRequestScopedItem]? = nil, clientId: String
   ) {
-    self.clientId = clientId
     self.global = global
     self.pendingReplies = pendingReplies
     self.scoped = scoped
+    self.clientId = clientId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["clientId", "global", "pendingReplies", "scoped"], in: "BusSubscribeRequest")
-    self.clientId = try c.value("clientId")
+      ["global", "pendingReplies", "scoped", "clientId"], in: "BusSubscribeRequest")
     self.global = try c.ifPresent("global")
     self.pendingReplies = try c.ifPresent("pendingReplies")
     self.scoped = try c.ifPresent("scoped")
+    self.clientId = try c.value("clientId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.clientId, as: "clientId")
     try c.encodeIfPresent(self.global, as: "global")
     try c.encodeIfPresent(self.pendingReplies, as: "pendingReplies")
     try c.encodeIfPresent(self.scoped, as: "scoped")
+    try c.encode(self.clientId, as: "clientId")
   }
 }
 
 public struct BusSubscribeRequestScopedItem: Codable, Sendable, Hashable {
+  public var scope: ResourceId
   public var channels: [String]
   public var lastEventId: String?
-  public var scope: ResourceId
-  public init(channels: [String], lastEventId: String? = nil, scope: ResourceId) {
+  public init(scope: ResourceId, channels: [String], lastEventId: String? = nil) {
+    self.scope = scope
     self.channels = channels
     self.lastEventId = lastEventId
-    self.scope = scope
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["channels", "lastEventId", "scope"], in: "BusSubscribeRequestScopedItem")
+    try c.refuseUnknown(["scope", "channels", "lastEventId"], in: "BusSubscribeRequestScopedItem")
+    self.scope = try c.value("scope")
     self.channels = try c.value("channels")
     self.lastEventId = try c.ifPresent("lastEventId")
-    self.scope = try c.value("scope")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.scope, as: "scope")
     try c.encode(self.channels, as: "channels")
     try c.encodeIfPresent(self.lastEventId, as: "lastEventId")
-    try c.encode(self.scope, as: "scope")
   }
 }
 
 public struct Cancelled: Codable, Sendable, Hashable {
-  public var reason: String?
   public var requestId: RequestId
-  public init(reason: String? = nil, requestId: RequestId) {
-    self.reason = reason
+  public var reason: String?
+  public init(requestId: RequestId, reason: String? = nil) {
     self.requestId = requestId
+    self.reason = reason
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["reason", "requestId"], in: "Cancelled")
-    self.reason = try c.ifPresent("reason")
+    try c.refuseUnknown(["requestId", "reason"], in: "Cancelled")
     self.requestId = try c.value("requestId")
+    self.reason = try c.ifPresent("reason")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.reason, as: "reason")
     try c.encode(self.requestId, as: "requestId")
+    try c.encodeIfPresent(self.reason, as: "reason")
   }
 }
 
 public struct ClaimOptions: Codable, Sendable, Hashable {
   public var accepts: [JobFilter]
-  public var heldJobStallCheckMs: Int?
-  public var heldJobStallMs: Int?
   public var jobClaimTimeoutMs: Int?
+  public var heldJobStallMs: Int?
+  public var heldJobStallCheckMs: Int?
   public var markCommitTimeoutMs: Int?
   public init(
-    accepts: [JobFilter], heldJobStallCheckMs: Int? = nil, heldJobStallMs: Int? = nil,
-    jobClaimTimeoutMs: Int? = nil, markCommitTimeoutMs: Int? = nil
+    accepts: [JobFilter], jobClaimTimeoutMs: Int? = nil, heldJobStallMs: Int? = nil,
+    heldJobStallCheckMs: Int? = nil, markCommitTimeoutMs: Int? = nil
   ) {
     self.accepts = accepts
-    self.heldJobStallCheckMs = heldJobStallCheckMs
-    self.heldJobStallMs = heldJobStallMs
     self.jobClaimTimeoutMs = jobClaimTimeoutMs
+    self.heldJobStallMs = heldJobStallMs
+    self.heldJobStallCheckMs = heldJobStallCheckMs
     self.markCommitTimeoutMs = markCommitTimeoutMs
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "accepts", "heldJobStallCheckMs", "heldJobStallMs", "jobClaimTimeoutMs",
+        "accepts", "jobClaimTimeoutMs", "heldJobStallMs", "heldJobStallCheckMs",
         "markCommitTimeoutMs",
       ], in: "ClaimOptions")
     self.accepts = try c.value("accepts")
-    self.heldJobStallCheckMs = try c.ifPresent("heldJobStallCheckMs")
-    self.heldJobStallMs = try c.ifPresent("heldJobStallMs")
     self.jobClaimTimeoutMs = try c.ifPresent("jobClaimTimeoutMs")
+    self.heldJobStallMs = try c.ifPresent("heldJobStallMs")
+    self.heldJobStallCheckMs = try c.ifPresent("heldJobStallCheckMs")
     self.markCommitTimeoutMs = try c.ifPresent("markCommitTimeoutMs")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.accepts, as: "accepts")
-    try c.encodeIfPresent(self.heldJobStallCheckMs, as: "heldJobStallCheckMs")
-    try c.encodeIfPresent(self.heldJobStallMs, as: "heldJobStallMs")
     try c.encodeIfPresent(self.jobClaimTimeoutMs, as: "jobClaimTimeoutMs")
+    try c.encodeIfPresent(self.heldJobStallMs, as: "heldJobStallMs")
+    try c.encodeIfPresent(self.heldJobStallCheckMs, as: "heldJobStallCheckMs")
     try c.encodeIfPresent(self.markCommitTimeoutMs, as: "markCommitTimeoutMs")
   }
 }
 
 public struct ClientSecretForm: Codable, Sendable, Hashable {
+  public let grantType: ClientSecretFormGrantType
   public var clientId: String
   public var clientSecret: String
-  public let grantType: ClientSecretFormGrantType
   public init(clientId: String, clientSecret: String) {
+    self.grantType = .clientCredentials
     self.clientId = clientId
     self.clientSecret = clientSecret
-    self.grantType = .clientCredentials
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.grantType = try c.value("grant_type")
     self.clientId = try c.value("client_id")
     self.clientSecret = try c.value("client_secret")
-    self.grantType = try c.value("grant_type")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.grantType, as: "grant_type")
     try c.encode(self.clientId, as: "client_id")
     try c.encode(self.clientSecret, as: "client_secret")
-    try c.encode(self.grantType, as: "grant_type")
   }
 }
 
@@ -3375,48 +3559,48 @@ public enum ClientSecretFormGrantType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct CloneResourceWithTokenResponse: Codable, Sendable, Hashable {
+  public var token: String
   public var expiresAt: String
   public var resource: ResourceDescriptor
-  public var token: String
-  public init(expiresAt: String, resource: ResourceDescriptor, token: String) {
+  public init(token: String, expiresAt: String, resource: ResourceDescriptor) {
+    self.token = token
     self.expiresAt = expiresAt
     self.resource = resource
-    self.token = token
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.token = try c.value("token")
     self.expiresAt = try c.value("expiresAt")
     self.resource = try c.value("resource")
-    self.token = try c.value("token")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.token, as: "token")
     try c.encode(self.expiresAt, as: "expiresAt")
     try c.encode(self.resource, as: "resource")
-    try c.encode(self.token, as: "token")
   }
 }
 
 public struct CommandError: Codable, Sendable, Hashable {
   public var code: CommandErrorCode?
-  public var details: String?
   public var message: String
-  public init(code: CommandErrorCode? = nil, details: String? = nil, message: String) {
+  public var details: String?
+  public init(code: CommandErrorCode? = nil, message: String, details: String? = nil) {
     self.code = code
-    self.details = details
     self.message = message
+    self.details = details
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.code = try c.ifPresent("code")
-    self.details = try c.ifPresent("details")
     self.message = try c.value("message")
+    self.details = try c.ifPresent("details")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.code, as: "code")
-    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.message, as: "message")
+    try c.encodeIfPresent(self.details, as: "details")
   }
 }
 
@@ -3428,43 +3612,43 @@ public enum CommandErrorCode: String, Codable, Sendable, CaseIterable {
 }
 
 public struct CommentingJobParams: Codable, Sendable, Hashable {
-  public var density: Double?
-  public var instructions: String?
-  public var language: String?
   public let motivation: CommentingJobParamsMotivation
-  public var sourceLanguage: String?
+  public var instructions: String?
   public var tone: CommentingJobParamsTone?
+  public var density: Double?
+  public var language: String?
+  public var sourceLanguage: String?
   public init(
-    density: Double? = nil, instructions: String? = nil, language: String? = nil,
-    sourceLanguage: String? = nil, tone: CommentingJobParamsTone? = nil
+    instructions: String? = nil, tone: CommentingJobParamsTone? = nil, density: Double? = nil,
+    language: String? = nil, sourceLanguage: String? = nil
   ) {
-    self.density = density
-    self.instructions = instructions
-    self.language = language
     self.motivation = .commenting
-    self.sourceLanguage = sourceLanguage
+    self.instructions = instructions
     self.tone = tone
+    self.density = density
+    self.language = language
+    self.sourceLanguage = sourceLanguage
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["density", "instructions", "language", "motivation", "sourceLanguage", "tone"],
+      ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"],
       in: "CommentingJobParams")
-    self.density = try c.ifPresent("density")
-    self.instructions = try c.ifPresent("instructions")
-    self.language = try c.ifPresent("language")
     self.motivation = try c.value("motivation")
-    self.sourceLanguage = try c.ifPresent("sourceLanguage")
+    self.instructions = try c.ifPresent("instructions")
     self.tone = try c.ifPresent("tone")
+    self.density = try c.ifPresent("density")
+    self.language = try c.ifPresent("language")
+    self.sourceLanguage = try c.ifPresent("sourceLanguage")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.density, as: "density")
-    try c.encodeIfPresent(self.instructions, as: "instructions")
-    try c.encodeIfPresent(self.language, as: "language")
     try c.encode(self.motivation, as: "motivation")
-    try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
+    try c.encodeIfPresent(self.instructions, as: "instructions")
     try c.encodeIfPresent(self.tone, as: "tone")
+    try c.encodeIfPresent(self.density, as: "density")
+    try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
   }
 }
 
@@ -3480,67 +3664,67 @@ public enum CommentingJobParamsTone: String, Codable, Sendable, CaseIterable {
 }
 
 public struct ConformanceBusFetch: Codable, Sendable, Hashable {
-  public var `as`: String
   public var fetch: String
   public var payload: JSONValue?
-  public init(`as`: String, fetch: String, payload: JSONValue? = nil) {
-    self.`as` = `as`
+  public var `as`: String
+  public init(fetch: String, payload: JSONValue? = nil, `as`: String) {
     self.fetch = fetch
     self.payload = payload
+    self.`as` = `as`
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["as", "fetch", "payload"], in: "ConformanceBusFetch")
-    self.`as` = try c.value("as")
+    try c.refuseUnknown(["fetch", "payload", "as"], in: "ConformanceBusFetch")
     self.fetch = try c.value("fetch")
     self.payload = try c.ifPresent("payload")
+    self.`as` = try c.value("as")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.`as`, as: "as")
     try c.encode(self.fetch, as: "fetch")
     try c.encodeIfPresent(self.payload, as: "payload")
+    try c.encode(self.`as`, as: "as")
   }
 }
 
 public struct ConformanceCase: Codable, Sendable, Hashable {
   public var about: String
-  public var planes: [ConformanceCasePlanesItem]?
   public var source: String
-  public var steps: [ConformanceStep]
-  public var telemetry: ConformanceCaseTelemetry?
+  public var planes: [ConformanceCasePlanesItem]?
   public var tier: ConformanceCaseTier?
+  public var telemetry: ConformanceCaseTelemetry?
+  public var steps: [ConformanceStep]
   public init(
-    about: String, planes: [ConformanceCasePlanesItem]? = nil, source: String,
-    steps: [ConformanceStep], telemetry: ConformanceCaseTelemetry? = nil,
-    tier: ConformanceCaseTier? = nil
+    about: String, source: String, planes: [ConformanceCasePlanesItem]? = nil,
+    tier: ConformanceCaseTier? = nil, telemetry: ConformanceCaseTelemetry? = nil,
+    steps: [ConformanceStep]
   ) {
     self.about = about
-    self.planes = planes
     self.source = source
-    self.steps = steps
-    self.telemetry = telemetry
+    self.planes = planes
     self.tier = tier
+    self.telemetry = telemetry
+    self.steps = steps
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["about", "planes", "source", "steps", "telemetry", "tier"], in: "ConformanceCase")
+      ["about", "source", "planes", "tier", "telemetry", "steps"], in: "ConformanceCase")
     self.about = try c.value("about")
-    self.planes = try c.ifPresent("planes")
     self.source = try c.value("source")
-    self.steps = try c.value("steps")
-    self.telemetry = try c.ifPresent("telemetry")
+    self.planes = try c.ifPresent("planes")
     self.tier = try c.ifPresent("tier")
+    self.telemetry = try c.ifPresent("telemetry")
+    self.steps = try c.value("steps")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.about, as: "about")
-    try c.encodeIfPresent(self.planes, as: "planes")
     try c.encode(self.source, as: "source")
-    try c.encode(self.steps, as: "steps")
-    try c.encodeIfPresent(self.telemetry, as: "telemetry")
+    try c.encodeIfPresent(self.planes, as: "planes")
     try c.encodeIfPresent(self.tier, as: "tier")
+    try c.encodeIfPresent(self.telemetry, as: "telemetry")
+    try c.encode(self.steps, as: "steps")
   }
 }
 
@@ -3586,75 +3770,113 @@ public indirect enum ConformanceDriverLine: Codable, Sendable, Hashable {
   case refused(ConformanceDriverLineRefused)
   case signalled(ConformanceDriverLineSignalled)
   case stalled(ConformanceDriverLineStalled)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["ready"], allowed: ["ready"],
+        fixed: [.init(property: "ready", values: [.boolean(true)])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "ok"], allowed: ["id", "ok"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "error"], allowed: ["id", "error"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "abandoned"], allowed: ["id", "abandoned"],
+        fixed: [.init(property: "abandoned", values: [.boolean(true)])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "unsupported"], allowed: ["id", "unsupported"],
+        fixed: [.init(property: "unsupported", values: [.boolean(true)])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "misuse"], allowed: ["id", "misuse"], fixed: [], values: nil
+      )
+    ],
+    [
+      UnionSignature(kind: .object, required: ["state"], allowed: ["state"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["frame"], allowed: ["frame"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["error"], allowed: ["error"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["progress"], allowed: ["progress"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["emission"], allowed: ["emission"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["completed"], allowed: ["completed"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["claimed"], allowed: ["claimed"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["refused"], allowed: ["refused"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["signalled"], allowed: ["signalled"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["stalled"], allowed: ["stalled"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ConformanceDriverLineReady(from: decoder) {
-      self = .ready(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineOk(from: decoder) {
-      self = .ok(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineFailed(from: decoder) {
-      self = .failed(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineAbandoned(from: decoder) {
-      self = .abandoned(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineUnsupported(from: decoder) {
-      self = .unsupported(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineMisuse(from: decoder) {
-      self = .misuse(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineState(from: decoder) {
-      self = .state(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineFrame(from: decoder) {
-      self = .frame(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineErrorStream(from: decoder) {
-      self = .errorStream(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineProgress(from: decoder) {
-      self = .progress(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineEmission(from: decoder) {
-      self = .emission(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineCompleted(from: decoder) {
-      self = .completed(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineClaimed(from: decoder) {
-      self = .claimed(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineRefused(from: decoder) {
-      self = .refused(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineSignalled(from: decoder) {
-      self = .signalled(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineStalled(from: decoder) {
-      self = .stalled(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of ConformanceDriverLine fits")
-    )
+    self = try UnionSignature.decode(
+      from: decoder, union: "ConformanceDriverLine", members: Self.members,
+      variants: [
+        ("ready", { decoder in try Self.ready(ConformanceDriverLineReady(from: decoder)) }),
+        ("ok", { decoder in try Self.ok(ConformanceDriverLineOk(from: decoder)) }),
+        ("failed", { decoder in try Self.failed(ConformanceDriverLineFailed(from: decoder)) }),
+        (
+          "abandoned",
+          { decoder in try Self.abandoned(ConformanceDriverLineAbandoned(from: decoder)) }
+        ),
+        (
+          "unsupported",
+          { decoder in try Self.unsupported(ConformanceDriverLineUnsupported(from: decoder)) }
+        ),
+        ("misuse", { decoder in try Self.misuse(ConformanceDriverLineMisuse(from: decoder)) }),
+        ("state", { decoder in try Self.state(ConformanceDriverLineState(from: decoder)) }),
+        ("frame", { decoder in try Self.frame(ConformanceDriverLineFrame(from: decoder)) }),
+        (
+          "errorStream",
+          { decoder in try Self.errorStream(ConformanceDriverLineErrorStream(from: decoder)) }
+        ),
+        (
+          "progress", { decoder in try Self.progress(ConformanceDriverLineProgress(from: decoder)) }
+        ),
+        (
+          "emission", { decoder in try Self.emission(ConformanceDriverLineEmission(from: decoder)) }
+        ),
+        (
+          "completed",
+          { decoder in try Self.completed(ConformanceDriverLineCompleted(from: decoder)) }
+        ),
+        ("claimed", { decoder in try Self.claimed(ConformanceDriverLineClaimed(from: decoder)) }),
+        ("refused", { decoder in try Self.refused(ConformanceDriverLineRefused(from: decoder)) }),
+        (
+          "signalled",
+          { decoder in try Self.signalled(ConformanceDriverLineSignalled(from: decoder)) }
+        ),
+        ("stalled", { decoder in try Self.stalled(ConformanceDriverLineStalled(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -3679,22 +3901,22 @@ public indirect enum ConformanceDriverLine: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceDriverLineAbandoned: Codable, Sendable, Hashable {
-  public let abandoned: ConformanceDriverLineAbandonedAbandoned
   public var id: Int
+  public let abandoned: ConformanceDriverLineAbandonedAbandoned
   public init(id: Int) {
-    self.abandoned = .value
     self.id = id
+    self.abandoned = .value
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["abandoned", "id"], in: "ConformanceDriverLineAbandoned")
-    self.abandoned = try c.value("abandoned")
+    try c.refuseUnknown(["id", "abandoned"], in: "ConformanceDriverLineAbandoned")
     self.id = try c.value("id")
+    self.abandoned = try c.value("abandoned")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.abandoned, as: "abandoned")
     try c.encode(self.id, as: "id")
+    try c.encode(self.abandoned, as: "abandoned")
   }
 }
 
@@ -3786,23 +4008,46 @@ public indirect enum ConformanceDriverLineEmissionEmissionState: Codable, Sendab
   case pending(ConformanceDriverLineEmissionEmissionStatePending)
   case ready(ConformanceDriverLineEmissionEmissionStateReady)
   case failed(ConformanceDriverLineEmissionEmissionStateFailed)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["status"], allowed: ["status"],
+        fixed: [.init(property: "status", values: [.text("pending")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "value"], allowed: ["status", "value"],
+        fixed: [.init(property: "status", values: [.text("ready")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "error"], allowed: ["status", "error"],
+        fixed: [.init(property: "status", values: [.text("failed")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ConformanceDriverLineEmissionEmissionStatePending(from: decoder) {
-      self = .pending(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineEmissionEmissionStateReady(from: decoder) {
-      self = .ready(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineEmissionEmissionStateFailed(from: decoder) {
-      self = .failed(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ConformanceDriverLineEmissionEmissionState fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ConformanceDriverLineEmissionEmissionState", members: Self.members,
+      variants: [
+        (
+          "pending",
+          { decoder in
+            try Self.pending(ConformanceDriverLineEmissionEmissionStatePending(from: decoder))
+          }
+        ),
+        (
+          "ready",
+          { decoder in
+            try Self.ready(ConformanceDriverLineEmissionEmissionStateReady(from: decoder))
+          }
+        ),
+        (
+          "failed",
+          { decoder in
+            try Self.failed(ConformanceDriverLineEmissionEmissionStateFailed(from: decoder))
+          }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -3814,23 +4059,23 @@ public indirect enum ConformanceDriverLineEmissionEmissionState: Codable, Sendab
 }
 
 public struct ConformanceDriverLineEmissionEmissionStateFailed: Codable, Sendable, Hashable {
-  public var error: ConformanceFailure
   public let status: ConformanceDriverLineEmissionEmissionStateFailedStatus
+  public var error: ConformanceFailure
   public init(error: ConformanceFailure) {
-    self.error = error
     self.status = .failed
+    self.error = error
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["error", "status"], in: "ConformanceDriverLineEmissionEmissionStateFailed")
-    self.error = try c.value("error")
+      ["status", "error"], in: "ConformanceDriverLineEmissionEmissionStateFailed")
     self.status = try c.value("status")
+    self.error = try c.value("error")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.error, as: "error")
     try c.encode(self.status, as: "status")
+    try c.encode(self.error, as: "error")
   }
 }
 
@@ -3905,22 +4150,22 @@ public struct ConformanceDriverLineErrorStream: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceDriverLineFailed: Codable, Sendable, Hashable {
-  public var error: ConformanceFailure
   public var id: Int
-  public init(error: ConformanceFailure, id: Int) {
-    self.error = error
+  public var error: ConformanceFailure
+  public init(id: Int, error: ConformanceFailure) {
     self.id = id
+    self.error = error
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["error", "id"], in: "ConformanceDriverLineFailed")
-    self.error = try c.value("error")
+    try c.refuseUnknown(["id", "error"], in: "ConformanceDriverLineFailed")
     self.id = try c.value("id")
+    self.error = try c.value("error")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.error, as: "error")
     try c.encode(self.id, as: "id")
+    try c.encode(self.error, as: "error")
   }
 }
 
@@ -3942,32 +4187,32 @@ public struct ConformanceDriverLineFrame: Codable, Sendable, Hashable {
 
 public struct ConformanceDriverLineFrameFrame: Codable, Sendable, Hashable {
   public var channel: String
-  public var correlationId: String?
   public var payload: JSONValue?
+  public var correlationId: String?
   public var scope: ResourceId?
   public init(
-    channel: String, correlationId: String? = nil, payload: JSONValue? = nil,
+    channel: String, payload: JSONValue? = nil, correlationId: String? = nil,
     scope: ResourceId? = nil
   ) {
     self.channel = channel
-    self.correlationId = correlationId
     self.payload = payload
+    self.correlationId = correlationId
     self.scope = scope
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["channel", "correlationId", "payload", "scope"], in: "ConformanceDriverLineFrameFrame")
+      ["channel", "payload", "correlationId", "scope"], in: "ConformanceDriverLineFrameFrame")
     self.channel = try c.value("channel")
-    self.correlationId = try c.ifPresent("correlationId")
     self.payload = try c.ifPresent("payload")
+    self.correlationId = try c.ifPresent("correlationId")
     self.scope = try c.ifPresent("scope")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.channel, as: "channel")
-    try c.encodeIfPresent(self.correlationId, as: "correlationId")
     try c.encodeIfPresent(self.payload, as: "payload")
+    try c.encodeIfPresent(self.correlationId, as: "correlationId")
     try c.encodeIfPresent(self.scope, as: "scope")
   }
 }
@@ -4029,27 +4274,27 @@ public struct ConformanceDriverLineProgress: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceDriverLineProgressProgress: Codable, Sendable, Hashable {
+  public var upload: Int
   public var bytesUploaded: Int
   public var totalBytes: Int
-  public var upload: Int
-  public init(bytesUploaded: Int, totalBytes: Int, upload: Int) {
+  public init(upload: Int, bytesUploaded: Int, totalBytes: Int) {
+    self.upload = upload
     self.bytesUploaded = bytesUploaded
     self.totalBytes = totalBytes
-    self.upload = upload
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["bytesUploaded", "totalBytes", "upload"], in: "ConformanceDriverLineProgressProgress")
+      ["upload", "bytesUploaded", "totalBytes"], in: "ConformanceDriverLineProgressProgress")
+    self.upload = try c.value("upload")
     self.bytesUploaded = try c.value("bytesUploaded")
     self.totalBytes = try c.value("totalBytes")
-    self.upload = try c.value("upload")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.upload, as: "upload")
     try c.encode(self.bytesUploaded, as: "bytesUploaded")
     try c.encode(self.totalBytes, as: "totalBytes")
-    try c.encode(self.upload, as: "upload")
   }
 }
 
@@ -4187,31 +4432,31 @@ public enum ConformanceDriverLineUnsupportedUnsupported: Codable, Sendable, Hash
 
 public struct ConformanceFailure: Codable, Sendable, Hashable {
   public var code: String?
-  public var detail: String
-  public var failureClass: FailureClass?
   public var status: Int?
+  public var failureClass: FailureClass?
+  public var detail: String
   public init(
-    code: String? = nil, detail: String, failureClass: FailureClass? = nil, status: Int? = nil
+    code: String? = nil, status: Int? = nil, failureClass: FailureClass? = nil, detail: String
   ) {
     self.code = code
-    self.detail = detail
-    self.failureClass = failureClass
     self.status = status
+    self.failureClass = failureClass
+    self.detail = detail
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["code", "detail", "failureClass", "status"], in: "ConformanceFailure")
+    try c.refuseUnknown(["code", "status", "failureClass", "detail"], in: "ConformanceFailure")
     self.code = try c.ifPresent("code")
-    self.detail = try c.value("detail")
-    self.failureClass = try c.ifPresent("failureClass")
     self.status = try c.ifPresent("status")
+    self.failureClass = try c.ifPresent("failureClass")
+    self.detail = try c.value("detail")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.code, as: "code")
-    try c.encode(self.detail, as: "detail")
-    try c.encodeIfPresent(self.failureClass, as: "failureClass")
     try c.encodeIfPresent(self.status, as: "status")
+    try c.encodeIfPresent(self.failureClass, as: "failureClass")
+    try c.encode(self.detail, as: "detail")
   }
 }
 
@@ -4237,65 +4482,65 @@ public struct ConformanceHttpFetch: Codable, Sendable, Hashable {
 
 public struct ConformanceImplementations: Codable, Sendable, Hashable {
   public var launcher: [String]
-  public var modelCatalogue: String?
-  public var sdks: [String: ConformanceImplementationsSdksValue]
   public var target: LocalTarget
+  public var sdks: [String: ConformanceImplementationsSdksValue]
+  public var modelCatalogue: String?
   public init(
-    launcher: [String], modelCatalogue: String? = nil,
-    sdks: [String: ConformanceImplementationsSdksValue], target: LocalTarget
+    launcher: [String], target: LocalTarget, sdks: [String: ConformanceImplementationsSdksValue],
+    modelCatalogue: String? = nil
   ) {
     self.launcher = launcher
-    self.modelCatalogue = modelCatalogue
-    self.sdks = sdks
     self.target = target
+    self.sdks = sdks
+    self.modelCatalogue = modelCatalogue
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["launcher", "modelCatalogue", "sdks", "target"], in: "ConformanceImplementations")
+      ["launcher", "target", "sdks", "modelCatalogue"], in: "ConformanceImplementations")
     self.launcher = try c.value("launcher")
-    self.modelCatalogue = try c.ifPresent("modelCatalogue")
-    self.sdks = try c.value("sdks")
     self.target = try c.value("target")
+    self.sdks = try c.value("sdks")
+    self.modelCatalogue = try c.ifPresent("modelCatalogue")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.launcher, as: "launcher")
-    try c.encodeIfPresent(self.modelCatalogue, as: "modelCatalogue")
-    try c.encode(self.sdks, as: "sdks")
     try c.encode(self.target, as: "target")
+    try c.encode(self.sdks, as: "sdks")
+    try c.encodeIfPresent(self.modelCatalogue, as: "modelCatalogue")
   }
 }
 
 public struct ConformanceImplementationsSdksValue: Codable, Sendable, Hashable {
-  public var exempt: [String: String]?
-  public var live: ConformanceImplementationsSdksValueLive?
   public var wire: [String]?
+  public var live: ConformanceImplementationsSdksValueLive?
   public var worker: [String]?
+  public var exempt: [String: String]?
   public init(
-    exempt: [String: String]? = nil, live: ConformanceImplementationsSdksValueLive? = nil,
-    wire: [String]? = nil, worker: [String]? = nil
+    wire: [String]? = nil, live: ConformanceImplementationsSdksValueLive? = nil,
+    worker: [String]? = nil, exempt: [String: String]? = nil
   ) {
-    self.exempt = exempt
-    self.live = live
     self.wire = wire
+    self.live = live
     self.worker = worker
+    self.exempt = exempt
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["exempt", "live", "wire", "worker"], in: "ConformanceImplementationsSdksValue")
-    self.exempt = try c.ifPresent("exempt")
-    self.live = try c.ifPresent("live")
+      ["wire", "live", "worker", "exempt"], in: "ConformanceImplementationsSdksValue")
     self.wire = try c.ifPresent("wire")
+    self.live = try c.ifPresent("live")
     self.worker = try c.ifPresent("worker")
+    self.exempt = try c.ifPresent("exempt")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.exempt, as: "exempt")
-    try c.encodeIfPresent(self.live, as: "live")
     try c.encodeIfPresent(self.wire, as: "wire")
+    try c.encodeIfPresent(self.live, as: "live")
     try c.encodeIfPresent(self.worker, as: "worker")
+    try c.encodeIfPresent(self.exempt, as: "exempt")
   }
 }
 
@@ -4353,121 +4598,197 @@ public indirect enum ConformanceStep: Codable, Sendable, Hashable {
   case refused(ConformanceStepRefused)
   case signalled(ConformanceStepSignalled)
   case stalled(ConformanceStepStalled)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .object, required: ["let"], allowed: ["let"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["driver"], allowed: ["driver", "with", "returns", "fails", "as"],
+        fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["abandon"], allowed: ["abandon"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["settles"],
+        allowed: ["settles", "returns", "fails", "abandoned"],
+        fixed: [.init(property: "abandoned", values: [.boolean(true)])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["wire"],
+        allowed: [
+          "wire", "at", "status", "params", "body", "token", "headers", "answer", "as", "follows",
+          "waited",
+        ],
+        fixed: [.init(property: "at", values: [.text("arrival"), .text("answer"), .text("live")])],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["carried", "is"], allowed: ["carried", "is"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["closed"], allowed: ["closed"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["progress"], allowed: ["progress"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["state"], allowed: ["state"],
+        fixed: [
+          .init(
+            property: "state",
+            values: [
+              .text("initial"), .text("connecting"), .text("open"), .text("reconnecting"),
+              .text("degraded"), .text("unauthenticated"), .text("closed"),
+            ])
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["stays"], allowed: ["stays"],
+        fixed: [
+          .init(
+            property: "stays",
+            values: [
+              .text("initial"), .text("connecting"), .text("open"), .text("reconnecting"),
+              .text("degraded"), .text("unauthenticated"), .text("closed"),
+            ])
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["frame", "is"], allowed: ["frame", "is"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["frames", "count"], allowed: ["frames", "count"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["error"], allowed: ["error"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["backend"], allowed: ["backend", "with"],
+        fixed: [
+          .init(
+            property: "backend",
+            values: [
+              .text("listen"), .text("emit"), .text("record"), .text("content"),
+              .text("description"), .text("annotations"), .text("anchored-text"), .text("uploaded"),
+              .text("refuse"), .text("unanswered"), .text("answer-lost"), .text("hold"),
+              .text("release"), .text("rechunk"), .text("carry"), .text("cut"), .text("down"),
+              .text("up"), .text("archivist"),
+            ])
+        ], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["quiet"], allowed: ["quiet"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["observe", "as"], allowed: ["observe", "as"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["leave"], allowed: ["leave"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["reaches", "state"], allowed: ["reaches", "state"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["holds", "state"], allowed: ["holds", "state"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["completes"], allowed: ["completes"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["fetch", "as"], allowed: ["fetch", "payload", "as"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["fetch"], allowed: ["fetch", "params"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["fetches"], allowed: ["fetches"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["scopes"], allowed: ["scopes"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["claimed"], allowed: ["claimed"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["refused"], allowed: ["refused"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["signalled"], allowed: ["signalled"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["stalled"], allowed: ["stalled"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ConformanceStepLet(from: decoder) {
-      self = .`let`(value)
-      return
-    }
-    if let value = try? ConformanceStepDriver(from: decoder) {
-      self = .driver(value)
-      return
-    }
-    if let value = try? ConformanceStepAbandon(from: decoder) {
-      self = .abandon(value)
-      return
-    }
-    if let value = try? ConformanceStepSettles(from: decoder) {
-      self = .settles(value)
-      return
-    }
-    if let value = try? ConformanceStepWire(from: decoder) {
-      self = .wire(value)
-      return
-    }
-    if let value = try? ConformanceStepCarried(from: decoder) {
-      self = .carried(value)
-      return
-    }
-    if let value = try? ConformanceStepClosed(from: decoder) {
-      self = .closed(value)
-      return
-    }
-    if let value = try? ConformanceStepProgress(from: decoder) {
-      self = .progress(value)
-      return
-    }
-    if let value = try? ConformanceStepState(from: decoder) {
-      self = .state(value)
-      return
-    }
-    if let value = try? ConformanceStepStays(from: decoder) {
-      self = .stays(value)
-      return
-    }
-    if let value = try? ConformanceStepFrame(from: decoder) {
-      self = .frame(value)
-      return
-    }
-    if let value = try? ConformanceStepFrames(from: decoder) {
-      self = .frames(value)
-      return
-    }
-    if let value = try? ConformanceStepError(from: decoder) {
-      self = .error(value)
-      return
-    }
-    if let value = try? ConformanceStepBackend(from: decoder) {
-      self = .backend(value)
-      return
-    }
-    if let value = try? ConformanceStepQuiet(from: decoder) {
-      self = .quiet(value)
-      return
-    }
-    if let value = try? ConformanceStepObserve(from: decoder) {
-      self = .observe(value)
-      return
-    }
-    if let value = try? ConformanceStepLeave(from: decoder) {
-      self = .leave(value)
-      return
-    }
-    if let value = try? ConformanceStepReaches(from: decoder) {
-      self = .reaches(value)
-      return
-    }
-    if let value = try? ConformanceStepHolds(from: decoder) {
-      self = .holds(value)
-      return
-    }
-    if let value = try? ConformanceStepCompletes(from: decoder) {
-      self = .completes(value)
-      return
-    }
-    if let value = try? ConformanceBusFetch(from: decoder) {
-      self = .conformanceBusFetch(value)
-      return
-    }
-    if let value = try? ConformanceHttpFetch(from: decoder) {
-      self = .conformanceHttpFetch(value)
-      return
-    }
-    if let value = try? ConformanceStepFetches(from: decoder) {
-      self = .fetches(value)
-      return
-    }
-    if let value = try? ConformanceStepScopes(from: decoder) {
-      self = .scopes(value)
-      return
-    }
-    if let value = try? ConformanceStepClaimed(from: decoder) {
-      self = .claimed(value)
-      return
-    }
-    if let value = try? ConformanceStepRefused(from: decoder) {
-      self = .refused(value)
-      return
-    }
-    if let value = try? ConformanceStepSignalled(from: decoder) {
-      self = .signalled(value)
-      return
-    }
-    if let value = try? ConformanceStepStalled(from: decoder) {
-      self = .stalled(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of ConformanceStep fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ConformanceStep", members: Self.members,
+      variants: [
+        ("let", { decoder in try Self.`let`(ConformanceStepLet(from: decoder)) }),
+        ("driver", { decoder in try Self.driver(ConformanceStepDriver(from: decoder)) }),
+        ("abandon", { decoder in try Self.abandon(ConformanceStepAbandon(from: decoder)) }),
+        ("settles", { decoder in try Self.settles(ConformanceStepSettles(from: decoder)) }),
+        ("wire", { decoder in try Self.wire(ConformanceStepWire(from: decoder)) }),
+        ("carried", { decoder in try Self.carried(ConformanceStepCarried(from: decoder)) }),
+        ("closed", { decoder in try Self.closed(ConformanceStepClosed(from: decoder)) }),
+        ("progress", { decoder in try Self.progress(ConformanceStepProgress(from: decoder)) }),
+        ("state", { decoder in try Self.state(ConformanceStepState(from: decoder)) }),
+        ("stays", { decoder in try Self.stays(ConformanceStepStays(from: decoder)) }),
+        ("frame", { decoder in try Self.frame(ConformanceStepFrame(from: decoder)) }),
+        ("frames", { decoder in try Self.frames(ConformanceStepFrames(from: decoder)) }),
+        ("error", { decoder in try Self.error(ConformanceStepError(from: decoder)) }),
+        ("backend", { decoder in try Self.backend(ConformanceStepBackend(from: decoder)) }),
+        ("quiet", { decoder in try Self.quiet(ConformanceStepQuiet(from: decoder)) }),
+        ("observe", { decoder in try Self.observe(ConformanceStepObserve(from: decoder)) }),
+        ("leave", { decoder in try Self.leave(ConformanceStepLeave(from: decoder)) }),
+        ("reaches", { decoder in try Self.reaches(ConformanceStepReaches(from: decoder)) }),
+        ("holds", { decoder in try Self.holds(ConformanceStepHolds(from: decoder)) }),
+        ("completes", { decoder in try Self.completes(ConformanceStepCompletes(from: decoder)) }),
+        (
+          "conformanceBusFetch",
+          { decoder in try Self.conformanceBusFetch(ConformanceBusFetch(from: decoder)) }
+        ),
+        (
+          "conformanceHttpFetch",
+          { decoder in try Self.conformanceHttpFetch(ConformanceHttpFetch(from: decoder)) }
+        ),
+        ("fetches", { decoder in try Self.fetches(ConformanceStepFetches(from: decoder)) }),
+        ("scopes", { decoder in try Self.scopes(ConformanceStepScopes(from: decoder)) }),
+        ("claimed", { decoder in try Self.claimed(ConformanceStepClaimed(from: decoder)) }),
+        ("refused", { decoder in try Self.refused(ConformanceStepRefused(from: decoder)) }),
+        ("signalled", { decoder in try Self.signalled(ConformanceStepSignalled(from: decoder)) }),
+        ("stalled", { decoder in try Self.stalled(ConformanceStepStalled(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -4630,37 +4951,37 @@ public struct ConformanceStepCompletes: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceStepDriver: Codable, Sendable, Hashable {
-  public var `as`: String?
   public var driver: String
-  public var fails: JSONValue?
-  public var returns: JSONValue?
   public var with: [String: JSONValue]?
+  public var returns: JSONValue?
+  public var fails: JSONValue?
+  public var `as`: String?
   public init(
-    `as`: String? = nil, driver: String, fails: JSONValue? = nil, returns: JSONValue? = nil,
-    with: [String: JSONValue]? = nil
+    driver: String, with: [String: JSONValue]? = nil, returns: JSONValue? = nil,
+    fails: JSONValue? = nil, `as`: String? = nil
   ) {
-    self.`as` = `as`
     self.driver = driver
-    self.fails = fails
-    self.returns = returns
     self.with = with
+    self.returns = returns
+    self.fails = fails
+    self.`as` = `as`
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["as", "driver", "fails", "returns", "with"], in: "ConformanceStepDriver")
-    self.`as` = try c.ifPresent("as")
+    try c.refuseUnknown(["driver", "with", "returns", "fails", "as"], in: "ConformanceStepDriver")
     self.driver = try c.value("driver")
-    self.fails = try c.ifPresent("fails")
-    self.returns = try c.ifPresent("returns")
     self.with = try c.ifPresent("with")
+    self.returns = try c.ifPresent("returns")
+    self.fails = try c.ifPresent("fails")
+    self.`as` = try c.ifPresent("as")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.`as`, as: "as")
     try c.encode(self.driver, as: "driver")
-    try c.encodeIfPresent(self.fails, as: "fails")
-    try c.encodeIfPresent(self.returns, as: "returns")
     try c.encodeIfPresent(self.with, as: "with")
+    try c.encodeIfPresent(self.returns, as: "returns")
+    try c.encodeIfPresent(self.fails, as: "fails")
+    try c.encodeIfPresent(self.`as`, as: "as")
   }
 }
 
@@ -4699,19 +5020,30 @@ public struct ConformanceStepFetches: Codable, Sendable, Hashable {
 public indirect enum ConformanceStepFetchesFetchesItem: Codable, Sendable, Hashable {
   case conformanceBusFetch(ConformanceBusFetch)
   case conformanceHttpFetch(ConformanceHttpFetch)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["fetch", "as"], allowed: ["fetch", "payload", "as"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["fetch"], allowed: ["fetch", "params"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ConformanceBusFetch(from: decoder) {
-      self = .conformanceBusFetch(value)
-      return
-    }
-    if let value = try? ConformanceHttpFetch(from: decoder) {
-      self = .conformanceHttpFetch(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ConformanceStepFetchesFetchesItem fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ConformanceStepFetchesFetchesItem", members: Self.members,
+      variants: [
+        (
+          "conformanceBusFetch",
+          { decoder in try Self.conformanceBusFetch(ConformanceBusFetch(from: decoder)) }
+        ),
+        (
+          "conformanceHttpFetch",
+          { decoder in try Self.conformanceHttpFetch(ConformanceHttpFetch(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -4742,22 +5074,22 @@ public struct ConformanceStepFrame: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceStepFrames: Codable, Sendable, Hashable {
-  public var count: Int
   public var frames: String
-  public init(count: Int, frames: String) {
-    self.count = count
+  public var count: Int
+  public init(frames: String, count: Int) {
     self.frames = frames
+    self.count = count
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["count", "frames"], in: "ConformanceStepFrames")
-    self.count = try c.value("count")
+    try c.refuseUnknown(["frames", "count"], in: "ConformanceStepFrames")
     self.frames = try c.value("frames")
+    self.count = try c.value("count")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.count, as: "count")
     try c.encode(self.frames, as: "frames")
+    try c.encode(self.count, as: "count")
   }
 }
 
@@ -4814,58 +5146,58 @@ public struct ConformanceStepLet: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceStepObserve: Codable, Sendable, Hashable {
-  public var `as`: String
   public var observe: ConformanceStepObserveObserve
-  public init(`as`: String, observe: ConformanceStepObserveObserve) {
-    self.`as` = `as`
+  public var `as`: String
+  public init(observe: ConformanceStepObserveObserve, `as`: String) {
     self.observe = observe
+    self.`as` = `as`
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["as", "observe"], in: "ConformanceStepObserve")
-    self.`as` = try c.value("as")
+    try c.refuseUnknown(["observe", "as"], in: "ConformanceStepObserve")
     self.observe = try c.value("observe")
+    self.`as` = try c.value("as")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.`as`, as: "as")
     try c.encode(self.observe, as: "observe")
+    try c.encode(self.`as`, as: "as")
   }
 }
 
 public struct ConformanceStepObserveObserve: Codable, Sendable, Hashable {
-  public var annotation: JSONValue?
-  public var filters: JSONValue?
   public var query: String
   public var resource: JSONValue?
+  public var annotation: JSONValue?
   public var search: JSONValue?
+  public var filters: JSONValue?
   public init(
-    annotation: JSONValue? = nil, filters: JSONValue? = nil, query: String,
-    resource: JSONValue? = nil, search: JSONValue? = nil
+    query: String, resource: JSONValue? = nil, annotation: JSONValue? = nil,
+    search: JSONValue? = nil, filters: JSONValue? = nil
   ) {
-    self.annotation = annotation
-    self.filters = filters
     self.query = query
     self.resource = resource
+    self.annotation = annotation
     self.search = search
+    self.filters = filters
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["annotation", "filters", "query", "resource", "search"], in: "ConformanceStepObserveObserve")
-    self.annotation = try c.ifPresent("annotation")
-    self.filters = try c.ifPresent("filters")
+      ["query", "resource", "annotation", "search", "filters"], in: "ConformanceStepObserveObserve")
     self.query = try c.value("query")
     self.resource = try c.ifPresent("resource")
+    self.annotation = try c.ifPresent("annotation")
     self.search = try c.ifPresent("search")
+    self.filters = try c.ifPresent("filters")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotation, as: "annotation")
-    try c.encodeIfPresent(self.filters, as: "filters")
     try c.encode(self.query, as: "query")
     try c.encodeIfPresent(self.resource, as: "resource")
+    try c.encodeIfPresent(self.annotation, as: "annotation")
     try c.encodeIfPresent(self.search, as: "search")
+    try c.encodeIfPresent(self.filters, as: "filters")
   }
 }
 
@@ -4954,33 +5286,33 @@ public struct ConformanceStepScopes: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceStepSettles: Codable, Sendable, Hashable {
-  public var abandoned: ConformanceStepSettlesAbandoned?
-  public var fails: JSONValue?
-  public var returns: JSONValue?
   public var settles: String
+  public var returns: JSONValue?
+  public var fails: JSONValue?
+  public var abandoned: ConformanceStepSettlesAbandoned?
   public init(
-    abandoned: ConformanceStepSettlesAbandoned? = nil, fails: JSONValue? = nil,
-    returns: JSONValue? = nil, settles: String
+    settles: String, returns: JSONValue? = nil, fails: JSONValue? = nil,
+    abandoned: ConformanceStepSettlesAbandoned? = nil
   ) {
-    self.abandoned = abandoned
-    self.fails = fails
-    self.returns = returns
     self.settles = settles
+    self.returns = returns
+    self.fails = fails
+    self.abandoned = abandoned
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["abandoned", "fails", "returns", "settles"], in: "ConformanceStepSettles")
-    self.abandoned = try c.ifPresent("abandoned")
-    self.fails = try c.ifPresent("fails")
-    self.returns = try c.ifPresent("returns")
+    try c.refuseUnknown(["settles", "returns", "fails", "abandoned"], in: "ConformanceStepSettles")
     self.settles = try c.value("settles")
+    self.returns = try c.ifPresent("returns")
+    self.fails = try c.ifPresent("fails")
+    self.abandoned = try c.ifPresent("abandoned")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.abandoned, as: "abandoned")
-    try c.encodeIfPresent(self.fails, as: "fails")
-    try c.encodeIfPresent(self.returns, as: "returns")
     try c.encode(self.settles, as: "settles")
+    try c.encodeIfPresent(self.returns, as: "returns")
+    try c.encodeIfPresent(self.fails, as: "fails")
+    try c.encodeIfPresent(self.abandoned, as: "abandoned")
   }
 }
 
@@ -5085,67 +5417,66 @@ public enum ConformanceStepStaysStays: String, Codable, Sendable, CaseIterable {
 }
 
 public struct ConformanceStepWire: Codable, Sendable, Hashable {
+  public var wire: String
+  public var at: ConformanceStepWireAt?
+  public var status: Int?
+  public var params: JSONValue?
+  public var body: JSONValue?
+  public var token: JSONValue?
+  public var headers: [String: JSONValue]?
   public var answer: JSONValue?
   public var `as`: String?
-  public var at: ConformanceStepWireAt?
-  public var body: JSONValue?
   public var follows: String?
-  public var headers: [String: JSONValue]?
-  public var params: JSONValue?
-  public var status: Int?
-  public var token: JSONValue?
   public var waited: String?
-  public var wire: String
   public init(
-    answer: JSONValue? = nil, `as`: String? = nil, at: ConformanceStepWireAt? = nil,
-    body: JSONValue? = nil, follows: String? = nil, headers: [String: JSONValue]? = nil,
-    params: JSONValue? = nil, status: Int? = nil, token: JSONValue? = nil, waited: String? = nil,
-    wire: String
+    wire: String, at: ConformanceStepWireAt? = nil, status: Int? = nil, params: JSONValue? = nil,
+    body: JSONValue? = nil, token: JSONValue? = nil, headers: [String: JSONValue]? = nil,
+    answer: JSONValue? = nil, `as`: String? = nil, follows: String? = nil, waited: String? = nil
   ) {
+    self.wire = wire
+    self.at = at
+    self.status = status
+    self.params = params
+    self.body = body
+    self.token = token
+    self.headers = headers
     self.answer = answer
     self.`as` = `as`
-    self.at = at
-    self.body = body
     self.follows = follows
-    self.headers = headers
-    self.params = params
-    self.status = status
-    self.token = token
     self.waited = waited
-    self.wire = wire
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "answer", "as", "at", "body", "follows", "headers", "params", "status", "token", "waited",
-        "wire",
+        "wire", "at", "status", "params", "body", "token", "headers", "answer", "as", "follows",
+        "waited",
       ], in: "ConformanceStepWire")
+    self.wire = try c.value("wire")
+    self.at = try c.ifPresent("at")
+    self.status = try c.ifPresent("status")
+    self.params = try c.ifPresent("params")
+    self.body = try c.ifPresent("body")
+    self.token = try c.ifPresent("token")
+    self.headers = try c.ifPresent("headers")
     self.answer = try c.ifPresent("answer")
     self.`as` = try c.ifPresent("as")
-    self.at = try c.ifPresent("at")
-    self.body = try c.ifPresent("body")
     self.follows = try c.ifPresent("follows")
-    self.headers = try c.ifPresent("headers")
-    self.params = try c.ifPresent("params")
-    self.status = try c.ifPresent("status")
-    self.token = try c.ifPresent("token")
     self.waited = try c.ifPresent("waited")
-    self.wire = try c.value("wire")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.wire, as: "wire")
+    try c.encodeIfPresent(self.at, as: "at")
+    try c.encodeIfPresent(self.status, as: "status")
+    try c.encodeIfPresent(self.params, as: "params")
+    try c.encodeIfPresent(self.body, as: "body")
+    try c.encodeIfPresent(self.token, as: "token")
+    try c.encodeIfPresent(self.headers, as: "headers")
     try c.encodeIfPresent(self.answer, as: "answer")
     try c.encodeIfPresent(self.`as`, as: "as")
-    try c.encodeIfPresent(self.at, as: "at")
-    try c.encodeIfPresent(self.body, as: "body")
     try c.encodeIfPresent(self.follows, as: "follows")
-    try c.encodeIfPresent(self.headers, as: "headers")
-    try c.encodeIfPresent(self.params, as: "params")
-    try c.encodeIfPresent(self.status, as: "status")
-    try c.encodeIfPresent(self.token, as: "token")
     try c.encodeIfPresent(self.waited, as: "waited")
-    try c.encode(self.wire, as: "wire")
   }
 }
 
@@ -5156,150 +5487,150 @@ public enum ConformanceStepWireAt: String, Codable, Sendable, CaseIterable {
 }
 
 public struct ConnectionIdentity: Codable, Sendable, Hashable {
-  public var description: KbDescription
   public var did: UserId
-  public init(description: KbDescription, did: UserId) {
-    self.description = description
+  public var description: KbDescription
+  public init(did: UserId, description: KbDescription) {
     self.did = did
+    self.description = description
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["description", "did"], in: "ConnectionIdentity")
-    self.description = try c.value("description")
+    try c.refuseUnknown(["did", "description"], in: "ConnectionIdentity")
     self.did = try c.value("did")
+    self.description = try c.value("description")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.description, as: "description")
     try c.encode(self.did, as: "did")
+    try c.encode(self.description, as: "description")
   }
 }
 
 public typealias ContentFormat = String
 
 public struct ContextualSummaryResponse: Codable, Sendable, Hashable {
-  public var context: ContextualSummaryResponseContext
-  public var relevantFields: ContextualSummaryResponseRelevantFields
   public var summary: String
+  public var relevantFields: ContextualSummaryResponseRelevantFields
+  public var context: ContextualSummaryResponseContext
   public init(
-    context: ContextualSummaryResponseContext,
-    relevantFields: ContextualSummaryResponseRelevantFields, summary: String
+    summary: String, relevantFields: ContextualSummaryResponseRelevantFields,
+    context: ContextualSummaryResponseContext
   ) {
-    self.context = context
-    self.relevantFields = relevantFields
     self.summary = summary
+    self.relevantFields = relevantFields
+    self.context = context
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.context = try c.value("context")
-    self.relevantFields = try c.value("relevantFields")
     self.summary = try c.value("summary")
+    self.relevantFields = try c.value("relevantFields")
+    self.context = try c.value("context")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.context, as: "context")
-    try c.encode(self.relevantFields, as: "relevantFields")
     try c.encode(self.summary, as: "summary")
+    try c.encode(self.relevantFields, as: "relevantFields")
+    try c.encode(self.context, as: "context")
   }
 }
 
 public struct ContextualSummaryResponseContext: Codable, Sendable, Hashable {
-  public var after: String?
   public var before: String?
   public var selected: String
-  public init(after: String? = nil, before: String? = nil, selected: String) {
-    self.after = after
+  public var after: String?
+  public init(before: String? = nil, selected: String, after: String? = nil) {
     self.before = before
     self.selected = selected
+    self.after = after
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.after = try c.ifPresent("after")
     self.before = try c.ifPresent("before")
     self.selected = try c.value("selected")
+    self.after = try c.ifPresent("after")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.after, as: "after")
     try c.encodeIfPresent(self.before, as: "before")
     try c.encode(self.selected, as: "selected")
+    try c.encodeIfPresent(self.after, as: "after")
   }
 }
 
 public struct ContextualSummaryResponseRelevantFields: Codable, Sendable, Hashable {
-  public var entityTypes: [String]
   public var resourceId: ResourceId
   public var resourceName: String
-  public init(entityTypes: [String], resourceId: ResourceId, resourceName: String) {
-    self.entityTypes = entityTypes
+  public var entityTypes: [String]
+  public init(resourceId: ResourceId, resourceName: String, entityTypes: [String]) {
     self.resourceId = resourceId
     self.resourceName = resourceName
+    self.entityTypes = entityTypes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["entityTypes", "resourceId", "resourceName"], in: "ContextualSummaryResponseRelevantFields")
-    self.entityTypes = try c.value("entityTypes")
+      ["resourceId", "resourceName", "entityTypes"], in: "ContextualSummaryResponseRelevantFields")
     self.resourceId = try c.value("resourceId")
     self.resourceName = try c.value("resourceName")
+    self.entityTypes = try c.value("entityTypes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.entityTypes, as: "entityTypes")
     try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.resourceName, as: "resourceName")
+    try c.encode(self.entityTypes, as: "entityTypes")
   }
 }
 
 public struct CreateAnnotationRequest: Codable, Sendable, Hashable {
-  public var body: AnnotationBodies?
   public var motivation: Motivation
   public var target: AnnotationTarget
-  public init(body: AnnotationBodies? = nil, motivation: Motivation, target: AnnotationTarget) {
-    self.body = body
+  public var body: AnnotationBodies?
+  public init(motivation: Motivation, target: AnnotationTarget, body: AnnotationBodies? = nil) {
     self.motivation = motivation
     self.target = target
+    self.body = body
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.body = try c.ifPresent("body")
     self.motivation = try c.value("motivation")
     self.target = try c.value("target")
+    self.body = try c.ifPresent("body")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.body, as: "body")
     try c.encode(self.motivation, as: "motivation")
     try c.encode(self.target, as: "target")
+    try c.encodeIfPresent(self.body, as: "body")
   }
 }
 
 public struct CreateFromTokenOptions: Codable, Sendable, Hashable {
-  public var archiveOriginal: Bool?
-  public var content: String
-  public var name: String
   public var token: String
-  public init(archiveOriginal: Bool? = nil, content: String, name: String, token: String) {
-    self.archiveOriginal = archiveOriginal
-    self.content = content
-    self.name = name
+  public var name: String
+  public var content: String
+  public var archiveOriginal: Bool?
+  public init(token: String, name: String, content: String, archiveOriginal: Bool? = nil) {
     self.token = token
+    self.name = name
+    self.content = content
+    self.archiveOriginal = archiveOriginal
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["archiveOriginal", "content", "name", "token"], in: "CreateFromTokenOptions")
-    self.archiveOriginal = try c.ifPresent("archiveOriginal")
-    self.content = try c.value("content")
-    self.name = try c.value("name")
+      ["token", "name", "content", "archiveOriginal"], in: "CreateFromTokenOptions")
     self.token = try c.value("token")
+    self.name = try c.value("name")
+    self.content = try c.value("content")
+    self.archiveOriginal = try c.ifPresent("archiveOriginal")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.archiveOriginal, as: "archiveOriginal")
-    try c.encode(self.content, as: "content")
-    try c.encode(self.name, as: "name")
     try c.encode(self.token, as: "token")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.content, as: "content")
+    try c.encodeIfPresent(self.archiveOriginal, as: "archiveOriginal")
   }
 }
 
@@ -5321,62 +5652,62 @@ public struct CreateResourceResponse: Codable, Sendable, Hashable {
 public typealias CursorsPath = String
 
 public struct DeviceCode: Codable, Sendable, Hashable {
-  public var expiresIn: Int
   public var userCode: String
   public var verificationUri: String
   public var verificationUriComplete: String?
+  public var expiresIn: Int
   public init(
-    expiresIn: Int, userCode: String, verificationUri: String,
-    verificationUriComplete: String? = nil
+    userCode: String, verificationUri: String, verificationUriComplete: String? = nil,
+    expiresIn: Int
   ) {
-    self.expiresIn = expiresIn
     self.userCode = userCode
     self.verificationUri = verificationUri
     self.verificationUriComplete = verificationUriComplete
+    self.expiresIn = expiresIn
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["expiresIn", "userCode", "verificationUri", "verificationUriComplete"], in: "DeviceCode")
-    self.expiresIn = try c.value("expiresIn")
+      ["userCode", "verificationUri", "verificationUriComplete", "expiresIn"], in: "DeviceCode")
     self.userCode = try c.value("userCode")
     self.verificationUri = try c.value("verificationUri")
     self.verificationUriComplete = try c.ifPresent("verificationUriComplete")
+    self.expiresIn = try c.value("expiresIn")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.expiresIn, as: "expiresIn")
     try c.encode(self.userCode, as: "userCode")
     try c.encode(self.verificationUri, as: "verificationUri")
     try c.encodeIfPresent(self.verificationUriComplete, as: "verificationUriComplete")
+    try c.encode(self.expiresIn, as: "expiresIn")
   }
 }
 
 public struct DirEntry: Codable, Sendable, Hashable {
-  public var mtime: String
+  public let type: DirEntryType
   public var name: String
   public var path: String
-  public let type: DirEntryType
-  public init(mtime: String, name: String, path: String) {
-    self.mtime = mtime
+  public var mtime: String
+  public init(name: String, path: String, mtime: String) {
+    self.type = .dir
     self.name = name
     self.path = path
-    self.type = .dir
+    self.mtime = mtime
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["mtime", "name", "path", "type"], in: "DirEntry")
-    self.mtime = try c.value("mtime")
+    try c.refuseUnknown(["type", "name", "path", "mtime"], in: "DirEntry")
+    self.type = try c.value("type")
     self.name = try c.value("name")
     self.path = try c.value("path")
-    self.type = try c.value("type")
+    self.mtime = try c.value("mtime")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.mtime, as: "mtime")
+    try c.encode(self.type, as: "type")
     try c.encode(self.name, as: "name")
     try c.encode(self.path, as: "path")
-    try c.encode(self.type, as: "type")
+    try c.encode(self.mtime, as: "mtime")
   }
 }
 
@@ -5387,16 +5718,29 @@ public enum DirEntryType: String, Codable, Sendable, CaseIterable {
 public indirect enum DirectoryEntry: Codable, Sendable, Hashable {
   case fileEntry(FileEntry)
   case dirEntry(DirEntry)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "name", "path", "size", "mtime", "tracked"],
+        allowed: [
+          "type", "name", "path", "size", "mtime", "tracked", "resourceId", "entityTypes",
+          "annotationCount", "creator",
+        ], fixed: [.init(property: "type", values: [.text("file")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "name", "path", "mtime"],
+        allowed: ["type", "name", "path", "mtime"],
+        fixed: [.init(property: "type", values: [.text("dir")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "file": self = .fileEntry(try FileEntry(from: decoder))
-    case "dir": self = .dirEntry(try DirEntry(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown DirectoryEntry discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "DirectoryEntry", members: Self.members,
+      variants: [
+        ("fileEntry", { decoder in try Self.fileEntry(FileEntry(from: decoder)) }),
+        ("dirEntry", { decoder in try Self.dirEntry(DirEntry(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -5407,44 +5751,44 @@ public indirect enum DirectoryEntry: Codable, Sendable, Hashable {
 }
 
 public struct DiscoveredKB: Codable, Sendable, Hashable {
-  public var did: String
   public var host: String
-  public var managedBy: String
-  public var placement: DiscoveredKBPlacement
   public var port: Int
+  public var placement: DiscoveredKBPlacement
   public var repo: String?
+  public var did: String
   public var siteName: String?
+  public var managedBy: String
   public init(
-    did: String, host: String, managedBy: String, placement: DiscoveredKBPlacement, port: Int,
-    repo: String? = nil, siteName: String? = nil
+    host: String, port: Int, placement: DiscoveredKBPlacement, repo: String? = nil, did: String,
+    siteName: String? = nil, managedBy: String
   ) {
-    self.did = did
     self.host = host
-    self.managedBy = managedBy
-    self.placement = placement
     self.port = port
+    self.placement = placement
     self.repo = repo
+    self.did = did
     self.siteName = siteName
+    self.managedBy = managedBy
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.did = try c.value("did")
     self.host = try c.value("host")
-    self.managedBy = try c.value("managedBy")
-    self.placement = try c.value("placement")
     self.port = try c.value("port")
+    self.placement = try c.value("placement")
     self.repo = try c.ifPresent("repo")
+    self.did = try c.value("did")
     self.siteName = try c.ifPresent("siteName")
+    self.managedBy = try c.value("managedBy")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.did, as: "did")
     try c.encode(self.host, as: "host")
-    try c.encode(self.managedBy, as: "managedBy")
-    try c.encode(self.placement, as: "placement")
     try c.encode(self.port, as: "port")
+    try c.encode(self.placement, as: "placement")
     try c.encodeIfPresent(self.repo, as: "repo")
+    try c.encode(self.did, as: "did")
     try c.encodeIfPresent(self.siteName, as: "siteName")
+    try c.encode(self.managedBy, as: "managedBy")
   }
 }
 
@@ -5454,21 +5798,21 @@ public enum DiscoveredKBPlacement: String, Codable, Sendable, CaseIterable {
 }
 
 public struct DiscoveryDocument: Codable, Sendable, Hashable {
-  public var kbs: [DiscoveredKB]
   public let version: DiscoveryDocumentVersion
+  public var kbs: [DiscoveredKB]
   public init(kbs: [DiscoveredKB]) {
-    self.kbs = kbs
     self.version = .value
+    self.kbs = kbs
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.kbs = try c.value("kbs")
     self.version = try c.value("version")
+    self.kbs = try c.value("kbs")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.kbs, as: "kbs")
     try c.encode(self.version, as: "version")
+    try c.encode(self.kbs, as: "kbs")
   }
 }
 
@@ -5488,142 +5832,142 @@ public enum DiscoveryDocumentVersion: Codable, Sendable, Hashable {
 }
 
 public struct DispatcherConfig: Codable, Sendable, Hashable {
+  public var kb: KbIdentity
   public var gatewayUrl: String
   public var identity: ServiceIdentity
-  public var kb: KbIdentity
-  public var logFormat: LogFormat
-  public var logLevel: LogLevel
-  public var port: Int
   public var queue: DispatcherConfigQueue
+  public var port: Int
   public var timing: DispatcherConfigTiming
+  public var logLevel: LogLevel
+  public var logFormat: LogFormat
   public init(
-    gatewayUrl: String, identity: ServiceIdentity, kb: KbIdentity, logFormat: LogFormat,
-    logLevel: LogLevel, port: Int, queue: DispatcherConfigQueue, timing: DispatcherConfigTiming
+    kb: KbIdentity, gatewayUrl: String, identity: ServiceIdentity, queue: DispatcherConfigQueue,
+    port: Int, timing: DispatcherConfigTiming, logLevel: LogLevel, logFormat: LogFormat
   ) {
+    self.kb = kb
     self.gatewayUrl = gatewayUrl
     self.identity = identity
-    self.kb = kb
-    self.logFormat = logFormat
-    self.logLevel = logLevel
-    self.port = port
     self.queue = queue
+    self.port = port
     self.timing = timing
+    self.logLevel = logLevel
+    self.logFormat = logFormat
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["gatewayUrl", "identity", "kb", "logFormat", "logLevel", "port", "queue", "timing"],
+      ["kb", "gatewayUrl", "identity", "queue", "port", "timing", "logLevel", "logFormat"],
       in: "DispatcherConfig")
+    self.kb = try c.value("kb")
     self.gatewayUrl = try c.value("gatewayUrl")
     self.identity = try c.value("identity")
-    self.kb = try c.value("kb")
-    self.logFormat = try c.value("logFormat")
-    self.logLevel = try c.value("logLevel")
-    self.port = try c.value("port")
     self.queue = try c.value("queue")
+    self.port = try c.value("port")
     self.timing = try c.value("timing")
+    self.logLevel = try c.value("logLevel")
+    self.logFormat = try c.value("logFormat")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kb, as: "kb")
     try c.encode(self.gatewayUrl, as: "gatewayUrl")
     try c.encode(self.identity, as: "identity")
-    try c.encode(self.kb, as: "kb")
-    try c.encode(self.logFormat, as: "logFormat")
-    try c.encode(self.logLevel, as: "logLevel")
-    try c.encode(self.port, as: "port")
     try c.encode(self.queue, as: "queue")
+    try c.encode(self.port, as: "port")
     try c.encode(self.timing, as: "timing")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.logFormat, as: "logFormat")
   }
 }
 
 public struct DispatcherConfigQueue: Codable, Sendable, Hashable {
-  public var passwordEnv: String?
   public var servers: String
   public var userEnv: String?
-  public init(passwordEnv: String? = nil, servers: String, userEnv: String? = nil) {
-    self.passwordEnv = passwordEnv
+  public var passwordEnv: String?
+  public init(servers: String, userEnv: String? = nil, passwordEnv: String? = nil) {
     self.servers = servers
     self.userEnv = userEnv
+    self.passwordEnv = passwordEnv
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["passwordEnv", "servers", "userEnv"], in: "DispatcherConfigQueue")
-    self.passwordEnv = try c.ifPresent("passwordEnv")
+    try c.refuseUnknown(["servers", "userEnv", "passwordEnv"], in: "DispatcherConfigQueue")
     self.servers = try c.value("servers")
     self.userEnv = try c.ifPresent("userEnv")
+    self.passwordEnv = try c.ifPresent("passwordEnv")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.passwordEnv, as: "passwordEnv")
     try c.encode(self.servers, as: "servers")
     try c.encodeIfPresent(self.userEnv, as: "userEnv")
+    try c.encodeIfPresent(self.passwordEnv, as: "passwordEnv")
   }
 }
 
 public struct DispatcherConfigTiming: Codable, Sendable, Hashable {
+  public var tickMs: Int
+  public var staleRunningMs: Int
   public var ackWaitMs: Int
-  public var bootDeadlineMs: Int
-  public var progressWriteIntervalMs: Int
   public var retentionMs: Int
   public var retentionSweepMs: Int
-  public var staleRunningMs: Int
-  public var tickMs: Int
+  public var progressWriteIntervalMs: Int
+  public var bootDeadlineMs: Int
   public init(
-    ackWaitMs: Int, bootDeadlineMs: Int, progressWriteIntervalMs: Int, retentionMs: Int,
-    retentionSweepMs: Int, staleRunningMs: Int, tickMs: Int
+    tickMs: Int, staleRunningMs: Int, ackWaitMs: Int, retentionMs: Int, retentionSweepMs: Int,
+    progressWriteIntervalMs: Int, bootDeadlineMs: Int
   ) {
+    self.tickMs = tickMs
+    self.staleRunningMs = staleRunningMs
     self.ackWaitMs = ackWaitMs
-    self.bootDeadlineMs = bootDeadlineMs
-    self.progressWriteIntervalMs = progressWriteIntervalMs
     self.retentionMs = retentionMs
     self.retentionSweepMs = retentionSweepMs
-    self.staleRunningMs = staleRunningMs
-    self.tickMs = tickMs
+    self.progressWriteIntervalMs = progressWriteIntervalMs
+    self.bootDeadlineMs = bootDeadlineMs
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "ackWaitMs", "bootDeadlineMs", "progressWriteIntervalMs", "retentionMs", "retentionSweepMs",
-        "staleRunningMs", "tickMs",
+        "tickMs", "staleRunningMs", "ackWaitMs", "retentionMs", "retentionSweepMs",
+        "progressWriteIntervalMs", "bootDeadlineMs",
       ], in: "DispatcherConfigTiming")
+    self.tickMs = try c.value("tickMs")
+    self.staleRunningMs = try c.value("staleRunningMs")
     self.ackWaitMs = try c.value("ackWaitMs")
-    self.bootDeadlineMs = try c.value("bootDeadlineMs")
-    self.progressWriteIntervalMs = try c.value("progressWriteIntervalMs")
     self.retentionMs = try c.value("retentionMs")
     self.retentionSweepMs = try c.value("retentionSweepMs")
-    self.staleRunningMs = try c.value("staleRunningMs")
-    self.tickMs = try c.value("tickMs")
+    self.progressWriteIntervalMs = try c.value("progressWriteIntervalMs")
+    self.bootDeadlineMs = try c.value("bootDeadlineMs")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.tickMs, as: "tickMs")
+    try c.encode(self.staleRunningMs, as: "staleRunningMs")
     try c.encode(self.ackWaitMs, as: "ackWaitMs")
-    try c.encode(self.bootDeadlineMs, as: "bootDeadlineMs")
-    try c.encode(self.progressWriteIntervalMs, as: "progressWriteIntervalMs")
     try c.encode(self.retentionMs, as: "retentionMs")
     try c.encode(self.retentionSweepMs, as: "retentionSweepMs")
-    try c.encode(self.staleRunningMs, as: "staleRunningMs")
-    try c.encode(self.tickMs, as: "tickMs")
+    try c.encode(self.progressWriteIntervalMs, as: "progressWriteIntervalMs")
+    try c.encode(self.bootDeadlineMs, as: "bootDeadlineMs")
   }
 }
 
 public struct DispatcherHealth: Codable, Sendable, Hashable {
-  public let queue: DispatcherHealthQueue
   public let status: DispatcherHealthStatus
+  public let queue: DispatcherHealthQueue
   public init() {
-    self.queue = .jetstream
     self.status = .ok
+    self.queue = .jetstream
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["queue", "status"], in: "DispatcherHealth")
-    self.queue = try c.value("queue")
+    try c.refuseUnknown(["status", "queue"], in: "DispatcherHealth")
     self.status = try c.value("status")
+    self.queue = try c.value("queue")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.queue, as: "queue")
     try c.encode(self.status, as: "status")
+    try c.encode(self.queue, as: "queue")
   }
 }
 
@@ -5637,93 +5981,93 @@ public enum DispatcherHealthStatus: String, Codable, Sendable, CaseIterable {
 
 public struct DispatcherMessages: Codable, Sendable, Hashable {
   public var comment: String
-  public var errors: [DispatcherMessagesErrorsItem]
   public var refusals: [DispatcherMessagesRefusalsItem]
+  public var errors: [DispatcherMessagesErrorsItem]
   public init(
-    comment: String, errors: [DispatcherMessagesErrorsItem],
-    refusals: [DispatcherMessagesRefusalsItem]
+    comment: String, refusals: [DispatcherMessagesRefusalsItem],
+    errors: [DispatcherMessagesErrorsItem]
   ) {
     self.comment = comment
-    self.errors = errors
     self.refusals = refusals
+    self.errors = errors
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["$comment", "errors", "refusals"], in: "DispatcherMessages")
+    try c.refuseUnknown(["$comment", "refusals", "errors"], in: "DispatcherMessages")
     self.comment = try c.value("$comment")
-    self.errors = try c.value("errors")
     self.refusals = try c.value("refusals")
+    self.errors = try c.value("errors")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.errors, as: "errors")
     try c.encode(self.refusals, as: "refusals")
+    try c.encode(self.errors, as: "errors")
   }
 }
 
 public struct DispatcherMessagesErrorsItem: Codable, Sendable, Hashable {
-  public var error: String
-  public var failureClass: FailureClass
   public var name: String
   public var situation: String
-  public init(error: String, failureClass: FailureClass, name: String, situation: String) {
-    self.error = error
-    self.failureClass = failureClass
+  public var error: String
+  public var failureClass: FailureClass
+  public init(name: String, situation: String, error: String, failureClass: FailureClass) {
     self.name = name
     self.situation = situation
+    self.error = error
+    self.failureClass = failureClass
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["error", "failureClass", "name", "situation"], in: "DispatcherMessagesErrorsItem")
-    self.error = try c.value("error")
-    self.failureClass = try c.value("failureClass")
+      ["name", "situation", "error", "failureClass"], in: "DispatcherMessagesErrorsItem")
     self.name = try c.value("name")
     self.situation = try c.value("situation")
+    self.error = try c.value("error")
+    self.failureClass = try c.value("failureClass")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.error, as: "error")
-    try c.encode(self.failureClass, as: "failureClass")
     try c.encode(self.name, as: "name")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.error, as: "error")
+    try c.encode(self.failureClass, as: "failureClass")
   }
 }
 
 public struct DispatcherMessagesRefusalsItem: Codable, Sendable, Hashable {
-  public var code: DispatcherMessagesRefusalsItemCode?
-  public var message: String
   public var name: String
   public var operation: String
+  public var code: DispatcherMessagesRefusalsItemCode?
   public var situation: String
+  public var message: String
   public init(
-    code: DispatcherMessagesRefusalsItemCode? = nil, message: String, name: String,
-    operation: String, situation: String
+    name: String, operation: String, code: DispatcherMessagesRefusalsItemCode? = nil,
+    situation: String, message: String
   ) {
-    self.code = code
-    self.message = message
     self.name = name
     self.operation = operation
+    self.code = code
     self.situation = situation
+    self.message = message
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["code", "message", "name", "operation", "situation"], in: "DispatcherMessagesRefusalsItem")
-    self.code = try c.ifPresent("code")
-    self.message = try c.value("message")
+      ["name", "operation", "code", "situation", "message"], in: "DispatcherMessagesRefusalsItem")
     self.name = try c.value("name")
     self.operation = try c.value("operation")
+    self.code = try c.ifPresent("code")
     self.situation = try c.value("situation")
+    self.message = try c.value("message")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.code, as: "code")
-    try c.encode(self.message, as: "message")
     try c.encode(self.name, as: "name")
     try c.encode(self.operation, as: "operation")
+    try c.encodeIfPresent(self.code, as: "code")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.message, as: "message")
   }
 }
 
@@ -5744,16 +6088,33 @@ public enum DurabilityEvidence: String, Codable, Sendable, CaseIterable {
 public indirect enum EmbeddingConfig: Codable, Sendable, Hashable {
   case ollamaEmbeddingConfig(OllamaEmbeddingConfig)
   case voyageEmbeddingConfig(VoyageEmbeddingConfig)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "model", "baseUrl"],
+        allowed: ["type", "model", "baseUrl"],
+        fixed: [.init(property: "type", values: [.text("ollama")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "model", "endpoint", "apiKeyEnv"],
+        allowed: ["type", "model", "endpoint", "apiKeyEnv"],
+        fixed: [.init(property: "type", values: [.text("voyage")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "ollama": self = .ollamaEmbeddingConfig(try OllamaEmbeddingConfig(from: decoder))
-    case "voyage": self = .voyageEmbeddingConfig(try VoyageEmbeddingConfig(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown EmbeddingConfig discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "EmbeddingConfig", members: Self.members,
+      variants: [
+        (
+          "ollamaEmbeddingConfig",
+          { decoder in try Self.ollamaEmbeddingConfig(OllamaEmbeddingConfig(from: decoder)) }
+        ),
+        (
+          "voyageEmbeddingConfig",
+          { decoder in try Self.voyageEmbeddingConfig(VoyageEmbeddingConfig(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -5765,97 +6126,97 @@ public indirect enum EmbeddingConfig: Codable, Sendable, Hashable {
 
 public struct EmbeddingRequests: Codable, Sendable, Hashable {
   public var comment: String
-  public var busy: EmbeddingRequestsBusy
   public var providers: [String: EmbeddingRequestsProvidersValue]
   public var requestSeconds: Int
+  public var busy: EmbeddingRequestsBusy
   public var startAgain: Int
   public init(
-    comment: String, busy: EmbeddingRequestsBusy,
-    providers: [String: EmbeddingRequestsProvidersValue], requestSeconds: Int, startAgain: Int
+    comment: String, providers: [String: EmbeddingRequestsProvidersValue], requestSeconds: Int,
+    busy: EmbeddingRequestsBusy, startAgain: Int
   ) {
     self.comment = comment
-    self.busy = busy
     self.providers = providers
     self.requestSeconds = requestSeconds
+    self.busy = busy
     self.startAgain = startAgain
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["$comment", "busy", "providers", "requestSeconds", "startAgain"], in: "EmbeddingRequests")
+      ["$comment", "providers", "requestSeconds", "busy", "startAgain"], in: "EmbeddingRequests")
     self.comment = try c.value("$comment")
-    self.busy = try c.value("busy")
     self.providers = try c.value("providers")
     self.requestSeconds = try c.value("requestSeconds")
+    self.busy = try c.value("busy")
     self.startAgain = try c.value("startAgain")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.busy, as: "busy")
     try c.encode(self.providers, as: "providers")
     try c.encode(self.requestSeconds, as: "requestSeconds")
+    try c.encode(self.busy, as: "busy")
     try c.encode(self.startAgain, as: "startAgain")
   }
 }
 
 public struct EmbeddingRequestsBusy: Codable, Sendable, Hashable {
-  public var againAfterSeconds: [Int]
   public var statuses: [Int]
-  public init(againAfterSeconds: [Int], statuses: [Int]) {
-    self.againAfterSeconds = againAfterSeconds
+  public var againAfterSeconds: [Int]
+  public init(statuses: [Int], againAfterSeconds: [Int]) {
     self.statuses = statuses
+    self.againAfterSeconds = againAfterSeconds
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["againAfterSeconds", "statuses"], in: "EmbeddingRequestsBusy")
-    self.againAfterSeconds = try c.value("againAfterSeconds")
+    try c.refuseUnknown(["statuses", "againAfterSeconds"], in: "EmbeddingRequestsBusy")
     self.statuses = try c.value("statuses")
+    self.againAfterSeconds = try c.value("againAfterSeconds")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.againAfterSeconds, as: "againAfterSeconds")
     try c.encode(self.statuses, as: "statuses")
+    try c.encode(self.againAfterSeconds, as: "againAfterSeconds")
   }
 }
 
 public struct EmbeddingRequestsProvidersValue: Codable, Sendable, Hashable {
-  public var atOnce: Int
   public var textsPerRequest: Int
-  public init(atOnce: Int, textsPerRequest: Int) {
-    self.atOnce = atOnce
+  public var atOnce: Int
+  public init(textsPerRequest: Int, atOnce: Int) {
     self.textsPerRequest = textsPerRequest
+    self.atOnce = atOnce
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["atOnce", "textsPerRequest"], in: "EmbeddingRequestsProvidersValue")
-    self.atOnce = try c.value("atOnce")
+    try c.refuseUnknown(["textsPerRequest", "atOnce"], in: "EmbeddingRequestsProvidersValue")
     self.textsPerRequest = try c.value("textsPerRequest")
+    self.atOnce = try c.value("atOnce")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.atOnce, as: "atOnce")
     try c.encode(self.textsPerRequest, as: "textsPerRequest")
+    try c.encode(self.atOnce, as: "atOnce")
   }
 }
 
 public struct Engine: Codable, Sendable, Hashable {
-  public var model: String
   public var provider: EngineProvider
-  public init(model: String, provider: EngineProvider) {
-    self.model = model
+  public var model: String
+  public init(provider: EngineProvider, model: String) {
     self.provider = provider
+    self.model = model
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["model", "provider"], in: "Engine")
-    self.model = try c.value("model")
+    try c.refuseUnknown(["provider", "model"], in: "Engine")
     self.provider = try c.value("provider")
+    self.model = try c.value("model")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.model, as: "model")
     try c.encode(self.provider, as: "provider")
+    try c.encode(self.model, as: "model")
   }
 }
 
@@ -5910,53 +6271,53 @@ public enum EngineProvider: String, Codable, Sendable, CaseIterable {
 }
 
 public struct EnrichedResourceEvent: Codable, Sendable, Hashable {
-  public var annotation: Annotation?
   public var id: String
-  public var metadata: EventMetadata
-  public var payload: [String: JSONValue]
-  public var resourceId: ResourceId?
-  public var timestamp: String
   public var type: String
+  public var timestamp: String
   public var userId: UserId
+  public var resourceId: ResourceId?
   public var version: Int
+  public var payload: [String: JSONValue]
+  public var metadata: EventMetadata
+  public var annotation: Annotation?
   public init(
-    annotation: Annotation? = nil, id: String, metadata: EventMetadata,
-    payload: [String: JSONValue], resourceId: ResourceId? = nil, timestamp: String, type: String,
-    userId: UserId, version: Int
+    id: String, type: String, timestamp: String, userId: UserId, resourceId: ResourceId? = nil,
+    version: Int, payload: [String: JSONValue], metadata: EventMetadata,
+    annotation: Annotation? = nil
   ) {
-    self.annotation = annotation
     self.id = id
-    self.metadata = metadata
-    self.payload = payload
-    self.resourceId = resourceId
-    self.timestamp = timestamp
     self.type = type
+    self.timestamp = timestamp
     self.userId = userId
+    self.resourceId = resourceId
     self.version = version
+    self.payload = payload
+    self.metadata = metadata
+    self.annotation = annotation
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotation = try c.ifPresent("annotation")
     self.id = try c.value("id")
-    self.metadata = try c.value("metadata")
-    self.payload = try c.value("payload")
-    self.resourceId = try c.ifPresent("resourceId")
-    self.timestamp = try c.value("timestamp")
     self.type = try c.value("type")
+    self.timestamp = try c.value("timestamp")
     self.userId = try c.value("userId")
+    self.resourceId = try c.ifPresent("resourceId")
     self.version = try c.value("version")
+    self.payload = try c.value("payload")
+    self.metadata = try c.value("metadata")
+    self.annotation = try c.ifPresent("annotation")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotation, as: "annotation")
     try c.encode(self.id, as: "id")
-    try c.encode(self.metadata, as: "metadata")
-    try c.encode(self.payload, as: "payload")
-    try c.encodeIfPresent(self.resourceId, as: "resourceId")
-    try c.encode(self.timestamp, as: "timestamp")
     try c.encode(self.type, as: "type")
+    try c.encode(self.timestamp, as: "timestamp")
     try c.encode(self.userId, as: "userId")
+    try c.encodeIfPresent(self.resourceId, as: "resourceId")
     try c.encode(self.version, as: "version")
+    try c.encode(self.payload, as: "payload")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encodeIfPresent(self.annotation, as: "annotation")
   }
 }
 
@@ -6009,69 +6370,69 @@ public struct EntityTypesProjection: Codable, Sendable, Hashable {
 public typealias EphemeralEventId = String
 
 public struct ErrorData: Codable, Sendable, Hashable {
-  public var choices: [Target]?
   public var code: String
-  public var fields: [FieldFault]?
-  public var mayStillRun: Bool?
   public var retryable: Bool
+  public var fields: [FieldFault]?
+  public var choices: [Target]?
   public var supported: [String]?
+  public var mayStillRun: Bool?
   public init(
-    choices: [Target]? = nil, code: String, fields: [FieldFault]? = nil, mayStillRun: Bool? = nil,
-    retryable: Bool, supported: [String]? = nil
+    code: String, retryable: Bool, fields: [FieldFault]? = nil, choices: [Target]? = nil,
+    supported: [String]? = nil, mayStillRun: Bool? = nil
   ) {
-    self.choices = choices
     self.code = code
-    self.fields = fields
-    self.mayStillRun = mayStillRun
     self.retryable = retryable
+    self.fields = fields
+    self.choices = choices
     self.supported = supported
+    self.mayStillRun = mayStillRun
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["choices", "code", "fields", "mayStillRun", "retryable", "supported"], in: "ErrorData")
-    self.choices = try c.ifPresent("choices")
+      ["code", "retryable", "fields", "choices", "supported", "mayStillRun"], in: "ErrorData")
     self.code = try c.value("code")
-    self.fields = try c.ifPresent("fields")
-    self.mayStillRun = try c.ifPresent("mayStillRun")
     self.retryable = try c.value("retryable")
+    self.fields = try c.ifPresent("fields")
+    self.choices = try c.ifPresent("choices")
     self.supported = try c.ifPresent("supported")
+    self.mayStillRun = try c.ifPresent("mayStillRun")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.choices, as: "choices")
     try c.encode(self.code, as: "code")
-    try c.encodeIfPresent(self.fields, as: "fields")
-    try c.encodeIfPresent(self.mayStillRun, as: "mayStillRun")
     try c.encode(self.retryable, as: "retryable")
+    try c.encodeIfPresent(self.fields, as: "fields")
+    try c.encodeIfPresent(self.choices, as: "choices")
     try c.encodeIfPresent(self.supported, as: "supported")
+    try c.encodeIfPresent(self.mayStillRun, as: "mayStillRun")
   }
 }
 
 public struct ErrorResponse: Codable, Sendable, Hashable {
-  public var code: String?
-  public var details: JSONValue?
   public var error: String
+  public var code: String?
   public var hint: String?
-  public init(code: String? = nil, details: JSONValue? = nil, error: String, hint: String? = nil) {
-    self.code = code
-    self.details = details
+  public var details: JSONValue?
+  public init(error: String, code: String? = nil, hint: String? = nil, details: JSONValue? = nil) {
     self.error = error
+    self.code = code
     self.hint = hint
+    self.details = details
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.code = try c.ifPresent("code")
-    self.details = try c.ifPresent("details")
     self.error = try c.value("error")
+    self.code = try c.ifPresent("code")
     self.hint = try c.ifPresent("hint")
+    self.details = try c.ifPresent("details")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.code, as: "code")
-    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.error, as: "error")
+    try c.encodeIfPresent(self.code, as: "code")
     try c.encodeIfPresent(self.hint, as: "hint")
+    try c.encodeIfPresent(self.details, as: "details")
   }
 }
 
@@ -6111,43 +6472,43 @@ public struct Expected: Codable, Sendable, Hashable {
 }
 
 public struct ExtractedText: Codable, Sendable, Hashable {
+  public var text: String
   public var items: [PdfTextItem]
   public let kind: ExtractedTextKind
   public var method: ExtractionMethod
-  public var ocrConfidence: OcrConfidence?
   public var pdfClass: PdfClass?
-  public var text: String
+  public var ocrConfidence: OcrConfidence?
   public var unreadPages: [Int]?
   public init(
-    items: [PdfTextItem], method: ExtractionMethod, ocrConfidence: OcrConfidence? = nil,
-    pdfClass: PdfClass? = nil, text: String, unreadPages: [Int]? = nil
+    text: String, items: [PdfTextItem], method: ExtractionMethod, pdfClass: PdfClass? = nil,
+    ocrConfidence: OcrConfidence? = nil, unreadPages: [Int]? = nil
   ) {
+    self.text = text
     self.items = items
     self.kind = .extracted
     self.method = method
-    self.ocrConfidence = ocrConfidence
     self.pdfClass = pdfClass
-    self.text = text
+    self.ocrConfidence = ocrConfidence
     self.unreadPages = unreadPages
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.text = try c.value("text")
     self.items = try c.value("items")
     self.kind = try c.value("kind")
     self.method = try c.value("method")
-    self.ocrConfidence = try c.ifPresent("ocrConfidence")
     self.pdfClass = try c.ifPresent("pdfClass")
-    self.text = try c.value("text")
+    self.ocrConfidence = try c.ifPresent("ocrConfidence")
     self.unreadPages = try c.ifPresent("unreadPages")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.text, as: "text")
     try c.encode(self.items, as: "items")
     try c.encode(self.kind, as: "kind")
     try c.encode(self.method, as: "method")
-    try c.encodeIfPresent(self.ocrConfidence, as: "ocrConfidence")
     try c.encodeIfPresent(self.pdfClass, as: "pdfClass")
-    try c.encode(self.text, as: "text")
+    try c.encodeIfPresent(self.ocrConfidence, as: "ocrConfidence")
     try c.encodeIfPresent(self.unreadPages, as: "unreadPages")
   }
 }
@@ -6157,21 +6518,21 @@ public enum ExtractedTextKind: String, Codable, Sendable, CaseIterable {
 }
 
 public struct ExtractionDeclined: Codable, Sendable, Hashable {
-  public var declined: ExtractionDeclinedReason
   public let kind: ExtractionDeclinedKind
+  public var declined: ExtractionDeclinedReason
   public init(declined: ExtractionDeclinedReason) {
-    self.declined = declined
     self.kind = .declined
+    self.declined = declined
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.declined = try c.value("declined")
     self.kind = try c.value("kind")
+    self.declined = try c.value("declined")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.declined, as: "declined")
     try c.encode(self.kind, as: "kind")
+    try c.encode(self.declined, as: "declined")
   }
 }
 
@@ -6197,16 +6558,48 @@ public enum ExtractionMethod: String, Codable, Sendable, CaseIterable {
 public indirect enum ExtractionOutcome: Codable, Sendable, Hashable {
   case extractedText(ExtractedText)
   case extractionDeclined(ExtractionDeclined)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["text", "items", "kind", "method"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("extracted")]),
+          .init(
+            property: "method",
+            values: [
+              .text("text-passthrough"), .text("pdf-text-layer"), .text("table"), .text("form"),
+              .text("ocr"),
+            ]),
+          .init(
+            property: "pdfClass",
+            values: [
+              .text("A"), .text("B"), .text("C"), .text("D"), .text("E"), .text("F"), .text("G"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "declined"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("declined")]),
+          .init(
+            property: "declined",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("kind"))
-    switch tag {
-    case "extracted": self = .extractedText(try ExtractedText(from: decoder))
-    case "declined": self = .extractionDeclined(try ExtractionDeclined(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("kind"), in: c, debugDescription: "unknown ExtractionOutcome discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "ExtractionOutcome", members: Self.members,
+      variants: [
+        ("extractedText", { decoder in try Self.extractedText(ExtractedText(from: decoder)) }),
+        (
+          "extractionDeclined",
+          { decoder in try Self.extractionDeclined(ExtractionDeclined(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -6243,62 +6636,62 @@ public struct FieldFault: Codable, Sendable, Hashable {
 }
 
 public struct FileEntry: Codable, Sendable, Hashable {
-  public var annotationCount: Int?
-  public var creator: String?
-  public var entityTypes: [String]?
-  public var mtime: String
+  public let type: FileEntryType
   public var name: String
   public var path: String
-  public var resourceId: ResourceId?
   public var size: Int
+  public var mtime: String
   public var tracked: Bool
-  public let type: FileEntryType
+  public var resourceId: ResourceId?
+  public var entityTypes: [String]?
+  public var annotationCount: Int?
+  public var creator: String?
   public init(
-    annotationCount: Int? = nil, creator: String? = nil, entityTypes: [String]? = nil,
-    mtime: String, name: String, path: String, resourceId: ResourceId? = nil, size: Int,
-    tracked: Bool
+    name: String, path: String, size: Int, mtime: String, tracked: Bool,
+    resourceId: ResourceId? = nil, entityTypes: [String]? = nil, annotationCount: Int? = nil,
+    creator: String? = nil
   ) {
-    self.annotationCount = annotationCount
-    self.creator = creator
-    self.entityTypes = entityTypes
-    self.mtime = mtime
+    self.type = .file
     self.name = name
     self.path = path
-    self.resourceId = resourceId
     self.size = size
+    self.mtime = mtime
     self.tracked = tracked
-    self.type = .file
+    self.resourceId = resourceId
+    self.entityTypes = entityTypes
+    self.annotationCount = annotationCount
+    self.creator = creator
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "annotationCount", "creator", "entityTypes", "mtime", "name", "path", "resourceId", "size",
-        "tracked", "type",
+        "type", "name", "path", "size", "mtime", "tracked", "resourceId", "entityTypes",
+        "annotationCount", "creator",
       ], in: "FileEntry")
-    self.annotationCount = try c.ifPresent("annotationCount")
-    self.creator = try c.ifPresent("creator")
-    self.entityTypes = try c.ifPresent("entityTypes")
-    self.mtime = try c.value("mtime")
+    self.type = try c.value("type")
     self.name = try c.value("name")
     self.path = try c.value("path")
-    self.resourceId = try c.ifPresent("resourceId")
     self.size = try c.value("size")
+    self.mtime = try c.value("mtime")
     self.tracked = try c.value("tracked")
-    self.type = try c.value("type")
+    self.resourceId = try c.ifPresent("resourceId")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.annotationCount = try c.ifPresent("annotationCount")
+    self.creator = try c.ifPresent("creator")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotationCount, as: "annotationCount")
-    try c.encodeIfPresent(self.creator, as: "creator")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
-    try c.encode(self.mtime, as: "mtime")
+    try c.encode(self.type, as: "type")
     try c.encode(self.name, as: "name")
     try c.encode(self.path, as: "path")
-    try c.encodeIfPresent(self.resourceId, as: "resourceId")
     try c.encode(self.size, as: "size")
+    try c.encode(self.mtime, as: "mtime")
     try c.encode(self.tracked, as: "tracked")
-    try c.encode(self.type, as: "type")
+    try c.encodeIfPresent(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.annotationCount, as: "annotationCount")
+    try c.encodeIfPresent(self.creator, as: "creator")
   }
 }
 
@@ -6307,30 +6700,30 @@ public enum FileEntryType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct FollowerFollowing: Codable, Sendable, Hashable {
-  public var refused: Int
-  public var stopped: Int
-  public var streamDrops: Int
   public var sweep: FollowerFollowingSweep
-  public init(refused: Int, stopped: Int, streamDrops: Int, sweep: FollowerFollowingSweep) {
-    self.refused = refused
-    self.stopped = stopped
-    self.streamDrops = streamDrops
+  public var stopped: Int
+  public var refused: Int
+  public var streamDrops: Int
+  public init(sweep: FollowerFollowingSweep, stopped: Int, refused: Int, streamDrops: Int) {
     self.sweep = sweep
+    self.stopped = stopped
+    self.refused = refused
+    self.streamDrops = streamDrops
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["refused", "stopped", "streamDrops", "sweep"], in: "FollowerFollowing")
-    self.refused = try c.value("refused")
-    self.stopped = try c.value("stopped")
-    self.streamDrops = try c.value("streamDrops")
+    try c.refuseUnknown(["sweep", "stopped", "refused", "streamDrops"], in: "FollowerFollowing")
     self.sweep = try c.value("sweep")
+    self.stopped = try c.value("stopped")
+    self.refused = try c.value("refused")
+    self.streamDrops = try c.value("streamDrops")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.refused, as: "refused")
-    try c.encode(self.stopped, as: "stopped")
-    try c.encode(self.streamDrops, as: "streamDrops")
     try c.encode(self.sweep, as: "sweep")
+    try c.encode(self.stopped, as: "stopped")
+    try c.encode(self.refused, as: "refused")
+    try c.encode(self.streamDrops, as: "streamDrops")
   }
 }
 
@@ -6342,25 +6735,25 @@ public enum FollowerFollowingSweep: String, Codable, Sendable, CaseIterable {
 }
 
 public struct FragmentSelector: Codable, Sendable, Hashable {
-  public var conformsTo: String?
   public let type: FragmentSelectorType
   public var value: String
-  public init(conformsTo: String? = nil, value: String) {
-    self.conformsTo = conformsTo
+  public var conformsTo: String?
+  public init(value: String, conformsTo: String? = nil) {
     self.type = .fragmentSelector
     self.value = value
+    self.conformsTo = conformsTo
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.conformsTo = try c.ifPresent("conformsTo")
     self.type = try c.value("type")
     self.value = try c.value("value")
+    self.conformsTo = try c.ifPresent("conformsTo")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.conformsTo, as: "conformsTo")
     try c.encode(self.type, as: "type")
     try c.encode(self.value, as: "value")
+    try c.encodeIfPresent(self.conformsTo, as: "conformsTo")
   }
 }
 
@@ -6369,40 +6762,40 @@ public enum FragmentSelectorType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct FrameAddEntityTypeCommand: Codable, Sendable, Hashable {
-  public var _userId: UserId?
   public var tag: String
-  public init(_userId: UserId? = nil, tag: String) {
-    self._userId = _userId
+  public var _userId: UserId?
+  public init(tag: String, _userId: UserId? = nil) {
     self.tag = tag
+    self._userId = _userId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self._userId = try c.ifPresent("_userId")
     self.tag = try c.value("tag")
+    self._userId = try c.ifPresent("_userId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._userId, as: "_userId")
     try c.encode(self.tag, as: "tag")
+    try c.encodeIfPresent(self._userId, as: "_userId")
   }
 }
 
 public struct FrameAddTagSchemaCommand: Codable, Sendable, Hashable {
-  public var _userId: UserId?
   public var schema: TagSchema
-  public init(_userId: UserId? = nil, schema: TagSchema) {
-    self._userId = _userId
+  public var _userId: UserId?
+  public init(schema: TagSchema, _userId: UserId? = nil) {
     self.schema = schema
+    self._userId = _userId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self._userId = try c.ifPresent("_userId")
     self.schema = try c.value("schema")
+    self._userId = try c.ifPresent("_userId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._userId, as: "_userId")
     try c.encode(self.schema, as: "schema")
+    try c.encodeIfPresent(self._userId, as: "_userId")
   }
 }
 
@@ -6412,78 +6805,78 @@ public enum FrameRefusalReason: String, Codable, Sendable, CaseIterable {
 }
 
 public struct GatewayConfig: Codable, Sendable, Hashable {
-  public var archivist: ServiceAddress
-  public var capacity: GatewayConfigCapacity
-  public var identity: GatewayConfigIdentity
   public var kb: KbIdentity
-  public var logFormat: LogFormat
-  public var logLevel: LogLevel
   public var port: Int
   public var publicUrl: String
+  public var identity: GatewayConfigIdentity
+  public var archivist: ServiceAddress
   public var signal: GatewayConfigSignal
+  public var logLevel: LogLevel
+  public var logFormat: LogFormat
+  public var capacity: GatewayConfigCapacity
   public init(
-    archivist: ServiceAddress, capacity: GatewayConfigCapacity, identity: GatewayConfigIdentity,
-    kb: KbIdentity, logFormat: LogFormat, logLevel: LogLevel, port: Int, publicUrl: String,
-    signal: GatewayConfigSignal
+    kb: KbIdentity, port: Int, publicUrl: String, identity: GatewayConfigIdentity,
+    archivist: ServiceAddress, signal: GatewayConfigSignal, logLevel: LogLevel,
+    logFormat: LogFormat, capacity: GatewayConfigCapacity
   ) {
-    self.archivist = archivist
-    self.capacity = capacity
-    self.identity = identity
     self.kb = kb
-    self.logFormat = logFormat
-    self.logLevel = logLevel
     self.port = port
     self.publicUrl = publicUrl
+    self.identity = identity
+    self.archivist = archivist
     self.signal = signal
+    self.logLevel = logLevel
+    self.logFormat = logFormat
+    self.capacity = capacity
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "archivist", "capacity", "identity", "kb", "logFormat", "logLevel", "port", "publicUrl",
-        "signal",
+        "kb", "port", "publicUrl", "identity", "archivist", "signal", "logLevel", "logFormat",
+        "capacity",
       ], in: "GatewayConfig")
-    self.archivist = try c.value("archivist")
-    self.capacity = try c.value("capacity")
-    self.identity = try c.value("identity")
     self.kb = try c.value("kb")
-    self.logFormat = try c.value("logFormat")
-    self.logLevel = try c.value("logLevel")
     self.port = try c.value("port")
     self.publicUrl = try c.value("publicUrl")
+    self.identity = try c.value("identity")
+    self.archivist = try c.value("archivist")
     self.signal = try c.value("signal")
+    self.logLevel = try c.value("logLevel")
+    self.logFormat = try c.value("logFormat")
+    self.capacity = try c.value("capacity")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.archivist, as: "archivist")
-    try c.encode(self.capacity, as: "capacity")
-    try c.encode(self.identity, as: "identity")
     try c.encode(self.kb, as: "kb")
-    try c.encode(self.logFormat, as: "logFormat")
-    try c.encode(self.logLevel, as: "logLevel")
     try c.encode(self.port, as: "port")
     try c.encode(self.publicUrl, as: "publicUrl")
+    try c.encode(self.identity, as: "identity")
+    try c.encode(self.archivist, as: "archivist")
     try c.encode(self.signal, as: "signal")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.logFormat, as: "logFormat")
+    try c.encode(self.capacity, as: "capacity")
   }
 }
 
 public struct GatewayConfigCapacity: Codable, Sendable, Hashable {
-  public var connections: Int
   public var queuedBytes: Int
-  public init(connections: Int, queuedBytes: Int) {
-    self.connections = connections
+  public var connections: Int
+  public init(queuedBytes: Int, connections: Int) {
     self.queuedBytes = queuedBytes
+    self.connections = connections
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["connections", "queuedBytes"], in: "GatewayConfigCapacity")
-    self.connections = try c.value("connections")
+    try c.refuseUnknown(["queuedBytes", "connections"], in: "GatewayConfigCapacity")
     self.queuedBytes = try c.value("queuedBytes")
+    self.connections = try c.value("connections")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.connections, as: "connections")
     try c.encode(self.queuedBytes, as: "queuedBytes")
+    try c.encode(self.connections, as: "connections")
   }
 }
 
@@ -6508,33 +6901,33 @@ public struct GatewayConfigIdentity: Codable, Sendable, Hashable {
 }
 
 public struct GatewayConfigSignal: Codable, Sendable, Hashable {
-  public var passwordEnv: String?
-  public var servers: String?
   public var type: GatewayConfigSignalType
+  public var servers: String?
   public var userEnv: String?
+  public var passwordEnv: String?
   public init(
-    passwordEnv: String? = nil, servers: String? = nil, type: GatewayConfigSignalType,
-    userEnv: String? = nil
+    type: GatewayConfigSignalType, servers: String? = nil, userEnv: String? = nil,
+    passwordEnv: String? = nil
   ) {
-    self.passwordEnv = passwordEnv
-    self.servers = servers
     self.type = type
+    self.servers = servers
     self.userEnv = userEnv
+    self.passwordEnv = passwordEnv
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["passwordEnv", "servers", "type", "userEnv"], in: "GatewayConfigSignal")
-    self.passwordEnv = try c.ifPresent("passwordEnv")
-    self.servers = try c.ifPresent("servers")
+    try c.refuseUnknown(["type", "servers", "userEnv", "passwordEnv"], in: "GatewayConfigSignal")
     self.type = try c.value("type")
+    self.servers = try c.ifPresent("servers")
     self.userEnv = try c.ifPresent("userEnv")
+    self.passwordEnv = try c.ifPresent("passwordEnv")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.passwordEnv, as: "passwordEnv")
-    try c.encodeIfPresent(self.servers, as: "servers")
     try c.encode(self.type, as: "type")
+    try c.encodeIfPresent(self.servers, as: "servers")
     try c.encodeIfPresent(self.userEnv, as: "userEnv")
+    try c.encodeIfPresent(self.passwordEnv, as: "passwordEnv")
   }
 }
 
@@ -6545,56 +6938,56 @@ public enum GatewayConfigSignalType: String, Codable, Sendable, CaseIterable {
 
 public struct GatewayMediaToken: Codable, Sendable, Hashable {
   public var comment: String
-  public var claims: GatewayMediaTokenClaims
   public var header: GatewayMediaTokenHeader
+  public var claims: GatewayMediaTokenClaims
   public var lifetimeSeconds: Int
   public init(
-    comment: String, claims: GatewayMediaTokenClaims, header: GatewayMediaTokenHeader,
+    comment: String, header: GatewayMediaTokenHeader, claims: GatewayMediaTokenClaims,
     lifetimeSeconds: Int
   ) {
     self.comment = comment
-    self.claims = claims
     self.header = header
+    self.claims = claims
     self.lifetimeSeconds = lifetimeSeconds
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["$comment", "claims", "header", "lifetimeSeconds"], in: "GatewayMediaToken")
+      ["$comment", "header", "claims", "lifetimeSeconds"], in: "GatewayMediaToken")
     self.comment = try c.value("$comment")
-    self.claims = try c.value("claims")
     self.header = try c.value("header")
+    self.claims = try c.value("claims")
     self.lifetimeSeconds = try c.value("lifetimeSeconds")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.claims, as: "claims")
     try c.encode(self.header, as: "header")
+    try c.encode(self.claims, as: "claims")
     try c.encode(self.lifetimeSeconds, as: "lifetimeSeconds")
   }
 }
 
 public struct GatewayMediaTokenClaims: Codable, Sendable, Hashable {
-  public let iss: GatewayMediaTokenClaimsIss
   public let purpose: GatewayMediaTokenClaimsPurpose
+  public let iss: GatewayMediaTokenClaimsIss
   public let sub: GatewayMediaTokenClaimsSub
   public init() {
-    self.iss = .domain
     self.purpose = .media
+    self.iss = .domain
     self.sub = .resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["iss", "purpose", "sub"], in: "GatewayMediaTokenClaims")
-    self.iss = try c.value("iss")
+    try c.refuseUnknown(["purpose", "iss", "sub"], in: "GatewayMediaTokenClaims")
     self.purpose = try c.value("purpose")
+    self.iss = try c.value("iss")
     self.sub = try c.value("sub")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.iss, as: "iss")
     try c.encode(self.purpose, as: "purpose")
+    try c.encode(self.iss, as: "iss")
     try c.encode(self.sub, as: "sub")
   }
 }
@@ -6641,32 +7034,32 @@ public enum GatewayMediaTokenHeaderTyp: String, Codable, Sendable, CaseIterable 
 
 public struct GatewayMessages: Codable, Sendable, Hashable {
   public var comment: String
-  public var challenges: GatewayMessagesChallenges
-  public var failures: [GatewayMessagesFailuresItem]
   public var messages: [GatewayMessagesMessagesItem]
+  public var failures: [GatewayMessagesFailuresItem]
+  public var challenges: GatewayMessagesChallenges
   public init(
-    comment: String, challenges: GatewayMessagesChallenges, failures: [GatewayMessagesFailuresItem],
-    messages: [GatewayMessagesMessagesItem]
+    comment: String, messages: [GatewayMessagesMessagesItem],
+    failures: [GatewayMessagesFailuresItem], challenges: GatewayMessagesChallenges
   ) {
     self.comment = comment
-    self.challenges = challenges
-    self.failures = failures
     self.messages = messages
+    self.failures = failures
+    self.challenges = challenges
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["$comment", "challenges", "failures", "messages"], in: "GatewayMessages")
+    try c.refuseUnknown(["$comment", "messages", "failures", "challenges"], in: "GatewayMessages")
     self.comment = try c.value("$comment")
-    self.challenges = try c.value("challenges")
-    self.failures = try c.value("failures")
     self.messages = try c.value("messages")
+    self.failures = try c.value("failures")
+    self.challenges = try c.value("challenges")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.challenges, as: "challenges")
-    try c.encode(self.failures, as: "failures")
     try c.encode(self.messages, as: "messages")
+    try c.encode(self.failures, as: "failures")
+    try c.encode(self.challenges, as: "challenges")
   }
 }
 
@@ -6691,107 +7084,107 @@ public struct GatewayMessagesChallenges: Codable, Sendable, Hashable {
 }
 
 public struct GatewayMessagesFailuresItem: Codable, Sendable, Hashable {
-  public var code: String
-  public var message: String
   public var name: String
+  public var code: String
   public var situation: String
-  public init(code: String, message: String, name: String, situation: String) {
-    self.code = code
-    self.message = message
+  public var message: String
+  public init(name: String, code: String, situation: String, message: String) {
     self.name = name
+    self.code = code
     self.situation = situation
+    self.message = message
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["code", "message", "name", "situation"], in: "GatewayMessagesFailuresItem")
-    self.code = try c.value("code")
-    self.message = try c.value("message")
+      ["name", "code", "situation", "message"], in: "GatewayMessagesFailuresItem")
     self.name = try c.value("name")
+    self.code = try c.value("code")
     self.situation = try c.value("situation")
+    self.message = try c.value("message")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.code, as: "code")
-    try c.encode(self.message, as: "message")
     try c.encode(self.name, as: "name")
+    try c.encode(self.code, as: "code")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.message, as: "message")
   }
 }
 
 public struct GatewayMessagesMessagesItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var status: HttpStatus
   public var code: String?
+  public var situation: String
   public var error: String
   public var hint: String?
-  public var name: String
-  public var situation: String
-  public var status: HttpStatus
   public init(
-    code: String? = nil, error: String, hint: String? = nil, name: String, situation: String,
-    status: HttpStatus
+    name: String, status: HttpStatus, code: String? = nil, situation: String, error: String,
+    hint: String? = nil
   ) {
+    self.name = name
+    self.status = status
     self.code = code
+    self.situation = situation
     self.error = error
     self.hint = hint
-    self.name = name
-    self.situation = situation
-    self.status = status
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["code", "error", "hint", "name", "situation", "status"], in: "GatewayMessagesMessagesItem")
+      ["name", "status", "code", "situation", "error", "hint"], in: "GatewayMessagesMessagesItem")
+    self.name = try c.value("name")
+    self.status = try c.value("status")
     self.code = try c.ifPresent("code")
+    self.situation = try c.value("situation")
     self.error = try c.value("error")
     self.hint = try c.ifPresent("hint")
-    self.name = try c.value("name")
-    self.situation = try c.value("situation")
-    self.status = try c.value("status")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.status, as: "status")
     try c.encodeIfPresent(self.code, as: "code")
+    try c.encode(self.situation, as: "situation")
     try c.encode(self.error, as: "error")
     try c.encodeIfPresent(self.hint, as: "hint")
-    try c.encode(self.name, as: "name")
-    try c.encode(self.situation, as: "situation")
-    try c.encode(self.status, as: "status")
   }
 }
 
 public struct GatewayResponseHeaders: Codable, Sendable, Hashable {
   public var comment: String
-  public var absent: [String]
   public var every: [GatewayResponseHeadersEveryItem]
-  public var preflight: GatewayResponseHeadersPreflight
   public var requestId: String
+  public var absent: [String]
+  public var preflight: GatewayResponseHeadersPreflight
   public init(
-    comment: String, absent: [String], every: [GatewayResponseHeadersEveryItem],
-    preflight: GatewayResponseHeadersPreflight, requestId: String
+    comment: String, every: [GatewayResponseHeadersEveryItem], requestId: String, absent: [String],
+    preflight: GatewayResponseHeadersPreflight
   ) {
     self.comment = comment
-    self.absent = absent
     self.every = every
-    self.preflight = preflight
     self.requestId = requestId
+    self.absent = absent
+    self.preflight = preflight
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["$comment", "absent", "every", "preflight", "requestId"], in: "GatewayResponseHeaders")
+      ["$comment", "every", "requestId", "absent", "preflight"], in: "GatewayResponseHeaders")
     self.comment = try c.value("$comment")
-    self.absent = try c.value("absent")
     self.every = try c.value("every")
-    self.preflight = try c.value("preflight")
     self.requestId = try c.value("requestId")
+    self.absent = try c.value("absent")
+    self.preflight = try c.value("preflight")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.absent, as: "absent")
     try c.encode(self.every, as: "every")
-    try c.encode(self.preflight, as: "preflight")
     try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.absent, as: "absent")
+    try c.encode(self.preflight, as: "preflight")
   }
 }
 
@@ -6816,33 +7209,33 @@ public struct GatewayResponseHeadersEveryItem: Codable, Sendable, Hashable {
 }
 
 public struct GatewayResponseHeadersPreflight: Codable, Sendable, Hashable {
-  public var echoes: [GatewayResponseHeadersPreflightEchoesItem]
-  public var headers: [GatewayResponseHeadersPreflightHeadersItem]
   public var status: HttpStatus
+  public var headers: [GatewayResponseHeadersPreflightHeadersItem]
+  public var echoes: [GatewayResponseHeadersPreflightEchoesItem]
   public var vary: String
   public init(
-    echoes: [GatewayResponseHeadersPreflightEchoesItem],
-    headers: [GatewayResponseHeadersPreflightHeadersItem], status: HttpStatus, vary: String
+    status: HttpStatus, headers: [GatewayResponseHeadersPreflightHeadersItem],
+    echoes: [GatewayResponseHeadersPreflightEchoesItem], vary: String
   ) {
-    self.echoes = echoes
-    self.headers = headers
     self.status = status
+    self.headers = headers
+    self.echoes = echoes
     self.vary = vary
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["echoes", "headers", "status", "vary"], in: "GatewayResponseHeadersPreflight")
-    self.echoes = try c.value("echoes")
-    self.headers = try c.value("headers")
+      ["status", "headers", "echoes", "vary"], in: "GatewayResponseHeadersPreflight")
     self.status = try c.value("status")
+    self.headers = try c.value("headers")
+    self.echoes = try c.value("echoes")
     self.vary = try c.value("vary")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.echoes, as: "echoes")
-    try c.encode(self.headers, as: "headers")
     try c.encode(self.status, as: "status")
+    try c.encode(self.headers, as: "headers")
+    try c.encode(self.echoes, as: "echoes")
     try c.encode(self.vary, as: "vary")
   }
 }
@@ -6907,101 +7300,101 @@ public struct GatherAnnotationComplete: Codable, Sendable, Hashable {
 }
 
 public struct GatherAnnotationOptions: Codable, Sendable, Hashable {
-  public var contextWindow: Int?
   public var includeSourceContext: Bool?
   public var includeTargetContext: Bool?
+  public var contextWindow: Int?
   public init(
-    contextWindow: Int? = nil, includeSourceContext: Bool? = nil, includeTargetContext: Bool? = nil
+    includeSourceContext: Bool? = nil, includeTargetContext: Bool? = nil, contextWindow: Int? = nil
   ) {
-    self.contextWindow = contextWindow
     self.includeSourceContext = includeSourceContext
     self.includeTargetContext = includeTargetContext
+    self.contextWindow = contextWindow
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.contextWindow = try c.ifPresent("contextWindow")
     self.includeSourceContext = try c.ifPresent("includeSourceContext")
     self.includeTargetContext = try c.ifPresent("includeTargetContext")
+    self.contextWindow = try c.ifPresent("contextWindow")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.contextWindow, as: "contextWindow")
     try c.encodeIfPresent(self.includeSourceContext, as: "includeSourceContext")
     try c.encodeIfPresent(self.includeTargetContext, as: "includeTargetContext")
+    try c.encodeIfPresent(self.contextWindow, as: "contextWindow")
   }
 }
 
 public struct GatherAnnotationRequest: Codable, Sendable, Hashable {
   public var annotationId: AnnotationId
-  public var options: GatherAnnotationOptions?
   public var resourceId: ResourceId
+  public var options: GatherAnnotationOptions?
   public init(
-    annotationId: AnnotationId, options: GatherAnnotationOptions? = nil, resourceId: ResourceId
+    annotationId: AnnotationId, resourceId: ResourceId, options: GatherAnnotationOptions? = nil
   ) {
     self.annotationId = annotationId
-    self.options = options
     self.resourceId = resourceId
+    self.options = options
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.annotationId = try c.value("annotationId")
-    self.options = try c.ifPresent("options")
     self.resourceId = try c.value("resourceId")
+    self.options = try c.ifPresent("options")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.options, as: "options")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.options, as: "options")
   }
 }
 
 public struct GatherFailed: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId
   public var code: CommandErrorCode?
-  public var details: String?
   public var message: String
+  public var details: String?
+  public var annotationId: AnnotationId
   public init(
-    annotationId: AnnotationId, code: CommandErrorCode? = nil, details: String? = nil,
-    message: String
+    code: CommandErrorCode? = nil, message: String, details: String? = nil,
+    annotationId: AnnotationId
   ) {
-    self.annotationId = annotationId
     self.code = code
-    self.details = details
     self.message = message
+    self.details = details
+    self.annotationId = annotationId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.value("annotationId")
     self.code = try c.ifPresent("code")
-    self.details = try c.ifPresent("details")
     self.message = try c.value("message")
+    self.details = try c.ifPresent("details")
+    self.annotationId = try c.value("annotationId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotationId, as: "annotationId")
     try c.encodeIfPresent(self.code, as: "code")
-    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.message, as: "message")
+    try c.encodeIfPresent(self.details, as: "details")
+    try c.encode(self.annotationId, as: "annotationId")
   }
 }
 
 public struct GatherReferencedByRequest: Codable, Sendable, Hashable {
-  public var motivation: Motivation?
   public var resourceId: ResourceId
-  public init(motivation: Motivation? = nil, resourceId: ResourceId) {
-    self.motivation = motivation
+  public var motivation: Motivation?
+  public init(resourceId: ResourceId, motivation: Motivation? = nil) {
     self.resourceId = resourceId
+    self.motivation = motivation
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.motivation = try c.ifPresent("motivation")
     self.resourceId = try c.value("resourceId")
+    self.motivation = try c.ifPresent("motivation")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.motivation, as: "motivation")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.motivation, as: "motivation")
   }
 }
 
@@ -7041,157 +7434,157 @@ public struct GatherResourceComplete: Codable, Sendable, Hashable {
 
 public struct GatherResourceFailed: Codable, Sendable, Hashable {
   public var code: CommandErrorCode?
-  public var details: String?
   public var message: String
+  public var details: String?
   public var resourceId: ResourceId
   public init(
-    code: CommandErrorCode? = nil, details: String? = nil, message: String, resourceId: ResourceId
+    code: CommandErrorCode? = nil, message: String, details: String? = nil, resourceId: ResourceId
   ) {
     self.code = code
-    self.details = details
     self.message = message
+    self.details = details
     self.resourceId = resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.code = try c.ifPresent("code")
-    self.details = try c.ifPresent("details")
     self.message = try c.value("message")
+    self.details = try c.ifPresent("details")
     self.resourceId = try c.value("resourceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.code, as: "code")
-    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.message, as: "message")
+    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.resourceId, as: "resourceId")
   }
 }
 
 public struct GatherResourceOptions: Codable, Sendable, Hashable {
   public var depth: Int?
-  public var excludeEntityTypes: [String]?
+  public var maxResources: Int?
   public var includeContent: Bool?
   public var includeSummary: Bool?
-  public var maxResources: Int?
+  public var excludeEntityTypes: [String]?
   public init(
-    depth: Int? = nil, excludeEntityTypes: [String]? = nil, includeContent: Bool? = nil,
-    includeSummary: Bool? = nil, maxResources: Int? = nil
+    depth: Int? = nil, maxResources: Int? = nil, includeContent: Bool? = nil,
+    includeSummary: Bool? = nil, excludeEntityTypes: [String]? = nil
   ) {
     self.depth = depth
-    self.excludeEntityTypes = excludeEntityTypes
+    self.maxResources = maxResources
     self.includeContent = includeContent
     self.includeSummary = includeSummary
-    self.maxResources = maxResources
+    self.excludeEntityTypes = excludeEntityTypes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["depth", "excludeEntityTypes", "includeContent", "includeSummary", "maxResources"],
+      ["depth", "maxResources", "includeContent", "includeSummary", "excludeEntityTypes"],
       in: "GatherResourceOptions")
     self.depth = try c.ifPresent("depth")
-    self.excludeEntityTypes = try c.ifPresent("excludeEntityTypes")
+    self.maxResources = try c.ifPresent("maxResources")
     self.includeContent = try c.ifPresent("includeContent")
     self.includeSummary = try c.ifPresent("includeSummary")
-    self.maxResources = try c.ifPresent("maxResources")
+    self.excludeEntityTypes = try c.ifPresent("excludeEntityTypes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.depth, as: "depth")
-    try c.encodeIfPresent(self.excludeEntityTypes, as: "excludeEntityTypes")
+    try c.encodeIfPresent(self.maxResources, as: "maxResources")
     try c.encodeIfPresent(self.includeContent, as: "includeContent")
     try c.encodeIfPresent(self.includeSummary, as: "includeSummary")
-    try c.encodeIfPresent(self.maxResources, as: "maxResources")
+    try c.encodeIfPresent(self.excludeEntityTypes, as: "excludeEntityTypes")
   }
 }
 
 public struct GatherResourceOptionsValue: Codable, Sendable, Hashable {
   public var depth: Int?
-  public var excludeEntityTypes: [String]?
+  public var maxResources: Int?
   public var includeContent: Bool?
   public var includeSummary: Bool?
-  public var maxResources: Int?
+  public var excludeEntityTypes: [String]?
   public init(
-    depth: Int? = nil, excludeEntityTypes: [String]? = nil, includeContent: Bool? = nil,
-    includeSummary: Bool? = nil, maxResources: Int? = nil
+    depth: Int? = nil, maxResources: Int? = nil, includeContent: Bool? = nil,
+    includeSummary: Bool? = nil, excludeEntityTypes: [String]? = nil
   ) {
     self.depth = depth
-    self.excludeEntityTypes = excludeEntityTypes
+    self.maxResources = maxResources
     self.includeContent = includeContent
     self.includeSummary = includeSummary
-    self.maxResources = maxResources
+    self.excludeEntityTypes = excludeEntityTypes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["depth", "excludeEntityTypes", "includeContent", "includeSummary", "maxResources"],
+      ["depth", "maxResources", "includeContent", "includeSummary", "excludeEntityTypes"],
       in: "GatherResourceOptionsValue")
     self.depth = try c.ifPresent("depth")
-    self.excludeEntityTypes = try c.ifPresent("excludeEntityTypes")
+    self.maxResources = try c.ifPresent("maxResources")
     self.includeContent = try c.ifPresent("includeContent")
     self.includeSummary = try c.ifPresent("includeSummary")
-    self.maxResources = try c.ifPresent("maxResources")
+    self.excludeEntityTypes = try c.ifPresent("excludeEntityTypes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.depth, as: "depth")
-    try c.encodeIfPresent(self.excludeEntityTypes, as: "excludeEntityTypes")
+    try c.encodeIfPresent(self.maxResources, as: "maxResources")
     try c.encodeIfPresent(self.includeContent, as: "includeContent")
     try c.encodeIfPresent(self.includeSummary, as: "includeSummary")
-    try c.encodeIfPresent(self.maxResources, as: "maxResources")
+    try c.encodeIfPresent(self.excludeEntityTypes, as: "excludeEntityTypes")
   }
 }
 
 public struct GatherResourceRequest: Codable, Sendable, Hashable {
-  public var options: GatherResourceRequestOptions
   public var resourceId: ResourceId
-  public init(options: GatherResourceRequestOptions, resourceId: ResourceId) {
-    self.options = options
+  public var options: GatherResourceRequestOptions
+  public init(resourceId: ResourceId, options: GatherResourceRequestOptions) {
     self.resourceId = resourceId
+    self.options = options
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.options = try c.value("options")
     self.resourceId = try c.value("resourceId")
+    self.options = try c.value("options")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.options, as: "options")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.options, as: "options")
   }
 }
 
 public struct GatherResourceRequestOptions: Codable, Sendable, Hashable {
   public var depth: Int
-  public var excludeEntityTypes: [String]?
+  public var maxResources: Int
   public var includeContent: Bool
   public var includeSummary: Bool
-  public var maxResources: Int
+  public var excludeEntityTypes: [String]?
   public init(
-    depth: Int, excludeEntityTypes: [String]? = nil, includeContent: Bool, includeSummary: Bool,
-    maxResources: Int
+    depth: Int, maxResources: Int, includeContent: Bool, includeSummary: Bool,
+    excludeEntityTypes: [String]? = nil
   ) {
     self.depth = depth
-    self.excludeEntityTypes = excludeEntityTypes
+    self.maxResources = maxResources
     self.includeContent = includeContent
     self.includeSummary = includeSummary
-    self.maxResources = maxResources
+    self.excludeEntityTypes = excludeEntityTypes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.depth = try c.value("depth")
-    self.excludeEntityTypes = try c.ifPresent("excludeEntityTypes")
+    self.maxResources = try c.value("maxResources")
     self.includeContent = try c.value("includeContent")
     self.includeSummary = try c.value("includeSummary")
-    self.maxResources = try c.value("maxResources")
+    self.excludeEntityTypes = try c.ifPresent("excludeEntityTypes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.depth, as: "depth")
-    try c.encodeIfPresent(self.excludeEntityTypes, as: "excludeEntityTypes")
+    try c.encode(self.maxResources, as: "maxResources")
     try c.encode(self.includeContent, as: "includeContent")
     try c.encode(self.includeSummary, as: "includeSummary")
-    try c.encode(self.maxResources, as: "maxResources")
+    try c.encodeIfPresent(self.excludeEntityTypes, as: "excludeEntityTypes")
   }
 }
 
@@ -7217,52 +7610,63 @@ public struct GatherSummaryRequest: Codable, Sendable, Hashable {
 public struct GatheredContext: Codable, Sendable, Hashable {
   public var focus: GatheredContextFocus
   public var graph: KnowledgeGraph
-  public var inferredRelationshipSummary: String?
-  public var metadata: GatheredContextMetadata
   public var semanticContext: GatheredContextSemanticContext?
+  public var metadata: GatheredContextMetadata
+  public var inferredRelationshipSummary: String?
   public init(
-    focus: GatheredContextFocus, graph: KnowledgeGraph, inferredRelationshipSummary: String? = nil,
-    metadata: GatheredContextMetadata, semanticContext: GatheredContextSemanticContext? = nil
+    focus: GatheredContextFocus, graph: KnowledgeGraph,
+    semanticContext: GatheredContextSemanticContext? = nil, metadata: GatheredContextMetadata,
+    inferredRelationshipSummary: String? = nil
   ) {
     self.focus = focus
     self.graph = graph
-    self.inferredRelationshipSummary = inferredRelationshipSummary
-    self.metadata = metadata
     self.semanticContext = semanticContext
+    self.metadata = metadata
+    self.inferredRelationshipSummary = inferredRelationshipSummary
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.focus = try c.value("focus")
     self.graph = try c.value("graph")
-    self.inferredRelationshipSummary = try c.ifPresent("inferredRelationshipSummary")
-    self.metadata = try c.value("metadata")
     self.semanticContext = try c.ifPresent("semanticContext")
+    self.metadata = try c.value("metadata")
+    self.inferredRelationshipSummary = try c.ifPresent("inferredRelationshipSummary")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.focus, as: "focus")
     try c.encode(self.graph, as: "graph")
-    try c.encodeIfPresent(self.inferredRelationshipSummary, as: "inferredRelationshipSummary")
-    try c.encode(self.metadata, as: "metadata")
     try c.encodeIfPresent(self.semanticContext, as: "semanticContext")
+    try c.encode(self.metadata, as: "metadata")
+    try c.encodeIfPresent(self.inferredRelationshipSummary, as: "inferredRelationshipSummary")
   }
 }
 
 public indirect enum GatheredContextFocus: Codable, Sendable, Hashable {
   case annotation(GatheredContextFocusAnnotation)
   case resource(GatheredContextFocusResource)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "annotation", "sourceResource"], allowed: nil,
+        fixed: [.init(property: "kind", values: [.text("annotation")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "resource"], allowed: nil,
+        fixed: [.init(property: "kind", values: [.text("resource")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? GatheredContextFocusAnnotation(from: decoder) {
-      self = .annotation(value)
-      return
-    }
-    if let value = try? GatheredContextFocusResource(from: decoder) {
-      self = .resource(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of GatheredContextFocus fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "GatheredContextFocus", members: Self.members,
+      variants: [
+        (
+          "annotation",
+          { decoder in try Self.annotation(GatheredContextFocusAnnotation(from: decoder)) }
+        ),
+        ("resource", { decoder in try Self.resource(GatheredContextFocusResource(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -7273,46 +7677,46 @@ public indirect enum GatheredContextFocus: Codable, Sendable, Hashable {
 }
 
 public struct GatheredContextFocusAnnotation: Codable, Sendable, Hashable {
-  public var annotation: Annotation
   public let kind: GatheredContextFocusAnnotationKind
-  public var selected: GatheredContextFocusAnnotationSelected?
+  public var annotation: Annotation
   public var sourceResource: ResourceDescriptor
-  public var targetContext: GatheredContextFocusAnnotationTargetContext?
-  public var targetResource: ResourceDescriptor?
+  public var selected: GatheredContextFocusAnnotationSelected?
   public var userHint: String?
+  public var targetResource: ResourceDescriptor?
+  public var targetContext: GatheredContextFocusAnnotationTargetContext?
   public init(
-    annotation: Annotation, selected: GatheredContextFocusAnnotationSelected? = nil,
-    sourceResource: ResourceDescriptor,
-    targetContext: GatheredContextFocusAnnotationTargetContext? = nil,
-    targetResource: ResourceDescriptor? = nil, userHint: String? = nil
+    annotation: Annotation, sourceResource: ResourceDescriptor,
+    selected: GatheredContextFocusAnnotationSelected? = nil, userHint: String? = nil,
+    targetResource: ResourceDescriptor? = nil,
+    targetContext: GatheredContextFocusAnnotationTargetContext? = nil
   ) {
-    self.annotation = annotation
     self.kind = .annotation
-    self.selected = selected
+    self.annotation = annotation
     self.sourceResource = sourceResource
-    self.targetContext = targetContext
-    self.targetResource = targetResource
+    self.selected = selected
     self.userHint = userHint
+    self.targetResource = targetResource
+    self.targetContext = targetContext
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotation = try c.value("annotation")
     self.kind = try c.value("kind")
-    self.selected = try c.ifPresent("selected")
+    self.annotation = try c.value("annotation")
     self.sourceResource = try c.value("sourceResource")
-    self.targetContext = try c.ifPresent("targetContext")
-    self.targetResource = try c.ifPresent("targetResource")
+    self.selected = try c.ifPresent("selected")
     self.userHint = try c.ifPresent("userHint")
+    self.targetResource = try c.ifPresent("targetResource")
+    self.targetContext = try c.ifPresent("targetContext")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotation, as: "annotation")
     try c.encode(self.kind, as: "kind")
-    try c.encodeIfPresent(self.selected, as: "selected")
+    try c.encode(self.annotation, as: "annotation")
     try c.encode(self.sourceResource, as: "sourceResource")
-    try c.encodeIfPresent(self.targetContext, as: "targetContext")
-    try c.encodeIfPresent(self.targetResource, as: "targetResource")
+    try c.encodeIfPresent(self.selected, as: "selected")
     try c.encodeIfPresent(self.userHint, as: "userHint")
+    try c.encodeIfPresent(self.targetResource, as: "targetResource")
+    try c.encodeIfPresent(self.targetContext, as: "targetContext")
   }
 }
 
@@ -7321,25 +7725,25 @@ public enum GatheredContextFocusAnnotationKind: String, Codable, Sendable, CaseI
 }
 
 public struct GatheredContextFocusAnnotationSelected: Codable, Sendable, Hashable {
-  public var after: String?
   public var before: String?
   public var text: String
-  public init(after: String? = nil, before: String? = nil, text: String) {
-    self.after = after
+  public var after: String?
+  public init(before: String? = nil, text: String, after: String? = nil) {
     self.before = before
     self.text = text
+    self.after = after
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.after = try c.ifPresent("after")
     self.before = try c.ifPresent("before")
     self.text = try c.value("text")
+    self.after = try c.ifPresent("after")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.after, as: "after")
     try c.encodeIfPresent(self.before, as: "before")
     try c.encode(self.text, as: "text")
+    try c.encodeIfPresent(self.after, as: "after")
   }
 }
 
@@ -7363,36 +7767,36 @@ public struct GatheredContextFocusAnnotationTargetContext: Codable, Sendable, Ha
 }
 
 public struct GatheredContextFocusResource: Codable, Sendable, Hashable {
-  public var content: GatheredContextFocusResourceContent?
   public let kind: GatheredContextFocusResourceKind
   public var resource: ResourceDescriptor
-  public var suggestedReferences: [String]?
   public var summary: String?
+  public var suggestedReferences: [String]?
+  public var content: GatheredContextFocusResourceContent?
   public init(
-    content: GatheredContextFocusResourceContent? = nil, resource: ResourceDescriptor,
-    suggestedReferences: [String]? = nil, summary: String? = nil
+    resource: ResourceDescriptor, summary: String? = nil, suggestedReferences: [String]? = nil,
+    content: GatheredContextFocusResourceContent? = nil
   ) {
-    self.content = content
     self.kind = .resource
     self.resource = resource
-    self.suggestedReferences = suggestedReferences
     self.summary = summary
+    self.suggestedReferences = suggestedReferences
+    self.content = content
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.content = try c.ifPresent("content")
     self.kind = try c.value("kind")
     self.resource = try c.value("resource")
-    self.suggestedReferences = try c.ifPresent("suggestedReferences")
     self.summary = try c.ifPresent("summary")
+    self.suggestedReferences = try c.ifPresent("suggestedReferences")
+    self.content = try c.ifPresent("content")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.content, as: "content")
     try c.encode(self.kind, as: "kind")
     try c.encode(self.resource, as: "resource")
-    try c.encodeIfPresent(self.suggestedReferences, as: "suggestedReferences")
     try c.encodeIfPresent(self.summary, as: "summary")
+    try c.encodeIfPresent(self.suggestedReferences, as: "suggestedReferences")
+    try c.encodeIfPresent(self.content, as: "content")
   }
 }
 
@@ -7420,260 +7824,260 @@ public enum GatheredContextFocusResourceKind: String, Codable, Sendable, CaseIte
 }
 
 public struct GatheredContextMetadata: Codable, Sendable, Hashable {
-  public var entityTypeFrequencies: [String: Int]?
-  public var entityTypes: [String]?
-  public var language: String?
   public var resourceType: String?
+  public var language: String?
+  public var entityTypes: [String]?
+  public var entityTypeFrequencies: [String: Int]?
   public init(
-    entityTypeFrequencies: [String: Int]? = nil, entityTypes: [String]? = nil,
-    language: String? = nil, resourceType: String? = nil
+    resourceType: String? = nil, language: String? = nil, entityTypes: [String]? = nil,
+    entityTypeFrequencies: [String: Int]? = nil
   ) {
-    self.entityTypeFrequencies = entityTypeFrequencies
-    self.entityTypes = entityTypes
-    self.language = language
     self.resourceType = resourceType
+    self.language = language
+    self.entityTypes = entityTypes
+    self.entityTypeFrequencies = entityTypeFrequencies
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.entityTypeFrequencies = try c.ifPresent("entityTypeFrequencies")
-    self.entityTypes = try c.ifPresent("entityTypes")
-    self.language = try c.ifPresent("language")
     self.resourceType = try c.ifPresent("resourceType")
+    self.language = try c.ifPresent("language")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.entityTypeFrequencies = try c.ifPresent("entityTypeFrequencies")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.entityTypeFrequencies, as: "entityTypeFrequencies")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
-    try c.encodeIfPresent(self.language, as: "language")
     try c.encodeIfPresent(self.resourceType, as: "resourceType")
+    try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.entityTypeFrequencies, as: "entityTypeFrequencies")
   }
 }
 
 public struct GatheredContextSemanticContext: Codable, Sendable, Hashable {
-  public var excludedEntityTypes: [String]?
   public var similar: [SemanticMatch]
-  public init(excludedEntityTypes: [String]? = nil, similar: [SemanticMatch]) {
-    self.excludedEntityTypes = excludedEntityTypes
+  public var excludedEntityTypes: [String]?
+  public init(similar: [SemanticMatch], excludedEntityTypes: [String]? = nil) {
     self.similar = similar
+    self.excludedEntityTypes = excludedEntityTypes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.excludedEntityTypes = try c.ifPresent("excludedEntityTypes")
     self.similar = try c.value("similar")
+    self.excludedEntityTypes = try c.ifPresent("excludedEntityTypes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.excludedEntityTypes, as: "excludedEntityTypes")
     try c.encode(self.similar, as: "similar")
+    try c.encodeIfPresent(self.excludedEntityTypes, as: "excludedEntityTypes")
   }
 }
 
 public struct GenerationJobParams: Codable, Sendable, Hashable {
-  public var cite: Bool?
-  public var context: GatheredContext
+  public var title: String
+  public var storageUri: String
+  public var prompt: String?
   public var entityTypes: [String]?
   public var language: String?
+  public var sourceLanguage: String?
+  public var temperature: Double?
   public var maxTokens: Double?
   public var outputMediaType: SupportedMediaType?
-  public var prompt: String?
-  public var sourceLanguage: String?
-  public var storageUri: String
-  public var structure: String?
   public var task: String?
-  public var temperature: Double?
-  public var title: String
+  public var structure: String?
+  public var cite: Bool?
+  public var context: GatheredContext
   public init(
-    cite: Bool? = nil, context: GatheredContext, entityTypes: [String]? = nil,
-    language: String? = nil, maxTokens: Double? = nil, outputMediaType: SupportedMediaType? = nil,
-    prompt: String? = nil, sourceLanguage: String? = nil, storageUri: String,
-    structure: String? = nil, task: String? = nil, temperature: Double? = nil, title: String
+    title: String, storageUri: String, prompt: String? = nil, entityTypes: [String]? = nil,
+    language: String? = nil, sourceLanguage: String? = nil, temperature: Double? = nil,
+    maxTokens: Double? = nil, outputMediaType: SupportedMediaType? = nil, task: String? = nil,
+    structure: String? = nil, cite: Bool? = nil, context: GatheredContext
   ) {
-    self.cite = cite
-    self.context = context
+    self.title = title
+    self.storageUri = storageUri
+    self.prompt = prompt
     self.entityTypes = entityTypes
     self.language = language
+    self.sourceLanguage = sourceLanguage
+    self.temperature = temperature
     self.maxTokens = maxTokens
     self.outputMediaType = outputMediaType
-    self.prompt = prompt
-    self.sourceLanguage = sourceLanguage
-    self.storageUri = storageUri
-    self.structure = structure
     self.task = task
-    self.temperature = temperature
-    self.title = title
+    self.structure = structure
+    self.cite = cite
+    self.context = context
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.cite = try c.ifPresent("cite")
-    self.context = try c.value("context")
+    self.title = try c.value("title")
+    self.storageUri = try c.value("storageUri")
+    self.prompt = try c.ifPresent("prompt")
     self.entityTypes = try c.ifPresent("entityTypes")
     self.language = try c.ifPresent("language")
+    self.sourceLanguage = try c.ifPresent("sourceLanguage")
+    self.temperature = try c.ifPresent("temperature")
     self.maxTokens = try c.ifPresent("maxTokens")
     self.outputMediaType = try c.ifPresent("outputMediaType")
-    self.prompt = try c.ifPresent("prompt")
-    self.sourceLanguage = try c.ifPresent("sourceLanguage")
-    self.storageUri = try c.value("storageUri")
-    self.structure = try c.ifPresent("structure")
     self.task = try c.ifPresent("task")
-    self.temperature = try c.ifPresent("temperature")
-    self.title = try c.value("title")
+    self.structure = try c.ifPresent("structure")
+    self.cite = try c.ifPresent("cite")
+    self.context = try c.value("context")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.cite, as: "cite")
-    try c.encode(self.context, as: "context")
+    try c.encode(self.title, as: "title")
+    try c.encode(self.storageUri, as: "storageUri")
+    try c.encodeIfPresent(self.prompt, as: "prompt")
     try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
     try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
+    try c.encodeIfPresent(self.temperature, as: "temperature")
     try c.encodeIfPresent(self.maxTokens, as: "maxTokens")
     try c.encodeIfPresent(self.outputMediaType, as: "outputMediaType")
-    try c.encodeIfPresent(self.prompt, as: "prompt")
-    try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
-    try c.encode(self.storageUri, as: "storageUri")
-    try c.encodeIfPresent(self.structure, as: "structure")
     try c.encodeIfPresent(self.task, as: "task")
-    try c.encodeIfPresent(self.temperature, as: "temperature")
-    try c.encode(self.title, as: "title")
+    try c.encodeIfPresent(self.structure, as: "structure")
+    try c.encodeIfPresent(self.cite, as: "cite")
+    try c.encode(self.context, as: "context")
   }
 }
 
 public struct GenerationJobRequest: Codable, Sendable, Hashable {
-  public var cite: Bool?
+  public var title: String
+  public var storageUri: String
+  public var prompt: String?
   public var entityTypes: [String]?
   public var language: String?
+  public var sourceLanguage: String?
+  public var temperature: Double?
   public var maxTokens: Double?
   public var outputMediaType: SupportedMediaType?
-  public var prompt: String?
-  public var sourceLanguage: String?
-  public var storageUri: String
-  public var structure: String?
   public var task: String?
-  public var temperature: Double?
-  public var title: String
+  public var structure: String?
+  public var cite: Bool?
   public init(
-    cite: Bool? = nil, entityTypes: [String]? = nil, language: String? = nil,
-    maxTokens: Double? = nil, outputMediaType: SupportedMediaType? = nil, prompt: String? = nil,
-    sourceLanguage: String? = nil, storageUri: String, structure: String? = nil,
-    task: String? = nil, temperature: Double? = nil, title: String
+    title: String, storageUri: String, prompt: String? = nil, entityTypes: [String]? = nil,
+    language: String? = nil, sourceLanguage: String? = nil, temperature: Double? = nil,
+    maxTokens: Double? = nil, outputMediaType: SupportedMediaType? = nil, task: String? = nil,
+    structure: String? = nil, cite: Bool? = nil
   ) {
-    self.cite = cite
+    self.title = title
+    self.storageUri = storageUri
+    self.prompt = prompt
     self.entityTypes = entityTypes
     self.language = language
+    self.sourceLanguage = sourceLanguage
+    self.temperature = temperature
     self.maxTokens = maxTokens
     self.outputMediaType = outputMediaType
-    self.prompt = prompt
-    self.sourceLanguage = sourceLanguage
-    self.storageUri = storageUri
-    self.structure = structure
     self.task = task
-    self.temperature = temperature
-    self.title = title
+    self.structure = structure
+    self.cite = cite
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.cite = try c.ifPresent("cite")
+    self.title = try c.value("title")
+    self.storageUri = try c.value("storageUri")
+    self.prompt = try c.ifPresent("prompt")
     self.entityTypes = try c.ifPresent("entityTypes")
     self.language = try c.ifPresent("language")
+    self.sourceLanguage = try c.ifPresent("sourceLanguage")
+    self.temperature = try c.ifPresent("temperature")
     self.maxTokens = try c.ifPresent("maxTokens")
     self.outputMediaType = try c.ifPresent("outputMediaType")
-    self.prompt = try c.ifPresent("prompt")
-    self.sourceLanguage = try c.ifPresent("sourceLanguage")
-    self.storageUri = try c.value("storageUri")
-    self.structure = try c.ifPresent("structure")
     self.task = try c.ifPresent("task")
-    self.temperature = try c.ifPresent("temperature")
-    self.title = try c.value("title")
+    self.structure = try c.ifPresent("structure")
+    self.cite = try c.ifPresent("cite")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.cite, as: "cite")
+    try c.encode(self.title, as: "title")
+    try c.encode(self.storageUri, as: "storageUri")
+    try c.encodeIfPresent(self.prompt, as: "prompt")
     try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
     try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
+    try c.encodeIfPresent(self.temperature, as: "temperature")
     try c.encodeIfPresent(self.maxTokens, as: "maxTokens")
     try c.encodeIfPresent(self.outputMediaType, as: "outputMediaType")
-    try c.encodeIfPresent(self.prompt, as: "prompt")
-    try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
-    try c.encode(self.storageUri, as: "storageUri")
-    try c.encodeIfPresent(self.structure, as: "structure")
     try c.encodeIfPresent(self.task, as: "task")
-    try c.encodeIfPresent(self.temperature, as: "temperature")
-    try c.encode(self.title, as: "title")
+    try c.encodeIfPresent(self.structure, as: "structure")
+    try c.encodeIfPresent(self.cite, as: "cite")
   }
 }
 
 public struct GetAnnotationHistoryResponse: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId
   public var events: [AttributedEvent]
-  public var resourceId: ResourceId
   public var total: Double
+  public var annotationId: AnnotationId
+  public var resourceId: ResourceId
   public init(
-    annotationId: AnnotationId, events: [AttributedEvent], resourceId: ResourceId, total: Double
+    events: [AttributedEvent], total: Double, annotationId: AnnotationId, resourceId: ResourceId
   ) {
-    self.annotationId = annotationId
     self.events = events
-    self.resourceId = resourceId
     self.total = total
+    self.annotationId = annotationId
+    self.resourceId = resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.value("annotationId")
     self.events = try c.value("events")
-    self.resourceId = try c.value("resourceId")
     self.total = try c.value("total")
+    self.annotationId = try c.value("annotationId")
+    self.resourceId = try c.value("resourceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotationId, as: "annotationId")
     try c.encode(self.events, as: "events")
-    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.total, as: "total")
+    try c.encode(self.annotationId, as: "annotationId")
+    try c.encode(self.resourceId, as: "resourceId")
   }
 }
 
 public struct GetAnnotationResponse: Codable, Sendable, Hashable {
   public var annotation: Annotation
-  public var resolvedResource: ResourceDescriptor?
   public var resource: ResourceDescriptor?
+  public var resolvedResource: ResourceDescriptor?
   public init(
-    annotation: Annotation, resolvedResource: ResourceDescriptor?, resource: ResourceDescriptor?
+    annotation: Annotation, resource: ResourceDescriptor?, resolvedResource: ResourceDescriptor?
   ) {
     self.annotation = annotation
-    self.resolvedResource = resolvedResource
     self.resource = resource
+    self.resolvedResource = resolvedResource
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.annotation = try c.value("annotation")
-    self.resolvedResource = try c.value("resolvedResource")
     self.resource = try c.value("resource")
+    self.resolvedResource = try c.value("resolvedResource")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.annotation, as: "annotation")
-    try c.encode(self.resolvedResource, as: "resolvedResource")
     try c.encode(self.resource, as: "resource")
+    try c.encode(self.resolvedResource, as: "resolvedResource")
   }
 }
 
 public struct GetAnnotationsResponse: Codable, Sendable, Hashable {
   public var annotations: [Annotation]
-  public var motivation: Motivation?
   public var total: Double
-  public init(annotations: [Annotation], motivation: Motivation? = nil, total: Double) {
+  public var motivation: Motivation?
+  public init(annotations: [Annotation], total: Double, motivation: Motivation? = nil) {
     self.annotations = annotations
-    self.motivation = motivation
     self.total = total
+    self.motivation = motivation
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.annotations = try c.value("annotations")
-    self.motivation = try c.ifPresent("motivation")
     self.total = try c.value("total")
+    self.motivation = try c.ifPresent("motivation")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.annotations, as: "annotations")
-    try c.encodeIfPresent(self.motivation, as: "motivation")
     try c.encode(self.total, as: "total")
+    try c.encodeIfPresent(self.motivation, as: "motivation")
   }
 }
 
@@ -7694,24 +8098,24 @@ public struct GetEntityTypesResponse: Codable, Sendable, Hashable {
 
 public struct GetEventsResponse: Codable, Sendable, Hashable {
   public var events: [AttributedEvent]
-  public var resourceId: ResourceId
   public var total: Double
-  public init(events: [AttributedEvent], resourceId: ResourceId, total: Double) {
+  public var resourceId: ResourceId
+  public init(events: [AttributedEvent], total: Double, resourceId: ResourceId) {
     self.events = events
-    self.resourceId = resourceId
     self.total = total
+    self.resourceId = resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.events = try c.value("events")
-    self.resourceId = try c.value("resourceId")
     self.total = try c.value("total")
+    self.resourceId = try c.value("resourceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.events, as: "events")
-    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.total, as: "total")
+    try c.encode(self.resourceId, as: "resourceId")
   }
 }
 
@@ -7757,21 +8161,21 @@ public struct GetReferencedByResponseReferencedByItem: Codable, Sendable, Hashab
 }
 
 public struct GetReferencedByResponseReferencedByItemTarget: Codable, Sendable, Hashable {
-  public var selector: GetReferencedByResponseReferencedByItemTargetSelector
   public var source: ResourceId
-  public init(selector: GetReferencedByResponseReferencedByItemTargetSelector, source: ResourceId) {
-    self.selector = selector
+  public var selector: GetReferencedByResponseReferencedByItemTargetSelector
+  public init(source: ResourceId, selector: GetReferencedByResponseReferencedByItemTargetSelector) {
     self.source = source
+    self.selector = selector
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.selector = try c.value("selector")
     self.source = try c.value("source")
+    self.selector = try c.value("selector")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.selector, as: "selector")
     try c.encode(self.source, as: "source")
+    try c.encode(self.selector, as: "selector")
   }
 }
 
@@ -7791,40 +8195,40 @@ public struct GetReferencedByResponseReferencedByItemTargetSelector: Codable, Se
 }
 
 public struct GetResourceByTokenResponse: Codable, Sendable, Hashable {
-  public var expiresAt: String
   public var sourceResource: ResourceDescriptor
-  public init(expiresAt: String, sourceResource: ResourceDescriptor) {
-    self.expiresAt = expiresAt
+  public var expiresAt: String
+  public init(sourceResource: ResourceDescriptor, expiresAt: String) {
     self.sourceResource = sourceResource
+    self.expiresAt = expiresAt
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.expiresAt = try c.value("expiresAt")
     self.sourceResource = try c.value("sourceResource")
+    self.expiresAt = try c.value("expiresAt")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.expiresAt, as: "expiresAt")
     try c.encode(self.sourceResource, as: "sourceResource")
+    try c.encode(self.expiresAt, as: "expiresAt")
   }
 }
 
 public struct GetResourceResponse: Codable, Sendable, Hashable {
-  public var annotations: [Annotation]
   public var resource: ResourceDescriptor
-  public init(annotations: [Annotation], resource: ResourceDescriptor) {
-    self.annotations = annotations
+  public var annotations: [Annotation]
+  public init(resource: ResourceDescriptor, annotations: [Annotation]) {
     self.resource = resource
+    self.annotations = annotations
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotations = try c.value("annotations")
     self.resource = try c.value("resource")
+    self.annotations = try c.value("annotations")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotations, as: "annotations")
     try c.encode(self.resource, as: "resource")
+    try c.encode(self.annotations, as: "annotations")
   }
 }
 
@@ -7844,40 +8248,40 @@ public struct GetTagSchemasResponse: Codable, Sendable, Hashable {
 }
 
 public struct GraphAnnotationNode: Codable, Sendable, Hashable {
-  public var annotation: Annotation
-  public var entityTypes: [String]?
   public var id: AnnotationId
-  public var label: String
-  public var metadata: [String: JSONValue]?
   public let type: GraphAnnotationNodeType
+  public var label: String
+  public var entityTypes: [String]?
+  public var annotation: Annotation
+  public var metadata: [String: JSONValue]?
   public init(
-    annotation: Annotation, entityTypes: [String]? = nil, id: AnnotationId, label: String,
+    id: AnnotationId, label: String, entityTypes: [String]? = nil, annotation: Annotation,
     metadata: [String: JSONValue]? = nil
   ) {
-    self.annotation = annotation
-    self.entityTypes = entityTypes
     self.id = id
-    self.label = label
-    self.metadata = metadata
     self.type = .annotation
+    self.label = label
+    self.entityTypes = entityTypes
+    self.annotation = annotation
+    self.metadata = metadata
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotation = try c.value("annotation")
-    self.entityTypes = try c.ifPresent("entityTypes")
     self.id = try c.value("id")
-    self.label = try c.value("label")
-    self.metadata = try c.ifPresent("metadata")
     self.type = try c.value("type")
+    self.label = try c.value("label")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.annotation = try c.value("annotation")
+    self.metadata = try c.ifPresent("metadata")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotation, as: "annotation")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
     try c.encode(self.id, as: "id")
-    try c.encode(self.label, as: "label")
-    try c.encodeIfPresent(self.metadata, as: "metadata")
     try c.encode(self.type, as: "type")
+    try c.encode(self.label, as: "label")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encode(self.annotation, as: "annotation")
+    try c.encodeIfPresent(self.metadata, as: "metadata")
   }
 }
 
@@ -7890,18 +8294,51 @@ public indirect enum GraphConfig: Codable, Sendable, Hashable {
   case janusGraphConfig(JanusGraphConfig)
   case neptuneGraphConfig(NeptuneGraphConfig)
   case memoryGraphConfig(MemoryGraphConfig)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "uri", "username", "passwordEnv", "database"],
+        allowed: ["type", "uri", "username", "passwordEnv", "database"],
+        fixed: [.init(property: "type", values: [.text("neo4j")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "host", "port"], allowed: ["type", "host", "port"],
+        fixed: [.init(property: "type", values: [.text("janusgraph")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "endpoint", "port"],
+        allowed: ["type", "endpoint", "port"],
+        fixed: [.init(property: "type", values: [.text("neptune")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type"], allowed: ["type"],
+        fixed: [.init(property: "type", values: [.text("memory")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "neo4j": self = .neo4jGraphConfig(try Neo4jGraphConfig(from: decoder))
-    case "janusgraph": self = .janusGraphConfig(try JanusGraphConfig(from: decoder))
-    case "neptune": self = .neptuneGraphConfig(try NeptuneGraphConfig(from: decoder))
-    case "memory": self = .memoryGraphConfig(try MemoryGraphConfig(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown GraphConfig discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "GraphConfig", members: Self.members,
+      variants: [
+        (
+          "neo4jGraphConfig",
+          { decoder in try Self.neo4jGraphConfig(Neo4jGraphConfig(from: decoder)) }
+        ),
+        (
+          "janusGraphConfig",
+          { decoder in try Self.janusGraphConfig(JanusGraphConfig(from: decoder)) }
+        ),
+        (
+          "neptuneGraphConfig",
+          { decoder in try Self.neptuneGraphConfig(NeptuneGraphConfig(from: decoder)) }
+        ),
+        (
+          "memoryGraphConfig",
+          { decoder in try Self.memoryGraphConfig(MemoryGraphConfig(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -7914,36 +8351,36 @@ public indirect enum GraphConfig: Codable, Sendable, Hashable {
 }
 
 public struct GraphResourceNode: Codable, Sendable, Hashable {
-  public var entityTypes: [String]?
   public var id: ResourceId
-  public var label: String
-  public var metadata: [String: JSONValue]?
   public let type: GraphResourceNodeType
+  public var label: String
+  public var entityTypes: [String]?
+  public var metadata: [String: JSONValue]?
   public init(
-    entityTypes: [String]? = nil, id: ResourceId, label: String,
+    id: ResourceId, label: String, entityTypes: [String]? = nil,
     metadata: [String: JSONValue]? = nil
   ) {
-    self.entityTypes = entityTypes
     self.id = id
-    self.label = label
-    self.metadata = metadata
     self.type = .resource
+    self.label = label
+    self.entityTypes = entityTypes
+    self.metadata = metadata
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.entityTypes = try c.ifPresent("entityTypes")
     self.id = try c.value("id")
-    self.label = try c.value("label")
-    self.metadata = try c.ifPresent("metadata")
     self.type = try c.value("type")
+    self.label = try c.value("label")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.metadata = try c.ifPresent("metadata")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
     try c.encode(self.id, as: "id")
-    try c.encode(self.label, as: "label")
-    try c.encodeIfPresent(self.metadata, as: "metadata")
     try c.encode(self.type, as: "type")
+    try c.encode(self.label, as: "label")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.metadata, as: "metadata")
   }
 }
 
@@ -7983,113 +8420,113 @@ public struct GraphSchema: Codable, Sendable, Hashable {
 }
 
 public struct GraphSchemaNodes: Codable, Sendable, Hashable {
+  public var resource: GraphSchemaNodesResource
   public var annotation: GraphSchemaNodesAnnotation
   public var entityType: GraphSchemaNodesEntityType
-  public var resource: GraphSchemaNodesResource
   public init(
-    annotation: GraphSchemaNodesAnnotation, entityType: GraphSchemaNodesEntityType,
-    resource: GraphSchemaNodesResource
+    resource: GraphSchemaNodesResource, annotation: GraphSchemaNodesAnnotation,
+    entityType: GraphSchemaNodesEntityType
   ) {
+    self.resource = resource
     self.annotation = annotation
     self.entityType = entityType
-    self.resource = resource
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["annotation", "entityType", "resource"], in: "GraphSchemaNodes")
+    try c.refuseUnknown(["resource", "annotation", "entityType"], in: "GraphSchemaNodes")
+    self.resource = try c.value("resource")
     self.annotation = try c.value("annotation")
     self.entityType = try c.value("entityType")
-    self.resource = try c.value("resource")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.resource, as: "resource")
     try c.encode(self.annotation, as: "annotation")
     try c.encode(self.entityType, as: "entityType")
-    try c.encode(self.resource, as: "resource")
   }
 }
 
 public struct GraphSchemaNodesAnnotation: Codable, Sendable, Hashable {
-  public var key: String
   public var label: String
-  public var lookups: [String]
   public var row: String?
-  public init(key: String, label: String, lookups: [String], row: String? = nil) {
-    self.key = key
+  public var key: String
+  public var lookups: [String]
+  public init(label: String, row: String? = nil, key: String, lookups: [String]) {
     self.label = label
-    self.lookups = lookups
     self.row = row
+    self.key = key
+    self.lookups = lookups
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["key", "label", "lookups", "row"], in: "GraphSchemaNodesAnnotation")
-    self.key = try c.value("key")
+    try c.refuseUnknown(["label", "row", "key", "lookups"], in: "GraphSchemaNodesAnnotation")
     self.label = try c.value("label")
-    self.lookups = try c.value("lookups")
     self.row = try c.ifPresent("row")
+    self.key = try c.value("key")
+    self.lookups = try c.value("lookups")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.key, as: "key")
     try c.encode(self.label, as: "label")
-    try c.encode(self.lookups, as: "lookups")
     try c.encodeIfPresent(self.row, as: "row")
+    try c.encode(self.key, as: "key")
+    try c.encode(self.lookups, as: "lookups")
   }
 }
 
 public struct GraphSchemaNodesEntityType: Codable, Sendable, Hashable {
-  public var key: String
   public var label: String
-  public var lookups: [String]
   public var row: String?
-  public init(key: String, label: String, lookups: [String], row: String? = nil) {
-    self.key = key
+  public var key: String
+  public var lookups: [String]
+  public init(label: String, row: String? = nil, key: String, lookups: [String]) {
     self.label = label
-    self.lookups = lookups
     self.row = row
+    self.key = key
+    self.lookups = lookups
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["key", "label", "lookups", "row"], in: "GraphSchemaNodesEntityType")
-    self.key = try c.value("key")
+    try c.refuseUnknown(["label", "row", "key", "lookups"], in: "GraphSchemaNodesEntityType")
     self.label = try c.value("label")
-    self.lookups = try c.value("lookups")
     self.row = try c.ifPresent("row")
+    self.key = try c.value("key")
+    self.lookups = try c.value("lookups")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.key, as: "key")
     try c.encode(self.label, as: "label")
-    try c.encode(self.lookups, as: "lookups")
     try c.encodeIfPresent(self.row, as: "row")
+    try c.encode(self.key, as: "key")
+    try c.encode(self.lookups, as: "lookups")
   }
 }
 
 public struct GraphSchemaNodesResource: Codable, Sendable, Hashable {
-  public var key: String
   public var label: String
-  public var lookups: [String]
   public var row: String?
-  public init(key: String, label: String, lookups: [String], row: String? = nil) {
-    self.key = key
+  public var key: String
+  public var lookups: [String]
+  public init(label: String, row: String? = nil, key: String, lookups: [String]) {
     self.label = label
-    self.lookups = lookups
     self.row = row
+    self.key = key
+    self.lookups = lookups
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["key", "label", "lookups", "row"], in: "GraphSchemaNodesResource")
-    self.key = try c.value("key")
+    try c.refuseUnknown(["label", "row", "key", "lookups"], in: "GraphSchemaNodesResource")
     self.label = try c.value("label")
-    self.lookups = try c.value("lookups")
     self.row = try c.ifPresent("row")
+    self.key = try c.value("key")
+    self.lookups = try c.value("lookups")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.key, as: "key")
     try c.encode(self.label, as: "label")
-    try c.encode(self.lookups, as: "lookups")
     try c.encodeIfPresent(self.row, as: "row")
+    try c.encode(self.key, as: "key")
+    try c.encode(self.lookups, as: "lookups")
   }
 }
 
@@ -8121,161 +8558,161 @@ public struct GraphSchemaRelationships: Codable, Sendable, Hashable {
 }
 
 public struct GraphSchemaRelationshipsBelongsTo: Codable, Sendable, Hashable {
-  public var from: String
-  public var says: String
-  public var to: String
   public var type: String
-  public init(from: String, says: String, to: String, type: String) {
-    self.from = from
-    self.says = says
-    self.to = to
+  public var from: String
+  public var to: String
+  public var says: String
+  public init(type: String, from: String, to: String, says: String) {
     self.type = type
+    self.from = from
+    self.to = to
+    self.says = says
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["from", "says", "to", "type"], in: "GraphSchemaRelationshipsBelongsTo")
-    self.from = try c.value("from")
-    self.says = try c.value("says")
-    self.to = try c.value("to")
+    try c.refuseUnknown(["type", "from", "to", "says"], in: "GraphSchemaRelationshipsBelongsTo")
     self.type = try c.value("type")
+    self.from = try c.value("from")
+    self.to = try c.value("to")
+    self.says = try c.value("says")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.from, as: "from")
-    try c.encode(self.says, as: "says")
-    try c.encode(self.to, as: "to")
     try c.encode(self.type, as: "type")
+    try c.encode(self.from, as: "from")
+    try c.encode(self.to, as: "to")
+    try c.encode(self.says, as: "says")
   }
 }
 
 public struct GraphSchemaRelationshipsReferences: Codable, Sendable, Hashable {
-  public var from: String
-  public var says: String
-  public var to: String
   public var type: String
-  public init(from: String, says: String, to: String, type: String) {
-    self.from = from
-    self.says = says
-    self.to = to
+  public var from: String
+  public var to: String
+  public var says: String
+  public init(type: String, from: String, to: String, says: String) {
     self.type = type
+    self.from = from
+    self.to = to
+    self.says = says
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["from", "says", "to", "type"], in: "GraphSchemaRelationshipsReferences")
-    self.from = try c.value("from")
-    self.says = try c.value("says")
-    self.to = try c.value("to")
+    try c.refuseUnknown(["type", "from", "to", "says"], in: "GraphSchemaRelationshipsReferences")
     self.type = try c.value("type")
+    self.from = try c.value("from")
+    self.to = try c.value("to")
+    self.says = try c.value("says")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.from, as: "from")
-    try c.encode(self.says, as: "says")
-    try c.encode(self.to, as: "to")
     try c.encode(self.type, as: "type")
+    try c.encode(self.from, as: "from")
+    try c.encode(self.to, as: "to")
+    try c.encode(self.says, as: "says")
   }
 }
 
 public struct GraphSchemaRelationshipsTaggedAs: Codable, Sendable, Hashable {
-  public var from: String
-  public var says: String
-  public var to: String
   public var type: String
-  public init(from: String, says: String, to: String, type: String) {
-    self.from = from
-    self.says = says
-    self.to = to
+  public var from: String
+  public var to: String
+  public var says: String
+  public init(type: String, from: String, to: String, says: String) {
     self.type = type
+    self.from = from
+    self.to = to
+    self.says = says
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["from", "says", "to", "type"], in: "GraphSchemaRelationshipsTaggedAs")
-    self.from = try c.value("from")
-    self.says = try c.value("says")
-    self.to = try c.value("to")
+    try c.refuseUnknown(["type", "from", "to", "says"], in: "GraphSchemaRelationshipsTaggedAs")
     self.type = try c.value("type")
+    self.from = try c.value("from")
+    self.to = try c.value("to")
+    self.says = try c.value("says")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.from, as: "from")
-    try c.encode(self.says, as: "says")
-    try c.encode(self.to, as: "to")
     try c.encode(self.type, as: "type")
+    try c.encode(self.from, as: "from")
+    try c.encode(self.to, as: "to")
+    try c.encode(self.says, as: "says")
   }
 }
 
 public struct GraphSchemaStub: Codable, Sendable, Hashable {
-  public var marker: String
   public var node: String
-  public init(marker: String, node: String) {
-    self.marker = marker
+  public var marker: String
+  public init(node: String, marker: String) {
     self.node = node
+    self.marker = marker
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["marker", "node"], in: "GraphSchemaStub")
-    self.marker = try c.value("marker")
+    try c.refuseUnknown(["node", "marker"], in: "GraphSchemaStub")
     self.node = try c.value("node")
+    self.marker = try c.value("marker")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.marker, as: "marker")
     try c.encode(self.node, as: "node")
+    try c.encode(self.marker, as: "marker")
   }
 }
 
 public struct HealthResponse: Codable, Sendable, Hashable {
-  public var message: String
   public var status: String
-  public var timestamp: String
+  public var message: String
   public var version: String
-  public init(message: String, status: String, timestamp: String, version: String) {
-    self.message = message
+  public var timestamp: String
+  public init(status: String, message: String, version: String, timestamp: String) {
     self.status = status
-    self.timestamp = timestamp
+    self.message = message
     self.version = version
+    self.timestamp = timestamp
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.message = try c.value("message")
     self.status = try c.value("status")
-    self.timestamp = try c.value("timestamp")
+    self.message = try c.value("message")
     self.version = try c.value("version")
+    self.timestamp = try c.value("timestamp")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.message, as: "message")
     try c.encode(self.status, as: "status")
-    try c.encode(self.timestamp, as: "timestamp")
+    try c.encode(self.message, as: "message")
     try c.encode(self.version, as: "version")
+    try c.encode(self.timestamp, as: "timestamp")
   }
 }
 
 public struct HighlightingJobParams: Codable, Sendable, Hashable {
-  public var density: Double?
-  public var instructions: String?
   public let motivation: HighlightingJobParamsMotivation
+  public var instructions: String?
+  public var density: Double?
   public var sourceLanguage: String?
-  public init(density: Double? = nil, instructions: String? = nil, sourceLanguage: String? = nil) {
-    self.density = density
-    self.instructions = instructions
+  public init(instructions: String? = nil, density: Double? = nil, sourceLanguage: String? = nil) {
     self.motivation = .highlighting
+    self.instructions = instructions
+    self.density = density
     self.sourceLanguage = sourceLanguage
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["density", "instructions", "motivation", "sourceLanguage"], in: "HighlightingJobParams")
-    self.density = try c.ifPresent("density")
-    self.instructions = try c.ifPresent("instructions")
+      ["motivation", "instructions", "density", "sourceLanguage"], in: "HighlightingJobParams")
     self.motivation = try c.value("motivation")
+    self.instructions = try c.ifPresent("instructions")
+    self.density = try c.ifPresent("density")
     self.sourceLanguage = try c.ifPresent("sourceLanguage")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.density, as: "density")
-    try c.encodeIfPresent(self.instructions, as: "instructions")
     try c.encode(self.motivation, as: "motivation")
+    try c.encodeIfPresent(self.instructions, as: "instructions")
+    try c.encodeIfPresent(self.density, as: "density")
     try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
   }
 }
@@ -8305,27 +8742,27 @@ public struct HostPort: Codable, Sendable, Hashable {
 }
 
 public struct HttpEndpoint: Codable, Sendable, Hashable {
-  public var host: String
   public let kind: HttpEndpointKind
+  public var host: String
   public var port: Int
   public var `protocol`: HttpEndpointProtocol
   public init(host: String, port: Int, `protocol`: HttpEndpointProtocol) {
-    self.host = host
     self.kind = .http
+    self.host = host
     self.port = port
     self.`protocol` = `protocol`
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.host = try c.value("host")
     self.kind = try c.value("kind")
+    self.host = try c.value("host")
     self.port = try c.value("port")
     self.`protocol` = try c.value("protocol")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.host, as: "host")
     try c.encode(self.kind, as: "kind")
+    try c.encode(self.host, as: "host")
     try c.encode(self.port, as: "port")
     try c.encode(self.`protocol`, as: "protocol")
   }
@@ -8344,91 +8781,91 @@ public typealias HttpStatus = Int
 
 public struct IdentityUser: Codable, Sendable, Hashable {
   public var email: String
-  public var enabled: Bool
   public var identity: String
-  public init(email: String, enabled: Bool, identity: String) {
+  public var enabled: Bool
+  public init(email: String, identity: String, enabled: Bool) {
     self.email = email
-    self.enabled = enabled
     self.identity = identity
+    self.enabled = enabled
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["email", "enabled", "identity"], in: "IdentityUser")
+    try c.refuseUnknown(["email", "identity", "enabled"], in: "IdentityUser")
     self.email = try c.value("email")
-    self.enabled = try c.value("enabled")
     self.identity = try c.value("identity")
+    self.enabled = try c.value("enabled")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.email, as: "email")
-    try c.encode(self.enabled, as: "enabled")
     try c.encode(self.identity, as: "identity")
+    try c.encode(self.enabled, as: "enabled")
   }
 }
 
 public struct IdentityUseraddParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var email: String
-  public var generatePassword: Bool
-  public var password: String?
   public var target: LocalTarget
+  public var email: String
+  public var password: String?
+  public var generatePassword: Bool
   public init(
-    apiVersion: ApiVersion, email: String, generatePassword: Bool, password: String? = nil,
-    target: LocalTarget
+    apiVersion: ApiVersion, target: LocalTarget, email: String, password: String? = nil,
+    generatePassword: Bool
   ) {
     self.apiVersion = apiVersion
-    self.email = email
-    self.generatePassword = generatePassword
-    self.password = password
     self.target = target
+    self.email = email
+    self.password = password
+    self.generatePassword = generatePassword
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["apiVersion", "email", "generatePassword", "password", "target"], in: "IdentityUseraddParams"
+      ["apiVersion", "target", "email", "password", "generatePassword"], in: "IdentityUseraddParams"
     )
     self.apiVersion = try c.value("apiVersion")
-    self.email = try c.value("email")
-    self.generatePassword = try c.value("generatePassword")
-    self.password = try c.ifPresent("password")
     self.target = try c.value("target")
+    self.email = try c.value("email")
+    self.password = try c.ifPresent("password")
+    self.generatePassword = try c.value("generatePassword")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encode(self.email, as: "email")
-    try c.encode(self.generatePassword, as: "generatePassword")
-    try c.encodeIfPresent(self.password, as: "password")
     try c.encode(self.target, as: "target")
+    try c.encode(self.email, as: "email")
+    try c.encodeIfPresent(self.password, as: "password")
+    try c.encode(self.generatePassword, as: "generatePassword")
   }
 }
 
 public struct IdentityUseraddResult: Codable, Sendable, Hashable {
-  public var created: Bool
   public var email: String
-  public var generatedPassword: String?
   public var identity: String
-  public init(created: Bool, email: String, generatedPassword: String? = nil, identity: String) {
-    self.created = created
+  public var created: Bool
+  public var generatedPassword: String?
+  public init(email: String, identity: String, created: Bool, generatedPassword: String? = nil) {
     self.email = email
-    self.generatedPassword = generatedPassword
     self.identity = identity
+    self.created = created
+    self.generatedPassword = generatedPassword
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["created", "email", "generatedPassword", "identity"], in: "IdentityUseraddResult")
-    self.created = try c.value("created")
+      ["email", "identity", "created", "generatedPassword"], in: "IdentityUseraddResult")
     self.email = try c.value("email")
-    self.generatedPassword = try c.ifPresent("generatedPassword")
     self.identity = try c.value("identity")
+    self.created = try c.value("created")
+    self.generatedPassword = try c.ifPresent("generatedPassword")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.created, as: "created")
     try c.encode(self.email, as: "email")
-    try c.encodeIfPresent(self.generatedPassword, as: "generatedPassword")
     try c.encode(self.identity, as: "identity")
+    try c.encode(self.created, as: "created")
+    try c.encodeIfPresent(self.generatedPassword, as: "generatedPassword")
   }
 }
 
@@ -8503,25 +8940,25 @@ public enum InferenceKind: String, Codable, Sendable, CaseIterable {
 }
 
 public struct InferenceLimits: Codable, Sendable, Hashable {
-  public var acceptsTemperature: Bool?
   public var contextTokens: Double
   public var maxOutputTokens: Double
-  public init(acceptsTemperature: Bool? = nil, contextTokens: Double, maxOutputTokens: Double) {
-    self.acceptsTemperature = acceptsTemperature
+  public var acceptsTemperature: Bool?
+  public init(contextTokens: Double, maxOutputTokens: Double, acceptsTemperature: Bool? = nil) {
     self.contextTokens = contextTokens
     self.maxOutputTokens = maxOutputTokens
+    self.acceptsTemperature = acceptsTemperature
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.acceptsTemperature = try c.ifPresent("acceptsTemperature")
     self.contextTokens = try c.value("contextTokens")
     self.maxOutputTokens = try c.value("maxOutputTokens")
+    self.acceptsTemperature = try c.ifPresent("acceptsTemperature")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.acceptsTemperature, as: "acceptsTemperature")
     try c.encode(self.contextTokens, as: "contextTokens")
     try c.encode(self.maxOutputTokens, as: "maxOutputTokens")
+    try c.encodeIfPresent(self.acceptsTemperature, as: "acceptsTemperature")
   }
 }
 
@@ -8567,22 +9004,22 @@ public struct InferenceLimitsResultResponse: Codable, Sendable, Hashable {
 }
 
 public struct InferenceSpec: Codable, Sendable, Hashable {
-  public var engines: ArchivistEngines
   public var providers: [String: Provider]
-  public init(engines: ArchivistEngines, providers: [String: Provider]) {
-    self.engines = engines
+  public var engines: ArchivistEngines
+  public init(providers: [String: Provider], engines: ArchivistEngines) {
     self.providers = providers
+    self.engines = engines
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["engines", "providers"], in: "InferenceSpec")
-    self.engines = try c.value("engines")
+    try c.refuseUnknown(["providers", "engines"], in: "InferenceSpec")
     self.providers = try c.value("providers")
+    self.engines = try c.value("engines")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.engines, as: "engines")
     try c.encode(self.providers, as: "providers")
+    try c.encode(self.engines, as: "engines")
   }
 }
 
@@ -8639,128 +9076,128 @@ public enum IssuerKind: String, Codable, Sendable, CaseIterable {
 }
 
 public struct IssuerSpec: Codable, Sendable, Hashable {
-  public var database: IssuerSpecDatabase
-  public var image: Image
-  public var port: Int
-  public var resources: Resources
   public var type: String
+  public var image: Image
+  public var resources: Resources
+  public var port: Int
+  public var database: IssuerSpecDatabase
   public init(
-    database: IssuerSpecDatabase, image: Image, port: Int, resources: Resources, type: String
+    type: String, image: Image, resources: Resources, port: Int, database: IssuerSpecDatabase
   ) {
-    self.database = database
-    self.image = image
-    self.port = port
-    self.resources = resources
     self.type = type
+    self.image = image
+    self.resources = resources
+    self.port = port
+    self.database = database
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["database", "image", "port", "resources", "type"], in: "IssuerSpec")
-    self.database = try c.value("database")
-    self.image = try c.value("image")
-    self.port = try c.value("port")
-    self.resources = try c.value("resources")
+    try c.refuseUnknown(["type", "image", "resources", "port", "database"], in: "IssuerSpec")
     self.type = try c.value("type")
+    self.image = try c.value("image")
+    self.resources = try c.value("resources")
+    self.port = try c.value("port")
+    self.database = try c.value("database")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.database, as: "database")
-    try c.encode(self.image, as: "image")
-    try c.encode(self.port, as: "port")
-    try c.encode(self.resources, as: "resources")
     try c.encode(self.type, as: "type")
+    try c.encode(self.image, as: "image")
+    try c.encode(self.resources, as: "resources")
+    try c.encode(self.port, as: "port")
+    try c.encode(self.database, as: "database")
   }
 }
 
 public struct IssuerSpecDatabase: Codable, Sendable, Hashable {
-  public var external: IssuerSpecDatabaseExternal?
-  public var image: Image?
-  public var name: String
-  public var port: Int?
-  public var resources: Resources?
   public var type: String
+  public var name: String
   public var user: String
+  public var image: Image?
+  public var resources: Resources?
+  public var port: Int?
+  public var external: IssuerSpecDatabaseExternal?
   public init(
-    external: IssuerSpecDatabaseExternal? = nil, image: Image? = nil, name: String,
-    port: Int? = nil, resources: Resources? = nil, type: String, user: String
+    type: String, name: String, user: String, image: Image? = nil, resources: Resources? = nil,
+    port: Int? = nil, external: IssuerSpecDatabaseExternal? = nil
   ) {
-    self.external = external
-    self.image = image
-    self.name = name
-    self.port = port
-    self.resources = resources
     self.type = type
+    self.name = name
     self.user = user
+    self.image = image
+    self.resources = resources
+    self.port = port
+    self.external = external
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["external", "image", "name", "port", "resources", "type", "user"], in: "IssuerSpecDatabase")
-    self.external = try c.ifPresent("external")
-    self.image = try c.ifPresent("image")
-    self.name = try c.value("name")
-    self.port = try c.ifPresent("port")
-    self.resources = try c.ifPresent("resources")
+      ["type", "name", "user", "image", "resources", "port", "external"], in: "IssuerSpecDatabase")
     self.type = try c.value("type")
+    self.name = try c.value("name")
     self.user = try c.value("user")
+    self.image = try c.ifPresent("image")
+    self.resources = try c.ifPresent("resources")
+    self.port = try c.ifPresent("port")
+    self.external = try c.ifPresent("external")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.external, as: "external")
-    try c.encodeIfPresent(self.image, as: "image")
-    try c.encode(self.name, as: "name")
-    try c.encodeIfPresent(self.port, as: "port")
-    try c.encodeIfPresent(self.resources, as: "resources")
     try c.encode(self.type, as: "type")
+    try c.encode(self.name, as: "name")
     try c.encode(self.user, as: "user")
+    try c.encodeIfPresent(self.image, as: "image")
+    try c.encodeIfPresent(self.resources, as: "resources")
+    try c.encodeIfPresent(self.port, as: "port")
+    try c.encodeIfPresent(self.external, as: "external")
   }
 }
 
 public struct IssuerSpecDatabaseExternal: Codable, Sendable, Hashable {
   public var host: String
-  public var password: SecretRef
   public var port: Int
-  public init(host: String, password: SecretRef, port: Int) {
+  public var password: SecretRef
+  public init(host: String, port: Int, password: SecretRef) {
     self.host = host
-    self.password = password
     self.port = port
+    self.password = password
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["host", "password", "port"], in: "IssuerSpecDatabaseExternal")
+    try c.refuseUnknown(["host", "port", "password"], in: "IssuerSpecDatabaseExternal")
     self.host = try c.value("host")
-    self.password = try c.value("password")
     self.port = try c.value("port")
+    self.password = try c.value("password")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.host, as: "host")
-    try c.encode(self.password, as: "password")
     try c.encode(self.port, as: "port")
+    try c.encode(self.password, as: "password")
   }
 }
 
 public struct JanusGraphConfig: Codable, Sendable, Hashable {
+  public let type: JanusGraphConfigType
   public var host: String
   public var port: Int
-  public let type: JanusGraphConfigType
   public init(host: String, port: Int) {
+    self.type = .janusgraph
     self.host = host
     self.port = port
-    self.type = .janusgraph
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["host", "port", "type"], in: "JanusGraphConfig")
+    try c.refuseUnknown(["type", "host", "port"], in: "JanusGraphConfig")
+    self.type = try c.value("type")
     self.host = try c.value("host")
     self.port = try c.value("port")
-    self.type = try c.value("type")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.type, as: "type")
     try c.encode(self.host, as: "host")
     try c.encode(self.port, as: "port")
-    try c.encode(self.type, as: "type")
   }
 }
 
@@ -8774,19 +9211,56 @@ public indirect enum Job: Codable, Sendable, Hashable {
   case jobComplete(JobComplete)
   case jobFailed(JobFailed)
   case jobCancelled(JobCancelled)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "metadata", "params"],
+        allowed: ["status", "metadata", "params"],
+        fixed: [.init(property: "status", values: [.text("pending")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "metadata", "params", "startedAt", "progress"],
+        allowed: ["status", "metadata", "params", "startedAt", "progress"],
+        fixed: [.init(property: "status", values: [.text("running")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object,
+        required: ["status", "metadata", "params", "startedAt", "completedAt", "result"],
+        allowed: ["status", "metadata", "params", "startedAt", "completedAt", "result"],
+        fixed: [.init(property: "status", values: [.text("complete")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "metadata", "params", "completedAt", "error"],
+        allowed: [
+          "status", "metadata", "params", "startedAt", "completedAt", "error", "failureClass",
+        ],
+        fixed: [
+          .init(property: "status", values: [.text("failed")]),
+          .init(
+            property: "failureClass",
+            values: [.text("transient"), .text("deterministic"), .text("withheld")]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "metadata", "params", "completedAt"],
+        allowed: ["status", "metadata", "params", "startedAt", "completedAt"],
+        fixed: [.init(property: "status", values: [.text("cancelled")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("status"))
-    switch tag {
-    case "pending": self = .jobPending(try JobPending(from: decoder))
-    case "running": self = .jobRunning(try JobRunning(from: decoder))
-    case "complete": self = .jobComplete(try JobComplete(from: decoder))
-    case "failed": self = .jobFailed(try JobFailed(from: decoder))
-    case "cancelled": self = .jobCancelled(try JobCancelled(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("status"), in: c, debugDescription: "unknown Job discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "Job", members: Self.members,
+      variants: [
+        ("jobPending", { decoder in try Self.jobPending(JobPending(from: decoder)) }),
+        ("jobRunning", { decoder in try Self.jobRunning(JobRunning(from: decoder)) }),
+        ("jobComplete", { decoder in try Self.jobComplete(JobComplete(from: decoder)) }),
+        ("jobFailed", { decoder in try Self.jobFailed(JobFailed(from: decoder)) }),
+        ("jobCancelled", { decoder in try Self.jobCancelled(JobCancelled(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -8801,113 +9275,114 @@ public indirect enum Job: Codable, Sendable, Hashable {
 
 public struct JobAssignCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var holder: UserId
   public var jobId: JobId
   public var jobType: JobType
-  public var requester: UserId
   public var resourceId: ResourceId
+  public var holder: UserId
+  public var requester: UserId
   public init(
-    _userId: UserId? = nil, holder: UserId, jobId: JobId, jobType: JobType, requester: UserId,
-    resourceId: ResourceId
+    _userId: UserId? = nil, jobId: JobId, jobType: JobType, resourceId: ResourceId, holder: UserId,
+    requester: UserId
   ) {
     self._userId = _userId
-    self.holder = holder
     self.jobId = jobId
     self.jobType = jobType
-    self.requester = requester
     self.resourceId = resourceId
+    self.holder = holder
+    self.requester = requester
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.holder = try c.value("holder")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.requester = try c.value("requester")
     self.resourceId = try c.value("resourceId")
+    self.holder = try c.value("holder")
+    self.requester = try c.value("requester")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encode(self.holder, as: "holder")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.requester, as: "requester")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.holder, as: "holder")
+    try c.encode(self.requester, as: "requester")
   }
 }
 
 public struct JobAssignedPayload: Codable, Sendable, Hashable {
-  public var holder: UserId
   public var jobId: JobId
   public var jobType: JobType
-  public var requester: UserId
   public var resourceId: ResourceId
+  public var holder: UserId
+  public var requester: UserId
   public init(
-    holder: UserId, jobId: JobId, jobType: JobType, requester: UserId, resourceId: ResourceId
+    jobId: JobId, jobType: JobType, resourceId: ResourceId, holder: UserId, requester: UserId
   ) {
-    self.holder = holder
     self.jobId = jobId
     self.jobType = jobType
-    self.requester = requester
     self.resourceId = resourceId
+    self.holder = holder
+    self.requester = requester
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.holder = try c.value("holder")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.requester = try c.value("requester")
     self.resourceId = try c.value("resourceId")
+    self.holder = try c.value("holder")
+    self.requester = try c.value("requester")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.holder, as: "holder")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.requester, as: "requester")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.holder, as: "holder")
+    try c.encode(self.requester, as: "requester")
   }
 }
 
 public struct JobCancelCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var annotationId: AnnotationId?
-  public var completedUnits: [String]?
+  public var resourceId: ResourceId
   public var jobId: JobId
   public var jobType: JobType
-  public var resourceId: ResourceId
+  public var annotationId: AnnotationId?
+  public var completedUnits: [String]?
   public var unitCursors: [String: UnitCursor]?
   public init(
-    _userId: UserId? = nil, annotationId: AnnotationId? = nil, completedUnits: [String]? = nil,
-    jobId: JobId, jobType: JobType, resourceId: ResourceId, unitCursors: [String: UnitCursor]? = nil
+    _userId: UserId? = nil, resourceId: ResourceId, jobId: JobId, jobType: JobType,
+    annotationId: AnnotationId? = nil, completedUnits: [String]? = nil,
+    unitCursors: [String: UnitCursor]? = nil
   ) {
     self._userId = _userId
-    self.annotationId = annotationId
-    self.completedUnits = completedUnits
+    self.resourceId = resourceId
     self.jobId = jobId
     self.jobType = jobType
-    self.resourceId = resourceId
+    self.annotationId = annotationId
+    self.completedUnits = completedUnits
     self.unitCursors = unitCursors
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.annotationId = try c.ifPresent("annotationId")
-    self.completedUnits = try c.ifPresent("completedUnits")
+    self.resourceId = try c.value("resourceId")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.resourceId = try c.value("resourceId")
+    self.annotationId = try c.ifPresent("annotationId")
+    self.completedUnits = try c.ifPresent("completedUnits")
     self.unitCursors = try c.ifPresent("unitCursors")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
+    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
     try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
   }
 }
@@ -8943,37 +9418,37 @@ public struct JobCancelResult: Codable, Sendable, Hashable {
 }
 
 public struct JobCancelled: Codable, Sendable, Hashable {
-  public var completedAt: String
+  public let status: JobCancelledStatus
   public var metadata: JobMetadata
   public var params: JobParams
   public var startedAt: String?
-  public let status: JobCancelledStatus
+  public var completedAt: String
   public init(
-    completedAt: String, metadata: JobMetadata, params: JobParams, startedAt: String? = nil
+    metadata: JobMetadata, params: JobParams, startedAt: String? = nil, completedAt: String
   ) {
-    self.completedAt = completedAt
+    self.status = .cancelled
     self.metadata = metadata
     self.params = params
     self.startedAt = startedAt
-    self.status = .cancelled
+    self.completedAt = completedAt
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["completedAt", "metadata", "params", "startedAt", "status"], in: "JobCancelled")
-    self.completedAt = try c.value("completedAt")
+      ["status", "metadata", "params", "startedAt", "completedAt"], in: "JobCancelled")
+    self.status = try c.value("status")
     self.metadata = try c.value("metadata")
     self.params = try c.value("params")
     self.startedAt = try c.ifPresent("startedAt")
-    self.status = try c.value("status")
+    self.completedAt = try c.value("completedAt")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.completedAt, as: "completedAt")
+    try c.encode(self.status, as: "status")
     try c.encode(self.metadata, as: "metadata")
     try c.encode(self.params, as: "params")
     try c.encodeIfPresent(self.startedAt, as: "startedAt")
-    try c.encode(self.status, as: "status")
+    try c.encode(self.completedAt, as: "completedAt")
   }
 }
 
@@ -8983,54 +9458,54 @@ public enum JobCancelledStatus: String, Codable, Sendable, CaseIterable {
 
 public struct JobCheckpointCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var completedUnits: [String]
   public var jobId: JobId
+  public var completedUnits: [String]
   public var unitCursors: [String: UnitCursor]?
   public init(
-    _userId: UserId? = nil, completedUnits: [String], jobId: JobId,
+    _userId: UserId? = nil, jobId: JobId, completedUnits: [String],
     unitCursors: [String: UnitCursor]? = nil
   ) {
     self._userId = _userId
-    self.completedUnits = completedUnits
     self.jobId = jobId
+    self.completedUnits = completedUnits
     self.unitCursors = unitCursors
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.completedUnits = try c.value("completedUnits")
     self.jobId = try c.value("jobId")
+    self.completedUnits = try c.value("completedUnits")
     self.unitCursors = try c.ifPresent("unitCursors")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encode(self.completedUnits, as: "completedUnits")
     try c.encode(self.jobId, as: "jobId")
+    try c.encode(self.completedUnits, as: "completedUnits")
     try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
   }
 }
 
 public struct JobClaimCommand: Codable, Sendable, Hashable {
-  public var _roles: [String]?
-  public var _userId: UserId?
   public var accepts: [JobFilter]
-  public init(_roles: [String]? = nil, _userId: UserId? = nil, accepts: [JobFilter]) {
-    self._roles = _roles
-    self._userId = _userId
+  public var _userId: UserId?
+  public var _roles: [String]?
+  public init(accepts: [JobFilter], _userId: UserId? = nil, _roles: [String]? = nil) {
     self.accepts = accepts
+    self._userId = _userId
+    self._roles = _roles
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self._roles = try c.ifPresent("_roles")
-    self._userId = try c.ifPresent("_userId")
     self.accepts = try c.value("accepts")
+    self._userId = try c.ifPresent("_userId")
+    self._roles = try c.ifPresent("_roles")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._roles, as: "_roles")
-    try c.encodeIfPresent(self._userId, as: "_userId")
     try c.encode(self.accepts, as: "accepts")
+    try c.encodeIfPresent(self._userId, as: "_userId")
+    try c.encodeIfPresent(self._roles, as: "_roles")
   }
 }
 
@@ -9051,59 +9526,89 @@ public struct JobClaimedResult: Codable, Sendable, Hashable {
 }
 
 public struct JobComplete: Codable, Sendable, Hashable {
-  public var completedAt: String
+  public let status: JobCompleteStatus
   public var metadata: JobMetadata
   public var params: JobParams
-  public var result: JobStoredResult
   public var startedAt: String
-  public let status: JobCompleteStatus
+  public var completedAt: String
+  public var result: JobStoredResult
   public init(
-    completedAt: String, metadata: JobMetadata, params: JobParams, result: JobStoredResult,
-    startedAt: String
+    metadata: JobMetadata, params: JobParams, startedAt: String, completedAt: String,
+    result: JobStoredResult
   ) {
-    self.completedAt = completedAt
+    self.status = .complete
     self.metadata = metadata
     self.params = params
-    self.result = result
     self.startedAt = startedAt
-    self.status = .complete
+    self.completedAt = completedAt
+    self.result = result
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["completedAt", "metadata", "params", "result", "startedAt", "status"], in: "JobComplete")
-    self.completedAt = try c.value("completedAt")
+      ["status", "metadata", "params", "startedAt", "completedAt", "result"], in: "JobComplete")
+    self.status = try c.value("status")
     self.metadata = try c.value("metadata")
     self.params = try c.value("params")
-    self.result = try c.value("result")
     self.startedAt = try c.value("startedAt")
-    self.status = try c.value("status")
+    self.completedAt = try c.value("completedAt")
+    self.result = try c.value("result")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.completedAt, as: "completedAt")
+    try c.encode(self.status, as: "status")
     try c.encode(self.metadata, as: "metadata")
     try c.encode(self.params, as: "params")
-    try c.encode(self.result, as: "result")
     try c.encode(self.startedAt, as: "startedAt")
-    try c.encode(self.status, as: "status")
+    try c.encode(self.completedAt, as: "completedAt")
+    try c.encode(self.result, as: "result")
   }
 }
 
 public indirect enum JobCompleteCommand: Codable, Sendable, Hashable {
   case markJobCompleteCommand(MarkJobCompleteCommand)
   case yieldJobCompleteCommand(YieldJobCompleteCommand)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["resourceId", "jobId", "jobType"], allowed: nil,
+        fixed: [
+          .init(property: "jobType", values: [.text("mark")]),
+          .init(
+            property: "durability",
+            values: [
+              .text("acknowledged"), .text("probe-confirmed"), .text("probe-refused"),
+              .text("probe-unreachable"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["resourceId", "jobId", "jobType"], allowed: nil,
+        fixed: [
+          .init(property: "jobType", values: [.text("yield")]),
+          .init(
+            property: "durability",
+            values: [
+              .text("acknowledged"), .text("probe-confirmed"), .text("probe-refused"),
+              .text("probe-unreachable"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("jobType"))
-    switch tag {
-    case "mark": self = .markJobCompleteCommand(try MarkJobCompleteCommand(from: decoder))
-    case "yield": self = .yieldJobCompleteCommand(try YieldJobCompleteCommand(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("jobType"), in: c,
-        debugDescription: "unknown JobCompleteCommand discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobCompleteCommand", members: Self.members,
+      variants: [
+        (
+          "markJobCompleteCommand",
+          { decoder in try Self.markJobCompleteCommand(MarkJobCompleteCommand(from: decoder)) }
+        ),
+        (
+          "yieldJobCompleteCommand",
+          { decoder in try Self.yieldJobCompleteCommand(YieldJobCompleteCommand(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -9118,74 +9623,91 @@ public enum JobCompleteStatus: String, Codable, Sendable, CaseIterable {
 }
 
 public struct JobCompletedPayload: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId?
-  public var annotationUri: String?
-  public var attempt: Int?
-  public var durability: DurabilityEvidence?
-  public var foundCount: Int?
   public var jobId: JobId
   public var jobType: JobType
-  public var result: [String: JSONValue]?
-  public var resultResourceId: ResourceId?
+  public var attempt: Int?
+  public var annotationId: AnnotationId?
   public var totalSteps: Int?
+  public var foundCount: Int?
+  public var resultResourceId: ResourceId?
+  public var annotationUri: String?
+  public var result: [String: JSONValue]?
+  public var durability: DurabilityEvidence?
   public init(
-    annotationId: AnnotationId? = nil, annotationUri: String? = nil, attempt: Int? = nil,
-    durability: DurabilityEvidence? = nil, foundCount: Int? = nil, jobId: JobId, jobType: JobType,
-    result: [String: JSONValue]? = nil, resultResourceId: ResourceId? = nil, totalSteps: Int? = nil
+    jobId: JobId, jobType: JobType, attempt: Int? = nil, annotationId: AnnotationId? = nil,
+    totalSteps: Int? = nil, foundCount: Int? = nil, resultResourceId: ResourceId? = nil,
+    annotationUri: String? = nil, result: [String: JSONValue]? = nil,
+    durability: DurabilityEvidence? = nil
   ) {
-    self.annotationId = annotationId
-    self.annotationUri = annotationUri
-    self.attempt = attempt
-    self.durability = durability
-    self.foundCount = foundCount
     self.jobId = jobId
     self.jobType = jobType
-    self.result = result
-    self.resultResourceId = resultResourceId
+    self.attempt = attempt
+    self.annotationId = annotationId
     self.totalSteps = totalSteps
+    self.foundCount = foundCount
+    self.resultResourceId = resultResourceId
+    self.annotationUri = annotationUri
+    self.result = result
+    self.durability = durability
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.ifPresent("annotationId")
-    self.annotationUri = try c.ifPresent("annotationUri")
-    self.attempt = try c.ifPresent("attempt")
-    self.durability = try c.ifPresent("durability")
-    self.foundCount = try c.ifPresent("foundCount")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.result = try c.ifPresent("result")
-    self.resultResourceId = try c.ifPresent("resultResourceId")
+    self.attempt = try c.ifPresent("attempt")
+    self.annotationId = try c.ifPresent("annotationId")
     self.totalSteps = try c.ifPresent("totalSteps")
+    self.foundCount = try c.ifPresent("foundCount")
+    self.resultResourceId = try c.ifPresent("resultResourceId")
+    self.annotationUri = try c.ifPresent("annotationUri")
+    self.result = try c.ifPresent("result")
+    self.durability = try c.ifPresent("durability")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.annotationUri, as: "annotationUri")
-    try c.encodeIfPresent(self.attempt, as: "attempt")
-    try c.encodeIfPresent(self.durability, as: "durability")
-    try c.encodeIfPresent(self.foundCount, as: "foundCount")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encodeIfPresent(self.result, as: "result")
-    try c.encodeIfPresent(self.resultResourceId, as: "resultResourceId")
+    try c.encodeIfPresent(self.attempt, as: "attempt")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
     try c.encodeIfPresent(self.totalSteps, as: "totalSteps")
+    try c.encodeIfPresent(self.foundCount, as: "foundCount")
+    try c.encodeIfPresent(self.resultResourceId, as: "resultResourceId")
+    try c.encodeIfPresent(self.annotationUri, as: "annotationUri")
+    try c.encodeIfPresent(self.result, as: "result")
+    try c.encodeIfPresent(self.durability, as: "durability")
   }
 }
 
 public indirect enum JobCreateCommand: Codable, Sendable, Hashable {
   case markJobCreateCommand(MarkJobCreateCommand)
   case yieldJobCreateCommand(YieldJobCreateCommand)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["jobType", "resourceId", "params"],
+        allowed: ["_userId", "_roles", "jobType", "resourceId", "params"],
+        fixed: [.init(property: "jobType", values: [.text("mark")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["jobType", "params"],
+        allowed: ["_userId", "_roles", "jobType", "params"],
+        fixed: [.init(property: "jobType", values: [.text("yield")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("jobType"))
-    switch tag {
-    case "mark": self = .markJobCreateCommand(try MarkJobCreateCommand(from: decoder))
-    case "yield": self = .yieldJobCreateCommand(try YieldJobCreateCommand(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("jobType"), in: c,
-        debugDescription: "unknown JobCreateCommand discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobCreateCommand", members: Self.members,
+      variants: [
+        (
+          "markJobCreateCommand",
+          { decoder in try Self.markJobCreateCommand(MarkJobCreateCommand(from: decoder)) }
+        ),
+        (
+          "yieldJobCreateCommand",
+          { decoder in try Self.yieldJobCreateCommand(YieldJobCreateCommand(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -9270,157 +9792,157 @@ public enum JobDeclinedReason: String, Codable, Sendable, CaseIterable {
 
 public struct JobFailCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var annotationId: AnnotationId?
-  public var attempt: Int?
-  public var completedUnits: [String]?
-  public var durability: DurabilityEvidence?
-  public var error: String
-  public var failureClass: FailureClass?
+  public var resourceId: ResourceId
   public var jobId: JobId
   public var jobType: JobType
-  public var resourceId: ResourceId
+  public var attempt: Int?
+  public var annotationId: AnnotationId?
+  public var error: String
+  public var completedUnits: [String]?
   public var unitCursors: [String: UnitCursor]?
+  public var failureClass: FailureClass?
   public var willRetry: Bool?
+  public var durability: DurabilityEvidence?
   public init(
-    _userId: UserId? = nil, annotationId: AnnotationId? = nil, attempt: Int? = nil,
-    completedUnits: [String]? = nil, durability: DurabilityEvidence? = nil, error: String,
-    failureClass: FailureClass? = nil, jobId: JobId, jobType: JobType, resourceId: ResourceId,
-    unitCursors: [String: UnitCursor]? = nil, willRetry: Bool? = nil
+    _userId: UserId? = nil, resourceId: ResourceId, jobId: JobId, jobType: JobType,
+    attempt: Int? = nil, annotationId: AnnotationId? = nil, error: String,
+    completedUnits: [String]? = nil, unitCursors: [String: UnitCursor]? = nil,
+    failureClass: FailureClass? = nil, willRetry: Bool? = nil, durability: DurabilityEvidence? = nil
   ) {
     self._userId = _userId
-    self.annotationId = annotationId
-    self.attempt = attempt
-    self.completedUnits = completedUnits
-    self.durability = durability
-    self.error = error
-    self.failureClass = failureClass
+    self.resourceId = resourceId
     self.jobId = jobId
     self.jobType = jobType
-    self.resourceId = resourceId
+    self.attempt = attempt
+    self.annotationId = annotationId
+    self.error = error
+    self.completedUnits = completedUnits
     self.unitCursors = unitCursors
+    self.failureClass = failureClass
     self.willRetry = willRetry
+    self.durability = durability
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.annotationId = try c.ifPresent("annotationId")
-    self.attempt = try c.ifPresent("attempt")
-    self.completedUnits = try c.ifPresent("completedUnits")
-    self.durability = try c.ifPresent("durability")
-    self.error = try c.value("error")
-    self.failureClass = try c.ifPresent("failureClass")
+    self.resourceId = try c.value("resourceId")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.resourceId = try c.value("resourceId")
+    self.attempt = try c.ifPresent("attempt")
+    self.annotationId = try c.ifPresent("annotationId")
+    self.error = try c.value("error")
+    self.completedUnits = try c.ifPresent("completedUnits")
     self.unitCursors = try c.ifPresent("unitCursors")
+    self.failureClass = try c.ifPresent("failureClass")
     self.willRetry = try c.ifPresent("willRetry")
+    self.durability = try c.ifPresent("durability")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.attempt, as: "attempt")
-    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
-    try c.encodeIfPresent(self.durability, as: "durability")
-    try c.encode(self.error, as: "error")
-    try c.encodeIfPresent(self.failureClass, as: "failureClass")
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.attempt, as: "attempt")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
+    try c.encode(self.error, as: "error")
+    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
     try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
+    try c.encodeIfPresent(self.failureClass, as: "failureClass")
     try c.encodeIfPresent(self.willRetry, as: "willRetry")
+    try c.encodeIfPresent(self.durability, as: "durability")
   }
 }
 
 public struct JobFailed: Codable, Sendable, Hashable {
-  public var completedAt: String
-  public var error: String
-  public var failureClass: FailureClass?
+  public let status: JobFailedStatus
   public var metadata: JobMetadata
   public var params: JobParams
   public var startedAt: String?
-  public let status: JobFailedStatus
+  public var completedAt: String
+  public var error: String
+  public var failureClass: FailureClass?
   public init(
-    completedAt: String, error: String, failureClass: FailureClass? = nil, metadata: JobMetadata,
-    params: JobParams, startedAt: String? = nil
+    metadata: JobMetadata, params: JobParams, startedAt: String? = nil, completedAt: String,
+    error: String, failureClass: FailureClass? = nil
   ) {
-    self.completedAt = completedAt
-    self.error = error
-    self.failureClass = failureClass
+    self.status = .failed
     self.metadata = metadata
     self.params = params
     self.startedAt = startedAt
-    self.status = .failed
+    self.completedAt = completedAt
+    self.error = error
+    self.failureClass = failureClass
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["completedAt", "error", "failureClass", "metadata", "params", "startedAt", "status"],
+      ["status", "metadata", "params", "startedAt", "completedAt", "error", "failureClass"],
       in: "JobFailed")
-    self.completedAt = try c.value("completedAt")
-    self.error = try c.value("error")
-    self.failureClass = try c.ifPresent("failureClass")
+    self.status = try c.value("status")
     self.metadata = try c.value("metadata")
     self.params = try c.value("params")
     self.startedAt = try c.ifPresent("startedAt")
-    self.status = try c.value("status")
+    self.completedAt = try c.value("completedAt")
+    self.error = try c.value("error")
+    self.failureClass = try c.ifPresent("failureClass")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.completedAt, as: "completedAt")
-    try c.encode(self.error, as: "error")
-    try c.encodeIfPresent(self.failureClass, as: "failureClass")
+    try c.encode(self.status, as: "status")
     try c.encode(self.metadata, as: "metadata")
     try c.encode(self.params, as: "params")
     try c.encodeIfPresent(self.startedAt, as: "startedAt")
-    try c.encode(self.status, as: "status")
+    try c.encode(self.completedAt, as: "completedAt")
+    try c.encode(self.error, as: "error")
+    try c.encodeIfPresent(self.failureClass, as: "failureClass")
   }
 }
 
 public struct JobFailedPayload: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId?
-  public var attempt: Int?
-  public var durability: DurabilityEvidence?
-  public var error: String
-  public var failureClass: FailureClass?
   public var jobId: JobId
   public var jobType: JobType
+  public var attempt: Int?
+  public var annotationId: AnnotationId?
+  public var error: String
+  public var failureClass: FailureClass?
   public var willRetry: Bool?
+  public var durability: DurabilityEvidence?
   public init(
-    annotationId: AnnotationId? = nil, attempt: Int? = nil, durability: DurabilityEvidence? = nil,
-    error: String, failureClass: FailureClass? = nil, jobId: JobId, jobType: JobType,
-    willRetry: Bool? = nil
+    jobId: JobId, jobType: JobType, attempt: Int? = nil, annotationId: AnnotationId? = nil,
+    error: String, failureClass: FailureClass? = nil, willRetry: Bool? = nil,
+    durability: DurabilityEvidence? = nil
   ) {
-    self.annotationId = annotationId
-    self.attempt = attempt
-    self.durability = durability
-    self.error = error
-    self.failureClass = failureClass
     self.jobId = jobId
     self.jobType = jobType
+    self.attempt = attempt
+    self.annotationId = annotationId
+    self.error = error
+    self.failureClass = failureClass
     self.willRetry = willRetry
+    self.durability = durability
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.ifPresent("annotationId")
-    self.attempt = try c.ifPresent("attempt")
-    self.durability = try c.ifPresent("durability")
-    self.error = try c.value("error")
-    self.failureClass = try c.ifPresent("failureClass")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
+    self.attempt = try c.ifPresent("attempt")
+    self.annotationId = try c.ifPresent("annotationId")
+    self.error = try c.value("error")
+    self.failureClass = try c.ifPresent("failureClass")
     self.willRetry = try c.ifPresent("willRetry")
+    self.durability = try c.ifPresent("durability")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.attempt, as: "attempt")
-    try c.encodeIfPresent(self.durability, as: "durability")
-    try c.encode(self.error, as: "error")
-    try c.encodeIfPresent(self.failureClass, as: "failureClass")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
+    try c.encodeIfPresent(self.attempt, as: "attempt")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
+    try c.encode(self.error, as: "error")
+    try c.encodeIfPresent(self.failureClass, as: "failureClass")
     try c.encodeIfPresent(self.willRetry, as: "willRetry")
+    try c.encodeIfPresent(self.durability, as: "durability")
   }
 }
 
@@ -9431,16 +9953,25 @@ public enum JobFailedStatus: String, Codable, Sendable, CaseIterable {
 public indirect enum JobFilter: Codable, Sendable, Hashable {
   case markJobFilter(MarkJobFilter)
   case yieldJobFilter(YieldJobFilter)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["jobType", "params"], allowed: ["jobType", "params"],
+        fixed: [.init(property: "jobType", values: [.text("mark")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["jobType"], allowed: ["jobType"],
+        fixed: [.init(property: "jobType", values: [.text("yield")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("jobType"))
-    switch tag {
-    case "mark": self = .markJobFilter(try MarkJobFilter(from: decoder))
-    case "yield": self = .yieldJobFilter(try YieldJobFilter(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("jobType"), in: c, debugDescription: "unknown JobFilter discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobFilter", members: Self.members,
+      variants: [
+        ("markJobFilter", { decoder in try Self.markJobFilter(MarkJobFilter(from: decoder)) }),
+        ("yieldJobFilter", { decoder in try Self.yieldJobFilter(YieldJobFilter(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -9485,53 +10016,53 @@ public struct JobId: Identifier {
 }
 
 public struct JobMetadata: Codable, Sendable, Hashable {
-  public var completedUnits: [String]?
-  public var created: String
   public var id: JobId
-  public var maxRetries: Int
-  public var retryCount: Int
   public var type: JobType
-  public var unitCursors: [String: UnitCursor]?
   public var userId: UserId
+  public var created: String
+  public var retryCount: Int
+  public var maxRetries: Int
+  public var completedUnits: [String]?
+  public var unitCursors: [String: UnitCursor]?
   public init(
-    completedUnits: [String]? = nil, created: String, id: JobId, maxRetries: Int, retryCount: Int,
-    type: JobType, unitCursors: [String: UnitCursor]? = nil, userId: UserId
+    id: JobId, type: JobType, userId: UserId, created: String, retryCount: Int, maxRetries: Int,
+    completedUnits: [String]? = nil, unitCursors: [String: UnitCursor]? = nil
   ) {
-    self.completedUnits = completedUnits
-    self.created = created
     self.id = id
-    self.maxRetries = maxRetries
-    self.retryCount = retryCount
     self.type = type
-    self.unitCursors = unitCursors
     self.userId = userId
+    self.created = created
+    self.retryCount = retryCount
+    self.maxRetries = maxRetries
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "completedUnits", "created", "id", "maxRetries", "retryCount", "type", "unitCursors",
-        "userId",
+        "id", "type", "userId", "created", "retryCount", "maxRetries", "completedUnits",
+        "unitCursors",
       ], in: "JobMetadata")
-    self.completedUnits = try c.ifPresent("completedUnits")
-    self.created = try c.value("created")
     self.id = try c.value("id")
-    self.maxRetries = try c.value("maxRetries")
-    self.retryCount = try c.value("retryCount")
     self.type = try c.value("type")
-    self.unitCursors = try c.ifPresent("unitCursors")
     self.userId = try c.value("userId")
+    self.created = try c.value("created")
+    self.retryCount = try c.value("retryCount")
+    self.maxRetries = try c.value("maxRetries")
+    self.completedUnits = try c.ifPresent("completedUnits")
+    self.unitCursors = try c.ifPresent("unitCursors")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
-    try c.encode(self.created, as: "created")
     try c.encode(self.id, as: "id")
-    try c.encode(self.maxRetries, as: "maxRetries")
-    try c.encode(self.retryCount, as: "retryCount")
     try c.encode(self.type, as: "type")
-    try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
     try c.encode(self.userId, as: "userId")
+    try c.encode(self.created, as: "created")
+    try c.encode(self.retryCount, as: "retryCount")
+    try c.encode(self.maxRetries, as: "maxRetries")
+    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
+    try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
   }
 }
 
@@ -9559,26 +10090,26 @@ public struct JobParams: Codable, Sendable, Hashable {
 }
 
 public struct JobPending: Codable, Sendable, Hashable {
+  public let status: JobPendingStatus
   public var metadata: JobMetadata
   public var params: JobParams
-  public let status: JobPendingStatus
   public init(metadata: JobMetadata, params: JobParams) {
+    self.status = .pending
     self.metadata = metadata
     self.params = params
-    self.status = .pending
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["metadata", "params", "status"], in: "JobPending")
+    try c.refuseUnknown(["status", "metadata", "params"], in: "JobPending")
+    self.status = try c.value("status")
     self.metadata = try c.value("metadata")
     self.params = try c.value("params")
-    self.status = try c.value("status")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.status, as: "status")
     try c.encode(self.metadata, as: "metadata")
     try c.encode(self.params, as: "params")
-    try c.encode(self.status, as: "status")
   }
 }
 
@@ -9607,62 +10138,63 @@ public struct JobPollOptions: Codable, Sendable, Hashable {
 }
 
 public struct JobProgress: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId?
-  public var completedItems: [JobProgressCompletedItemsItem]?
-  public var current: JobProgressCurrent?
-  public var entitiesEmitted: Int?
-  public var entitiesExpected: Int?
-  public var entitiesFound: Int?
-  public var message: JobProgressMessage?
   public var percentage: Double
+  public var message: JobProgressMessage?
+  public var annotationId: AnnotationId?
+  public var current: JobProgressCurrent?
   public var processed: Int?
-  public var requestParams: [JobProgressRequestParamsItem]?
   public var total: Int?
+  public var entitiesFound: Int?
+  public var entitiesExpected: Int?
+  public var entitiesEmitted: Int?
+  public var completedItems: [JobProgressCompletedItemsItem]?
+  public var requestParams: [JobProgressRequestParamsItem]?
   public init(
-    annotationId: AnnotationId? = nil, completedItems: [JobProgressCompletedItemsItem]? = nil,
-    current: JobProgressCurrent? = nil, entitiesEmitted: Int? = nil, entitiesExpected: Int? = nil,
-    entitiesFound: Int? = nil, message: JobProgressMessage? = nil, percentage: Double,
-    processed: Int? = nil, requestParams: [JobProgressRequestParamsItem]? = nil, total: Int? = nil
+    percentage: Double, message: JobProgressMessage? = nil, annotationId: AnnotationId? = nil,
+    current: JobProgressCurrent? = nil, processed: Int? = nil, total: Int? = nil,
+    entitiesFound: Int? = nil, entitiesExpected: Int? = nil, entitiesEmitted: Int? = nil,
+    completedItems: [JobProgressCompletedItemsItem]? = nil,
+    requestParams: [JobProgressRequestParamsItem]? = nil
   ) {
-    self.annotationId = annotationId
-    self.completedItems = completedItems
-    self.current = current
-    self.entitiesEmitted = entitiesEmitted
-    self.entitiesExpected = entitiesExpected
-    self.entitiesFound = entitiesFound
-    self.message = message
     self.percentage = percentage
+    self.message = message
+    self.annotationId = annotationId
+    self.current = current
     self.processed = processed
-    self.requestParams = requestParams
     self.total = total
+    self.entitiesFound = entitiesFound
+    self.entitiesExpected = entitiesExpected
+    self.entitiesEmitted = entitiesEmitted
+    self.completedItems = completedItems
+    self.requestParams = requestParams
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.ifPresent("annotationId")
-    self.completedItems = try c.ifPresent("completedItems")
-    self.current = try c.ifPresent("current")
-    self.entitiesEmitted = try c.ifPresent("entitiesEmitted")
-    self.entitiesExpected = try c.ifPresent("entitiesExpected")
-    self.entitiesFound = try c.ifPresent("entitiesFound")
-    self.message = try c.ifPresent("message")
     self.percentage = try c.value("percentage")
+    self.message = try c.ifPresent("message")
+    self.annotationId = try c.ifPresent("annotationId")
+    self.current = try c.ifPresent("current")
     self.processed = try c.ifPresent("processed")
-    self.requestParams = try c.ifPresent("requestParams")
     self.total = try c.ifPresent("total")
+    self.entitiesFound = try c.ifPresent("entitiesFound")
+    self.entitiesExpected = try c.ifPresent("entitiesExpected")
+    self.entitiesEmitted = try c.ifPresent("entitiesEmitted")
+    self.completedItems = try c.ifPresent("completedItems")
+    self.requestParams = try c.ifPresent("requestParams")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.completedItems, as: "completedItems")
-    try c.encodeIfPresent(self.current, as: "current")
-    try c.encodeIfPresent(self.entitiesEmitted, as: "entitiesEmitted")
-    try c.encodeIfPresent(self.entitiesExpected, as: "entitiesExpected")
-    try c.encodeIfPresent(self.entitiesFound, as: "entitiesFound")
-    try c.encodeIfPresent(self.message, as: "message")
     try c.encode(self.percentage, as: "percentage")
+    try c.encodeIfPresent(self.message, as: "message")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
+    try c.encodeIfPresent(self.current, as: "current")
     try c.encodeIfPresent(self.processed, as: "processed")
-    try c.encodeIfPresent(self.requestParams, as: "requestParams")
     try c.encodeIfPresent(self.total, as: "total")
+    try c.encodeIfPresent(self.entitiesFound, as: "entitiesFound")
+    try c.encodeIfPresent(self.entitiesExpected, as: "entitiesExpected")
+    try c.encodeIfPresent(self.entitiesEmitted, as: "entitiesEmitted")
+    try c.encodeIfPresent(self.completedItems, as: "completedItems")
+    try c.encodeIfPresent(self.requestParams, as: "requestParams")
   }
 }
 
@@ -9755,55 +10287,55 @@ public enum JobProgressCompleteGeneratedCode: String, Codable, Sendable, CaseIte
 }
 
 public struct JobProgressCompletedItemsItem: Codable, Sendable, Hashable {
+  public var value: String
   public var foundCount: Int
   public var persistedCount: Int?
   public var underReported: JobProgressCompletedItemsItemUnderReported?
-  public var value: String
   public init(
-    foundCount: Int, persistedCount: Int? = nil,
-    underReported: JobProgressCompletedItemsItemUnderReported? = nil, value: String
+    value: String, foundCount: Int, persistedCount: Int? = nil,
+    underReported: JobProgressCompletedItemsItemUnderReported? = nil
   ) {
+    self.value = value
     self.foundCount = foundCount
     self.persistedCount = persistedCount
     self.underReported = underReported
-    self.value = value
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.value = try c.value("value")
     self.foundCount = try c.value("foundCount")
     self.persistedCount = try c.ifPresent("persistedCount")
     self.underReported = try c.ifPresent("underReported")
-    self.value = try c.value("value")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.value, as: "value")
     try c.encode(self.foundCount, as: "foundCount")
     try c.encodeIfPresent(self.persistedCount, as: "persistedCount")
     try c.encodeIfPresent(self.underReported, as: "underReported")
-    try c.encode(self.value, as: "value")
   }
 }
 
 public struct JobProgressCompletedItemsItemUnderReported: Codable, Sendable, Hashable {
-  public var counted: Int
-  public var found: Int
   public var pieces: Int
-  public init(counted: Int, found: Int, pieces: Int) {
-    self.counted = counted
-    self.found = found
+  public var found: Int
+  public var counted: Int
+  public init(pieces: Int, found: Int, counted: Int) {
     self.pieces = pieces
+    self.found = found
+    self.counted = counted
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.counted = try c.value("counted")
-    self.found = try c.value("found")
     self.pieces = try c.value("pieces")
+    self.found = try c.value("found")
+    self.counted = try c.value("counted")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.counted, as: "counted")
-    try c.encode(self.found, as: "found")
     try c.encode(self.pieces, as: "pieces")
+    try c.encode(self.found, as: "found")
+    try c.encode(self.counted, as: "counted")
   }
 }
 
@@ -9968,34 +10500,126 @@ public indirect enum JobProgressMessage: Codable, Sendable, Hashable {
   case jobProgressCreatingAnnotations(JobProgressCreatingAnnotations)
   case jobProgressCreatingTagAnnotations(JobProgressCreatingTagAnnotations)
   case jobProgressCompleteCreated(JobProgressCompleteCreated)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("loading")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("analyzing")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("analyzing-tags")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("generating-resource")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("creating-resource")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "truncated"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("complete-generated")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "entityType"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("detecting-entities")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "count"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("creating-annotations")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "count"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("creating-tag-annotations")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "count", "motivation"], allowed: nil,
+        fixed: [
+          .init(property: "code", values: [.text("complete-created")]),
+          .init(
+            property: "motivation",
+            values: [
+              .text("assessing"), .text("commenting"), .text("highlighting"), .text("linking"),
+              .text("tagging"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("code"))
-    switch tag {
-    case "loading": self = .jobProgressLoading(try JobProgressLoading(from: decoder))
-    case "analyzing": self = .jobProgressAnalyzing(try JobProgressAnalyzing(from: decoder))
-    case "analyzing-tags":
-      self = .jobProgressAnalyzingTags(try JobProgressAnalyzingTags(from: decoder))
-    case "generating-resource":
-      self = .jobProgressGeneratingResource(try JobProgressGeneratingResource(from: decoder))
-    case "creating-resource":
-      self = .jobProgressCreatingResource(try JobProgressCreatingResource(from: decoder))
-    case "complete-generated":
-      self = .jobProgressCompleteGenerated(try JobProgressCompleteGenerated(from: decoder))
-    case "detecting-entities":
-      self = .jobProgressDetectingEntities(try JobProgressDetectingEntities(from: decoder))
-    case "creating-annotations":
-      self = .jobProgressCreatingAnnotations(try JobProgressCreatingAnnotations(from: decoder))
-    case "creating-tag-annotations":
-      self = .jobProgressCreatingTagAnnotations(
-        try JobProgressCreatingTagAnnotations(from: decoder))
-    case "complete-created":
-      self = .jobProgressCompleteCreated(try JobProgressCompleteCreated(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("code"), in: c, debugDescription: "unknown JobProgressMessage discriminator"
-      )
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobProgressMessage", members: Self.members,
+      variants: [
+        (
+          "jobProgressLoading",
+          { decoder in try Self.jobProgressLoading(JobProgressLoading(from: decoder)) }
+        ),
+        (
+          "jobProgressAnalyzing",
+          { decoder in try Self.jobProgressAnalyzing(JobProgressAnalyzing(from: decoder)) }
+        ),
+        (
+          "jobProgressAnalyzingTags",
+          { decoder in try Self.jobProgressAnalyzingTags(JobProgressAnalyzingTags(from: decoder)) }
+        ),
+        (
+          "jobProgressGeneratingResource",
+          { decoder in
+            try Self.jobProgressGeneratingResource(JobProgressGeneratingResource(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCreatingResource",
+          { decoder in
+            try Self.jobProgressCreatingResource(JobProgressCreatingResource(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCompleteGenerated",
+          { decoder in
+            try Self.jobProgressCompleteGenerated(JobProgressCompleteGenerated(from: decoder))
+          }
+        ),
+        (
+          "jobProgressDetectingEntities",
+          { decoder in
+            try Self.jobProgressDetectingEntities(JobProgressDetectingEntities(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCreatingAnnotations",
+          { decoder in
+            try Self.jobProgressCreatingAnnotations(JobProgressCreatingAnnotations(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCreatingTagAnnotations",
+          { decoder in
+            try Self.jobProgressCreatingTagAnnotations(
+              JobProgressCreatingTagAnnotations(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCompleteCreated",
+          { decoder in
+            try Self.jobProgressCompleteCreated(JobProgressCompleteCreated(from: decoder))
+          }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10042,16 +10666,31 @@ public enum JobProgressRequestParamsItemLabel: String, Codable, Sendable, CaseIt
 public indirect enum JobQueuedEvent: Codable, Sendable, Hashable {
   case markJobQueuedEvent(MarkJobQueuedEvent)
   case yieldJobQueuedEvent(YieldJobQueuedEvent)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["jobId", "jobType", "resourceId", "userId", "params"],
+        allowed: nil, fixed: [.init(property: "jobType", values: [.text("mark")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["jobId", "jobType", "resourceId", "userId", "params"],
+        allowed: nil, fixed: [.init(property: "jobType", values: [.text("yield")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("jobType"))
-    switch tag {
-    case "mark": self = .markJobQueuedEvent(try MarkJobQueuedEvent(from: decoder))
-    case "yield": self = .yieldJobQueuedEvent(try YieldJobQueuedEvent(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("jobType"), in: c, debugDescription: "unknown JobQueuedEvent discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobQueuedEvent", members: Self.members,
+      variants: [
+        (
+          "markJobQueuedEvent",
+          { decoder in try Self.markJobQueuedEvent(MarkJobQueuedEvent(from: decoder)) }
+        ),
+        (
+          "yieldJobQueuedEvent",
+          { decoder in try Self.yieldJobQueuedEvent(YieldJobQueuedEvent(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10083,47 +10722,48 @@ public struct JobRecord: Codable, Sendable, Hashable {
 
 public struct JobReportProgressCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var annotationId: AnnotationId?
-  public var attempt: Int?
+  public var resourceId: ResourceId
   public var jobId: JobId
   public var jobType: JobType
+  public var attempt: Int?
+  public var annotationId: AnnotationId?
   public var percentage: Double
   public var progress: JobProgress?
-  public var resourceId: ResourceId
   public init(
-    _userId: UserId? = nil, annotationId: AnnotationId? = nil, attempt: Int? = nil, jobId: JobId,
-    jobType: JobType, percentage: Double, progress: JobProgress? = nil, resourceId: ResourceId
+    _userId: UserId? = nil, resourceId: ResourceId, jobId: JobId, jobType: JobType,
+    attempt: Int? = nil, annotationId: AnnotationId? = nil, percentage: Double,
+    progress: JobProgress? = nil
   ) {
     self._userId = _userId
-    self.annotationId = annotationId
-    self.attempt = attempt
+    self.resourceId = resourceId
     self.jobId = jobId
     self.jobType = jobType
+    self.attempt = attempt
+    self.annotationId = annotationId
     self.percentage = percentage
     self.progress = progress
-    self.resourceId = resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.annotationId = try c.ifPresent("annotationId")
-    self.attempt = try c.ifPresent("attempt")
+    self.resourceId = try c.value("resourceId")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
+    self.attempt = try c.ifPresent("attempt")
+    self.annotationId = try c.ifPresent("annotationId")
     self.percentage = try c.value("percentage")
     self.progress = try c.ifPresent("progress")
-    self.resourceId = try c.value("resourceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.attempt, as: "attempt")
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
+    try c.encodeIfPresent(self.attempt, as: "attempt")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
     try c.encode(self.percentage, as: "percentage")
     try c.encodeIfPresent(self.progress, as: "progress")
-    try c.encode(self.resourceId, as: "resourceId")
   }
 }
 
@@ -10131,21 +10771,41 @@ public indirect enum JobResult: Codable, Sendable, Hashable {
   case markJobDone(MarkJobDone)
   case yieldJobDone(YieldJobDone)
   case jobDeclined(JobDeclined)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["found", "persisted"],
+        allowed: [
+          "found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces",
+        ], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["resourceId", "resourceName", "truncated"],
+        allowed: ["resourceId", "resourceName", "truncated"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["declined", "reason"], allowed: ["declined", "reason"],
+        fixed: [
+          .init(property: "declined", values: [.boolean(true)]),
+          .init(
+            property: "reason",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+              .text("empty"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? MarkJobDone(from: decoder) {
-      self = .markJobDone(value)
-      return
-    }
-    if let value = try? YieldJobDone(from: decoder) {
-      self = .yieldJobDone(value)
-      return
-    }
-    if let value = try? JobDeclined(from: decoder) {
-      self = .jobDeclined(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of JobResult fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobResult", members: Self.members,
+      variants: [
+        ("markJobDone", { decoder in try Self.markJobDone(MarkJobDone(from: decoder)) }),
+        ("yieldJobDone", { decoder in try Self.yieldJobDone(YieldJobDone(from: decoder)) }),
+        ("jobDeclined", { decoder in try Self.jobDeclined(JobDeclined(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10157,37 +10817,37 @@ public indirect enum JobResult: Codable, Sendable, Hashable {
 }
 
 public struct JobRunning: Codable, Sendable, Hashable {
+  public let status: JobRunningStatus
   public var metadata: JobMetadata
   public var params: JobParams
-  public var progress: JobStoredProgress
   public var startedAt: String
-  public let status: JobRunningStatus
+  public var progress: JobStoredProgress
   public init(
-    metadata: JobMetadata, params: JobParams, progress: JobStoredProgress, startedAt: String
+    metadata: JobMetadata, params: JobParams, startedAt: String, progress: JobStoredProgress
   ) {
+    self.status = .running
     self.metadata = metadata
     self.params = params
-    self.progress = progress
     self.startedAt = startedAt
-    self.status = .running
+    self.progress = progress
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["metadata", "params", "progress", "startedAt", "status"], in: "JobRunning")
+      ["status", "metadata", "params", "startedAt", "progress"], in: "JobRunning")
+    self.status = try c.value("status")
     self.metadata = try c.value("metadata")
     self.params = try c.value("params")
-    self.progress = try c.value("progress")
     self.startedAt = try c.value("startedAt")
-    self.status = try c.value("status")
+    self.progress = try c.value("progress")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.status, as: "status")
     try c.encode(self.metadata, as: "metadata")
     try c.encode(self.params, as: "params")
-    try c.encode(self.progress, as: "progress")
     try c.encode(self.startedAt, as: "startedAt")
-    try c.encode(self.status, as: "status")
+    try c.encode(self.progress, as: "progress")
   }
 }
 
@@ -10197,67 +10857,67 @@ public enum JobRunningStatus: String, Codable, Sendable, CaseIterable {
 
 public struct JobStartCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var annotationId: AnnotationId?
-  public var attempt: Int?
+  public var resourceId: ResourceId
   public var jobId: JobId
   public var jobType: JobType
-  public var resourceId: ResourceId
+  public var annotationId: AnnotationId?
+  public var attempt: Int?
   public init(
-    _userId: UserId? = nil, annotationId: AnnotationId? = nil, attempt: Int? = nil, jobId: JobId,
-    jobType: JobType, resourceId: ResourceId
+    _userId: UserId? = nil, resourceId: ResourceId, jobId: JobId, jobType: JobType,
+    annotationId: AnnotationId? = nil, attempt: Int? = nil
   ) {
     self._userId = _userId
-    self.annotationId = annotationId
-    self.attempt = attempt
+    self.resourceId = resourceId
     self.jobId = jobId
     self.jobType = jobType
-    self.resourceId = resourceId
+    self.annotationId = annotationId
+    self.attempt = attempt
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.annotationId = try c.ifPresent("annotationId")
-    self.attempt = try c.ifPresent("attempt")
+    self.resourceId = try c.value("resourceId")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.resourceId = try c.value("resourceId")
+    self.annotationId = try c.ifPresent("annotationId")
+    self.attempt = try c.ifPresent("attempt")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.attempt, as: "attempt")
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
+    try c.encodeIfPresent(self.attempt, as: "attempt")
   }
 }
 
 public struct JobStartedPayload: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId?
   public var jobId: JobId
   public var jobType: JobType
+  public var annotationId: AnnotationId?
   public var totalSteps: Int?
   public init(
-    annotationId: AnnotationId? = nil, jobId: JobId, jobType: JobType, totalSteps: Int? = nil
+    jobId: JobId, jobType: JobType, annotationId: AnnotationId? = nil, totalSteps: Int? = nil
   ) {
-    self.annotationId = annotationId
     self.jobId = jobId
     self.jobType = jobType
+    self.annotationId = annotationId
     self.totalSteps = totalSteps
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.ifPresent("annotationId")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
+    self.annotationId = try c.ifPresent("annotationId")
     self.totalSteps = try c.ifPresent("totalSteps")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
     try c.encodeIfPresent(self.totalSteps, as: "totalSteps")
   }
 }
@@ -10278,62 +10938,62 @@ public struct JobStatusRequest: Codable, Sendable, Hashable {
 }
 
 public struct JobStatusResponse: Codable, Sendable, Hashable {
-  public var completedAt: String?
+  public var jobId: JobId
+  public var type: JobType
+  public var status: JobStatusResponseStatus
+  public var userId: UserId
   public var created: String
+  public var startedAt: String?
+  public var completedAt: String?
   public var error: String?
   public var failureClass: FailureClass?
-  public var jobId: JobId
   public var progress: JobStoredProgress?
   public var result: JobStoredResult?
-  public var startedAt: String?
-  public var status: JobStatusResponseStatus
-  public var type: JobType
-  public var userId: UserId
   public init(
-    completedAt: String? = nil, created: String, error: String? = nil,
-    failureClass: FailureClass? = nil, jobId: JobId, progress: JobStoredProgress? = nil,
-    result: JobStoredResult? = nil, startedAt: String? = nil, status: JobStatusResponseStatus,
-    type: JobType, userId: UserId
+    jobId: JobId, type: JobType, status: JobStatusResponseStatus, userId: UserId, created: String,
+    startedAt: String? = nil, completedAt: String? = nil, error: String? = nil,
+    failureClass: FailureClass? = nil, progress: JobStoredProgress? = nil,
+    result: JobStoredResult? = nil
   ) {
-    self.completedAt = completedAt
+    self.jobId = jobId
+    self.type = type
+    self.status = status
+    self.userId = userId
     self.created = created
+    self.startedAt = startedAt
+    self.completedAt = completedAt
     self.error = error
     self.failureClass = failureClass
-    self.jobId = jobId
     self.progress = progress
     self.result = result
-    self.startedAt = startedAt
-    self.status = status
-    self.type = type
-    self.userId = userId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.completedAt = try c.ifPresent("completedAt")
+    self.jobId = try c.value("jobId")
+    self.type = try c.value("type")
+    self.status = try c.value("status")
+    self.userId = try c.value("userId")
     self.created = try c.value("created")
+    self.startedAt = try c.ifPresent("startedAt")
+    self.completedAt = try c.ifPresent("completedAt")
     self.error = try c.ifPresent("error")
     self.failureClass = try c.ifPresent("failureClass")
-    self.jobId = try c.value("jobId")
     self.progress = try c.ifPresent("progress")
     self.result = try c.ifPresent("result")
-    self.startedAt = try c.ifPresent("startedAt")
-    self.status = try c.value("status")
-    self.type = try c.value("type")
-    self.userId = try c.value("userId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.completedAt, as: "completedAt")
+    try c.encode(self.jobId, as: "jobId")
+    try c.encode(self.type, as: "type")
+    try c.encode(self.status, as: "status")
+    try c.encode(self.userId, as: "userId")
     try c.encode(self.created, as: "created")
+    try c.encodeIfPresent(self.startedAt, as: "startedAt")
+    try c.encodeIfPresent(self.completedAt, as: "completedAt")
     try c.encodeIfPresent(self.error, as: "error")
     try c.encodeIfPresent(self.failureClass, as: "failureClass")
-    try c.encode(self.jobId, as: "jobId")
     try c.encodeIfPresent(self.progress, as: "progress")
     try c.encodeIfPresent(self.result, as: "result")
-    try c.encodeIfPresent(self.startedAt, as: "startedAt")
-    try c.encode(self.status, as: "status")
-    try c.encode(self.type, as: "type")
-    try c.encode(self.userId, as: "userId")
   }
 }
 
@@ -10363,18 +11023,21 @@ public struct JobStatusResult: Codable, Sendable, Hashable {
 public indirect enum JobStoredProgress: Codable, Sendable, Hashable {
   case jobProgress(JobProgress)
   case empty(JobStoredProgressEmpty)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .object, required: ["percentage"], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: [], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? JobProgress(from: decoder) {
-      self = .jobProgress(value)
-      return
-    }
-    if let value = try? JobStoredProgressEmpty(from: decoder) {
-      self = .empty(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of JobStoredProgress fits")
-    )
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobStoredProgress", members: Self.members,
+      variants: [
+        ("jobProgress", { decoder in try Self.jobProgress(JobProgress(from: decoder)) }),
+        ("empty", { decoder in try Self.empty(JobStoredProgressEmpty(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10399,17 +11062,39 @@ public struct JobStoredProgressEmpty: Codable, Sendable, Hashable {
 public indirect enum JobStoredResult: Codable, Sendable, Hashable {
   case jobResult(JobResult)
   case empty(JobStoredResultEmpty)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["found", "persisted"],
+        allowed: [
+          "found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces",
+        ], fixed: [], values: nil),
+      UnionSignature(
+        kind: .object, required: ["resourceId", "resourceName", "truncated"],
+        allowed: ["resourceId", "resourceName", "truncated"], fixed: [], values: nil),
+      UnionSignature(
+        kind: .object, required: ["declined", "reason"], allowed: ["declined", "reason"],
+        fixed: [
+          .init(property: "declined", values: [.boolean(true)]),
+          .init(
+            property: "reason",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+              .text("empty"),
+            ]),
+        ], values: nil),
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: [], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? JobResult(from: decoder) {
-      self = .jobResult(value)
-      return
-    }
-    if let value = try? JobStoredResultEmpty(from: decoder) {
-      self = .empty(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of JobStoredResult fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobStoredResult", members: Self.members,
+      variants: [
+        ("jobResult", { decoder in try Self.jobResult(JobResult(from: decoder)) }),
+        ("empty", { decoder in try Self.empty(JobStoredResultEmpty(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10478,32 +11163,32 @@ public struct JobsBudgetsBudgetsItem: Codable, Sendable, Hashable {
 
 public struct JobsStorage: Codable, Sendable, Hashable {
   public var comment: String
-  public var bucket: JobsStorageBucket
-  public var consumer: JobsStorageConsumer
   public var stream: JobsStorageStream
+  public var consumer: JobsStorageConsumer
+  public var bucket: JobsStorageBucket
   public init(
-    comment: String, bucket: JobsStorageBucket, consumer: JobsStorageConsumer,
-    stream: JobsStorageStream
+    comment: String, stream: JobsStorageStream, consumer: JobsStorageConsumer,
+    bucket: JobsStorageBucket
   ) {
     self.comment = comment
-    self.bucket = bucket
-    self.consumer = consumer
     self.stream = stream
+    self.consumer = consumer
+    self.bucket = bucket
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["$comment", "bucket", "consumer", "stream"], in: "JobsStorage")
+    try c.refuseUnknown(["$comment", "stream", "consumer", "bucket"], in: "JobsStorage")
     self.comment = try c.value("$comment")
-    self.bucket = try c.value("bucket")
-    self.consumer = try c.value("consumer")
     self.stream = try c.value("stream")
+    self.consumer = try c.value("consumer")
+    self.bucket = try c.value("bucket")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.bucket, as: "bucket")
-    try c.encode(self.consumer, as: "consumer")
     try c.encode(self.stream, as: "stream")
+    try c.encode(self.consumer, as: "consumer")
+    try c.encode(self.bucket, as: "bucket")
   }
 }
 
@@ -10564,25 +11249,25 @@ public struct JobsStorageStream: Codable, Sendable, Hashable {
 }
 
 public struct KbDescription: Codable, Sendable, Hashable {
+  public var name: String
   public var domain: String
   public var gitBranch: String?
-  public var name: String
-  public init(domain: String, gitBranch: String? = nil, name: String) {
+  public init(name: String, domain: String, gitBranch: String? = nil) {
+    self.name = name
     self.domain = domain
     self.gitBranch = gitBranch
-    self.name = name
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.name = try c.value("name")
     self.domain = try c.value("domain")
     self.gitBranch = try c.ifPresent("gitBranch")
-    self.name = try c.value("name")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
     try c.encode(self.domain, as: "domain")
     try c.encodeIfPresent(self.gitBranch, as: "gitBranch")
-    try c.encode(self.name, as: "name")
   }
 }
 
@@ -10591,16 +11276,28 @@ public typealias KbDid = String
 public indirect enum KbEndpoint: Codable, Sendable, Hashable {
   case httpEndpoint(HttpEndpoint)
   case localEndpoint(LocalEndpoint)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "host", "port", "protocol"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("http")]),
+          .init(property: "protocol", values: [.text("http"), .text("https")]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "kbId"], allowed: nil,
+        fixed: [.init(property: "kind", values: [.text("local")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("kind"))
-    switch tag {
-    case "http": self = .httpEndpoint(try HttpEndpoint(from: decoder))
-    case "local": self = .localEndpoint(try LocalEndpoint(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("kind"), in: c, debugDescription: "unknown KbEndpoint discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "KbEndpoint", members: Self.members,
+      variants: [
+        ("httpEndpoint", { decoder in try Self.httpEndpoint(HttpEndpoint(from: decoder)) }),
+        ("localEndpoint", { decoder in try Self.localEndpoint(LocalEndpoint(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10611,22 +11308,22 @@ public indirect enum KbEndpoint: Codable, Sendable, Hashable {
 }
 
 public struct KbIdentity: Codable, Sendable, Hashable {
-  public var domain: String
   public var name: String
-  public init(domain: String, name: String) {
-    self.domain = domain
+  public var domain: String
+  public init(name: String, domain: String) {
     self.name = name
+    self.domain = domain
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["domain", "name"], in: "KbIdentity")
-    self.domain = try c.value("domain")
+    try c.refuseUnknown(["name", "domain"], in: "KbIdentity")
     self.name = try c.value("name")
+    self.domain = try c.value("domain")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.domain, as: "domain")
     try c.encode(self.name, as: "name")
+    try c.encode(self.domain, as: "domain")
   }
 }
 
@@ -10679,17 +11376,32 @@ public indirect enum KbReadVerdict: Codable, Sendable, Hashable {
   case recorded(KbReadVerdictRecorded)
   case conflict(KbReadVerdictConflict)
   case noVerdict(KbReadVerdictNoVerdict)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind"], allowed: ["kind"],
+        fixed: [.init(property: "kind", values: [.text("recorded")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "observedDid", "observedName"],
+        allowed: ["kind", "observedDid", "observedName"],
+        fixed: [.init(property: "kind", values: [.text("conflict")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind"], allowed: ["kind"],
+        fixed: [.init(property: "kind", values: [.text("no-verdict")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("kind"))
-    switch tag {
-    case "recorded": self = .recorded(try KbReadVerdictRecorded(from: decoder))
-    case "conflict": self = .conflict(try KbReadVerdictConflict(from: decoder))
-    case "no-verdict": self = .noVerdict(try KbReadVerdictNoVerdict(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("kind"), in: c, debugDescription: "unknown KbReadVerdict discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "KbReadVerdict", members: Self.members,
+      variants: [
+        ("recorded", { decoder in try Self.recorded(KbReadVerdictRecorded(from: decoder)) }),
+        ("conflict", { decoder in try Self.conflict(KbReadVerdictConflict(from: decoder)) }),
+        ("noVerdict", { decoder in try Self.noVerdict(KbReadVerdictNoVerdict(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10763,156 +11475,156 @@ public enum KbSessionStatus: String, Codable, Sendable, CaseIterable {
 }
 
 public struct KbTarget: Codable, Sendable, Hashable {
-  public var endpoint: KbEndpoint
   public var id: String
   public var label: String
-  public init(endpoint: KbEndpoint, id: String, label: String) {
-    self.endpoint = endpoint
+  public var endpoint: KbEndpoint
+  public init(id: String, label: String, endpoint: KbEndpoint) {
     self.id = id
     self.label = label
+    self.endpoint = endpoint
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.endpoint = try c.value("endpoint")
     self.id = try c.value("id")
     self.label = try c.value("label")
+    self.endpoint = try c.value("endpoint")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.endpoint, as: "endpoint")
     try c.encode(self.id, as: "id")
     try c.encode(self.label, as: "label")
+    try c.encode(self.endpoint, as: "endpoint")
   }
 }
 
 public struct KnowledgeBase: Codable, Sendable, Hashable {
-  public var did: String
-  public var endpoint: KbEndpoint
   public var id: String
   public var label: String
+  public var endpoint: KbEndpoint
+  public var did: String
   public var lastRead: KbRead?
-  public init(did: String, endpoint: KbEndpoint, id: String, label: String, lastRead: KbRead? = nil)
+  public init(id: String, label: String, endpoint: KbEndpoint, did: String, lastRead: KbRead? = nil)
   {
-    self.did = did
-    self.endpoint = endpoint
     self.id = id
     self.label = label
+    self.endpoint = endpoint
+    self.did = did
     self.lastRead = lastRead
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.did = try c.value("did")
-    self.endpoint = try c.value("endpoint")
     self.id = try c.value("id")
     self.label = try c.value("label")
+    self.endpoint = try c.value("endpoint")
+    self.did = try c.value("did")
     self.lastRead = try c.ifPresent("lastRead")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.did, as: "did")
-    try c.encode(self.endpoint, as: "endpoint")
     try c.encode(self.id, as: "id")
     try c.encode(self.label, as: "label")
+    try c.encode(self.endpoint, as: "endpoint")
+    try c.encode(self.did, as: "did")
     try c.encodeIfPresent(self.lastRead, as: "lastRead")
   }
 }
 
 public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
+  public var name: String
+  public var key: String
+  public var recorded: Bool
+  public var placement: KnowledgeBaseStatusPlacement
+  public var root: String?
+  public var repo: String?
   public var did: String?
-  public var gateway: String?
-  public var healthy: Bool
+  public var siteName: String?
   public var identityError: String?
   public var kb: DiscoveredKB?
-  public var key: String
-  public var lan: String?
-  public var name: String
-  public var placement: KnowledgeBaseStatusPlacement
-  public var recorded: Bool
-  public var repo: String?
-  public var root: String?
   public var runtime: Runtime?
+  public var gateway: String?
   public var secretStore: String?
-  public var services: [ServiceStatus]
-  public var session: Session?
-  public var siteName: String?
+  public var lan: String?
   public var starting: Bool
+  public var session: Session?
+  public var healthy: Bool
+  public var services: [ServiceStatus]
   public var workload: WorkloadStatus?
   public init(
-    did: String? = nil, gateway: String? = nil, healthy: Bool, identityError: String? = nil,
-    kb: DiscoveredKB? = nil, key: String, lan: String? = nil, name: String,
-    placement: KnowledgeBaseStatusPlacement, recorded: Bool, repo: String? = nil,
-    root: String? = nil, runtime: Runtime? = nil, secretStore: String? = nil,
-    services: [ServiceStatus], session: Session? = nil, siteName: String? = nil, starting: Bool,
+    name: String, key: String, recorded: Bool, placement: KnowledgeBaseStatusPlacement,
+    root: String? = nil, repo: String? = nil, did: String? = nil, siteName: String? = nil,
+    identityError: String? = nil, kb: DiscoveredKB? = nil, runtime: Runtime? = nil,
+    gateway: String? = nil, secretStore: String? = nil, lan: String? = nil, starting: Bool,
+    session: Session? = nil, healthy: Bool, services: [ServiceStatus],
     workload: WorkloadStatus? = nil
   ) {
+    self.name = name
+    self.key = key
+    self.recorded = recorded
+    self.placement = placement
+    self.root = root
+    self.repo = repo
     self.did = did
-    self.gateway = gateway
-    self.healthy = healthy
+    self.siteName = siteName
     self.identityError = identityError
     self.kb = kb
-    self.key = key
-    self.lan = lan
-    self.name = name
-    self.placement = placement
-    self.recorded = recorded
-    self.repo = repo
-    self.root = root
     self.runtime = runtime
+    self.gateway = gateway
     self.secretStore = secretStore
-    self.services = services
-    self.session = session
-    self.siteName = siteName
+    self.lan = lan
     self.starting = starting
+    self.session = session
+    self.healthy = healthy
+    self.services = services
     self.workload = workload
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "did", "gateway", "healthy", "identityError", "kb", "key", "lan", "name", "placement",
-        "recorded", "repo", "root", "runtime", "secretStore", "services", "session", "siteName",
-        "starting", "workload",
+        "name", "key", "recorded", "placement", "root", "repo", "did", "siteName", "identityError",
+        "kb", "runtime", "gateway", "secretStore", "lan", "starting", "session", "healthy",
+        "services", "workload",
       ], in: "KnowledgeBaseStatus")
+    self.name = try c.value("name")
+    self.key = try c.value("key")
+    self.recorded = try c.value("recorded")
+    self.placement = try c.value("placement")
+    self.root = try c.ifPresent("root")
+    self.repo = try c.ifPresent("repo")
     self.did = try c.ifPresent("did")
-    self.gateway = try c.ifPresent("gateway")
-    self.healthy = try c.value("healthy")
+    self.siteName = try c.ifPresent("siteName")
     self.identityError = try c.ifPresent("identityError")
     self.kb = try c.ifPresent("kb")
-    self.key = try c.value("key")
-    self.lan = try c.ifPresent("lan")
-    self.name = try c.value("name")
-    self.placement = try c.value("placement")
-    self.recorded = try c.value("recorded")
-    self.repo = try c.ifPresent("repo")
-    self.root = try c.ifPresent("root")
     self.runtime = try c.ifPresent("runtime")
+    self.gateway = try c.ifPresent("gateway")
     self.secretStore = try c.ifPresent("secretStore")
-    self.services = try c.value("services")
-    self.session = try c.ifPresent("session")
-    self.siteName = try c.ifPresent("siteName")
+    self.lan = try c.ifPresent("lan")
     self.starting = try c.value("starting")
+    self.session = try c.ifPresent("session")
+    self.healthy = try c.value("healthy")
+    self.services = try c.value("services")
     self.workload = try c.ifPresent("workload")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.key, as: "key")
+    try c.encode(self.recorded, as: "recorded")
+    try c.encode(self.placement, as: "placement")
+    try c.encodeIfPresent(self.root, as: "root")
+    try c.encodeIfPresent(self.repo, as: "repo")
     try c.encodeIfPresent(self.did, as: "did")
-    try c.encodeIfPresent(self.gateway, as: "gateway")
-    try c.encode(self.healthy, as: "healthy")
+    try c.encodeIfPresent(self.siteName, as: "siteName")
     try c.encodeIfPresent(self.identityError, as: "identityError")
     try c.encodeIfPresent(self.kb, as: "kb")
-    try c.encode(self.key, as: "key")
-    try c.encodeIfPresent(self.lan, as: "lan")
-    try c.encode(self.name, as: "name")
-    try c.encode(self.placement, as: "placement")
-    try c.encode(self.recorded, as: "recorded")
-    try c.encodeIfPresent(self.repo, as: "repo")
-    try c.encodeIfPresent(self.root, as: "root")
     try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.gateway, as: "gateway")
     try c.encodeIfPresent(self.secretStore, as: "secretStore")
-    try c.encode(self.services, as: "services")
-    try c.encodeIfPresent(self.session, as: "session")
-    try c.encodeIfPresent(self.siteName, as: "siteName")
+    try c.encodeIfPresent(self.lan, as: "lan")
     try c.encode(self.starting, as: "starting")
+    try c.encodeIfPresent(self.session, as: "session")
+    try c.encode(self.healthy, as: "healthy")
+    try c.encode(self.services, as: "services")
     try c.encodeIfPresent(self.workload, as: "workload")
   }
 }
@@ -10923,78 +11635,92 @@ public enum KnowledgeBaseStatusPlacement: String, Codable, Sendable, CaseIterabl
 }
 
 public struct KnowledgeGraph: Codable, Sendable, Hashable {
-  public var edges: [KnowledgeGraphEdgesItem]
   public var nodes: [KnowledgeGraphNodesItem]
+  public var edges: [KnowledgeGraphEdgesItem]
   public var truncated: Bool?
   public init(
-    edges: [KnowledgeGraphEdgesItem], nodes: [KnowledgeGraphNodesItem], truncated: Bool? = nil
+    nodes: [KnowledgeGraphNodesItem], edges: [KnowledgeGraphEdgesItem], truncated: Bool? = nil
   ) {
-    self.edges = edges
     self.nodes = nodes
+    self.edges = edges
     self.truncated = truncated
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.edges = try c.value("edges")
     self.nodes = try c.value("nodes")
+    self.edges = try c.value("edges")
     self.truncated = try c.ifPresent("truncated")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.edges, as: "edges")
     try c.encode(self.nodes, as: "nodes")
+    try c.encode(self.edges, as: "edges")
     try c.encodeIfPresent(self.truncated, as: "truncated")
   }
 }
 
 public struct KnowledgeGraphEdgesItem: Codable, Sendable, Hashable {
-  public var bidirectional: Bool?
-  public var metadata: [String: JSONValue]?
   public var source: String
   public var target: String
   public var type: String
+  public var bidirectional: Bool?
+  public var metadata: [String: JSONValue]?
   public init(
-    bidirectional: Bool? = nil, metadata: [String: JSONValue]? = nil, source: String,
-    target: String, type: String
+    source: String, target: String, type: String, bidirectional: Bool? = nil,
+    metadata: [String: JSONValue]? = nil
   ) {
-    self.bidirectional = bidirectional
-    self.metadata = metadata
     self.source = source
     self.target = target
     self.type = type
+    self.bidirectional = bidirectional
+    self.metadata = metadata
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.bidirectional = try c.ifPresent("bidirectional")
-    self.metadata = try c.ifPresent("metadata")
     self.source = try c.value("source")
     self.target = try c.value("target")
     self.type = try c.value("type")
+    self.bidirectional = try c.ifPresent("bidirectional")
+    self.metadata = try c.ifPresent("metadata")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.bidirectional, as: "bidirectional")
-    try c.encodeIfPresent(self.metadata, as: "metadata")
     try c.encode(self.source, as: "source")
     try c.encode(self.target, as: "target")
     try c.encode(self.type, as: "type")
+    try c.encodeIfPresent(self.bidirectional, as: "bidirectional")
+    try c.encodeIfPresent(self.metadata, as: "metadata")
   }
 }
 
 public indirect enum KnowledgeGraphNodesItem: Codable, Sendable, Hashable {
   case graphResourceNode(GraphResourceNode)
   case graphAnnotationNode(GraphAnnotationNode)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "type", "label"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("resource")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "type", "label", "annotation"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("annotation")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "resource": self = .graphResourceNode(try GraphResourceNode(from: decoder))
-    case "annotation": self = .graphAnnotationNode(try GraphAnnotationNode(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c,
-        debugDescription: "unknown KnowledgeGraphNodesItem discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "KnowledgeGraphNodesItem", members: Self.members,
+      variants: [
+        (
+          "graphResourceNode",
+          { decoder in try Self.graphResourceNode(GraphResourceNode(from: decoder)) }
+        ),
+        (
+          "graphAnnotationNode",
+          { decoder in try Self.graphAnnotationNode(GraphAnnotationNode(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -11037,90 +11763,90 @@ public enum KnowledgeIndexKind: String, Codable, Sendable, CaseIterable {
 }
 
 public struct KnowledgeIndexSpec: Codable, Sendable, Hashable {
-  public var embedding: KnowledgeIndexSpecEmbedding
-  public var graph: Runner
   public var knowledgeBase: String
-  public var librarian: KnowledgeIndexSpecLibrarian
   public var logLevel: LogLevel
-  public var smelter: KnowledgeIndexSpecSmelter
+  public var graph: Runner
   public var vectors: KnowledgeIndexSpecVectors
+  public var embedding: KnowledgeIndexSpecEmbedding
+  public var librarian: KnowledgeIndexSpecLibrarian
+  public var smelter: KnowledgeIndexSpecSmelter
   public var weaver: KnowledgeIndexSpecWeaver
   public init(
-    embedding: KnowledgeIndexSpecEmbedding, graph: Runner, knowledgeBase: String,
-    librarian: KnowledgeIndexSpecLibrarian, logLevel: LogLevel, smelter: KnowledgeIndexSpecSmelter,
-    vectors: KnowledgeIndexSpecVectors, weaver: KnowledgeIndexSpecWeaver
+    knowledgeBase: String, logLevel: LogLevel, graph: Runner, vectors: KnowledgeIndexSpecVectors,
+    embedding: KnowledgeIndexSpecEmbedding, librarian: KnowledgeIndexSpecLibrarian,
+    smelter: KnowledgeIndexSpecSmelter, weaver: KnowledgeIndexSpecWeaver
   ) {
-    self.embedding = embedding
-    self.graph = graph
     self.knowledgeBase = knowledgeBase
-    self.librarian = librarian
     self.logLevel = logLevel
-    self.smelter = smelter
+    self.graph = graph
     self.vectors = vectors
+    self.embedding = embedding
+    self.librarian = librarian
+    self.smelter = smelter
     self.weaver = weaver
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "embedding", "graph", "knowledgeBase", "librarian", "logLevel", "smelter", "vectors",
+        "knowledgeBase", "logLevel", "graph", "vectors", "embedding", "librarian", "smelter",
         "weaver",
       ], in: "KnowledgeIndexSpec")
-    self.embedding = try c.value("embedding")
-    self.graph = try c.value("graph")
     self.knowledgeBase = try c.value("knowledgeBase")
-    self.librarian = try c.value("librarian")
     self.logLevel = try c.value("logLevel")
-    self.smelter = try c.value("smelter")
+    self.graph = try c.value("graph")
     self.vectors = try c.value("vectors")
+    self.embedding = try c.value("embedding")
+    self.librarian = try c.value("librarian")
+    self.smelter = try c.value("smelter")
     self.weaver = try c.value("weaver")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.embedding, as: "embedding")
-    try c.encode(self.graph, as: "graph")
     try c.encode(self.knowledgeBase, as: "knowledgeBase")
-    try c.encode(self.librarian, as: "librarian")
     try c.encode(self.logLevel, as: "logLevel")
-    try c.encode(self.smelter, as: "smelter")
+    try c.encode(self.graph, as: "graph")
     try c.encode(self.vectors, as: "vectors")
+    try c.encode(self.embedding, as: "embedding")
+    try c.encode(self.librarian, as: "librarian")
+    try c.encode(self.smelter, as: "smelter")
     try c.encode(self.weaver, as: "weaver")
   }
 }
 
 public struct KnowledgeIndexSpecEmbedding: Codable, Sendable, Hashable {
-  public var apiKey: SecretRef?
+  public var type: String
+  public var model: String
   public var chunking: KnowledgeIndexSpecEmbeddingChunking
   public var endpoint: String?
-  public var model: String
-  public var type: String
+  public var apiKey: SecretRef?
   public init(
-    apiKey: SecretRef? = nil, chunking: KnowledgeIndexSpecEmbeddingChunking,
-    endpoint: String? = nil, model: String, type: String
+    type: String, model: String, chunking: KnowledgeIndexSpecEmbeddingChunking,
+    endpoint: String? = nil, apiKey: SecretRef? = nil
   ) {
-    self.apiKey = apiKey
+    self.type = type
+    self.model = model
     self.chunking = chunking
     self.endpoint = endpoint
-    self.model = model
-    self.type = type
+    self.apiKey = apiKey
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["apiKey", "chunking", "endpoint", "model", "type"], in: "KnowledgeIndexSpecEmbedding")
-    self.apiKey = try c.ifPresent("apiKey")
+      ["type", "model", "chunking", "endpoint", "apiKey"], in: "KnowledgeIndexSpecEmbedding")
+    self.type = try c.value("type")
+    self.model = try c.value("model")
     self.chunking = try c.value("chunking")
     self.endpoint = try c.ifPresent("endpoint")
-    self.model = try c.value("model")
-    self.type = try c.value("type")
+    self.apiKey = try c.ifPresent("apiKey")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.apiKey, as: "apiKey")
+    try c.encode(self.type, as: "type")
+    try c.encode(self.model, as: "model")
     try c.encode(self.chunking, as: "chunking")
     try c.encodeIfPresent(self.endpoint, as: "endpoint")
-    try c.encode(self.model, as: "model")
-    try c.encode(self.type, as: "type")
+    try c.encodeIfPresent(self.apiKey, as: "apiKey")
   }
 }
 
@@ -11145,33 +11871,33 @@ public struct KnowledgeIndexSpecEmbeddingChunking: Codable, Sendable, Hashable {
 }
 
 public struct KnowledgeIndexSpecLibrarian: Codable, Sendable, Hashable {
-  public var gather: KnowledgeIndexSpecLibrarianGather
   public var image: Image
   public var resources: Resources
+  public var gather: KnowledgeIndexSpecLibrarianGather
   public var search: KnowledgeIndexSpecLibrarianSearch
   public init(
-    gather: KnowledgeIndexSpecLibrarianGather, image: Image, resources: Resources,
+    image: Image, resources: Resources, gather: KnowledgeIndexSpecLibrarianGather,
     search: KnowledgeIndexSpecLibrarianSearch
   ) {
-    self.gather = gather
     self.image = image
     self.resources = resources
+    self.gather = gather
     self.search = search
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["gather", "image", "resources", "search"], in: "KnowledgeIndexSpecLibrarian")
-    self.gather = try c.value("gather")
+      ["image", "resources", "gather", "search"], in: "KnowledgeIndexSpecLibrarian")
     self.image = try c.value("image")
     self.resources = try c.value("resources")
+    self.gather = try c.value("gather")
     self.search = try c.value("search")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.gather, as: "gather")
     try c.encode(self.image, as: "image")
     try c.encode(self.resources, as: "resources")
+    try c.encode(self.gather, as: "gather")
     try c.encode(self.search, as: "search")
   }
 }
@@ -11210,90 +11936,90 @@ public struct KnowledgeIndexSpecLibrarianSearch: Codable, Sendable, Hashable {
 
 public struct KnowledgeIndexSpecSmelter: Codable, Sendable, Hashable {
   public var image: Image
-  public var pdfsAtOnce: Int
   public var resources: Resources
-  public init(image: Image, pdfsAtOnce: Int, resources: Resources) {
+  public var pdfsAtOnce: Int
+  public init(image: Image, resources: Resources, pdfsAtOnce: Int) {
     self.image = image
-    self.pdfsAtOnce = pdfsAtOnce
     self.resources = resources
+    self.pdfsAtOnce = pdfsAtOnce
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["image", "pdfsAtOnce", "resources"], in: "KnowledgeIndexSpecSmelter")
+    try c.refuseUnknown(["image", "resources", "pdfsAtOnce"], in: "KnowledgeIndexSpecSmelter")
     self.image = try c.value("image")
-    self.pdfsAtOnce = try c.value("pdfsAtOnce")
     self.resources = try c.value("resources")
+    self.pdfsAtOnce = try c.value("pdfsAtOnce")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.image, as: "image")
-    try c.encode(self.pdfsAtOnce, as: "pdfsAtOnce")
     try c.encode(self.resources, as: "resources")
+    try c.encode(self.pdfsAtOnce, as: "pdfsAtOnce")
   }
 }
 
 public struct KnowledgeIndexSpecVectors: Codable, Sendable, Hashable {
-  public var external: KnowledgeIndexSpecVectorsExternal?
+  public var type: String
+  public var shared: KnowledgeIndexSpecVectorsShared?
   public var image: Image?
   public var resources: Resources?
-  public var shared: KnowledgeIndexSpecVectorsShared?
-  public var type: String
+  public var external: KnowledgeIndexSpecVectorsExternal?
   public init(
-    external: KnowledgeIndexSpecVectorsExternal? = nil, image: Image? = nil,
-    resources: Resources? = nil, shared: KnowledgeIndexSpecVectorsShared? = nil, type: String
+    type: String, shared: KnowledgeIndexSpecVectorsShared? = nil, image: Image? = nil,
+    resources: Resources? = nil, external: KnowledgeIndexSpecVectorsExternal? = nil
   ) {
-    self.external = external
+    self.type = type
+    self.shared = shared
     self.image = image
     self.resources = resources
-    self.shared = shared
-    self.type = type
+    self.external = external
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["external", "image", "resources", "shared", "type"], in: "KnowledgeIndexSpecVectors")
-    self.external = try c.ifPresent("external")
+      ["type", "shared", "image", "resources", "external"], in: "KnowledgeIndexSpecVectors")
+    self.type = try c.value("type")
+    self.shared = try c.ifPresent("shared")
     self.image = try c.ifPresent("image")
     self.resources = try c.ifPresent("resources")
-    self.shared = try c.ifPresent("shared")
-    self.type = try c.value("type")
+    self.external = try c.ifPresent("external")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.external, as: "external")
+    try c.encode(self.type, as: "type")
+    try c.encodeIfPresent(self.shared, as: "shared")
     try c.encodeIfPresent(self.image, as: "image")
     try c.encodeIfPresent(self.resources, as: "resources")
-    try c.encodeIfPresent(self.shared, as: "shared")
-    try c.encode(self.type, as: "type")
+    try c.encodeIfPresent(self.external, as: "external")
   }
 }
 
 public struct KnowledgeIndexSpecVectorsExternal: Codable, Sendable, Hashable {
   public var host: String
-  public var librarianToken: SecretRef
   public var port: Int
   public var smelterToken: SecretRef
-  public init(host: String, librarianToken: SecretRef, port: Int, smelterToken: SecretRef) {
+  public var librarianToken: SecretRef
+  public init(host: String, port: Int, smelterToken: SecretRef, librarianToken: SecretRef) {
     self.host = host
-    self.librarianToken = librarianToken
     self.port = port
     self.smelterToken = smelterToken
+    self.librarianToken = librarianToken
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["host", "librarianToken", "port", "smelterToken"], in: "KnowledgeIndexSpecVectorsExternal")
+      ["host", "port", "smelterToken", "librarianToken"], in: "KnowledgeIndexSpecVectorsExternal")
     self.host = try c.value("host")
-    self.librarianToken = try c.value("librarianToken")
     self.port = try c.value("port")
     self.smelterToken = try c.value("smelterToken")
+    self.librarianToken = try c.value("librarianToken")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.host, as: "host")
-    try c.encode(self.librarianToken, as: "librarianToken")
     try c.encode(self.port, as: "port")
     try c.encode(self.smelterToken, as: "smelterToken")
+    try c.encode(self.librarianToken, as: "librarianToken")
   }
 }
 
@@ -11332,84 +12058,84 @@ public struct KnowledgeIndexSpecWeaver: Codable, Sendable, Hashable {
 public typealias LastEventIds = [ResourceId: PersistedEventId]
 
 public struct LibrarianConfig: Codable, Sendable, Hashable {
-  public var archivist: ServiceAddress
-  public var embedding: EmbeddingConfig
-  public var gatewayUrl: String
-  public var gather: LibrarianConfigGather
-  public var gatherer: LibrarianEngineConfig
-  public var graph: GraphConfig
-  public var identity: ServiceIdentity
   public var kb: KbIdentity
-  public var logFormat: LogFormat
-  public var logLevel: LogLevel
-  public var matcher: LibrarianEngineConfig
-  public var modelCatalogue: String
-  public var port: Int
-  public var search: LibrarianConfigSearch
+  public var gatewayUrl: String
+  public var identity: ServiceIdentity
+  public var archivist: ServiceAddress
+  public var graph: GraphConfig
   public var vectors: VectorsConfig
+  public var embedding: EmbeddingConfig
+  public var matcher: LibrarianEngineConfig
+  public var gatherer: LibrarianEngineConfig
+  public var modelCatalogue: String
+  public var gather: LibrarianConfigGather
+  public var search: LibrarianConfigSearch
+  public var port: Int
+  public var logLevel: LogLevel
+  public var logFormat: LogFormat
   public init(
-    archivist: ServiceAddress, embedding: EmbeddingConfig, gatewayUrl: String,
-    gather: LibrarianConfigGather, gatherer: LibrarianEngineConfig, graph: GraphConfig,
-    identity: ServiceIdentity, kb: KbIdentity, logFormat: LogFormat, logLevel: LogLevel,
-    matcher: LibrarianEngineConfig, modelCatalogue: String, port: Int,
-    search: LibrarianConfigSearch, vectors: VectorsConfig
+    kb: KbIdentity, gatewayUrl: String, identity: ServiceIdentity, archivist: ServiceAddress,
+    graph: GraphConfig, vectors: VectorsConfig, embedding: EmbeddingConfig,
+    matcher: LibrarianEngineConfig, gatherer: LibrarianEngineConfig, modelCatalogue: String,
+    gather: LibrarianConfigGather, search: LibrarianConfigSearch, port: Int, logLevel: LogLevel,
+    logFormat: LogFormat
   ) {
-    self.archivist = archivist
-    self.embedding = embedding
-    self.gatewayUrl = gatewayUrl
-    self.gather = gather
-    self.gatherer = gatherer
-    self.graph = graph
-    self.identity = identity
     self.kb = kb
-    self.logFormat = logFormat
-    self.logLevel = logLevel
-    self.matcher = matcher
-    self.modelCatalogue = modelCatalogue
-    self.port = port
-    self.search = search
+    self.gatewayUrl = gatewayUrl
+    self.identity = identity
+    self.archivist = archivist
+    self.graph = graph
     self.vectors = vectors
+    self.embedding = embedding
+    self.matcher = matcher
+    self.gatherer = gatherer
+    self.modelCatalogue = modelCatalogue
+    self.gather = gather
+    self.search = search
+    self.port = port
+    self.logLevel = logLevel
+    self.logFormat = logFormat
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "archivist", "embedding", "gatewayUrl", "gather", "gatherer", "graph", "identity", "kb",
-        "logFormat", "logLevel", "matcher", "modelCatalogue", "port", "search", "vectors",
+        "kb", "gatewayUrl", "identity", "archivist", "graph", "vectors", "embedding", "matcher",
+        "gatherer", "modelCatalogue", "gather", "search", "port", "logLevel", "logFormat",
       ], in: "LibrarianConfig")
-    self.archivist = try c.value("archivist")
-    self.embedding = try c.value("embedding")
-    self.gatewayUrl = try c.value("gatewayUrl")
-    self.gather = try c.value("gather")
-    self.gatherer = try c.value("gatherer")
-    self.graph = try c.value("graph")
-    self.identity = try c.value("identity")
     self.kb = try c.value("kb")
-    self.logFormat = try c.value("logFormat")
-    self.logLevel = try c.value("logLevel")
-    self.matcher = try c.value("matcher")
-    self.modelCatalogue = try c.value("modelCatalogue")
-    self.port = try c.value("port")
-    self.search = try c.value("search")
+    self.gatewayUrl = try c.value("gatewayUrl")
+    self.identity = try c.value("identity")
+    self.archivist = try c.value("archivist")
+    self.graph = try c.value("graph")
     self.vectors = try c.value("vectors")
+    self.embedding = try c.value("embedding")
+    self.matcher = try c.value("matcher")
+    self.gatherer = try c.value("gatherer")
+    self.modelCatalogue = try c.value("modelCatalogue")
+    self.gather = try c.value("gather")
+    self.search = try c.value("search")
+    self.port = try c.value("port")
+    self.logLevel = try c.value("logLevel")
+    self.logFormat = try c.value("logFormat")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.archivist, as: "archivist")
-    try c.encode(self.embedding, as: "embedding")
-    try c.encode(self.gatewayUrl, as: "gatewayUrl")
-    try c.encode(self.gather, as: "gather")
-    try c.encode(self.gatherer, as: "gatherer")
-    try c.encode(self.graph, as: "graph")
-    try c.encode(self.identity, as: "identity")
     try c.encode(self.kb, as: "kb")
-    try c.encode(self.logFormat, as: "logFormat")
-    try c.encode(self.logLevel, as: "logLevel")
-    try c.encode(self.matcher, as: "matcher")
-    try c.encode(self.modelCatalogue, as: "modelCatalogue")
-    try c.encode(self.port, as: "port")
-    try c.encode(self.search, as: "search")
+    try c.encode(self.gatewayUrl, as: "gatewayUrl")
+    try c.encode(self.identity, as: "identity")
+    try c.encode(self.archivist, as: "archivist")
+    try c.encode(self.graph, as: "graph")
     try c.encode(self.vectors, as: "vectors")
+    try c.encode(self.embedding, as: "embedding")
+    try c.encode(self.matcher, as: "matcher")
+    try c.encode(self.gatherer, as: "gatherer")
+    try c.encode(self.modelCatalogue, as: "modelCatalogue")
+    try c.encode(self.gather, as: "gather")
+    try c.encode(self.search, as: "search")
+    try c.encode(self.port, as: "port")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.logFormat, as: "logFormat")
   }
 }
 
@@ -11446,50 +12172,50 @@ public struct LibrarianConfigSearch: Codable, Sendable, Hashable {
 }
 
 public struct LibrarianEngineConfig: Codable, Sendable, Hashable {
-  public var apiKeyEnv: String?
-  public var baseUrl: String
   public var engine: Engine
-  public init(apiKeyEnv: String? = nil, baseUrl: String, engine: Engine) {
-    self.apiKeyEnv = apiKeyEnv
-    self.baseUrl = baseUrl
+  public var baseUrl: String
+  public var apiKeyEnv: String?
+  public init(engine: Engine, baseUrl: String, apiKeyEnv: String? = nil) {
     self.engine = engine
+    self.baseUrl = baseUrl
+    self.apiKeyEnv = apiKeyEnv
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiKeyEnv", "baseUrl", "engine"], in: "LibrarianEngineConfig")
-    self.apiKeyEnv = try c.ifPresent("apiKeyEnv")
-    self.baseUrl = try c.value("baseUrl")
+    try c.refuseUnknown(["engine", "baseUrl", "apiKeyEnv"], in: "LibrarianEngineConfig")
     self.engine = try c.value("engine")
+    self.baseUrl = try c.value("baseUrl")
+    self.apiKeyEnv = try c.ifPresent("apiKeyEnv")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.apiKeyEnv, as: "apiKeyEnv")
-    try c.encode(self.baseUrl, as: "baseUrl")
     try c.encode(self.engine, as: "engine")
+    try c.encode(self.baseUrl, as: "baseUrl")
+    try c.encodeIfPresent(self.apiKeyEnv, as: "apiKeyEnv")
   }
 }
 
 public struct LibrarianHealth: Codable, Sendable, Hashable {
-  public var actors: [LibrarianHealthActorsItem]
-  public var kb: KbDid
   public let status: LibrarianHealthStatus
-  public init(actors: [LibrarianHealthActorsItem], kb: KbDid) {
-    self.actors = actors
-    self.kb = kb
+  public var kb: KbDid
+  public var actors: [LibrarianHealthActorsItem]
+  public init(kb: KbDid, actors: [LibrarianHealthActorsItem]) {
     self.status = .ok
+    self.kb = kb
+    self.actors = actors
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["actors", "kb", "status"], in: "LibrarianHealth")
-    self.actors = try c.value("actors")
-    self.kb = try c.value("kb")
+    try c.refuseUnknown(["status", "kb", "actors"], in: "LibrarianHealth")
     self.status = try c.value("status")
+    self.kb = try c.value("kb")
+    self.actors = try c.value("actors")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.actors, as: "actors")
-    try c.encode(self.kb, as: "kb")
     try c.encode(self.status, as: "status")
+    try c.encode(self.kb, as: "kb")
+    try c.encode(self.actors, as: "actors")
   }
 }
 
@@ -11523,30 +12249,30 @@ public struct LibrarianPromptScore: Codable, Sendable, Hashable {
 }
 
 public struct LimitRefusal: Codable, Sendable, Hashable {
-  public var code: LimitRefusalCode
-  public var details: JSONValue?
   public var error: String
+  public var code: LimitRefusalCode
   public var hint: String?
-  public init(code: LimitRefusalCode, details: JSONValue? = nil, error: String, hint: String? = nil)
+  public var details: JSONValue?
+  public init(error: String, code: LimitRefusalCode, hint: String? = nil, details: JSONValue? = nil)
   {
-    self.code = code
-    self.details = details
     self.error = error
+    self.code = code
     self.hint = hint
+    self.details = details
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.code = try c.value("code")
-    self.details = try c.ifPresent("details")
     self.error = try c.value("error")
+    self.code = try c.value("code")
     self.hint = try c.ifPresent("hint")
+    self.details = try c.ifPresent("details")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.code, as: "code")
-    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.error, as: "error")
+    try c.encode(self.code, as: "code")
     try c.encodeIfPresent(self.hint, as: "hint")
+    try c.encodeIfPresent(self.details, as: "details")
   }
 }
 
@@ -11559,38 +12285,38 @@ public enum LimitRefusalCode: String, Codable, Sendable, CaseIterable {
 }
 
 public struct LinkingJobParams: Codable, Sendable, Hashable {
+  public let motivation: LinkingJobParamsMotivation
   public var entityTypes: [String]
   public var includeDescriptiveReferences: Bool?
   public var language: String?
-  public let motivation: LinkingJobParamsMotivation
   public var sourceLanguage: String?
   public init(
     entityTypes: [String], includeDescriptiveReferences: Bool? = nil, language: String? = nil,
     sourceLanguage: String? = nil
   ) {
+    self.motivation = .linking
     self.entityTypes = entityTypes
     self.includeDescriptiveReferences = includeDescriptiveReferences
     self.language = language
-    self.motivation = .linking
     self.sourceLanguage = sourceLanguage
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["entityTypes", "includeDescriptiveReferences", "language", "motivation", "sourceLanguage"],
+      ["motivation", "entityTypes", "includeDescriptiveReferences", "language", "sourceLanguage"],
       in: "LinkingJobParams")
+    self.motivation = try c.value("motivation")
     self.entityTypes = try c.value("entityTypes")
     self.includeDescriptiveReferences = try c.ifPresent("includeDescriptiveReferences")
     self.language = try c.ifPresent("language")
-    self.motivation = try c.value("motivation")
     self.sourceLanguage = try c.ifPresent("sourceLanguage")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.motivation, as: "motivation")
     try c.encode(self.entityTypes, as: "entityTypes")
     try c.encodeIfPresent(self.includeDescriptiveReferences, as: "includeDescriptiveReferences")
     try c.encodeIfPresent(self.language, as: "language")
-    try c.encode(self.motivation, as: "motivation")
     try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
   }
 }
@@ -11600,48 +12326,48 @@ public enum LinkingJobParamsMotivation: String, Codable, Sendable, CaseIterable 
 }
 
 public struct ListResourcesResponse: Codable, Sendable, Hashable {
-  public var limit: Double
-  public var offset: Double
   public var resources: [ResourceDescriptor]
   public var total: Double
-  public init(limit: Double, offset: Double, resources: [ResourceDescriptor], total: Double) {
-    self.limit = limit
-    self.offset = offset
+  public var offset: Double
+  public var limit: Double
+  public init(resources: [ResourceDescriptor], total: Double, offset: Double, limit: Double) {
     self.resources = resources
     self.total = total
+    self.offset = offset
+    self.limit = limit
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.limit = try c.value("limit")
-    self.offset = try c.value("offset")
     self.resources = try c.value("resources")
     self.total = try c.value("total")
+    self.offset = try c.value("offset")
+    self.limit = try c.value("limit")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.limit, as: "limit")
-    try c.encode(self.offset, as: "offset")
     try c.encode(self.resources, as: "resources")
     try c.encode(self.total, as: "total")
+    try c.encode(self.offset, as: "offset")
+    try c.encode(self.limit, as: "limit")
   }
 }
 
 public struct LocalEndpoint: Codable, Sendable, Hashable {
-  public var kbId: String
   public let kind: LocalEndpointKind
+  public var kbId: String
   public init(kbId: String) {
-    self.kbId = kbId
     self.kind = .local
+    self.kbId = kbId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.kbId = try c.value("kbId")
     self.kind = try c.value("kind")
+    self.kbId = try c.value("kbId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.kbId, as: "kbId")
     try c.encode(self.kind, as: "kind")
+    try c.encode(self.kbId, as: "kbId")
   }
 }
 
@@ -11687,66 +12413,66 @@ public enum LogLevel: String, Codable, Sendable, CaseIterable {
 }
 
 public struct LogRecord: Codable, Sendable, Hashable {
-  public var line: String
-  public var receivedAt: String
   public var requestId: RequestId
   public var service: String
   public var stream: OutputStream
+  public var line: String
+  public var receivedAt: String
   public init(
-    line: String, receivedAt: String, requestId: RequestId, service: String, stream: OutputStream
+    requestId: RequestId, service: String, stream: OutputStream, line: String, receivedAt: String
   ) {
-    self.line = line
-    self.receivedAt = receivedAt
     self.requestId = requestId
     self.service = service
     self.stream = stream
+    self.line = line
+    self.receivedAt = receivedAt
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["line", "receivedAt", "requestId", "service", "stream"], in: "LogRecord")
-    self.line = try c.value("line")
-    self.receivedAt = try c.value("receivedAt")
+    try c.refuseUnknown(["requestId", "service", "stream", "line", "receivedAt"], in: "LogRecord")
     self.requestId = try c.value("requestId")
     self.service = try c.value("service")
     self.stream = try c.value("stream")
+    self.line = try c.value("line")
+    self.receivedAt = try c.value("receivedAt")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.line, as: "line")
-    try c.encode(self.receivedAt, as: "receivedAt")
     try c.encode(self.requestId, as: "requestId")
     try c.encode(self.service, as: "service")
     try c.encode(self.stream, as: "stream")
+    try c.encode(self.line, as: "line")
+    try c.encode(self.receivedAt, as: "receivedAt")
   }
 }
 
 public struct LogsFollowParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
+  public var target: Target?
   public var runtime: Runtime?
   public var service: String?
-  public var target: Target?
   public init(
-    apiVersion: ApiVersion, runtime: Runtime? = nil, service: String? = nil, target: Target? = nil
+    apiVersion: ApiVersion, target: Target? = nil, runtime: Runtime? = nil, service: String? = nil
   ) {
     self.apiVersion = apiVersion
+    self.target = target
     self.runtime = runtime
     self.service = service
-    self.target = target
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiVersion", "runtime", "service", "target"], in: "LogsFollowParams")
+    try c.refuseUnknown(["apiVersion", "target", "runtime", "service"], in: "LogsFollowParams")
     self.apiVersion = try c.value("apiVersion")
+    self.target = try c.ifPresent("target")
     self.runtime = try c.ifPresent("runtime")
     self.service = try c.ifPresent("service")
-    self.target = try c.ifPresent("target")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.target, as: "target")
     try c.encodeIfPresent(self.runtime, as: "runtime")
     try c.encodeIfPresent(self.service, as: "service")
-    try c.encodeIfPresent(self.target, as: "target")
   }
 }
 
@@ -11768,64 +12494,64 @@ public struct LogsFollowResult: Codable, Sendable, Hashable {
 
 public struct MarkArchiveCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var keepFile: Bool?
   public var resourceId: ResourceId
   public var storageUri: String?
+  public var keepFile: Bool?
   public init(
-    _userId: UserId? = nil, keepFile: Bool? = nil, resourceId: ResourceId, storageUri: String? = nil
+    _userId: UserId? = nil, resourceId: ResourceId, storageUri: String? = nil, keepFile: Bool? = nil
   ) {
     self._userId = _userId
-    self.keepFile = keepFile
     self.resourceId = resourceId
     self.storageUri = storageUri
+    self.keepFile = keepFile
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.keepFile = try c.ifPresent("keepFile")
     self.resourceId = try c.value("resourceId")
     self.storageUri = try c.ifPresent("storageUri")
+    self.keepFile = try c.ifPresent("keepFile")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encodeIfPresent(self.keepFile, as: "keepFile")
     try c.encode(self.resourceId, as: "resourceId")
     try c.encodeIfPresent(self.storageUri, as: "storageUri")
+    try c.encodeIfPresent(self.keepFile, as: "keepFile")
   }
 }
 
 public struct MarkCommitCommand: Codable, Sendable, Hashable {
-  public var _roles: [String]?
   public var _userId: UserId?
-  public var annotations: [Annotation]
+  public var _roles: [String]?
   public var jobId: JobId?
   public var resourceId: ResourceId
+  public var annotations: [Annotation]
   public init(
-    _roles: [String]? = nil, _userId: UserId? = nil, annotations: [Annotation], jobId: JobId? = nil,
-    resourceId: ResourceId
+    _userId: UserId? = nil, _roles: [String]? = nil, jobId: JobId? = nil, resourceId: ResourceId,
+    annotations: [Annotation]
   ) {
-    self._roles = _roles
     self._userId = _userId
-    self.annotations = annotations
+    self._roles = _roles
     self.jobId = jobId
     self.resourceId = resourceId
+    self.annotations = annotations
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self._roles = try c.ifPresent("_roles")
     self._userId = try c.ifPresent("_userId")
-    self.annotations = try c.value("annotations")
+    self._roles = try c.ifPresent("_roles")
     self.jobId = try c.ifPresent("jobId")
     self.resourceId = try c.value("resourceId")
+    self.annotations = try c.value("annotations")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._roles, as: "_roles")
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encode(self.annotations, as: "annotations")
+    try c.encodeIfPresent(self._roles, as: "_roles")
     try c.encodeIfPresent(self.jobId, as: "jobId")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.annotations, as: "annotations")
   }
 }
 
@@ -11845,21 +12571,21 @@ public struct MarkCommitOk: Codable, Sendable, Hashable {
 }
 
 public struct MarkCommitOkResponse: Codable, Sendable, Hashable {
-  public var annotationIds: [AnnotationId]
   public var persisted: Int
-  public init(annotationIds: [AnnotationId], persisted: Int) {
-    self.annotationIds = annotationIds
+  public var annotationIds: [AnnotationId]
+  public init(persisted: Int, annotationIds: [AnnotationId]) {
     self.persisted = persisted
+    self.annotationIds = annotationIds
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationIds = try c.value("annotationIds")
     self.persisted = try c.value("persisted")
+    self.annotationIds = try c.value("annotationIds")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotationIds, as: "annotationIds")
     try c.encode(self.persisted, as: "persisted")
+    try c.encode(self.annotationIds, as: "annotationIds")
   }
 }
 
@@ -11894,40 +12620,40 @@ public struct MarkCreateOkResponse: Codable, Sendable, Hashable {
 }
 
 public struct MarkCreateRequest: Codable, Sendable, Hashable {
-  public var request: CreateAnnotationRequest
   public var resourceId: ResourceId
-  public init(request: CreateAnnotationRequest, resourceId: ResourceId) {
-    self.request = request
+  public var request: CreateAnnotationRequest
+  public init(resourceId: ResourceId, request: CreateAnnotationRequest) {
     self.resourceId = resourceId
+    self.request = request
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.request = try c.value("request")
     self.resourceId = try c.value("resourceId")
+    self.request = try c.value("request")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.request, as: "request")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.request, as: "request")
   }
 }
 
 public struct MarkDelegateTimeoutEvent: Codable, Sendable, Hashable {
-  public var motivation: Motivation
   public var resourceId: ResourceId
-  public init(motivation: Motivation, resourceId: ResourceId) {
-    self.motivation = motivation
+  public var motivation: Motivation
+  public init(resourceId: ResourceId, motivation: Motivation) {
     self.resourceId = resourceId
+    self.motivation = motivation
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.motivation = try c.value("motivation")
     self.resourceId = try c.value("resourceId")
+    self.motivation = try c.value("motivation")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.motivation, as: "motivation")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.motivation, as: "motivation")
   }
 }
 
@@ -11986,43 +12712,43 @@ public struct MarkDeleteOkResponse: Codable, Sendable, Hashable {
 
 public struct MarkJobCompleteCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var attempt: Int?
-  public var durability: DurabilityEvidence?
+  public var resourceId: ResourceId
   public var jobId: JobId
   public let jobType: MarkJobCompleteCommandJobType
-  public var resourceId: ResourceId
+  public var attempt: Int?
   public var result: MarkJobResult?
+  public var durability: DurabilityEvidence?
   public init(
-    _userId: UserId? = nil, attempt: Int? = nil, durability: DurabilityEvidence? = nil,
-    jobId: JobId, resourceId: ResourceId, result: MarkJobResult? = nil
+    _userId: UserId? = nil, resourceId: ResourceId, jobId: JobId, attempt: Int? = nil,
+    result: MarkJobResult? = nil, durability: DurabilityEvidence? = nil
   ) {
     self._userId = _userId
-    self.attempt = attempt
-    self.durability = durability
+    self.resourceId = resourceId
     self.jobId = jobId
     self.jobType = .mark
-    self.resourceId = resourceId
+    self.attempt = attempt
     self.result = result
+    self.durability = durability
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.attempt = try c.ifPresent("attempt")
-    self.durability = try c.ifPresent("durability")
+    self.resourceId = try c.value("resourceId")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.resourceId = try c.value("resourceId")
+    self.attempt = try c.ifPresent("attempt")
     self.result = try c.ifPresent("result")
+    self.durability = try c.ifPresent("durability")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encodeIfPresent(self.attempt, as: "attempt")
-    try c.encodeIfPresent(self.durability, as: "durability")
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.attempt, as: "attempt")
     try c.encodeIfPresent(self.result, as: "result")
+    try c.encodeIfPresent(self.durability, as: "durability")
   }
 }
 
@@ -12031,37 +12757,37 @@ public enum MarkJobCompleteCommandJobType: String, Codable, Sendable, CaseIterab
 }
 
 public struct MarkJobCreateCommand: Codable, Sendable, Hashable {
-  public var _roles: [String]?
   public var _userId: UserId?
+  public var _roles: [String]?
   public let jobType: MarkJobCreateCommandJobType
-  public var params: MarkJobParams
   public var resourceId: ResourceId
+  public var params: MarkJobParams
   public init(
-    _roles: [String]? = nil, _userId: UserId? = nil, params: MarkJobParams, resourceId: ResourceId
+    _userId: UserId? = nil, _roles: [String]? = nil, resourceId: ResourceId, params: MarkJobParams
   ) {
-    self._roles = _roles
     self._userId = _userId
+    self._roles = _roles
     self.jobType = .mark
-    self.params = params
     self.resourceId = resourceId
+    self.params = params
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["_roles", "_userId", "jobType", "params", "resourceId"], in: "MarkJobCreateCommand")
-    self._roles = try c.ifPresent("_roles")
+      ["_userId", "_roles", "jobType", "resourceId", "params"], in: "MarkJobCreateCommand")
     self._userId = try c.ifPresent("_userId")
+    self._roles = try c.ifPresent("_roles")
     self.jobType = try c.value("jobType")
-    self.params = try c.value("params")
     self.resourceId = try c.value("resourceId")
+    self.params = try c.value("params")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._roles, as: "_roles")
     try c.encodeIfPresent(self._userId, as: "_userId")
+    try c.encodeIfPresent(self._roles, as: "_roles")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.params, as: "params")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.params, as: "params")
   }
 }
 
@@ -12070,43 +12796,43 @@ public enum MarkJobCreateCommandJobType: String, Codable, Sendable, CaseIterable
 }
 
 public struct MarkJobDone: Codable, Sendable, Hashable {
-  public var byCategory: [String: Int]?
-  public var errors: Int?
   public var found: Int
   public var persisted: Int
-  public var uncheckedPieces: Int?
+  public var errors: Int?
+  public var byCategory: [String: Int]?
   public var underReportedPieces: Int?
+  public var uncheckedPieces: Int?
   public init(
-    byCategory: [String: Int]? = nil, errors: Int? = nil, found: Int, persisted: Int,
-    uncheckedPieces: Int? = nil, underReportedPieces: Int? = nil
+    found: Int, persisted: Int, errors: Int? = nil, byCategory: [String: Int]? = nil,
+    underReportedPieces: Int? = nil, uncheckedPieces: Int? = nil
   ) {
-    self.byCategory = byCategory
-    self.errors = errors
     self.found = found
     self.persisted = persisted
-    self.uncheckedPieces = uncheckedPieces
+    self.errors = errors
+    self.byCategory = byCategory
     self.underReportedPieces = underReportedPieces
+    self.uncheckedPieces = uncheckedPieces
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["byCategory", "errors", "found", "persisted", "uncheckedPieces", "underReportedPieces"],
+      ["found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces"],
       in: "MarkJobDone")
-    self.byCategory = try c.ifPresent("byCategory")
-    self.errors = try c.ifPresent("errors")
     self.found = try c.value("found")
     self.persisted = try c.value("persisted")
-    self.uncheckedPieces = try c.ifPresent("uncheckedPieces")
+    self.errors = try c.ifPresent("errors")
+    self.byCategory = try c.ifPresent("byCategory")
     self.underReportedPieces = try c.ifPresent("underReportedPieces")
+    self.uncheckedPieces = try c.ifPresent("uncheckedPieces")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.byCategory, as: "byCategory")
-    try c.encodeIfPresent(self.errors, as: "errors")
     try c.encode(self.found, as: "found")
     try c.encode(self.persisted, as: "persisted")
-    try c.encodeIfPresent(self.uncheckedPieces, as: "uncheckedPieces")
+    try c.encodeIfPresent(self.errors, as: "errors")
+    try c.encodeIfPresent(self.byCategory, as: "byCategory")
     try c.encodeIfPresent(self.underReportedPieces, as: "underReportedPieces")
+    try c.encodeIfPresent(self.uncheckedPieces, as: "uncheckedPieces")
   }
 }
 
@@ -12156,20 +12882,78 @@ public indirect enum MarkJobParams: Codable, Sendable, Hashable {
   case assessingJobParams(AssessingJobParams)
   case linkingJobParams(LinkingJobParams)
   case taggingJobParams(TaggingJobParams)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation"],
+        allowed: ["motivation", "instructions", "density", "sourceLanguage"],
+        fixed: [.init(property: "motivation", values: [.text("highlighting")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation"],
+        allowed: ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"],
+        fixed: [
+          .init(property: "motivation", values: [.text("commenting")]),
+          .init(
+            property: "tone",
+            values: [
+              .text("scholarly"), .text("explanatory"), .text("conversational"), .text("technical"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation"],
+        allowed: ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"],
+        fixed: [
+          .init(property: "motivation", values: [.text("assessing")]),
+          .init(
+            property: "tone",
+            values: [
+              .text("analytical"), .text("critical"), .text("balanced"), .text("constructive"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation", "entityTypes"],
+        allowed: [
+          "motivation", "entityTypes", "includeDescriptiveReferences", "language", "sourceLanguage",
+        ], fixed: [.init(property: "motivation", values: [.text("linking")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation", "schemaId", "categories"],
+        allowed: ["motivation", "schemaId", "categories", "language", "sourceLanguage"],
+        fixed: [.init(property: "motivation", values: [.text("tagging")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("motivation"))
-    switch tag {
-    case "highlighting": self = .highlightingJobParams(try HighlightingJobParams(from: decoder))
-    case "commenting": self = .commentingJobParams(try CommentingJobParams(from: decoder))
-    case "assessing": self = .assessingJobParams(try AssessingJobParams(from: decoder))
-    case "linking": self = .linkingJobParams(try LinkingJobParams(from: decoder))
-    case "tagging": self = .taggingJobParams(try TaggingJobParams(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("motivation"), in: c,
-        debugDescription: "unknown MarkJobParams discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "MarkJobParams", members: Self.members,
+      variants: [
+        (
+          "highlightingJobParams",
+          { decoder in try Self.highlightingJobParams(HighlightingJobParams(from: decoder)) }
+        ),
+        (
+          "commentingJobParams",
+          { decoder in try Self.commentingJobParams(CommentingJobParams(from: decoder)) }
+        ),
+        (
+          "assessingJobParams",
+          { decoder in try Self.assessingJobParams(AssessingJobParams(from: decoder)) }
+        ),
+        (
+          "linkingJobParams",
+          { decoder in try Self.linkingJobParams(LinkingJobParams(from: decoder)) }
+        ),
+        (
+          "taggingJobParams",
+          { decoder in try Self.taggingJobParams(TaggingJobParams(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12185,31 +12969,31 @@ public indirect enum MarkJobParams: Codable, Sendable, Hashable {
 public struct MarkJobQueuedEvent: Codable, Sendable, Hashable {
   public var jobId: JobId
   public let jobType: MarkJobQueuedEventJobType
-  public var params: MarkJobParams
   public var resourceId: ResourceId
   public var userId: UserId
-  public init(jobId: JobId, params: MarkJobParams, resourceId: ResourceId, userId: UserId) {
+  public var params: MarkJobParams
+  public init(jobId: JobId, resourceId: ResourceId, userId: UserId, params: MarkJobParams) {
     self.jobId = jobId
     self.jobType = .mark
-    self.params = params
     self.resourceId = resourceId
     self.userId = userId
+    self.params = params
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.params = try c.value("params")
     self.resourceId = try c.value("resourceId")
     self.userId = try c.value("userId")
+    self.params = try c.value("params")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.params, as: "params")
     try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.userId, as: "userId")
+    try c.encode(self.params, as: "params")
   }
 }
 
@@ -12220,17 +13004,35 @@ public enum MarkJobQueuedEventJobType: String, Codable, Sendable, CaseIterable {
 public indirect enum MarkJobResult: Codable, Sendable, Hashable {
   case markJobDone(MarkJobDone)
   case jobDeclined(JobDeclined)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["found", "persisted"],
+        allowed: [
+          "found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces",
+        ], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["declined", "reason"], allowed: ["declined", "reason"],
+        fixed: [
+          .init(property: "declined", values: [.boolean(true)]),
+          .init(
+            property: "reason",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+              .text("empty"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? MarkJobDone(from: decoder) {
-      self = .markJobDone(value)
-      return
-    }
-    if let value = try? JobDeclined(from: decoder) {
-      self = .jobDeclined(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of MarkJobResult fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "MarkJobResult", members: Self.members,
+      variants: [
+        ("markJobDone", { decoder in try Self.markJobDone(MarkJobDone(from: decoder)) }),
+        ("jobDeclined", { decoder in try Self.jobDeclined(JobDeclined(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12241,55 +13043,55 @@ public indirect enum MarkJobResult: Codable, Sendable, Hashable {
 }
 
 public struct MarkRequestedEvent: Codable, Sendable, Hashable {
-  public var motivation: Motivation
-  public var selector: AnnotationSelector
   public var source: ResourceId
-  public init(motivation: Motivation, selector: AnnotationSelector, source: ResourceId) {
-    self.motivation = motivation
-    self.selector = selector
+  public var selector: AnnotationSelector
+  public var motivation: Motivation
+  public init(source: ResourceId, selector: AnnotationSelector, motivation: Motivation) {
     self.source = source
+    self.selector = selector
+    self.motivation = motivation
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.motivation = try c.value("motivation")
-    self.selector = try c.value("selector")
     self.source = try c.value("source")
+    self.selector = try c.value("selector")
+    self.motivation = try c.value("motivation")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.motivation, as: "motivation")
-    try c.encode(self.selector, as: "selector")
     try c.encode(self.source, as: "source")
+    try c.encode(self.selector, as: "selector")
+    try c.encode(self.motivation, as: "motivation")
   }
 }
 
 public struct MarkSubmitEvent: Codable, Sendable, Hashable {
-  public var body: AnnotationBodies?
+  public var source: ResourceId
   public var motivation: Motivation
   public var selector: AnnotationSelector
-  public var source: ResourceId
+  public var body: AnnotationBodies?
   public init(
-    body: AnnotationBodies? = nil, motivation: Motivation, selector: AnnotationSelector,
-    source: ResourceId
+    source: ResourceId, motivation: Motivation, selector: AnnotationSelector,
+    body: AnnotationBodies? = nil
   ) {
-    self.body = body
+    self.source = source
     self.motivation = motivation
     self.selector = selector
-    self.source = source
+    self.body = body
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.body = try c.ifPresent("body")
+    self.source = try c.value("source")
     self.motivation = try c.value("motivation")
     self.selector = try c.value("selector")
-    self.source = try c.value("source")
+    self.body = try c.ifPresent("body")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.body, as: "body")
+    try c.encode(self.source, as: "source")
     try c.encode(self.motivation, as: "motivation")
     try c.encode(self.selector, as: "selector")
-    try c.encode(self.source, as: "source")
+    try c.encodeIfPresent(self.body, as: "body")
   }
 }
 
@@ -12319,59 +13121,59 @@ public struct MarkUnarchiveCommand: Codable, Sendable, Hashable {
 public struct MarkUpdateBodyCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
   public var annotationId: AnnotationId
-  public var operations: [BodyOperation]
   public var resourceId: ResourceId
+  public var operations: [BodyOperation]
   public init(
-    _userId: UserId? = nil, annotationId: AnnotationId, operations: [BodyOperation],
-    resourceId: ResourceId
+    _userId: UserId? = nil, annotationId: AnnotationId, resourceId: ResourceId,
+    operations: [BodyOperation]
   ) {
     self._userId = _userId
     self.annotationId = annotationId
-    self.operations = operations
     self.resourceId = resourceId
+    self.operations = operations
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
     self.annotationId = try c.value("annotationId")
-    self.operations = try c.value("operations")
     self.resourceId = try c.value("resourceId")
+    self.operations = try c.value("operations")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
     try c.encode(self.annotationId, as: "annotationId")
-    try c.encode(self.operations, as: "operations")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.operations, as: "operations")
   }
 }
 
 public struct MarkUpdateEntityTypesCommand: Codable, Sendable, Hashable {
+  public var resourceId: ResourceId
   public var _userId: UserId?
   public var currentEntityTypes: [String]
-  public var resourceId: ResourceId
   public var updatedEntityTypes: [String]
   public init(
-    _userId: UserId? = nil, currentEntityTypes: [String], resourceId: ResourceId,
+    resourceId: ResourceId, _userId: UserId? = nil, currentEntityTypes: [String],
     updatedEntityTypes: [String]
   ) {
+    self.resourceId = resourceId
     self._userId = _userId
     self.currentEntityTypes = currentEntityTypes
-    self.resourceId = resourceId
     self.updatedEntityTypes = updatedEntityTypes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.resourceId = try c.value("resourceId")
     self._userId = try c.ifPresent("_userId")
     self.currentEntityTypes = try c.value("currentEntityTypes")
-    self.resourceId = try c.value("resourceId")
     self.updatedEntityTypes = try c.value("updatedEntityTypes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encodeIfPresent(self._userId, as: "_userId")
     try c.encode(self.currentEntityTypes, as: "currentEntityTypes")
-    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.updatedEntityTypes, as: "updatedEntityTypes")
   }
 }
@@ -12383,70 +13185,70 @@ public enum MatchQuality: String, Codable, Sendable, CaseIterable {
 }
 
 public struct MatchResourcesRequest: Codable, Sendable, Hashable {
+  public var search: String
   public var archived: Bool?
   public var entityType: String?
-  public var limit: Int?
   public var offset: Int?
-  public var search: String
+  public var limit: Int?
   public init(
-    archived: Bool? = nil, entityType: String? = nil, limit: Int? = nil, offset: Int? = nil,
-    search: String
+    search: String, archived: Bool? = nil, entityType: String? = nil, offset: Int? = nil,
+    limit: Int? = nil
   ) {
+    self.search = search
     self.archived = archived
     self.entityType = entityType
-    self.limit = limit
     self.offset = offset
-    self.search = search
+    self.limit = limit
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.search = try c.value("search")
     self.archived = try c.ifPresent("archived")
     self.entityType = try c.ifPresent("entityType")
-    self.limit = try c.ifPresent("limit")
     self.offset = try c.ifPresent("offset")
-    self.search = try c.value("search")
+    self.limit = try c.ifPresent("limit")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.search, as: "search")
     try c.encodeIfPresent(self.archived, as: "archived")
     try c.encodeIfPresent(self.entityType, as: "entityType")
-    try c.encodeIfPresent(self.limit, as: "limit")
     try c.encodeIfPresent(self.offset, as: "offset")
-    try c.encode(self.search, as: "search")
+    try c.encodeIfPresent(self.limit, as: "limit")
   }
 }
 
 public struct MatchResourcesResponse: Codable, Sendable, Hashable {
-  public var limit: Int
-  public var matchKind: MatchResourcesResponseMatchKind
-  public var offset: Int
   public var resources: [ResourceDescriptor]
   public var total: Int
+  public var offset: Int
+  public var limit: Int
+  public var matchKind: MatchResourcesResponseMatchKind
   public init(
-    limit: Int, matchKind: MatchResourcesResponseMatchKind, offset: Int,
-    resources: [ResourceDescriptor], total: Int
+    resources: [ResourceDescriptor], total: Int, offset: Int, limit: Int,
+    matchKind: MatchResourcesResponseMatchKind
   ) {
-    self.limit = limit
-    self.matchKind = matchKind
-    self.offset = offset
     self.resources = resources
     self.total = total
+    self.offset = offset
+    self.limit = limit
+    self.matchKind = matchKind
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.limit = try c.value("limit")
-    self.matchKind = try c.value("matchKind")
-    self.offset = try c.value("offset")
     self.resources = try c.value("resources")
     self.total = try c.value("total")
+    self.offset = try c.value("offset")
+    self.limit = try c.value("limit")
+    self.matchKind = try c.value("matchKind")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.limit, as: "limit")
-    try c.encode(self.matchKind, as: "matchKind")
-    try c.encode(self.offset, as: "offset")
     try c.encode(self.resources, as: "resources")
     try c.encode(self.total, as: "total")
+    try c.encode(self.offset, as: "offset")
+    try c.encode(self.limit, as: "limit")
+    try c.encode(self.matchKind, as: "matchKind")
   }
 }
 
@@ -12472,30 +13274,30 @@ public struct MatchResourcesResult: Codable, Sendable, Hashable {
 
 public struct MatchSearchFailed: Codable, Sendable, Hashable {
   public var code: CommandErrorCode?
-  public var details: String?
   public var message: String
+  public var details: String?
   public var referenceId: AnnotationId
   public init(
-    code: CommandErrorCode? = nil, details: String? = nil, message: String,
+    code: CommandErrorCode? = nil, message: String, details: String? = nil,
     referenceId: AnnotationId
   ) {
     self.code = code
-    self.details = details
     self.message = message
+    self.details = details
     self.referenceId = referenceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.code = try c.ifPresent("code")
-    self.details = try c.ifPresent("details")
     self.message = try c.value("message")
+    self.details = try c.ifPresent("details")
     self.referenceId = try c.value("referenceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.code, as: "code")
-    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.message, as: "message")
+    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.referenceId, as: "referenceId")
   }
 }
@@ -12521,35 +13323,35 @@ public struct MatchSearchOptions: Codable, Sendable, Hashable {
 }
 
 public struct MatchSearchRequest: Codable, Sendable, Hashable {
+  public var resourceId: ResourceId
+  public var referenceId: AnnotationId
   public var context: GatheredContext
   public var limit: Int?
-  public var referenceId: AnnotationId
-  public var resourceId: ResourceId
   public var useSemanticScoring: Bool?
   public init(
-    context: GatheredContext, limit: Int? = nil, referenceId: AnnotationId, resourceId: ResourceId,
+    resourceId: ResourceId, referenceId: AnnotationId, context: GatheredContext, limit: Int? = nil,
     useSemanticScoring: Bool? = nil
   ) {
+    self.resourceId = resourceId
+    self.referenceId = referenceId
     self.context = context
     self.limit = limit
-    self.referenceId = referenceId
-    self.resourceId = resourceId
     self.useSemanticScoring = useSemanticScoring
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.resourceId = try c.value("resourceId")
+    self.referenceId = try c.value("referenceId")
     self.context = try c.value("context")
     self.limit = try c.ifPresent("limit")
-    self.referenceId = try c.value("referenceId")
-    self.resourceId = try c.value("resourceId")
     self.useSemanticScoring = try c.ifPresent("useSemanticScoring")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.referenceId, as: "referenceId")
     try c.encode(self.context, as: "context")
     try c.encodeIfPresent(self.limit, as: "limit")
-    try c.encode(self.referenceId, as: "referenceId")
-    try c.encode(self.resourceId, as: "resourceId")
     try c.encodeIfPresent(self.useSemanticScoring, as: "useSemanticScoring")
   }
 }
@@ -12644,33 +13446,33 @@ public enum MemoryVectorsConfigType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct Metadata: Codable, Sendable, Hashable {
-  public var annotations: [String: String]?
-  public var labels: [String: String]?
   public var name: String
   public var namespace: String?
+  public var labels: [String: String]?
+  public var annotations: [String: String]?
   public init(
-    annotations: [String: String]? = nil, labels: [String: String]? = nil, name: String,
-    namespace: String? = nil
+    name: String, namespace: String? = nil, labels: [String: String]? = nil,
+    annotations: [String: String]? = nil
   ) {
-    self.annotations = annotations
-    self.labels = labels
     self.name = name
     self.namespace = namespace
+    self.labels = labels
+    self.annotations = annotations
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["annotations", "labels", "name", "namespace"], in: "Metadata")
-    self.annotations = try c.ifPresent("annotations")
-    self.labels = try c.ifPresent("labels")
+    try c.refuseUnknown(["name", "namespace", "labels", "annotations"], in: "Metadata")
     self.name = try c.value("name")
     self.namespace = try c.ifPresent("namespace")
+    self.labels = try c.ifPresent("labels")
+    self.annotations = try c.ifPresent("annotations")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotations, as: "annotations")
-    try c.encodeIfPresent(self.labels, as: "labels")
     try c.encode(self.name, as: "name")
     try c.encodeIfPresent(self.namespace, as: "namespace")
+    try c.encodeIfPresent(self.labels, as: "labels")
+    try c.encodeIfPresent(self.annotations, as: "annotations")
   }
 }
 
@@ -12683,35 +13485,35 @@ public enum Motivation: String, Codable, Sendable, CaseIterable {
 }
 
 public struct Neo4jGraphConfig: Codable, Sendable, Hashable {
-  public var database: String
-  public var passwordEnv: String
   public let type: Neo4jGraphConfigType
   public var uri: String
   public var username: String
-  public init(database: String, passwordEnv: String, uri: String, username: String) {
-    self.database = database
-    self.passwordEnv = passwordEnv
+  public var passwordEnv: String
+  public var database: String
+  public init(uri: String, username: String, passwordEnv: String, database: String) {
     self.type = .neo4j
     self.uri = uri
     self.username = username
+    self.passwordEnv = passwordEnv
+    self.database = database
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["database", "passwordEnv", "type", "uri", "username"], in: "Neo4jGraphConfig")
-    self.database = try c.value("database")
-    self.passwordEnv = try c.value("passwordEnv")
+      ["type", "uri", "username", "passwordEnv", "database"], in: "Neo4jGraphConfig")
     self.type = try c.value("type")
     self.uri = try c.value("uri")
     self.username = try c.value("username")
+    self.passwordEnv = try c.value("passwordEnv")
+    self.database = try c.value("database")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.database, as: "database")
-    try c.encode(self.passwordEnv, as: "passwordEnv")
     try c.encode(self.type, as: "type")
     try c.encode(self.uri, as: "uri")
     try c.encode(self.username, as: "username")
+    try c.encode(self.passwordEnv, as: "passwordEnv")
+    try c.encode(self.database, as: "database")
   }
 }
 
@@ -12720,26 +13522,26 @@ public enum Neo4jGraphConfigType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct NeptuneGraphConfig: Codable, Sendable, Hashable {
+  public let type: NeptuneGraphConfigType
   public var endpoint: String
   public var port: Int
-  public let type: NeptuneGraphConfigType
   public init(endpoint: String, port: Int) {
+    self.type = .neptune
     self.endpoint = endpoint
     self.port = port
-    self.type = .neptune
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["endpoint", "port", "type"], in: "NeptuneGraphConfig")
+    try c.refuseUnknown(["type", "endpoint", "port"], in: "NeptuneGraphConfig")
+    self.type = try c.value("type")
     self.endpoint = try c.value("endpoint")
     self.port = try c.value("port")
-    self.type = try c.value("type")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.type, as: "type")
     try c.encode(self.endpoint, as: "endpoint")
     try c.encode(self.port, as: "port")
-    try c.encode(self.type, as: "type")
   }
 }
 
@@ -12748,76 +13550,76 @@ public enum NeptuneGraphConfigType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct NewKnowledgeBase: Codable, Sendable, Hashable {
-  public var did: String
-  public var endpoint: KbEndpoint
   public var label: String
+  public var endpoint: KbEndpoint
+  public var did: String
   public var lastRead: KbRead?
-  public init(did: String, endpoint: KbEndpoint, label: String, lastRead: KbRead? = nil) {
-    self.did = did
-    self.endpoint = endpoint
+  public init(label: String, endpoint: KbEndpoint, did: String, lastRead: KbRead? = nil) {
     self.label = label
+    self.endpoint = endpoint
+    self.did = did
     self.lastRead = lastRead
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.did = try c.value("did")
-    self.endpoint = try c.value("endpoint")
     self.label = try c.value("label")
+    self.endpoint = try c.value("endpoint")
+    self.did = try c.value("did")
     self.lastRead = try c.ifPresent("lastRead")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.did, as: "did")
-    try c.encode(self.endpoint, as: "endpoint")
     try c.encode(self.label, as: "label")
+    try c.encode(self.endpoint, as: "endpoint")
+    try c.encode(self.did, as: "did")
     try c.encodeIfPresent(self.lastRead, as: "lastRead")
   }
 }
 
 public struct OcrConfidence: Codable, Sendable, Hashable {
-  public var lowConfidenceWords: Int
   public var mean: Double
+  public var lowConfidenceWords: Int
   public var totalWords: Int
-  public init(lowConfidenceWords: Int, mean: Double, totalWords: Int) {
-    self.lowConfidenceWords = lowConfidenceWords
+  public init(mean: Double, lowConfidenceWords: Int, totalWords: Int) {
     self.mean = mean
+    self.lowConfidenceWords = lowConfidenceWords
     self.totalWords = totalWords
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.lowConfidenceWords = try c.value("lowConfidenceWords")
     self.mean = try c.value("mean")
+    self.lowConfidenceWords = try c.value("lowConfidenceWords")
     self.totalWords = try c.value("totalWords")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.lowConfidenceWords, as: "lowConfidenceWords")
     try c.encode(self.mean, as: "mean")
+    try c.encode(self.lowConfidenceWords, as: "lowConfidenceWords")
     try c.encode(self.totalWords, as: "totalWords")
   }
 }
 
 public struct OllamaEmbeddingConfig: Codable, Sendable, Hashable {
-  public var baseUrl: String
-  public var model: String
   public let type: OllamaEmbeddingConfigType
-  public init(baseUrl: String, model: String) {
-    self.baseUrl = baseUrl
-    self.model = model
+  public var model: String
+  public var baseUrl: String
+  public init(model: String, baseUrl: String) {
     self.type = .ollama
+    self.model = model
+    self.baseUrl = baseUrl
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["baseUrl", "model", "type"], in: "OllamaEmbeddingConfig")
-    self.baseUrl = try c.value("baseUrl")
-    self.model = try c.value("model")
+    try c.refuseUnknown(["type", "model", "baseUrl"], in: "OllamaEmbeddingConfig")
     self.type = try c.value("type")
+    self.model = try c.value("model")
+    self.baseUrl = try c.value("baseUrl")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.baseUrl, as: "baseUrl")
-    try c.encode(self.model, as: "model")
     try c.encode(self.type, as: "type")
+    try c.encode(self.model, as: "model")
+    try c.encode(self.baseUrl, as: "baseUrl")
   }
 }
 
@@ -12828,17 +13630,29 @@ public enum OllamaEmbeddingConfigType: String, Codable, Sendable, CaseIterable {
 public indirect enum OneOrMoreAgents: Codable, Sendable, Hashable {
   case agent(Agent)
   case list([Agent])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["@type"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Person")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["@type", "name"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Organization")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["@type"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Software")])], values: nil),
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? Agent(from: decoder) {
-      self = .agent(value)
-      return
-    }
-    if let value = try? [Agent](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of OneOrMoreAgents fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "OneOrMoreAgents", members: Self.members,
+      variants: [
+        ("agent", { decoder in try Self.agent(Agent(from: decoder)) }),
+        ("list", { decoder in try Self.list([Agent](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12851,17 +13665,21 @@ public indirect enum OneOrMoreAgents: Codable, Sendable, Hashable {
 public indirect enum OneOrMoreStrings: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of OneOrMoreStrings fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "OneOrMoreStrings", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("list", { decoder in try Self.list([String](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12874,17 +13692,21 @@ public indirect enum OneOrMoreStrings: Codable, Sendable, Hashable {
 public indirect enum OneOrMoreUris: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of OneOrMoreUris fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "OneOrMoreUris", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("list", { decoder in try Self.list([String](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12896,38 +13718,38 @@ public indirect enum OneOrMoreUris: Codable, Sendable, Hashable {
 
 public struct OpenResource: Codable, Sendable, Hashable {
   public var id: ResourceId
-  public var mediaType: String?
   public var name: String
   public var openedAt: Int
   public var order: Int
+  public var mediaType: String?
   public var storageUri: String?
   public init(
-    id: ResourceId, mediaType: String? = nil, name: String, openedAt: Int, order: Int,
+    id: ResourceId, name: String, openedAt: Int, order: Int, mediaType: String? = nil,
     storageUri: String? = nil
   ) {
     self.id = id
-    self.mediaType = mediaType
     self.name = name
     self.openedAt = openedAt
     self.order = order
+    self.mediaType = mediaType
     self.storageUri = storageUri
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.id = try c.value("id")
-    self.mediaType = try c.ifPresent("mediaType")
     self.name = try c.value("name")
     self.openedAt = try c.value("openedAt")
     self.order = try c.value("order")
+    self.mediaType = try c.ifPresent("mediaType")
     self.storageUri = try c.ifPresent("storageUri")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.id, as: "id")
-    try c.encodeIfPresent(self.mediaType, as: "mediaType")
     try c.encode(self.name, as: "name")
     try c.encode(self.openedAt, as: "openedAt")
     try c.encode(self.order, as: "order")
+    try c.encodeIfPresent(self.mediaType, as: "mediaType")
     try c.encodeIfPresent(self.storageUri, as: "storageUri")
   }
 }
@@ -12948,174 +13770,175 @@ public enum PdfClass: String, Codable, Sendable, CaseIterable {
 }
 
 public struct PdfCoordinate: Codable, Sendable, Hashable {
-  public var height: Double
   public var page: Int
-  public var width: Double
   public var x: Double
   public var y: Double
-  public init(height: Double, page: Int, width: Double, x: Double, y: Double) {
-    self.height = height
+  public var width: Double
+  public var height: Double
+  public init(page: Int, x: Double, y: Double, width: Double, height: Double) {
     self.page = page
-    self.width = width
     self.x = x
     self.y = y
+    self.width = width
+    self.height = height
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["height", "page", "width", "x", "y"], in: "PdfCoordinate")
-    self.height = try c.value("height")
+    try c.refuseUnknown(["page", "x", "y", "width", "height"], in: "PdfCoordinate")
     self.page = try c.value("page")
-    self.width = try c.value("width")
     self.x = try c.value("x")
     self.y = try c.value("y")
+    self.width = try c.value("width")
+    self.height = try c.value("height")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.height, as: "height")
     try c.encode(self.page, as: "page")
-    try c.encode(self.width, as: "width")
     try c.encode(self.x, as: "x")
     try c.encode(self.y, as: "y")
+    try c.encode(self.width, as: "width")
+    try c.encode(self.height, as: "height")
   }
 }
 
 public struct PdfTextItem: Codable, Sendable, Hashable {
-  public var end: Int
-  public var height: Double
-  public var page: Int
   public var start: Int
-  public var width: Double
+  public var end: Int
+  public var page: Int
   public var x: Double
   public var y: Double
-  public init(end: Int, height: Double, page: Int, start: Int, width: Double, x: Double, y: Double)
+  public var width: Double
+  public var height: Double
+  public init(start: Int, end: Int, page: Int, x: Double, y: Double, width: Double, height: Double)
   {
-    self.end = end
-    self.height = height
-    self.page = page
     self.start = start
-    self.width = width
+    self.end = end
+    self.page = page
     self.x = x
     self.y = y
+    self.width = width
+    self.height = height
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.end = try c.value("end")
-    self.height = try c.value("height")
-    self.page = try c.value("page")
     self.start = try c.value("start")
-    self.width = try c.value("width")
+    self.end = try c.value("end")
+    self.page = try c.value("page")
     self.x = try c.value("x")
     self.y = try c.value("y")
+    self.width = try c.value("width")
+    self.height = try c.value("height")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.end, as: "end")
-    try c.encode(self.height, as: "height")
-    try c.encode(self.page, as: "page")
     try c.encode(self.start, as: "start")
-    try c.encode(self.width, as: "width")
+    try c.encode(self.end, as: "end")
+    try c.encode(self.page, as: "page")
     try c.encode(self.x, as: "x")
     try c.encode(self.y, as: "y")
+    try c.encode(self.width, as: "width")
+    try c.encode(self.height, as: "height")
   }
 }
 
 public struct PendingAnnotation: Codable, Sendable, Hashable {
-  public var motivation: Motivation
   public var selector: AnnotationSelector
-  public init(motivation: Motivation, selector: AnnotationSelector) {
-    self.motivation = motivation
+  public var motivation: Motivation
+  public init(selector: AnnotationSelector, motivation: Motivation) {
     self.selector = selector
+    self.motivation = motivation
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["motivation", "selector"], in: "PendingAnnotation")
-    self.motivation = try c.value("motivation")
+    try c.refuseUnknown(["selector", "motivation"], in: "PendingAnnotation")
     self.selector = try c.value("selector")
+    self.motivation = try c.value("motivation")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.motivation, as: "motivation")
     try c.encode(self.selector, as: "selector")
+    try c.encode(self.motivation, as: "motivation")
   }
 }
 
 public struct PendingAuthorization: Codable, Sendable, Hashable {
-  public var expectedDid: String?
-  public var expectedName: String?
+  public var state: String
+  public var verifier: String
+  public var redirectUri: String
+  public var target: HttpEndpoint
   public var issuer: PendingAuthorizationIssuer
   public var kbId: String?
-  public var redirectUri: String
-  public var state: String
-  public var target: HttpEndpoint
-  public var verifier: String
+  public var expectedDid: String?
+  public var expectedName: String?
   public init(
-    expectedDid: String? = nil, expectedName: String? = nil, issuer: PendingAuthorizationIssuer,
-    kbId: String? = nil, redirectUri: String, state: String, target: HttpEndpoint, verifier: String
+    state: String, verifier: String, redirectUri: String, target: HttpEndpoint,
+    issuer: PendingAuthorizationIssuer, kbId: String? = nil, expectedDid: String? = nil,
+    expectedName: String? = nil
   ) {
-    self.expectedDid = expectedDid
-    self.expectedName = expectedName
+    self.state = state
+    self.verifier = verifier
+    self.redirectUri = redirectUri
+    self.target = target
     self.issuer = issuer
     self.kbId = kbId
-    self.redirectUri = redirectUri
-    self.state = state
-    self.target = target
-    self.verifier = verifier
+    self.expectedDid = expectedDid
+    self.expectedName = expectedName
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.expectedDid = try c.ifPresent("expectedDid")
-    self.expectedName = try c.ifPresent("expectedName")
+    self.state = try c.value("state")
+    self.verifier = try c.value("verifier")
+    self.redirectUri = try c.value("redirectUri")
+    self.target = try c.value("target")
     self.issuer = try c.value("issuer")
     self.kbId = try c.ifPresent("kbId")
-    self.redirectUri = try c.value("redirectUri")
-    self.state = try c.value("state")
-    self.target = try c.value("target")
-    self.verifier = try c.value("verifier")
+    self.expectedDid = try c.ifPresent("expectedDid")
+    self.expectedName = try c.ifPresent("expectedName")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.expectedDid, as: "expectedDid")
-    try c.encodeIfPresent(self.expectedName, as: "expectedName")
+    try c.encode(self.state, as: "state")
+    try c.encode(self.verifier, as: "verifier")
+    try c.encode(self.redirectUri, as: "redirectUri")
+    try c.encode(self.target, as: "target")
     try c.encode(self.issuer, as: "issuer")
     try c.encodeIfPresent(self.kbId, as: "kbId")
-    try c.encode(self.redirectUri, as: "redirectUri")
-    try c.encode(self.state, as: "state")
-    try c.encode(self.target, as: "target")
-    try c.encode(self.verifier, as: "verifier")
+    try c.encodeIfPresent(self.expectedDid, as: "expectedDid")
+    try c.encodeIfPresent(self.expectedName, as: "expectedName")
   }
 }
 
 public struct PendingAuthorizationIssuer: Codable, Sendable, Hashable {
-  public var authorization: String
-  public var device: String?
   public var issuer: String
-  public var revocation: String?
+  public var authorization: String
   public var token: String
+  public var device: String?
+  public var revocation: String?
   public init(
-    authorization: String, device: String? = nil, issuer: String, revocation: String? = nil,
-    token: String
+    issuer: String, authorization: String, token: String, device: String? = nil,
+    revocation: String? = nil
   ) {
-    self.authorization = authorization
-    self.device = device
     self.issuer = issuer
-    self.revocation = revocation
+    self.authorization = authorization
     self.token = token
+    self.device = device
+    self.revocation = revocation
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.authorization = try c.value("authorization")
-    self.device = try c.ifPresent("device")
     self.issuer = try c.value("issuer")
-    self.revocation = try c.ifPresent("revocation")
+    self.authorization = try c.value("authorization")
     self.token = try c.value("token")
+    self.device = try c.ifPresent("device")
+    self.revocation = try c.ifPresent("revocation")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.authorization, as: "authorization")
-    try c.encodeIfPresent(self.device, as: "device")
     try c.encode(self.issuer, as: "issuer")
-    try c.encodeIfPresent(self.revocation, as: "revocation")
+    try c.encode(self.authorization, as: "authorization")
     try c.encode(self.token, as: "token")
+    try c.encodeIfPresent(self.device, as: "device")
+    try c.encodeIfPresent(self.revocation, as: "revocation")
   }
 }
 
@@ -13208,25 +14031,25 @@ public struct ProfilesProjection: Codable, Sendable, Hashable {
 }
 
 public struct Progress: Codable, Sendable, Hashable {
-  public var kind: ProgressKind
   public var requestId: RequestId
+  public var kind: ProgressKind
   public var text: String
-  public init(kind: ProgressKind, requestId: RequestId, text: String) {
-    self.kind = kind
+  public init(requestId: RequestId, kind: ProgressKind, text: String) {
     self.requestId = requestId
+    self.kind = kind
     self.text = text
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["kind", "requestId", "text"], in: "Progress")
-    self.kind = try c.value("kind")
+    try c.refuseUnknown(["requestId", "kind", "text"], in: "Progress")
     self.requestId = try c.value("requestId")
+    self.kind = try c.value("kind")
     self.text = try c.value("text")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.kind, as: "kind")
     try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.kind, as: "kind")
     try c.encode(self.text, as: "text")
   }
 }
@@ -13245,25 +14068,25 @@ public enum ProgressKind: String, Codable, Sendable, CaseIterable {
 }
 
 public struct ProjectConfig: Codable, Sendable, Hashable {
-  public var git: ProjectConfigGit
   public var project: ProjectConfigProject
+  public var git: ProjectConfigGit
   public var site: ProjectConfigSite
-  public init(git: ProjectConfigGit, project: ProjectConfigProject, site: ProjectConfigSite) {
-    self.git = git
+  public init(project: ProjectConfigProject, git: ProjectConfigGit, site: ProjectConfigSite) {
     self.project = project
+    self.git = git
     self.site = site
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["git", "project", "site"], in: "ProjectConfig")
-    self.git = try c.value("git")
+    try c.refuseUnknown(["project", "git", "site"], in: "ProjectConfig")
     self.project = try c.value("project")
+    self.git = try c.value("git")
     self.site = try c.value("site")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.git, as: "git")
     try c.encode(self.project, as: "project")
+    try c.encode(self.git, as: "git")
     try c.encode(self.site, as: "site")
   }
 }
@@ -13325,35 +14148,35 @@ public struct ProjectConfigSite: Codable, Sendable, Hashable {
 }
 
 public struct ProtectedResourceMetadata: Codable, Sendable, Hashable {
+  public var resource: String
   public var authorizationServers: [String]
   public var bearerMethodsSupported: [ProtectedResourceMetadataBearerMethodsSupportedItem]
-  public var resource: String
   public var resourceName: String?
   public init(
-    authorizationServers: [String],
-    bearerMethodsSupported: [ProtectedResourceMetadataBearerMethodsSupportedItem], resource: String,
+    resource: String, authorizationServers: [String],
+    bearerMethodsSupported: [ProtectedResourceMetadataBearerMethodsSupportedItem],
     resourceName: String? = nil
   ) {
+    self.resource = resource
     self.authorizationServers = authorizationServers
     self.bearerMethodsSupported = bearerMethodsSupported
-    self.resource = resource
     self.resourceName = resourceName
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["authorization_servers", "bearer_methods_supported", "resource", "resource_name"],
+      ["resource", "authorization_servers", "bearer_methods_supported", "resource_name"],
       in: "ProtectedResourceMetadata")
+    self.resource = try c.value("resource")
     self.authorizationServers = try c.value("authorization_servers")
     self.bearerMethodsSupported = try c.value("bearer_methods_supported")
-    self.resource = try c.value("resource")
     self.resourceName = try c.ifPresent("resource_name")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.resource, as: "resource")
     try c.encode(self.authorizationServers, as: "authorization_servers")
     try c.encode(self.bearerMethodsSupported, as: "bearer_methods_supported")
-    try c.encode(self.resource, as: "resource")
     try c.encodeIfPresent(self.resourceName, as: "resource_name")
   }
 }
@@ -13365,50 +14188,50 @@ public enum ProtectedResourceMetadataBearerMethodsSupportedItem: String, Codable
 }
 
 public struct Provider: Codable, Sendable, Hashable {
-  public var apiKey: SecretRef?
   public var baseURL: String?
-  public init(apiKey: SecretRef? = nil, baseURL: String? = nil) {
-    self.apiKey = apiKey
+  public var apiKey: SecretRef?
+  public init(baseURL: String? = nil, apiKey: SecretRef? = nil) {
     self.baseURL = baseURL
+    self.apiKey = apiKey
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiKey", "baseURL"], in: "Provider")
-    self.apiKey = try c.ifPresent("apiKey")
+    try c.refuseUnknown(["baseURL", "apiKey"], in: "Provider")
     self.baseURL = try c.ifPresent("baseURL")
+    self.apiKey = try c.ifPresent("apiKey")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.apiKey, as: "apiKey")
     try c.encodeIfPresent(self.baseURL, as: "baseURL")
+    try c.encodeIfPresent(self.apiKey, as: "apiKey")
   }
 }
 
 public struct QdrantVectorsConfig: Codable, Sendable, Hashable {
+  public let type: QdrantVectorsConfigType
   public var host: String
   public var port: Int
   public var tokenEnv: String
-  public let type: QdrantVectorsConfigType
   public init(host: String, port: Int, tokenEnv: String) {
+    self.type = .qdrant
     self.host = host
     self.port = port
     self.tokenEnv = tokenEnv
-    self.type = .qdrant
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["host", "port", "tokenEnv", "type"], in: "QdrantVectorsConfig")
+    try c.refuseUnknown(["type", "host", "port", "tokenEnv"], in: "QdrantVectorsConfig")
+    self.type = try c.value("type")
     self.host = try c.value("host")
     self.port = try c.value("port")
     self.tokenEnv = try c.value("tokenEnv")
-    self.type = try c.value("type")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.type, as: "type")
     try c.encode(self.host, as: "host")
     try c.encode(self.port, as: "port")
     try c.encode(self.tokenEnv, as: "tokenEnv")
-    try c.encode(self.type, as: "type")
   }
 }
 
@@ -13485,20 +14308,55 @@ public indirect enum ReconciledSpan: Codable, Sendable, Hashable {
   case contextRecovered(ReconciledSpanContextRecovered)
   case firstOfMany(ReconciledSpanFirstOfMany)
   case fuzzyMatch(ReconciledSpanFuzzyMatch)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["start", "end", "exact", "anchorMethod"],
+        allowed: ["start", "end", "exact", "prefix", "suffix", "anchorMethod"],
+        fixed: [.init(property: "anchorMethod", values: [.text("unique-match")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["start", "end", "exact", "anchorMethod"],
+        allowed: ["start", "end", "exact", "prefix", "suffix", "anchorMethod"],
+        fixed: [.init(property: "anchorMethod", values: [.text("context-recovered")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["start", "end", "exact", "anchorMethod"],
+        allowed: ["start", "end", "exact", "prefix", "suffix", "anchorMethod"],
+        fixed: [.init(property: "anchorMethod", values: [.text("first-of-many")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["start", "end", "exact", "anchorMethod", "matchQuality"],
+        allowed: ["start", "end", "exact", "prefix", "suffix", "anchorMethod", "matchQuality"],
+        fixed: [
+          .init(property: "anchorMethod", values: [.text("fuzzy-match")]),
+          .init(
+            property: "matchQuality",
+            values: [.text("normalized"), .text("case-insensitive"), .text("fuzzy")]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("anchorMethod"))
-    switch tag {
-    case "unique-match": self = .uniqueMatch(try ReconciledSpanUniqueMatch(from: decoder))
-    case "context-recovered":
-      self = .contextRecovered(try ReconciledSpanContextRecovered(from: decoder))
-    case "first-of-many": self = .firstOfMany(try ReconciledSpanFirstOfMany(from: decoder))
-    case "fuzzy-match": self = .fuzzyMatch(try ReconciledSpanFuzzyMatch(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("anchorMethod"), in: c,
-        debugDescription: "unknown ReconciledSpan discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "ReconciledSpan", members: Self.members,
+      variants: [
+        (
+          "uniqueMatch",
+          { decoder in try Self.uniqueMatch(ReconciledSpanUniqueMatch(from: decoder)) }
+        ),
+        (
+          "contextRecovered",
+          { decoder in try Self.contextRecovered(ReconciledSpanContextRecovered(from: decoder)) }
+        ),
+        (
+          "firstOfMany",
+          { decoder in try Self.firstOfMany(ReconciledSpanFirstOfMany(from: decoder)) }
+        ),
+        ("fuzzyMatch", { decoder in try Self.fuzzyMatch(ReconciledSpanFuzzyMatch(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -13511,40 +14369,40 @@ public indirect enum ReconciledSpan: Codable, Sendable, Hashable {
 }
 
 public struct ReconciledSpanContextRecovered: Codable, Sendable, Hashable {
-  public let anchorMethod: ReconciledSpanContextRecoveredAnchorMethod
+  public var start: Int
   public var end: Int
   public var exact: String
   public var prefix: String?
-  public var start: Int
   public var suffix: String?
-  public init(end: Int, exact: String, prefix: String? = nil, start: Int, suffix: String? = nil) {
-    self.anchorMethod = .contextRecovered
+  public let anchorMethod: ReconciledSpanContextRecoveredAnchorMethod
+  public init(start: Int, end: Int, exact: String, prefix: String? = nil, suffix: String? = nil) {
+    self.start = start
     self.end = end
     self.exact = exact
     self.prefix = prefix
-    self.start = start
     self.suffix = suffix
+    self.anchorMethod = .contextRecovered
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["anchorMethod", "end", "exact", "prefix", "start", "suffix"],
+      ["start", "end", "exact", "prefix", "suffix", "anchorMethod"],
       in: "ReconciledSpanContextRecovered")
-    self.anchorMethod = try c.value("anchorMethod")
+    self.start = try c.value("start")
     self.end = try c.value("end")
     self.exact = try c.value("exact")
     self.prefix = try c.ifPresent("prefix")
-    self.start = try c.value("start")
     self.suffix = try c.ifPresent("suffix")
+    self.anchorMethod = try c.value("anchorMethod")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.anchorMethod, as: "anchorMethod")
+    try c.encode(self.start, as: "start")
     try c.encode(self.end, as: "end")
     try c.encode(self.exact, as: "exact")
     try c.encodeIfPresent(self.prefix, as: "prefix")
-    try c.encode(self.start, as: "start")
     try c.encodeIfPresent(self.suffix, as: "suffix")
+    try c.encode(self.anchorMethod, as: "anchorMethod")
   }
 }
 
@@ -13553,40 +14411,40 @@ public enum ReconciledSpanContextRecoveredAnchorMethod: String, Codable, Sendabl
 }
 
 public struct ReconciledSpanFirstOfMany: Codable, Sendable, Hashable {
-  public let anchorMethod: ReconciledSpanFirstOfManyAnchorMethod
+  public var start: Int
   public var end: Int
   public var exact: String
   public var prefix: String?
-  public var start: Int
   public var suffix: String?
-  public init(end: Int, exact: String, prefix: String? = nil, start: Int, suffix: String? = nil) {
-    self.anchorMethod = .firstOfMany
+  public let anchorMethod: ReconciledSpanFirstOfManyAnchorMethod
+  public init(start: Int, end: Int, exact: String, prefix: String? = nil, suffix: String? = nil) {
+    self.start = start
     self.end = end
     self.exact = exact
     self.prefix = prefix
-    self.start = start
     self.suffix = suffix
+    self.anchorMethod = .firstOfMany
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["anchorMethod", "end", "exact", "prefix", "start", "suffix"], in: "ReconciledSpanFirstOfMany"
+      ["start", "end", "exact", "prefix", "suffix", "anchorMethod"], in: "ReconciledSpanFirstOfMany"
     )
-    self.anchorMethod = try c.value("anchorMethod")
+    self.start = try c.value("start")
     self.end = try c.value("end")
     self.exact = try c.value("exact")
     self.prefix = try c.ifPresent("prefix")
-    self.start = try c.value("start")
     self.suffix = try c.ifPresent("suffix")
+    self.anchorMethod = try c.value("anchorMethod")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.anchorMethod, as: "anchorMethod")
+    try c.encode(self.start, as: "start")
     try c.encode(self.end, as: "end")
     try c.encode(self.exact, as: "exact")
     try c.encodeIfPresent(self.prefix, as: "prefix")
-    try c.encode(self.start, as: "start")
     try c.encodeIfPresent(self.suffix, as: "suffix")
+    try c.encode(self.anchorMethod, as: "anchorMethod")
   }
 }
 
@@ -13595,47 +14453,47 @@ public enum ReconciledSpanFirstOfManyAnchorMethod: String, Codable, Sendable, Ca
 }
 
 public struct ReconciledSpanFuzzyMatch: Codable, Sendable, Hashable {
-  public let anchorMethod: ReconciledSpanFuzzyMatchAnchorMethod
+  public var start: Int
   public var end: Int
   public var exact: String
-  public var matchQuality: MatchQuality
   public var prefix: String?
-  public var start: Int
   public var suffix: String?
+  public let anchorMethod: ReconciledSpanFuzzyMatchAnchorMethod
+  public var matchQuality: MatchQuality
   public init(
-    end: Int, exact: String, matchQuality: MatchQuality, prefix: String? = nil, start: Int,
-    suffix: String? = nil
+    start: Int, end: Int, exact: String, prefix: String? = nil, suffix: String? = nil,
+    matchQuality: MatchQuality
   ) {
-    self.anchorMethod = .fuzzyMatch
+    self.start = start
     self.end = end
     self.exact = exact
-    self.matchQuality = matchQuality
     self.prefix = prefix
-    self.start = start
     self.suffix = suffix
+    self.anchorMethod = .fuzzyMatch
+    self.matchQuality = matchQuality
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["anchorMethod", "end", "exact", "matchQuality", "prefix", "start", "suffix"],
+      ["start", "end", "exact", "prefix", "suffix", "anchorMethod", "matchQuality"],
       in: "ReconciledSpanFuzzyMatch")
-    self.anchorMethod = try c.value("anchorMethod")
+    self.start = try c.value("start")
     self.end = try c.value("end")
     self.exact = try c.value("exact")
-    self.matchQuality = try c.value("matchQuality")
     self.prefix = try c.ifPresent("prefix")
-    self.start = try c.value("start")
     self.suffix = try c.ifPresent("suffix")
+    self.anchorMethod = try c.value("anchorMethod")
+    self.matchQuality = try c.value("matchQuality")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.anchorMethod, as: "anchorMethod")
+    try c.encode(self.start, as: "start")
     try c.encode(self.end, as: "end")
     try c.encode(self.exact, as: "exact")
-    try c.encode(self.matchQuality, as: "matchQuality")
     try c.encodeIfPresent(self.prefix, as: "prefix")
-    try c.encode(self.start, as: "start")
     try c.encodeIfPresent(self.suffix, as: "suffix")
+    try c.encode(self.anchorMethod, as: "anchorMethod")
+    try c.encode(self.matchQuality, as: "matchQuality")
   }
 }
 
@@ -13644,40 +14502,40 @@ public enum ReconciledSpanFuzzyMatchAnchorMethod: String, Codable, Sendable, Cas
 }
 
 public struct ReconciledSpanUniqueMatch: Codable, Sendable, Hashable {
-  public let anchorMethod: ReconciledSpanUniqueMatchAnchorMethod
+  public var start: Int
   public var end: Int
   public var exact: String
   public var prefix: String?
-  public var start: Int
   public var suffix: String?
-  public init(end: Int, exact: String, prefix: String? = nil, start: Int, suffix: String? = nil) {
-    self.anchorMethod = .uniqueMatch
+  public let anchorMethod: ReconciledSpanUniqueMatchAnchorMethod
+  public init(start: Int, end: Int, exact: String, prefix: String? = nil, suffix: String? = nil) {
+    self.start = start
     self.end = end
     self.exact = exact
     self.prefix = prefix
-    self.start = start
     self.suffix = suffix
+    self.anchorMethod = .uniqueMatch
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["anchorMethod", "end", "exact", "prefix", "start", "suffix"], in: "ReconciledSpanUniqueMatch"
+      ["start", "end", "exact", "prefix", "suffix", "anchorMethod"], in: "ReconciledSpanUniqueMatch"
     )
-    self.anchorMethod = try c.value("anchorMethod")
+    self.start = try c.value("start")
     self.end = try c.value("end")
     self.exact = try c.value("exact")
     self.prefix = try c.ifPresent("prefix")
-    self.start = try c.value("start")
     self.suffix = try c.ifPresent("suffix")
+    self.anchorMethod = try c.value("anchorMethod")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.anchorMethod, as: "anchorMethod")
+    try c.encode(self.start, as: "start")
     try c.encode(self.end, as: "end")
     try c.encode(self.exact, as: "exact")
     try c.encodeIfPresent(self.prefix, as: "prefix")
-    try c.encode(self.start, as: "start")
     try c.encodeIfPresent(self.suffix, as: "suffix")
+    try c.encode(self.anchorMethod, as: "anchorMethod")
   }
 }
 
@@ -13690,72 +14548,70 @@ public typealias ReplyEventId = String
 public struct Representation: Codable, Sendable, Hashable {
   public var id: String?
   public var type: OneOrMoreStrings?
+  public var mediaType: String
+  public var storageUri: String?
+  public var filename: String?
   public var byteSize: Int?
   public var checksum: String?
-  public var conformsTo: OneOrMoreUris?
-  public var created: String?
-  public var duration: Double?
   public var encoding: String?
-  public var filename: String?
-  public var height: Int?
   public var language: String?
-  public var mediaType: String
-  public var modified: String?
-  public var rel: RepresentationRel?
-  public var storageUri: String?
-  public var tags: [String]?
   public var width: Int?
+  public var height: Int?
+  public var duration: Double?
+  public var created: String?
+  public var modified: String?
+  public var conformsTo: OneOrMoreUris?
+  public var tags: [String]?
+  public var rel: RepresentationRel?
   public var rest: [String: JSONValue]
   public init(
-    id: String? = nil, type: OneOrMoreStrings? = nil, byteSize: Int? = nil, checksum: String? = nil,
-    conformsTo: OneOrMoreUris? = nil, created: String? = nil, duration: Double? = nil,
-    encoding: String? = nil, filename: String? = nil, height: Int? = nil, language: String? = nil,
-    mediaType: String, modified: String? = nil, rel: RepresentationRel? = nil,
-    storageUri: String? = nil, tags: [String]? = nil, width: Int? = nil,
-    rest: [String: JSONValue] = [:]
+    id: String? = nil, type: OneOrMoreStrings? = nil, mediaType: String, storageUri: String? = nil,
+    filename: String? = nil, byteSize: Int? = nil, checksum: String? = nil, encoding: String? = nil,
+    language: String? = nil, width: Int? = nil, height: Int? = nil, duration: Double? = nil,
+    created: String? = nil, modified: String? = nil, conformsTo: OneOrMoreUris? = nil,
+    tags: [String]? = nil, rel: RepresentationRel? = nil, rest: [String: JSONValue] = [:]
   ) {
     self.id = id
     self.type = type
+    self.mediaType = mediaType
+    self.storageUri = storageUri
+    self.filename = filename
     self.byteSize = byteSize
     self.checksum = checksum
-    self.conformsTo = conformsTo
-    self.created = created
-    self.duration = duration
     self.encoding = encoding
-    self.filename = filename
-    self.height = height
     self.language = language
-    self.mediaType = mediaType
-    self.modified = modified
-    self.rel = rel
-    self.storageUri = storageUri
-    self.tags = tags
     self.width = width
+    self.height = height
+    self.duration = duration
+    self.created = created
+    self.modified = modified
+    self.conformsTo = conformsTo
+    self.tags = tags
+    self.rel = rel
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.id = try c.ifPresent("@id")
     self.type = try c.ifPresent("@type")
+    self.mediaType = try c.value("mediaType")
+    self.storageUri = try c.ifPresent("storageUri")
+    self.filename = try c.ifPresent("filename")
     self.byteSize = try c.ifPresent("byteSize")
     self.checksum = try c.ifPresent("checksum")
-    self.conformsTo = try c.ifPresent("conformsTo")
-    self.created = try c.ifPresent("created")
-    self.duration = try c.ifPresent("duration")
     self.encoding = try c.ifPresent("encoding")
-    self.filename = try c.ifPresent("filename")
-    self.height = try c.ifPresent("height")
     self.language = try c.ifPresent("language")
-    self.mediaType = try c.value("mediaType")
-    self.modified = try c.ifPresent("modified")
-    self.rel = try c.ifPresent("rel")
-    self.storageUri = try c.ifPresent("storageUri")
-    self.tags = try c.ifPresent("tags")
     self.width = try c.ifPresent("width")
+    self.height = try c.ifPresent("height")
+    self.duration = try c.ifPresent("duration")
+    self.created = try c.ifPresent("created")
+    self.modified = try c.ifPresent("modified")
+    self.conformsTo = try c.ifPresent("conformsTo")
+    self.tags = try c.ifPresent("tags")
+    self.rel = try c.ifPresent("rel")
     rest = try c.rest(excluding: [
-      "@id", "@type", "byteSize", "checksum", "conformsTo", "created", "duration", "encoding",
-      "filename", "height", "language", "mediaType", "modified", "rel", "storageUri", "tags",
-      "width",
+      "@id", "@type", "mediaType", "storageUri", "filename", "byteSize", "checksum", "encoding",
+      "language", "width", "height", "duration", "created", "modified", "conformsTo", "tags", "rel",
     ])
   }
   public func encode(to encoder: any Encoder) throws {
@@ -13763,27 +14619,27 @@ public struct Representation: Codable, Sendable, Hashable {
     try c.encode(
       rest: rest,
       excluding: [
-        "@id", "@type", "byteSize", "checksum", "conformsTo", "created", "duration", "encoding",
-        "filename", "height", "language", "mediaType", "modified", "rel", "storageUri", "tags",
-        "width",
+        "@id", "@type", "mediaType", "storageUri", "filename", "byteSize", "checksum", "encoding",
+        "language", "width", "height", "duration", "created", "modified", "conformsTo", "tags",
+        "rel",
       ], of: "Representation")
     try c.encodeIfPresent(self.id, as: "@id")
     try c.encodeIfPresent(self.type, as: "@type")
+    try c.encode(self.mediaType, as: "mediaType")
+    try c.encodeIfPresent(self.storageUri, as: "storageUri")
+    try c.encodeIfPresent(self.filename, as: "filename")
     try c.encodeIfPresent(self.byteSize, as: "byteSize")
     try c.encodeIfPresent(self.checksum, as: "checksum")
-    try c.encodeIfPresent(self.conformsTo, as: "conformsTo")
-    try c.encodeIfPresent(self.created, as: "created")
-    try c.encodeIfPresent(self.duration, as: "duration")
     try c.encodeIfPresent(self.encoding, as: "encoding")
-    try c.encodeIfPresent(self.filename, as: "filename")
-    try c.encodeIfPresent(self.height, as: "height")
     try c.encodeIfPresent(self.language, as: "language")
-    try c.encode(self.mediaType, as: "mediaType")
-    try c.encodeIfPresent(self.modified, as: "modified")
-    try c.encodeIfPresent(self.rel, as: "rel")
-    try c.encodeIfPresent(self.storageUri, as: "storageUri")
-    try c.encodeIfPresent(self.tags, as: "tags")
     try c.encodeIfPresent(self.width, as: "width")
+    try c.encodeIfPresent(self.height, as: "height")
+    try c.encodeIfPresent(self.duration, as: "duration")
+    try c.encodeIfPresent(self.created, as: "created")
+    try c.encodeIfPresent(self.modified, as: "modified")
+    try c.encodeIfPresent(self.conformsTo, as: "conformsTo")
+    try c.encodeIfPresent(self.tags, as: "tags")
+    try c.encodeIfPresent(self.rel, as: "rel")
   }
 }
 
@@ -13803,31 +14659,31 @@ public struct RepresentationAddedPayload: Codable, Sendable, Hashable {
 }
 
 public struct RepresentationNotFound: Codable, Sendable, Hashable {
-  public var code: RepresentationNotFoundCode
-  public var details: JSONValue?
   public var error: String
+  public var code: RepresentationNotFoundCode
   public var hint: String?
+  public var details: JSONValue?
   public init(
-    code: RepresentationNotFoundCode, details: JSONValue? = nil, error: String, hint: String? = nil
+    error: String, code: RepresentationNotFoundCode, hint: String? = nil, details: JSONValue? = nil
   ) {
-    self.code = code
-    self.details = details
     self.error = error
+    self.code = code
     self.hint = hint
+    self.details = details
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.code = try c.value("code")
-    self.details = try c.ifPresent("details")
     self.error = try c.value("error")
+    self.code = try c.value("code")
     self.hint = try c.ifPresent("hint")
+    self.details = try c.ifPresent("details")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.code, as: "code")
-    try c.encodeIfPresent(self.details, as: "details")
     try c.encode(self.error, as: "error")
+    try c.encode(self.code, as: "code")
     try c.encodeIfPresent(self.hint, as: "hint")
+    try c.encodeIfPresent(self.details, as: "details")
   }
 }
 
@@ -13863,17 +14719,21 @@ public struct RepresentationRemovedPayload: Codable, Sendable, Hashable {
 public indirect enum RequestId: Codable, Sendable, Hashable {
   case text(String)
   case integer(Int)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .integer, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? Int(from: decoder) {
-      self = .integer(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of RequestId fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "RequestId", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("integer", { decoder in try Self.integer(Int(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -13884,31 +14744,31 @@ public indirect enum RequestId: Codable, Sendable, Hashable {
 }
 
 public struct ResourceAnnotations: Codable, Sendable, Hashable {
-  public var annotations: [Annotation]
   public var resourceId: ResourceId
-  public var updatedAt: String
+  public var annotations: [Annotation]
   public var version: Int
-  public init(annotations: [Annotation], resourceId: ResourceId, updatedAt: String, version: Int) {
-    self.annotations = annotations
+  public var updatedAt: String
+  public init(resourceId: ResourceId, annotations: [Annotation], version: Int, updatedAt: String) {
     self.resourceId = resourceId
-    self.updatedAt = updatedAt
+    self.annotations = annotations
     self.version = version
+    self.updatedAt = updatedAt
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["annotations", "resourceId", "updatedAt", "version"], in: "ResourceAnnotations")
-    self.annotations = try c.value("annotations")
+      ["resourceId", "annotations", "version", "updatedAt"], in: "ResourceAnnotations")
     self.resourceId = try c.value("resourceId")
-    self.updatedAt = try c.value("updatedAt")
+    self.annotations = try c.value("annotations")
     self.version = try c.value("version")
+    self.updatedAt = try c.value("updatedAt")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotations, as: "annotations")
     try c.encode(self.resourceId, as: "resourceId")
-    try c.encode(self.updatedAt, as: "updatedAt")
+    try c.encode(self.annotations, as: "annotations")
     try c.encode(self.version, as: "version")
+    try c.encode(self.updatedAt, as: "updatedAt")
   }
 }
 
@@ -13928,150 +14788,150 @@ public struct ResourceArchivedPayload: Codable, Sendable, Hashable {
 }
 
 public struct ResourceClonedPayload: Codable, Sendable, Hashable {
-  public var contentByteSize: Int?
-  public var contentChecksum: String
-  public var creator: Agent?
-  public var entityTypes: [String]?
-  public var format: ContentFormat
-  public var language: String?
   public var name: String
-  public var parentResourceId: ResourceId
+  public var format: ContentFormat
+  public var contentChecksum: String
+  public var contentByteSize: Int?
   public var storageUri: String?
+  public var parentResourceId: ResourceId
+  public var entityTypes: [String]?
+  public var language: String?
+  public var creator: Agent?
   public var wasAttributedTo: OneOrMoreAgents?
   public init(
-    contentByteSize: Int? = nil, contentChecksum: String, creator: Agent? = nil,
-    entityTypes: [String]? = nil, format: ContentFormat, language: String? = nil, name: String,
-    parentResourceId: ResourceId, storageUri: String? = nil, wasAttributedTo: OneOrMoreAgents? = nil
+    name: String, format: ContentFormat, contentChecksum: String, contentByteSize: Int? = nil,
+    storageUri: String? = nil, parentResourceId: ResourceId, entityTypes: [String]? = nil,
+    language: String? = nil, creator: Agent? = nil, wasAttributedTo: OneOrMoreAgents? = nil
   ) {
-    self.contentByteSize = contentByteSize
-    self.contentChecksum = contentChecksum
-    self.creator = creator
-    self.entityTypes = entityTypes
-    self.format = format
-    self.language = language
     self.name = name
-    self.parentResourceId = parentResourceId
+    self.format = format
+    self.contentChecksum = contentChecksum
+    self.contentByteSize = contentByteSize
     self.storageUri = storageUri
+    self.parentResourceId = parentResourceId
+    self.entityTypes = entityTypes
+    self.language = language
+    self.creator = creator
     self.wasAttributedTo = wasAttributedTo
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.contentByteSize = try c.ifPresent("contentByteSize")
-    self.contentChecksum = try c.value("contentChecksum")
-    self.creator = try c.ifPresent("creator")
-    self.entityTypes = try c.ifPresent("entityTypes")
-    self.format = try c.value("format")
-    self.language = try c.ifPresent("language")
     self.name = try c.value("name")
-    self.parentResourceId = try c.value("parentResourceId")
+    self.format = try c.value("format")
+    self.contentChecksum = try c.value("contentChecksum")
+    self.contentByteSize = try c.ifPresent("contentByteSize")
     self.storageUri = try c.ifPresent("storageUri")
+    self.parentResourceId = try c.value("parentResourceId")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.language = try c.ifPresent("language")
+    self.creator = try c.ifPresent("creator")
     self.wasAttributedTo = try c.ifPresent("wasAttributedTo")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.contentByteSize, as: "contentByteSize")
-    try c.encode(self.contentChecksum, as: "contentChecksum")
-    try c.encodeIfPresent(self.creator, as: "creator")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
-    try c.encode(self.format, as: "format")
-    try c.encodeIfPresent(self.language, as: "language")
     try c.encode(self.name, as: "name")
-    try c.encode(self.parentResourceId, as: "parentResourceId")
+    try c.encode(self.format, as: "format")
+    try c.encode(self.contentChecksum, as: "contentChecksum")
+    try c.encodeIfPresent(self.contentByteSize, as: "contentByteSize")
     try c.encodeIfPresent(self.storageUri, as: "storageUri")
+    try c.encode(self.parentResourceId, as: "parentResourceId")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.creator, as: "creator")
     try c.encodeIfPresent(self.wasAttributedTo, as: "wasAttributedTo")
   }
 }
 
 public struct ResourceCreatedPayload: Codable, Sendable, Hashable {
-  public var contentByteSize: Int?
-  public var contentChecksum: String
-  public var creator: Agent?
-  public var entityTypes: [String]?
+  public var name: String
   public var format: ContentFormat
+  public var contentChecksum: String
+  public var contentByteSize: Int?
+  public var entityTypes: [String]?
+  public var storageUri: String?
+  public var language: String?
+  public var isDraft: Bool?
+  public var jobId: JobId?
   public var generatedFrom: ResourceCreatedPayloadGeneratedFrom?
   public var generationPrompt: String?
   public var generator: OneOrMoreAgents?
-  public var isDraft: Bool?
-  public var jobId: JobId?
-  public var language: String?
-  public var name: String
-  public var storageUri: String?
+  public var creator: Agent?
   public var wasAttributedTo: OneOrMoreAgents?
   public init(
-    contentByteSize: Int? = nil, contentChecksum: String, creator: Agent? = nil,
-    entityTypes: [String]? = nil, format: ContentFormat,
+    name: String, format: ContentFormat, contentChecksum: String, contentByteSize: Int? = nil,
+    entityTypes: [String]? = nil, storageUri: String? = nil, language: String? = nil,
+    isDraft: Bool? = nil, jobId: JobId? = nil,
     generatedFrom: ResourceCreatedPayloadGeneratedFrom? = nil, generationPrompt: String? = nil,
-    generator: OneOrMoreAgents? = nil, isDraft: Bool? = nil, jobId: JobId? = nil,
-    language: String? = nil, name: String, storageUri: String? = nil,
+    generator: OneOrMoreAgents? = nil, creator: Agent? = nil,
     wasAttributedTo: OneOrMoreAgents? = nil
   ) {
-    self.contentByteSize = contentByteSize
-    self.contentChecksum = contentChecksum
-    self.creator = creator
-    self.entityTypes = entityTypes
+    self.name = name
     self.format = format
+    self.contentChecksum = contentChecksum
+    self.contentByteSize = contentByteSize
+    self.entityTypes = entityTypes
+    self.storageUri = storageUri
+    self.language = language
+    self.isDraft = isDraft
+    self.jobId = jobId
     self.generatedFrom = generatedFrom
     self.generationPrompt = generationPrompt
     self.generator = generator
-    self.isDraft = isDraft
-    self.jobId = jobId
-    self.language = language
-    self.name = name
-    self.storageUri = storageUri
+    self.creator = creator
     self.wasAttributedTo = wasAttributedTo
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.contentByteSize = try c.ifPresent("contentByteSize")
-    self.contentChecksum = try c.value("contentChecksum")
-    self.creator = try c.ifPresent("creator")
-    self.entityTypes = try c.ifPresent("entityTypes")
+    self.name = try c.value("name")
     self.format = try c.value("format")
+    self.contentChecksum = try c.value("contentChecksum")
+    self.contentByteSize = try c.ifPresent("contentByteSize")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.storageUri = try c.ifPresent("storageUri")
+    self.language = try c.ifPresent("language")
+    self.isDraft = try c.ifPresent("isDraft")
+    self.jobId = try c.ifPresent("jobId")
     self.generatedFrom = try c.ifPresent("generatedFrom")
     self.generationPrompt = try c.ifPresent("generationPrompt")
     self.generator = try c.ifPresent("generator")
-    self.isDraft = try c.ifPresent("isDraft")
-    self.jobId = try c.ifPresent("jobId")
-    self.language = try c.ifPresent("language")
-    self.name = try c.value("name")
-    self.storageUri = try c.ifPresent("storageUri")
+    self.creator = try c.ifPresent("creator")
     self.wasAttributedTo = try c.ifPresent("wasAttributedTo")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.contentByteSize, as: "contentByteSize")
-    try c.encode(self.contentChecksum, as: "contentChecksum")
-    try c.encodeIfPresent(self.creator, as: "creator")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encode(self.name, as: "name")
     try c.encode(self.format, as: "format")
+    try c.encode(self.contentChecksum, as: "contentChecksum")
+    try c.encodeIfPresent(self.contentByteSize, as: "contentByteSize")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.storageUri, as: "storageUri")
+    try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.isDraft, as: "isDraft")
+    try c.encodeIfPresent(self.jobId, as: "jobId")
     try c.encodeIfPresent(self.generatedFrom, as: "generatedFrom")
     try c.encodeIfPresent(self.generationPrompt, as: "generationPrompt")
     try c.encodeIfPresent(self.generator, as: "generator")
-    try c.encodeIfPresent(self.isDraft, as: "isDraft")
-    try c.encodeIfPresent(self.jobId, as: "jobId")
-    try c.encodeIfPresent(self.language, as: "language")
-    try c.encode(self.name, as: "name")
-    try c.encodeIfPresent(self.storageUri, as: "storageUri")
+    try c.encodeIfPresent(self.creator, as: "creator")
     try c.encodeIfPresent(self.wasAttributedTo, as: "wasAttributedTo")
   }
 }
 
 public struct ResourceCreatedPayloadGeneratedFrom: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId?
   public var resourceId: ResourceId
-  public init(annotationId: AnnotationId? = nil, resourceId: ResourceId) {
-    self.annotationId = annotationId
+  public var annotationId: AnnotationId?
+  public init(resourceId: ResourceId, annotationId: AnnotationId? = nil) {
     self.resourceId = resourceId
+    self.annotationId = annotationId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.ifPresent("annotationId")
     self.resourceId = try c.value("resourceId")
+    self.annotationId = try c.ifPresent("annotationId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
   }
 }
 
@@ -14079,68 +14939,70 @@ public struct ResourceDescriptor: Codable, Sendable, Hashable {
   public var context: ResourceDescriptorContext
   public var id: ResourceId
   public var type: OneOrMoreStrings?
+  public var name: String
+  public var description: String?
+  public var identifier: ResourceDescriptorIdentifier?
   public var about: OneOrMoreStrings?
-  public var archived: Bool?
-  public var availableFormats: [String]?
-  public var conformsTo: OneOrMoreUris?
+  public var sameAs: [String]?
+  public var isPartOf: [String]?
+  public var hasPart: [String]?
+  public var license: String?
+  public var version: String?
   public var dateCreated: String?
   public var dateModified: String?
-  public var description: String?
-  public var entityTypes: [String]?
+  public var wasDerivedFrom: ResourceDescriptorWasDerivedFrom?
+  public var wasAttributedTo: OneOrMoreAgents?
   public var generator: OneOrMoreAgents?
-  public var hasPart: [String]?
-  public var identifier: ResourceDescriptorIdentifier?
-  public var isDraft: Bool?
-  public var isPartOf: [String]?
-  public var license: String?
-  public var name: String
-  public var originatedFrom: String?
+  public var conformsTo: OneOrMoreUris?
+  public var availableFormats: [String]?
   public var representations: ResourceDescriptorRepresentations
-  public var sameAs: [String]?
+  public var archived: Bool?
+  public var entityTypes: [String]?
+  public var isDraft: Bool?
   public var sourceAnnotationId: AnnotationId?
   public var sourceResourceId: ResourceId?
-  public var version: String?
-  public var wasAttributedTo: OneOrMoreAgents?
-  public var wasDerivedFrom: ResourceDescriptorWasDerivedFrom?
+  public var originatedFrom: String?
   public var rest: [String: JSONValue]
   public init(
-    context: ResourceDescriptorContext, id: ResourceId, type: OneOrMoreStrings? = nil,
-    about: OneOrMoreStrings? = nil, archived: Bool? = nil, availableFormats: [String]? = nil,
-    conformsTo: OneOrMoreUris? = nil, dateCreated: String? = nil, dateModified: String? = nil,
-    description: String? = nil, entityTypes: [String]? = nil, generator: OneOrMoreAgents? = nil,
-    hasPart: [String]? = nil, identifier: ResourceDescriptorIdentifier? = nil, isDraft: Bool? = nil,
-    isPartOf: [String]? = nil, license: String? = nil, name: String, originatedFrom: String? = nil,
-    representations: ResourceDescriptorRepresentations, sameAs: [String]? = nil,
-    sourceAnnotationId: AnnotationId? = nil, sourceResourceId: ResourceId? = nil,
-    version: String? = nil, wasAttributedTo: OneOrMoreAgents? = nil,
-    wasDerivedFrom: ResourceDescriptorWasDerivedFrom? = nil, rest: [String: JSONValue] = [:]
+    context: ResourceDescriptorContext, id: ResourceId, type: OneOrMoreStrings? = nil, name: String,
+    description: String? = nil, identifier: ResourceDescriptorIdentifier? = nil,
+    about: OneOrMoreStrings? = nil, sameAs: [String]? = nil, isPartOf: [String]? = nil,
+    hasPart: [String]? = nil, license: String? = nil, version: String? = nil,
+    dateCreated: String? = nil, dateModified: String? = nil,
+    wasDerivedFrom: ResourceDescriptorWasDerivedFrom? = nil,
+    wasAttributedTo: OneOrMoreAgents? = nil, generator: OneOrMoreAgents? = nil,
+    conformsTo: OneOrMoreUris? = nil, availableFormats: [String]? = nil,
+    representations: ResourceDescriptorRepresentations, archived: Bool? = nil,
+    entityTypes: [String]? = nil, isDraft: Bool? = nil, sourceAnnotationId: AnnotationId? = nil,
+    sourceResourceId: ResourceId? = nil, originatedFrom: String? = nil,
+    rest: [String: JSONValue] = [:]
   ) {
     self.context = context
     self.id = id
     self.type = type
+    self.name = name
+    self.description = description
+    self.identifier = identifier
     self.about = about
-    self.archived = archived
-    self.availableFormats = availableFormats
-    self.conformsTo = conformsTo
+    self.sameAs = sameAs
+    self.isPartOf = isPartOf
+    self.hasPart = hasPart
+    self.license = license
+    self.version = version
     self.dateCreated = dateCreated
     self.dateModified = dateModified
-    self.description = description
-    self.entityTypes = entityTypes
+    self.wasDerivedFrom = wasDerivedFrom
+    self.wasAttributedTo = wasAttributedTo
     self.generator = generator
-    self.hasPart = hasPart
-    self.identifier = identifier
-    self.isDraft = isDraft
-    self.isPartOf = isPartOf
-    self.license = license
-    self.name = name
-    self.originatedFrom = originatedFrom
+    self.conformsTo = conformsTo
+    self.availableFormats = availableFormats
     self.representations = representations
-    self.sameAs = sameAs
+    self.archived = archived
+    self.entityTypes = entityTypes
+    self.isDraft = isDraft
     self.sourceAnnotationId = sourceAnnotationId
     self.sourceResourceId = sourceResourceId
-    self.version = version
-    self.wasAttributedTo = wasAttributedTo
-    self.wasDerivedFrom = wasDerivedFrom
+    self.originatedFrom = originatedFrom
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
@@ -14148,35 +15010,35 @@ public struct ResourceDescriptor: Codable, Sendable, Hashable {
     self.context = try c.value("@context")
     self.id = try c.value("@id")
     self.type = try c.ifPresent("@type")
+    self.name = try c.value("name")
+    self.description = try c.ifPresent("description")
+    self.identifier = try c.ifPresent("identifier")
     self.about = try c.ifPresent("about")
-    self.archived = try c.ifPresent("archived")
-    self.availableFormats = try c.ifPresent("availableFormats")
-    self.conformsTo = try c.ifPresent("conformsTo")
+    self.sameAs = try c.ifPresent("sameAs")
+    self.isPartOf = try c.ifPresent("isPartOf")
+    self.hasPart = try c.ifPresent("hasPart")
+    self.license = try c.ifPresent("license")
+    self.version = try c.ifPresent("version")
     self.dateCreated = try c.ifPresent("dateCreated")
     self.dateModified = try c.ifPresent("dateModified")
-    self.description = try c.ifPresent("description")
-    self.entityTypes = try c.ifPresent("entityTypes")
+    self.wasDerivedFrom = try c.ifPresent("wasDerivedFrom")
+    self.wasAttributedTo = try c.ifPresent("wasAttributedTo")
     self.generator = try c.ifPresent("generator")
-    self.hasPart = try c.ifPresent("hasPart")
-    self.identifier = try c.ifPresent("identifier")
-    self.isDraft = try c.ifPresent("isDraft")
-    self.isPartOf = try c.ifPresent("isPartOf")
-    self.license = try c.ifPresent("license")
-    self.name = try c.value("name")
-    self.originatedFrom = try c.ifPresent("originatedFrom")
+    self.conformsTo = try c.ifPresent("conformsTo")
+    self.availableFormats = try c.ifPresent("availableFormats")
     self.representations = try c.value("representations")
-    self.sameAs = try c.ifPresent("sameAs")
+    self.archived = try c.ifPresent("archived")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.isDraft = try c.ifPresent("isDraft")
     self.sourceAnnotationId = try c.ifPresent("sourceAnnotationId")
     self.sourceResourceId = try c.ifPresent("sourceResourceId")
-    self.version = try c.ifPresent("version")
-    self.wasAttributedTo = try c.ifPresent("wasAttributedTo")
-    self.wasDerivedFrom = try c.ifPresent("wasDerivedFrom")
+    self.originatedFrom = try c.ifPresent("originatedFrom")
     rest = try c.rest(excluding: [
-      "@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo",
-      "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart",
-      "identifier", "isDraft", "isPartOf", "license", "name", "originatedFrom", "representations",
-      "sameAs", "sourceAnnotationId", "sourceResourceId", "version", "wasAttributedTo",
-      "wasDerivedFrom",
+      "@context", "@id", "@type", "name", "description", "identifier", "about", "sameAs",
+      "isPartOf", "hasPart", "license", "version", "dateCreated", "dateModified", "wasDerivedFrom",
+      "wasAttributedTo", "generator", "conformsTo", "availableFormats", "representations",
+      "archived", "entityTypes", "isDraft", "sourceAnnotationId", "sourceResourceId",
+      "originatedFrom",
     ])
   }
   public func encode(to encoder: any Encoder) throws {
@@ -14184,93 +15046,97 @@ public struct ResourceDescriptor: Codable, Sendable, Hashable {
     try c.encode(
       rest: rest,
       excluding: [
-        "@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo",
-        "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart",
-        "identifier", "isDraft", "isPartOf", "license", "name", "originatedFrom", "representations",
-        "sameAs", "sourceAnnotationId", "sourceResourceId", "version", "wasAttributedTo",
-        "wasDerivedFrom",
+        "@context", "@id", "@type", "name", "description", "identifier", "about", "sameAs",
+        "isPartOf", "hasPart", "license", "version", "dateCreated", "dateModified",
+        "wasDerivedFrom", "wasAttributedTo", "generator", "conformsTo", "availableFormats",
+        "representations", "archived", "entityTypes", "isDraft", "sourceAnnotationId",
+        "sourceResourceId", "originatedFrom",
       ], of: "ResourceDescriptor")
     try c.encode(self.context, as: "@context")
     try c.encode(self.id, as: "@id")
     try c.encodeIfPresent(self.type, as: "@type")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.description, as: "description")
+    try c.encodeIfPresent(self.identifier, as: "identifier")
     try c.encodeIfPresent(self.about, as: "about")
-    try c.encodeIfPresent(self.archived, as: "archived")
-    try c.encodeIfPresent(self.availableFormats, as: "availableFormats")
-    try c.encodeIfPresent(self.conformsTo, as: "conformsTo")
+    try c.encodeIfPresent(self.sameAs, as: "sameAs")
+    try c.encodeIfPresent(self.isPartOf, as: "isPartOf")
+    try c.encodeIfPresent(self.hasPart, as: "hasPart")
+    try c.encodeIfPresent(self.license, as: "license")
+    try c.encodeIfPresent(self.version, as: "version")
     try c.encodeIfPresent(self.dateCreated, as: "dateCreated")
     try c.encodeIfPresent(self.dateModified, as: "dateModified")
-    try c.encodeIfPresent(self.description, as: "description")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.wasDerivedFrom, as: "wasDerivedFrom")
+    try c.encodeIfPresent(self.wasAttributedTo, as: "wasAttributedTo")
     try c.encodeIfPresent(self.generator, as: "generator")
-    try c.encodeIfPresent(self.hasPart, as: "hasPart")
-    try c.encodeIfPresent(self.identifier, as: "identifier")
-    try c.encodeIfPresent(self.isDraft, as: "isDraft")
-    try c.encodeIfPresent(self.isPartOf, as: "isPartOf")
-    try c.encodeIfPresent(self.license, as: "license")
-    try c.encode(self.name, as: "name")
-    try c.encodeIfPresent(self.originatedFrom, as: "originatedFrom")
+    try c.encodeIfPresent(self.conformsTo, as: "conformsTo")
+    try c.encodeIfPresent(self.availableFormats, as: "availableFormats")
     try c.encode(self.representations, as: "representations")
-    try c.encodeIfPresent(self.sameAs, as: "sameAs")
+    try c.encodeIfPresent(self.archived, as: "archived")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.isDraft, as: "isDraft")
     try c.encodeIfPresent(self.sourceAnnotationId, as: "sourceAnnotationId")
     try c.encodeIfPresent(self.sourceResourceId, as: "sourceResourceId")
-    try c.encodeIfPresent(self.version, as: "version")
-    try c.encodeIfPresent(self.wasAttributedTo, as: "wasAttributedTo")
-    try c.encodeIfPresent(self.wasDerivedFrom, as: "wasDerivedFrom")
+    try c.encodeIfPresent(self.originatedFrom, as: "originatedFrom")
   }
 }
 
 public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
   case text(String)
-  case empty([String: JSONValue])
-  case list([ResourceDescriptorContextListItem])
+  case object([String: JSONValue])
+  case list([ResourceDescriptorContextItem])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String: JSONValue](from: decoder) {
-      self = .empty(value)
-      return
-    }
-    if let value = try? [ResourceDescriptorContextListItem](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorContext fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorContext", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("object", { decoder in try Self.object([String: JSONValue](from: decoder)) }),
+        ("list", { decoder in try Self.list([ResourceDescriptorContextItem](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
     case .text(let value): try value.encode(to: encoder)
-    case .empty(let value): try value.encode(to: encoder)
+    case .object(let value): try value.encode(to: encoder)
     case .list(let value): try value.encode(to: encoder)
     }
   }
 }
 
-public indirect enum ResourceDescriptorContextListItem: Codable, Sendable, Hashable {
+public indirect enum ResourceDescriptorContextItem: Codable, Sendable, Hashable {
   case text(String)
-  case empty([String: JSONValue])
+  case object([String: JSONValue])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String: JSONValue](from: decoder) {
-      self = .empty(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorContextListItem fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorContextItem", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("object", { decoder in try Self.object([String: JSONValue](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
     case .text(let value): try value.encode(to: encoder)
-    case .empty(let value): try value.encode(to: encoder)
+    case .object(let value): try value.encode(to: encoder)
     }
   }
 }
@@ -14279,23 +15145,28 @@ public indirect enum ResourceDescriptorIdentifier: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
   case object(ResourceDescriptorIdentifierObject)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String](from: decoder) {
-      self = .list(value)
-      return
-    }
-    if let value = try? ResourceDescriptorIdentifierObject(from: decoder) {
-      self = .object(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorIdentifier fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorIdentifier", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("list", { decoder in try Self.list([String](from: decoder)) }),
+        (
+          "object",
+          { decoder in try Self.object(ResourceDescriptorIdentifierObject(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -14308,50 +15179,61 @@ public indirect enum ResourceDescriptorIdentifier: Codable, Sendable, Hashable {
 
 public struct ResourceDescriptorIdentifierObject: Codable, Sendable, Hashable {
   public var id: String?
-  public var scheme: String?
   public var value: String?
+  public var scheme: String?
   public var rest: [String: JSONValue]
   public init(
-    id: String? = nil, scheme: String? = nil, value: String? = nil, rest: [String: JSONValue] = [:]
+    id: String? = nil, value: String? = nil, scheme: String? = nil, rest: [String: JSONValue] = [:]
   ) {
     self.id = id
-    self.scheme = scheme
     self.value = value
+    self.scheme = scheme
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.id = try c.ifPresent("@id")
-    self.scheme = try c.ifPresent("scheme")
     self.value = try c.ifPresent("value")
-    rest = try c.rest(excluding: ["@id", "scheme", "value"])
+    self.scheme = try c.ifPresent("scheme")
+    rest = try c.rest(excluding: ["@id", "value", "scheme"])
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(
-      rest: rest, excluding: ["@id", "scheme", "value"], of: "ResourceDescriptorIdentifierObject")
+      rest: rest, excluding: ["@id", "value", "scheme"], of: "ResourceDescriptorIdentifierObject")
     try c.encodeIfPresent(self.id, as: "@id")
-    try c.encodeIfPresent(self.scheme, as: "scheme")
     try c.encodeIfPresent(self.value, as: "value")
+    try c.encodeIfPresent(self.scheme, as: "scheme")
   }
 }
 
 public indirect enum ResourceDescriptorRepresentations: Codable, Sendable, Hashable {
   case representation(Representation)
   case list([Representation])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["mediaType"], allowed: nil,
+        fixed: [
+          .init(
+            property: "rel",
+            values: [
+              .text("original"), .text("thumbnail"), .text("preview"), .text("optimized"),
+              .text("derived"), .text("other"),
+            ])
+        ], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? Representation(from: decoder) {
-      self = .representation(value)
-      return
-    }
-    if let value = try? [Representation](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorRepresentations fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorRepresentations", members: Self.members,
+      variants: [
+        ("representation", { decoder in try Self.representation(Representation(from: decoder)) }),
+        ("list", { decoder in try Self.list([Representation](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -14364,19 +15246,21 @@ public indirect enum ResourceDescriptorRepresentations: Codable, Sendable, Hasha
 public indirect enum ResourceDescriptorWasDerivedFrom: Codable, Sendable, Hashable {
   case resourceId(ResourceId)
   case list([ResourceId])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ResourceId(from: decoder) {
-      self = .resourceId(value)
-      return
-    }
-    if let value = try? [ResourceId](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorWasDerivedFrom fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorWasDerivedFrom", members: Self.members,
+      variants: [
+        ("resourceId", { decoder in try Self.resourceId(ResourceId(from: decoder)) }),
+        ("list", { decoder in try Self.list([ResourceId](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -14387,21 +15271,21 @@ public indirect enum ResourceDescriptorWasDerivedFrom: Codable, Sendable, Hashab
 }
 
 public struct ResourceErrorEvent: Codable, Sendable, Hashable {
-  public var message: String
   public var resourceId: ResourceId
-  public init(message: String, resourceId: ResourceId) {
-    self.message = message
+  public var message: String
+  public init(resourceId: ResourceId, message: String) {
     self.resourceId = resourceId
+    self.message = message
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.message = try c.value("message")
     self.resourceId = try c.value("resourceId")
+    self.message = try c.value("message")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.message, as: "message")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.message, as: "message")
   }
 }
 
@@ -14463,30 +15347,30 @@ public struct ResourceMovedPayload: Codable, Sendable, Hashable {
 public struct ResourceSearchFilters: Codable, Sendable, Hashable {
   public var archived: Bool?
   public var entityType: String?
-  public var limit: Int?
   public var offset: Int?
+  public var limit: Int?
   public init(
-    archived: Bool? = nil, entityType: String? = nil, limit: Int? = nil, offset: Int? = nil
+    archived: Bool? = nil, entityType: String? = nil, offset: Int? = nil, limit: Int? = nil
   ) {
     self.archived = archived
     self.entityType = entityType
-    self.limit = limit
     self.offset = offset
+    self.limit = limit
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["archived", "entityType", "limit", "offset"], in: "ResourceSearchFilters")
+    try c.refuseUnknown(["archived", "entityType", "offset", "limit"], in: "ResourceSearchFilters")
     self.archived = try c.ifPresent("archived")
     self.entityType = try c.ifPresent("entityType")
-    self.limit = try c.ifPresent("limit")
     self.offset = try c.ifPresent("offset")
+    self.limit = try c.ifPresent("limit")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.archived, as: "archived")
     try c.encodeIfPresent(self.entityType, as: "entityType")
-    try c.encodeIfPresent(self.limit, as: "limit")
     try c.encodeIfPresent(self.offset, as: "offset")
+    try c.encodeIfPresent(self.limit, as: "limit")
   }
 }
 
@@ -14502,117 +15386,118 @@ public struct ResourceUnarchivedPayload: Codable, Sendable, Hashable {
 }
 
 public struct ResourceUpdatedPayload: Codable, Sendable, Hashable {
-  public var contentByteSize: Int?
   public var contentChecksum: String
-  public init(contentByteSize: Int? = nil, contentChecksum: String) {
-    self.contentByteSize = contentByteSize
+  public var contentByteSize: Int?
+  public init(contentChecksum: String, contentByteSize: Int? = nil) {
     self.contentChecksum = contentChecksum
+    self.contentByteSize = contentByteSize
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.contentByteSize = try c.ifPresent("contentByteSize")
     self.contentChecksum = try c.value("contentChecksum")
+    self.contentByteSize = try c.ifPresent("contentByteSize")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.contentByteSize, as: "contentByteSize")
     try c.encode(self.contentChecksum, as: "contentChecksum")
+    try c.encodeIfPresent(self.contentByteSize, as: "contentByteSize")
   }
 }
 
 public struct ResourceUpload: Codable, Sendable, Hashable {
-  public var archiveOriginal: String?
-  public var cloneToken: String?
-  public var entityTypes: String?
+  public var name: String
   public var file: Binary
   public var format: String
-  public var generationPrompt: String?
-  public var generator: String?
-  public var isDraft: String?
-  public var jobId: JobId?
+  public var storageUri: String
   public var language: String?
-  public var name: String
+  public var entityTypes: String?
   public var sourceAnnotationId: AnnotationId?
   public var sourceResourceId: ResourceId?
-  public var storageUri: String
+  public var generationPrompt: String?
+  public var generator: String?
+  public var jobId: JobId?
+  public var isDraft: String?
+  public var cloneToken: String?
+  public var archiveOriginal: String?
   public init(
-    archiveOriginal: String? = nil, cloneToken: String? = nil, entityTypes: String? = nil,
-    file: Binary, format: String, generationPrompt: String? = nil, generator: String? = nil,
-    isDraft: String? = nil, jobId: JobId? = nil, language: String? = nil, name: String,
-    sourceAnnotationId: AnnotationId? = nil, sourceResourceId: ResourceId? = nil, storageUri: String
+    name: String, file: Binary, format: String, storageUri: String, language: String? = nil,
+    entityTypes: String? = nil, sourceAnnotationId: AnnotationId? = nil,
+    sourceResourceId: ResourceId? = nil, generationPrompt: String? = nil, generator: String? = nil,
+    jobId: JobId? = nil, isDraft: String? = nil, cloneToken: String? = nil,
+    archiveOriginal: String? = nil
   ) {
-    self.archiveOriginal = archiveOriginal
-    self.cloneToken = cloneToken
-    self.entityTypes = entityTypes
+    self.name = name
     self.file = file
     self.format = format
-    self.generationPrompt = generationPrompt
-    self.generator = generator
-    self.isDraft = isDraft
-    self.jobId = jobId
+    self.storageUri = storageUri
     self.language = language
-    self.name = name
+    self.entityTypes = entityTypes
     self.sourceAnnotationId = sourceAnnotationId
     self.sourceResourceId = sourceResourceId
-    self.storageUri = storageUri
+    self.generationPrompt = generationPrompt
+    self.generator = generator
+    self.jobId = jobId
+    self.isDraft = isDraft
+    self.cloneToken = cloneToken
+    self.archiveOriginal = archiveOriginal
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.archiveOriginal = try c.ifPresent("archiveOriginal")
-    self.cloneToken = try c.ifPresent("cloneToken")
-    self.entityTypes = try c.ifPresent("entityTypes")
+    self.name = try c.value("name")
     self.file = try c.value("file")
     self.format = try c.value("format")
-    self.generationPrompt = try c.ifPresent("generationPrompt")
-    self.generator = try c.ifPresent("generator")
-    self.isDraft = try c.ifPresent("isDraft")
-    self.jobId = try c.ifPresent("jobId")
+    self.storageUri = try c.value("storageUri")
     self.language = try c.ifPresent("language")
-    self.name = try c.value("name")
+    self.entityTypes = try c.ifPresent("entityTypes")
     self.sourceAnnotationId = try c.ifPresent("sourceAnnotationId")
     self.sourceResourceId = try c.ifPresent("sourceResourceId")
-    self.storageUri = try c.value("storageUri")
+    self.generationPrompt = try c.ifPresent("generationPrompt")
+    self.generator = try c.ifPresent("generator")
+    self.jobId = try c.ifPresent("jobId")
+    self.isDraft = try c.ifPresent("isDraft")
+    self.cloneToken = try c.ifPresent("cloneToken")
+    self.archiveOriginal = try c.ifPresent("archiveOriginal")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.archiveOriginal, as: "archiveOriginal")
-    try c.encodeIfPresent(self.cloneToken, as: "cloneToken")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encode(self.name, as: "name")
     try c.encode(self.file, as: "file")
     try c.encode(self.format, as: "format")
-    try c.encodeIfPresent(self.generationPrompt, as: "generationPrompt")
-    try c.encodeIfPresent(self.generator, as: "generator")
-    try c.encodeIfPresent(self.isDraft, as: "isDraft")
-    try c.encodeIfPresent(self.jobId, as: "jobId")
+    try c.encode(self.storageUri, as: "storageUri")
     try c.encodeIfPresent(self.language, as: "language")
-    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
     try c.encodeIfPresent(self.sourceAnnotationId, as: "sourceAnnotationId")
     try c.encodeIfPresent(self.sourceResourceId, as: "sourceResourceId")
-    try c.encode(self.storageUri, as: "storageUri")
+    try c.encodeIfPresent(self.generationPrompt, as: "generationPrompt")
+    try c.encodeIfPresent(self.generator, as: "generator")
+    try c.encodeIfPresent(self.jobId, as: "jobId")
+    try c.encodeIfPresent(self.isDraft, as: "isDraft")
+    try c.encodeIfPresent(self.cloneToken, as: "cloneToken")
+    try c.encodeIfPresent(self.archiveOriginal, as: "archiveOriginal")
   }
 }
 
 public struct ResourceView: Codable, Sendable, Hashable {
+  public var resource: ResourceDescriptor
   public var annotations: ResourceAnnotations
   public var lastSequence: Int
-  public var resource: ResourceDescriptor
-  public init(annotations: ResourceAnnotations, lastSequence: Int, resource: ResourceDescriptor) {
+  public init(resource: ResourceDescriptor, annotations: ResourceAnnotations, lastSequence: Int) {
+    self.resource = resource
     self.annotations = annotations
     self.lastSequence = lastSequence
-    self.resource = resource
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["annotations", "lastSequence", "resource"], in: "ResourceView")
+    try c.refuseUnknown(["resource", "annotations", "lastSequence"], in: "ResourceView")
+    self.resource = try c.value("resource")
     self.annotations = try c.value("annotations")
     self.lastSequence = try c.value("lastSequence")
-    self.resource = try c.value("resource")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.resource, as: "resource")
     try c.encode(self.annotations, as: "annotations")
     try c.encode(self.lastSequence, as: "lastSequence")
-    try c.encode(self.resource, as: "resource")
   }
 }
 
@@ -14676,34 +15561,34 @@ public struct RetryRules: Codable, Sendable, Hashable {
   public var comment: String
   public var boot: RetryRulesBoot
   public var job: RetryRulesJob
-  public var refresh: RetryRulesRefresh
   public var transport: RetryRulesTransport
+  public var refresh: RetryRulesRefresh
   public init(
-    comment: String, boot: RetryRulesBoot, job: RetryRulesJob, refresh: RetryRulesRefresh,
-    transport: RetryRulesTransport
+    comment: String, boot: RetryRulesBoot, job: RetryRulesJob, transport: RetryRulesTransport,
+    refresh: RetryRulesRefresh
   ) {
     self.comment = comment
     self.boot = boot
     self.job = job
-    self.refresh = refresh
     self.transport = transport
+    self.refresh = refresh
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["$comment", "boot", "job", "refresh", "transport"], in: "RetryRules")
+    try c.refuseUnknown(["$comment", "boot", "job", "transport", "refresh"], in: "RetryRules")
     self.comment = try c.value("$comment")
     self.boot = try c.value("boot")
     self.job = try c.value("job")
-    self.refresh = try c.value("refresh")
     self.transport = try c.value("transport")
+    self.refresh = try c.value("refresh")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
     try c.encode(self.boot, as: "boot")
     try c.encode(self.job, as: "job")
-    try c.encode(self.refresh, as: "refresh")
     try c.encode(self.transport, as: "transport")
+    try c.encode(self.refresh, as: "refresh")
   }
 }
 
@@ -14724,162 +15609,162 @@ public struct RetryRulesBoot: Codable, Sendable, Hashable {
 }
 
 public struct RetryRulesJob: Codable, Sendable, Hashable {
-  public var statusFrom: HttpStatus
   public var statuses: [HttpStatus]
-  public init(statusFrom: HttpStatus, statuses: [HttpStatus]) {
-    self.statusFrom = statusFrom
+  public var statusFrom: HttpStatus
+  public init(statuses: [HttpStatus], statusFrom: HttpStatus) {
     self.statuses = statuses
+    self.statusFrom = statusFrom
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["statusFrom", "statuses"], in: "RetryRulesJob")
-    self.statusFrom = try c.value("statusFrom")
+    try c.refuseUnknown(["statuses", "statusFrom"], in: "RetryRulesJob")
     self.statuses = try c.value("statuses")
+    self.statusFrom = try c.value("statusFrom")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.statusFrom, as: "statusFrom")
     try c.encode(self.statuses, as: "statuses")
+    try c.encode(self.statusFrom, as: "statusFrom")
   }
 }
 
 public struct RetryRulesRefresh: Codable, Sendable, Hashable {
-  public var noResponse: Bool
-  public var statusFrom: HttpStatus
   public var statuses: [HttpStatus]
-  public init(noResponse: Bool, statusFrom: HttpStatus, statuses: [HttpStatus]) {
-    self.noResponse = noResponse
-    self.statusFrom = statusFrom
+  public var statusFrom: HttpStatus
+  public var noResponse: Bool
+  public init(statuses: [HttpStatus], statusFrom: HttpStatus, noResponse: Bool) {
     self.statuses = statuses
+    self.statusFrom = statusFrom
+    self.noResponse = noResponse
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["noResponse", "statusFrom", "statuses"], in: "RetryRulesRefresh")
-    self.noResponse = try c.value("noResponse")
-    self.statusFrom = try c.value("statusFrom")
+    try c.refuseUnknown(["statuses", "statusFrom", "noResponse"], in: "RetryRulesRefresh")
     self.statuses = try c.value("statuses")
+    self.statusFrom = try c.value("statusFrom")
+    self.noResponse = try c.value("noResponse")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.noResponse, as: "noResponse")
-    try c.encode(self.statusFrom, as: "statusFrom")
     try c.encode(self.statuses, as: "statuses")
+    try c.encode(self.statusFrom, as: "statusFrom")
+    try c.encode(self.noResponse, as: "noResponse")
   }
 }
 
 public struct RetryRulesTransport: Codable, Sendable, Hashable {
-  public var idempotentMethods: [String]
   public var statuses: [HttpStatus]
-  public init(idempotentMethods: [String], statuses: [HttpStatus]) {
-    self.idempotentMethods = idempotentMethods
+  public var idempotentMethods: [String]
+  public init(statuses: [HttpStatus], idempotentMethods: [String]) {
     self.statuses = statuses
+    self.idempotentMethods = idempotentMethods
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["idempotentMethods", "statuses"], in: "RetryRulesTransport")
-    self.idempotentMethods = try c.value("idempotentMethods")
+    try c.refuseUnknown(["statuses", "idempotentMethods"], in: "RetryRulesTransport")
     self.statuses = try c.value("statuses")
+    self.idempotentMethods = try c.value("idempotentMethods")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.idempotentMethods, as: "idempotentMethods")
     try c.encode(self.statuses, as: "statuses")
+    try c.encode(self.idempotentMethods, as: "idempotentMethods")
   }
 }
 
 public struct Root: Codable, Sendable, Hashable {
-  public var codespace: String?
-  public var codespaceState: String?
+  public var placement: RootPlacement
+  public var path: String?
+  public var present: Bool?
+  public var current: RootCurrent?
+  public var registered: Bool
+  public var running: Bool
+  public var lastUsed: String?
+  public var did: String?
+  public var siteName: String?
+  public var identityError: String?
   public var config: String?
   public var configs: [String]?
-  public var current: RootCurrent?
-  public var did: String?
+  public var repo: String?
+  public var codespace: String?
+  public var codespaceState: String?
   public var forwardPort: Int?
   public var forwarded: Bool?
-  public var identityError: String?
-  public var lastUsed: String?
-  public var path: String?
-  public var placement: RootPlacement
-  public var present: Bool?
   public var reachable: Bool?
-  public var registered: Bool
-  public var repo: String?
-  public var running: Bool
-  public var siteName: String?
   public init(
-    codespace: String? = nil, codespaceState: String? = nil, config: String? = nil,
-    configs: [String]? = nil, current: RootCurrent? = nil, did: String? = nil,
-    forwardPort: Int? = nil, forwarded: Bool? = nil, identityError: String? = nil,
-    lastUsed: String? = nil, path: String? = nil, placement: RootPlacement, present: Bool? = nil,
-    reachable: Bool? = nil, registered: Bool, repo: String? = nil, running: Bool,
-    siteName: String? = nil
+    placement: RootPlacement, path: String? = nil, present: Bool? = nil,
+    current: RootCurrent? = nil, registered: Bool, running: Bool, lastUsed: String? = nil,
+    did: String? = nil, siteName: String? = nil, identityError: String? = nil,
+    config: String? = nil, configs: [String]? = nil, repo: String? = nil, codespace: String? = nil,
+    codespaceState: String? = nil, forwardPort: Int? = nil, forwarded: Bool? = nil,
+    reachable: Bool? = nil
   ) {
-    self.codespace = codespace
-    self.codespaceState = codespaceState
+    self.placement = placement
+    self.path = path
+    self.present = present
+    self.current = current
+    self.registered = registered
+    self.running = running
+    self.lastUsed = lastUsed
+    self.did = did
+    self.siteName = siteName
+    self.identityError = identityError
     self.config = config
     self.configs = configs
-    self.current = current
-    self.did = did
+    self.repo = repo
+    self.codespace = codespace
+    self.codespaceState = codespaceState
     self.forwardPort = forwardPort
     self.forwarded = forwarded
-    self.identityError = identityError
-    self.lastUsed = lastUsed
-    self.path = path
-    self.placement = placement
-    self.present = present
     self.reachable = reachable
-    self.registered = registered
-    self.repo = repo
-    self.running = running
-    self.siteName = siteName
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "codespace", "codespaceState", "config", "configs", "current", "did", "forwardPort",
-        "forwarded", "identityError", "lastUsed", "path", "placement", "present", "reachable",
-        "registered", "repo", "running", "siteName",
+        "placement", "path", "present", "current", "registered", "running", "lastUsed", "did",
+        "siteName", "identityError", "config", "configs", "repo", "codespace", "codespaceState",
+        "forwardPort", "forwarded", "reachable",
       ], in: "Root")
-    self.codespace = try c.ifPresent("codespace")
-    self.codespaceState = try c.ifPresent("codespaceState")
+    self.placement = try c.value("placement")
+    self.path = try c.ifPresent("path")
+    self.present = try c.ifPresent("present")
+    self.current = try c.ifPresent("current")
+    self.registered = try c.value("registered")
+    self.running = try c.value("running")
+    self.lastUsed = try c.ifPresent("lastUsed")
+    self.did = try c.ifPresent("did")
+    self.siteName = try c.ifPresent("siteName")
+    self.identityError = try c.ifPresent("identityError")
     self.config = try c.ifPresent("config")
     self.configs = try c.ifPresent("configs")
-    self.current = try c.ifPresent("current")
-    self.did = try c.ifPresent("did")
+    self.repo = try c.ifPresent("repo")
+    self.codespace = try c.ifPresent("codespace")
+    self.codespaceState = try c.ifPresent("codespaceState")
     self.forwardPort = try c.ifPresent("forwardPort")
     self.forwarded = try c.ifPresent("forwarded")
-    self.identityError = try c.ifPresent("identityError")
-    self.lastUsed = try c.ifPresent("lastUsed")
-    self.path = try c.ifPresent("path")
-    self.placement = try c.value("placement")
-    self.present = try c.ifPresent("present")
     self.reachable = try c.ifPresent("reachable")
-    self.registered = try c.value("registered")
-    self.repo = try c.ifPresent("repo")
-    self.running = try c.value("running")
-    self.siteName = try c.ifPresent("siteName")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.codespace, as: "codespace")
-    try c.encodeIfPresent(self.codespaceState, as: "codespaceState")
+    try c.encode(self.placement, as: "placement")
+    try c.encodeIfPresent(self.path, as: "path")
+    try c.encodeIfPresent(self.present, as: "present")
+    try c.encodeIfPresent(self.current, as: "current")
+    try c.encode(self.registered, as: "registered")
+    try c.encode(self.running, as: "running")
+    try c.encodeIfPresent(self.lastUsed, as: "lastUsed")
+    try c.encodeIfPresent(self.did, as: "did")
+    try c.encodeIfPresent(self.siteName, as: "siteName")
+    try c.encodeIfPresent(self.identityError, as: "identityError")
     try c.encodeIfPresent(self.config, as: "config")
     try c.encodeIfPresent(self.configs, as: "configs")
-    try c.encodeIfPresent(self.current, as: "current")
-    try c.encodeIfPresent(self.did, as: "did")
+    try c.encodeIfPresent(self.repo, as: "repo")
+    try c.encodeIfPresent(self.codespace, as: "codespace")
+    try c.encodeIfPresent(self.codespaceState, as: "codespaceState")
     try c.encodeIfPresent(self.forwardPort, as: "forwardPort")
     try c.encodeIfPresent(self.forwarded, as: "forwarded")
-    try c.encodeIfPresent(self.identityError, as: "identityError")
-    try c.encodeIfPresent(self.lastUsed, as: "lastUsed")
-    try c.encodeIfPresent(self.path, as: "path")
-    try c.encode(self.placement, as: "placement")
-    try c.encodeIfPresent(self.present, as: "present")
     try c.encodeIfPresent(self.reachable, as: "reachable")
-    try c.encode(self.registered, as: "registered")
-    try c.encodeIfPresent(self.repo, as: "repo")
-    try c.encode(self.running, as: "running")
-    try c.encodeIfPresent(self.siteName, as: "siteName")
   }
 }
 
@@ -14914,99 +15799,99 @@ public struct RootsForgetParams: Codable, Sendable, Hashable {
 }
 
 public struct RootsForgetResult: Codable, Sendable, Hashable {
-  public var directoryMissing: Bool
   public var path: String
+  public var directoryMissing: Bool
   public var persistentState: String?
-  public init(directoryMissing: Bool, path: String, persistentState: String? = nil) {
-    self.directoryMissing = directoryMissing
+  public init(path: String, directoryMissing: Bool, persistentState: String? = nil) {
     self.path = path
+    self.directoryMissing = directoryMissing
     self.persistentState = persistentState
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["directoryMissing", "path", "persistentState"], in: "RootsForgetResult")
-    self.directoryMissing = try c.value("directoryMissing")
+    try c.refuseUnknown(["path", "directoryMissing", "persistentState"], in: "RootsForgetResult")
     self.path = try c.value("path")
+    self.directoryMissing = try c.value("directoryMissing")
     self.persistentState = try c.ifPresent("persistentState")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.directoryMissing, as: "directoryMissing")
     try c.encode(self.path, as: "path")
+    try c.encode(self.directoryMissing, as: "directoryMissing")
     try c.encodeIfPresent(self.persistentState, as: "persistentState")
   }
 }
 
 public struct RootsInitParams: Codable, Sendable, Hashable {
-  public var anthropicEndpoint: String?
   public var apiVersion: ApiVersion
-  public var configName: String?
+  public var path: String
   public var domain: String
-  public var embedding: String?
+  public var name: String?
+  public var siteName: String?
   public var inference: RootsInitParamsInference?
   public var model: String?
   public var modelLight: String?
-  public var name: String?
+  public var embedding: String?
+  public var configName: String?
+  public var anthropicEndpoint: String?
   public var ollamaBase: String?
   public var ollamaRegistry: String?
-  public var path: String
-  public var siteName: String?
   public init(
-    anthropicEndpoint: String? = nil, apiVersion: ApiVersion, configName: String? = nil,
-    domain: String, embedding: String? = nil, inference: RootsInitParamsInference? = nil,
-    model: String? = nil, modelLight: String? = nil, name: String? = nil, ollamaBase: String? = nil,
-    ollamaRegistry: String? = nil, path: String, siteName: String? = nil
+    apiVersion: ApiVersion, path: String, domain: String, name: String? = nil,
+    siteName: String? = nil, inference: RootsInitParamsInference? = nil, model: String? = nil,
+    modelLight: String? = nil, embedding: String? = nil, configName: String? = nil,
+    anthropicEndpoint: String? = nil, ollamaBase: String? = nil, ollamaRegistry: String? = nil
   ) {
-    self.anthropicEndpoint = anthropicEndpoint
     self.apiVersion = apiVersion
-    self.configName = configName
+    self.path = path
     self.domain = domain
-    self.embedding = embedding
+    self.name = name
+    self.siteName = siteName
     self.inference = inference
     self.model = model
     self.modelLight = modelLight
-    self.name = name
+    self.embedding = embedding
+    self.configName = configName
+    self.anthropicEndpoint = anthropicEndpoint
     self.ollamaBase = ollamaBase
     self.ollamaRegistry = ollamaRegistry
-    self.path = path
-    self.siteName = siteName
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "anthropicEndpoint", "apiVersion", "configName", "domain", "embedding", "inference",
-        "model", "modelLight", "name", "ollamaBase", "ollamaRegistry", "path", "siteName",
+        "apiVersion", "path", "domain", "name", "siteName", "inference", "model", "modelLight",
+        "embedding", "configName", "anthropicEndpoint", "ollamaBase", "ollamaRegistry",
       ], in: "RootsInitParams")
-    self.anthropicEndpoint = try c.ifPresent("anthropicEndpoint")
     self.apiVersion = try c.value("apiVersion")
-    self.configName = try c.ifPresent("configName")
+    self.path = try c.value("path")
     self.domain = try c.value("domain")
-    self.embedding = try c.ifPresent("embedding")
+    self.name = try c.ifPresent("name")
+    self.siteName = try c.ifPresent("siteName")
     self.inference = try c.ifPresent("inference")
     self.model = try c.ifPresent("model")
     self.modelLight = try c.ifPresent("modelLight")
-    self.name = try c.ifPresent("name")
+    self.embedding = try c.ifPresent("embedding")
+    self.configName = try c.ifPresent("configName")
+    self.anthropicEndpoint = try c.ifPresent("anthropicEndpoint")
     self.ollamaBase = try c.ifPresent("ollamaBase")
     self.ollamaRegistry = try c.ifPresent("ollamaRegistry")
-    self.path = try c.value("path")
-    self.siteName = try c.ifPresent("siteName")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.anthropicEndpoint, as: "anthropicEndpoint")
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.configName, as: "configName")
+    try c.encode(self.path, as: "path")
     try c.encode(self.domain, as: "domain")
-    try c.encodeIfPresent(self.embedding, as: "embedding")
+    try c.encodeIfPresent(self.name, as: "name")
+    try c.encodeIfPresent(self.siteName, as: "siteName")
     try c.encodeIfPresent(self.inference, as: "inference")
     try c.encodeIfPresent(self.model, as: "model")
     try c.encodeIfPresent(self.modelLight, as: "modelLight")
-    try c.encodeIfPresent(self.name, as: "name")
+    try c.encodeIfPresent(self.embedding, as: "embedding")
+    try c.encodeIfPresent(self.configName, as: "configName")
+    try c.encodeIfPresent(self.anthropicEndpoint, as: "anthropicEndpoint")
     try c.encodeIfPresent(self.ollamaBase, as: "ollamaBase")
     try c.encodeIfPresent(self.ollamaRegistry, as: "ollamaRegistry")
-    try c.encode(self.path, as: "path")
-    try c.encodeIfPresent(self.siteName, as: "siteName")
   }
 }
 
@@ -15097,22 +15982,22 @@ public enum Runtime: String, Codable, Sendable, CaseIterable {
 }
 
 public struct RuntimeState: Codable, Sendable, Hashable {
-  public var found: Bool
   public var name: Runtime
-  public init(found: Bool, name: Runtime) {
-    self.found = found
+  public var found: Bool
+  public init(name: Runtime, found: Bool) {
     self.name = name
+    self.found = found
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["found", "name"], in: "RuntimeState")
-    self.found = try c.value("found")
+    try c.refuseUnknown(["name", "found"], in: "RuntimeState")
     self.name = try c.value("name")
+    self.found = try c.value("found")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.found, as: "found")
     try c.encode(self.name, as: "name")
+    try c.encode(self.found, as: "found")
   }
 }
 
@@ -15120,73 +16005,74 @@ public struct ScoredResource: Codable, Sendable, Hashable {
   public var context: ResourceDescriptorContext
   public var id: ResourceId
   public var type: OneOrMoreStrings?
+  public var name: String
+  public var description: String?
+  public var identifier: ResourceDescriptorIdentifier?
   public var about: OneOrMoreStrings?
-  public var archived: Bool?
-  public var availableFormats: [String]?
-  public var conformsTo: OneOrMoreUris?
+  public var sameAs: [String]?
+  public var isPartOf: [String]?
+  public var hasPart: [String]?
+  public var license: String?
+  public var version: String?
   public var dateCreated: String?
   public var dateModified: String?
-  public var description: String?
-  public var entityTypes: [String]?
+  public var wasDerivedFrom: ResourceDescriptorWasDerivedFrom?
+  public var wasAttributedTo: OneOrMoreAgents?
   public var generator: OneOrMoreAgents?
-  public var hasPart: [String]?
-  public var identifier: ResourceDescriptorIdentifier?
-  public var isDraft: Bool?
-  public var isPartOf: [String]?
-  public var license: String?
-  public var matchReason: String?
-  public var name: String
-  public var originatedFrom: String?
+  public var conformsTo: OneOrMoreUris?
+  public var availableFormats: [String]?
   public var representations: ResourceDescriptorRepresentations
-  public var sameAs: [String]?
-  public var score: Double?
+  public var archived: Bool?
+  public var entityTypes: [String]?
+  public var isDraft: Bool?
   public var sourceAnnotationId: AnnotationId?
   public var sourceResourceId: ResourceId?
-  public var version: String?
-  public var wasAttributedTo: OneOrMoreAgents?
-  public var wasDerivedFrom: ResourceDescriptorWasDerivedFrom?
+  public var originatedFrom: String?
+  public var score: Double?
+  public var matchReason: String?
   public var rest: [String: JSONValue]
   public init(
-    context: ResourceDescriptorContext, id: ResourceId, type: OneOrMoreStrings? = nil,
-    about: OneOrMoreStrings? = nil, archived: Bool? = nil, availableFormats: [String]? = nil,
-    conformsTo: OneOrMoreUris? = nil, dateCreated: String? = nil, dateModified: String? = nil,
-    description: String? = nil, entityTypes: [String]? = nil, generator: OneOrMoreAgents? = nil,
-    hasPart: [String]? = nil, identifier: ResourceDescriptorIdentifier? = nil, isDraft: Bool? = nil,
-    isPartOf: [String]? = nil, license: String? = nil, matchReason: String? = nil, name: String,
-    originatedFrom: String? = nil, representations: ResourceDescriptorRepresentations,
-    sameAs: [String]? = nil, score: Double? = nil, sourceAnnotationId: AnnotationId? = nil,
-    sourceResourceId: ResourceId? = nil, version: String? = nil,
-    wasAttributedTo: OneOrMoreAgents? = nil,
-    wasDerivedFrom: ResourceDescriptorWasDerivedFrom? = nil, rest: [String: JSONValue] = [:]
+    context: ResourceDescriptorContext, id: ResourceId, type: OneOrMoreStrings? = nil, name: String,
+    description: String? = nil, identifier: ResourceDescriptorIdentifier? = nil,
+    about: OneOrMoreStrings? = nil, sameAs: [String]? = nil, isPartOf: [String]? = nil,
+    hasPart: [String]? = nil, license: String? = nil, version: String? = nil,
+    dateCreated: String? = nil, dateModified: String? = nil,
+    wasDerivedFrom: ResourceDescriptorWasDerivedFrom? = nil,
+    wasAttributedTo: OneOrMoreAgents? = nil, generator: OneOrMoreAgents? = nil,
+    conformsTo: OneOrMoreUris? = nil, availableFormats: [String]? = nil,
+    representations: ResourceDescriptorRepresentations, archived: Bool? = nil,
+    entityTypes: [String]? = nil, isDraft: Bool? = nil, sourceAnnotationId: AnnotationId? = nil,
+    sourceResourceId: ResourceId? = nil, originatedFrom: String? = nil, score: Double? = nil,
+    matchReason: String? = nil, rest: [String: JSONValue] = [:]
   ) {
     self.context = context
     self.id = id
     self.type = type
+    self.name = name
+    self.description = description
+    self.identifier = identifier
     self.about = about
-    self.archived = archived
-    self.availableFormats = availableFormats
-    self.conformsTo = conformsTo
+    self.sameAs = sameAs
+    self.isPartOf = isPartOf
+    self.hasPart = hasPart
+    self.license = license
+    self.version = version
     self.dateCreated = dateCreated
     self.dateModified = dateModified
-    self.description = description
-    self.entityTypes = entityTypes
+    self.wasDerivedFrom = wasDerivedFrom
+    self.wasAttributedTo = wasAttributedTo
     self.generator = generator
-    self.hasPart = hasPart
-    self.identifier = identifier
-    self.isDraft = isDraft
-    self.isPartOf = isPartOf
-    self.license = license
-    self.matchReason = matchReason
-    self.name = name
-    self.originatedFrom = originatedFrom
+    self.conformsTo = conformsTo
+    self.availableFormats = availableFormats
     self.representations = representations
-    self.sameAs = sameAs
-    self.score = score
+    self.archived = archived
+    self.entityTypes = entityTypes
+    self.isDraft = isDraft
     self.sourceAnnotationId = sourceAnnotationId
     self.sourceResourceId = sourceResourceId
-    self.version = version
-    self.wasAttributedTo = wasAttributedTo
-    self.wasDerivedFrom = wasDerivedFrom
+    self.originatedFrom = originatedFrom
+    self.score = score
+    self.matchReason = matchReason
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
@@ -15194,37 +16080,37 @@ public struct ScoredResource: Codable, Sendable, Hashable {
     self.context = try c.value("@context")
     self.id = try c.value("@id")
     self.type = try c.ifPresent("@type")
+    self.name = try c.value("name")
+    self.description = try c.ifPresent("description")
+    self.identifier = try c.ifPresent("identifier")
     self.about = try c.ifPresent("about")
-    self.archived = try c.ifPresent("archived")
-    self.availableFormats = try c.ifPresent("availableFormats")
-    self.conformsTo = try c.ifPresent("conformsTo")
+    self.sameAs = try c.ifPresent("sameAs")
+    self.isPartOf = try c.ifPresent("isPartOf")
+    self.hasPart = try c.ifPresent("hasPart")
+    self.license = try c.ifPresent("license")
+    self.version = try c.ifPresent("version")
     self.dateCreated = try c.ifPresent("dateCreated")
     self.dateModified = try c.ifPresent("dateModified")
-    self.description = try c.ifPresent("description")
-    self.entityTypes = try c.ifPresent("entityTypes")
+    self.wasDerivedFrom = try c.ifPresent("wasDerivedFrom")
+    self.wasAttributedTo = try c.ifPresent("wasAttributedTo")
     self.generator = try c.ifPresent("generator")
-    self.hasPart = try c.ifPresent("hasPart")
-    self.identifier = try c.ifPresent("identifier")
-    self.isDraft = try c.ifPresent("isDraft")
-    self.isPartOf = try c.ifPresent("isPartOf")
-    self.license = try c.ifPresent("license")
-    self.matchReason = try c.ifPresent("matchReason")
-    self.name = try c.value("name")
-    self.originatedFrom = try c.ifPresent("originatedFrom")
+    self.conformsTo = try c.ifPresent("conformsTo")
+    self.availableFormats = try c.ifPresent("availableFormats")
     self.representations = try c.value("representations")
-    self.sameAs = try c.ifPresent("sameAs")
-    self.score = try c.ifPresent("score")
+    self.archived = try c.ifPresent("archived")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.isDraft = try c.ifPresent("isDraft")
     self.sourceAnnotationId = try c.ifPresent("sourceAnnotationId")
     self.sourceResourceId = try c.ifPresent("sourceResourceId")
-    self.version = try c.ifPresent("version")
-    self.wasAttributedTo = try c.ifPresent("wasAttributedTo")
-    self.wasDerivedFrom = try c.ifPresent("wasDerivedFrom")
+    self.originatedFrom = try c.ifPresent("originatedFrom")
+    self.score = try c.ifPresent("score")
+    self.matchReason = try c.ifPresent("matchReason")
     rest = try c.rest(excluding: [
-      "@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo",
-      "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart",
-      "identifier", "isDraft", "isPartOf", "license", "matchReason", "name", "originatedFrom",
-      "representations", "sameAs", "score", "sourceAnnotationId", "sourceResourceId", "version",
-      "wasAttributedTo", "wasDerivedFrom",
+      "@context", "@id", "@type", "name", "description", "identifier", "about", "sameAs",
+      "isPartOf", "hasPart", "license", "version", "dateCreated", "dateModified", "wasDerivedFrom",
+      "wasAttributedTo", "generator", "conformsTo", "availableFormats", "representations",
+      "archived", "entityTypes", "isDraft", "sourceAnnotationId", "sourceResourceId",
+      "originatedFrom", "score", "matchReason",
     ])
   }
   public func encode(to encoder: any Encoder) throws {
@@ -15232,40 +16118,40 @@ public struct ScoredResource: Codable, Sendable, Hashable {
     try c.encode(
       rest: rest,
       excluding: [
-        "@context", "@id", "@type", "about", "archived", "availableFormats", "conformsTo",
-        "dateCreated", "dateModified", "description", "entityTypes", "generator", "hasPart",
-        "identifier", "isDraft", "isPartOf", "license", "matchReason", "name", "originatedFrom",
-        "representations", "sameAs", "score", "sourceAnnotationId", "sourceResourceId", "version",
-        "wasAttributedTo", "wasDerivedFrom",
+        "@context", "@id", "@type", "name", "description", "identifier", "about", "sameAs",
+        "isPartOf", "hasPart", "license", "version", "dateCreated", "dateModified",
+        "wasDerivedFrom", "wasAttributedTo", "generator", "conformsTo", "availableFormats",
+        "representations", "archived", "entityTypes", "isDraft", "sourceAnnotationId",
+        "sourceResourceId", "originatedFrom", "score", "matchReason",
       ], of: "ScoredResource")
     try c.encode(self.context, as: "@context")
     try c.encode(self.id, as: "@id")
     try c.encodeIfPresent(self.type, as: "@type")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.description, as: "description")
+    try c.encodeIfPresent(self.identifier, as: "identifier")
     try c.encodeIfPresent(self.about, as: "about")
-    try c.encodeIfPresent(self.archived, as: "archived")
-    try c.encodeIfPresent(self.availableFormats, as: "availableFormats")
-    try c.encodeIfPresent(self.conformsTo, as: "conformsTo")
+    try c.encodeIfPresent(self.sameAs, as: "sameAs")
+    try c.encodeIfPresent(self.isPartOf, as: "isPartOf")
+    try c.encodeIfPresent(self.hasPart, as: "hasPart")
+    try c.encodeIfPresent(self.license, as: "license")
+    try c.encodeIfPresent(self.version, as: "version")
     try c.encodeIfPresent(self.dateCreated, as: "dateCreated")
     try c.encodeIfPresent(self.dateModified, as: "dateModified")
-    try c.encodeIfPresent(self.description, as: "description")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.wasDerivedFrom, as: "wasDerivedFrom")
+    try c.encodeIfPresent(self.wasAttributedTo, as: "wasAttributedTo")
     try c.encodeIfPresent(self.generator, as: "generator")
-    try c.encodeIfPresent(self.hasPart, as: "hasPart")
-    try c.encodeIfPresent(self.identifier, as: "identifier")
-    try c.encodeIfPresent(self.isDraft, as: "isDraft")
-    try c.encodeIfPresent(self.isPartOf, as: "isPartOf")
-    try c.encodeIfPresent(self.license, as: "license")
-    try c.encodeIfPresent(self.matchReason, as: "matchReason")
-    try c.encode(self.name, as: "name")
-    try c.encodeIfPresent(self.originatedFrom, as: "originatedFrom")
+    try c.encodeIfPresent(self.conformsTo, as: "conformsTo")
+    try c.encodeIfPresent(self.availableFormats, as: "availableFormats")
     try c.encode(self.representations, as: "representations")
-    try c.encodeIfPresent(self.sameAs, as: "sameAs")
-    try c.encodeIfPresent(self.score, as: "score")
+    try c.encodeIfPresent(self.archived, as: "archived")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.isDraft, as: "isDraft")
     try c.encodeIfPresent(self.sourceAnnotationId, as: "sourceAnnotationId")
     try c.encodeIfPresent(self.sourceResourceId, as: "sourceResourceId")
-    try c.encodeIfPresent(self.version, as: "version")
-    try c.encodeIfPresent(self.wasAttributedTo, as: "wasAttributedTo")
-    try c.encodeIfPresent(self.wasDerivedFrom, as: "wasDerivedFrom")
+    try c.encodeIfPresent(self.originatedFrom, as: "originatedFrom")
+    try c.encodeIfPresent(self.score, as: "score")
+    try c.encodeIfPresent(self.matchReason, as: "matchReason")
   }
 }
 
@@ -15290,19 +16176,46 @@ public indirect enum Selector: Codable, Sendable, Hashable {
   case textQuoteSelector(TextQuoteSelector)
   case svgSelector(SvgSelector)
   case fragmentSelector(FragmentSelector)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "start", "end"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("TextPositionSelector")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "exact"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("TextQuoteSelector")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("SvgSelector")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("FragmentSelector")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "TextPositionSelector":
-      self = .textPositionSelector(try TextPositionSelector(from: decoder))
-    case "TextQuoteSelector": self = .textQuoteSelector(try TextQuoteSelector(from: decoder))
-    case "SvgSelector": self = .svgSelector(try SvgSelector(from: decoder))
-    case "FragmentSelector": self = .fragmentSelector(try FragmentSelector(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown Selector discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "Selector", members: Self.members,
+      variants: [
+        (
+          "textPositionSelector",
+          { decoder in try Self.textPositionSelector(TextPositionSelector(from: decoder)) }
+        ),
+        (
+          "textQuoteSelector",
+          { decoder in try Self.textQuoteSelector(TextQuoteSelector(from: decoder)) }
+        ),
+        ("svgSelector", { decoder in try Self.svgSelector(SvgSelector(from: decoder)) }),
+        (
+          "fragmentSelector",
+          { decoder in try Self.fragmentSelector(FragmentSelector(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -15315,44 +16228,44 @@ public indirect enum Selector: Codable, Sendable, Hashable {
 }
 
 public struct SemanticMatch: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId?
-  public var entityTypes: [String]?
-  public var machineRead: Bool?
+  public var text: String
   public var resourceId: ResourceId
   public var resourceName: String
+  public var annotationId: AnnotationId?
   public var score: Double
-  public var text: String
+  public var entityTypes: [String]?
+  public var machineRead: Bool?
   public init(
-    annotationId: AnnotationId? = nil, entityTypes: [String]? = nil, machineRead: Bool? = nil,
-    resourceId: ResourceId, resourceName: String, score: Double, text: String
+    text: String, resourceId: ResourceId, resourceName: String, annotationId: AnnotationId? = nil,
+    score: Double, entityTypes: [String]? = nil, machineRead: Bool? = nil
   ) {
-    self.annotationId = annotationId
-    self.entityTypes = entityTypes
-    self.machineRead = machineRead
+    self.text = text
     self.resourceId = resourceId
     self.resourceName = resourceName
+    self.annotationId = annotationId
     self.score = score
-    self.text = text
+    self.entityTypes = entityTypes
+    self.machineRead = machineRead
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.ifPresent("annotationId")
-    self.entityTypes = try c.ifPresent("entityTypes")
-    self.machineRead = try c.ifPresent("machineRead")
+    self.text = try c.value("text")
     self.resourceId = try c.value("resourceId")
     self.resourceName = try c.value("resourceName")
+    self.annotationId = try c.ifPresent("annotationId")
     self.score = try c.value("score")
-    self.text = try c.value("text")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.machineRead = try c.ifPresent("machineRead")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
-    try c.encodeIfPresent(self.machineRead, as: "machineRead")
+    try c.encode(self.text, as: "text")
     try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.resourceName, as: "resourceName")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
     try c.encode(self.score, as: "score")
-    try c.encode(self.text, as: "text")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.machineRead, as: "machineRead")
   }
 }
 
@@ -15378,94 +16291,93 @@ public struct ServiceAddress: Codable, Sendable, Hashable {
 
 public struct ServiceEnvironmentBootRefusals: Codable, Sendable, Hashable {
   public var comment: String
-  public var exitCode: Int
-  public var line: String
-  public var members: [ServiceEnvironmentBootRefusalsMembersItem]
-  public var refusals: [ServiceEnvironmentBootRefusalsRefusalsItem]
   public var services: [ServiceEnvironmentBootRefusalsServicesItem]
+  public var line: String
+  public var exitCode: Int
+  public var refusals: [ServiceEnvironmentBootRefusalsRefusalsItem]
+  public var members: [ServiceEnvironmentBootRefusalsMembersItem]
   public init(
-    comment: String, exitCode: Int, line: String,
-    members: [ServiceEnvironmentBootRefusalsMembersItem],
-    refusals: [ServiceEnvironmentBootRefusalsRefusalsItem],
-    services: [ServiceEnvironmentBootRefusalsServicesItem]
+    comment: String, services: [ServiceEnvironmentBootRefusalsServicesItem], line: String,
+    exitCode: Int, refusals: [ServiceEnvironmentBootRefusalsRefusalsItem],
+    members: [ServiceEnvironmentBootRefusalsMembersItem]
   ) {
     self.comment = comment
-    self.exitCode = exitCode
-    self.line = line
-    self.members = members
-    self.refusals = refusals
     self.services = services
+    self.line = line
+    self.exitCode = exitCode
+    self.refusals = refusals
+    self.members = members
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["$comment", "exitCode", "line", "members", "refusals", "services"],
+      ["$comment", "services", "line", "exitCode", "refusals", "members"],
       in: "ServiceEnvironmentBootRefusals")
     self.comment = try c.value("$comment")
-    self.exitCode = try c.value("exitCode")
-    self.line = try c.value("line")
-    self.members = try c.value("members")
-    self.refusals = try c.value("refusals")
     self.services = try c.value("services")
+    self.line = try c.value("line")
+    self.exitCode = try c.value("exitCode")
+    self.refusals = try c.value("refusals")
+    self.members = try c.value("members")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.exitCode, as: "exitCode")
-    try c.encode(self.line, as: "line")
-    try c.encode(self.members, as: "members")
-    try c.encode(self.refusals, as: "refusals")
     try c.encode(self.services, as: "services")
+    try c.encode(self.line, as: "line")
+    try c.encode(self.exitCode, as: "exitCode")
+    try c.encode(self.refusals, as: "refusals")
+    try c.encode(self.members, as: "members")
   }
 }
 
 public struct ServiceEnvironmentBootRefusalsMembersItem: Codable, Sendable, Hashable {
-  public var line: String
   public var name: String
   public var situation: String
-  public init(line: String, name: String, situation: String) {
-    self.line = line
+  public var line: String
+  public init(name: String, situation: String, line: String) {
     self.name = name
     self.situation = situation
+    self.line = line
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["line", "name", "situation"], in: "ServiceEnvironmentBootRefusalsMembersItem")
-    self.line = try c.value("line")
+      ["name", "situation", "line"], in: "ServiceEnvironmentBootRefusalsMembersItem")
     self.name = try c.value("name")
     self.situation = try c.value("situation")
+    self.line = try c.value("line")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.line, as: "line")
     try c.encode(self.name, as: "name")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.line, as: "line")
   }
 }
 
 public struct ServiceEnvironmentBootRefusalsRefusalsItem: Codable, Sendable, Hashable {
   public var name: String
-  public var refusal: String
   public var situation: String
-  public init(name: String, refusal: String, situation: String) {
+  public var refusal: String
+  public init(name: String, situation: String, refusal: String) {
     self.name = name
-    self.refusal = refusal
     self.situation = situation
+    self.refusal = refusal
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["name", "refusal", "situation"], in: "ServiceEnvironmentBootRefusalsRefusalsItem")
+      ["name", "situation", "refusal"], in: "ServiceEnvironmentBootRefusalsRefusalsItem")
     self.name = try c.value("name")
-    self.refusal = try c.value("refusal")
     self.situation = try c.value("situation")
+    self.refusal = try c.value("refusal")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.name, as: "name")
-    try c.encode(self.refusal, as: "refusal")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.refusal, as: "refusal")
   }
 }
 
@@ -15500,44 +16412,44 @@ public struct ServiceEnvironmentVariables: Codable, Sendable, Hashable {
 }
 
 public struct ServiceEnvironmentVariablesVariablesItem: Codable, Sendable, Hashable {
-  public var effect: String
   public var name: String
-  public var providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy
-  public var readBy: ServiceEnvironmentVariablesVariablesItemReadBy
-  public var required: Bool
   public var services: [ServiceEnvironmentVariablesVariablesItemServicesItem]
+  public var readBy: ServiceEnvironmentVariablesVariablesItemReadBy
+  public var providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy
+  public var required: Bool
+  public var effect: String
   public init(
-    effect: String, name: String, providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy,
-    readBy: ServiceEnvironmentVariablesVariablesItemReadBy, required: Bool,
-    services: [ServiceEnvironmentVariablesVariablesItemServicesItem]
+    name: String, services: [ServiceEnvironmentVariablesVariablesItemServicesItem],
+    readBy: ServiceEnvironmentVariablesVariablesItemReadBy,
+    providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy, required: Bool, effect: String
   ) {
-    self.effect = effect
     self.name = name
-    self.providedBy = providedBy
-    self.readBy = readBy
-    self.required = required
     self.services = services
+    self.readBy = readBy
+    self.providedBy = providedBy
+    self.required = required
+    self.effect = effect
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["effect", "name", "providedBy", "readBy", "required", "services"],
+      ["name", "services", "readBy", "providedBy", "required", "effect"],
       in: "ServiceEnvironmentVariablesVariablesItem")
-    self.effect = try c.value("effect")
     self.name = try c.value("name")
-    self.providedBy = try c.value("providedBy")
-    self.readBy = try c.value("readBy")
-    self.required = try c.value("required")
     self.services = try c.value("services")
+    self.readBy = try c.value("readBy")
+    self.providedBy = try c.value("providedBy")
+    self.required = try c.value("required")
+    self.effect = try c.value("effect")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.effect, as: "effect")
     try c.encode(self.name, as: "name")
-    try c.encode(self.providedBy, as: "providedBy")
-    try c.encode(self.readBy, as: "readBy")
-    try c.encode(self.required, as: "required")
     try c.encode(self.services, as: "services")
+    try c.encode(self.readBy, as: "readBy")
+    try c.encode(self.providedBy, as: "providedBy")
+    try c.encode(self.required, as: "required")
+    try c.encode(self.effect, as: "effect")
   }
 }
 
@@ -15597,22 +16509,22 @@ public struct ServiceHostParams: Codable, Sendable, Hashable {
 }
 
 public struct ServiceHostResult: Codable, Sendable, Hashable {
-  public var address: String
   public var runtime: Runtime
-  public init(address: String, runtime: Runtime) {
-    self.address = address
+  public var address: String
+  public init(runtime: Runtime, address: String) {
     self.runtime = runtime
+    self.address = address
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["address", "runtime"], in: "ServiceHostResult")
-    self.address = try c.value("address")
+    try c.refuseUnknown(["runtime", "address"], in: "ServiceHostResult")
     self.runtime = try c.value("runtime")
+    self.address = try c.value("address")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.address, as: "address")
     try c.encode(self.runtime, as: "runtime")
+    try c.encode(self.address, as: "address")
   }
 }
 
@@ -15633,154 +16545,154 @@ public struct ServiceIdentity: Codable, Sendable, Hashable {
 }
 
 public struct ServiceOutput: Codable, Sendable, Hashable {
-  public var instance: RunInstance
-  public var line: String
   public var requestId: RequestId
+  public var instance: RunInstance
   public var stream: OutputStream
-  public init(instance: RunInstance, line: String, requestId: RequestId, stream: OutputStream) {
-    self.instance = instance
-    self.line = line
+  public var line: String
+  public init(requestId: RequestId, instance: RunInstance, stream: OutputStream, line: String) {
     self.requestId = requestId
+    self.instance = instance
     self.stream = stream
+    self.line = line
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["instance", "line", "requestId", "stream"], in: "ServiceOutput")
-    self.instance = try c.value("instance")
-    self.line = try c.value("line")
+    try c.refuseUnknown(["requestId", "instance", "stream", "line"], in: "ServiceOutput")
     self.requestId = try c.value("requestId")
+    self.instance = try c.value("instance")
     self.stream = try c.value("stream")
+    self.line = try c.value("line")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.instance, as: "instance")
-    try c.encode(self.line, as: "line")
     try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.instance, as: "instance")
     try c.encode(self.stream, as: "stream")
+    try c.encode(self.line, as: "line")
   }
 }
 
 public struct ServiceRunParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var args: [String]?
-  public var document: String?
-  public var environment: [String: String]
+  public var target: LocalTarget
+  public var runtime: Runtime?
+  public var service: RunService
   public var instance: RunInstance
+  public var document: String?
+  public var args: [String]?
+  public var environment: [String: String]
   public var mounts: [String]
   public var pathFirst: [String]
   public var ports: [Int]
-  public var runtime: Runtime?
-  public var service: RunService
-  public var target: LocalTarget
   public init(
-    apiVersion: ApiVersion, args: [String]? = nil, document: String? = nil,
-    environment: [String: String], instance: RunInstance, mounts: [String], pathFirst: [String],
-    ports: [Int], runtime: Runtime? = nil, service: RunService, target: LocalTarget
+    apiVersion: ApiVersion, target: LocalTarget, runtime: Runtime? = nil, service: RunService,
+    instance: RunInstance, document: String? = nil, args: [String]? = nil,
+    environment: [String: String], mounts: [String], pathFirst: [String], ports: [Int]
   ) {
     self.apiVersion = apiVersion
-    self.args = args
-    self.document = document
-    self.environment = environment
+    self.target = target
+    self.runtime = runtime
+    self.service = service
     self.instance = instance
+    self.document = document
+    self.args = args
+    self.environment = environment
     self.mounts = mounts
     self.pathFirst = pathFirst
     self.ports = ports
-    self.runtime = runtime
-    self.service = service
-    self.target = target
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "apiVersion", "args", "document", "environment", "instance", "mounts", "pathFirst", "ports",
-        "runtime", "service", "target",
+        "apiVersion", "target", "runtime", "service", "instance", "document", "args", "environment",
+        "mounts", "pathFirst", "ports",
       ], in: "ServiceRunParams")
     self.apiVersion = try c.value("apiVersion")
-    self.args = try c.ifPresent("args")
-    self.document = try c.ifPresent("document")
-    self.environment = try c.value("environment")
+    self.target = try c.value("target")
+    self.runtime = try c.ifPresent("runtime")
+    self.service = try c.value("service")
     self.instance = try c.value("instance")
+    self.document = try c.ifPresent("document")
+    self.args = try c.ifPresent("args")
+    self.environment = try c.value("environment")
     self.mounts = try c.value("mounts")
     self.pathFirst = try c.value("pathFirst")
     self.ports = try c.value("ports")
-    self.runtime = try c.ifPresent("runtime")
-    self.service = try c.value("service")
-    self.target = try c.value("target")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.args, as: "args")
-    try c.encodeIfPresent(self.document, as: "document")
-    try c.encode(self.environment, as: "environment")
+    try c.encode(self.target, as: "target")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encode(self.service, as: "service")
     try c.encode(self.instance, as: "instance")
+    try c.encodeIfPresent(self.document, as: "document")
+    try c.encodeIfPresent(self.args, as: "args")
+    try c.encode(self.environment, as: "environment")
     try c.encode(self.mounts, as: "mounts")
     try c.encode(self.pathFirst, as: "pathFirst")
     try c.encode(self.ports, as: "ports")
-    try c.encodeIfPresent(self.runtime, as: "runtime")
-    try c.encode(self.service, as: "service")
-    try c.encode(self.target, as: "target")
   }
 }
 
 public struct ServiceRunResult: Codable, Sendable, Hashable {
-  public var exitCode: Int
   public var instance: RunInstance
+  public var exitCode: Int
   public var ranMs: Int
-  public init(exitCode: Int, instance: RunInstance, ranMs: Int) {
-    self.exitCode = exitCode
+  public init(instance: RunInstance, exitCode: Int, ranMs: Int) {
     self.instance = instance
+    self.exitCode = exitCode
     self.ranMs = ranMs
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["exitCode", "instance", "ranMs"], in: "ServiceRunResult")
-    self.exitCode = try c.value("exitCode")
+    try c.refuseUnknown(["instance", "exitCode", "ranMs"], in: "ServiceRunResult")
     self.instance = try c.value("instance")
+    self.exitCode = try c.value("exitCode")
     self.ranMs = try c.value("ranMs")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.exitCode, as: "exitCode")
     try c.encode(self.instance, as: "instance")
+    try c.encode(self.exitCode, as: "exitCode")
     try c.encode(self.ranMs, as: "ranMs")
   }
 }
 
 public struct ServiceSignalParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var instance: RunInstance
-  public var runtime: Runtime?
-  public var signal: ServiceSignalParamsSignal
   public var target: LocalTarget
+  public var runtime: Runtime?
+  public var instance: RunInstance
+  public var signal: ServiceSignalParamsSignal
   public init(
-    apiVersion: ApiVersion, instance: RunInstance, runtime: Runtime? = nil,
-    signal: ServiceSignalParamsSignal, target: LocalTarget
+    apiVersion: ApiVersion, target: LocalTarget, runtime: Runtime? = nil, instance: RunInstance,
+    signal: ServiceSignalParamsSignal
   ) {
     self.apiVersion = apiVersion
-    self.instance = instance
-    self.runtime = runtime
-    self.signal = signal
     self.target = target
+    self.runtime = runtime
+    self.instance = instance
+    self.signal = signal
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["apiVersion", "instance", "runtime", "signal", "target"], in: "ServiceSignalParams")
+      ["apiVersion", "target", "runtime", "instance", "signal"], in: "ServiceSignalParams")
     self.apiVersion = try c.value("apiVersion")
-    self.instance = try c.value("instance")
-    self.runtime = try c.ifPresent("runtime")
-    self.signal = try c.value("signal")
     self.target = try c.value("target")
+    self.runtime = try c.ifPresent("runtime")
+    self.instance = try c.value("instance")
+    self.signal = try c.value("signal")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encode(self.instance, as: "instance")
-    try c.encodeIfPresent(self.runtime, as: "runtime")
-    try c.encode(self.signal, as: "signal")
     try c.encode(self.target, as: "target")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encode(self.instance, as: "instance")
+    try c.encode(self.signal, as: "signal")
   }
 }
 
@@ -15806,106 +16718,106 @@ public struct ServiceSignalResult: Codable, Sendable, Hashable {
 }
 
 public struct ServiceStarted: Codable, Sendable, Hashable {
-  public var address: String
+  public var requestId: RequestId
+  public var instance: RunInstance
   public var container: String
   public var documentPath: String?
-  public var instance: RunInstance
-  public var requestId: RequestId
+  public var address: String
   public init(
-    address: String, container: String, documentPath: String? = nil, instance: RunInstance,
-    requestId: RequestId
+    requestId: RequestId, instance: RunInstance, container: String, documentPath: String? = nil,
+    address: String
   ) {
-    self.address = address
+    self.requestId = requestId
+    self.instance = instance
     self.container = container
     self.documentPath = documentPath
-    self.instance = instance
-    self.requestId = requestId
+    self.address = address
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["address", "container", "documentPath", "instance", "requestId"], in: "ServiceStarted")
-    self.address = try c.value("address")
+      ["requestId", "instance", "container", "documentPath", "address"], in: "ServiceStarted")
+    self.requestId = try c.value("requestId")
+    self.instance = try c.value("instance")
     self.container = try c.value("container")
     self.documentPath = try c.ifPresent("documentPath")
-    self.instance = try c.value("instance")
-    self.requestId = try c.value("requestId")
+    self.address = try c.value("address")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.address, as: "address")
+    try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.instance, as: "instance")
     try c.encode(self.container, as: "container")
     try c.encodeIfPresent(self.documentPath, as: "documentPath")
-    try c.encode(self.instance, as: "instance")
-    try c.encode(self.requestId, as: "requestId")
+    try c.encode(self.address, as: "address")
   }
 }
 
 public struct ServiceStatus: Codable, Sendable, Hashable {
-  public var containerState: String?
-  public var counted: Bool
-  public var group: ServiceGroup
-  public var healthy: Bool
-  public var page: String?
-  public var probe: String?
-  public var product: String?
-  public var realm: String?
   public var role: String
+  public var group: ServiceGroup
+  public var product: String?
   public var runsOn: String?
-  public var serves: [String]?
   public var state: ServiceStatusState
+  public var containerState: String?
+  public var healthy: Bool
+  public var counted: Bool
+  public var probe: String?
+  public var page: String?
+  public var realm: String?
+  public var serves: [String]?
   public init(
-    containerState: String? = nil, counted: Bool, group: ServiceGroup, healthy: Bool,
-    page: String? = nil, probe: String? = nil, product: String? = nil, realm: String? = nil,
-    role: String, runsOn: String? = nil, serves: [String]? = nil, state: ServiceStatusState
+    role: String, group: ServiceGroup, product: String? = nil, runsOn: String? = nil,
+    state: ServiceStatusState, containerState: String? = nil, healthy: Bool, counted: Bool,
+    probe: String? = nil, page: String? = nil, realm: String? = nil, serves: [String]? = nil
   ) {
-    self.containerState = containerState
-    self.counted = counted
-    self.group = group
-    self.healthy = healthy
-    self.page = page
-    self.probe = probe
-    self.product = product
-    self.realm = realm
     self.role = role
+    self.group = group
+    self.product = product
     self.runsOn = runsOn
-    self.serves = serves
     self.state = state
+    self.containerState = containerState
+    self.healthy = healthy
+    self.counted = counted
+    self.probe = probe
+    self.page = page
+    self.realm = realm
+    self.serves = serves
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "containerState", "counted", "group", "healthy", "page", "probe", "product", "realm",
-        "role", "runsOn", "serves", "state",
+        "role", "group", "product", "runsOn", "state", "containerState", "healthy", "counted",
+        "probe", "page", "realm", "serves",
       ], in: "ServiceStatus")
-    self.containerState = try c.ifPresent("containerState")
-    self.counted = try c.value("counted")
-    self.group = try c.value("group")
-    self.healthy = try c.value("healthy")
-    self.page = try c.ifPresent("page")
-    self.probe = try c.ifPresent("probe")
-    self.product = try c.ifPresent("product")
-    self.realm = try c.ifPresent("realm")
     self.role = try c.value("role")
+    self.group = try c.value("group")
+    self.product = try c.ifPresent("product")
     self.runsOn = try c.ifPresent("runsOn")
-    self.serves = try c.ifPresent("serves")
     self.state = try c.value("state")
+    self.containerState = try c.ifPresent("containerState")
+    self.healthy = try c.value("healthy")
+    self.counted = try c.value("counted")
+    self.probe = try c.ifPresent("probe")
+    self.page = try c.ifPresent("page")
+    self.realm = try c.ifPresent("realm")
+    self.serves = try c.ifPresent("serves")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.containerState, as: "containerState")
-    try c.encode(self.counted, as: "counted")
-    try c.encode(self.group, as: "group")
-    try c.encode(self.healthy, as: "healthy")
-    try c.encodeIfPresent(self.page, as: "page")
-    try c.encodeIfPresent(self.probe, as: "probe")
-    try c.encodeIfPresent(self.product, as: "product")
-    try c.encodeIfPresent(self.realm, as: "realm")
     try c.encode(self.role, as: "role")
+    try c.encode(self.group, as: "group")
+    try c.encodeIfPresent(self.product, as: "product")
     try c.encodeIfPresent(self.runsOn, as: "runsOn")
-    try c.encodeIfPresent(self.serves, as: "serves")
     try c.encode(self.state, as: "state")
+    try c.encodeIfPresent(self.containerState, as: "containerState")
+    try c.encode(self.healthy, as: "healthy")
+    try c.encode(self.counted, as: "counted")
+    try c.encodeIfPresent(self.probe, as: "probe")
+    try c.encodeIfPresent(self.page, as: "page")
+    try c.encodeIfPresent(self.realm, as: "realm")
+    try c.encodeIfPresent(self.serves, as: "serves")
   }
 }
 
@@ -15920,137 +16832,137 @@ public enum ServiceStatusState: String, Codable, Sendable, CaseIterable {
 
 public struct ServiceTelemetryLogLines: Codable, Sendable, Hashable {
   public var comment: String
-  public var bus: ServiceTelemetryLogLinesBus
   public var logger: ServiceTelemetryLogLinesLogger
+  public var bus: ServiceTelemetryLogLinesBus
   public var supervisor: ServiceTelemetryLogLinesSupervisor
   public init(
-    comment: String, bus: ServiceTelemetryLogLinesBus, logger: ServiceTelemetryLogLinesLogger,
+    comment: String, logger: ServiceTelemetryLogLinesLogger, bus: ServiceTelemetryLogLinesBus,
     supervisor: ServiceTelemetryLogLinesSupervisor
   ) {
     self.comment = comment
-    self.bus = bus
     self.logger = logger
+    self.bus = bus
     self.supervisor = supervisor
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["$comment", "bus", "logger", "supervisor"], in: "ServiceTelemetryLogLines")
+      ["$comment", "logger", "bus", "supervisor"], in: "ServiceTelemetryLogLines")
     self.comment = try c.value("$comment")
-    self.bus = try c.value("bus")
     self.logger = try c.value("logger")
+    self.bus = try c.value("bus")
     self.supervisor = try c.value("supervisor")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.bus, as: "bus")
     try c.encode(self.logger, as: "logger")
+    try c.encode(self.bus, as: "bus")
     try c.encode(self.supervisor, as: "supervisor")
   }
 }
 
 public struct ServiceTelemetryLogLinesBus: Codable, Sendable, Hashable {
   public var line: String
-  public var ops: [String]
   public var parts: [ServiceTelemetryLogLinesBusPartsItem]
-  public init(line: String, ops: [String], parts: [ServiceTelemetryLogLinesBusPartsItem]) {
+  public var ops: [String]
+  public init(line: String, parts: [ServiceTelemetryLogLinesBusPartsItem], ops: [String]) {
     self.line = line
-    self.ops = ops
     self.parts = parts
+    self.ops = ops
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["line", "ops", "parts"], in: "ServiceTelemetryLogLinesBus")
+    try c.refuseUnknown(["line", "parts", "ops"], in: "ServiceTelemetryLogLinesBus")
     self.line = try c.value("line")
-    self.ops = try c.value("ops")
     self.parts = try c.value("parts")
+    self.ops = try c.value("ops")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.line, as: "line")
-    try c.encode(self.ops, as: "ops")
     try c.encode(self.parts, as: "parts")
+    try c.encode(self.ops, as: "ops")
   }
 }
 
 public struct ServiceTelemetryLogLinesBusPartsItem: Codable, Sendable, Hashable {
-  public var characters: Int?
   public var part: String
   public var text: String
-  public init(characters: Int? = nil, part: String, text: String) {
-    self.characters = characters
+  public var characters: Int?
+  public init(part: String, text: String, characters: Int? = nil) {
     self.part = part
     self.text = text
+    self.characters = characters
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["characters", "part", "text"], in: "ServiceTelemetryLogLinesBusPartsItem")
-    self.characters = try c.ifPresent("characters")
+    try c.refuseUnknown(["part", "text", "characters"], in: "ServiceTelemetryLogLinesBusPartsItem")
     self.part = try c.value("part")
     self.text = try c.value("text")
+    self.characters = try c.ifPresent("characters")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.characters, as: "characters")
     try c.encode(self.part, as: "part")
     try c.encode(self.text, as: "text")
+    try c.encodeIfPresent(self.characters, as: "characters")
   }
 }
 
 public struct ServiceTelemetryLogLinesLogger: Codable, Sendable, Hashable {
-  public var json: ServiceTelemetryLogLinesLoggerJson
   public var services: [ServiceTelemetryLogLinesLoggerServicesItem]
+  public var json: ServiceTelemetryLogLinesLoggerJson
   public var simple: String
   public init(
-    json: ServiceTelemetryLogLinesLoggerJson,
-    services: [ServiceTelemetryLogLinesLoggerServicesItem], simple: String
+    services: [ServiceTelemetryLogLinesLoggerServicesItem],
+    json: ServiceTelemetryLogLinesLoggerJson, simple: String
   ) {
-    self.json = json
     self.services = services
+    self.json = json
     self.simple = simple
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["json", "services", "simple"], in: "ServiceTelemetryLogLinesLogger")
-    self.json = try c.value("json")
+    try c.refuseUnknown(["services", "json", "simple"], in: "ServiceTelemetryLogLinesLogger")
     self.services = try c.value("services")
+    self.json = try c.value("json")
     self.simple = try c.value("simple")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.json, as: "json")
     try c.encode(self.services, as: "services")
+    try c.encode(self.json, as: "json")
     try c.encode(self.simple, as: "simple")
   }
 }
 
 public struct ServiceTelemetryLogLinesLoggerJson: Codable, Sendable, Hashable {
   public var first: [String]
-  public var last: String
   public var requestId: String
   public var trace: [String]
-  public init(first: [String], last: String, requestId: String, trace: [String]) {
+  public var last: String
+  public init(first: [String], requestId: String, trace: [String], last: String) {
     self.first = first
-    self.last = last
     self.requestId = requestId
     self.trace = trace
+    self.last = last
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["first", "last", "requestId", "trace"], in: "ServiceTelemetryLogLinesLoggerJson")
+      ["first", "requestId", "trace", "last"], in: "ServiceTelemetryLogLinesLoggerJson")
     self.first = try c.value("first")
-    self.last = try c.value("last")
     self.requestId = try c.value("requestId")
     self.trace = try c.value("trace")
+    self.last = try c.value("last")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.first, as: "first")
-    try c.encode(self.last, as: "last")
     try c.encode(self.requestId, as: "requestId")
     try c.encode(self.trace, as: "trace")
+    try c.encode(self.last, as: "last")
   }
 }
 
@@ -16061,107 +16973,106 @@ public enum ServiceTelemetryLogLinesLoggerServicesItem: String, Codable, Sendabl
 }
 
 public struct ServiceTelemetryLogLinesSupervisor: Codable, Sendable, Hashable {
-  public var counted: String
   public var line: String
-  public init(counted: String, line: String) {
-    self.counted = counted
+  public var counted: String
+  public init(line: String, counted: String) {
     self.line = line
+    self.counted = counted
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["counted", "line"], in: "ServiceTelemetryLogLinesSupervisor")
-    self.counted = try c.value("counted")
+    try c.refuseUnknown(["line", "counted"], in: "ServiceTelemetryLogLinesSupervisor")
     self.line = try c.value("line")
+    self.counted = try c.value("counted")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.counted, as: "counted")
     try c.encode(self.line, as: "line")
+    try c.encode(self.counted, as: "counted")
   }
 }
 
 public struct ServiceTelemetryTelemetry: Codable, Sendable, Hashable {
   public var comment: String
-  public var metrics: [ServiceTelemetryTelemetryMetricsItem]
-  public var resource: [ServiceTelemetryTelemetryResourceItem]
   public var sdk: [String: [String]]
+  public var resource: [ServiceTelemetryTelemetryResourceItem]
   public var spans: [ServiceTelemetryTelemetrySpansItem]
+  public var metrics: [ServiceTelemetryTelemetryMetricsItem]
   public init(
-    comment: String, metrics: [ServiceTelemetryTelemetryMetricsItem],
-    resource: [ServiceTelemetryTelemetryResourceItem], sdk: [String: [String]],
-    spans: [ServiceTelemetryTelemetrySpansItem]
+    comment: String, sdk: [String: [String]], resource: [ServiceTelemetryTelemetryResourceItem],
+    spans: [ServiceTelemetryTelemetrySpansItem], metrics: [ServiceTelemetryTelemetryMetricsItem]
   ) {
     self.comment = comment
-    self.metrics = metrics
-    self.resource = resource
     self.sdk = sdk
+    self.resource = resource
     self.spans = spans
+    self.metrics = metrics
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["$comment", "metrics", "resource", "sdk", "spans"], in: "ServiceTelemetryTelemetry")
+      ["$comment", "sdk", "resource", "spans", "metrics"], in: "ServiceTelemetryTelemetry")
     self.comment = try c.value("$comment")
-    self.metrics = try c.value("metrics")
-    self.resource = try c.value("resource")
     self.sdk = try c.value("sdk")
+    self.resource = try c.value("resource")
     self.spans = try c.value("spans")
+    self.metrics = try c.value("metrics")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.metrics, as: "metrics")
-    try c.encode(self.resource, as: "resource")
     try c.encode(self.sdk, as: "sdk")
+    try c.encode(self.resource, as: "resource")
     try c.encode(self.spans, as: "spans")
+    try c.encode(self.metrics, as: "metrics")
   }
 }
 
 public struct ServiceTelemetryTelemetryMetricsItem: Codable, Sendable, Hashable {
-  public var attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem]
-  public var instrument: ServiceTelemetryTelemetryMetricsItemInstrument
-  public var meaning: String
   public var name: String
-  public var planes: [ServiceTelemetryTelemetryMetricsItemPlanesItem]?
   public var services: [ServiceTelemetryTelemetryMetricsItemServicesItem]
+  public var instrument: ServiceTelemetryTelemetryMetricsItemInstrument
   public var when: ServiceTelemetryTelemetryMetricsItemWhen
+  public var planes: [ServiceTelemetryTelemetryMetricsItemPlanesItem]?
+  public var meaning: String
+  public var attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem]
   public init(
-    attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem],
-    instrument: ServiceTelemetryTelemetryMetricsItemInstrument, meaning: String, name: String,
-    planes: [ServiceTelemetryTelemetryMetricsItemPlanesItem]? = nil,
-    services: [ServiceTelemetryTelemetryMetricsItemServicesItem],
-    when: ServiceTelemetryTelemetryMetricsItemWhen
+    name: String, services: [ServiceTelemetryTelemetryMetricsItemServicesItem],
+    instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
+    when: ServiceTelemetryTelemetryMetricsItemWhen,
+    planes: [ServiceTelemetryTelemetryMetricsItemPlanesItem]? = nil, meaning: String,
+    attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem]
   ) {
-    self.attributes = attributes
-    self.instrument = instrument
-    self.meaning = meaning
     self.name = name
-    self.planes = planes
     self.services = services
+    self.instrument = instrument
     self.when = when
+    self.planes = planes
+    self.meaning = meaning
+    self.attributes = attributes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["attributes", "instrument", "meaning", "name", "planes", "services", "when"],
+      ["name", "services", "instrument", "when", "planes", "meaning", "attributes"],
       in: "ServiceTelemetryTelemetryMetricsItem")
-    self.attributes = try c.value("attributes")
-    self.instrument = try c.value("instrument")
-    self.meaning = try c.value("meaning")
     self.name = try c.value("name")
-    self.planes = try c.ifPresent("planes")
     self.services = try c.value("services")
+    self.instrument = try c.value("instrument")
     self.when = try c.value("when")
+    self.planes = try c.ifPresent("planes")
+    self.meaning = try c.value("meaning")
+    self.attributes = try c.value("attributes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.attributes, as: "attributes")
-    try c.encode(self.instrument, as: "instrument")
-    try c.encode(self.meaning, as: "meaning")
     try c.encode(self.name, as: "name")
-    try c.encodeIfPresent(self.planes, as: "planes")
     try c.encode(self.services, as: "services")
+    try c.encode(self.instrument, as: "instrument")
     try c.encode(self.when, as: "when")
+    try c.encodeIfPresent(self.planes, as: "planes")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encode(self.attributes, as: "attributes")
   }
 }
 
@@ -16198,20 +17109,22 @@ public indirect enum ServiceTelemetryTelemetryMetricsItemAttributesItemValuesIte
 {
   case text(String)
   case boolean(Bool)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .boolean, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? Bool(from: decoder) {
-      self = .boolean(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription:
-          "no member of ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem",
+      members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("boolean", { decoder in try Self.boolean(Bool(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -16255,34 +17168,34 @@ public enum ServiceTelemetryTelemetryMetricsItemWhen: String, Codable, Sendable,
 }
 
 public struct ServiceTelemetryTelemetryResourceItem: Codable, Sendable, Hashable {
-  public var `default`: String?
   public var key: String
-  public var meaning: String
   public var services: [ServiceTelemetryTelemetryResourceItemServicesItem]
+  public var meaning: String
+  public var `default`: String?
   public init(
-    `default`: String? = nil, key: String, meaning: String,
-    services: [ServiceTelemetryTelemetryResourceItemServicesItem]
+    key: String, services: [ServiceTelemetryTelemetryResourceItemServicesItem], meaning: String,
+    `default`: String? = nil
   ) {
-    self.`default` = `default`
     self.key = key
-    self.meaning = meaning
     self.services = services
+    self.meaning = meaning
+    self.`default` = `default`
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["default", "key", "meaning", "services"], in: "ServiceTelemetryTelemetryResourceItem")
-    self.`default` = try c.ifPresent("default")
+      ["key", "services", "meaning", "default"], in: "ServiceTelemetryTelemetryResourceItem")
     self.key = try c.value("key")
-    self.meaning = try c.value("meaning")
     self.services = try c.value("services")
+    self.meaning = try c.value("meaning")
+    self.`default` = try c.ifPresent("default")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.`default`, as: "default")
     try c.encode(self.key, as: "key")
-    try c.encode(self.meaning, as: "meaning")
     try c.encode(self.services, as: "services")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encodeIfPresent(self.`default`, as: "default")
   }
 }
 
@@ -16299,45 +17212,44 @@ public enum ServiceTelemetryTelemetryResourceItemServicesItem: String, Codable, 
 }
 
 public struct ServiceTelemetryTelemetrySpansItem: Codable, Sendable, Hashable {
-  public var attributes: [ServiceTelemetryTelemetrySpansItemAttributesItem]
-  public var kind: ServiceTelemetryTelemetrySpansItemKind
-  public var meaning: String
   public var name: String
   public var services: [ServiceTelemetryTelemetrySpansItemServicesItem]
+  public var kind: ServiceTelemetryTelemetrySpansItemKind
   public var when: ServiceTelemetryTelemetrySpansItemWhen
+  public var meaning: String
+  public var attributes: [ServiceTelemetryTelemetrySpansItemAttributesItem]
   public init(
-    attributes: [ServiceTelemetryTelemetrySpansItemAttributesItem],
-    kind: ServiceTelemetryTelemetrySpansItemKind, meaning: String, name: String,
-    services: [ServiceTelemetryTelemetrySpansItemServicesItem],
-    when: ServiceTelemetryTelemetrySpansItemWhen
+    name: String, services: [ServiceTelemetryTelemetrySpansItemServicesItem],
+    kind: ServiceTelemetryTelemetrySpansItemKind, when: ServiceTelemetryTelemetrySpansItemWhen,
+    meaning: String, attributes: [ServiceTelemetryTelemetrySpansItemAttributesItem]
   ) {
-    self.attributes = attributes
-    self.kind = kind
-    self.meaning = meaning
     self.name = name
     self.services = services
+    self.kind = kind
     self.when = when
+    self.meaning = meaning
+    self.attributes = attributes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["attributes", "kind", "meaning", "name", "services", "when"],
+      ["name", "services", "kind", "when", "meaning", "attributes"],
       in: "ServiceTelemetryTelemetrySpansItem")
-    self.attributes = try c.value("attributes")
-    self.kind = try c.value("kind")
-    self.meaning = try c.value("meaning")
     self.name = try c.value("name")
     self.services = try c.value("services")
+    self.kind = try c.value("kind")
     self.when = try c.value("when")
+    self.meaning = try c.value("meaning")
+    self.attributes = try c.value("attributes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.attributes, as: "attributes")
-    try c.encode(self.kind, as: "kind")
-    try c.encode(self.meaning, as: "meaning")
     try c.encode(self.name, as: "name")
     try c.encode(self.services, as: "services")
+    try c.encode(self.kind, as: "kind")
     try c.encode(self.when, as: "when")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encode(self.attributes, as: "attributes")
   }
 }
 
@@ -16374,20 +17286,22 @@ public indirect enum ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem:
 {
   case text(String)
   case boolean(Bool)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .boolean, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? Bool(from: decoder) {
-      self = .boolean(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription:
-          "no member of ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem",
+      members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("boolean", { decoder in try Self.boolean(Bool(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -16424,22 +17338,22 @@ public enum ServiceTelemetryTelemetrySpansItemWhen: String, Codable, Sendable, C
 }
 
 public struct Session: Codable, Sendable, Hashable {
-  public var email: String?
   public var state: SessionState
-  public init(email: String? = nil, state: SessionState) {
-    self.email = email
+  public var email: String?
+  public init(state: SessionState, email: String? = nil) {
     self.state = state
+    self.email = email
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["email", "state"], in: "Session")
-    self.email = try c.ifPresent("email")
+    try c.refuseUnknown(["state", "email"], in: "Session")
     self.state = try c.value("state")
+    self.email = try c.ifPresent("email")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.email, as: "email")
     try c.encode(self.state, as: "state")
+    try c.encodeIfPresent(self.email, as: "email")
   }
 }
 
@@ -16465,40 +17379,40 @@ public struct SessionEnded: Codable, Sendable, Hashable {
 }
 
 public struct SessionJoinedEvent: Codable, Sendable, Hashable {
-  public var connectionId: String
   public var participant: UserId
-  public init(connectionId: String, participant: UserId) {
-    self.connectionId = connectionId
+  public var connectionId: String
+  public init(participant: UserId, connectionId: String) {
     self.participant = participant
+    self.connectionId = connectionId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.connectionId = try c.value("connectionId")
     self.participant = try c.value("participant")
+    self.connectionId = try c.value("connectionId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.connectionId, as: "connectionId")
     try c.encode(self.participant, as: "participant")
+    try c.encode(self.connectionId, as: "connectionId")
   }
 }
 
 public struct SessionLeftEvent: Codable, Sendable, Hashable {
-  public var connectionId: String
   public var participant: UserId
-  public init(connectionId: String, participant: UserId) {
-    self.connectionId = connectionId
+  public var connectionId: String
+  public init(participant: UserId, connectionId: String) {
     self.participant = participant
+    self.connectionId = connectionId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.connectionId = try c.value("connectionId")
     self.participant = try c.value("participant")
+    self.connectionId = try c.value("connectionId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.connectionId, as: "connectionId")
     try c.encode(self.participant, as: "participant")
+    try c.encode(self.connectionId, as: "connectionId")
   }
 }
 
@@ -16510,42 +17424,42 @@ public enum SessionState: String, Codable, Sendable, CaseIterable {
 }
 
 public struct Setting: Codable, Sendable, Hashable {
-  public var appliesTo: SettingAppliesTo
-  public var changedBy: String?
-  public var `default`: Bool
   public var name: String
-  public var settable: Bool
+  public var `default`: Bool
+  public var appliesTo: SettingAppliesTo
   public var values: [SettingLine]
+  public var settable: Bool
+  public var changedBy: String?
   public init(
-    appliesTo: SettingAppliesTo, changedBy: String? = nil, `default`: Bool, name: String,
-    settable: Bool, values: [SettingLine]
+    name: String, `default`: Bool, appliesTo: SettingAppliesTo, values: [SettingLine],
+    settable: Bool, changedBy: String? = nil
   ) {
-    self.appliesTo = appliesTo
-    self.changedBy = changedBy
-    self.`default` = `default`
     self.name = name
-    self.settable = settable
+    self.`default` = `default`
+    self.appliesTo = appliesTo
     self.values = values
+    self.settable = settable
+    self.changedBy = changedBy
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["appliesTo", "changedBy", "default", "name", "settable", "values"], in: "Setting")
-    self.appliesTo = try c.value("appliesTo")
-    self.changedBy = try c.ifPresent("changedBy")
-    self.`default` = try c.value("default")
+      ["name", "default", "appliesTo", "values", "settable", "changedBy"], in: "Setting")
     self.name = try c.value("name")
-    self.settable = try c.value("settable")
+    self.`default` = try c.value("default")
+    self.appliesTo = try c.value("appliesTo")
     self.values = try c.value("values")
+    self.settable = try c.value("settable")
+    self.changedBy = try c.ifPresent("changedBy")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.appliesTo, as: "appliesTo")
-    try c.encodeIfPresent(self.changedBy, as: "changedBy")
-    try c.encode(self.`default`, as: "default")
     try c.encode(self.name, as: "name")
-    try c.encode(self.settable, as: "settable")
+    try c.encode(self.`default`, as: "default")
+    try c.encode(self.appliesTo, as: "appliesTo")
     try c.encode(self.values, as: "values")
+    try c.encode(self.settable, as: "settable")
+    try c.encodeIfPresent(self.changedBy, as: "changedBy")
   }
 }
 
@@ -16555,49 +17469,49 @@ public enum SettingAppliesTo: String, Codable, Sendable, CaseIterable {
 }
 
 public struct SettingLine: Codable, Sendable, Hashable {
-  public var source: String
   public var value: String
-  public init(source: String, value: String) {
-    self.source = source
+  public var source: String
+  public init(value: String, source: String) {
     self.value = value
+    self.source = source
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["source", "value"], in: "SettingLine")
-    self.source = try c.value("source")
+    try c.refuseUnknown(["value", "source"], in: "SettingLine")
     self.value = try c.value("value")
+    self.source = try c.value("source")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.source, as: "source")
     try c.encode(self.value, as: "value")
+    try c.encode(self.source, as: "source")
   }
 }
 
 public struct SettingsGetParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var `default`: Bool?
   public var name: String
+  public var `default`: Bool?
   public var root: String?
-  public init(apiVersion: ApiVersion, `default`: Bool? = nil, name: String, root: String? = nil) {
+  public init(apiVersion: ApiVersion, name: String, `default`: Bool? = nil, root: String? = nil) {
     self.apiVersion = apiVersion
-    self.`default` = `default`
     self.name = name
+    self.`default` = `default`
     self.root = root
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiVersion", "default", "name", "root"], in: "SettingsGetParams")
+    try c.refuseUnknown(["apiVersion", "name", "default", "root"], in: "SettingsGetParams")
     self.apiVersion = try c.value("apiVersion")
-    self.`default` = try c.ifPresent("default")
     self.name = try c.value("name")
+    self.`default` = try c.ifPresent("default")
     self.root = try c.ifPresent("root")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.`default`, as: "default")
     try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.`default`, as: "default")
     try c.encodeIfPresent(self.root, as: "root")
   }
 }
@@ -16639,25 +17553,25 @@ public struct SettingsListParams: Codable, Sendable, Hashable {
 
 public struct SettingsListResult: Codable, Sendable, Hashable {
   public var root: String?
-  public var settings: [Setting]
   public var unresolved: String?
-  public init(root: String? = nil, settings: [Setting], unresolved: String? = nil) {
+  public var settings: [Setting]
+  public init(root: String? = nil, unresolved: String? = nil, settings: [Setting]) {
     self.root = root
-    self.settings = settings
     self.unresolved = unresolved
+    self.settings = settings
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["root", "settings", "unresolved"], in: "SettingsListResult")
+    try c.refuseUnknown(["root", "unresolved", "settings"], in: "SettingsListResult")
     self.root = try c.ifPresent("root")
-    self.settings = try c.value("settings")
     self.unresolved = try c.ifPresent("unresolved")
+    self.settings = try c.value("settings")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self.root, as: "root")
-    try c.encode(self.settings, as: "settings")
     try c.encodeIfPresent(self.unresolved, as: "unresolved")
+    try c.encode(self.settings, as: "settings")
   }
 }
 
@@ -16721,34 +17635,34 @@ public struct SettingsPathResult: Codable, Sendable, Hashable {
 
 public struct SettingsSetParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var `default`: Bool?
   public var name: String
+  public var `default`: Bool?
   public var root: String?
   public var value: String
   public init(
-    apiVersion: ApiVersion, `default`: Bool? = nil, name: String, root: String? = nil, value: String
+    apiVersion: ApiVersion, name: String, `default`: Bool? = nil, root: String? = nil, value: String
   ) {
     self.apiVersion = apiVersion
-    self.`default` = `default`
     self.name = name
+    self.`default` = `default`
     self.root = root
     self.value = value
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["apiVersion", "default", "name", "root", "value"], in: "SettingsSetParams")
+      ["apiVersion", "name", "default", "root", "value"], in: "SettingsSetParams")
     self.apiVersion = try c.value("apiVersion")
-    self.`default` = try c.ifPresent("default")
     self.name = try c.value("name")
+    self.`default` = try c.ifPresent("default")
     self.root = try c.ifPresent("root")
     self.value = try c.value("value")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.`default`, as: "default")
     try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.`default`, as: "default")
     try c.encodeIfPresent(self.root, as: "root")
     try c.encode(self.value, as: "value")
   }
@@ -16777,185 +17691,185 @@ public enum SettingsThemeChangedEventTheme: String, Codable, Sendable, CaseItera
 
 public struct SettingsUnsetParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var `default`: Bool?
   public var name: String
+  public var `default`: Bool?
   public var root: String?
-  public init(apiVersion: ApiVersion, `default`: Bool? = nil, name: String, root: String? = nil) {
+  public init(apiVersion: ApiVersion, name: String, `default`: Bool? = nil, root: String? = nil) {
     self.apiVersion = apiVersion
-    self.`default` = `default`
     self.name = name
+    self.`default` = `default`
     self.root = root
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiVersion", "default", "name", "root"], in: "SettingsUnsetParams")
+    try c.refuseUnknown(["apiVersion", "name", "default", "root"], in: "SettingsUnsetParams")
     self.apiVersion = try c.value("apiVersion")
-    self.`default` = try c.ifPresent("default")
     self.name = try c.value("name")
+    self.`default` = try c.ifPresent("default")
     self.root = try c.ifPresent("root")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.`default`, as: "default")
     try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.`default`, as: "default")
     try c.encodeIfPresent(self.root, as: "root")
   }
 }
 
 public struct SignIn: Codable, Sendable, Hashable {
+  public var token: String
+  public var refreshToken: String?
   public var email: String?
+  public var obtainedAt: String
   public var expiresAt: String?
   public var issuer: String
-  public var obtainedAt: String
-  public var refreshToken: String?
-  public var revocationEndpoint: String?
-  public var token: String
   public var tokenEndpoint: String
+  public var revocationEndpoint: String?
   public init(
-    email: String? = nil, expiresAt: String? = nil, issuer: String, obtainedAt: String,
-    refreshToken: String? = nil, revocationEndpoint: String? = nil, token: String,
-    tokenEndpoint: String
+    token: String, refreshToken: String? = nil, email: String? = nil, obtainedAt: String,
+    expiresAt: String? = nil, issuer: String, tokenEndpoint: String,
+    revocationEndpoint: String? = nil
   ) {
+    self.token = token
+    self.refreshToken = refreshToken
     self.email = email
+    self.obtainedAt = obtainedAt
     self.expiresAt = expiresAt
     self.issuer = issuer
-    self.obtainedAt = obtainedAt
-    self.refreshToken = refreshToken
-    self.revocationEndpoint = revocationEndpoint
-    self.token = token
     self.tokenEndpoint = tokenEndpoint
+    self.revocationEndpoint = revocationEndpoint
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.token = try c.value("token")
+    self.refreshToken = try c.ifPresent("refreshToken")
     self.email = try c.ifPresent("email")
+    self.obtainedAt = try c.value("obtainedAt")
     self.expiresAt = try c.ifPresent("expiresAt")
     self.issuer = try c.value("issuer")
-    self.obtainedAt = try c.value("obtainedAt")
-    self.refreshToken = try c.ifPresent("refreshToken")
-    self.revocationEndpoint = try c.ifPresent("revocationEndpoint")
-    self.token = try c.value("token")
     self.tokenEndpoint = try c.value("tokenEndpoint")
+    self.revocationEndpoint = try c.ifPresent("revocationEndpoint")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.token, as: "token")
+    try c.encodeIfPresent(self.refreshToken, as: "refreshToken")
     try c.encodeIfPresent(self.email, as: "email")
+    try c.encode(self.obtainedAt, as: "obtainedAt")
     try c.encodeIfPresent(self.expiresAt, as: "expiresAt")
     try c.encode(self.issuer, as: "issuer")
-    try c.encode(self.obtainedAt, as: "obtainedAt")
-    try c.encodeIfPresent(self.refreshToken, as: "refreshToken")
-    try c.encodeIfPresent(self.revocationEndpoint, as: "revocationEndpoint")
-    try c.encode(self.token, as: "token")
     try c.encode(self.tokenEndpoint, as: "tokenEndpoint")
+    try c.encodeIfPresent(self.revocationEndpoint, as: "revocationEndpoint")
   }
 }
 
 public struct SignInOutcome: Codable, Sendable, Hashable {
-  public var expected: Expected?
   public var kb: KnowledgeBase
-  public init(expected: Expected? = nil, kb: KnowledgeBase) {
-    self.expected = expected
+  public var expected: Expected?
+  public init(kb: KnowledgeBase, expected: Expected? = nil) {
     self.kb = kb
+    self.expected = expected
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["expected", "kb"], in: "SignInOutcome")
-    self.expected = try c.ifPresent("expected")
+    try c.refuseUnknown(["kb", "expected"], in: "SignInOutcome")
     self.kb = try c.value("kb")
+    self.expected = try c.ifPresent("expected")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.expected, as: "expected")
     try c.encode(self.kb, as: "kb")
+    try c.encodeIfPresent(self.expected, as: "expected")
   }
 }
 
 public struct SignedIn: Codable, Sendable, Hashable {
-  public var description: KbDescription
   public var endpoint: KbEndpoint
+  public var description: KbDescription
+  public var session: StoredSession
+  public var kbId: String?
   public var expectedDid: String?
   public var expectedName: String?
-  public var kbId: String?
-  public var session: StoredSession
   public init(
-    description: KbDescription, endpoint: KbEndpoint, expectedDid: String? = nil,
-    expectedName: String? = nil, kbId: String? = nil, session: StoredSession
+    endpoint: KbEndpoint, description: KbDescription, session: StoredSession, kbId: String? = nil,
+    expectedDid: String? = nil, expectedName: String? = nil
   ) {
-    self.description = description
     self.endpoint = endpoint
+    self.description = description
+    self.session = session
+    self.kbId = kbId
     self.expectedDid = expectedDid
     self.expectedName = expectedName
-    self.kbId = kbId
-    self.session = session
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["description", "endpoint", "expectedDid", "expectedName", "kbId", "session"], in: "SignedIn")
-    self.description = try c.value("description")
+      ["endpoint", "description", "session", "kbId", "expectedDid", "expectedName"], in: "SignedIn")
     self.endpoint = try c.value("endpoint")
+    self.description = try c.value("description")
+    self.session = try c.value("session")
+    self.kbId = try c.ifPresent("kbId")
     self.expectedDid = try c.ifPresent("expectedDid")
     self.expectedName = try c.ifPresent("expectedName")
-    self.kbId = try c.ifPresent("kbId")
-    self.session = try c.value("session")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.description, as: "description")
     try c.encode(self.endpoint, as: "endpoint")
+    try c.encode(self.description, as: "description")
+    try c.encode(self.session, as: "session")
+    try c.encodeIfPresent(self.kbId, as: "kbId")
     try c.encodeIfPresent(self.expectedDid, as: "expectedDid")
     try c.encodeIfPresent(self.expectedName, as: "expectedName")
-    try c.encodeIfPresent(self.kbId, as: "kbId")
-    try c.encode(self.session, as: "session")
   }
 }
 
 public struct SmeltRebuildAnchorsCommand: Codable, Sendable, Hashable {
-  public var _userId: UserId?
   public var resourceId: ResourceId?
-  public init(_userId: UserId? = nil, resourceId: ResourceId? = nil) {
-    self._userId = _userId
+  public var _userId: UserId?
+  public init(resourceId: ResourceId? = nil, _userId: UserId? = nil) {
     self.resourceId = resourceId
+    self._userId = _userId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self._userId = try c.ifPresent("_userId")
     self.resourceId = try c.ifPresent("resourceId")
+    self._userId = try c.ifPresent("_userId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._userId, as: "_userId")
     try c.encodeIfPresent(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self._userId, as: "_userId")
   }
 }
 
 public struct SmeltSettled: Codable, Sendable, Hashable {
+  public var resourceId: ResourceId
   public var contentChecksum: String
   public var outcome: SmeltSettledOutcome
   public var reason: SmeltSettledReason?
-  public var resourceId: ResourceId
   public init(
-    contentChecksum: String, outcome: SmeltSettledOutcome, reason: SmeltSettledReason? = nil,
-    resourceId: ResourceId
+    resourceId: ResourceId, contentChecksum: String, outcome: SmeltSettledOutcome,
+    reason: SmeltSettledReason? = nil
   ) {
+    self.resourceId = resourceId
     self.contentChecksum = contentChecksum
     self.outcome = outcome
     self.reason = reason
-    self.resourceId = resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.resourceId = try c.value("resourceId")
     self.contentChecksum = try c.value("contentChecksum")
     self.outcome = try c.value("outcome")
     self.reason = try c.ifPresent("reason")
-    self.resourceId = try c.value("resourceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.contentChecksum, as: "contentChecksum")
     try c.encode(self.outcome, as: "outcome")
     try c.encodeIfPresent(self.reason, as: "reason")
-    try c.encode(self.resourceId, as: "resourceId")
   }
 }
 
@@ -16994,202 +17908,202 @@ public struct SmelterChunking: Codable, Sendable, Hashable {
 }
 
 public struct SmelterConfig: Codable, Sendable, Hashable {
-  public var archivist: ServiceAddress
-  public var chunking: SmelterChunking
-  public var cursorsPath: CursorsPath
-  public var embedding: EmbeddingConfig
+  public var kb: KbIdentity
   public var gatewayUrl: String
   public var identity: ServiceIdentity
-  public var kb: KbIdentity
-  public var logFormat: LogFormat
-  public var logLevel: LogLevel
-  public var pdfsAtOnce: Int
-  public var port: Int
+  public var archivist: ServiceAddress
+  public var embedding: EmbeddingConfig
   public var vectors: VectorsConfig
+  public var chunking: SmelterChunking
+  public var pdfsAtOnce: Int
+  public var cursorsPath: CursorsPath
+  public var port: Int
+  public var logLevel: LogLevel
+  public var logFormat: LogFormat
   public init(
-    archivist: ServiceAddress, chunking: SmelterChunking, cursorsPath: CursorsPath,
-    embedding: EmbeddingConfig, gatewayUrl: String, identity: ServiceIdentity, kb: KbIdentity,
-    logFormat: LogFormat, logLevel: LogLevel, pdfsAtOnce: Int, port: Int, vectors: VectorsConfig
+    kb: KbIdentity, gatewayUrl: String, identity: ServiceIdentity, archivist: ServiceAddress,
+    embedding: EmbeddingConfig, vectors: VectorsConfig, chunking: SmelterChunking, pdfsAtOnce: Int,
+    cursorsPath: CursorsPath, port: Int, logLevel: LogLevel, logFormat: LogFormat
   ) {
-    self.archivist = archivist
-    self.chunking = chunking
-    self.cursorsPath = cursorsPath
-    self.embedding = embedding
+    self.kb = kb
     self.gatewayUrl = gatewayUrl
     self.identity = identity
-    self.kb = kb
-    self.logFormat = logFormat
-    self.logLevel = logLevel
-    self.pdfsAtOnce = pdfsAtOnce
-    self.port = port
+    self.archivist = archivist
+    self.embedding = embedding
     self.vectors = vectors
+    self.chunking = chunking
+    self.pdfsAtOnce = pdfsAtOnce
+    self.cursorsPath = cursorsPath
+    self.port = port
+    self.logLevel = logLevel
+    self.logFormat = logFormat
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "archivist", "chunking", "cursorsPath", "embedding", "gatewayUrl", "identity", "kb",
-        "logFormat", "logLevel", "pdfsAtOnce", "port", "vectors",
+        "kb", "gatewayUrl", "identity", "archivist", "embedding", "vectors", "chunking",
+        "pdfsAtOnce", "cursorsPath", "port", "logLevel", "logFormat",
       ], in: "SmelterConfig")
-    self.archivist = try c.value("archivist")
-    self.chunking = try c.value("chunking")
-    self.cursorsPath = try c.value("cursorsPath")
-    self.embedding = try c.value("embedding")
+    self.kb = try c.value("kb")
     self.gatewayUrl = try c.value("gatewayUrl")
     self.identity = try c.value("identity")
-    self.kb = try c.value("kb")
-    self.logFormat = try c.value("logFormat")
-    self.logLevel = try c.value("logLevel")
-    self.pdfsAtOnce = try c.value("pdfsAtOnce")
-    self.port = try c.value("port")
+    self.archivist = try c.value("archivist")
+    self.embedding = try c.value("embedding")
     self.vectors = try c.value("vectors")
+    self.chunking = try c.value("chunking")
+    self.pdfsAtOnce = try c.value("pdfsAtOnce")
+    self.cursorsPath = try c.value("cursorsPath")
+    self.port = try c.value("port")
+    self.logLevel = try c.value("logLevel")
+    self.logFormat = try c.value("logFormat")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.archivist, as: "archivist")
-    try c.encode(self.chunking, as: "chunking")
-    try c.encode(self.cursorsPath, as: "cursorsPath")
-    try c.encode(self.embedding, as: "embedding")
+    try c.encode(self.kb, as: "kb")
     try c.encode(self.gatewayUrl, as: "gatewayUrl")
     try c.encode(self.identity, as: "identity")
-    try c.encode(self.kb, as: "kb")
-    try c.encode(self.logFormat, as: "logFormat")
-    try c.encode(self.logLevel, as: "logLevel")
-    try c.encode(self.pdfsAtOnce, as: "pdfsAtOnce")
-    try c.encode(self.port, as: "port")
+    try c.encode(self.archivist, as: "archivist")
+    try c.encode(self.embedding, as: "embedding")
     try c.encode(self.vectors, as: "vectors")
+    try c.encode(self.chunking, as: "chunking")
+    try c.encode(self.pdfsAtOnce, as: "pdfsAtOnce")
+    try c.encode(self.cursorsPath, as: "cursorsPath")
+    try c.encode(self.port, as: "port")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.logFormat, as: "logFormat")
   }
 }
 
 public struct SmelterHealth: Codable, Sendable, Hashable {
-  public var eventsProcessed: Int
-  public var following: FollowerFollowing
-  public var index: SmelterHealthIndex
-  public var kb: KbDid
-  public var reconcile: SmelterHealthReconcile
   public let status: SmelterHealthStatus
+  public var kb: KbDid
   public var stream: SmelterHealthStream
+  public var following: FollowerFollowing
+  public var eventsProcessed: Int
+  public var reconcile: SmelterHealthReconcile
+  public var index: SmelterHealthIndex
   public init(
-    eventsProcessed: Int, following: FollowerFollowing, index: SmelterHealthIndex, kb: KbDid,
-    reconcile: SmelterHealthReconcile, stream: SmelterHealthStream
+    kb: KbDid, stream: SmelterHealthStream, following: FollowerFollowing, eventsProcessed: Int,
+    reconcile: SmelterHealthReconcile, index: SmelterHealthIndex
   ) {
-    self.eventsProcessed = eventsProcessed
-    self.following = following
-    self.index = index
-    self.kb = kb
-    self.reconcile = reconcile
     self.status = .ok
+    self.kb = kb
     self.stream = stream
+    self.following = following
+    self.eventsProcessed = eventsProcessed
+    self.reconcile = reconcile
+    self.index = index
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["eventsProcessed", "following", "index", "kb", "reconcile", "status", "stream"],
+      ["status", "kb", "stream", "following", "eventsProcessed", "reconcile", "index"],
       in: "SmelterHealth")
-    self.eventsProcessed = try c.value("eventsProcessed")
-    self.following = try c.value("following")
-    self.index = try c.value("index")
-    self.kb = try c.value("kb")
-    self.reconcile = try c.value("reconcile")
     self.status = try c.value("status")
+    self.kb = try c.value("kb")
     self.stream = try c.value("stream")
+    self.following = try c.value("following")
+    self.eventsProcessed = try c.value("eventsProcessed")
+    self.reconcile = try c.value("reconcile")
+    self.index = try c.value("index")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.eventsProcessed, as: "eventsProcessed")
-    try c.encode(self.following, as: "following")
-    try c.encode(self.index, as: "index")
-    try c.encode(self.kb, as: "kb")
-    try c.encode(self.reconcile, as: "reconcile")
     try c.encode(self.status, as: "status")
+    try c.encode(self.kb, as: "kb")
     try c.encode(self.stream, as: "stream")
+    try c.encode(self.following, as: "following")
+    try c.encode(self.eventsProcessed, as: "eventsProcessed")
+    try c.encode(self.reconcile, as: "reconcile")
+    try c.encode(self.index, as: "index")
   }
 }
 
 public struct SmelterHealthIndex: Codable, Sendable, Hashable {
-  public var madeAnew: Bool
   public var stamp: SmelterHealthIndexStamp
-  public init(madeAnew: Bool, stamp: SmelterHealthIndexStamp) {
-    self.madeAnew = madeAnew
+  public var madeAnew: Bool
+  public init(stamp: SmelterHealthIndexStamp, madeAnew: Bool) {
     self.stamp = stamp
+    self.madeAnew = madeAnew
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["madeAnew", "stamp"], in: "SmelterHealthIndex")
-    self.madeAnew = try c.value("madeAnew")
+    try c.refuseUnknown(["stamp", "madeAnew"], in: "SmelterHealthIndex")
     self.stamp = try c.value("stamp")
+    self.madeAnew = try c.value("madeAnew")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.madeAnew, as: "madeAnew")
     try c.encode(self.stamp, as: "stamp")
+    try c.encode(self.madeAnew, as: "madeAnew")
   }
 }
 
 public struct SmelterHealthIndexStamp: Codable, Sendable, Hashable {
-  public var chunking: SmelterChunking
   public var embedding: SmelterHealthIndexStampEmbedding
-  public init(chunking: SmelterChunking, embedding: SmelterHealthIndexStampEmbedding) {
-    self.chunking = chunking
+  public var chunking: SmelterChunking
+  public init(embedding: SmelterHealthIndexStampEmbedding, chunking: SmelterChunking) {
     self.embedding = embedding
+    self.chunking = chunking
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["chunking", "embedding"], in: "SmelterHealthIndexStamp")
-    self.chunking = try c.value("chunking")
+    try c.refuseUnknown(["embedding", "chunking"], in: "SmelterHealthIndexStamp")
     self.embedding = try c.value("embedding")
+    self.chunking = try c.value("chunking")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.chunking, as: "chunking")
     try c.encode(self.embedding, as: "embedding")
+    try c.encode(self.chunking, as: "chunking")
   }
 }
 
 public struct SmelterHealthIndexStampEmbedding: Codable, Sendable, Hashable {
-  public var model: String
   public var type: String
-  public init(model: String, type: String) {
-    self.model = model
+  public var model: String
+  public init(type: String, model: String) {
     self.type = type
+    self.model = model
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["model", "type"], in: "SmelterHealthIndexStampEmbedding")
-    self.model = try c.value("model")
+    try c.refuseUnknown(["type", "model"], in: "SmelterHealthIndexStampEmbedding")
     self.type = try c.value("type")
+    self.model = try c.value("model")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.model, as: "model")
     try c.encode(self.type, as: "type")
+    try c.encode(self.model, as: "model")
   }
 }
 
 public struct SmelterHealthReconcile: Codable, Sendable, Hashable {
-  public var error: String?
   public var phase: SmelterHealthReconcilePhase
   public var summary: SmelterReconcileSummary?
+  public var error: String?
   public init(
-    error: String? = nil, phase: SmelterHealthReconcilePhase,
-    summary: SmelterReconcileSummary? = nil
+    phase: SmelterHealthReconcilePhase, summary: SmelterReconcileSummary? = nil,
+    error: String? = nil
   ) {
-    self.error = error
     self.phase = phase
     self.summary = summary
+    self.error = error
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["error", "phase", "summary"], in: "SmelterHealthReconcile")
-    self.error = try c.ifPresent("error")
+    try c.refuseUnknown(["phase", "summary", "error"], in: "SmelterHealthReconcile")
     self.phase = try c.value("phase")
     self.summary = try c.ifPresent("summary")
+    self.error = try c.ifPresent("error")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.error, as: "error")
     try c.encode(self.phase, as: "phase")
     try c.encodeIfPresent(self.summary, as: "summary")
+    try c.encodeIfPresent(self.error, as: "error")
   }
 }
 
@@ -17216,168 +18130,168 @@ public enum SmelterHealthStream: String, Codable, Sendable, CaseIterable {
 
 public struct SmelterMessages: Codable, Sendable, Hashable {
   public var comment: String
-  public var logged: [SmelterMessagesLoggedItem]
   public var refusals: [SmelterMessagesRefusalsItem]
+  public var logged: [SmelterMessagesLoggedItem]
   public init(
-    comment: String, logged: [SmelterMessagesLoggedItem], refusals: [SmelterMessagesRefusalsItem]
+    comment: String, refusals: [SmelterMessagesRefusalsItem], logged: [SmelterMessagesLoggedItem]
   ) {
     self.comment = comment
-    self.logged = logged
     self.refusals = refusals
+    self.logged = logged
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["$comment", "logged", "refusals"], in: "SmelterMessages")
+    try c.refuseUnknown(["$comment", "refusals", "logged"], in: "SmelterMessages")
     self.comment = try c.value("$comment")
-    self.logged = try c.value("logged")
     self.refusals = try c.value("refusals")
+    self.logged = try c.value("logged")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
-    try c.encode(self.logged, as: "logged")
     try c.encode(self.refusals, as: "refusals")
+    try c.encode(self.logged, as: "logged")
   }
 }
 
 public struct SmelterMessagesLoggedItem: Codable, Sendable, Hashable {
-  public var carries: [String]
-  public var fields: [String: String]
-  public var level: LogLevel
-  public var message: String
   public var name: String
+  public var level: LogLevel
   public var situation: String
+  public var message: String
+  public var fields: [String: String]
+  public var carries: [String]
   public init(
-    carries: [String], fields: [String: String], level: LogLevel, message: String, name: String,
-    situation: String
+    name: String, level: LogLevel, situation: String, message: String, fields: [String: String],
+    carries: [String]
   ) {
-    self.carries = carries
-    self.fields = fields
-    self.level = level
-    self.message = message
     self.name = name
+    self.level = level
     self.situation = situation
+    self.message = message
+    self.fields = fields
+    self.carries = carries
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["carries", "fields", "level", "message", "name", "situation"],
+      ["name", "level", "situation", "message", "fields", "carries"],
       in: "SmelterMessagesLoggedItem")
-    self.carries = try c.value("carries")
-    self.fields = try c.value("fields")
-    self.level = try c.value("level")
-    self.message = try c.value("message")
     self.name = try c.value("name")
+    self.level = try c.value("level")
     self.situation = try c.value("situation")
+    self.message = try c.value("message")
+    self.fields = try c.value("fields")
+    self.carries = try c.value("carries")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.carries, as: "carries")
-    try c.encode(self.fields, as: "fields")
-    try c.encode(self.level, as: "level")
-    try c.encode(self.message, as: "message")
     try c.encode(self.name, as: "name")
+    try c.encode(self.level, as: "level")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.fields, as: "fields")
+    try c.encode(self.carries, as: "carries")
   }
 }
 
 public struct SmelterMessagesRefusalsItem: Codable, Sendable, Hashable {
-  public var message: String
   public var name: String
   public var operation: String
   public var situation: String
-  public init(message: String, name: String, operation: String, situation: String) {
-    self.message = message
+  public var message: String
+  public init(name: String, operation: String, situation: String, message: String) {
     self.name = name
     self.operation = operation
     self.situation = situation
+    self.message = message
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["message", "name", "operation", "situation"], in: "SmelterMessagesRefusalsItem")
-    self.message = try c.value("message")
+      ["name", "operation", "situation", "message"], in: "SmelterMessagesRefusalsItem")
     self.name = try c.value("name")
     self.operation = try c.value("operation")
     self.situation = try c.value("situation")
+    self.message = try c.value("message")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.message, as: "message")
     try c.encode(self.name, as: "name")
     try c.encode(self.operation, as: "operation")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.message, as: "message")
   }
 }
 
 public struct SmelterReconcileSummary: Codable, Sendable, Hashable {
-  public var annotationVectorsDeleted: Int
-  public var annotationsEmbedded: Int
-  public var annotationsRestamped: Int
-  public var resourceVectorsDeleted: Int
-  public var resourcesEligible: Int
   public var resourcesEmbedded: Int
-  public var resourcesFailed: Int
-  public var resourcesIndexed: Int
-  public var resourcesReanchored: Int
-  public var resourcesRestamped: Int
   public var resourcesSkipped: [String: Int]
   public var resourcesUnavailable: Int
+  public var resourcesFailed: Int
+  public var resourcesRestamped: Int
+  public var resourcesReanchored: Int
+  public var resourceVectorsDeleted: Int
+  public var annotationsEmbedded: Int
+  public var annotationsRestamped: Int
+  public var annotationVectorsDeleted: Int
+  public var resourcesEligible: Int
+  public var resourcesIndexed: Int
   public init(
-    annotationVectorsDeleted: Int, annotationsEmbedded: Int, annotationsRestamped: Int,
-    resourceVectorsDeleted: Int, resourcesEligible: Int, resourcesEmbedded: Int,
-    resourcesFailed: Int, resourcesIndexed: Int, resourcesReanchored: Int, resourcesRestamped: Int,
-    resourcesSkipped: [String: Int], resourcesUnavailable: Int
+    resourcesEmbedded: Int, resourcesSkipped: [String: Int], resourcesUnavailable: Int,
+    resourcesFailed: Int, resourcesRestamped: Int, resourcesReanchored: Int,
+    resourceVectorsDeleted: Int, annotationsEmbedded: Int, annotationsRestamped: Int,
+    annotationVectorsDeleted: Int, resourcesEligible: Int, resourcesIndexed: Int
   ) {
-    self.annotationVectorsDeleted = annotationVectorsDeleted
-    self.annotationsEmbedded = annotationsEmbedded
-    self.annotationsRestamped = annotationsRestamped
-    self.resourceVectorsDeleted = resourceVectorsDeleted
-    self.resourcesEligible = resourcesEligible
     self.resourcesEmbedded = resourcesEmbedded
-    self.resourcesFailed = resourcesFailed
-    self.resourcesIndexed = resourcesIndexed
-    self.resourcesReanchored = resourcesReanchored
-    self.resourcesRestamped = resourcesRestamped
     self.resourcesSkipped = resourcesSkipped
     self.resourcesUnavailable = resourcesUnavailable
+    self.resourcesFailed = resourcesFailed
+    self.resourcesRestamped = resourcesRestamped
+    self.resourcesReanchored = resourcesReanchored
+    self.resourceVectorsDeleted = resourceVectorsDeleted
+    self.annotationsEmbedded = annotationsEmbedded
+    self.annotationsRestamped = annotationsRestamped
+    self.annotationVectorsDeleted = annotationVectorsDeleted
+    self.resourcesEligible = resourcesEligible
+    self.resourcesIndexed = resourcesIndexed
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "annotationVectorsDeleted", "annotationsEmbedded", "annotationsRestamped",
-        "resourceVectorsDeleted", "resourcesEligible", "resourcesEmbedded", "resourcesFailed",
-        "resourcesIndexed", "resourcesReanchored", "resourcesRestamped", "resourcesSkipped",
-        "resourcesUnavailable",
+        "resourcesEmbedded", "resourcesSkipped", "resourcesUnavailable", "resourcesFailed",
+        "resourcesRestamped", "resourcesReanchored", "resourceVectorsDeleted",
+        "annotationsEmbedded", "annotationsRestamped", "annotationVectorsDeleted",
+        "resourcesEligible", "resourcesIndexed",
       ], in: "SmelterReconcileSummary")
-    self.annotationVectorsDeleted = try c.value("annotationVectorsDeleted")
-    self.annotationsEmbedded = try c.value("annotationsEmbedded")
-    self.annotationsRestamped = try c.value("annotationsRestamped")
-    self.resourceVectorsDeleted = try c.value("resourceVectorsDeleted")
-    self.resourcesEligible = try c.value("resourcesEligible")
     self.resourcesEmbedded = try c.value("resourcesEmbedded")
-    self.resourcesFailed = try c.value("resourcesFailed")
-    self.resourcesIndexed = try c.value("resourcesIndexed")
-    self.resourcesReanchored = try c.value("resourcesReanchored")
-    self.resourcesRestamped = try c.value("resourcesRestamped")
     self.resourcesSkipped = try c.value("resourcesSkipped")
     self.resourcesUnavailable = try c.value("resourcesUnavailable")
+    self.resourcesFailed = try c.value("resourcesFailed")
+    self.resourcesRestamped = try c.value("resourcesRestamped")
+    self.resourcesReanchored = try c.value("resourcesReanchored")
+    self.resourceVectorsDeleted = try c.value("resourceVectorsDeleted")
+    self.annotationsEmbedded = try c.value("annotationsEmbedded")
+    self.annotationsRestamped = try c.value("annotationsRestamped")
+    self.annotationVectorsDeleted = try c.value("annotationVectorsDeleted")
+    self.resourcesEligible = try c.value("resourcesEligible")
+    self.resourcesIndexed = try c.value("resourcesIndexed")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.annotationVectorsDeleted, as: "annotationVectorsDeleted")
-    try c.encode(self.annotationsEmbedded, as: "annotationsEmbedded")
-    try c.encode(self.annotationsRestamped, as: "annotationsRestamped")
-    try c.encode(self.resourceVectorsDeleted, as: "resourceVectorsDeleted")
-    try c.encode(self.resourcesEligible, as: "resourcesEligible")
     try c.encode(self.resourcesEmbedded, as: "resourcesEmbedded")
-    try c.encode(self.resourcesFailed, as: "resourcesFailed")
-    try c.encode(self.resourcesIndexed, as: "resourcesIndexed")
-    try c.encode(self.resourcesReanchored, as: "resourcesReanchored")
-    try c.encode(self.resourcesRestamped, as: "resourcesRestamped")
     try c.encode(self.resourcesSkipped, as: "resourcesSkipped")
     try c.encode(self.resourcesUnavailable, as: "resourcesUnavailable")
+    try c.encode(self.resourcesFailed, as: "resourcesFailed")
+    try c.encode(self.resourcesRestamped, as: "resourcesRestamped")
+    try c.encode(self.resourcesReanchored, as: "resourcesReanchored")
+    try c.encode(self.resourceVectorsDeleted, as: "resourceVectorsDeleted")
+    try c.encode(self.annotationsEmbedded, as: "annotationsEmbedded")
+    try c.encode(self.annotationsRestamped, as: "annotationsRestamped")
+    try c.encode(self.annotationVectorsDeleted, as: "annotationVectorsDeleted")
+    try c.encode(self.resourcesEligible, as: "resourcesEligible")
+    try c.encode(self.resourcesIndexed, as: "resourcesIndexed")
   }
 }
 
@@ -17740,25 +18654,25 @@ public struct SpecTelemetrySpansItemAttributesItem: Codable, Sendable, Hashable 
 }
 
 public struct SpecificResource: Codable, Sendable, Hashable {
-  public var purpose: BodyPurpose?
-  public var source: ResourceId
   public let type: SpecificResourceType
-  public init(purpose: BodyPurpose? = nil, source: ResourceId) {
-    self.purpose = purpose
-    self.source = source
+  public var source: ResourceId
+  public var purpose: BodyPurpose?
+  public init(source: ResourceId, purpose: BodyPurpose? = nil) {
     self.type = .specificResource
+    self.source = source
+    self.purpose = purpose
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.purpose = try c.ifPresent("purpose")
-    self.source = try c.value("source")
     self.type = try c.value("type")
+    self.source = try c.value("source")
+    self.purpose = try c.ifPresent("purpose")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.purpose, as: "purpose")
-    try c.encode(self.source, as: "source")
     try c.encode(self.type, as: "type")
+    try c.encode(self.source, as: "source")
+    try c.encodeIfPresent(self.purpose, as: "purpose")
   }
 }
 
@@ -17803,68 +18717,68 @@ public enum StackKnowledgeBaseKind: String, Codable, Sendable, CaseIterable {
 }
 
 public struct StackKnowledgeBaseSpec: Codable, Sendable, Hashable {
-  public var archivist: StackKnowledgeBaseSpecArchivist
-  public var dispatcher: StackKnowledgeBaseSpecDispatcher
-  public var gateway: StackKnowledgeBaseSpecGateway
-  public var issuer: StackKnowledgeBaseSpecIssuer
   public var logLevel: LogLevel
+  public var gateway: StackKnowledgeBaseSpecGateway
+  public var dispatcher: StackKnowledgeBaseSpecDispatcher
+  public var archivist: StackKnowledgeBaseSpecArchivist
   public var messaging: Runner
+  public var issuer: StackKnowledgeBaseSpecIssuer
   public init(
-    archivist: StackKnowledgeBaseSpecArchivist, dispatcher: StackKnowledgeBaseSpecDispatcher,
-    gateway: StackKnowledgeBaseSpecGateway, issuer: StackKnowledgeBaseSpecIssuer,
-    logLevel: LogLevel, messaging: Runner
+    logLevel: LogLevel, gateway: StackKnowledgeBaseSpecGateway,
+    dispatcher: StackKnowledgeBaseSpecDispatcher, archivist: StackKnowledgeBaseSpecArchivist,
+    messaging: Runner, issuer: StackKnowledgeBaseSpecIssuer
   ) {
-    self.archivist = archivist
-    self.dispatcher = dispatcher
-    self.gateway = gateway
-    self.issuer = issuer
     self.logLevel = logLevel
+    self.gateway = gateway
+    self.dispatcher = dispatcher
+    self.archivist = archivist
     self.messaging = messaging
+    self.issuer = issuer
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["archivist", "dispatcher", "gateway", "issuer", "logLevel", "messaging"],
+      ["logLevel", "gateway", "dispatcher", "archivist", "messaging", "issuer"],
       in: "StackKnowledgeBaseSpec")
-    self.archivist = try c.value("archivist")
-    self.dispatcher = try c.value("dispatcher")
-    self.gateway = try c.value("gateway")
-    self.issuer = try c.value("issuer")
     self.logLevel = try c.value("logLevel")
+    self.gateway = try c.value("gateway")
+    self.dispatcher = try c.value("dispatcher")
+    self.archivist = try c.value("archivist")
     self.messaging = try c.value("messaging")
+    self.issuer = try c.value("issuer")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.archivist, as: "archivist")
-    try c.encode(self.dispatcher, as: "dispatcher")
-    try c.encode(self.gateway, as: "gateway")
-    try c.encode(self.issuer, as: "issuer")
     try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.gateway, as: "gateway")
+    try c.encode(self.dispatcher, as: "dispatcher")
+    try c.encode(self.archivist, as: "archivist")
     try c.encode(self.messaging, as: "messaging")
+    try c.encode(self.issuer, as: "issuer")
   }
 }
 
 public struct StackKnowledgeBaseSpecArchivist: Codable, Sendable, Hashable {
-  public var address: HostPort?
   public var image: Image
   public var resources: Resources
-  public init(address: HostPort? = nil, image: Image, resources: Resources) {
-    self.address = address
+  public var address: HostPort?
+  public init(image: Image, resources: Resources, address: HostPort? = nil) {
     self.image = image
     self.resources = resources
+    self.address = address
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["address", "image", "resources"], in: "StackKnowledgeBaseSpecArchivist")
-    self.address = try c.ifPresent("address")
+    try c.refuseUnknown(["image", "resources", "address"], in: "StackKnowledgeBaseSpecArchivist")
     self.image = try c.value("image")
     self.resources = try c.value("resources")
+    self.address = try c.ifPresent("address")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.address, as: "address")
     try c.encode(self.image, as: "image")
     try c.encode(self.resources, as: "resources")
+    try c.encodeIfPresent(self.address, as: "address")
   }
 }
 
@@ -17890,56 +18804,56 @@ public struct StackKnowledgeBaseSpecDispatcher: Codable, Sendable, Hashable {
 
 public struct StackKnowledgeBaseSpecGateway: Codable, Sendable, Hashable {
   public var image: Image
+  public var resources: Resources
   public var port: Int
   public var publicURL: String
-  public var resources: Resources
-  public init(image: Image, port: Int, publicURL: String, resources: Resources) {
+  public init(image: Image, resources: Resources, port: Int, publicURL: String) {
     self.image = image
+    self.resources = resources
     self.port = port
     self.publicURL = publicURL
-    self.resources = resources
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["image", "port", "publicURL", "resources"], in: "StackKnowledgeBaseSpecGateway")
+      ["image", "resources", "port", "publicURL"], in: "StackKnowledgeBaseSpecGateway")
     self.image = try c.value("image")
+    self.resources = try c.value("resources")
     self.port = try c.value("port")
     self.publicURL = try c.value("publicURL")
-    self.resources = try c.value("resources")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.image, as: "image")
+    try c.encode(self.resources, as: "resources")
     try c.encode(self.port, as: "port")
     try c.encode(self.publicURL, as: "publicURL")
-    try c.encode(self.resources, as: "resources")
   }
 }
 
 public struct StackKnowledgeBaseSpecIssuer: Codable, Sendable, Hashable {
-  public var external: StackKnowledgeBaseSpecIssuerExternal?
   public var shared: StackKnowledgeBaseSpecIssuerShared?
+  public var external: StackKnowledgeBaseSpecIssuerExternal?
   public var subjectClaim: String
   public init(
-    external: StackKnowledgeBaseSpecIssuerExternal? = nil,
-    shared: StackKnowledgeBaseSpecIssuerShared? = nil, subjectClaim: String
+    shared: StackKnowledgeBaseSpecIssuerShared? = nil,
+    external: StackKnowledgeBaseSpecIssuerExternal? = nil, subjectClaim: String
   ) {
-    self.external = external
     self.shared = shared
+    self.external = external
     self.subjectClaim = subjectClaim
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["external", "shared", "subjectClaim"], in: "StackKnowledgeBaseSpecIssuer")
-    self.external = try c.ifPresent("external")
+    try c.refuseUnknown(["shared", "external", "subjectClaim"], in: "StackKnowledgeBaseSpecIssuer")
     self.shared = try c.ifPresent("shared")
+    self.external = try c.ifPresent("external")
     self.subjectClaim = try c.value("subjectClaim")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.external, as: "external")
     try c.encodeIfPresent(self.shared, as: "shared")
+    try c.encodeIfPresent(self.external, as: "external")
     try c.encode(self.subjectClaim, as: "subjectClaim")
   }
 }
@@ -17982,75 +18896,74 @@ public struct StackKnowledgeBaseSpecIssuerShared: Codable, Sendable, Hashable {
 
 public struct StackStartParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var codespaceName: String?
+  public var target: Target?
+  public var runtime: Runtime?
   public var config: String?
-  public var dryRun: Bool?
+  public var service: String?
   public var group: ServiceGroup?
-  public var idleTimeout: String?
+  public var codespaceName: String?
   public var machine: String?
+  public var idleTimeout: String?
+  public var retentionPeriod: String?
   public var observe: Bool?
   public var ollamaCache: StackStartParamsOllamaCache?
-  public var retentionPeriod: String?
-  public var runtime: Runtime?
-  public var service: String?
-  public var target: Target?
+  public var dryRun: Bool?
   public init(
-    apiVersion: ApiVersion, codespaceName: String? = nil, config: String? = nil,
-    dryRun: Bool? = nil, group: ServiceGroup? = nil, idleTimeout: String? = nil,
-    machine: String? = nil, observe: Bool? = nil, ollamaCache: StackStartParamsOllamaCache? = nil,
-    retentionPeriod: String? = nil, runtime: Runtime? = nil, service: String? = nil,
-    target: Target? = nil
+    apiVersion: ApiVersion, target: Target? = nil, runtime: Runtime? = nil, config: String? = nil,
+    service: String? = nil, group: ServiceGroup? = nil, codespaceName: String? = nil,
+    machine: String? = nil, idleTimeout: String? = nil, retentionPeriod: String? = nil,
+    observe: Bool? = nil, ollamaCache: StackStartParamsOllamaCache? = nil, dryRun: Bool? = nil
   ) {
     self.apiVersion = apiVersion
-    self.codespaceName = codespaceName
+    self.target = target
+    self.runtime = runtime
     self.config = config
-    self.dryRun = dryRun
+    self.service = service
     self.group = group
-    self.idleTimeout = idleTimeout
+    self.codespaceName = codespaceName
     self.machine = machine
+    self.idleTimeout = idleTimeout
+    self.retentionPeriod = retentionPeriod
     self.observe = observe
     self.ollamaCache = ollamaCache
-    self.retentionPeriod = retentionPeriod
-    self.runtime = runtime
-    self.service = service
-    self.target = target
+    self.dryRun = dryRun
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "apiVersion", "codespaceName", "config", "dryRun", "group", "idleTimeout", "machine",
-        "observe", "ollamaCache", "retentionPeriod", "runtime", "service", "target",
+        "apiVersion", "target", "runtime", "config", "service", "group", "codespaceName", "machine",
+        "idleTimeout", "retentionPeriod", "observe", "ollamaCache", "dryRun",
       ], in: "StackStartParams")
     self.apiVersion = try c.value("apiVersion")
-    self.codespaceName = try c.ifPresent("codespaceName")
+    self.target = try c.ifPresent("target")
+    self.runtime = try c.ifPresent("runtime")
     self.config = try c.ifPresent("config")
-    self.dryRun = try c.ifPresent("dryRun")
+    self.service = try c.ifPresent("service")
     self.group = try c.ifPresent("group")
-    self.idleTimeout = try c.ifPresent("idleTimeout")
+    self.codespaceName = try c.ifPresent("codespaceName")
     self.machine = try c.ifPresent("machine")
+    self.idleTimeout = try c.ifPresent("idleTimeout")
+    self.retentionPeriod = try c.ifPresent("retentionPeriod")
     self.observe = try c.ifPresent("observe")
     self.ollamaCache = try c.ifPresent("ollamaCache")
-    self.retentionPeriod = try c.ifPresent("retentionPeriod")
-    self.runtime = try c.ifPresent("runtime")
-    self.service = try c.ifPresent("service")
-    self.target = try c.ifPresent("target")
+    self.dryRun = try c.ifPresent("dryRun")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.codespaceName, as: "codespaceName")
+    try c.encodeIfPresent(self.target, as: "target")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
     try c.encodeIfPresent(self.config, as: "config")
-    try c.encodeIfPresent(self.dryRun, as: "dryRun")
+    try c.encodeIfPresent(self.service, as: "service")
     try c.encodeIfPresent(self.group, as: "group")
-    try c.encodeIfPresent(self.idleTimeout, as: "idleTimeout")
+    try c.encodeIfPresent(self.codespaceName, as: "codespaceName")
     try c.encodeIfPresent(self.machine, as: "machine")
+    try c.encodeIfPresent(self.idleTimeout, as: "idleTimeout")
+    try c.encodeIfPresent(self.retentionPeriod, as: "retentionPeriod")
     try c.encodeIfPresent(self.observe, as: "observe")
     try c.encodeIfPresent(self.ollamaCache, as: "ollamaCache")
-    try c.encodeIfPresent(self.retentionPeriod, as: "retentionPeriod")
-    try c.encodeIfPresent(self.runtime, as: "runtime")
-    try c.encodeIfPresent(self.service, as: "service")
-    try c.encodeIfPresent(self.target, as: "target")
+    try c.encodeIfPresent(self.dryRun, as: "dryRun")
   }
 }
 
@@ -18087,53 +19000,53 @@ public struct StackStartResult: Codable, Sendable, Hashable {
 
 public struct StackStopParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
+  public var target: Target?
+  public var runtime: Runtime?
+  public var service: String?
+  public var group: ServiceGroup?
   public var delete: Bool?
   public var deleteConfirmed: Bool?
   public var dryRun: Bool?
-  public var group: ServiceGroup?
-  public var runtime: Runtime?
-  public var service: String?
-  public var target: Target?
   public init(
-    apiVersion: ApiVersion, delete: Bool? = nil, deleteConfirmed: Bool? = nil, dryRun: Bool? = nil,
-    group: ServiceGroup? = nil, runtime: Runtime? = nil, service: String? = nil,
-    target: Target? = nil
+    apiVersion: ApiVersion, target: Target? = nil, runtime: Runtime? = nil, service: String? = nil,
+    group: ServiceGroup? = nil, delete: Bool? = nil, deleteConfirmed: Bool? = nil,
+    dryRun: Bool? = nil
   ) {
     self.apiVersion = apiVersion
+    self.target = target
+    self.runtime = runtime
+    self.service = service
+    self.group = group
     self.delete = delete
     self.deleteConfirmed = deleteConfirmed
     self.dryRun = dryRun
-    self.group = group
-    self.runtime = runtime
-    self.service = service
-    self.target = target
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "apiVersion", "delete", "deleteConfirmed", "dryRun", "group", "runtime", "service",
-        "target",
+        "apiVersion", "target", "runtime", "service", "group", "delete", "deleteConfirmed",
+        "dryRun",
       ], in: "StackStopParams")
     self.apiVersion = try c.value("apiVersion")
+    self.target = try c.ifPresent("target")
+    self.runtime = try c.ifPresent("runtime")
+    self.service = try c.ifPresent("service")
+    self.group = try c.ifPresent("group")
     self.delete = try c.ifPresent("delete")
     self.deleteConfirmed = try c.ifPresent("deleteConfirmed")
     self.dryRun = try c.ifPresent("dryRun")
-    self.group = try c.ifPresent("group")
-    self.runtime = try c.ifPresent("runtime")
-    self.service = try c.ifPresent("service")
-    self.target = try c.ifPresent("target")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encodeIfPresent(self.target, as: "target")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
+    try c.encodeIfPresent(self.service, as: "service")
+    try c.encodeIfPresent(self.group, as: "group")
     try c.encodeIfPresent(self.delete, as: "delete")
     try c.encodeIfPresent(self.deleteConfirmed, as: "deleteConfirmed")
     try c.encodeIfPresent(self.dryRun, as: "dryRun")
-    try c.encodeIfPresent(self.group, as: "group")
-    try c.encodeIfPresent(self.runtime, as: "runtime")
-    try c.encodeIfPresent(self.service, as: "service")
-    try c.encodeIfPresent(self.target, as: "target")
   }
 }
 
@@ -18164,79 +19077,79 @@ public struct StackStopResult: Codable, Sendable, Hashable {
 }
 
 public struct StatusResponse: Codable, Sendable, Hashable {
-  public var authenticatedAs: String?
-  public var features: StatusResponseFeatures
-  public var message: String
   public var status: String
   public var version: String
+  public var features: StatusResponseFeatures
+  public var message: String
+  public var authenticatedAs: String?
   public init(
-    authenticatedAs: String? = nil, features: StatusResponseFeatures, message: String,
-    status: String, version: String
+    status: String, version: String, features: StatusResponseFeatures, message: String,
+    authenticatedAs: String? = nil
   ) {
-    self.authenticatedAs = authenticatedAs
-    self.features = features
-    self.message = message
     self.status = status
     self.version = version
+    self.features = features
+    self.message = message
+    self.authenticatedAs = authenticatedAs
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.authenticatedAs = try c.ifPresent("authenticatedAs")
-    self.features = try c.value("features")
-    self.message = try c.value("message")
     self.status = try c.value("status")
     self.version = try c.value("version")
+    self.features = try c.value("features")
+    self.message = try c.value("message")
+    self.authenticatedAs = try c.ifPresent("authenticatedAs")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.authenticatedAs, as: "authenticatedAs")
-    try c.encode(self.features, as: "features")
-    try c.encode(self.message, as: "message")
     try c.encode(self.status, as: "status")
     try c.encode(self.version, as: "version")
+    try c.encode(self.features, as: "features")
+    try c.encode(self.message, as: "message")
+    try c.encodeIfPresent(self.authenticatedAs, as: "authenticatedAs")
   }
 }
 
 public struct StatusResponseFeatures: Codable, Sendable, Hashable {
-  public var collaboration: String
   public var semanticContent: String
-  public init(collaboration: String, semanticContent: String) {
-    self.collaboration = collaboration
+  public var collaboration: String
+  public init(semanticContent: String, collaboration: String) {
     self.semanticContent = semanticContent
+    self.collaboration = collaboration
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.collaboration = try c.value("collaboration")
     self.semanticContent = try c.value("semanticContent")
+    self.collaboration = try c.value("collaboration")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.collaboration, as: "collaboration")
     try c.encode(self.semanticContent, as: "semanticContent")
+    try c.encode(self.collaboration, as: "collaboration")
   }
 }
 
 public struct StatusSnapshotParams: Codable, Sendable, Hashable {
   public var apiVersion: ApiVersion
-  public var runtime: Runtime?
   public var target: Target?
-  public init(apiVersion: ApiVersion, runtime: Runtime? = nil, target: Target? = nil) {
+  public var runtime: Runtime?
+  public init(apiVersion: ApiVersion, target: Target? = nil, runtime: Runtime? = nil) {
     self.apiVersion = apiVersion
-    self.runtime = runtime
     self.target = target
+    self.runtime = runtime
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiVersion", "runtime", "target"], in: "StatusSnapshotParams")
+    try c.refuseUnknown(["apiVersion", "target", "runtime"], in: "StatusSnapshotParams")
     self.apiVersion = try c.value("apiVersion")
-    self.runtime = try c.ifPresent("runtime")
     self.target = try c.ifPresent("target")
+    self.runtime = try c.ifPresent("runtime")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.apiVersion, as: "apiVersion")
-    try c.encodeIfPresent(self.runtime, as: "runtime")
     try c.encodeIfPresent(self.target, as: "target")
+    try c.encodeIfPresent(self.runtime, as: "runtime")
   }
 }
 
@@ -18261,106 +19174,106 @@ public struct StatusSnapshotResult: Codable, Sendable, Hashable {
 }
 
 public struct StorageUriEntry: Codable, Sendable, Hashable {
-  public var resourceId: ResourceId
   public var uri: String
-  public init(resourceId: ResourceId, uri: String) {
-    self.resourceId = resourceId
+  public var resourceId: ResourceId
+  public init(uri: String, resourceId: ResourceId) {
     self.uri = uri
+    self.resourceId = resourceId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["resourceId", "uri"], in: "StorageUriEntry")
-    self.resourceId = try c.value("resourceId")
+    try c.refuseUnknown(["uri", "resourceId"], in: "StorageUriEntry")
     self.uri = try c.value("uri")
+    self.resourceId = try c.value("resourceId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.uri, as: "uri")
+    try c.encode(self.resourceId, as: "resourceId")
   }
 }
 
 public struct StoredEventResponse: Codable, Sendable, Hashable {
   public var id: String
-  public var metadata: EventMetadata
-  public var payload: [String: JSONValue]
-  public var resourceId: ResourceId?
-  public var timestamp: String
   public var type: String
+  public var timestamp: String
   public var userId: UserId
+  public var resourceId: ResourceId?
   public var version: Int
+  public var payload: [String: JSONValue]
+  public var metadata: EventMetadata
   public init(
-    id: String, metadata: EventMetadata, payload: [String: JSONValue],
-    resourceId: ResourceId? = nil, timestamp: String, type: String, userId: UserId, version: Int
+    id: String, type: String, timestamp: String, userId: UserId, resourceId: ResourceId? = nil,
+    version: Int, payload: [String: JSONValue], metadata: EventMetadata
   ) {
     self.id = id
-    self.metadata = metadata
-    self.payload = payload
-    self.resourceId = resourceId
-    self.timestamp = timestamp
     self.type = type
+    self.timestamp = timestamp
     self.userId = userId
+    self.resourceId = resourceId
     self.version = version
+    self.payload = payload
+    self.metadata = metadata
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.id = try c.value("id")
-    self.metadata = try c.value("metadata")
-    self.payload = try c.value("payload")
-    self.resourceId = try c.ifPresent("resourceId")
-    self.timestamp = try c.value("timestamp")
     self.type = try c.value("type")
+    self.timestamp = try c.value("timestamp")
     self.userId = try c.value("userId")
+    self.resourceId = try c.ifPresent("resourceId")
     self.version = try c.value("version")
+    self.payload = try c.value("payload")
+    self.metadata = try c.value("metadata")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.id, as: "id")
-    try c.encode(self.metadata, as: "metadata")
-    try c.encode(self.payload, as: "payload")
-    try c.encodeIfPresent(self.resourceId, as: "resourceId")
-    try c.encode(self.timestamp, as: "timestamp")
     try c.encode(self.type, as: "type")
+    try c.encode(self.timestamp, as: "timestamp")
     try c.encode(self.userId, as: "userId")
+    try c.encodeIfPresent(self.resourceId, as: "resourceId")
     try c.encode(self.version, as: "version")
+    try c.encode(self.payload, as: "payload")
+    try c.encode(self.metadata, as: "metadata")
   }
 }
 
 public struct StoredSession: Codable, Sendable, Hashable {
   public var access: String
-  public var clientId: String
-  public var personKey: String?
   public var refresh: String
-  public var revocationEndpoint: String?
+  public var clientId: String
   public var tokenEndpoint: String
+  public var revocationEndpoint: String?
+  public var personKey: String?
   public init(
-    access: String, clientId: String, personKey: String? = nil, refresh: String,
-    revocationEndpoint: String? = nil, tokenEndpoint: String
+    access: String, refresh: String, clientId: String, tokenEndpoint: String,
+    revocationEndpoint: String? = nil, personKey: String? = nil
   ) {
     self.access = access
-    self.clientId = clientId
-    self.personKey = personKey
     self.refresh = refresh
-    self.revocationEndpoint = revocationEndpoint
+    self.clientId = clientId
     self.tokenEndpoint = tokenEndpoint
+    self.revocationEndpoint = revocationEndpoint
+    self.personKey = personKey
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.access = try c.value("access")
-    self.clientId = try c.value("clientId")
-    self.personKey = try c.ifPresent("personKey")
     self.refresh = try c.value("refresh")
-    self.revocationEndpoint = try c.ifPresent("revocationEndpoint")
+    self.clientId = try c.value("clientId")
     self.tokenEndpoint = try c.value("tokenEndpoint")
+    self.revocationEndpoint = try c.ifPresent("revocationEndpoint")
+    self.personKey = try c.ifPresent("personKey")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.access, as: "access")
-    try c.encode(self.clientId, as: "clientId")
-    try c.encodeIfPresent(self.personKey, as: "personKey")
     try c.encode(self.refresh, as: "refresh")
-    try c.encodeIfPresent(self.revocationEndpoint, as: "revocationEndpoint")
+    try c.encode(self.clientId, as: "clientId")
     try c.encode(self.tokenEndpoint, as: "tokenEndpoint")
+    try c.encodeIfPresent(self.revocationEndpoint, as: "revocationEndpoint")
+    try c.encodeIfPresent(self.personKey, as: "personKey")
   }
 }
 
@@ -18460,17 +19373,31 @@ public indirect enum TabCheck: Codable, Sendable, Hashable {
   case gone(TabCheckGone)
   case ready(TabCheckReady)
   case unknown(TabCheckUnknown)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["verdict"], allowed: ["verdict"],
+        fixed: [.init(property: "verdict", values: [.text("gone")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["verdict", "name"], allowed: ["verdict", "name", "mediaType"],
+        fixed: [.init(property: "verdict", values: [.text("ready")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["verdict"], allowed: ["verdict"],
+        fixed: [.init(property: "verdict", values: [.text("unknown")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("verdict"))
-    switch tag {
-    case "gone": self = .gone(try TabCheckGone(from: decoder))
-    case "ready": self = .ready(try TabCheckReady(from: decoder))
-    case "unknown": self = .unknown(try TabCheckUnknown(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("verdict"), in: c, debugDescription: "unknown TabCheck discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "TabCheck", members: Self.members,
+      variants: [
+        ("gone", { decoder in try Self.gone(TabCheckGone(from: decoder)) }),
+        ("ready", { decoder in try Self.ready(TabCheckReady(from: decoder)) }),
+        ("unknown", { decoder in try Self.unknown(TabCheckUnknown(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -18498,26 +19425,26 @@ public struct TabCheckGone: Codable, Sendable, Hashable {
 }
 
 public struct TabCheckReady: Codable, Sendable, Hashable {
-  public var mediaType: String?
-  public var name: String
   public let verdict: TabVerdict
-  public init(mediaType: String? = nil, name: String) {
-    self.mediaType = mediaType
-    self.name = name
+  public var name: String
+  public var mediaType: String?
+  public init(name: String, mediaType: String? = nil) {
     self.verdict = .ready
+    self.name = name
+    self.mediaType = mediaType
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["mediaType", "name", "verdict"], in: "TabCheckReady")
-    self.mediaType = try c.ifPresent("mediaType")
-    self.name = try c.value("name")
+    try c.refuseUnknown(["verdict", "name", "mediaType"], in: "TabCheckReady")
     self.verdict = try c.value("verdict")
+    self.name = try c.value("name")
+    self.mediaType = try c.ifPresent("mediaType")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.mediaType, as: "mediaType")
-    try c.encode(self.name, as: "name")
     try c.encode(self.verdict, as: "verdict")
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.mediaType, as: "mediaType")
   }
 }
 
@@ -18544,55 +19471,55 @@ public enum TabVerdict: String, Codable, Sendable, CaseIterable {
 }
 
 public struct TagCategory: Codable, Sendable, Hashable {
+  public var name: String
   public var description: String
   public var examples: [String]
-  public var name: String
-  public init(description: String, examples: [String], name: String) {
+  public init(name: String, description: String, examples: [String]) {
+    self.name = name
     self.description = description
     self.examples = examples
-    self.name = name
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.name = try c.value("name")
     self.description = try c.value("description")
     self.examples = try c.value("examples")
-    self.name = try c.value("name")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
     try c.encode(self.description, as: "description")
     try c.encode(self.examples, as: "examples")
-    try c.encode(self.name, as: "name")
   }
 }
 
 public struct TagSchema: Codable, Sendable, Hashable {
-  public var description: String
-  public var domain: String
   public var id: String
   public var name: String
+  public var description: String
+  public var domain: String
   public var tags: [TagCategory]
-  public init(description: String, domain: String, id: String, name: String, tags: [TagCategory]) {
-    self.description = description
-    self.domain = domain
+  public init(id: String, name: String, description: String, domain: String, tags: [TagCategory]) {
     self.id = id
     self.name = name
+    self.description = description
+    self.domain = domain
     self.tags = tags
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.description = try c.value("description")
-    self.domain = try c.value("domain")
     self.id = try c.value("id")
     self.name = try c.value("name")
+    self.description = try c.value("description")
+    self.domain = try c.value("domain")
     self.tags = try c.value("tags")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.description, as: "description")
-    try c.encode(self.domain, as: "domain")
     try c.encode(self.id, as: "id")
     try c.encode(self.name, as: "name")
+    try c.encode(self.description, as: "description")
+    try c.encode(self.domain, as: "domain")
     try c.encode(self.tags, as: "tags")
   }
 }
@@ -18629,37 +19556,37 @@ public struct TagSchemasProjection: Codable, Sendable, Hashable {
 }
 
 public struct TaggingJobParams: Codable, Sendable, Hashable {
-  public var categories: [String]
-  public var language: String?
   public let motivation: TaggingJobParamsMotivation
   public var schemaId: String
+  public var categories: [String]
+  public var language: String?
   public var sourceLanguage: String?
   public init(
-    categories: [String], language: String? = nil, schemaId: String, sourceLanguage: String? = nil
+    schemaId: String, categories: [String], language: String? = nil, sourceLanguage: String? = nil
   ) {
-    self.categories = categories
-    self.language = language
     self.motivation = .tagging
     self.schemaId = schemaId
+    self.categories = categories
+    self.language = language
     self.sourceLanguage = sourceLanguage
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["categories", "language", "motivation", "schemaId", "sourceLanguage"], in: "TaggingJobParams"
+      ["motivation", "schemaId", "categories", "language", "sourceLanguage"], in: "TaggingJobParams"
     )
-    self.categories = try c.value("categories")
-    self.language = try c.ifPresent("language")
     self.motivation = try c.value("motivation")
     self.schemaId = try c.value("schemaId")
+    self.categories = try c.value("categories")
+    self.language = try c.ifPresent("language")
     self.sourceLanguage = try c.ifPresent("sourceLanguage")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.categories, as: "categories")
-    try c.encodeIfPresent(self.language, as: "language")
     try c.encode(self.motivation, as: "motivation")
     try c.encode(self.schemaId, as: "schemaId")
+    try c.encode(self.categories, as: "categories")
+    try c.encodeIfPresent(self.language, as: "language")
     try c.encodeIfPresent(self.sourceLanguage, as: "sourceLanguage")
   }
 }
@@ -18670,25 +19597,25 @@ public enum TaggingJobParamsMotivation: String, Codable, Sendable, CaseIterable 
 
 public struct Target: Codable, Sendable, Hashable {
   public var kind: TargetKind
-  public var repo: String?
   public var root: String?
-  public init(kind: TargetKind, repo: String? = nil, root: String? = nil) {
+  public var repo: String?
+  public init(kind: TargetKind, root: String? = nil, repo: String? = nil) {
     self.kind = kind
-    self.repo = repo
     self.root = root
+    self.repo = repo
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["kind", "repo", "root"], in: "Target")
+    try c.refuseUnknown(["kind", "root", "repo"], in: "Target")
     self.kind = try c.value("kind")
-    self.repo = try c.ifPresent("repo")
     self.root = try c.ifPresent("root")
+    self.repo = try c.ifPresent("repo")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.kind, as: "kind")
-    try c.encodeIfPresent(self.repo, as: "repo")
     try c.encodeIfPresent(self.root, as: "root")
+    try c.encodeIfPresent(self.repo, as: "repo")
   }
 }
 
@@ -18698,25 +19625,25 @@ public enum TargetKind: String, Codable, Sendable, CaseIterable {
 }
 
 public struct TextPositionSelector: Codable, Sendable, Hashable {
-  public var end: Int
-  public var start: Int
   public let type: TextPositionSelectorType
-  public init(end: Int, start: Int) {
-    self.end = end
-    self.start = start
+  public var start: Int
+  public var end: Int
+  public init(start: Int, end: Int) {
     self.type = .textPositionSelector
+    self.start = start
+    self.end = end
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.end = try c.value("end")
-    self.start = try c.value("start")
     self.type = try c.value("type")
+    self.start = try c.value("start")
+    self.end = try c.value("end")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.end, as: "end")
-    try c.encode(self.start, as: "start")
     try c.encode(self.type, as: "type")
+    try c.encode(self.start, as: "start")
+    try c.encode(self.end, as: "end")
   }
 }
 
@@ -18725,29 +19652,29 @@ public enum TextPositionSelectorType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct TextQuoteSelector: Codable, Sendable, Hashable {
+  public let type: TextQuoteSelectorType
   public var exact: String
   public var prefix: String?
   public var suffix: String?
-  public let type: TextQuoteSelectorType
   public init(exact: String, prefix: String? = nil, suffix: String? = nil) {
+    self.type = .textQuoteSelector
     self.exact = exact
     self.prefix = prefix
     self.suffix = suffix
-    self.type = .textQuoteSelector
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
+    self.type = try c.value("type")
     self.exact = try c.value("exact")
     self.prefix = try c.ifPresent("prefix")
     self.suffix = try c.ifPresent("suffix")
-    self.type = try c.value("type")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.type, as: "type")
     try c.encode(self.exact, as: "exact")
     try c.encodeIfPresent(self.prefix, as: "prefix")
     try c.encodeIfPresent(self.suffix, as: "suffix")
-    try c.encode(self.type, as: "type")
   }
 }
 
@@ -18762,67 +19689,67 @@ public enum TextSource: String, Codable, Sendable, CaseIterable {
 }
 
 public struct TextSpan: Codable, Sendable, Hashable {
+  public var start: Int
   public var end: Int
   public var exact: String
   public var prefix: String?
-  public var start: Int
   public var suffix: String?
-  public init(end: Int, exact: String, prefix: String? = nil, start: Int, suffix: String? = nil) {
+  public init(start: Int, end: Int, exact: String, prefix: String? = nil, suffix: String? = nil) {
+    self.start = start
     self.end = end
     self.exact = exact
     self.prefix = prefix
-    self.start = start
     self.suffix = suffix
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["end", "exact", "prefix", "start", "suffix"], in: "TextSpan")
+    try c.refuseUnknown(["start", "end", "exact", "prefix", "suffix"], in: "TextSpan")
+    self.start = try c.value("start")
     self.end = try c.value("end")
     self.exact = try c.value("exact")
     self.prefix = try c.ifPresent("prefix")
-    self.start = try c.value("start")
     self.suffix = try c.ifPresent("suffix")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.start, as: "start")
     try c.encode(self.end, as: "end")
     try c.encode(self.exact, as: "exact")
     try c.encodeIfPresent(self.prefix, as: "prefix")
-    try c.encode(self.start, as: "start")
     try c.encodeIfPresent(self.suffix, as: "suffix")
   }
 }
 
 public struct TextualBody: Codable, Sendable, Hashable {
-  public var format: String?
-  public var language: String?
-  public var purpose: BodyPurpose?
   public let type: TextualBodyType
   public var value: String
+  public var purpose: BodyPurpose?
+  public var format: String?
+  public var language: String?
   public init(
-    format: String? = nil, language: String? = nil, purpose: BodyPurpose? = nil, value: String
+    value: String, purpose: BodyPurpose? = nil, format: String? = nil, language: String? = nil
   ) {
-    self.format = format
-    self.language = language
-    self.purpose = purpose
     self.type = .textualBody
     self.value = value
+    self.purpose = purpose
+    self.format = format
+    self.language = language
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.format = try c.ifPresent("format")
-    self.language = try c.ifPresent("language")
-    self.purpose = try c.ifPresent("purpose")
     self.type = try c.value("type")
     self.value = try c.value("value")
+    self.purpose = try c.ifPresent("purpose")
+    self.format = try c.ifPresent("format")
+    self.language = try c.ifPresent("language")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.format, as: "format")
-    try c.encodeIfPresent(self.language, as: "language")
-    try c.encodeIfPresent(self.purpose, as: "purpose")
     try c.encode(self.type, as: "type")
     try c.encode(self.value, as: "value")
+    try c.encodeIfPresent(self.purpose, as: "purpose")
+    try c.encodeIfPresent(self.format, as: "format")
+    try c.encodeIfPresent(self.language, as: "language")
   }
 }
 
@@ -18831,52 +19758,52 @@ public enum TextualBodyType: String, Codable, Sendable, CaseIterable {
 }
 
 public struct UnitCursor: Codable, Sendable, Hashable {
-  public var emitted: Int
-  public var errors: Int
-  public var found: Int
   public var next: Int
   public var size: Int
-  public init(emitted: Int, errors: Int, found: Int, next: Int, size: Int) {
-    self.emitted = emitted
-    self.errors = errors
-    self.found = found
+  public var found: Int
+  public var emitted: Int
+  public var errors: Int
+  public init(next: Int, size: Int, found: Int, emitted: Int, errors: Int) {
     self.next = next
     self.size = size
+    self.found = found
+    self.emitted = emitted
+    self.errors = errors
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.emitted = try c.value("emitted")
-    self.errors = try c.value("errors")
-    self.found = try c.value("found")
     self.next = try c.value("next")
     self.size = try c.value("size")
+    self.found = try c.value("found")
+    self.emitted = try c.value("emitted")
+    self.errors = try c.value("errors")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.emitted, as: "emitted")
-    try c.encode(self.errors, as: "errors")
-    try c.encode(self.found, as: "found")
     try c.encode(self.next, as: "next")
     try c.encode(self.size, as: "size")
+    try c.encode(self.found, as: "found")
+    try c.encode(self.emitted, as: "emitted")
+    try c.encode(self.errors, as: "errors")
   }
 }
 
 public struct UpdateAnnotationBodyRequest: Codable, Sendable, Hashable {
-  public var operations: [BodyOperation]
   public var resourceId: ResourceId
-  public init(operations: [BodyOperation], resourceId: ResourceId) {
-    self.operations = operations
+  public var operations: [BodyOperation]
+  public init(resourceId: ResourceId, operations: [BodyOperation]) {
     self.resourceId = resourceId
+    self.operations = operations
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.operations = try c.value("operations")
     self.resourceId = try c.value("resourceId")
+    self.operations = try c.value("operations")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.operations, as: "operations")
     try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.operations, as: "operations")
   }
 }
 
@@ -18884,17 +19811,32 @@ public indirect enum UploadProgress: Codable, Sendable, Hashable {
   case started(UploadProgressStarted)
   case progress(UploadProgressProgress)
   case finished(UploadProgressFinished)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["phase", "totalBytes"], allowed: ["phase", "totalBytes"],
+        fixed: [.init(property: "phase", values: [.text("started")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["phase", "bytesUploaded", "totalBytes"],
+        allowed: ["phase", "bytesUploaded", "totalBytes"],
+        fixed: [.init(property: "phase", values: [.text("progress")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["phase", "resourceId"], allowed: ["phase", "resourceId"],
+        fixed: [.init(property: "phase", values: [.text("finished")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("phase"))
-    switch tag {
-    case "started": self = .started(try UploadProgressStarted(from: decoder))
-    case "progress": self = .progress(try UploadProgressProgress(from: decoder))
-    case "finished": self = .finished(try UploadProgressFinished(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("phase"), in: c, debugDescription: "unknown UploadProgress discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "UploadProgress", members: Self.members,
+      variants: [
+        ("started", { decoder in try Self.started(UploadProgressStarted(from: decoder)) }),
+        ("progress", { decoder in try Self.progress(UploadProgressProgress(from: decoder)) }),
+        ("finished", { decoder in try Self.finished(UploadProgressFinished(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -18930,25 +19872,25 @@ public enum UploadProgressFinishedPhase: String, Codable, Sendable, CaseIterable
 }
 
 public struct UploadProgressProgress: Codable, Sendable, Hashable {
-  public var bytesUploaded: Int
   public let phase: UploadProgressProgressPhase
+  public var bytesUploaded: Int
   public var totalBytes: Int
   public init(bytesUploaded: Int, totalBytes: Int) {
-    self.bytesUploaded = bytesUploaded
     self.phase = .progress
+    self.bytesUploaded = bytesUploaded
     self.totalBytes = totalBytes
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["bytesUploaded", "phase", "totalBytes"], in: "UploadProgressProgress")
-    self.bytesUploaded = try c.value("bytesUploaded")
+    try c.refuseUnknown(["phase", "bytesUploaded", "totalBytes"], in: "UploadProgressProgress")
     self.phase = try c.value("phase")
+    self.bytesUploaded = try c.value("bytesUploaded")
     self.totalBytes = try c.value("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.bytesUploaded, as: "bytesUploaded")
     try c.encode(self.phase, as: "phase")
+    try c.encode(self.bytesUploaded, as: "bytesUploaded")
     try c.encode(self.totalBytes, as: "totalBytes")
   }
 }
@@ -18982,39 +19924,39 @@ public enum UploadProgressStartedPhase: String, Codable, Sendable, CaseIterable 
 }
 
 public struct UserAction: Codable, Sendable, Hashable {
-  public var expiresInSeconds: Int
   public var requestId: RequestId
-  public var userCode: String
   public var verificationUri: String
   public var verificationUriComplete: String?
+  public var userCode: String
+  public var expiresInSeconds: Int
   public init(
-    expiresInSeconds: Int, requestId: RequestId, userCode: String, verificationUri: String,
-    verificationUriComplete: String? = nil
+    requestId: RequestId, verificationUri: String, verificationUriComplete: String? = nil,
+    userCode: String, expiresInSeconds: Int
   ) {
-    self.expiresInSeconds = expiresInSeconds
     self.requestId = requestId
-    self.userCode = userCode
     self.verificationUri = verificationUri
     self.verificationUriComplete = verificationUriComplete
+    self.userCode = userCode
+    self.expiresInSeconds = expiresInSeconds
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["expiresInSeconds", "requestId", "userCode", "verificationUri", "verificationUriComplete"],
+      ["requestId", "verificationUri", "verificationUriComplete", "userCode", "expiresInSeconds"],
       in: "UserAction")
-    self.expiresInSeconds = try c.value("expiresInSeconds")
     self.requestId = try c.value("requestId")
-    self.userCode = try c.value("userCode")
     self.verificationUri = try c.value("verificationUri")
     self.verificationUriComplete = try c.ifPresent("verificationUriComplete")
+    self.userCode = try c.value("userCode")
+    self.expiresInSeconds = try c.value("expiresInSeconds")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.expiresInSeconds, as: "expiresInSeconds")
     try c.encode(self.requestId, as: "requestId")
-    try c.encode(self.userCode, as: "userCode")
     try c.encode(self.verificationUri, as: "verificationUri")
     try c.encodeIfPresent(self.verificationUriComplete, as: "verificationUriComplete")
+    try c.encode(self.userCode, as: "userCode")
+    try c.encode(self.expiresInSeconds, as: "expiresInSeconds")
   }
 }
 
@@ -19056,32 +19998,32 @@ public struct UserId: Identifier {
 
 public struct UserResponse: Codable, Sendable, Hashable {
   public var did: UserId
-  public var domain: String
   public var email: String?
-  public var image: String?
   public var name: String?
-  public init(did: UserId, domain: String, email: String?, image: String?, name: String?) {
+  public var image: String?
+  public var domain: String
+  public init(did: UserId, email: String?, name: String?, image: String?, domain: String) {
     self.did = did
-    self.domain = domain
     self.email = email
-    self.image = image
     self.name = name
+    self.image = image
+    self.domain = domain
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.did = try c.value("did")
-    self.domain = try c.value("domain")
     self.email = try c.value("email")
-    self.image = try c.value("image")
     self.name = try c.value("name")
+    self.image = try c.value("image")
+    self.domain = try c.value("domain")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.did, as: "did")
-    try c.encode(self.domain, as: "domain")
     try c.encode(self.email, as: "email")
-    try c.encode(self.image, as: "image")
     try c.encode(self.name, as: "name")
+    try c.encode(self.image, as: "image")
+    try c.encode(self.domain, as: "domain")
   }
 }
 
@@ -19118,46 +20060,62 @@ public enum VectorStoreKind: String, Codable, Sendable, CaseIterable {
 }
 
 public struct VectorStoreSpec: Codable, Sendable, Hashable {
-  public var image: Image
-  public var port: Int
-  public var resources: Resources
   public var type: String
-  public init(image: Image, port: Int, resources: Resources, type: String) {
-    self.image = image
-    self.port = port
-    self.resources = resources
+  public var image: Image
+  public var resources: Resources
+  public var port: Int
+  public init(type: String, image: Image, resources: Resources, port: Int) {
     self.type = type
+    self.image = image
+    self.resources = resources
+    self.port = port
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["image", "port", "resources", "type"], in: "VectorStoreSpec")
-    self.image = try c.value("image")
-    self.port = try c.value("port")
-    self.resources = try c.value("resources")
+    try c.refuseUnknown(["type", "image", "resources", "port"], in: "VectorStoreSpec")
     self.type = try c.value("type")
+    self.image = try c.value("image")
+    self.resources = try c.value("resources")
+    self.port = try c.value("port")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.image, as: "image")
-    try c.encode(self.port, as: "port")
-    try c.encode(self.resources, as: "resources")
     try c.encode(self.type, as: "type")
+    try c.encode(self.image, as: "image")
+    try c.encode(self.resources, as: "resources")
+    try c.encode(self.port, as: "port")
   }
 }
 
 public indirect enum VectorsConfig: Codable, Sendable, Hashable {
   case qdrantVectorsConfig(QdrantVectorsConfig)
   case memoryVectorsConfig(MemoryVectorsConfig)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "host", "port", "tokenEnv"],
+        allowed: ["type", "host", "port", "tokenEnv"],
+        fixed: [.init(property: "type", values: [.text("qdrant")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type"], allowed: ["type"],
+        fixed: [.init(property: "type", values: [.text("memory")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "qdrant": self = .qdrantVectorsConfig(try QdrantVectorsConfig(from: decoder))
-    case "memory": self = .memoryVectorsConfig(try MemoryVectorsConfig(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown VectorsConfig discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "VectorsConfig", members: Self.members,
+      variants: [
+        (
+          "qdrantVectorsConfig",
+          { decoder in try Self.qdrantVectorsConfig(QdrantVectorsConfig(from: decoder)) }
+        ),
+        (
+          "memoryVectorsConfig",
+          { decoder in try Self.memoryVectorsConfig(MemoryVectorsConfig(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -19168,30 +20126,30 @@ public indirect enum VectorsConfig: Codable, Sendable, Hashable {
 }
 
 public struct VoyageEmbeddingConfig: Codable, Sendable, Hashable {
-  public var apiKeyEnv: String
-  public var endpoint: String
-  public var model: String
   public let type: VoyageEmbeddingConfigType
-  public init(apiKeyEnv: String, endpoint: String, model: String) {
-    self.apiKeyEnv = apiKeyEnv
-    self.endpoint = endpoint
-    self.model = model
+  public var model: String
+  public var endpoint: String
+  public var apiKeyEnv: String
+  public init(model: String, endpoint: String, apiKeyEnv: String) {
     self.type = .voyage
+    self.model = model
+    self.endpoint = endpoint
+    self.apiKeyEnv = apiKeyEnv
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiKeyEnv", "endpoint", "model", "type"], in: "VoyageEmbeddingConfig")
-    self.apiKeyEnv = try c.value("apiKeyEnv")
-    self.endpoint = try c.value("endpoint")
-    self.model = try c.value("model")
+    try c.refuseUnknown(["type", "model", "endpoint", "apiKeyEnv"], in: "VoyageEmbeddingConfig")
     self.type = try c.value("type")
+    self.model = try c.value("model")
+    self.endpoint = try c.value("endpoint")
+    self.apiKeyEnv = try c.value("apiKeyEnv")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.apiKeyEnv, as: "apiKeyEnv")
-    try c.encode(self.endpoint, as: "endpoint")
-    try c.encode(self.model, as: "model")
     try c.encode(self.type, as: "type")
+    try c.encode(self.model, as: "model")
+    try c.encode(self.endpoint, as: "endpoint")
+    try c.encode(self.apiKeyEnv, as: "apiKeyEnv")
   }
 }
 
@@ -19219,131 +20177,132 @@ public struct WeaveApplied: Codable, Sendable, Hashable {
 }
 
 public struct WeaveRebuildCommand: Codable, Sendable, Hashable {
-  public var _userId: UserId?
   public var resourceId: ResourceId?
-  public init(_userId: UserId? = nil, resourceId: ResourceId? = nil) {
-    self._userId = _userId
+  public var _userId: UserId?
+  public init(resourceId: ResourceId? = nil, _userId: UserId? = nil) {
     self.resourceId = resourceId
+    self._userId = _userId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self._userId = try c.ifPresent("_userId")
     self.resourceId = try c.ifPresent("resourceId")
+    self._userId = try c.ifPresent("_userId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._userId, as: "_userId")
     try c.encodeIfPresent(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self._userId, as: "_userId")
   }
 }
 
 public struct WeaverConfig: Codable, Sendable, Hashable {
-  public var archivist: ServiceAddress
-  public var cursorsPath: CursorsPath
-  public var gatewayUrl: String
-  public var graph: GraphConfig
-  public var identity: ServiceIdentity
   public var kb: KbIdentity
-  public var logFormat: LogFormat
-  public var logLevel: LogLevel
+  public var gatewayUrl: String
+  public var identity: ServiceIdentity
+  public var archivist: ServiceAddress
+  public var graph: GraphConfig
+  public var cursorsPath: CursorsPath
   public var port: Int
+  public var logLevel: LogLevel
+  public var logFormat: LogFormat
   public init(
-    archivist: ServiceAddress, cursorsPath: CursorsPath, gatewayUrl: String, graph: GraphConfig,
-    identity: ServiceIdentity, kb: KbIdentity, logFormat: LogFormat, logLevel: LogLevel, port: Int
+    kb: KbIdentity, gatewayUrl: String, identity: ServiceIdentity, archivist: ServiceAddress,
+    graph: GraphConfig, cursorsPath: CursorsPath, port: Int, logLevel: LogLevel,
+    logFormat: LogFormat
   ) {
-    self.archivist = archivist
-    self.cursorsPath = cursorsPath
-    self.gatewayUrl = gatewayUrl
-    self.graph = graph
-    self.identity = identity
     self.kb = kb
-    self.logFormat = logFormat
-    self.logLevel = logLevel
+    self.gatewayUrl = gatewayUrl
+    self.identity = identity
+    self.archivist = archivist
+    self.graph = graph
+    self.cursorsPath = cursorsPath
     self.port = port
+    self.logLevel = logLevel
+    self.logFormat = logFormat
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "archivist", "cursorsPath", "gatewayUrl", "graph", "identity", "kb", "logFormat",
-        "logLevel", "port",
+        "kb", "gatewayUrl", "identity", "archivist", "graph", "cursorsPath", "port", "logLevel",
+        "logFormat",
       ], in: "WeaverConfig")
-    self.archivist = try c.value("archivist")
-    self.cursorsPath = try c.value("cursorsPath")
-    self.gatewayUrl = try c.value("gatewayUrl")
-    self.graph = try c.value("graph")
-    self.identity = try c.value("identity")
     self.kb = try c.value("kb")
-    self.logFormat = try c.value("logFormat")
-    self.logLevel = try c.value("logLevel")
+    self.gatewayUrl = try c.value("gatewayUrl")
+    self.identity = try c.value("identity")
+    self.archivist = try c.value("archivist")
+    self.graph = try c.value("graph")
+    self.cursorsPath = try c.value("cursorsPath")
     self.port = try c.value("port")
+    self.logLevel = try c.value("logLevel")
+    self.logFormat = try c.value("logFormat")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.archivist, as: "archivist")
-    try c.encode(self.cursorsPath, as: "cursorsPath")
-    try c.encode(self.gatewayUrl, as: "gatewayUrl")
-    try c.encode(self.graph, as: "graph")
-    try c.encode(self.identity, as: "identity")
     try c.encode(self.kb, as: "kb")
-    try c.encode(self.logFormat, as: "logFormat")
-    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.gatewayUrl, as: "gatewayUrl")
+    try c.encode(self.identity, as: "identity")
+    try c.encode(self.archivist, as: "archivist")
+    try c.encode(self.graph, as: "graph")
+    try c.encode(self.cursorsPath, as: "cursorsPath")
     try c.encode(self.port, as: "port")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.logFormat, as: "logFormat")
   }
 }
 
 public struct WeaverHealth: Codable, Sendable, Hashable {
-  public var following: FollowerFollowing
-  public var kb: KbDid
-  public var reconcile: WeaverHealthReconcile
   public let status: WeaverHealthStatus
-  public init(following: FollowerFollowing, kb: KbDid, reconcile: WeaverHealthReconcile) {
-    self.following = following
-    self.kb = kb
-    self.reconcile = reconcile
+  public var kb: KbDid
+  public var following: FollowerFollowing
+  public var reconcile: WeaverHealthReconcile
+  public init(kb: KbDid, following: FollowerFollowing, reconcile: WeaverHealthReconcile) {
     self.status = .ok
+    self.kb = kb
+    self.following = following
+    self.reconcile = reconcile
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["following", "kb", "reconcile", "status"], in: "WeaverHealth")
-    self.following = try c.value("following")
-    self.kb = try c.value("kb")
-    self.reconcile = try c.value("reconcile")
+    try c.refuseUnknown(["status", "kb", "following", "reconcile"], in: "WeaverHealth")
     self.status = try c.value("status")
+    self.kb = try c.value("kb")
+    self.following = try c.value("following")
+    self.reconcile = try c.value("reconcile")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.following, as: "following")
-    try c.encode(self.kb, as: "kb")
-    try c.encode(self.reconcile, as: "reconcile")
     try c.encode(self.status, as: "status")
+    try c.encode(self.kb, as: "kb")
+    try c.encode(self.following, as: "following")
+    try c.encode(self.reconcile, as: "reconcile")
   }
 }
 
 public struct WeaverHealthReconcile: Codable, Sendable, Hashable {
-  public var error: String?
   public var phase: WeaverHealthReconcilePhase
   public var summary: WeaverHealthReconcileSummary?
+  public var error: String?
   public init(
-    error: String? = nil, phase: WeaverHealthReconcilePhase,
-    summary: WeaverHealthReconcileSummary? = nil
+    phase: WeaverHealthReconcilePhase, summary: WeaverHealthReconcileSummary? = nil,
+    error: String? = nil
   ) {
-    self.error = error
     self.phase = phase
     self.summary = summary
+    self.error = error
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["error", "phase", "summary"], in: "WeaverHealthReconcile")
-    self.error = try c.ifPresent("error")
+    try c.refuseUnknown(["phase", "summary", "error"], in: "WeaverHealthReconcile")
     self.phase = try c.value("phase")
     self.summary = try c.ifPresent("summary")
+    self.error = try c.ifPresent("error")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.error, as: "error")
     try c.encode(self.phase, as: "phase")
     try c.encodeIfPresent(self.summary, as: "summary")
+    try c.encodeIfPresent(self.error, as: "error")
   }
 }
 
@@ -19355,37 +20314,37 @@ public enum WeaverHealthReconcilePhase: String, Codable, Sendable, CaseIterable 
 }
 
 public struct WeaverHealthReconcileSummary: Codable, Sendable, Hashable {
-  public var divergent: Int
-  public var healFailures: Int
-  public var healed: Int
-  public var orphaned: Int
   public var resourcesChecked: Int
-  public init(divergent: Int, healFailures: Int, healed: Int, orphaned: Int, resourcesChecked: Int)
+  public var divergent: Int
+  public var healed: Int
+  public var healFailures: Int
+  public var orphaned: Int
+  public init(resourcesChecked: Int, divergent: Int, healed: Int, healFailures: Int, orphaned: Int)
   {
-    self.divergent = divergent
-    self.healFailures = healFailures
-    self.healed = healed
-    self.orphaned = orphaned
     self.resourcesChecked = resourcesChecked
+    self.divergent = divergent
+    self.healed = healed
+    self.healFailures = healFailures
+    self.orphaned = orphaned
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["divergent", "healFailures", "healed", "orphaned", "resourcesChecked"],
+      ["resourcesChecked", "divergent", "healed", "healFailures", "orphaned"],
       in: "WeaverHealthReconcileSummary")
-    self.divergent = try c.value("divergent")
-    self.healFailures = try c.value("healFailures")
-    self.healed = try c.value("healed")
-    self.orphaned = try c.value("orphaned")
     self.resourcesChecked = try c.value("resourcesChecked")
+    self.divergent = try c.value("divergent")
+    self.healed = try c.value("healed")
+    self.healFailures = try c.value("healFailures")
+    self.orphaned = try c.value("orphaned")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.divergent, as: "divergent")
-    try c.encode(self.healFailures, as: "healFailures")
-    try c.encode(self.healed, as: "healed")
-    try c.encode(self.orphaned, as: "orphaned")
     try c.encode(self.resourcesChecked, as: "resourcesChecked")
+    try c.encode(self.divergent, as: "divergent")
+    try c.encode(self.healed, as: "healed")
+    try c.encode(self.healFailures, as: "healFailures")
+    try c.encode(self.orphaned, as: "orphaned")
   }
 }
 
@@ -19414,186 +20373,186 @@ public struct WorkerAnswerFormats: Codable, Sendable, Hashable {
 }
 
 public struct WorkerAnswerFormatsFormatsItem: Codable, Sendable, Hashable {
+  public var name: String
   public var about: String
   public var element: JSONValue
-  public var name: String
-  public init(about: String, element: JSONValue, name: String) {
+  public init(name: String, about: String, element: JSONValue) {
+    self.name = name
     self.about = about
     self.element = element
-    self.name = name
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["about", "element", "name"], in: "WorkerAnswerFormatsFormatsItem")
+    try c.refuseUnknown(["name", "about", "element"], in: "WorkerAnswerFormatsFormatsItem")
+    self.name = try c.value("name")
     self.about = try c.value("about")
     self.element = try c.value("element")
-    self.name = try c.value("name")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
     try c.encode(self.about, as: "about")
     try c.encode(self.element, as: "element")
-    try c.encode(self.name, as: "name")
   }
 }
 
 public struct WorkerConfig: Codable, Sendable, Hashable {
   public var knowledgeBases: [WorkerKnowledgeBaseConfig]
-  public var logFormat: LogFormat
-  public var logLevel: LogLevel
   public var modelCatalogue: String
   public var port: Int
+  public var logLevel: LogLevel
+  public var logFormat: LogFormat
   public init(
-    knowledgeBases: [WorkerKnowledgeBaseConfig], logFormat: LogFormat, logLevel: LogLevel,
-    modelCatalogue: String, port: Int
+    knowledgeBases: [WorkerKnowledgeBaseConfig], modelCatalogue: String, port: Int,
+    logLevel: LogLevel, logFormat: LogFormat
   ) {
     self.knowledgeBases = knowledgeBases
-    self.logFormat = logFormat
-    self.logLevel = logLevel
     self.modelCatalogue = modelCatalogue
     self.port = port
+    self.logLevel = logLevel
+    self.logFormat = logFormat
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["knowledgeBases", "logFormat", "logLevel", "modelCatalogue", "port"], in: "WorkerConfig")
+      ["knowledgeBases", "modelCatalogue", "port", "logLevel", "logFormat"], in: "WorkerConfig")
     self.knowledgeBases = try c.value("knowledgeBases")
-    self.logFormat = try c.value("logFormat")
-    self.logLevel = try c.value("logLevel")
     self.modelCatalogue = try c.value("modelCatalogue")
     self.port = try c.value("port")
+    self.logLevel = try c.value("logLevel")
+    self.logFormat = try c.value("logFormat")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.knowledgeBases, as: "knowledgeBases")
-    try c.encode(self.logFormat, as: "logFormat")
-    try c.encode(self.logLevel, as: "logLevel")
     try c.encode(self.modelCatalogue, as: "modelCatalogue")
     try c.encode(self.port, as: "port")
+    try c.encode(self.logLevel, as: "logLevel")
+    try c.encode(self.logFormat, as: "logFormat")
   }
 }
 
 public struct WorkerEngineConfig: Codable, Sendable, Hashable {
-  public var apiKeyEnv: String?
-  public var baseUrl: String
   public var engine: Engine
   public var jobs: [JobFilter]
-  public init(apiKeyEnv: String? = nil, baseUrl: String, engine: Engine, jobs: [JobFilter]) {
-    self.apiKeyEnv = apiKeyEnv
-    self.baseUrl = baseUrl
+  public var baseUrl: String
+  public var apiKeyEnv: String?
+  public init(engine: Engine, jobs: [JobFilter], baseUrl: String, apiKeyEnv: String? = nil) {
     self.engine = engine
     self.jobs = jobs
+    self.baseUrl = baseUrl
+    self.apiKeyEnv = apiKeyEnv
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["apiKeyEnv", "baseUrl", "engine", "jobs"], in: "WorkerEngineConfig")
-    self.apiKeyEnv = try c.ifPresent("apiKeyEnv")
-    self.baseUrl = try c.value("baseUrl")
+    try c.refuseUnknown(["engine", "jobs", "baseUrl", "apiKeyEnv"], in: "WorkerEngineConfig")
     self.engine = try c.value("engine")
     self.jobs = try c.value("jobs")
+    self.baseUrl = try c.value("baseUrl")
+    self.apiKeyEnv = try c.ifPresent("apiKeyEnv")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.apiKeyEnv, as: "apiKeyEnv")
-    try c.encode(self.baseUrl, as: "baseUrl")
     try c.encode(self.engine, as: "engine")
     try c.encode(self.jobs, as: "jobs")
+    try c.encode(self.baseUrl, as: "baseUrl")
+    try c.encodeIfPresent(self.apiKeyEnv, as: "apiKeyEnv")
   }
 }
 
 public struct WorkerEngineHealth: Codable, Sendable, Hashable {
-  public var activeJob: WorkerEngineHealthActiveJob?
   public var engine: Engine
   public var jobs: [JobFilter]
-  public var jobsCompleted: Int
-  public var lastActivityAt: String?
+  public var lastQueuedEventAt: String?
   public var lastClaimAt: String?
   public var lastFinishedAt: String?
-  public var lastQueuedEventAt: String?
+  public var lastActivityAt: String?
+  public var activeJob: WorkerEngineHealthActiveJob?
+  public var jobsCompleted: Int
   public init(
-    activeJob: WorkerEngineHealthActiveJob?, engine: Engine, jobs: [JobFilter], jobsCompleted: Int,
-    lastActivityAt: String?, lastClaimAt: String?, lastFinishedAt: String?,
-    lastQueuedEventAt: String?
+    engine: Engine, jobs: [JobFilter], lastQueuedEventAt: String?, lastClaimAt: String?,
+    lastFinishedAt: String?, lastActivityAt: String?, activeJob: WorkerEngineHealthActiveJob?,
+    jobsCompleted: Int
   ) {
-    self.activeJob = activeJob
     self.engine = engine
     self.jobs = jobs
-    self.jobsCompleted = jobsCompleted
-    self.lastActivityAt = lastActivityAt
+    self.lastQueuedEventAt = lastQueuedEventAt
     self.lastClaimAt = lastClaimAt
     self.lastFinishedAt = lastFinishedAt
-    self.lastQueuedEventAt = lastQueuedEventAt
+    self.lastActivityAt = lastActivityAt
+    self.activeJob = activeJob
+    self.jobsCompleted = jobsCompleted
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
       [
-        "activeJob", "engine", "jobs", "jobsCompleted", "lastActivityAt", "lastClaimAt",
-        "lastFinishedAt", "lastQueuedEventAt",
+        "engine", "jobs", "lastQueuedEventAt", "lastClaimAt", "lastFinishedAt", "lastActivityAt",
+        "activeJob", "jobsCompleted",
       ], in: "WorkerEngineHealth")
-    self.activeJob = try c.value("activeJob")
     self.engine = try c.value("engine")
     self.jobs = try c.value("jobs")
-    self.jobsCompleted = try c.value("jobsCompleted")
-    self.lastActivityAt = try c.value("lastActivityAt")
+    self.lastQueuedEventAt = try c.value("lastQueuedEventAt")
     self.lastClaimAt = try c.value("lastClaimAt")
     self.lastFinishedAt = try c.value("lastFinishedAt")
-    self.lastQueuedEventAt = try c.value("lastQueuedEventAt")
+    self.lastActivityAt = try c.value("lastActivityAt")
+    self.activeJob = try c.value("activeJob")
+    self.jobsCompleted = try c.value("jobsCompleted")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.activeJob, as: "activeJob")
     try c.encode(self.engine, as: "engine")
     try c.encode(self.jobs, as: "jobs")
-    try c.encode(self.jobsCompleted, as: "jobsCompleted")
-    try c.encode(self.lastActivityAt, as: "lastActivityAt")
+    try c.encode(self.lastQueuedEventAt, as: "lastQueuedEventAt")
     try c.encode(self.lastClaimAt, as: "lastClaimAt")
     try c.encode(self.lastFinishedAt, as: "lastFinishedAt")
-    try c.encode(self.lastQueuedEventAt, as: "lastQueuedEventAt")
+    try c.encode(self.lastActivityAt, as: "lastActivityAt")
+    try c.encode(self.activeJob, as: "activeJob")
+    try c.encode(self.jobsCompleted, as: "jobsCompleted")
   }
 }
 
 public struct WorkerEngineHealthActiveJob: Codable, Sendable, Hashable {
   public var jobId: JobId
-  public var since: String
   public var type: JobType
-  public init(jobId: JobId, since: String, type: JobType) {
+  public var since: String
+  public init(jobId: JobId, type: JobType, since: String) {
     self.jobId = jobId
-    self.since = since
     self.type = type
+    self.since = since
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["jobId", "since", "type"], in: "WorkerEngineHealthActiveJob")
+    try c.refuseUnknown(["jobId", "type", "since"], in: "WorkerEngineHealthActiveJob")
     self.jobId = try c.value("jobId")
-    self.since = try c.value("since")
     self.type = try c.value("type")
+    self.since = try c.value("since")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.jobId, as: "jobId")
-    try c.encode(self.since, as: "since")
     try c.encode(self.type, as: "type")
+    try c.encode(self.since, as: "since")
   }
 }
 
 public struct WorkerHealth: Codable, Sendable, Hashable {
-  public var knowledgeBases: [WorkerKnowledgeBaseHealth]
   public let status: WorkerHealthStatus
+  public var knowledgeBases: [WorkerKnowledgeBaseHealth]
   public init(knowledgeBases: [WorkerKnowledgeBaseHealth]) {
-    self.knowledgeBases = knowledgeBases
     self.status = .ok
+    self.knowledgeBases = knowledgeBases
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["knowledgeBases", "status"], in: "WorkerHealth")
-    self.knowledgeBases = try c.value("knowledgeBases")
+    try c.refuseUnknown(["status", "knowledgeBases"], in: "WorkerHealth")
     self.status = try c.value("status")
+    self.knowledgeBases = try c.value("knowledgeBases")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.knowledgeBases, as: "knowledgeBases")
     try c.encode(self.status, as: "status")
+    try c.encode(self.knowledgeBases, as: "knowledgeBases")
   }
 }
 
@@ -19603,84 +20562,84 @@ public enum WorkerHealthStatus: String, Codable, Sendable, CaseIterable {
 
 public struct WorkerKnowledgeBaseConfig: Codable, Sendable, Hashable {
   public var domain: String
-  public var engines: [WorkerEngineConfig]
   public var gatewayUrl: String
   public var identity: WorkerKnowledgeBaseConfigIdentity
+  public var engines: [WorkerEngineConfig]
   public init(
-    domain: String, engines: [WorkerEngineConfig], gatewayUrl: String,
-    identity: WorkerKnowledgeBaseConfigIdentity
+    domain: String, gatewayUrl: String, identity: WorkerKnowledgeBaseConfigIdentity,
+    engines: [WorkerEngineConfig]
   ) {
     self.domain = domain
-    self.engines = engines
     self.gatewayUrl = gatewayUrl
     self.identity = identity
+    self.engines = engines
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["domain", "engines", "gatewayUrl", "identity"], in: "WorkerKnowledgeBaseConfig")
+      ["domain", "gatewayUrl", "identity", "engines"], in: "WorkerKnowledgeBaseConfig")
     self.domain = try c.value("domain")
-    self.engines = try c.value("engines")
     self.gatewayUrl = try c.value("gatewayUrl")
     self.identity = try c.value("identity")
+    self.engines = try c.value("engines")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.domain, as: "domain")
-    try c.encode(self.engines, as: "engines")
     try c.encode(self.gatewayUrl, as: "gatewayUrl")
     try c.encode(self.identity, as: "identity")
+    try c.encode(self.engines, as: "engines")
   }
 }
 
 public struct WorkerKnowledgeBaseConfigIdentity: Codable, Sendable, Hashable {
-  public var clientId: String
   public var issuer: String
-  public init(clientId: String, issuer: String) {
-    self.clientId = clientId
+  public var clientId: String
+  public init(issuer: String, clientId: String) {
     self.issuer = issuer
+    self.clientId = clientId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["clientId", "issuer"], in: "WorkerKnowledgeBaseConfigIdentity")
-    self.clientId = try c.value("clientId")
+    try c.refuseUnknown(["issuer", "clientId"], in: "WorkerKnowledgeBaseConfigIdentity")
     self.issuer = try c.value("issuer")
+    self.clientId = try c.value("clientId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.clientId, as: "clientId")
     try c.encode(self.issuer, as: "issuer")
+    try c.encode(self.clientId, as: "clientId")
   }
 }
 
 public struct WorkerKnowledgeBaseHealth: Codable, Sendable, Hashable {
-  public var did: String?
   public var domain: String
-  public var engines: [WorkerEngineHealth]?
   public var state: WorkerKnowledgeBaseHealthState
+  public var did: String?
+  public var engines: [WorkerEngineHealth]?
   public init(
-    did: String? = nil, domain: String, engines: [WorkerEngineHealth]? = nil,
-    state: WorkerKnowledgeBaseHealthState
+    domain: String, state: WorkerKnowledgeBaseHealthState, did: String? = nil,
+    engines: [WorkerEngineHealth]? = nil
   ) {
-    self.did = did
     self.domain = domain
-    self.engines = engines
     self.state = state
+    self.did = did
+    self.engines = engines
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["did", "domain", "engines", "state"], in: "WorkerKnowledgeBaseHealth")
-    self.did = try c.ifPresent("did")
+    try c.refuseUnknown(["domain", "state", "did", "engines"], in: "WorkerKnowledgeBaseHealth")
     self.domain = try c.value("domain")
-    self.engines = try c.ifPresent("engines")
     self.state = try c.value("state")
+    self.did = try c.ifPresent("did")
+    self.engines = try c.ifPresent("engines")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.did, as: "did")
     try c.encode(self.domain, as: "domain")
-    try c.encodeIfPresent(self.engines, as: "engines")
     try c.encode(self.state, as: "state")
+    try c.encodeIfPresent(self.did, as: "did")
+    try c.encodeIfPresent(self.engines, as: "engines")
   }
 }
 
@@ -19693,69 +20652,85 @@ public enum WorkerKnowledgeBaseHealthState: String, Codable, Sendable, CaseItera
 public struct WorkerMessages: Codable, Sendable, Hashable {
   public var comment: String
   public var boot: [WorkerMessagesBootItem]
-  public var details: [WorkerMessagesDetailsItem]
-  public var errors: [WorkerMessagesErrorsItem]
-  public var job: WorkerMessagesJob
-  public var logged: [WorkerMessagesLoggedItem]
   public var reasons: [WorkerMessagesReasonsItem]
+  public var job: WorkerMessagesJob
+  public var errors: [WorkerMessagesErrorsItem]
+  public var details: [WorkerMessagesDetailsItem]
   public var waits: [WorkerMessagesWaitsItem]
+  public var logged: [WorkerMessagesLoggedItem]
   public init(
-    comment: String, boot: [WorkerMessagesBootItem], details: [WorkerMessagesDetailsItem],
-    errors: [WorkerMessagesErrorsItem], job: WorkerMessagesJob, logged: [WorkerMessagesLoggedItem],
-    reasons: [WorkerMessagesReasonsItem], waits: [WorkerMessagesWaitsItem]
+    comment: String, boot: [WorkerMessagesBootItem], reasons: [WorkerMessagesReasonsItem],
+    job: WorkerMessagesJob, errors: [WorkerMessagesErrorsItem],
+    details: [WorkerMessagesDetailsItem], waits: [WorkerMessagesWaitsItem],
+    logged: [WorkerMessagesLoggedItem]
   ) {
     self.comment = comment
     self.boot = boot
-    self.details = details
-    self.errors = errors
-    self.job = job
-    self.logged = logged
     self.reasons = reasons
+    self.job = job
+    self.errors = errors
+    self.details = details
     self.waits = waits
+    self.logged = logged
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["$comment", "boot", "details", "errors", "job", "logged", "reasons", "waits"],
+      ["$comment", "boot", "reasons", "job", "errors", "details", "waits", "logged"],
       in: "WorkerMessages")
     self.comment = try c.value("$comment")
     self.boot = try c.value("boot")
-    self.details = try c.value("details")
-    self.errors = try c.value("errors")
-    self.job = try c.value("job")
-    self.logged = try c.value("logged")
     self.reasons = try c.value("reasons")
+    self.job = try c.value("job")
+    self.errors = try c.value("errors")
+    self.details = try c.value("details")
     self.waits = try c.value("waits")
+    self.logged = try c.value("logged")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.comment, as: "$comment")
     try c.encode(self.boot, as: "boot")
-    try c.encode(self.details, as: "details")
-    try c.encode(self.errors, as: "errors")
-    try c.encode(self.job, as: "job")
-    try c.encode(self.logged, as: "logged")
     try c.encode(self.reasons, as: "reasons")
+    try c.encode(self.job, as: "job")
+    try c.encode(self.errors, as: "errors")
+    try c.encode(self.details, as: "details")
     try c.encode(self.waits, as: "waits")
+    try c.encode(self.logged, as: "logged")
   }
 }
 
 public indirect enum WorkerMessagesBootItem: Codable, Sendable, Hashable {
   case ownBootRefusal(WorkerMessagesBootItemOwnBootRefusal)
   case sharedBootRefusal(WorkerMessagesBootItemSharedBootRefusal)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["name", "situation", "refusal"],
+        allowed: ["name", "situation", "refusal"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["name", "situation", "bootRefusal"],
+        allowed: ["name", "situation", "bootRefusal"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? WorkerMessagesBootItemOwnBootRefusal(from: decoder) {
-      self = .ownBootRefusal(value)
-      return
-    }
-    if let value = try? WorkerMessagesBootItemSharedBootRefusal(from: decoder) {
-      self = .sharedBootRefusal(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of WorkerMessagesBootItem fits"
-      ))
+    self = try UnionSignature.decode(
+      from: decoder, union: "WorkerMessagesBootItem", members: Self.members,
+      variants: [
+        (
+          "ownBootRefusal",
+          { decoder in try Self.ownBootRefusal(WorkerMessagesBootItemOwnBootRefusal(from: decoder))
+          }
+        ),
+        (
+          "sharedBootRefusal",
+          { decoder in
+            try Self.sharedBootRefusal(WorkerMessagesBootItemSharedBootRefusal(from: decoder))
+          }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -19767,99 +20742,99 @@ public indirect enum WorkerMessagesBootItem: Codable, Sendable, Hashable {
 
 public struct WorkerMessagesBootItemOwnBootRefusal: Codable, Sendable, Hashable {
   public var name: String
-  public var refusal: String
   public var situation: String
-  public init(name: String, refusal: String, situation: String) {
+  public var refusal: String
+  public init(name: String, situation: String, refusal: String) {
     self.name = name
-    self.refusal = refusal
     self.situation = situation
+    self.refusal = refusal
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["name", "refusal", "situation"], in: "WorkerMessagesBootItemOwnBootRefusal")
+      ["name", "situation", "refusal"], in: "WorkerMessagesBootItemOwnBootRefusal")
     self.name = try c.value("name")
-    self.refusal = try c.value("refusal")
     self.situation = try c.value("situation")
+    self.refusal = try c.value("refusal")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.name, as: "name")
-    try c.encode(self.refusal, as: "refusal")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.refusal, as: "refusal")
   }
 }
 
 public struct WorkerMessagesBootItemSharedBootRefusal: Codable, Sendable, Hashable {
-  public var bootRefusal: String
   public var name: String
   public var situation: String
-  public init(bootRefusal: String, name: String, situation: String) {
-    self.bootRefusal = bootRefusal
+  public var bootRefusal: String
+  public init(name: String, situation: String, bootRefusal: String) {
     self.name = name
     self.situation = situation
+    self.bootRefusal = bootRefusal
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["bootRefusal", "name", "situation"], in: "WorkerMessagesBootItemSharedBootRefusal")
-    self.bootRefusal = try c.value("bootRefusal")
+      ["name", "situation", "bootRefusal"], in: "WorkerMessagesBootItemSharedBootRefusal")
     self.name = try c.value("name")
     self.situation = try c.value("situation")
+    self.bootRefusal = try c.value("bootRefusal")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.bootRefusal, as: "bootRefusal")
     try c.encode(self.name, as: "name")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.bootRefusal, as: "bootRefusal")
   }
 }
 
 public struct WorkerMessagesDetailsItem: Codable, Sendable, Hashable {
-  public var detail: String
   public var name: String
   public var situation: String
-  public init(detail: String, name: String, situation: String) {
-    self.detail = detail
+  public var detail: String
+  public init(name: String, situation: String, detail: String) {
     self.name = name
     self.situation = situation
+    self.detail = detail
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["detail", "name", "situation"], in: "WorkerMessagesDetailsItem")
-    self.detail = try c.value("detail")
+    try c.refuseUnknown(["name", "situation", "detail"], in: "WorkerMessagesDetailsItem")
     self.name = try c.value("name")
     self.situation = try c.value("situation")
+    self.detail = try c.value("detail")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.detail, as: "detail")
     try c.encode(self.name, as: "name")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.detail, as: "detail")
   }
 }
 
 public struct WorkerMessagesErrorsItem: Codable, Sendable, Hashable {
-  public var error: String
   public var name: String
   public var situation: String
-  public init(error: String, name: String, situation: String) {
-    self.error = error
+  public var error: String
+  public init(name: String, situation: String, error: String) {
     self.name = name
     self.situation = situation
+    self.error = error
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["error", "name", "situation"], in: "WorkerMessagesErrorsItem")
-    self.error = try c.value("error")
+    try c.refuseUnknown(["name", "situation", "error"], in: "WorkerMessagesErrorsItem")
     self.name = try c.value("name")
     self.situation = try c.value("situation")
+    self.error = try c.value("error")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.error, as: "error")
     try c.encode(self.name, as: "name")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.error, as: "error")
   }
 }
 
@@ -19884,91 +20859,91 @@ public struct WorkerMessagesJob: Codable, Sendable, Hashable {
 }
 
 public struct WorkerMessagesLoggedItem: Codable, Sendable, Hashable {
-  public var carries: [String]
-  public var fields: [String: String]
-  public var level: LogLevel
-  public var message: String
   public var name: String
+  public var level: LogLevel
   public var situation: String
+  public var message: String
+  public var fields: [String: String]
+  public var carries: [String]
   public init(
-    carries: [String], fields: [String: String], level: LogLevel, message: String, name: String,
-    situation: String
+    name: String, level: LogLevel, situation: String, message: String, fields: [String: String],
+    carries: [String]
   ) {
-    self.carries = carries
-    self.fields = fields
-    self.level = level
-    self.message = message
     self.name = name
+    self.level = level
     self.situation = situation
+    self.message = message
+    self.fields = fields
+    self.carries = carries
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(
-      ["carries", "fields", "level", "message", "name", "situation"], in: "WorkerMessagesLoggedItem"
+      ["name", "level", "situation", "message", "fields", "carries"], in: "WorkerMessagesLoggedItem"
     )
-    self.carries = try c.value("carries")
-    self.fields = try c.value("fields")
-    self.level = try c.value("level")
-    self.message = try c.value("message")
     self.name = try c.value("name")
+    self.level = try c.value("level")
     self.situation = try c.value("situation")
+    self.message = try c.value("message")
+    self.fields = try c.value("fields")
+    self.carries = try c.value("carries")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.carries, as: "carries")
-    try c.encode(self.fields, as: "fields")
-    try c.encode(self.level, as: "level")
-    try c.encode(self.message, as: "message")
     try c.encode(self.name, as: "name")
+    try c.encode(self.level, as: "level")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.message, as: "message")
+    try c.encode(self.fields, as: "fields")
+    try c.encode(self.carries, as: "carries")
   }
 }
 
 public struct WorkerMessagesReasonsItem: Codable, Sendable, Hashable {
-  public var line: String
   public var name: String
   public var situation: String
-  public init(line: String, name: String, situation: String) {
-    self.line = line
+  public var line: String
+  public init(name: String, situation: String, line: String) {
     self.name = name
     self.situation = situation
+    self.line = line
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["line", "name", "situation"], in: "WorkerMessagesReasonsItem")
-    self.line = try c.value("line")
+    try c.refuseUnknown(["name", "situation", "line"], in: "WorkerMessagesReasonsItem")
     self.name = try c.value("name")
     self.situation = try c.value("situation")
+    self.line = try c.value("line")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.line, as: "line")
     try c.encode(self.name, as: "name")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.line, as: "line")
   }
 }
 
 public struct WorkerMessagesWaitsItem: Codable, Sendable, Hashable {
   public var name: String
-  public var said: String
   public var situation: String
-  public init(name: String, said: String, situation: String) {
+  public var said: String
+  public init(name: String, situation: String, said: String) {
     self.name = name
-    self.said = said
     self.situation = situation
+    self.said = said
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["name", "said", "situation"], in: "WorkerMessagesWaitsItem")
+    try c.refuseUnknown(["name", "situation", "said"], in: "WorkerMessagesWaitsItem")
     self.name = try c.value("name")
-    self.said = try c.value("said")
     self.situation = try c.value("situation")
+    self.said = try c.value("said")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.name, as: "name")
-    try c.encode(self.said, as: "said")
     try c.encode(self.situation, as: "situation")
+    try c.encode(self.said, as: "said")
   }
 }
 
@@ -20065,96 +21040,96 @@ public struct WorkloadStatus: Codable, Sendable, Hashable {
 }
 
 public struct WorkloadStatusLedger: Codable, Sendable, Hashable {
-  public var capacity: Int
   public var claims: Int
-  public init(capacity: Int, claims: Int) {
-    self.capacity = capacity
+  public var capacity: Int
+  public init(claims: Int, capacity: Int) {
     self.claims = claims
+    self.capacity = capacity
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["capacity", "claims"], in: "WorkloadStatusLedger")
-    self.capacity = try c.value("capacity")
+    try c.refuseUnknown(["claims", "capacity"], in: "WorkloadStatusLedger")
     self.claims = try c.value("claims")
+    self.capacity = try c.value("capacity")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.capacity, as: "capacity")
     try c.encode(self.claims, as: "claims")
+    try c.encode(self.capacity, as: "capacity")
   }
 }
 
 public struct WorkloadStatusQueue: Codable, Sendable, Hashable {
-  public var completed: Int?
-  public var failed: Int?
   public var pending: Int
   public var running: Int
-  public init(completed: Int? = nil, failed: Int? = nil, pending: Int, running: Int) {
-    self.completed = completed
-    self.failed = failed
+  public var completed: Int?
+  public var failed: Int?
+  public init(pending: Int, running: Int, completed: Int? = nil, failed: Int? = nil) {
     self.pending = pending
     self.running = running
+    self.completed = completed
+    self.failed = failed
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["completed", "failed", "pending", "running"], in: "WorkloadStatusQueue")
-    self.completed = try c.ifPresent("completed")
-    self.failed = try c.ifPresent("failed")
+    try c.refuseUnknown(["pending", "running", "completed", "failed"], in: "WorkloadStatusQueue")
     self.pending = try c.value("pending")
     self.running = try c.value("running")
+    self.completed = try c.ifPresent("completed")
+    self.failed = try c.ifPresent("failed")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.completed, as: "completed")
-    try c.encodeIfPresent(self.failed, as: "failed")
     try c.encode(self.pending, as: "pending")
     try c.encode(self.running, as: "running")
+    try c.encodeIfPresent(self.completed, as: "completed")
+    try c.encodeIfPresent(self.failed, as: "failed")
   }
 }
 
 public struct YieldCloneCreateCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var archiveOriginal: Bool?
-  public var byteSize: Int
-  public var contentChecksum: String
-  public var format: ContentFormat
+  public var token: String
   public var name: String
   public var storageUri: String
-  public var token: String
+  public var contentChecksum: String
+  public var byteSize: Int
+  public var format: ContentFormat
+  public var archiveOriginal: Bool?
   public init(
-    _userId: UserId? = nil, archiveOriginal: Bool? = nil, byteSize: Int, contentChecksum: String,
-    format: ContentFormat, name: String, storageUri: String, token: String
+    _userId: UserId? = nil, token: String, name: String, storageUri: String,
+    contentChecksum: String, byteSize: Int, format: ContentFormat, archiveOriginal: Bool? = nil
   ) {
     self._userId = _userId
-    self.archiveOriginal = archiveOriginal
-    self.byteSize = byteSize
-    self.contentChecksum = contentChecksum
-    self.format = format
+    self.token = token
     self.name = name
     self.storageUri = storageUri
-    self.token = token
+    self.contentChecksum = contentChecksum
+    self.byteSize = byteSize
+    self.format = format
+    self.archiveOriginal = archiveOriginal
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.archiveOriginal = try c.ifPresent("archiveOriginal")
-    self.byteSize = try c.value("byteSize")
-    self.contentChecksum = try c.value("contentChecksum")
-    self.format = try c.value("format")
+    self.token = try c.value("token")
     self.name = try c.value("name")
     self.storageUri = try c.value("storageUri")
-    self.token = try c.value("token")
+    self.contentChecksum = try c.value("contentChecksum")
+    self.byteSize = try c.value("byteSize")
+    self.format = try c.value("format")
+    self.archiveOriginal = try c.ifPresent("archiveOriginal")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encodeIfPresent(self.archiveOriginal, as: "archiveOriginal")
-    try c.encode(self.byteSize, as: "byteSize")
-    try c.encode(self.contentChecksum, as: "contentChecksum")
-    try c.encode(self.format, as: "format")
+    try c.encode(self.token, as: "token")
     try c.encode(self.name, as: "name")
     try c.encode(self.storageUri, as: "storageUri")
-    try c.encode(self.token, as: "token")
+    try c.encode(self.contentChecksum, as: "contentChecksum")
+    try c.encode(self.byteSize, as: "byteSize")
+    try c.encode(self.format, as: "format")
+    try c.encodeIfPresent(self.archiveOriginal, as: "archiveOriginal")
   }
 }
 
@@ -20175,52 +21150,52 @@ public struct YieldCloneCreated: Codable, Sendable, Hashable {
 
 public struct YieldClonePersistCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var byteSize: Int
+  public var name: String
+  public var storageUri: String
   public var contentChecksum: String
-  public var entityTypes: [String]?
+  public var byteSize: Int
   public var format: ContentFormat
   public var language: String?
-  public var name: String
+  public var entityTypes: [String]?
   public var parentResourceId: ResourceId
-  public var storageUri: String
   public init(
-    _userId: UserId? = nil, byteSize: Int, contentChecksum: String, entityTypes: [String]? = nil,
-    format: ContentFormat, language: String? = nil, name: String, parentResourceId: ResourceId,
-    storageUri: String
+    _userId: UserId? = nil, name: String, storageUri: String, contentChecksum: String,
+    byteSize: Int, format: ContentFormat, language: String? = nil, entityTypes: [String]? = nil,
+    parentResourceId: ResourceId
   ) {
     self._userId = _userId
-    self.byteSize = byteSize
+    self.name = name
+    self.storageUri = storageUri
     self.contentChecksum = contentChecksum
-    self.entityTypes = entityTypes
+    self.byteSize = byteSize
     self.format = format
     self.language = language
-    self.name = name
+    self.entityTypes = entityTypes
     self.parentResourceId = parentResourceId
-    self.storageUri = storageUri
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.byteSize = try c.value("byteSize")
+    self.name = try c.value("name")
+    self.storageUri = try c.value("storageUri")
     self.contentChecksum = try c.value("contentChecksum")
-    self.entityTypes = try c.ifPresent("entityTypes")
+    self.byteSize = try c.value("byteSize")
     self.format = try c.value("format")
     self.language = try c.ifPresent("language")
-    self.name = try c.value("name")
+    self.entityTypes = try c.ifPresent("entityTypes")
     self.parentResourceId = try c.value("parentResourceId")
-    self.storageUri = try c.value("storageUri")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encode(self.byteSize, as: "byteSize")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.storageUri, as: "storageUri")
     try c.encode(self.contentChecksum, as: "contentChecksum")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encode(self.byteSize, as: "byteSize")
     try c.encode(self.format, as: "format")
     try c.encodeIfPresent(self.language, as: "language")
-    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
     try c.encode(self.parentResourceId, as: "parentResourceId")
-    try c.encode(self.storageUri, as: "storageUri")
   }
 }
 
@@ -20270,94 +21245,94 @@ public struct YieldCloneTokenRequest: Codable, Sendable, Hashable {
 }
 
 public struct YieldCreateCommand: Codable, Sendable, Hashable {
-  public var _roles: [String]?
   public var _userId: UserId?
-  public var byteSize: Int
+  public var _roles: [String]?
+  public var jobId: JobId?
+  public var name: String
+  public var storageUri: String
   public var contentChecksum: String
-  public var entityTypes: [String]?
+  public var byteSize: Int
   public var format: ContentFormat
+  public var language: String?
+  public var entityTypes: [String]?
+  public var isDraft: Bool?
   public var generatedFrom: YieldCreateCommandGeneratedFrom?
   public var generationPrompt: String?
   public var generator: OneOrMoreAgents?
-  public var isDraft: Bool?
-  public var jobId: JobId?
-  public var language: String?
-  public var name: String
-  public var storageUri: String
   public init(
-    _roles: [String]? = nil, _userId: UserId? = nil, byteSize: Int, contentChecksum: String,
-    entityTypes: [String]? = nil, format: ContentFormat,
+    _userId: UserId? = nil, _roles: [String]? = nil, jobId: JobId? = nil, name: String,
+    storageUri: String, contentChecksum: String, byteSize: Int, format: ContentFormat,
+    language: String? = nil, entityTypes: [String]? = nil, isDraft: Bool? = nil,
     generatedFrom: YieldCreateCommandGeneratedFrom? = nil, generationPrompt: String? = nil,
-    generator: OneOrMoreAgents? = nil, isDraft: Bool? = nil, jobId: JobId? = nil,
-    language: String? = nil, name: String, storageUri: String
+    generator: OneOrMoreAgents? = nil
   ) {
-    self._roles = _roles
     self._userId = _userId
-    self.byteSize = byteSize
+    self._roles = _roles
+    self.jobId = jobId
+    self.name = name
+    self.storageUri = storageUri
     self.contentChecksum = contentChecksum
-    self.entityTypes = entityTypes
+    self.byteSize = byteSize
     self.format = format
+    self.language = language
+    self.entityTypes = entityTypes
+    self.isDraft = isDraft
     self.generatedFrom = generatedFrom
     self.generationPrompt = generationPrompt
     self.generator = generator
-    self.isDraft = isDraft
-    self.jobId = jobId
-    self.language = language
-    self.name = name
-    self.storageUri = storageUri
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self._roles = try c.ifPresent("_roles")
     self._userId = try c.ifPresent("_userId")
-    self.byteSize = try c.value("byteSize")
+    self._roles = try c.ifPresent("_roles")
+    self.jobId = try c.ifPresent("jobId")
+    self.name = try c.value("name")
+    self.storageUri = try c.value("storageUri")
     self.contentChecksum = try c.value("contentChecksum")
-    self.entityTypes = try c.ifPresent("entityTypes")
+    self.byteSize = try c.value("byteSize")
     self.format = try c.value("format")
+    self.language = try c.ifPresent("language")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.isDraft = try c.ifPresent("isDraft")
     self.generatedFrom = try c.ifPresent("generatedFrom")
     self.generationPrompt = try c.ifPresent("generationPrompt")
     self.generator = try c.ifPresent("generator")
-    self.isDraft = try c.ifPresent("isDraft")
-    self.jobId = try c.ifPresent("jobId")
-    self.language = try c.ifPresent("language")
-    self.name = try c.value("name")
-    self.storageUri = try c.value("storageUri")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._roles, as: "_roles")
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encode(self.byteSize, as: "byteSize")
+    try c.encodeIfPresent(self._roles, as: "_roles")
+    try c.encodeIfPresent(self.jobId, as: "jobId")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.storageUri, as: "storageUri")
     try c.encode(self.contentChecksum, as: "contentChecksum")
-    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encode(self.byteSize, as: "byteSize")
     try c.encode(self.format, as: "format")
+    try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.isDraft, as: "isDraft")
     try c.encodeIfPresent(self.generatedFrom, as: "generatedFrom")
     try c.encodeIfPresent(self.generationPrompt, as: "generationPrompt")
     try c.encodeIfPresent(self.generator, as: "generator")
-    try c.encodeIfPresent(self.isDraft, as: "isDraft")
-    try c.encodeIfPresent(self.jobId, as: "jobId")
-    try c.encodeIfPresent(self.language, as: "language")
-    try c.encode(self.name, as: "name")
-    try c.encode(self.storageUri, as: "storageUri")
   }
 }
 
 public struct YieldCreateCommandGeneratedFrom: Codable, Sendable, Hashable {
-  public var annotationId: AnnotationId?
   public var resourceId: ResourceId?
-  public init(annotationId: AnnotationId? = nil, resourceId: ResourceId? = nil) {
-    self.annotationId = annotationId
+  public var annotationId: AnnotationId?
+  public init(resourceId: ResourceId? = nil, annotationId: AnnotationId? = nil) {
     self.resourceId = resourceId
+    self.annotationId = annotationId
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.annotationId = try c.ifPresent("annotationId")
     self.resourceId = try c.ifPresent("resourceId")
+    self.annotationId = try c.ifPresent("annotationId")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
     try c.encodeIfPresent(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
   }
 }
 
@@ -20378,48 +21353,48 @@ public struct YieldCreateOk: Codable, Sendable, Hashable {
 
 public struct YieldJobCompleteCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var annotationId: AnnotationId?
-  public var attempt: Int?
-  public var durability: DurabilityEvidence?
+  public var resourceId: ResourceId
   public var jobId: JobId
   public let jobType: YieldJobCompleteCommandJobType
-  public var resourceId: ResourceId
+  public var attempt: Int?
+  public var annotationId: AnnotationId?
   public var result: YieldJobResult?
+  public var durability: DurabilityEvidence?
   public init(
-    _userId: UserId? = nil, annotationId: AnnotationId? = nil, attempt: Int? = nil,
-    durability: DurabilityEvidence? = nil, jobId: JobId, resourceId: ResourceId,
-    result: YieldJobResult? = nil
+    _userId: UserId? = nil, resourceId: ResourceId, jobId: JobId, attempt: Int? = nil,
+    annotationId: AnnotationId? = nil, result: YieldJobResult? = nil,
+    durability: DurabilityEvidence? = nil
   ) {
     self._userId = _userId
-    self.annotationId = annotationId
-    self.attempt = attempt
-    self.durability = durability
+    self.resourceId = resourceId
     self.jobId = jobId
     self.jobType = .yield
-    self.resourceId = resourceId
+    self.attempt = attempt
+    self.annotationId = annotationId
     self.result = result
+    self.durability = durability
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.annotationId = try c.ifPresent("annotationId")
-    self.attempt = try c.ifPresent("attempt")
-    self.durability = try c.ifPresent("durability")
+    self.resourceId = try c.value("resourceId")
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.resourceId = try c.value("resourceId")
+    self.attempt = try c.ifPresent("attempt")
+    self.annotationId = try c.ifPresent("annotationId")
     self.result = try c.ifPresent("result")
+    self.durability = try c.ifPresent("durability")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encodeIfPresent(self.annotationId, as: "annotationId")
-    try c.encodeIfPresent(self.attempt, as: "attempt")
-    try c.encodeIfPresent(self.durability, as: "durability")
+    try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.resourceId, as: "resourceId")
+    try c.encodeIfPresent(self.attempt, as: "attempt")
+    try c.encodeIfPresent(self.annotationId, as: "annotationId")
     try c.encodeIfPresent(self.result, as: "result")
+    try c.encodeIfPresent(self.durability, as: "durability")
   }
 }
 
@@ -20428,28 +21403,28 @@ public enum YieldJobCompleteCommandJobType: String, Codable, Sendable, CaseItera
 }
 
 public struct YieldJobCreateCommand: Codable, Sendable, Hashable {
-  public var _roles: [String]?
   public var _userId: UserId?
+  public var _roles: [String]?
   public let jobType: YieldJobCreateCommandJobType
   public var params: GenerationJobParams
-  public init(_roles: [String]? = nil, _userId: UserId? = nil, params: GenerationJobParams) {
-    self._roles = _roles
+  public init(_userId: UserId? = nil, _roles: [String]? = nil, params: GenerationJobParams) {
     self._userId = _userId
+    self._roles = _roles
     self.jobType = .yield
     self.params = params
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["_roles", "_userId", "jobType", "params"], in: "YieldJobCreateCommand")
-    self._roles = try c.ifPresent("_roles")
+    try c.refuseUnknown(["_userId", "_roles", "jobType", "params"], in: "YieldJobCreateCommand")
     self._userId = try c.ifPresent("_userId")
+    self._roles = try c.ifPresent("_roles")
     self.jobType = try c.value("jobType")
     self.params = try c.value("params")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
-    try c.encodeIfPresent(self._roles, as: "_roles")
     try c.encodeIfPresent(self._userId, as: "_userId")
+    try c.encodeIfPresent(self._roles, as: "_roles")
     try c.encode(self.jobType, as: "jobType")
     try c.encode(self.params, as: "params")
   }
@@ -20506,31 +21481,31 @@ public enum YieldJobFilterJobType: String, Codable, Sendable, CaseIterable {
 public struct YieldJobQueuedEvent: Codable, Sendable, Hashable {
   public var jobId: JobId
   public let jobType: YieldJobQueuedEventJobType
-  public var params: GenerationJobRequest
   public var resourceId: ResourceId
   public var userId: UserId
-  public init(jobId: JobId, params: GenerationJobRequest, resourceId: ResourceId, userId: UserId) {
+  public var params: GenerationJobRequest
+  public init(jobId: JobId, resourceId: ResourceId, userId: UserId, params: GenerationJobRequest) {
     self.jobId = jobId
     self.jobType = .yield
-    self.params = params
     self.resourceId = resourceId
     self.userId = userId
+    self.params = params
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self.jobId = try c.value("jobId")
     self.jobType = try c.value("jobType")
-    self.params = try c.value("params")
     self.resourceId = try c.value("resourceId")
     self.userId = try c.value("userId")
+    self.params = try c.value("params")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.jobId, as: "jobId")
     try c.encode(self.jobType, as: "jobType")
-    try c.encode(self.params, as: "params")
     try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.userId, as: "userId")
+    try c.encode(self.params, as: "params")
   }
 }
 
@@ -20541,17 +21516,33 @@ public enum YieldJobQueuedEventJobType: String, Codable, Sendable, CaseIterable 
 public indirect enum YieldJobResult: Codable, Sendable, Hashable {
   case yieldJobDone(YieldJobDone)
   case jobDeclined(JobDeclined)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["resourceId", "resourceName", "truncated"],
+        allowed: ["resourceId", "resourceName", "truncated"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["declined", "reason"], allowed: ["declined", "reason"],
+        fixed: [
+          .init(property: "declined", values: [.boolean(true)]),
+          .init(
+            property: "reason",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+              .text("empty"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? YieldJobDone(from: decoder) {
-      self = .yieldJobDone(value)
-      return
-    }
-    if let value = try? JobDeclined(from: decoder) {
-      self = .jobDeclined(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of YieldJobResult fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "YieldJobResult", members: Self.members,
+      variants: [
+        ("yieldJobDone", { decoder in try Self.yieldJobDone(YieldJobDone(from: decoder)) }),
+        ("jobDeclined", { decoder in try Self.jobDeclined(JobDeclined(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -20563,35 +21554,35 @@ public indirect enum YieldJobResult: Codable, Sendable, Hashable {
 
 public struct YieldUpdateCommand: Codable, Sendable, Hashable {
   public var _userId: UserId?
-  public var byteSize: Int
-  public var contentChecksum: String
   public var resourceId: ResourceId
   public var storageUri: String
+  public var contentChecksum: String
+  public var byteSize: Int
   public init(
-    _userId: UserId? = nil, byteSize: Int, contentChecksum: String, resourceId: ResourceId,
-    storageUri: String
+    _userId: UserId? = nil, resourceId: ResourceId, storageUri: String, contentChecksum: String,
+    byteSize: Int
   ) {
     self._userId = _userId
-    self.byteSize = byteSize
-    self.contentChecksum = contentChecksum
     self.resourceId = resourceId
     self.storageUri = storageUri
+    self.contentChecksum = contentChecksum
+    self.byteSize = byteSize
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     self._userId = try c.ifPresent("_userId")
-    self.byteSize = try c.value("byteSize")
-    self.contentChecksum = try c.value("contentChecksum")
     self.resourceId = try c.value("resourceId")
     self.storageUri = try c.value("storageUri")
+    self.contentChecksum = try c.value("contentChecksum")
+    self.byteSize = try c.value("byteSize")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encodeIfPresent(self._userId, as: "_userId")
-    try c.encode(self.byteSize, as: "byteSize")
-    try c.encode(self.contentChecksum, as: "contentChecksum")
     try c.encode(self.resourceId, as: "resourceId")
     try c.encode(self.storageUri, as: "storageUri")
+    try c.encode(self.contentChecksum, as: "contentChecksum")
+    try c.encode(self.byteSize, as: "byteSize")
   }
 }
 

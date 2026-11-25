@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Xynolog.Identifiers;
-using Xynolog.Protocol;
 using Xynolog.SignIn;
 using Xynolog.Storage;
 using Xynolog.Types;
@@ -13,42 +12,27 @@ namespace Xynolog.Registry;
 
 /// <summary>The storage keys and records under which a registry keeps its knowledge bases, their sign-ins and their
 /// open resources.</summary>
-public static class RegistryStorage
+public static partial class RegistryStorage
 {
-    private static readonly JsonElement Table = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.Stored);
-    private static readonly string Prefix = Text(Table.GetProperty("sessionKeyPrefix"), "prefix");
-    private static readonly string LastEventIdPrefix = Text(Table.GetProperty("lastEventIdKeyPrefix"), "prefix");
-    private static readonly string CachePrefix = Text(Table.GetProperty("cacheKeyPrefix"), "prefix");
-    /// <summary>The storage key of the registered knowledge bases.</summary>
-    public static readonly string KnowledgeBasesKey = Key("knowledgeBasesKey");
-    /// <summary>The storage key of the active knowledge base's id.</summary>
-    public static readonly string ActiveKey = Key("activeKey");
-    /// <summary>The storage key of the resources open in each knowledge base.</summary>
-    public static readonly string OpenResourcesByKbKey = Key("openResourcesByKbKey");
-    /// <summary>The storage key of the resource last viewed in each knowledge base.</summary>
-    public static readonly string LastViewedResourceByKbKey = Key("lastViewedResourceByKbKey");
-    internal static readonly string PendingKey = Key("pendingAuthorizationKey");
     internal static readonly JsonSerializerOptions Json = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    private static string Key(string member) => Text(Table.GetProperty("keys").EnumerateArray().Single(row => Text(row, "member") == member), "key");
-    private static string Text(JsonElement value, string name) => value.GetProperty(name).GetString() ?? throw new InvalidOperationException("Missing " + name);
 
     /// <summary>
     /// The key what a client keeps for a person is kept under, never their did: the unpadded base64url SHA-256 of the
     /// UTF-8 of <paramref name="did"/>, as the gateway answers who a token is.
     /// </summary>
     public static string PersonKey(UserId did) => Base64Url.EncodeToString(SHA256.HashData(Encoding.UTF8.GetBytes(did.Value)));
-    internal static string LastEventIdKey(string kbId, string personKey) => LastEventIdPrefix + kbId + "." + personKey;
-    internal static string CacheKey(string kbId, string personKey, string query) => CachePrefix + kbId + "." + personKey + "." + query;
+    internal static string LastEventIdKey(string kbId, string personKey) => LastEventIdKeyPrefix + kbId + "." + personKey;
+    internal static string CacheKey(string kbId, string personKey, string query) => CacheKeyPrefix + kbId + "." + personKey + "." + query;
 
     /// <summary>The storage key of a knowledge base's stored sign-in.</summary>
-    public static string SessionKey(string kbId) => Prefix + kbId;
+    public static string SessionKey(string kbId) => SessionKeyPrefix + kbId;
     /// <summary>The knowledge base whose stored sign-in a storage key holds, or null for a key that holds none.</summary>
-    public static string? KbOfSessionKey(string key) => key.StartsWith(Prefix, StringComparison.Ordinal) ? key[Prefix.Length..] : null;
+    public static string? KbOfSessionKey(string key) => key.StartsWith(SessionKeyPrefix, StringComparison.Ordinal) ? key[SessionKeyPrefix.Length..] : null;
     /// <summary>A knowledge base's stored sign-in, or null when none is stored or it cannot be read.</summary>
     public static StoredSession? StoredSession(ISessionStorage storage, string kbId) => Read<StoredSession>(storage.Get(SessionKey(kbId)));
 
@@ -191,8 +175,8 @@ public static class OpenResources
         foreach (var tab in opened)
         {
             var check = checks.GetValueOrDefault(tab.Id);
-            if (check is TabCheck.GoneCase) continue;
-            tabs.Add(check is TabCheck.ReadyCase(var ready)
+            if (check is TabCheck.Gone) continue;
+            tabs.Add(check is TabCheck.Ready(var ready)
                 ? tab with { Name = ready.Name, MediaType = ready.MediaType ?? tab.MediaType } : tab);
         }
         return tabs.AsReadOnly();

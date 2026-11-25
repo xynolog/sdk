@@ -77,7 +77,7 @@ public abstract class HeldJob : IHeldJob
         Trace = trace;
         if (JobType == JobType.Yield && Params.AdditionalProperties.TryGetValue("context", out var context) &&
             context.ValueKind == JsonValueKind.Object &&
-            context.Deserialize<GatheredContext>() is { Focus: GatheredContextFocus.AnnotationCase(var anchored) })
+            context.Deserialize<GatheredContext>() is { Focus: GatheredContextFocus.Annotation(var anchored) })
             AnnotationId = anchored.Annotation.Id;
     }
 
@@ -325,7 +325,7 @@ public sealed class HeldMarkJob : HeldJob
 
     /// <summary>Settles the job as completed with its result.</summary>
     public Task CompleteAsync(MarkJobResult result, CancellationToken cancellation = default) => CompleteAsync(
-        durability => new JobCompleteCommand.MarkJobCompleteCommandCase(new MarkJobCompleteCommand
+        durability => new JobCompleteCommand.MarkJobCompleteCommand(new MarkJobCompleteCommand
         {
             JobId = JobId,
             ResourceId = ResourceId,
@@ -342,7 +342,7 @@ public sealed class HeldYieldJob : HeldJob
 
     /// <summary>Settles the job as completed with its result.</summary>
     public Task CompleteAsync(YieldJobResult result, CancellationToken cancellation = default) => CompleteAsync(
-        durability => new JobCompleteCommand.YieldJobCompleteCommandCase(new YieldJobCompleteCommand
+        durability => new JobCompleteCommand.YieldJobCompleteCommand(new YieldJobCompleteCommand
         {
             JobId = JobId,
             ResourceId = ResourceId,

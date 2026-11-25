@@ -11,25 +11,25 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ApiVersion
 
 data RootsInitParams = RootsInitParams
-  { rootsInitParamsAnthropicEndpoint :: Maybe Text,
-    rootsInitParamsApiVersion :: ApiVersion,
-    rootsInitParamsConfigName :: Maybe Text,
+  { rootsInitParamsApiVersion :: ApiVersion,
+    rootsInitParamsPath :: Text,
     rootsInitParamsDomain :: Text,
-    rootsInitParamsEmbedding :: Maybe Text,
+    rootsInitParamsName :: Maybe Text,
+    rootsInitParamsSiteName :: Maybe Text,
     rootsInitParamsInference :: Maybe RootsInitParamsInference,
     rootsInitParamsModel :: Maybe Text,
     rootsInitParamsModelLight :: Maybe Text,
-    rootsInitParamsName :: Maybe Text,
+    rootsInitParamsEmbedding :: Maybe Text,
+    rootsInitParamsConfigName :: Maybe Text,
+    rootsInitParamsAnthropicEndpoint :: Maybe Text,
     rootsInitParamsOllamaBase :: Maybe Text,
-    rootsInitParamsOllamaRegistry :: Maybe Text,
-    rootsInitParamsPath :: Text,
-    rootsInitParamsSiteName :: Maybe Text
+    rootsInitParamsOllamaRegistry :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON RootsInitParams where parseJSON = checked "RootsInitParams" $ withObject "RootsInitParams" (\fields -> RootsInitParams <$> optional fields "anthropicEndpoint" <*> (fields .: "apiVersion") <*> optional fields "configName" <*> (fields .: "domain") <*> optional fields "embedding" <*> optional fields "inference" <*> optional fields "model" <*> optional fields "modelLight" <*> optional fields "name" <*> optional fields "ollamaBase" <*> optional fields "ollamaRegistry" <*> (fields .: "path") <*> optional fields "siteName")
+instance FromJSON RootsInitParams where parseJSON = checked "RootsInitParams" $ withObject "RootsInitParams" (\fields -> RootsInitParams <$> (fields .: "apiVersion") <*> (fields .: "path") <*> (fields .: "domain") <*> optional fields "name" <*> optional fields "siteName" <*> optional fields "inference" <*> optional fields "model" <*> optional fields "modelLight" <*> optional fields "embedding" <*> optional fields "configName" <*> optional fields "anthropicEndpoint" <*> optional fields "ollamaBase" <*> optional fields "ollamaRegistry")
 
-instance ToJSON RootsInitParams where toJSON value = Object (KM.fromList (concat [optionalPair "anthropicEndpoint" (rootsInitParamsAnthropicEndpoint value), [("apiVersion", toJSON (rootsInitParamsApiVersion value))], optionalPair "configName" (rootsInitParamsConfigName value), [("domain", toJSON (rootsInitParamsDomain value))], optionalPair "embedding" (rootsInitParamsEmbedding value), optionalPair "inference" (rootsInitParamsInference value), optionalPair "model" (rootsInitParamsModel value), optionalPair "modelLight" (rootsInitParamsModelLight value), optionalPair "name" (rootsInitParamsName value), optionalPair "ollamaBase" (rootsInitParamsOllamaBase value), optionalPair "ollamaRegistry" (rootsInitParamsOllamaRegistry value), [("path", toJSON (rootsInitParamsPath value))], optionalPair "siteName" (rootsInitParamsSiteName value)]))
+instance ToJSON RootsInitParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (rootsInitParamsApiVersion value))], [("path", toJSON (rootsInitParamsPath value))], [("domain", toJSON (rootsInitParamsDomain value))], optionalPair "name" (rootsInitParamsName value), optionalPair "siteName" (rootsInitParamsSiteName value), optionalPair "inference" (rootsInitParamsInference value), optionalPair "model" (rootsInitParamsModel value), optionalPair "modelLight" (rootsInitParamsModelLight value), optionalPair "embedding" (rootsInitParamsEmbedding value), optionalPair "configName" (rootsInitParamsConfigName value), optionalPair "anthropicEndpoint" (rootsInitParamsAnthropicEndpoint value), optionalPair "ollamaBase" (rootsInitParamsOllamaBase value), optionalPair "ollamaRegistry" (rootsInitParamsOllamaRegistry value)]))
 
 data RootsInitParamsInference = RootsInitParamsInferenceAnthropic | RootsInitParamsInferenceOllama deriving (Eq, Show)
 

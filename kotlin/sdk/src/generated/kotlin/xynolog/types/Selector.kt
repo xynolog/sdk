@@ -9,8 +9,52 @@ import kotlinx.serialization.Serializable
 @Serializable(with = SelectorSerializer::class)
 public sealed interface Selector : AnnotationSelector
 
-internal object SelectorSerializer : TaggedUnionSerializer<Selector>(
+internal object SelectorSerializer : SignatureUnionSerializer<Selector>(
     Selector::class,
-    "type",
-    members = { mapOf("TextPositionSelector" to TextPositionSelector.serializer(), "TextQuoteSelector" to TextQuoteSelector.serializer(), "SvgSelector" to SvgSelector.serializer(), "FragmentSelector" to FragmentSelector.serializer()) },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "start", "end"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("TextPositionSelector"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "exact"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("TextQuoteSelector"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "value"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("SvgSelector"))),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("type", "value"),
+                allowed = null,
+                fixed = listOf("type" to listOf(Literal.Text("FragmentSelector"))),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            TextPositionSelector.serializer(),
+            TextQuoteSelector.serializer(),
+            SvgSelector.serializer(),
+            FragmentSelector.serializer(),
+        )
+    },
 )

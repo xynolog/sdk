@@ -201,7 +201,7 @@ actor WorkerDriver {
     case "progress":
       let percentage = try args.decoded("percentage", as: Double.self)
       let message = try args.optional("message", as: JobProgressMessage.self)
-      try await working().progress(JobProgress(message: message, percentage: percentage))
+      try await working().progress(JobProgress(percentage: percentage, message: message))
     case "checkpoint":
       try await working().checkpoint(
         completedUnits: args.texts("completedUnits"),

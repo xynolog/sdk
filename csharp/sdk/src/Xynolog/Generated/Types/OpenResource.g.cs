@@ -8,9 +8,9 @@ namespace Xynolog.Types;
 public sealed record OpenResource
 {
     [global::Xynolog.Serialization.Wire("id")] public required global::Xynolog.Identifiers.ResourceId Id { get; init; }
-    [global::Xynolog.Serialization.Wire("mediaType")] public string? MediaType { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("openedAt")] public required long OpenedAt { get; init; }
     [global::Xynolog.Serialization.Wire("order")] public required long Order { get; init; }
+    [global::Xynolog.Serialization.Wire("mediaType")] public string? MediaType { get; init; }
     [global::Xynolog.Serialization.Wire("storageUri")] public string? StorageUri { get; init; }
 }

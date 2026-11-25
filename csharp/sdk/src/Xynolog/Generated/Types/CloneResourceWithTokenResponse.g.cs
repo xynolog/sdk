@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record CloneResourceWithTokenResponse
 {
+    [global::Xynolog.Serialization.Wire("token")] public required string Token { get; init; }
     [global::Xynolog.Serialization.Wire("expiresAt")] public required string ExpiresAt { get; init; }
     [global::Xynolog.Serialization.Wire("resource")] public required global::Xynolog.Types.ResourceDescriptor Resource { get; init; }
-    [global::Xynolog.Serialization.Wire("token")] public required string Token { get; init; }
 }

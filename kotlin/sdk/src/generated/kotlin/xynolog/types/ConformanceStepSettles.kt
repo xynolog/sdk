@@ -14,7 +14,7 @@ public data class ConformanceStepSettles(
     public val returns: JsonElement? = null,
     public val fails: JsonElement? = null,
     /** It ended because the case abandoned it. */
-    public val abandoned: Boolean? = null,
+    public val abandoned: ConformanceStepSettlesAbandoned? = null,
 ) : ConformanceStep {
     /** How Java makes a `ConformanceStepSettles`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
@@ -22,11 +22,11 @@ public data class ConformanceStepSettles(
     ) {
         private var returns: JsonElement? = null
         private var fails: JsonElement? = null
-        private var abandoned: Boolean? = null
+        private var abandoned: ConformanceStepSettlesAbandoned? = null
 
         public fun returns(returns: JsonElement?): Builder = apply { this.returns = returns }
         public fun fails(fails: JsonElement?): Builder = apply { this.fails = fails }
-        public fun abandoned(abandoned: Boolean?): Builder = apply { this.abandoned = abandoned }
+        public fun abandoned(abandoned: ConformanceStepSettlesAbandoned?): Builder = apply { this.abandoned = abandoned }
 
         public fun build(): ConformanceStepSettles = ConformanceStepSettles(settles = settles, returns = returns, fails = fails, abandoned = abandoned)
     }

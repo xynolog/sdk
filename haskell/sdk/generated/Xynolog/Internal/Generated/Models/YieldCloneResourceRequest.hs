@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data YieldCloneResourceRequest = YieldCloneResourceRequest
-  { yieldCloneResourceRequestToken :: Text,
-    yieldCloneResourceRequestAdditionalProperties :: KM.KeyMap Value
+  { yieldCloneResourceRequestToken :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldCloneResourceRequest where parseJSON = checked "YieldCloneResourceRequest" $ withObject "YieldCloneResourceRequest" (\fields -> YieldCloneResourceRequest <$> (fields .: "token") <*> traverse parseJSON (withoutFields ["token"] fields))
+instance FromJSON YieldCloneResourceRequest where parseJSON = checked "YieldCloneResourceRequest" $ withObject "YieldCloneResourceRequest" (\fields -> YieldCloneResourceRequest <$> (fields .: "token"))
 
-instance ToJSON YieldCloneResourceRequest where toJSON value = Object (KM.fromList (concat [[("token", toJSON (yieldCloneResourceRequestToken value))]]) <> fmap toJSON (withoutFields ["token"] (yieldCloneResourceRequestAdditionalProperties value)))
+instance ToJSON YieldCloneResourceRequest where toJSON value = Object (KM.fromList (concat [[("token", toJSON (yieldCloneResourceRequestToken value))]]))

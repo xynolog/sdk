@@ -11,22 +11,22 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data FileEntry = FileEntry
-  { fileEntryAnnotationCount :: Maybe Integer,
-    fileEntryCreator :: Maybe Text,
-    fileEntryEntityTypes :: Maybe [Text],
-    fileEntryMtime :: Text,
+  { fileEntryType :: FileEntryType,
     fileEntryName :: Text,
     fileEntryPath :: Text,
-    fileEntryResourceId :: Maybe ResourceId,
     fileEntrySize :: Integer,
+    fileEntryMtime :: Text,
     fileEntryTracked :: Bool,
-    fileEntryType :: FileEntryType
+    fileEntryResourceId :: Maybe ResourceId,
+    fileEntryEntityTypes :: Maybe [Text],
+    fileEntryAnnotationCount :: Maybe Integer,
+    fileEntryCreator :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON FileEntry where parseJSON = checked "FileEntry" $ withObject "FileEntry" (\fields -> FileEntry <$> optional fields "annotationCount" <*> optional fields "creator" <*> optional fields "entityTypes" <*> (fields .: "mtime") <*> (fields .: "name") <*> (fields .: "path") <*> optional fields "resourceId" <*> (fields .: "size") <*> (fields .: "tracked") <*> (fields .: "type"))
+instance FromJSON FileEntry where parseJSON = checked "FileEntry" $ withObject "FileEntry" (\fields -> FileEntry <$> (fields .: "type") <*> (fields .: "name") <*> (fields .: "path") <*> (fields .: "size") <*> (fields .: "mtime") <*> (fields .: "tracked") <*> optional fields "resourceId" <*> optional fields "entityTypes" <*> optional fields "annotationCount" <*> optional fields "creator")
 
-instance ToJSON FileEntry where toJSON value = Object (KM.fromList (concat [optionalPair "annotationCount" (fileEntryAnnotationCount value), optionalPair "creator" (fileEntryCreator value), optionalPair "entityTypes" (fileEntryEntityTypes value), [("mtime", toJSON (fileEntryMtime value))], [("name", toJSON (fileEntryName value))], [("path", toJSON (fileEntryPath value))], optionalPair "resourceId" (fileEntryResourceId value), [("size", toJSON (fileEntrySize value))], [("tracked", toJSON (fileEntryTracked value))], [("type", toJSON (fileEntryType value))]]))
+instance ToJSON FileEntry where toJSON value = Object (KM.fromList (concat [[("type", toJSON (fileEntryType value))], [("name", toJSON (fileEntryName value))], [("path", toJSON (fileEntryPath value))], [("size", toJSON (fileEntrySize value))], [("mtime", toJSON (fileEntryMtime value))], [("tracked", toJSON (fileEntryTracked value))], optionalPair "resourceId" (fileEntryResourceId value), optionalPair "entityTypes" (fileEntryEntityTypes value), optionalPair "annotationCount" (fileEntryAnnotationCount value), optionalPair "creator" (fileEntryCreator value)]))
 
 data FileEntryType = FileEntryTypeFile deriving (Eq, Show)
 

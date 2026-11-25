@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record RuntimeState
 {
-    [global::Xynolog.Serialization.Wire("found")] public required bool Found { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required global::Xynolog.Types.Runtime Name { get; init; }
+    [global::Xynolog.Serialization.Wire("found")] public required bool Found { get; init; }
 }

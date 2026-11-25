@@ -11,9 +11,7 @@ let banner = Banner.lines ~from_:("protocol/specs/src/" ^ Table.file) __FILE__
 
 (* A budget's members, each with its field's name in the model. *)
 let budget = [ "attempts"; "initialDelayMs"; "maxDelayMs" ]
-
-let budget_field member =
-  Haskell_sdk.Models.lower "RetryBudget" ^ Haskell_sdk.Models.identifier member
+let budget_field = Haskell_sdk.Models.field "RetryBudget"
 
 let budget_value = function
   | Table.Budget { attempts; initial_delay_ms; max_delay_ms } ->
@@ -146,7 +144,7 @@ let settings (t : Table.t) =
       ];
     body =
       [
-        H.record "Settings"
+        H.record ~constructor:"Settings" "Settings"
           (List.map
              (fun (e : Table.entry) ->
                (e.name, type_of ~budget_type:"RetryBudget" e))

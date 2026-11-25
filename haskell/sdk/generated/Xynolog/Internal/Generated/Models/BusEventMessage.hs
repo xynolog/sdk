@@ -15,24 +15,24 @@ import Xynolog.Internal.Generated.Models.PersistedEventId
 import Xynolog.Internal.Generated.Models.ReplyEventId
 
 data BusEventMessage = BusEventMessage
-  { busEventMessageData :: BusFrame,
-    busEventMessageEvent :: BusEventMessageEvent,
-    busEventMessageId :: BusEventMessageId
+  { busEventMessageEvent :: BusEventMessageEvent,
+    busEventMessageId :: BusEventMessageId,
+    busEventMessageData :: BusFrame
   }
   deriving (Eq, Show)
 
-instance FromJSON BusEventMessage where parseJSON = checked "BusEventMessage" $ withObject "BusEventMessage" (\fields -> BusEventMessage <$> (fields .: "data") <*> (fields .: "event") <*> (fields .: "id"))
+instance FromJSON BusEventMessage where parseJSON = checked "BusEventMessage" $ withObject "BusEventMessage" (\fields -> BusEventMessage <$> (fields .: "event") <*> (fields .: "id") <*> (fields .: "data"))
 
-instance ToJSON BusEventMessage where toJSON value = Object (KM.fromList (concat [[("data", toJSON (busEventMessageData value))], [("event", toJSON (busEventMessageEvent value))], [("id", toJSON (busEventMessageId value))]]))
+instance ToJSON BusEventMessage where toJSON value = Object (KM.fromList (concat [[("event", toJSON (busEventMessageEvent value))], [("id", toJSON (busEventMessageId value))], [("data", toJSON (busEventMessageData value))]]))
 
-data BusEventMessageEvent = BusEventMessageEventBusU2d_event deriving (Eq, Show)
+data BusEventMessageEvent = BusEventMessageEventBusEvent deriving (Eq, Show)
 
-instance FromJSON BusEventMessageEvent where parseJSON = checked "BusEventMessageEvent" $ \value -> if value == String "bus-event" then pure BusEventMessageEventBusU2d_event else fail "unknown enumeration member"
+instance FromJSON BusEventMessageEvent where parseJSON = checked "BusEventMessageEvent" $ \value -> if value == String "bus-event" then pure BusEventMessageEventBusEvent else fail "unknown enumeration member"
 
-instance ToJSON BusEventMessageEvent where toJSON BusEventMessageEventBusU2d_event = String "bus-event"
+instance ToJSON BusEventMessageEvent where toJSON BusEventMessageEventBusEvent = String "bus-event"
 
 busEventMessageEventText :: BusEventMessageEvent -> Text
-busEventMessageEventText BusEventMessageEventBusU2d_event = "bus-event"
+busEventMessageEventText BusEventMessageEventBusEvent = "bus-event"
 
 data BusEventMessageId = BusEventMessageIdPersistedEventId PersistedEventId | BusEventMessageIdReplyEventId ReplyEventId | BusEventMessageIdEphemeralEventId EphemeralEventId deriving (Eq, Show)
 

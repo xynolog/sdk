@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SessionJoinedEvent
 {
-    [global::Xynolog.Serialization.Wire("connectionId")] public required string ConnectionId { get; init; }
     [global::Xynolog.Serialization.Wire("participant")] public required global::Xynolog.Identifiers.UserId Participant { get; init; }
+    [global::Xynolog.Serialization.Wire("connectionId")] public required string ConnectionId { get; init; }
 }

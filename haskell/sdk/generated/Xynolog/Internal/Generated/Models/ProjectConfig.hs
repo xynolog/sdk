@@ -10,15 +10,15 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ProjectConfig = ProjectConfig
-  { projectConfigGit :: ProjectConfigGit,
-    projectConfigProject :: ProjectConfigProject,
+  { projectConfigProject :: ProjectConfigProject,
+    projectConfigGit :: ProjectConfigGit,
     projectConfigSite :: ProjectConfigSite
   }
   deriving (Eq, Show)
 
-instance FromJSON ProjectConfig where parseJSON = checked "ProjectConfig" $ withObject "ProjectConfig" (\fields -> ProjectConfig <$> (fields .: "git") <*> (fields .: "project") <*> (fields .: "site"))
+instance FromJSON ProjectConfig where parseJSON = checked "ProjectConfig" $ withObject "ProjectConfig" (\fields -> ProjectConfig <$> (fields .: "project") <*> (fields .: "git") <*> (fields .: "site"))
 
-instance ToJSON ProjectConfig where toJSON value = Object (KM.fromList (concat [[("git", toJSON (projectConfigGit value))], [("project", toJSON (projectConfigProject value))], [("site", toJSON (projectConfigSite value))]]))
+instance ToJSON ProjectConfig where toJSON value = Object (KM.fromList (concat [[("project", toJSON (projectConfigProject value))], [("git", toJSON (projectConfigGit value))], [("site", toJSON (projectConfigSite value))]]))
 
 data ProjectConfigGit = ProjectConfigGit
   { projectConfigGitSync :: Bool

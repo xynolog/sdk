@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobFailedPayload
 {
-    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
-    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
-    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
-    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
-    [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
     [global::Xynolog.Serialization.Wire("jobType")] public required global::Xynolog.Types.JobType JobType { get; init; }
+    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
+    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
+    [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
     [global::Xynolog.Serialization.Wire("willRetry")] public bool? WillRetry { get; init; }
+    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
 }

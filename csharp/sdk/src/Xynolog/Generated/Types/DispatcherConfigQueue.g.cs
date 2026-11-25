@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DispatcherConfigQueue
 {
-    [global::Xynolog.Serialization.Wire("passwordEnv")] public string? PasswordEnv { get; init; }
     [global::Xynolog.Serialization.Wire("servers")] public required string Servers { get; init; }
     [global::Xynolog.Serialization.Wire("userEnv")] public string? UserEnv { get; init; }
+    [global::Xynolog.Serialization.Wire("passwordEnv")] public string? PasswordEnv { get; init; }
 }

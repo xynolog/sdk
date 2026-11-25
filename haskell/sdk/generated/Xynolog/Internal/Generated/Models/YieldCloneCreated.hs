@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.YieldedResource
 
 data YieldCloneCreated = YieldCloneCreated
-  { yieldCloneCreatedResponse :: YieldedResource,
-    yieldCloneCreatedAdditionalProperties :: KM.KeyMap Value
+  { yieldCloneCreatedResponse :: YieldedResource
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldCloneCreated where parseJSON = checked "YieldCloneCreated" $ withObject "YieldCloneCreated" (\fields -> YieldCloneCreated <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON YieldCloneCreated where parseJSON = checked "YieldCloneCreated" $ withObject "YieldCloneCreated" (\fields -> YieldCloneCreated <$> (fields .: "response"))
 
-instance ToJSON YieldCloneCreated where toJSON value = Object (KM.fromList (concat [[("response", toJSON (yieldCloneCreatedResponse value))]]) <> fmap toJSON (withoutFields ["response"] (yieldCloneCreatedAdditionalProperties value)))
+instance ToJSON YieldCloneCreated where toJSON value = Object (KM.fromList (concat [[("response", toJSON (yieldCloneCreatedResponse value))]]))

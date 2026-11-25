@@ -8,11 +8,11 @@ namespace Xynolog.Types;
 public sealed record YieldCloneCreateCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
-    [global::Xynolog.Serialization.Wire("archiveOriginal")] public bool? ArchiveOriginal { get; init; }
-    [global::Xynolog.Serialization.Wire("byteSize")] public required long ByteSize { get; init; }
-    [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
-    [global::Xynolog.Serialization.Wire("format")] public required string Format { get; init; }
+    [global::Xynolog.Serialization.Wire("token")] public required string Token { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("storageUri")] public required string StorageUri { get; init; }
-    [global::Xynolog.Serialization.Wire("token")] public required string Token { get; init; }
+    [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
+    [global::Xynolog.Serialization.Wire("byteSize")] public required long ByteSize { get; init; }
+    [global::Xynolog.Serialization.Wire("format")] public required string Format { get; init; }
+    [global::Xynolog.Serialization.Wire("archiveOriginal")] public bool? ArchiveOriginal { get; init; }
 }

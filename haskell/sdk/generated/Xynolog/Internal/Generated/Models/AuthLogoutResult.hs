@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 
 data AuthLogoutResult = AuthLogoutResult
   { authLogoutResultKey :: Maybe Text,
-    authLogoutResultRevoked :: Bool,
-    authLogoutResultWasSignedIn :: Bool
+    authLogoutResultWasSignedIn :: Bool,
+    authLogoutResultRevoked :: Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON AuthLogoutResult where parseJSON = checked "AuthLogoutResult" $ withObject "AuthLogoutResult" (\fields -> AuthLogoutResult <$> optional fields "key" <*> (fields .: "revoked") <*> (fields .: "wasSignedIn"))
+instance FromJSON AuthLogoutResult where parseJSON = checked "AuthLogoutResult" $ withObject "AuthLogoutResult" (\fields -> AuthLogoutResult <$> optional fields "key" <*> (fields .: "wasSignedIn") <*> (fields .: "revoked"))
 
-instance ToJSON AuthLogoutResult where toJSON value = Object (KM.fromList (concat [optionalPair "key" (authLogoutResultKey value), [("revoked", toJSON (authLogoutResultRevoked value))], [("wasSignedIn", toJSON (authLogoutResultWasSignedIn value))]]))
+instance ToJSON AuthLogoutResult where toJSON value = Object (KM.fromList (concat [optionalPair "key" (authLogoutResultKey value), [("wasSignedIn", toJSON (authLogoutResultWasSignedIn value))], [("revoked", toJSON (authLogoutResultRevoked value))]]))

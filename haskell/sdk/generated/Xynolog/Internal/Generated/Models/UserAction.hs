@@ -11,14 +11,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.RequestId
 
 data UserAction = UserAction
-  { userActionExpiresInSeconds :: Integer,
-    userActionRequestId :: RequestId,
-    userActionUserCode :: Text,
+  { userActionRequestId :: RequestId,
     userActionVerificationUri :: Text,
-    userActionVerificationUriComplete :: Maybe Text
+    userActionVerificationUriComplete :: Maybe Text,
+    userActionUserCode :: Text,
+    userActionExpiresInSeconds :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON UserAction where parseJSON = checked "UserAction" $ withObject "UserAction" (\fields -> UserAction <$> (fields .: "expiresInSeconds") <*> (fields .: "requestId") <*> (fields .: "userCode") <*> (fields .: "verificationUri") <*> optional fields "verificationUriComplete")
+instance FromJSON UserAction where parseJSON = checked "UserAction" $ withObject "UserAction" (\fields -> UserAction <$> (fields .: "requestId") <*> (fields .: "verificationUri") <*> optional fields "verificationUriComplete" <*> (fields .: "userCode") <*> (fields .: "expiresInSeconds"))
 
-instance ToJSON UserAction where toJSON value = Object (KM.fromList (concat [[("expiresInSeconds", toJSON (userActionExpiresInSeconds value))], [("requestId", toJSON (userActionRequestId value))], [("userCode", toJSON (userActionUserCode value))], [("verificationUri", toJSON (userActionVerificationUri value))], optionalPair "verificationUriComplete" (userActionVerificationUriComplete value)]))
+instance ToJSON UserAction where toJSON value = Object (KM.fromList (concat [[("requestId", toJSON (userActionRequestId value))], [("verificationUri", toJSON (userActionVerificationUri value))], optionalPair "verificationUriComplete" (userActionVerificationUriComplete value), [("userCode", toJSON (userActionUserCode value))], [("expiresInSeconds", toJSON (userActionExpiresInSeconds value))]]))

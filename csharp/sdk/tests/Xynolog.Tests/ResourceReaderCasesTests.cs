@@ -42,9 +42,9 @@ public sealed partial class TransportTests
             var descriptor = Required<ResourceDescriptor>(resource);
             switch (descriptor.Representations)
             {
-                case ResourceDescriptorRepresentations.RepresentationCase: one++; break;
-                case ResourceDescriptorRepresentations.ArrayCase(var listed) when listed.Count == 0: none++; break;
-                case ResourceDescriptorRepresentations.ArrayCase: several++; break;
+                case ResourceDescriptorRepresentations.Representation: one++; break;
+                case ResourceDescriptorRepresentations.List(var listed) when listed.Count == 0: none++; break;
+                case ResourceDescriptorRepresentations.List: several++; break;
             }
             var primary = PrimaryRepresentation(descriptor);
             Assert.True(row.TryGetProperty("primaryRepresentation", out var representation)

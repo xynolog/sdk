@@ -1,7 +1,7 @@
 (* The timing as the OCaml SDK reads it (ocaml/sdk/lib/client_timing.ml): a
    value per entry under its name in snake case, a duration or a count as an
    int and a retry budget as the record of client/RetryBudget.json
-   ([Records.Retry_budget]), which keeps no member beside its own. *)
+   ([Records.Retry_budget]). *)
 
 module O = Ocaml_syntax
 
@@ -23,7 +23,6 @@ let files (t : Table.t) =
                      (budget ^ ".attempts", O.int b.attempts);
                      ("initial_delay_ms", O.int b.initial_delay_ms);
                      ("max_delay_ms", O.int b.max_delay_ms);
-                     ("extra", O.list []);
                    ]))
          t);
     O.interface ~path:"ocaml/sdk/lib/client_timing.mli" ~banner

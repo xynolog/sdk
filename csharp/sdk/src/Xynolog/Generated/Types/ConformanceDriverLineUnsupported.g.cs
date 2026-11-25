@@ -8,5 +8,5 @@ namespace Xynolog.Types;
 public sealed record ConformanceDriverLineUnsupported
 {
     [global::Xynolog.Serialization.Wire("id")] public required long Id { get; init; }
-    [global::Xynolog.Serialization.Wire("unsupported")] public required bool Unsupported { get; init; }
+    [global::Xynolog.Serialization.Wire("unsupported")] public global::Xynolog.Types.ConformanceDriverLineUnsupportedUnsupported Unsupported => global::Xynolog.Types.ConformanceDriverLineUnsupportedUnsupported.Value;
 }

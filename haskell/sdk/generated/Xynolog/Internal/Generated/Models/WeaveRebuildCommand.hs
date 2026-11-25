@@ -11,12 +11,11 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data WeaveRebuildCommand = WeaveRebuildCommand
-  { weaveRebuildCommandU5f_userId :: Maybe UserId,
-    weaveRebuildCommandResourceId :: Maybe ResourceId,
-    weaveRebuildCommandAdditionalProperties :: KM.KeyMap Value
+  { weaveRebuildCommandResourceId :: Maybe ResourceId,
+    weaveRebuildCommandUserId :: Maybe UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON WeaveRebuildCommand where parseJSON = checked "WeaveRebuildCommand" $ withObject "WeaveRebuildCommand" (\fields -> WeaveRebuildCommand <$> optional fields "_userId" <*> optional fields "resourceId" <*> traverse parseJSON (withoutFields ["_userId", "resourceId"] fields))
+instance FromJSON WeaveRebuildCommand where parseJSON = checked "WeaveRebuildCommand" $ withObject "WeaveRebuildCommand" (\fields -> WeaveRebuildCommand <$> optional fields "resourceId" <*> optional fields "_userId")
 
-instance ToJSON WeaveRebuildCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (weaveRebuildCommandU5f_userId value), optionalPair "resourceId" (weaveRebuildCommandResourceId value)]) <> fmap toJSON (withoutFields ["_userId", "resourceId"] (weaveRebuildCommandAdditionalProperties value)))
+instance ToJSON WeaveRebuildCommand where toJSON value = Object (KM.fromList (concat [optionalPair "resourceId" (weaveRebuildCommandResourceId value), optionalPair "_userId" (weaveRebuildCommandUserId value)]))

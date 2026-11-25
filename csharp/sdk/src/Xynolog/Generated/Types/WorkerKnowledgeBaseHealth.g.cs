@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkerKnowledgeBaseHealth
 {
-    [global::Xynolog.Serialization.Wire("did")] public string? Did { get; init; }
     [global::Xynolog.Serialization.Wire("domain")] public required string Domain { get; init; }
-    [global::Xynolog.Serialization.Wire("engines")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerEngineHealth>? Engines { get; init; }
     [global::Xynolog.Serialization.Wire("state")] public required global::Xynolog.Types.WorkerKnowledgeBaseHealthState State { get; init; }
+    [global::Xynolog.Serialization.Wire("did")] public string? Did { get; init; }
+    [global::Xynolog.Serialization.Wire("engines")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerEngineHealth>? Engines { get; init; }
 }

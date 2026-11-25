@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.WorkerMessages (WorkerMessages (..), WorkerMessagesBootItem (..), WorkerMessagesBootItemOwnBootRefusalValue (..), WorkerMessagesBootItemSharedBootRefusalValue (..), WorkerMessagesDetailsItem (..), WorkerMessagesErrorsItem (..), WorkerMessagesJob (..), WorkerMessagesLoggedItem (..), WorkerMessagesLoggedItemFields (..), WorkerMessagesReasonsItem (..), WorkerMessagesWaitsItem (..)) where
+module Xynolog.Internal.Generated.Models.WorkerMessages (WorkerMessages (..), WorkerMessagesBootItem (..), WorkerMessagesBootItemOwnBootRefusal (..), WorkerMessagesBootItemSharedBootRefusal (..), WorkerMessagesDetailsItem (..), WorkerMessagesErrorsItem (..), WorkerMessagesJob (..), WorkerMessagesLoggedItem (..), WorkerMessagesLoggedItemFields (..), WorkerMessagesReasonsItem (..), WorkerMessagesWaitsItem (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -12,22 +12,22 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.LogLevel
 
 data WorkerMessages = WorkerMessages
-  { workerMessagesU24_comment :: Text,
+  { workerMessagesComment :: Text,
     workerMessagesBoot :: [WorkerMessagesBootItem],
-    workerMessagesDetails :: [WorkerMessagesDetailsItem],
-    workerMessagesErrors :: [WorkerMessagesErrorsItem],
-    workerMessagesJob :: WorkerMessagesJob,
-    workerMessagesLogged :: [WorkerMessagesLoggedItem],
     workerMessagesReasons :: [WorkerMessagesReasonsItem],
-    workerMessagesWaits :: [WorkerMessagesWaitsItem]
+    workerMessagesJob :: WorkerMessagesJob,
+    workerMessagesErrors :: [WorkerMessagesErrorsItem],
+    workerMessagesDetails :: [WorkerMessagesDetailsItem],
+    workerMessagesWaits :: [WorkerMessagesWaitsItem],
+    workerMessagesLogged :: [WorkerMessagesLoggedItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessages where parseJSON = checked "WorkerMessages" $ withObject "WorkerMessages" (\fields -> WorkerMessages <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "details") <*> (fields .: "errors") <*> (fields .: "job") <*> (fields .: "logged") <*> (fields .: "reasons") <*> (fields .: "waits"))
+instance FromJSON WorkerMessages where parseJSON = checked "WorkerMessages" $ withObject "WorkerMessages" (\fields -> WorkerMessages <$> (fields .: "$comment") <*> (fields .: "boot") <*> (fields .: "reasons") <*> (fields .: "job") <*> (fields .: "errors") <*> (fields .: "details") <*> (fields .: "waits") <*> (fields .: "logged"))
 
-instance ToJSON WorkerMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (workerMessagesU24_comment value))], [("boot", toJSON (workerMessagesBoot value))], [("details", toJSON (workerMessagesDetails value))], [("errors", toJSON (workerMessagesErrors value))], [("job", toJSON (workerMessagesJob value))], [("logged", toJSON (workerMessagesLogged value))], [("reasons", toJSON (workerMessagesReasons value))], [("waits", toJSON (workerMessagesWaits value))]]))
+instance ToJSON WorkerMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (workerMessagesComment value))], [("boot", toJSON (workerMessagesBoot value))], [("reasons", toJSON (workerMessagesReasons value))], [("job", toJSON (workerMessagesJob value))], [("errors", toJSON (workerMessagesErrors value))], [("details", toJSON (workerMessagesDetails value))], [("waits", toJSON (workerMessagesWaits value))], [("logged", toJSON (workerMessagesLogged value))]]))
 
-data WorkerMessagesBootItem = WorkerMessagesBootItemOwnBootRefusal WorkerMessagesBootItemOwnBootRefusalValue | WorkerMessagesBootItemSharedBootRefusal WorkerMessagesBootItemSharedBootRefusalValue deriving (Eq, Show)
+data WorkerMessagesBootItem = WorkerMessagesBootItemOwnBootRefusal WorkerMessagesBootItemOwnBootRefusal | WorkerMessagesBootItemSharedBootRefusal WorkerMessagesBootItemSharedBootRefusal deriving (Eq, Show)
 
 instance FromJSON WorkerMessagesBootItem where parseJSON = checked "WorkerMessagesBootItem" $ \value -> (WorkerMessagesBootItemOwnBootRefusal <$> parseJSON value) <|> (WorkerMessagesBootItemSharedBootRefusal <$> parseJSON value)
 
@@ -35,49 +35,49 @@ instance ToJSON WorkerMessagesBootItem where
   toJSON (WorkerMessagesBootItemOwnBootRefusal value) = toJSON value
   toJSON (WorkerMessagesBootItemSharedBootRefusal value) = toJSON value
 
-data WorkerMessagesBootItemOwnBootRefusalValue = WorkerMessagesBootItemOwnBootRefusalValue
-  { workerMessagesBootItemOwnBootRefusalValueName :: Text,
-    workerMessagesBootItemOwnBootRefusalValueRefusal :: Text,
-    workerMessagesBootItemOwnBootRefusalValueSituation :: Text
+data WorkerMessagesBootItemOwnBootRefusal = MkWorkerMessagesBootItemOwnBootRefusal
+  { workerMessagesBootItemOwnBootRefusalName :: Text,
+    workerMessagesBootItemOwnBootRefusalSituation :: Text,
+    workerMessagesBootItemOwnBootRefusalRefusal :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesBootItemOwnBootRefusalValue where parseJSON = checked "WorkerMessagesBootItemOwnBootRefusalValue" $ withObject "WorkerMessagesBootItemOwnBootRefusalValue" (\fields -> WorkerMessagesBootItemOwnBootRefusalValue <$> (fields .: "name") <*> (fields .: "refusal") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesBootItemOwnBootRefusal where parseJSON = checked "WorkerMessagesBootItemOwnBootRefusal" $ withObject "WorkerMessagesBootItemOwnBootRefusal" (\fields -> MkWorkerMessagesBootItemOwnBootRefusal <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "refusal"))
 
-instance ToJSON WorkerMessagesBootItemOwnBootRefusalValue where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesBootItemOwnBootRefusalValueName value))], [("refusal", toJSON (workerMessagesBootItemOwnBootRefusalValueRefusal value))], [("situation", toJSON (workerMessagesBootItemOwnBootRefusalValueSituation value))]]))
+instance ToJSON WorkerMessagesBootItemOwnBootRefusal where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesBootItemOwnBootRefusalName value))], [("situation", toJSON (workerMessagesBootItemOwnBootRefusalSituation value))], [("refusal", toJSON (workerMessagesBootItemOwnBootRefusalRefusal value))]]))
 
-data WorkerMessagesBootItemSharedBootRefusalValue = WorkerMessagesBootItemSharedBootRefusalValue
-  { workerMessagesBootItemSharedBootRefusalValueBootRefusal :: Text,
-    workerMessagesBootItemSharedBootRefusalValueName :: Text,
-    workerMessagesBootItemSharedBootRefusalValueSituation :: Text
+data WorkerMessagesBootItemSharedBootRefusal = MkWorkerMessagesBootItemSharedBootRefusal
+  { workerMessagesBootItemSharedBootRefusalName :: Text,
+    workerMessagesBootItemSharedBootRefusalSituation :: Text,
+    workerMessagesBootItemSharedBootRefusalBootRefusal :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesBootItemSharedBootRefusalValue where parseJSON = checked "WorkerMessagesBootItemSharedBootRefusalValue" $ withObject "WorkerMessagesBootItemSharedBootRefusalValue" (\fields -> WorkerMessagesBootItemSharedBootRefusalValue <$> (fields .: "bootRefusal") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesBootItemSharedBootRefusal where parseJSON = checked "WorkerMessagesBootItemSharedBootRefusal" $ withObject "WorkerMessagesBootItemSharedBootRefusal" (\fields -> MkWorkerMessagesBootItemSharedBootRefusal <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "bootRefusal"))
 
-instance ToJSON WorkerMessagesBootItemSharedBootRefusalValue where toJSON value = Object (KM.fromList (concat [[("bootRefusal", toJSON (workerMessagesBootItemSharedBootRefusalValueBootRefusal value))], [("name", toJSON (workerMessagesBootItemSharedBootRefusalValueName value))], [("situation", toJSON (workerMessagesBootItemSharedBootRefusalValueSituation value))]]))
+instance ToJSON WorkerMessagesBootItemSharedBootRefusal where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesBootItemSharedBootRefusalName value))], [("situation", toJSON (workerMessagesBootItemSharedBootRefusalSituation value))], [("bootRefusal", toJSON (workerMessagesBootItemSharedBootRefusalBootRefusal value))]]))
 
 data WorkerMessagesDetailsItem = WorkerMessagesDetailsItem
-  { workerMessagesDetailsItemDetail :: Text,
-    workerMessagesDetailsItemName :: Text,
-    workerMessagesDetailsItemSituation :: Text
+  { workerMessagesDetailsItemName :: Text,
+    workerMessagesDetailsItemSituation :: Text,
+    workerMessagesDetailsItemDetail :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesDetailsItem where parseJSON = checked "WorkerMessagesDetailsItem" $ withObject "WorkerMessagesDetailsItem" (\fields -> WorkerMessagesDetailsItem <$> (fields .: "detail") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesDetailsItem where parseJSON = checked "WorkerMessagesDetailsItem" $ withObject "WorkerMessagesDetailsItem" (\fields -> WorkerMessagesDetailsItem <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "detail"))
 
-instance ToJSON WorkerMessagesDetailsItem where toJSON value = Object (KM.fromList (concat [[("detail", toJSON (workerMessagesDetailsItemDetail value))], [("name", toJSON (workerMessagesDetailsItemName value))], [("situation", toJSON (workerMessagesDetailsItemSituation value))]]))
+instance ToJSON WorkerMessagesDetailsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesDetailsItemName value))], [("situation", toJSON (workerMessagesDetailsItemSituation value))], [("detail", toJSON (workerMessagesDetailsItemDetail value))]]))
 
 data WorkerMessagesErrorsItem = WorkerMessagesErrorsItem
-  { workerMessagesErrorsItemError :: Text,
-    workerMessagesErrorsItemName :: Text,
-    workerMessagesErrorsItemSituation :: Text
+  { workerMessagesErrorsItemName :: Text,
+    workerMessagesErrorsItemSituation :: Text,
+    workerMessagesErrorsItemError :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesErrorsItem where parseJSON = checked "WorkerMessagesErrorsItem" $ withObject "WorkerMessagesErrorsItem" (\fields -> WorkerMessagesErrorsItem <$> (fields .: "error") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesErrorsItem where parseJSON = checked "WorkerMessagesErrorsItem" $ withObject "WorkerMessagesErrorsItem" (\fields -> WorkerMessagesErrorsItem <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "error"))
 
-instance ToJSON WorkerMessagesErrorsItem where toJSON value = Object (KM.fromList (concat [[("error", toJSON (workerMessagesErrorsItemError value))], [("name", toJSON (workerMessagesErrorsItemName value))], [("situation", toJSON (workerMessagesErrorsItemSituation value))]]))
+instance ToJSON WorkerMessagesErrorsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesErrorsItemName value))], [("situation", toJSON (workerMessagesErrorsItemSituation value))], [("error", toJSON (workerMessagesErrorsItemError value))]]))
 
 data WorkerMessagesJob = WorkerMessagesJob
   { workerMessagesJobMark :: Text,
@@ -90,18 +90,18 @@ instance FromJSON WorkerMessagesJob where parseJSON = checked "WorkerMessagesJob
 instance ToJSON WorkerMessagesJob where toJSON value = Object (KM.fromList (concat [[("mark", toJSON (workerMessagesJobMark value))], [("yield", toJSON (workerMessagesJobYield value))]]))
 
 data WorkerMessagesLoggedItem = WorkerMessagesLoggedItem
-  { workerMessagesLoggedItemCarries :: [Text],
-    workerMessagesLoggedItemFields :: WorkerMessagesLoggedItemFields,
+  { workerMessagesLoggedItemName :: Text,
     workerMessagesLoggedItemLevel :: LogLevel,
+    workerMessagesLoggedItemSituation :: Text,
     workerMessagesLoggedItemMessage :: Text,
-    workerMessagesLoggedItemName :: Text,
-    workerMessagesLoggedItemSituation :: Text
+    workerMessagesLoggedItemFields :: WorkerMessagesLoggedItemFields,
+    workerMessagesLoggedItemCarries :: [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesLoggedItem where parseJSON = checked "WorkerMessagesLoggedItem" $ withObject "WorkerMessagesLoggedItem" (\fields -> WorkerMessagesLoggedItem <$> (fields .: "carries") <*> (fields .: "fields") <*> (fields .: "level") <*> (fields .: "message") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesLoggedItem where parseJSON = checked "WorkerMessagesLoggedItem" $ withObject "WorkerMessagesLoggedItem" (\fields -> WorkerMessagesLoggedItem <$> (fields .: "name") <*> (fields .: "level") <*> (fields .: "situation") <*> (fields .: "message") <*> (fields .: "fields") <*> (fields .: "carries"))
 
-instance ToJSON WorkerMessagesLoggedItem where toJSON value = Object (KM.fromList (concat [[("carries", toJSON (workerMessagesLoggedItemCarries value))], [("fields", toJSON (workerMessagesLoggedItemFields value))], [("level", toJSON (workerMessagesLoggedItemLevel value))], [("message", toJSON (workerMessagesLoggedItemMessage value))], [("name", toJSON (workerMessagesLoggedItemName value))], [("situation", toJSON (workerMessagesLoggedItemSituation value))]]))
+instance ToJSON WorkerMessagesLoggedItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesLoggedItemName value))], [("level", toJSON (workerMessagesLoggedItemLevel value))], [("situation", toJSON (workerMessagesLoggedItemSituation value))], [("message", toJSON (workerMessagesLoggedItemMessage value))], [("fields", toJSON (workerMessagesLoggedItemFields value))], [("carries", toJSON (workerMessagesLoggedItemCarries value))]]))
 
 data WorkerMessagesLoggedItemFields = WorkerMessagesLoggedItemFields
   { workerMessagesLoggedItemFieldsAdditionalProperties :: KM.KeyMap Text
@@ -113,23 +113,23 @@ instance FromJSON WorkerMessagesLoggedItemFields where parseJSON = checked "Work
 instance ToJSON WorkerMessagesLoggedItemFields where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (workerMessagesLoggedItemFieldsAdditionalProperties value)))
 
 data WorkerMessagesReasonsItem = WorkerMessagesReasonsItem
-  { workerMessagesReasonsItemLine :: Text,
-    workerMessagesReasonsItemName :: Text,
-    workerMessagesReasonsItemSituation :: Text
+  { workerMessagesReasonsItemName :: Text,
+    workerMessagesReasonsItemSituation :: Text,
+    workerMessagesReasonsItemLine :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesReasonsItem where parseJSON = checked "WorkerMessagesReasonsItem" $ withObject "WorkerMessagesReasonsItem" (\fields -> WorkerMessagesReasonsItem <$> (fields .: "line") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesReasonsItem where parseJSON = checked "WorkerMessagesReasonsItem" $ withObject "WorkerMessagesReasonsItem" (\fields -> WorkerMessagesReasonsItem <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "line"))
 
-instance ToJSON WorkerMessagesReasonsItem where toJSON value = Object (KM.fromList (concat [[("line", toJSON (workerMessagesReasonsItemLine value))], [("name", toJSON (workerMessagesReasonsItemName value))], [("situation", toJSON (workerMessagesReasonsItemSituation value))]]))
+instance ToJSON WorkerMessagesReasonsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesReasonsItemName value))], [("situation", toJSON (workerMessagesReasonsItemSituation value))], [("line", toJSON (workerMessagesReasonsItemLine value))]]))
 
 data WorkerMessagesWaitsItem = WorkerMessagesWaitsItem
   { workerMessagesWaitsItemName :: Text,
-    workerMessagesWaitsItemSaid :: Text,
-    workerMessagesWaitsItemSituation :: Text
+    workerMessagesWaitsItemSituation :: Text,
+    workerMessagesWaitsItemSaid :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerMessagesWaitsItem where parseJSON = checked "WorkerMessagesWaitsItem" $ withObject "WorkerMessagesWaitsItem" (\fields -> WorkerMessagesWaitsItem <$> (fields .: "name") <*> (fields .: "said") <*> (fields .: "situation"))
+instance FromJSON WorkerMessagesWaitsItem where parseJSON = checked "WorkerMessagesWaitsItem" $ withObject "WorkerMessagesWaitsItem" (\fields -> WorkerMessagesWaitsItem <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "said"))
 
-instance ToJSON WorkerMessagesWaitsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesWaitsItemName value))], [("said", toJSON (workerMessagesWaitsItemSaid value))], [("situation", toJSON (workerMessagesWaitsItemSituation value))]]))
+instance ToJSON WorkerMessagesWaitsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesWaitsItemName value))], [("situation", toJSON (workerMessagesWaitsItemSituation value))], [("said", toJSON (workerMessagesWaitsItemSaid value))]]))

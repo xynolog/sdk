@@ -117,14 +117,14 @@ reconcile :: Text -> QuotedText -> Maybe ReconciledSpan
 reconcile text quoted
   | Text.null (Text.dropAround whiteSpace exact) = Nothing
   | otherwise = case [(offset, offset + Text.length exact) | offset <- occurrencesOf text exact] of
-      [place] -> Just (ReconciledSpanReconciledSpanUniqueMatch (built place (ReconciledSpanUniqueMatch ReconciledSpanUniqueMatchAnchorMethodUniqueU2d_match)))
+      [place] -> Just (ReconciledSpanReconciledSpanUniqueMatch (built place (\stop said before from after -> ReconciledSpanUniqueMatch {reconciledSpanUniqueMatchAnchorMethod = ReconciledSpanUniqueMatchAnchorMethodUniqueMatch, reconciledSpanUniqueMatchEnd = stop, reconciledSpanUniqueMatchExact = said, reconciledSpanUniqueMatchPrefix = before, reconciledSpanUniqueMatchStart = from, reconciledSpanUniqueMatchSuffix = after})))
       places@(first : _) -> case hinted places of
-        Just place -> Just (ReconciledSpanReconciledSpanContextRecovered (built place (ReconciledSpanContextRecovered ReconciledSpanContextRecoveredAnchorMethodContextU2d_recovered)))
-        Nothing -> Just (ReconciledSpanReconciledSpanFirstOfMany (built first (ReconciledSpanFirstOfMany ReconciledSpanFirstOfManyAnchorMethodFirstU2d_ofU2d_many)))
+        Just place -> Just (ReconciledSpanReconciledSpanContextRecovered (built place (\stop said before from after -> ReconciledSpanContextRecovered {reconciledSpanContextRecoveredAnchorMethod = ReconciledSpanContextRecoveredAnchorMethodContextRecovered, reconciledSpanContextRecoveredEnd = stop, reconciledSpanContextRecoveredExact = said, reconciledSpanContextRecoveredPrefix = before, reconciledSpanContextRecoveredStart = from, reconciledSpanContextRecoveredSuffix = after})))
+        Nothing -> Just (ReconciledSpanReconciledSpanFirstOfMany (built first (\stop said before from after -> ReconciledSpanFirstOfMany {reconciledSpanFirstOfManyAnchorMethod = ReconciledSpanFirstOfManyAnchorMethodFirstOfMany, reconciledSpanFirstOfManyEnd = stop, reconciledSpanFirstOfManyExact = said, reconciledSpanFirstOfManyPrefix = before, reconciledSpanFirstOfManyStart = from, reconciledSpanFirstOfManySuffix = after})))
       [] -> do
         (places, quality) <- looser
         place <- case hinted places of Just found -> Just found; Nothing -> case places of value : _ -> Just value; _ -> Nothing
-        pure (ReconciledSpanReconciledSpanFuzzyMatch (built place (\stop said -> ReconciledSpanFuzzyMatch ReconciledSpanFuzzyMatchAnchorMethodFuzzyU2d_match stop said quality)))
+        pure (ReconciledSpanReconciledSpanFuzzyMatch (built place (\stop said before from after -> ReconciledSpanFuzzyMatch {reconciledSpanFuzzyMatchAnchorMethod = ReconciledSpanFuzzyMatchAnchorMethodFuzzyMatch, reconciledSpanFuzzyMatchEnd = stop, reconciledSpanFuzzyMatchExact = said, reconciledSpanFuzzyMatchMatchQuality = quality, reconciledSpanFuzzyMatchPrefix = before, reconciledSpanFuzzyMatchStart = from, reconciledSpanFuzzyMatchSuffix = after})))
   where
     exact = quotedTextExact quoted
     hint value = value >>= \given -> if Text.null (Text.dropAround whiteSpace given) then Nothing else Just given
@@ -141,7 +141,7 @@ reconcile text quoted
             then Just (normalized, MatchQualityNormalized)
             else
               if not (null insensitive)
-                then Just (insensitive, MatchQualityCaseU2d_insensitive)
+                then Just (insensitive, MatchQualityCaseInsensitive)
                 else (\place -> ([place], MatchQualityFuzzy)) <$> nearest text exact
     boundary char = whiteSpace char || char `elem` (".,;:!?'\"()[]{}<>/\\" :: String)
     buildPrefix start

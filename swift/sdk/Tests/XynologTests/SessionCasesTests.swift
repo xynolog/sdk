@@ -44,15 +44,15 @@ private actor SessionScript {
     default:
       return try UserResponse(
         did: personDid("example.org", textClaim(token, name: "name") ?? "alice"),
-        domain: "example.org", email: nil, image: nil, name: textClaim(token, name: "name"))
+        email: nil, name: textClaim(token, name: "name"), image: nil, domain: "example.org")
     }
   }
   func counts() -> (Int, Int) { (asks, renewals) }
 }
 private func target() -> KbTarget {
   KbTarget(
-    endpoint: .httpEndpoint(HttpEndpoint(host: "localhost", port: 4000, protocol: .http)),
-    id: "local:test", label: "test")
+    id: "local:test", label: "test",
+    endpoint: .httpEndpoint(HttpEndpoint(host: "localhost", port: 4000, protocol: .http)))
 }
 private func status(_ session: XynologSession) -> String {
   if session.token.value == nil { return "signed-out" }
@@ -73,7 +73,7 @@ private func status(_ session: XynologSession) -> String {
         stored == "none"
         ? nil
         : StoredSession(
-          access: access, clientId: scriptClientID, refresh: "refresh",
+          access: access, refresh: "refresh", clientId: scriptClientID,
           tokenEndpoint: "http://issuer/token")
       let kept = MemorySignIn(held)
       let gateway = try required(row, "gateway").array.map { try $0.text }
@@ -179,7 +179,7 @@ private func status(_ session: XynologSession) -> String {
     .object(["iss": .string("issuer"), "exp": .number(Date().timeIntervalSince1970 + 3600)]))
   let kept = MemorySignIn(
     StoredSession(
-      access: token, clientId: scriptClientID, refresh: "refresh", tokenEndpoint: "issuer"))
+      access: token, refresh: "refresh", clientId: scriptClientID, tokenEndpoint: "issuer"))
   let calls = Mutex(0)
   let renewing = Watched(false)
   let answered = Watched(false)
@@ -197,7 +197,7 @@ private func status(_ session: XynologSession) -> String {
     },
     validate: { _ in
       try UserResponse(
-        did: UserId("did:web:test:users:alice"), domain: "test", email: nil, image: nil, name: nil)
+        did: UserId("did:web:test:users:alice"), email: nil, name: nil, image: nil, domain: "test")
     }, random: RandomSource(SystemRandomNumberGenerator()))
   defer { session.dispose() }
   await session.start()
@@ -232,7 +232,7 @@ private func status(_ session: XynologSession) -> String {
   let rotated = "rotated-access"
   let kept = MemorySignIn(
     StoredSession(
-      access: access, clientId: scriptClientID, refresh: "refresh", tokenEndpoint: "issuer"))
+      access: access, refresh: "refresh", clientId: scriptClientID, tokenEndpoint: "issuer"))
   let renewals = Mutex(0)
   let entered = Watched(false)
   let answered = Watched(false)
@@ -252,7 +252,7 @@ private func status(_ session: XynologSession) -> String {
     },
     validate: { _ in
       try UserResponse(
-        did: UserId("did:web:kb:users:alice"), domain: "kb", email: nil, image: nil, name: nil)
+        did: UserId("did:web:kb:users:alice"), email: nil, name: nil, image: nil, domain: "kb")
     }, random: RandomSource(SystemRandomNumberGenerator()),
     onAuthFailed: { reason in ended.withLock { $0.append(reason) } })
   await session.start()
@@ -305,7 +305,7 @@ private struct UnwritableSignIn: SignInKept {
   let access = try jwt(.object(["exp": .number(1)]))
   let kept = UnwritableSignIn(
     entry: StoredSession(
-      access: access, clientId: scriptClientID, refresh: "refresh", tokenEndpoint: "issuer"))
+      access: access, refresh: "refresh", clientId: scriptClientID, tokenEndpoint: "issuer"))
   let session = XynologSession(
     kb: target(),
     client: try await XynologClient(transport: ProbeTransport(channels: bridgedChannels)),
@@ -322,7 +322,7 @@ private struct UnwritableSignIn: SignInKept {
   let access = try jwt(.object(["exp": .number(Date().timeIntervalSince1970 + 3600)]))
   let kept = MemorySignIn(
     StoredSession(
-      access: access, clientId: scriptClientID, refresh: "refresh", tokenEndpoint: "issuer"))
+      access: access, refresh: "refresh", clientId: scriptClientID, tokenEndpoint: "issuer"))
   let session = XynologSession(
     kb: target(),
     client: try await XynologClient(transport: ProbeTransport(channels: bridgedChannels)),
@@ -330,7 +330,7 @@ private struct UnwritableSignIn: SignInKept {
     forget: { await kept.forget() }, renew: { _ in "renewed" },
     validate: { _ in
       try UserResponse(
-        did: UserId("did:web:kb:users:alice"), domain: "kb", email: nil, image: nil, name: nil)
+        did: UserId("did:web:kb:users:alice"), email: nil, name: nil, image: nil, domain: "kb")
     }, random: RandomSource(SystemRandomNumberGenerator()))
   defer { session.dispose() }
   await session.start()
@@ -345,7 +345,7 @@ private struct UnwritableSignIn: SignInKept {
   let old = try jwt(.object(["exp": .number(Date().timeIntervalSince1970 + 3600)]))
   let kept = MemorySignIn(
     StoredSession(
-      access: old, clientId: scriptClientID, refresh: "refresh", tokenEndpoint: "issuer"))
+      access: old, refresh: "refresh", clientId: scriptClientID, tokenEndpoint: "issuer"))
   let asked = Watched(false)
   let release = Watched(false)
   let session = XynologSession(
@@ -359,7 +359,7 @@ private struct UnwritableSignIn: SignInKept {
         for await value in release where value { break }
       }
       return try UserResponse(
-        did: UserId("did:web:kb:users:alice"), domain: "kb", email: nil, image: nil, name: token)
+        did: UserId("did:web:kb:users:alice"), email: nil, name: token, image: nil, domain: "kb")
     }, random: RandomSource(SystemRandomNumberGenerator()))
   defer {
     session.dispose()
@@ -394,7 +394,7 @@ private func errorsOf(_ session: XynologSession) -> (Watched<[String]>, Task<Voi
   let access = try jwt(.object(["exp": .number(Date().timeIntervalSince1970 + 3600)]))
   let kept = MemorySignIn(
     StoredSession(
-      access: access, clientId: scriptClientID, refresh: "refresh", tokenEndpoint: "issuer"))
+      access: access, refresh: "refresh", clientId: scriptClientID, tokenEndpoint: "issuer"))
   let gate = SessionGate()
   let asks = Mutex(0)
   let renewals = Mutex(0)
@@ -418,7 +418,7 @@ private func errorsOf(_ session: XynologSession) -> (Watched<[String]>, Task<Voi
       guard count <= 2 else { throw SpecFailure.shape("Startup was not bounded") }
       _ = try await gate.refresh(token)
       return try UserResponse(
-        did: UserId("did:web:kb:users:alice"), domain: "kb", email: nil, image: nil, name: token)
+        did: UserId("did:web:kb:users:alice"), email: nil, name: token, image: nil, domain: "kb")
     },
     random: RandomSource(SystemRandomNumberGenerator()))
   defer { session.dispose() }
@@ -502,7 +502,7 @@ private func renewsOverAnUnreadableSignIn(_ when: Renews) async throws {
   let stored = try jwt(.object(claims))
   let memory = MemorySignIn(
     StoredSession(
-      access: stored, clientId: scriptClientID, refresh: "refresh",
+      access: stored, refresh: "refresh", clientId: scriptClientID,
       tokenEndpoint: "http://issuer/token"))
   // The start reads the sign-in once; at the start, the renewal's read is the next.
   let kept = ReadLimitedSignIn(memory, readable: when == .atStart ? 1 : nil)
@@ -524,7 +524,7 @@ private func renewsOverAnUnreadableSignIn(_ when: Renews) async throws {
     },
     validate: { _ in
       try UserResponse(
-        did: UserId("did:web:kb:users:alice"), domain: "kb", email: nil, image: nil, name: nil)
+        did: UserId("did:web:kb:users:alice"), email: nil, name: nil, image: nil, domain: "kb")
     }, reconnectMs: reconnectMs, random: RandomSource(SystemRandomNumberGenerator()),
     onAuthFailed: { reason in told.withLock { $0.append(reason) } })
   defer { session.dispose() }
@@ -584,7 +584,7 @@ private func renewsOverAnUnreadableSignIn(_ when: Renews) async throws {
     .object(["exp": .number(Date().timeIntervalSince1970 + 3600), "name": .string("renewed")]))
   let kept = MemorySignIn(
     StoredSession(
-      access: stored, clientId: scriptClientID, refresh: "refresh",
+      access: stored, refresh: "refresh", clientId: scriptClientID,
       tokenEndpoint: "http://issuer/token"))
   let clock = TestClock()
   let handed = Mutex<[String?]>([])
@@ -608,7 +608,7 @@ private func renewsOverAnUnreadableSignIn(_ when: Renews) async throws {
     },
     validate: { _ in
       try UserResponse(
-        did: UserId("did:web:kb:users:alice"), domain: "kb", email: nil, image: nil, name: nil)
+        did: UserId("did:web:kb:users:alice"), email: nil, name: nil, image: nil, domain: "kb")
     }, reconnectMs: reconnectMs, random: RandomSource(SystemRandomNumberGenerator()))
   defer { session.dispose() }
   let (said, hearing) = errorsOf(session)
@@ -648,7 +648,7 @@ private func renewsOverAnUnreadableSignIn(_ when: Renews) async throws {
   let renewed = try jwt(.object(["exp": .number(now + 3600), "name": .string("renewed")]))
   let kept = MemorySignIn(
     StoredSession(
-      access: stored, clientId: scriptClientID, refresh: "refresh",
+      access: stored, refresh: "refresh", clientId: scriptClientID,
       tokenEndpoint: "http://issuer/token"))
   let clock = TestClock()
   let executor = CaseExecutor()
@@ -666,7 +666,7 @@ private func renewsOverAnUnreadableSignIn(_ when: Renews) async throws {
       },
       validate: { _ in
         try UserResponse(
-          did: UserId("did:web:kb:users:alice"), domain: "kb", email: nil, image: nil, name: nil)
+          did: UserId("did:web:kb:users:alice"), email: nil, name: nil, image: nil, domain: "kb")
       },
       publish: { token in
         if token == renewed { clock.advance(by: .milliseconds(Timings.minRefreshDelayMs)) }

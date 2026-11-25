@@ -1182,7 +1182,6 @@ export function createActorStateUnit(
             }),
           retryableUnlessRefused,
           emitRetry,
-          undefined,
           signal,
         ).catch((error: unknown) => {
           // The gateway never answered, on any attempt the budget allowed. It

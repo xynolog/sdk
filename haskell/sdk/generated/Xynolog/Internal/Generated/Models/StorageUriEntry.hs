@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data StorageUriEntry = StorageUriEntry
-  { storageUriEntryResourceId :: ResourceId,
-    storageUriEntryUri :: Text
+  { storageUriEntryUri :: Text,
+    storageUriEntryResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON StorageUriEntry where parseJSON = checked "StorageUriEntry" $ withObject "StorageUriEntry" (\fields -> StorageUriEntry <$> (fields .: "resourceId") <*> (fields .: "uri"))
+instance FromJSON StorageUriEntry where parseJSON = checked "StorageUriEntry" $ withObject "StorageUriEntry" (\fields -> StorageUriEntry <$> (fields .: "uri") <*> (fields .: "resourceId"))
 
-instance ToJSON StorageUriEntry where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (storageUriEntryResourceId value))], [("uri", toJSON (storageUriEntryUri value))]]))
+instance ToJSON StorageUriEntry where toJSON value = Object (KM.fromList (concat [[("uri", toJSON (storageUriEntryUri value))], [("resourceId", toJSON (storageUriEntryResourceId value))]]))

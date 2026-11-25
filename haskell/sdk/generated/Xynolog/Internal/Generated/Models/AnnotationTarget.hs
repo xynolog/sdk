@@ -12,16 +12,15 @@ import Xynolog.Internal.Generated.Models.AnnotationSelector
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data AnnotationTarget = AnnotationTarget
-  { annotationTargetSelector :: Maybe AnnotationSelector,
+  { annotationTargetType :: Maybe AnnotationTargetType,
     annotationTargetSource :: ResourceId,
-    annotationTargetType :: Maybe AnnotationTargetType,
-    annotationTargetAdditionalProperties :: KM.KeyMap Value
+    annotationTargetSelector :: Maybe AnnotationSelector
   }
   deriving (Eq, Show)
 
-instance FromJSON AnnotationTarget where parseJSON = checked "AnnotationTarget" $ withObject "AnnotationTarget" (\fields -> AnnotationTarget <$> optional fields "selector" <*> (fields .: "source") <*> optional fields "type" <*> traverse parseJSON (withoutFields ["selector", "source", "type"] fields))
+instance FromJSON AnnotationTarget where parseJSON = checked "AnnotationTarget" $ withObject "AnnotationTarget" (\fields -> AnnotationTarget <$> optional fields "type" <*> (fields .: "source") <*> optional fields "selector")
 
-instance ToJSON AnnotationTarget where toJSON value = Object (KM.fromList (concat [optionalPair "selector" (annotationTargetSelector value), [("source", toJSON (annotationTargetSource value))], optionalPair "type" (annotationTargetType value)]) <> fmap toJSON (withoutFields ["selector", "source", "type"] (annotationTargetAdditionalProperties value)))
+instance ToJSON AnnotationTarget where toJSON value = Object (KM.fromList (concat [optionalPair "type" (annotationTargetType value), [("source", toJSON (annotationTargetSource value))], optionalPair "selector" (annotationTargetSelector value)]))
 
 data AnnotationTargetType = AnnotationTargetTypeSpecificResource deriving (Eq, Show)
 

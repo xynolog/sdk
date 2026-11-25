@@ -146,46 +146,24 @@ let swift_files ~root (spec : Spec.t) =
     let bundle = D.bundle spec in
     let sign_in =
       match List.assoc_opt Roots.sign_in_entry spec.schemas with
-      | Some s -> bundle.view s
+      | Some s -> s
       | None -> D.refuse "Protocol has no %s" Roots.sign_in_entry
     in
-    let records = List.map (fun (_, name, _) -> name) (D.records spec) in
-    let table_models =
-      List.map
-        (fun table ->
-          let file = Places.schema_of table and name = table_model table in
-          if List.mem name bundle.definitions.names then
-            D.refuse "%s, the schema of %s, is named as a schema already is"
-              file table;
-          match List.assoc_opt file spec.schemas with
-          | Some s -> (name, bundle.view (Normalize.shape_only s))
-          | None -> D.refuse "%s has no schema %s" table file)
-        (read_tables spec)
-    in
-    let definitions =
-      {
-        D.names =
-          List.sort String.compare
-            (("SignIn" :: records)
-            @ Definitions.generated_client_types spec
-            @ List.map fst table_models @ bundle.definitions.names);
-        schema =
-          (fun n ->
-            if n = "SignIn" then sign_in
-            else
-              match List.assoc_opt n table_models with
-              | Some s -> s
-              | None -> bundle.definitions.schema n);
-      }
+    let models =
+      Models.create
+        [
+          Typing.of_spec spec ~tables:(read_tables spec);
+          Typing.make
+            (D.alone ~ids:spec.ids ~name:"SignIn" sign_in)
+            ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[];
+        ]
+        ~schema:bundle.definitions.schema
     in
     let identifiers =
       List.sort String.compare
         (List.map
            (fun (k : Tables.Identifiers_kinds.kinds_item) -> k.schema)
            spec.tables.identifiers_kinds.kinds)
-    in
-    let models =
-      Models.create definitions ~identifiers ~keys:(Definitions.map_keys spec)
     in
     let tables =
       Table_decls.declarations models ~spec ~view:bundle.view
@@ -214,7 +192,7 @@ let swift_files ~root (spec : Spec.t) =
             import "Testing";
             { module_ = "Xynolog"; testable = true };
           ];
-        decls = Test_bridge.decls ~names:definitions.names ~identifiers;
+        decls = Test_bridge.decls ~names:models.names ~identifiers;
       }
     in
     let tables_file =

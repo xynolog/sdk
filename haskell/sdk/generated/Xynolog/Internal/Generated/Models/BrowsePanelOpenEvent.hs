@@ -12,13 +12,12 @@ import Xynolog.Internal.Generated.Models.AnnotationId
 import Xynolog.Internal.Generated.Models.Motivation
 
 data BrowsePanelOpenEvent = BrowsePanelOpenEvent
-  { browsePanelOpenEventMotivation :: Maybe Motivation,
-    browsePanelOpenEventPanel :: Text,
+  { browsePanelOpenEventPanel :: Text,
     browsePanelOpenEventScrollToAnnotationId :: Maybe AnnotationId,
-    browsePanelOpenEventAdditionalProperties :: KM.KeyMap Value
+    browsePanelOpenEventMotivation :: Maybe Motivation
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowsePanelOpenEvent where parseJSON = checked "BrowsePanelOpenEvent" $ withObject "BrowsePanelOpenEvent" (\fields -> BrowsePanelOpenEvent <$> optional fields "motivation" <*> (fields .: "panel") <*> optional fields "scrollToAnnotationId" <*> traverse parseJSON (withoutFields ["motivation", "panel", "scrollToAnnotationId"] fields))
+instance FromJSON BrowsePanelOpenEvent where parseJSON = checked "BrowsePanelOpenEvent" $ withObject "BrowsePanelOpenEvent" (\fields -> BrowsePanelOpenEvent <$> (fields .: "panel") <*> optional fields "scrollToAnnotationId" <*> optional fields "motivation")
 
-instance ToJSON BrowsePanelOpenEvent where toJSON value = Object (KM.fromList (concat [optionalPair "motivation" (browsePanelOpenEventMotivation value), [("panel", toJSON (browsePanelOpenEventPanel value))], optionalPair "scrollToAnnotationId" (browsePanelOpenEventScrollToAnnotationId value)]) <> fmap toJSON (withoutFields ["motivation", "panel", "scrollToAnnotationId"] (browsePanelOpenEventAdditionalProperties value)))
+instance ToJSON BrowsePanelOpenEvent where toJSON value = Object (KM.fromList (concat [[("panel", toJSON (browsePanelOpenEventPanel value))], optionalPair "scrollToAnnotationId" (browsePanelOpenEventScrollToAnnotationId value), optionalPair "motivation" (browsePanelOpenEventMotivation value)]))

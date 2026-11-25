@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record IssuerSpecDatabaseExternal
 {
     [global::Xynolog.Serialization.Wire("host")] public required string Host { get; init; }
-    [global::Xynolog.Serialization.Wire("password")] public required global::Xynolog.Types.SecretRef Password { get; init; }
     [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
+    [global::Xynolog.Serialization.Wire("password")] public required global::Xynolog.Types.SecretRef Password { get; init; }
 }

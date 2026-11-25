@@ -86,7 +86,7 @@ private final class Answers: Sendable {
     return await jobs.next()
   }
   let held = try #require(try await withinTestDeadline { await reading.value })
-  let engine = Engine(model: "model", provider: .ollama)
+  let engine = Engine(provider: .ollama, model: "model")
   let health = await claims.health(of: engine)
   let read = try JSONDecoder().decode(WorkerEngineHealth.self, from: JSONEncoder().encode(health))
   #expect(read == health)
@@ -224,7 +224,7 @@ private func claimsOfJobs(over probe: ProbeTransport, client: XynologClient) thr
     return try jobClaimedFixture("job-\(answers.next())")
   }
   return client.job.claim(
-    ClaimOptions(accepts: try accepted(), heldJobStallCheckMs: 2, heldJobStallMs: 1))
+    ClaimOptions(accepts: try accepted(), heldJobStallMs: 1, heldJobStallCheckMs: 2))
 }
 
 /// Until the claims wait on `clock` to look for a stall again: the look they took when the clock

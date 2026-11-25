@@ -26,6 +26,7 @@ import type {
 import { Bus, BusRequestError, LIMITS_OPERATIONS } from '@xynolog/core';
 import {
   PERSISTED_QUERIES,
+  WHOLE_KEY,
   type CacheQuery,
   type CacheRefresh,
   type CacheValues,
@@ -45,7 +46,6 @@ import {
   type PersistableCache,
 } from '../cache';
 import {
-  WHOLE_KEY,
   keptPersister,
   refusedSaveOf,
   type CachePersistence,

@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data YieldCloneTokenRequest = YieldCloneTokenRequest
-  { yieldCloneTokenRequestResourceId :: ResourceId,
-    yieldCloneTokenRequestAdditionalProperties :: KM.KeyMap Value
+  { yieldCloneTokenRequestResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldCloneTokenRequest where parseJSON = checked "YieldCloneTokenRequest" $ withObject "YieldCloneTokenRequest" (\fields -> YieldCloneTokenRequest <$> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["resourceId"] fields))
+instance FromJSON YieldCloneTokenRequest where parseJSON = checked "YieldCloneTokenRequest" $ withObject "YieldCloneTokenRequest" (\fields -> YieldCloneTokenRequest <$> (fields .: "resourceId"))
 
-instance ToJSON YieldCloneTokenRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (yieldCloneTokenRequestResourceId value))]]) <> fmap toJSON (withoutFields ["resourceId"] (yieldCloneTokenRequestAdditionalProperties value)))
+instance ToJSON YieldCloneTokenRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (yieldCloneTokenRequestResourceId value))]]))

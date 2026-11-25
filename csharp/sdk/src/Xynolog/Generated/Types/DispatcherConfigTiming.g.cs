@@ -7,11 +7,11 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DispatcherConfigTiming
 {
+    [global::Xynolog.Serialization.Wire("tickMs")] public required long TickMs { get; init; }
+    [global::Xynolog.Serialization.Wire("staleRunningMs")] public required long StaleRunningMs { get; init; }
     [global::Xynolog.Serialization.Wire("ackWaitMs")] public required long AckWaitMs { get; init; }
-    [global::Xynolog.Serialization.Wire("bootDeadlineMs")] public required long BootDeadlineMs { get; init; }
-    [global::Xynolog.Serialization.Wire("progressWriteIntervalMs")] public required long ProgressWriteIntervalMs { get; init; }
     [global::Xynolog.Serialization.Wire("retentionMs")] public required long RetentionMs { get; init; }
     [global::Xynolog.Serialization.Wire("retentionSweepMs")] public required long RetentionSweepMs { get; init; }
-    [global::Xynolog.Serialization.Wire("staleRunningMs")] public required long StaleRunningMs { get; init; }
-    [global::Xynolog.Serialization.Wire("tickMs")] public required long TickMs { get; init; }
+    [global::Xynolog.Serialization.Wire("progressWriteIntervalMs")] public required long ProgressWriteIntervalMs { get; init; }
+    [global::Xynolog.Serialization.Wire("bootDeadlineMs")] public required long BootDeadlineMs { get; init; }
 }

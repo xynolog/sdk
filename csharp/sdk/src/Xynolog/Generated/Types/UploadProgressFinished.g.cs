@@ -7,7 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record UploadProgressFinished
 {
-    public const string PhaseValue = "finished";
-    [global::Xynolog.Serialization.Wire("phase")] public string Phase => PhaseValue;
+    [global::Xynolog.Serialization.Wire("phase")] public global::Xynolog.Types.UploadProgressFinishedPhase Phase => global::Xynolog.Types.UploadProgressFinishedPhase.Finished;
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
 }

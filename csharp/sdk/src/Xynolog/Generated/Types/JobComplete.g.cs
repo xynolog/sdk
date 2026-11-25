@@ -7,11 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobComplete
 {
-    [global::Xynolog.Serialization.Wire("completedAt")] public required string CompletedAt { get; init; }
+    [global::Xynolog.Serialization.Wire("status")] public global::Xynolog.Types.JobCompleteStatus Status => global::Xynolog.Types.JobCompleteStatus.Complete;
     [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.JobMetadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.JobParams Params { get; init; }
-    [global::Xynolog.Serialization.Wire("result")] public required global::Xynolog.Types.JobStoredResult Result { get; init; }
     [global::Xynolog.Serialization.Wire("startedAt")] public required string StartedAt { get; init; }
-    public const string StatusValue = "complete";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("completedAt")] public required string CompletedAt { get; init; }
+    [global::Xynolog.Serialization.Wire("result")] public required global::Xynolog.Types.JobStoredResult Result { get; init; }
 }

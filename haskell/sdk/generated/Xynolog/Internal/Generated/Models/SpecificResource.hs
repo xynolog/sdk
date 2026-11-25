@@ -12,16 +12,15 @@ import Xynolog.Internal.Generated.Models.BodyPurpose
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data SpecificResource = SpecificResource
-  { specificResourcePurpose :: Maybe BodyPurpose,
+  { specificResourceType :: SpecificResourceType,
     specificResourceSource :: ResourceId,
-    specificResourceType :: SpecificResourceType,
-    specificResourceAdditionalProperties :: KM.KeyMap Value
+    specificResourcePurpose :: Maybe BodyPurpose
   }
   deriving (Eq, Show)
 
-instance FromJSON SpecificResource where parseJSON = checked "SpecificResource" $ withObject "SpecificResource" (\fields -> SpecificResource <$> optional fields "purpose" <*> (fields .: "source") <*> (fields .: "type") <*> traverse parseJSON (withoutFields ["purpose", "source", "type"] fields))
+instance FromJSON SpecificResource where parseJSON = checked "SpecificResource" $ withObject "SpecificResource" (\fields -> SpecificResource <$> (fields .: "type") <*> (fields .: "source") <*> optional fields "purpose")
 
-instance ToJSON SpecificResource where toJSON value = Object (KM.fromList (concat [optionalPair "purpose" (specificResourcePurpose value), [("source", toJSON (specificResourceSource value))], [("type", toJSON (specificResourceType value))]]) <> fmap toJSON (withoutFields ["purpose", "source", "type"] (specificResourceAdditionalProperties value)))
+instance ToJSON SpecificResource where toJSON value = Object (KM.fromList (concat [[("type", toJSON (specificResourceType value))], [("source", toJSON (specificResourceSource value))], optionalPair "purpose" (specificResourcePurpose value)]))
 
 data SpecificResourceType = SpecificResourceTypeSpecificResource deriving (Eq, Show)
 

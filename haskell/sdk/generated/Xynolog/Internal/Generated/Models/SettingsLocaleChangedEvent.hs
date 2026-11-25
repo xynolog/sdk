@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data SettingsLocaleChangedEvent = SettingsLocaleChangedEvent
-  { settingsLocaleChangedEventLocale :: Text,
-    settingsLocaleChangedEventAdditionalProperties :: KM.KeyMap Value
+  { settingsLocaleChangedEventLocale :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SettingsLocaleChangedEvent where parseJSON = checked "SettingsLocaleChangedEvent" $ withObject "SettingsLocaleChangedEvent" (\fields -> SettingsLocaleChangedEvent <$> (fields .: "locale") <*> traverse parseJSON (withoutFields ["locale"] fields))
+instance FromJSON SettingsLocaleChangedEvent where parseJSON = checked "SettingsLocaleChangedEvent" $ withObject "SettingsLocaleChangedEvent" (\fields -> SettingsLocaleChangedEvent <$> (fields .: "locale"))
 
-instance ToJSON SettingsLocaleChangedEvent where toJSON value = Object (KM.fromList (concat [[("locale", toJSON (settingsLocaleChangedEventLocale value))]]) <> fmap toJSON (withoutFields ["locale"] (settingsLocaleChangedEventAdditionalProperties value)))
+instance ToJSON SettingsLocaleChangedEvent where toJSON value = Object (KM.fromList (concat [[("locale", toJSON (settingsLocaleChangedEventLocale value))]]))

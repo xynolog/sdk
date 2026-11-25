@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkerEngineConfig
 {
-    [global::Xynolog.Serialization.Wire("apiKeyEnv")] public string? ApiKeyEnv { get; init; }
-    [global::Xynolog.Serialization.Wire("baseUrl")] public required string BaseUrl { get; init; }
     [global::Xynolog.Serialization.Wire("engine")] public required global::Xynolog.Types.Engine Engine { get; init; }
     [global::Xynolog.Serialization.Wire("jobs")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.JobFilter> Jobs { get; init; }
+    [global::Xynolog.Serialization.Wire("baseUrl")] public required string BaseUrl { get; init; }
+    [global::Xynolog.Serialization.Wire("apiKeyEnv")] public string? ApiKeyEnv { get; init; }
 }

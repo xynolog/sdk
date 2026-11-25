@@ -9,7 +9,6 @@ let emit_retry =
     Records.Retry_budget.attempts = 4;
     initial_delay_ms = 1000;
     max_delay_ms = 4000;
-    extra = [];
   }
 
 let http_request_timeout_ms = 30000
@@ -28,7 +27,6 @@ let refresh_retry =
     Records.Retry_budget.attempts = 4;
     initial_delay_ms = 500;
     max_delay_ms = 4000;
-    extra = [];
   }
 
 let refresh_before_exp_ms = 300000

@@ -7,27 +7,16 @@ module T = Kotlin_sdk.Types
 module K = Kotlin_syntax
 
 let case name test = Alcotest.test_case name `Quick test
-let file name = "components/schemas/" ^ name ^ ".json"
 
-(* The references here name schemas by path, so they need no index of [$id]s. *)
-let ids = Result.get_ok (Decode.ids [])
-
-(* Component schemas, each the JSON of its file, as a writer of types reads
-   it ([Normalize.shape_only]). *)
+(* Component schemas, each the JSON of its file, as [Typing] reads them,
+   rooted on every one. *)
 let spec ?(identifiers = []) schemas : T.spec =
-  let decoded (name, json) =
-    match
-      Decode.run ~file:(file name) (Yojson.Safe.from_string json) Schema.decode
-    with
-    | Ok (schema, _) -> (name, Normalize.shape_only schema)
-    | Error error -> Alcotest.failf "%s" (Decode.error_to_string error)
-  in
-  {
-    definitions = List.map decoded schemas;
-    identifiers;
-    ids;
-    name_of_key = List.map (fun (name, _) -> (file name, name)) schemas;
-  }
+  T.spec
+    [
+      Typing.make
+        (Fixture.definitions schemas)
+        ~roots:(List.map fst schemas) ~identifiers ~keys:[];
+    ]
 
 let generated ?identifiers schemas =
   let g = T.generate (spec ?identifiers schemas) in
@@ -39,6 +28,7 @@ let refused ?identifiers schemas =
   match generated ?identifiers schemas with
   | code -> Alcotest.failf "wrote %s" code
   | exception Kotlin_sdk.Names.Refused message -> message
+  | exception Definitions.Refused message -> message
 
 let contains haystack needle =
   let n = String.length needle in

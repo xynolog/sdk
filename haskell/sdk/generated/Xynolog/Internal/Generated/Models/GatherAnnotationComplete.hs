@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.GatheredContext
 
 data GatherAnnotationComplete = GatherAnnotationComplete
   { gatherAnnotationCompleteAnnotationId :: AnnotationId,
-    gatherAnnotationCompleteResponse :: GatheredContext,
-    gatherAnnotationCompleteAdditionalProperties :: KM.KeyMap Value
+    gatherAnnotationCompleteResponse :: GatheredContext
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherAnnotationComplete where parseJSON = checked "GatherAnnotationComplete" $ withObject "GatherAnnotationComplete" (\fields -> GatherAnnotationComplete <$> (fields .: "annotationId") <*> (fields .: "response") <*> traverse parseJSON (withoutFields ["annotationId", "response"] fields))
+instance FromJSON GatherAnnotationComplete where parseJSON = checked "GatherAnnotationComplete" $ withObject "GatherAnnotationComplete" (\fields -> GatherAnnotationComplete <$> (fields .: "annotationId") <*> (fields .: "response"))
 
-instance ToJSON GatherAnnotationComplete where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherAnnotationCompleteAnnotationId value))], [("response", toJSON (gatherAnnotationCompleteResponse value))]]) <> fmap toJSON (withoutFields ["annotationId", "response"] (gatherAnnotationCompleteAdditionalProperties value)))
+instance ToJSON GatherAnnotationComplete where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherAnnotationCompleteAnnotationId value))], [("response", toJSON (gatherAnnotationCompleteResponse value))]]))

@@ -4,9 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(AnnotationTargetValue.ResourceIdCase), typeof(AnnotationTargetValue.AnnotationTargetCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(AnnotationTargetValue.ResourceId), typeof(AnnotationTargetValue.AnnotationTarget))]
 public closed record AnnotationTargetValue
 {
-    public sealed record ResourceIdCase(global::Xynolog.Identifiers.ResourceId Value) : AnnotationTargetValue;
-    public sealed record AnnotationTargetCase(global::Xynolog.Types.AnnotationTarget Value) : AnnotationTargetValue;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["source"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("SpecificResource")])], null)]];
+    public sealed record ResourceId(global::Xynolog.Identifiers.ResourceId Value) : AnnotationTargetValue;
+    public sealed record AnnotationTarget(global::Xynolog.Types.AnnotationTarget Value) : AnnotationTargetValue;
 }

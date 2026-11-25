@@ -11,14 +11,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.HttpEndpoint
 
 data BeginAuthorizationOptions = BeginAuthorizationOptions
-  { beginAuthorizationOptionsExpectedDid :: Maybe Text,
-    beginAuthorizationOptionsExpectedName :: Maybe Text,
-    beginAuthorizationOptionsKbId :: Maybe Text,
+  { beginAuthorizationOptionsTarget :: HttpEndpoint,
     beginAuthorizationOptionsRedirectUri :: Text,
-    beginAuthorizationOptionsTarget :: HttpEndpoint
+    beginAuthorizationOptionsKbId :: Maybe Text,
+    beginAuthorizationOptionsExpectedDid :: Maybe Text,
+    beginAuthorizationOptionsExpectedName :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BeginAuthorizationOptions where parseJSON = checked "BeginAuthorizationOptions" $ withObject "BeginAuthorizationOptions" (\fields -> BeginAuthorizationOptions <$> optional fields "expectedDid" <*> optional fields "expectedName" <*> optional fields "kbId" <*> (fields .: "redirectUri") <*> (fields .: "target"))
+instance FromJSON BeginAuthorizationOptions where parseJSON = checked "BeginAuthorizationOptions" $ withObject "BeginAuthorizationOptions" (\fields -> BeginAuthorizationOptions <$> (fields .: "target") <*> (fields .: "redirectUri") <*> optional fields "kbId" <*> optional fields "expectedDid" <*> optional fields "expectedName")
 
-instance ToJSON BeginAuthorizationOptions where toJSON value = Object (KM.fromList (concat [optionalPair "expectedDid" (beginAuthorizationOptionsExpectedDid value), optionalPair "expectedName" (beginAuthorizationOptionsExpectedName value), optionalPair "kbId" (beginAuthorizationOptionsKbId value), [("redirectUri", toJSON (beginAuthorizationOptionsRedirectUri value))], [("target", toJSON (beginAuthorizationOptionsTarget value))]]))
+instance ToJSON BeginAuthorizationOptions where toJSON value = Object (KM.fromList (concat [[("target", toJSON (beginAuthorizationOptionsTarget value))], [("redirectUri", toJSON (beginAuthorizationOptionsRedirectUri value))], optionalPair "kbId" (beginAuthorizationOptionsKbId value), optionalPair "expectedDid" (beginAuthorizationOptionsExpectedDid value), optionalPair "expectedName" (beginAuthorizationOptionsExpectedName value)]))

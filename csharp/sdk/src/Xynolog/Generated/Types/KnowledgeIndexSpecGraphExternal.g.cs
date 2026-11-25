@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KnowledgeIndexSpecGraphExternal
 {
-    [global::Xynolog.Serialization.Wire("password")] public required global::Xynolog.Types.SecretRef Password { get; init; }
     [global::Xynolog.Serialization.Wire("uri")] public required string Uri { get; init; }
+    [global::Xynolog.Serialization.Wire("password")] public required global::Xynolog.Types.SecretRef Password { get; init; }
 }

@@ -7,7 +7,7 @@ public struct MarkNamespace: Sendable {
   public func annotation(_ request: CreateAnnotationRequest) async throws -> MarkCreateOkResponse {
     try await wire.request(
       Operations.markCreateRequest,
-      MarkCreateRequest(request: request, resourceId: request.target.source)
+      MarkCreateRequest(resourceId: request.target.source, request: request)
     ).response
   }
   public func delete(resourceId: ResourceId, annotationId: AnnotationId) async throws {
@@ -27,14 +27,14 @@ public struct MarkNamespace: Sendable {
     _ = try await wire.request(
       Operations.markUpdateEntityTypes,
       MarkUpdateEntityTypesCommand(
-        currentEntityTypes: current, resourceId: resourceId, updatedEntityTypes: updated))
+        resourceId: resourceId, currentEntityTypes: current, updatedEntityTypes: updated))
   }
   public func delegate(resourceId: ResourceId, params: MarkJobParams) -> Delegation<
     MarkJobCompleteCommand
   > {
     let clock = clock
     return follow(
-      create: .markJobCreateCommand(MarkJobCreateCommand(params: params, resourceId: resourceId)),
+      create: .markJobCreateCommand(MarkJobCreateCommand(resourceId: resourceId, params: params)),
       resource: resourceId, wire: wire, bus: bus, lifetime: lifetime, timing: timing,
       clock: clock, completion: MarkJobCompleteCommand.self)
   }
@@ -43,7 +43,7 @@ public struct MarkNamespace: Sendable {
   {
     try bus.emit(
       Channels.markRequested,
-      MarkRequestedEvent(motivation: motivation, selector: selector, source: source))
+      MarkRequestedEvent(source: source, selector: selector, motivation: motivation))
   }
   public func submit(_ input: MarkSubmitEvent) throws { try bus.emit(Channels.markSubmit, input) }
   public func reportDeleteError(_ input: ResourceErrorEvent) throws {

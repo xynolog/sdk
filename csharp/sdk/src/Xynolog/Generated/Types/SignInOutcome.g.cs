@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SignInOutcome
 {
-    [global::Xynolog.Serialization.Wire("expected")] public global::Xynolog.Types.Expected? Expected { get; init; }
     [global::Xynolog.Serialization.Wire("kb")] public required global::Xynolog.Types.KnowledgeBase Kb { get; init; }
+    [global::Xynolog.Serialization.Wire("expected")] public global::Xynolog.Types.Expected? Expected { get; init; }
 }

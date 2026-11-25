@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.TabCheck (TabCheck (..), TabCheckGoneValue (..), TabCheckReadyValue (..), TabCheckUnknownValue (..)) where
+module Xynolog.Internal.Generated.Models.TabCheck (TabCheck (..), TabCheckGone (..), TabCheckReady (..), TabCheckUnknown (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -11,7 +11,7 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.TabVerdict
 
-data TabCheck = TabCheckGone TabCheckGoneValue | TabCheckReady TabCheckReadyValue | TabCheckUnknown TabCheckUnknownValue deriving (Eq, Show)
+data TabCheck = TabCheckGone TabCheckGone | TabCheckReady TabCheckReady | TabCheckUnknown TabCheckUnknown deriving (Eq, Show)
 
 instance FromJSON TabCheck where parseJSON = checked "TabCheck" $ \value -> (TabCheckGone <$> parseJSON value) <|> (TabCheckReady <$> parseJSON value) <|> (TabCheckUnknown <$> parseJSON value)
 
@@ -20,31 +20,31 @@ instance ToJSON TabCheck where
   toJSON (TabCheckReady value) = toJSON value
   toJSON (TabCheckUnknown value) = toJSON value
 
-data TabCheckGoneValue = TabCheckGoneValue
-  { tabCheckGoneValueVerdict :: TabVerdict
+data TabCheckGone = MkTabCheckGone
+  { tabCheckGoneVerdict :: TabVerdict
   }
   deriving (Eq, Show)
 
-instance FromJSON TabCheckGoneValue where parseJSON = checked "TabCheckGoneValue" $ withObject "TabCheckGoneValue" (\fields -> TabCheckGoneValue <$> (fields .: "verdict"))
+instance FromJSON TabCheckGone where parseJSON = checked "TabCheckGone" $ withObject "TabCheckGone" (\fields -> MkTabCheckGone <$> (fields .: "verdict"))
 
-instance ToJSON TabCheckGoneValue where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckGoneValueVerdict value))]]))
+instance ToJSON TabCheckGone where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckGoneVerdict value))]]))
 
-data TabCheckReadyValue = TabCheckReadyValue
-  { tabCheckReadyValueMediaType :: Maybe Text,
-    tabCheckReadyValueName :: Text,
-    tabCheckReadyValueVerdict :: TabVerdict
+data TabCheckReady = MkTabCheckReady
+  { tabCheckReadyVerdict :: TabVerdict,
+    tabCheckReadyName :: Text,
+    tabCheckReadyMediaType :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON TabCheckReadyValue where parseJSON = checked "TabCheckReadyValue" $ withObject "TabCheckReadyValue" (\fields -> TabCheckReadyValue <$> optional fields "mediaType" <*> (fields .: "name") <*> (fields .: "verdict"))
+instance FromJSON TabCheckReady where parseJSON = checked "TabCheckReady" $ withObject "TabCheckReady" (\fields -> MkTabCheckReady <$> (fields .: "verdict") <*> (fields .: "name") <*> optional fields "mediaType")
 
-instance ToJSON TabCheckReadyValue where toJSON value = Object (KM.fromList (concat [optionalPair "mediaType" (tabCheckReadyValueMediaType value), [("name", toJSON (tabCheckReadyValueName value))], [("verdict", toJSON (tabCheckReadyValueVerdict value))]]))
+instance ToJSON TabCheckReady where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckReadyVerdict value))], [("name", toJSON (tabCheckReadyName value))], optionalPair "mediaType" (tabCheckReadyMediaType value)]))
 
-data TabCheckUnknownValue = TabCheckUnknownValue
-  { tabCheckUnknownValueVerdict :: TabVerdict
+data TabCheckUnknown = MkTabCheckUnknown
+  { tabCheckUnknownVerdict :: TabVerdict
   }
   deriving (Eq, Show)
 
-instance FromJSON TabCheckUnknownValue where parseJSON = checked "TabCheckUnknownValue" $ withObject "TabCheckUnknownValue" (\fields -> TabCheckUnknownValue <$> (fields .: "verdict"))
+instance FromJSON TabCheckUnknown where parseJSON = checked "TabCheckUnknown" $ withObject "TabCheckUnknown" (\fields -> MkTabCheckUnknown <$> (fields .: "verdict"))
 
-instance ToJSON TabCheckUnknownValue where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckUnknownValueVerdict value))]]))
+instance ToJSON TabCheckUnknown where toJSON value = Object (KM.fromList (concat [[("verdict", toJSON (tabCheckUnknownVerdict value))]]))

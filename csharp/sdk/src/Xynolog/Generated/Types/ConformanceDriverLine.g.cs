@@ -4,23 +4,24 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ConformanceDriverLine.ReadyCase), typeof(ConformanceDriverLine.OkCase), typeof(ConformanceDriverLine.FailedCase), typeof(ConformanceDriverLine.AbandonedCase), typeof(ConformanceDriverLine.UnsupportedCase), typeof(ConformanceDriverLine.MisuseCase), typeof(ConformanceDriverLine.StateCase), typeof(ConformanceDriverLine.FrameCase), typeof(ConformanceDriverLine.ErrorStreamCase), typeof(ConformanceDriverLine.ProgressCase), typeof(ConformanceDriverLine.EmissionCase), typeof(ConformanceDriverLine.CompletedCase), typeof(ConformanceDriverLine.ClaimedCase), typeof(ConformanceDriverLine.RefusedCase), typeof(ConformanceDriverLine.SignalledCase), typeof(ConformanceDriverLine.StalledCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(ConformanceDriverLine.Ready), typeof(ConformanceDriverLine.Ok), typeof(ConformanceDriverLine.Failed), typeof(ConformanceDriverLine.Abandoned), typeof(ConformanceDriverLine.Unsupported), typeof(ConformanceDriverLine.Misuse), typeof(ConformanceDriverLine.State), typeof(ConformanceDriverLine.Frame), typeof(ConformanceDriverLine.ErrorStream), typeof(ConformanceDriverLine.Progress), typeof(ConformanceDriverLine.Emission), typeof(ConformanceDriverLine.Completed), typeof(ConformanceDriverLine.Claimed), typeof(ConformanceDriverLine.Refused), typeof(ConformanceDriverLine.Signalled), typeof(ConformanceDriverLine.Stalled))]
 public closed record ConformanceDriverLine
 {
-    public sealed record ReadyCase(global::Xynolog.Types.ConformanceDriverLineReady Value) : ConformanceDriverLine;
-    public sealed record OkCase(global::Xynolog.Types.ConformanceDriverLineOk Value) : ConformanceDriverLine;
-    public sealed record FailedCase(global::Xynolog.Types.ConformanceDriverLineFailed Value) : ConformanceDriverLine;
-    public sealed record AbandonedCase(global::Xynolog.Types.ConformanceDriverLineAbandoned Value) : ConformanceDriverLine;
-    public sealed record UnsupportedCase(global::Xynolog.Types.ConformanceDriverLineUnsupported Value) : ConformanceDriverLine;
-    public sealed record MisuseCase(global::Xynolog.Types.ConformanceDriverLineMisuse Value) : ConformanceDriverLine;
-    public sealed record StateCase(global::Xynolog.Types.ConformanceDriverLineState Value) : ConformanceDriverLine;
-    public sealed record FrameCase(global::Xynolog.Types.ConformanceDriverLineFrame Value) : ConformanceDriverLine;
-    public sealed record ErrorStreamCase(global::Xynolog.Types.ConformanceDriverLineErrorStream Value) : ConformanceDriverLine;
-    public sealed record ProgressCase(global::Xynolog.Types.ConformanceDriverLineProgress Value) : ConformanceDriverLine;
-    public sealed record EmissionCase(global::Xynolog.Types.ConformanceDriverLineEmission Value) : ConformanceDriverLine;
-    public sealed record CompletedCase(global::Xynolog.Types.ConformanceDriverLineCompleted Value) : ConformanceDriverLine;
-    public sealed record ClaimedCase(global::Xynolog.Types.ConformanceDriverLineClaimed Value) : ConformanceDriverLine;
-    public sealed record RefusedCase(global::Xynolog.Types.ConformanceDriverLineRefused Value) : ConformanceDriverLine;
-    public sealed record SignalledCase(global::Xynolog.Types.ConformanceDriverLineSignalled Value) : ConformanceDriverLine;
-    public sealed record StalledCase(global::Xynolog.Types.ConformanceDriverLineStalled Value) : ConformanceDriverLine;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["ready"], ["ready"], [new("ready", [new global::Xynolog.Serialization.Literal.Boolean(true)])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["id", "ok"], ["id", "ok"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["id", "error"], ["id", "error"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["id", "abandoned"], ["id", "abandoned"], [new("abandoned", [new global::Xynolog.Serialization.Literal.Boolean(true)])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["id", "unsupported"], ["id", "unsupported"], [new("unsupported", [new global::Xynolog.Serialization.Literal.Boolean(true)])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["id", "misuse"], ["id", "misuse"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["state"], ["state"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["frame"], ["frame"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["error"], ["error"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["progress"], ["progress"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["emission"], ["emission"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["completed"], ["completed"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["claimed"], ["claimed"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["refused"], ["refused"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["signalled"], ["signalled"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["stalled"], ["stalled"], [], null)]];
+    public sealed record Ready(global::Xynolog.Types.ConformanceDriverLineReady Value) : ConformanceDriverLine;
+    public sealed record Ok(global::Xynolog.Types.ConformanceDriverLineOk Value) : ConformanceDriverLine;
+    public sealed record Failed(global::Xynolog.Types.ConformanceDriverLineFailed Value) : ConformanceDriverLine;
+    public sealed record Abandoned(global::Xynolog.Types.ConformanceDriverLineAbandoned Value) : ConformanceDriverLine;
+    public sealed record Unsupported(global::Xynolog.Types.ConformanceDriverLineUnsupported Value) : ConformanceDriverLine;
+    public sealed record Misuse(global::Xynolog.Types.ConformanceDriverLineMisuse Value) : ConformanceDriverLine;
+    public sealed record State(global::Xynolog.Types.ConformanceDriverLineState Value) : ConformanceDriverLine;
+    public sealed record Frame(global::Xynolog.Types.ConformanceDriverLineFrame Value) : ConformanceDriverLine;
+    public sealed record ErrorStream(global::Xynolog.Types.ConformanceDriverLineErrorStream Value) : ConformanceDriverLine;
+    public sealed record Progress(global::Xynolog.Types.ConformanceDriverLineProgress Value) : ConformanceDriverLine;
+    public sealed record Emission(global::Xynolog.Types.ConformanceDriverLineEmission Value) : ConformanceDriverLine;
+    public sealed record Completed(global::Xynolog.Types.ConformanceDriverLineCompleted Value) : ConformanceDriverLine;
+    public sealed record Claimed(global::Xynolog.Types.ConformanceDriverLineClaimed Value) : ConformanceDriverLine;
+    public sealed record Refused(global::Xynolog.Types.ConformanceDriverLineRefused Value) : ConformanceDriverLine;
+    public sealed record Signalled(global::Xynolog.Types.ConformanceDriverLineSignalled Value) : ConformanceDriverLine;
+    public sealed record Stalled(global::Xynolog.Types.ConformanceDriverLineStalled Value) : ConformanceDriverLine;
 }

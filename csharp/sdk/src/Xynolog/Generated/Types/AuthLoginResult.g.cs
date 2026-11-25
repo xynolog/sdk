@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AuthLoginResult
 {
-    [global::Xynolog.Serialization.Wire("issuer")] public required string Issuer { get; init; }
     [global::Xynolog.Serialization.Wire("key")] public required string Key { get; init; }
     [global::Xynolog.Serialization.Wire("who")] public required string Who { get; init; }
+    [global::Xynolog.Serialization.Wire("issuer")] public required string Issuer { get; init; }
 }

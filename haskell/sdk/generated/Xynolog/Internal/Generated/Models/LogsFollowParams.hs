@@ -14,12 +14,12 @@ import Xynolog.Internal.Generated.Models.Target
 
 data LogsFollowParams = LogsFollowParams
   { logsFollowParamsApiVersion :: ApiVersion,
+    logsFollowParamsTarget :: Maybe Target,
     logsFollowParamsRuntime :: Maybe Runtime,
-    logsFollowParamsService :: Maybe Text,
-    logsFollowParamsTarget :: Maybe Target
+    logsFollowParamsService :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON LogsFollowParams where parseJSON = checked "LogsFollowParams" $ withObject "LogsFollowParams" (\fields -> LogsFollowParams <$> (fields .: "apiVersion") <*> optional fields "runtime" <*> optional fields "service" <*> optional fields "target")
+instance FromJSON LogsFollowParams where parseJSON = checked "LogsFollowParams" $ withObject "LogsFollowParams" (\fields -> LogsFollowParams <$> (fields .: "apiVersion") <*> optional fields "target" <*> optional fields "runtime" <*> optional fields "service")
 
-instance ToJSON LogsFollowParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (logsFollowParamsApiVersion value))], optionalPair "runtime" (logsFollowParamsRuntime value), optionalPair "service" (logsFollowParamsService value), optionalPair "target" (logsFollowParamsTarget value)]))
+instance ToJSON LogsFollowParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (logsFollowParamsApiVersion value))], optionalPair "target" (logsFollowParamsTarget value), optionalPair "runtime" (logsFollowParamsRuntime value), optionalPair "service" (logsFollowParamsService value)]))

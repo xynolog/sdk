@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DispatcherMessagesErrorsItem
 {
-    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
-    [global::Xynolog.Serialization.Wire("failureClass")] public required global::Xynolog.Types.FailureClass FailureClass { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("situation")] public required string Situation { get; init; }
+    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
+    [global::Xynolog.Serialization.Wire("failureClass")] public required global::Xynolog.Types.FailureClass FailureClass { get; init; }
 }

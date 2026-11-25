@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkerEngineHealth
 {
-    [global::Xynolog.Serialization.Wire("activeJob")] public required global::Xynolog.Types.WorkerEngineHealthActiveJob? ActiveJob { get; init; }
     [global::Xynolog.Serialization.Wire("engine")] public required global::Xynolog.Types.Engine Engine { get; init; }
     [global::Xynolog.Serialization.Wire("jobs")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.JobFilter> Jobs { get; init; }
-    [global::Xynolog.Serialization.Wire("jobsCompleted")] public required long JobsCompleted { get; init; }
-    [global::Xynolog.Serialization.Wire("lastActivityAt")] public required string? LastActivityAt { get; init; }
+    [global::Xynolog.Serialization.Wire("lastQueuedEventAt")] public required string? LastQueuedEventAt { get; init; }
     [global::Xynolog.Serialization.Wire("lastClaimAt")] public required string? LastClaimAt { get; init; }
     [global::Xynolog.Serialization.Wire("lastFinishedAt")] public required string? LastFinishedAt { get; init; }
-    [global::Xynolog.Serialization.Wire("lastQueuedEventAt")] public required string? LastQueuedEventAt { get; init; }
+    [global::Xynolog.Serialization.Wire("lastActivityAt")] public required string? LastActivityAt { get; init; }
+    [global::Xynolog.Serialization.Wire("activeJob")] public required global::Xynolog.Types.WorkerEngineHealthActiveJob? ActiveJob { get; init; }
+    [global::Xynolog.Serialization.Wire("jobsCompleted")] public required long JobsCompleted { get; init; }
 }

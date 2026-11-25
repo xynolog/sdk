@@ -11,14 +11,14 @@ import Xynolog.Internal.Codec
 
 data Target = Target
   { targetKind :: TargetKind,
-    targetRepo :: Maybe Text,
-    targetRoot :: Maybe Text
+    targetRoot :: Maybe Text,
+    targetRepo :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON Target where parseJSON = checked "Target" $ withObject "Target" (\fields -> Target <$> (fields .: "kind") <*> optional fields "repo" <*> optional fields "root")
+instance FromJSON Target where parseJSON = checked "Target" $ withObject "Target" (\fields -> Target <$> (fields .: "kind") <*> optional fields "root" <*> optional fields "repo")
 
-instance ToJSON Target where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (targetKind value))], optionalPair "repo" (targetRepo value), optionalPair "root" (targetRoot value)]))
+instance ToJSON Target where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (targetKind value))], optionalPair "root" (targetRoot value), optionalPair "repo" (targetRepo value)]))
 
 data TargetKind = TargetKindLocal | TargetKindCodespace deriving (Eq, Show)
 

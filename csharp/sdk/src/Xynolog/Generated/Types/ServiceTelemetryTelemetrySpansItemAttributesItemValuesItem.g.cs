@@ -4,9 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.TextCase), typeof(ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.ObjectCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.Text), typeof(ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.Boolean))]
 public closed record ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem
 {
-    public sealed record TextCase(string Value) : ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem;
-    public sealed record ObjectCase(bool Value) : ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.Boolean, [], null, [], null)]];
+    public sealed record Text(string Value) : ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem;
+    public sealed record Boolean(bool Value) : ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem;
 }

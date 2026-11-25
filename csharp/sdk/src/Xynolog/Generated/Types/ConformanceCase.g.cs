@@ -8,9 +8,9 @@ namespace Xynolog.Types;
 public sealed record ConformanceCase
 {
     [global::Xynolog.Serialization.Wire("about")] public required string About { get; init; }
-    [global::Xynolog.Serialization.Wire("planes")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ConformanceCasePlanesItem>? Planes { get; init; }
     [global::Xynolog.Serialization.Wire("source")] public required string Source { get; init; }
-    [global::Xynolog.Serialization.Wire("steps")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ConformanceStep> Steps { get; init; }
-    [global::Xynolog.Serialization.Wire("telemetry")] public bool? Telemetry { get; init; }
+    [global::Xynolog.Serialization.Wire("planes")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ConformanceCasePlanesItem>? Planes { get; init; }
     [global::Xynolog.Serialization.Wire("tier")] public global::Xynolog.Types.ConformanceCaseTier? Tier { get; init; }
+    [global::Xynolog.Serialization.Wire("telemetry")] public global::Xynolog.Types.ConformanceCaseTelemetry? Telemetry { get; init; }
+    [global::Xynolog.Serialization.Wire("steps")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ConformanceStep> Steps { get; init; }
 }

@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ProjectConfig
 {
-    [global::Xynolog.Serialization.Wire("git")] public required global::Xynolog.Types.ProjectConfigGit Git { get; init; }
     [global::Xynolog.Serialization.Wire("project")] public required global::Xynolog.Types.ProjectConfigProject Project { get; init; }
+    [global::Xynolog.Serialization.Wire("git")] public required global::Xynolog.Types.ProjectConfigGit Git { get; init; }
     [global::Xynolog.Serialization.Wire("site")] public required global::Xynolog.Types.ProjectConfigSite Site { get; init; }
 }

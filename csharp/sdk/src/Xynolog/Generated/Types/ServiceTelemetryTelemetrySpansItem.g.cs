@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceTelemetryTelemetrySpansItem
 {
-    [global::Xynolog.Serialization.Wire("attributes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemAttributesItem> Attributes { get; init; }
-    [global::Xynolog.Serialization.Wire("kind")] public required global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemKind Kind { get; init; }
-    [global::Xynolog.Serialization.Wire("meaning")] public required string Meaning { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("services")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemServicesItem> Services { get; init; }
+    [global::Xynolog.Serialization.Wire("kind")] public required global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemKind Kind { get; init; }
     [global::Xynolog.Serialization.Wire("when")] public required global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemWhen When { get; init; }
+    [global::Xynolog.Serialization.Wire("meaning")] public required string Meaning { get; init; }
+    [global::Xynolog.Serialization.Wire("attributes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemAttributesItem> Attributes { get; init; }
 }

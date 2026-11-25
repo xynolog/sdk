@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record GatewayResponseHeaders
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("absent")] public required global::System.Collections.Generic.IReadOnlyList<string> Absent { get; init; }
     [global::Xynolog.Serialization.Wire("every")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.GatewayResponseHeadersEveryItem> Every { get; init; }
-    [global::Xynolog.Serialization.Wire("preflight")] public required global::Xynolog.Types.GatewayResponseHeadersPreflight Preflight { get; init; }
     [global::Xynolog.Serialization.Wire("requestId")] public required string RequestId { get; init; }
+    [global::Xynolog.Serialization.Wire("absent")] public required global::System.Collections.Generic.IReadOnlyList<string> Absent { get; init; }
+    [global::Xynolog.Serialization.Wire("preflight")] public required global::Xynolog.Types.GatewayResponseHeadersPreflight Preflight { get; init; }
 }

@@ -4,9 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(GatheredContextFocus.AnnotationCase), typeof(GatheredContextFocus.ResourceCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(GatheredContextFocus.Annotation), typeof(GatheredContextFocus.Resource))]
 public closed record GatheredContextFocus
 {
-    public sealed record AnnotationCase(global::Xynolog.Types.GatheredContextFocusAnnotation Value) : GatheredContextFocus;
-    public sealed record ResourceCase(global::Xynolog.Types.GatheredContextFocusResource Value) : GatheredContextFocus;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["kind", "annotation", "sourceResource"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("annotation")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind", "resource"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("resource")])], null)]];
+    public sealed record Annotation(global::Xynolog.Types.GatheredContextFocusAnnotation Value) : GatheredContextFocus;
+    public sealed record Resource(global::Xynolog.Types.GatheredContextFocusResource Value) : GatheredContextFocus;
 }

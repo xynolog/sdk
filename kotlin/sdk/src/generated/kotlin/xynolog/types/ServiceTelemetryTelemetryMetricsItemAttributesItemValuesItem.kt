@@ -20,10 +20,32 @@ public sealed interface ServiceTelemetryTelemetryMetricsItemAttributesItemValues
     }
 }
 
-internal object ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemSerializer : KindsUnionSerializer<ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem>(
+internal object ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItemSerializer : SignatureUnionSerializer<ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem>(
     ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem::class,
-    strings = { listOf(ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem.Text.serializer()) },
-    scalars = { listOf(ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem.Boolean.serializer()) },
-    arrays = { emptyList() },
-    objects = { emptyList() },
+    members = listOf(
+        listOf(
+            Signature(
+                kind = Kind.TEXT,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.BOOLEAN,
+                required = emptyList(),
+                allowed = null,
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+    ),
+    variants = {
+        listOf(
+            ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem.Text.serializer(),
+            ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem.Boolean.serializer(),
+        )
+    },
 )

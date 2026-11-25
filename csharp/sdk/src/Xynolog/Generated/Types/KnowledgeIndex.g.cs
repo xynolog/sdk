@@ -8,8 +8,7 @@ namespace Xynolog.Types;
 public sealed record KnowledgeIndex
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.StackApiVersion ApiVersion { get; init; }
-    public const string KindValue = "KnowledgeIndex";
-    [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.KnowledgeIndexKind Kind => global::Xynolog.Types.KnowledgeIndexKind.KnowledgeIndex;
     [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.Metadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("spec")] public required global::Xynolog.Types.KnowledgeIndexSpec Spec { get; init; }
 }

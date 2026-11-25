@@ -18,25 +18,24 @@ import Xynolog.Internal.Generated.Models.UnitCursor
 import Xynolog.Internal.Generated.Models.UserId
 
 data JobFailCommand = JobFailCommand
-  { jobFailCommandU5f_userId :: Maybe UserId,
-    jobFailCommandAnnotationId :: Maybe AnnotationId,
-    jobFailCommandAttempt :: Maybe Integer,
-    jobFailCommandCompletedUnits :: Maybe [Text],
-    jobFailCommandDurability :: Maybe DurabilityEvidence,
-    jobFailCommandError :: Text,
-    jobFailCommandFailureClass :: Maybe FailureClass,
+  { jobFailCommandUserId :: Maybe UserId,
+    jobFailCommandResourceId :: ResourceId,
     jobFailCommandJobId :: JobId,
     jobFailCommandJobType :: JobType,
-    jobFailCommandResourceId :: ResourceId,
+    jobFailCommandAttempt :: Maybe Integer,
+    jobFailCommandAnnotationId :: Maybe AnnotationId,
+    jobFailCommandError :: Text,
+    jobFailCommandCompletedUnits :: Maybe [Text],
     jobFailCommandUnitCursors :: Maybe JobFailCommandUnitCursors,
+    jobFailCommandFailureClass :: Maybe FailureClass,
     jobFailCommandWillRetry :: Maybe Bool,
-    jobFailCommandAdditionalProperties :: KM.KeyMap Value
+    jobFailCommandDurability :: Maybe DurabilityEvidence
   }
   deriving (Eq, Show)
 
-instance FromJSON JobFailCommand where parseJSON = checked "JobFailCommand" $ withObject "JobFailCommand" (\fields -> JobFailCommand <$> optional fields "_userId" <*> optional fields "annotationId" <*> optional fields "attempt" <*> optional fields "completedUnits" <*> optional fields "durability" <*> (fields .: "error") <*> optional fields "failureClass" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> optional fields "unitCursors" <*> optional fields "willRetry" <*> traverse parseJSON (withoutFields ["_userId", "annotationId", "attempt", "completedUnits", "durability", "error", "failureClass", "jobId", "jobType", "resourceId", "unitCursors", "willRetry"] fields))
+instance FromJSON JobFailCommand where parseJSON = checked "JobFailCommand" $ withObject "JobFailCommand" (\fields -> JobFailCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "attempt" <*> optional fields "annotationId" <*> (fields .: "error") <*> optional fields "completedUnits" <*> optional fields "unitCursors" <*> optional fields "failureClass" <*> optional fields "willRetry" <*> optional fields "durability")
 
-instance ToJSON JobFailCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobFailCommandU5f_userId value), optionalPair "annotationId" (jobFailCommandAnnotationId value), optionalPair "attempt" (jobFailCommandAttempt value), optionalPair "completedUnits" (jobFailCommandCompletedUnits value), optionalPair "durability" (jobFailCommandDurability value), [("error", toJSON (jobFailCommandError value))], optionalPair "failureClass" (jobFailCommandFailureClass value), [("jobId", toJSON (jobFailCommandJobId value))], [("jobType", toJSON (jobFailCommandJobType value))], [("resourceId", toJSON (jobFailCommandResourceId value))], optionalPair "unitCursors" (jobFailCommandUnitCursors value), optionalPair "willRetry" (jobFailCommandWillRetry value)]) <> fmap toJSON (withoutFields ["_userId", "annotationId", "attempt", "completedUnits", "durability", "error", "failureClass", "jobId", "jobType", "resourceId", "unitCursors", "willRetry"] (jobFailCommandAdditionalProperties value)))
+instance ToJSON JobFailCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobFailCommandUserId value), [("resourceId", toJSON (jobFailCommandResourceId value))], [("jobId", toJSON (jobFailCommandJobId value))], [("jobType", toJSON (jobFailCommandJobType value))], optionalPair "attempt" (jobFailCommandAttempt value), optionalPair "annotationId" (jobFailCommandAnnotationId value), [("error", toJSON (jobFailCommandError value))], optionalPair "completedUnits" (jobFailCommandCompletedUnits value), optionalPair "unitCursors" (jobFailCommandUnitCursors value), optionalPair "failureClass" (jobFailCommandFailureClass value), optionalPair "willRetry" (jobFailCommandWillRetry value), optionalPair "durability" (jobFailCommandDurability value)]))
 
 data JobFailCommandUnitCursors = JobFailCommandUnitCursors
   { jobFailCommandUnitCursorsAdditionalProperties :: KM.KeyMap UnitCursor

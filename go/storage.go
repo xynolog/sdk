@@ -119,23 +119,19 @@ func PersonKey(did string) string { return sha256URLSafe(did) }
 // CacheKey is the key what a client keeps of query, for the person whose key
 // is personKey, is kept under in a knowledge base's storage.
 func CacheKey(kbID, personKey string, query CacheQuery) string {
-	return "xynolog.cache." + kbID + "." + personKey + "." + string(query)
+	return cacheKeyPrefix + kbID + "." + personKey + "." + string(query)
 }
 
 // LastEventIDKey is the key where a knowledge base's stream was, for the
 // person whose key is personKey, is kept under.
 func LastEventIDKey(kbID, personKey string) string {
-	return "xynolog.lastEventId." + kbID + "." + personKey
+	return lastEventIdKeyPrefix + kbID + "." + personKey
 }
 
 // keptVersion is the version of a kept document, as
 // protocol/specs/src/session/stored.json's `cacheDocument` states it. A
 // document of another version reads as nothing kept.
 const keptVersion = 1
-
-// wholeKey is the key a kept query of one value keeps its entry under, as
-// protocol/specs/src/session/stored.json states it.
-const wholeKey = "_"
 
 // keptEntry is a kept entry as it was last written: its value's text, and when.
 type keptEntry struct {

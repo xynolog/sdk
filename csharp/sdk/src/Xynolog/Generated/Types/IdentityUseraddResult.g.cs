@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record IdentityUseraddResult
 {
-    [global::Xynolog.Serialization.Wire("created")] public required bool Created { get; init; }
     [global::Xynolog.Serialization.Wire("email")] public required string Email { get; init; }
-    [global::Xynolog.Serialization.Wire("generatedPassword")] public string? GeneratedPassword { get; init; }
     [global::Xynolog.Serialization.Wire("identity")] public required string Identity { get; init; }
+    [global::Xynolog.Serialization.Wire("created")] public required bool Created { get; init; }
+    [global::Xynolog.Serialization.Wire("generatedPassword")] public string? GeneratedPassword { get; init; }
 }

@@ -15,18 +15,17 @@ import Xynolog.Internal.Generated.Models.JobId
 import Xynolog.Internal.Generated.Models.JobType
 
 data JobFailedPayload = JobFailedPayload
-  { jobFailedPayloadAnnotationId :: Maybe AnnotationId,
+  { jobFailedPayloadJobId :: JobId,
+    jobFailedPayloadJobType :: JobType,
     jobFailedPayloadAttempt :: Maybe Integer,
-    jobFailedPayloadDurability :: Maybe DurabilityEvidence,
+    jobFailedPayloadAnnotationId :: Maybe AnnotationId,
     jobFailedPayloadError :: Text,
     jobFailedPayloadFailureClass :: Maybe FailureClass,
-    jobFailedPayloadJobId :: JobId,
-    jobFailedPayloadJobType :: JobType,
     jobFailedPayloadWillRetry :: Maybe Bool,
-    jobFailedPayloadAdditionalProperties :: KM.KeyMap Value
+    jobFailedPayloadDurability :: Maybe DurabilityEvidence
   }
   deriving (Eq, Show)
 
-instance FromJSON JobFailedPayload where parseJSON = checked "JobFailedPayload" $ withObject "JobFailedPayload" (\fields -> JobFailedPayload <$> optional fields "annotationId" <*> optional fields "attempt" <*> optional fields "durability" <*> (fields .: "error") <*> optional fields "failureClass" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "willRetry" <*> traverse parseJSON (withoutFields ["annotationId", "attempt", "durability", "error", "failureClass", "jobId", "jobType", "willRetry"] fields))
+instance FromJSON JobFailedPayload where parseJSON = checked "JobFailedPayload" $ withObject "JobFailedPayload" (\fields -> JobFailedPayload <$> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "attempt" <*> optional fields "annotationId" <*> (fields .: "error") <*> optional fields "failureClass" <*> optional fields "willRetry" <*> optional fields "durability")
 
-instance ToJSON JobFailedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (jobFailedPayloadAnnotationId value), optionalPair "attempt" (jobFailedPayloadAttempt value), optionalPair "durability" (jobFailedPayloadDurability value), [("error", toJSON (jobFailedPayloadError value))], optionalPair "failureClass" (jobFailedPayloadFailureClass value), [("jobId", toJSON (jobFailedPayloadJobId value))], [("jobType", toJSON (jobFailedPayloadJobType value))], optionalPair "willRetry" (jobFailedPayloadWillRetry value)]) <> fmap toJSON (withoutFields ["annotationId", "attempt", "durability", "error", "failureClass", "jobId", "jobType", "willRetry"] (jobFailedPayloadAdditionalProperties value)))
+instance ToJSON JobFailedPayload where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (jobFailedPayloadJobId value))], [("jobType", toJSON (jobFailedPayloadJobType value))], optionalPair "attempt" (jobFailedPayloadAttempt value), optionalPair "annotationId" (jobFailedPayloadAnnotationId value), [("error", toJSON (jobFailedPayloadError value))], optionalPair "failureClass" (jobFailedPayloadFailureClass value), optionalPair "willRetry" (jobFailedPayloadWillRetry value), optionalPair "durability" (jobFailedPayloadDurability value)]))

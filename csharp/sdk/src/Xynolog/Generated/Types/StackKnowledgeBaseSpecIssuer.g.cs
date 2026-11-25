@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record StackKnowledgeBaseSpecIssuer
 {
-    [global::Xynolog.Serialization.Wire("external")] public global::Xynolog.Types.StackKnowledgeBaseSpecIssuerExternal? External { get; init; }
     [global::Xynolog.Serialization.Wire("shared")] public global::Xynolog.Types.StackKnowledgeBaseSpecIssuerShared? Shared { get; init; }
+    [global::Xynolog.Serialization.Wire("external")] public global::Xynolog.Types.StackKnowledgeBaseSpecIssuerExternal? External { get; init; }
     [global::Xynolog.Serialization.Wire("subjectClaim")] public required string SubjectClaim { get; init; }
 }

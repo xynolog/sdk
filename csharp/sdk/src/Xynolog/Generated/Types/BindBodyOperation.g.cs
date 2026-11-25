@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BindBodyOperation
 {
-    [global::Xynolog.Serialization.Wire("item")] public global::Xynolog.Types.AnnotationBody? Item { get; init; }
-    [global::Xynolog.Serialization.Wire("newItem")] public global::Xynolog.Types.AnnotationBody? NewItem { get; init; }
-    [global::Xynolog.Serialization.Wire("oldItem")] public global::Xynolog.Types.AnnotationBody? OldItem { get; init; }
     [global::Xynolog.Serialization.Wire("op")] public required global::Xynolog.Types.BindBodyOperationOp Op { get; init; }
+    [global::Xynolog.Serialization.Wire("item")] public global::Xynolog.Types.AnnotationBody? Item { get; init; }
+    [global::Xynolog.Serialization.Wire("oldItem")] public global::Xynolog.Types.AnnotationBody? OldItem { get; init; }
+    [global::Xynolog.Serialization.Wire("newItem")] public global::Xynolog.Types.AnnotationBody? NewItem { get; init; }
 }

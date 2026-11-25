@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatheredContextMetadata
 {
-    [global::Xynolog.Serialization.Wire("entityTypeFrequencies")] public global::System.Collections.Generic.IReadOnlyDictionary<string, long>? EntityTypeFrequencies { get; init; }
-    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
-    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
     [global::Xynolog.Serialization.Wire("resourceType")] public string? ResourceType { get; init; }
+    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
+    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("entityTypeFrequencies")] public global::System.Collections.Generic.IReadOnlyDictionary<string, long>? EntityTypeFrequencies { get; init; }
 }

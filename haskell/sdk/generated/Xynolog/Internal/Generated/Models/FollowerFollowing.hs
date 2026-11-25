@@ -10,16 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data FollowerFollowing = FollowerFollowing
-  { followerFollowingRefused :: Integer,
+  { followerFollowingSweep :: FollowerFollowingSweep,
     followerFollowingStopped :: Integer,
-    followerFollowingStreamDrops :: Integer,
-    followerFollowingSweep :: FollowerFollowingSweep
+    followerFollowingRefused :: Integer,
+    followerFollowingStreamDrops :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON FollowerFollowing where parseJSON = checked "FollowerFollowing" $ withObject "FollowerFollowing" (\fields -> FollowerFollowing <$> (fields .: "refused") <*> (fields .: "stopped") <*> (fields .: "streamDrops") <*> (fields .: "sweep"))
+instance FromJSON FollowerFollowing where parseJSON = checked "FollowerFollowing" $ withObject "FollowerFollowing" (\fields -> FollowerFollowing <$> (fields .: "sweep") <*> (fields .: "stopped") <*> (fields .: "refused") <*> (fields .: "streamDrops"))
 
-instance ToJSON FollowerFollowing where toJSON value = Object (KM.fromList (concat [[("refused", toJSON (followerFollowingRefused value))], [("stopped", toJSON (followerFollowingStopped value))], [("streamDrops", toJSON (followerFollowingStreamDrops value))], [("sweep", toJSON (followerFollowingSweep value))]]))
+instance ToJSON FollowerFollowing where toJSON value = Object (KM.fromList (concat [[("sweep", toJSON (followerFollowingSweep value))], [("stopped", toJSON (followerFollowingStopped value))], [("refused", toJSON (followerFollowingRefused value))], [("streamDrops", toJSON (followerFollowingStreamDrops value))]]))
 
 data FollowerFollowingSweep = FollowerFollowingSweepPending | FollowerFollowingSweepRunning | FollowerFollowingSweepDone | FollowerFollowingSweepDue deriving (Eq, Show)
 

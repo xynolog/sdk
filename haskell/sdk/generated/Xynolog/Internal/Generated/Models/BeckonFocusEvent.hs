@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data BeckonFocusEvent = BeckonFocusEvent
   { beckonFocusEventAnnotationId :: Maybe AnnotationId,
-    beckonFocusEventResourceId :: ResourceId,
-    beckonFocusEventAdditionalProperties :: KM.KeyMap Value
+    beckonFocusEventResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON BeckonFocusEvent where parseJSON = checked "BeckonFocusEvent" $ withObject "BeckonFocusEvent" (\fields -> BeckonFocusEvent <$> optional fields "annotationId" <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["annotationId", "resourceId"] fields))
+instance FromJSON BeckonFocusEvent where parseJSON = checked "BeckonFocusEvent" $ withObject "BeckonFocusEvent" (\fields -> BeckonFocusEvent <$> optional fields "annotationId" <*> (fields .: "resourceId"))
 
-instance ToJSON BeckonFocusEvent where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (beckonFocusEventAnnotationId value), [("resourceId", toJSON (beckonFocusEventResourceId value))]]) <> fmap toJSON (withoutFields ["annotationId", "resourceId"] (beckonFocusEventAdditionalProperties value)))
+instance ToJSON BeckonFocusEvent where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (beckonFocusEventAnnotationId value), [("resourceId", toJSON (beckonFocusEventResourceId value))]]))

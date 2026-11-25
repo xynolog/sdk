@@ -58,6 +58,29 @@ the coming release's, and gathers its changes as they land.
   `Codable` and `Hashable`, its members `var`s.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
   whole, which is a `String`.
+- The keys a registry keeps what it keeps under, and the prefixes of the
+  keys made per knowledge base, are generated from Protocol's
+  `session/stored.json`, with the names and values they had
+  (`knowledgeBasesKey`, `pendingAuthorizationKey`, …).
+- A model's members are in its schema's order, as the other SDKs hold them,
+  and so are its initializer's arguments and the members it writes: a call
+  names them in that order (`JobProgress(percentage: 50, message: …)`),
+  where it named them in the order of their names.
+- The items of a union's member that is a list are the union's type and
+  `Item`, as the other SDKs name them (`ResourceDescriptorContextItem`),
+  where they were `ResourceDescriptorContextListItem`.
+- A union's member that is an object of no named member, and holds any, is
+  its `object` case, as Typing names its variant
+  (`ResourceDescriptorContext.object`), where it was `empty`.
+- A union is decoded as the one member that admits a value, by what each
+  member's schema states, where one whose schema names no `discriminator`
+  was decoded as the first member that decoded. A value that no member
+  admits, but that one member names by its kind and the values it states, is
+  refused for what is wrong with it as that member; one that none names is
+  refused.
+- A union every member of which is text is a `String`, as a bus event's
+  `id` (`BusEventMessage.id`) is, where it was an enumeration of its members
+  that read every value as the first.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `GetAnnotationsResponse.motivation` is a `Motivation?`, where it was a

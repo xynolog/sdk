@@ -11,11 +11,11 @@ import Xynolog.Internal.Generated.Models.Expected
 import Xynolog.Internal.Generated.Models.KnowledgeBase
 
 data SignInOutcome = SignInOutcome
-  { signInOutcomeExpected :: Maybe Expected,
-    signInOutcomeKb :: KnowledgeBase
+  { signInOutcomeKb :: KnowledgeBase,
+    signInOutcomeExpected :: Maybe Expected
   }
   deriving (Eq, Show)
 
-instance FromJSON SignInOutcome where parseJSON = checked "SignInOutcome" $ withObject "SignInOutcome" (\fields -> SignInOutcome <$> optional fields "expected" <*> (fields .: "kb"))
+instance FromJSON SignInOutcome where parseJSON = checked "SignInOutcome" $ withObject "SignInOutcome" (\fields -> SignInOutcome <$> (fields .: "kb") <*> optional fields "expected")
 
-instance ToJSON SignInOutcome where toJSON value = Object (KM.fromList (concat [optionalPair "expected" (signInOutcomeExpected value), [("kb", toJSON (signInOutcomeKb value))]]))
+instance ToJSON SignInOutcome where toJSON value = Object (KM.fromList (concat [[("kb", toJSON (signInOutcomeKb value))], optionalPair "expected" (signInOutcomeExpected value)]))

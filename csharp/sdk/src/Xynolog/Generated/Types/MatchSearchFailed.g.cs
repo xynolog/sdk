@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record MatchSearchFailed
 {
     [global::Xynolog.Serialization.Wire("code")] public global::Xynolog.Types.CommandErrorCode? Code { get; init; }
-    [global::Xynolog.Serialization.Wire("details")] public string? Details { get; init; }
     [global::Xynolog.Serialization.Wire("message")] public required string Message { get; init; }
+    [global::Xynolog.Serialization.Wire("details")] public string? Details { get; init; }
     [global::Xynolog.Serialization.Wire("referenceId")] public required global::Xynolog.Identifiers.AnnotationId ReferenceId { get; init; }
 }

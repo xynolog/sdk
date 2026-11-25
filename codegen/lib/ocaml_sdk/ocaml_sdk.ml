@@ -26,7 +26,13 @@ let files ~root (spec : Spec.t) =
   in
   let* enums = Enums.derive spec table in
   let* selector = Selector.derive spec in
-  let* records = Records.derive spec table in
+  let* typing =
+    match Typing.of_spec spec ~tables:(Roots.service_tables spec) with
+    | typing -> Ok typing
+    | exception Definitions.Refused message ->
+        Error [ { Decode.file = "protocol/specs/src"; pointer = ""; message } ]
+  in
+  let* records = Records.derive spec typing table in
   let* codes = Error_codes.Table.derive spec.tables.errors_codes in
   let* http = Http_facts.file codes in
   let* facts = Facts.files spec in

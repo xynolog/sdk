@@ -195,14 +195,10 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                 Yojson.Safe.from_string (Yojson.Raw.to_string value)
               in
               let cancel =
-                safe
-                  (Records.Job_cancel_request.to_json
-                     { job_id = id; extra = [] })
+                safe (Records.Job_cancel_request.to_json { job_id = id })
               in
               let status_request =
-                safe
-                  (Records.Job_status_request.to_json
-                     { job_id = id; extra = [] })
+                safe (Records.Job_status_request.to_json { job_id = id })
               in
               let poll_delay () =
                 if !retrying || !polling then t.poll_ms else t.silence_ms

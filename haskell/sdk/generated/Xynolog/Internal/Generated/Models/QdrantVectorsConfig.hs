@@ -10,16 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data QdrantVectorsConfig = QdrantVectorsConfig
-  { qdrantVectorsConfigHost :: Text,
+  { qdrantVectorsConfigType :: QdrantVectorsConfigType,
+    qdrantVectorsConfigHost :: Text,
     qdrantVectorsConfigPort :: Integer,
-    qdrantVectorsConfigTokenEnv :: Text,
-    qdrantVectorsConfigType :: QdrantVectorsConfigType
+    qdrantVectorsConfigTokenEnv :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON QdrantVectorsConfig where parseJSON = checked "QdrantVectorsConfig" $ withObject "QdrantVectorsConfig" (\fields -> QdrantVectorsConfig <$> (fields .: "host") <*> (fields .: "port") <*> (fields .: "tokenEnv") <*> (fields .: "type"))
+instance FromJSON QdrantVectorsConfig where parseJSON = checked "QdrantVectorsConfig" $ withObject "QdrantVectorsConfig" (\fields -> QdrantVectorsConfig <$> (fields .: "type") <*> (fields .: "host") <*> (fields .: "port") <*> (fields .: "tokenEnv"))
 
-instance ToJSON QdrantVectorsConfig where toJSON value = Object (KM.fromList (concat [[("host", toJSON (qdrantVectorsConfigHost value))], [("port", toJSON (qdrantVectorsConfigPort value))], [("tokenEnv", toJSON (qdrantVectorsConfigTokenEnv value))], [("type", toJSON (qdrantVectorsConfigType value))]]))
+instance ToJSON QdrantVectorsConfig where toJSON value = Object (KM.fromList (concat [[("type", toJSON (qdrantVectorsConfigType value))], [("host", toJSON (qdrantVectorsConfigHost value))], [("port", toJSON (qdrantVectorsConfigPort value))], [("tokenEnv", toJSON (qdrantVectorsConfigTokenEnv value))]]))
 
 data QdrantVectorsConfigType = QdrantVectorsConfigTypeQdrant deriving (Eq, Show)
 

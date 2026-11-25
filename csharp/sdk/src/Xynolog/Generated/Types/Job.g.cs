@@ -4,12 +4,13 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(Job.JobPendingCase), typeof(Job.JobRunningCase), typeof(Job.JobCompleteCase), typeof(Job.JobFailedCase), typeof(Job.JobCancelledCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(Job.JobPending), typeof(Job.JobRunning), typeof(Job.JobComplete), typeof(Job.JobFailed), typeof(Job.JobCancelled))]
 public closed record Job
 {
-    public sealed record JobPendingCase(global::Xynolog.Types.JobPending Value) : Job;
-    public sealed record JobRunningCase(global::Xynolog.Types.JobRunning Value) : Job;
-    public sealed record JobCompleteCase(global::Xynolog.Types.JobComplete Value) : Job;
-    public sealed record JobFailedCase(global::Xynolog.Types.JobFailed Value) : Job;
-    public sealed record JobCancelledCase(global::Xynolog.Types.JobCancelled Value) : Job;
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["status", "metadata", "params"], ["status", "metadata", "params"], [new("status", [new global::Xynolog.Serialization.Literal.Text("pending")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["status", "metadata", "params", "startedAt", "progress"], ["status", "metadata", "params", "startedAt", "progress"], [new("status", [new global::Xynolog.Serialization.Literal.Text("running")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["status", "metadata", "params", "startedAt", "completedAt", "result"], ["status", "metadata", "params", "startedAt", "completedAt", "result"], [new("status", [new global::Xynolog.Serialization.Literal.Text("complete")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["status", "metadata", "params", "completedAt", "error"], ["status", "metadata", "params", "startedAt", "completedAt", "error", "failureClass"], [new("status", [new global::Xynolog.Serialization.Literal.Text("failed")]), new("failureClass", [new global::Xynolog.Serialization.Literal.Text("transient"), new global::Xynolog.Serialization.Literal.Text("deterministic"), new global::Xynolog.Serialization.Literal.Text("withheld")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["status", "metadata", "params", "completedAt"], ["status", "metadata", "params", "startedAt", "completedAt"], [new("status", [new global::Xynolog.Serialization.Literal.Text("cancelled")])], null)]];
+    public sealed record JobPending(global::Xynolog.Types.JobPending Value) : Job;
+    public sealed record JobRunning(global::Xynolog.Types.JobRunning Value) : Job;
+    public sealed record JobComplete(global::Xynolog.Types.JobComplete Value) : Job;
+    public sealed record JobFailed(global::Xynolog.Types.JobFailed Value) : Job;
+    public sealed record JobCancelled(global::Xynolog.Types.JobCancelled Value) : Job;
 }

@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.MatchResourcesResponse
 
 data MatchResourcesResult = MatchResourcesResult
-  { matchResourcesResultResponse :: MatchResourcesResponse,
-    matchResourcesResultAdditionalProperties :: KM.KeyMap Value
+  { matchResourcesResultResponse :: MatchResourcesResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON MatchResourcesResult where parseJSON = checked "MatchResourcesResult" $ withObject "MatchResourcesResult" (\fields -> MatchResourcesResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON MatchResourcesResult where parseJSON = checked "MatchResourcesResult" $ withObject "MatchResourcesResult" (\fields -> MatchResourcesResult <$> (fields .: "response"))
 
-instance ToJSON MatchResourcesResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (matchResourcesResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (matchResourcesResultAdditionalProperties value)))
+instance ToJSON MatchResourcesResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (matchResourcesResultResponse value))]]))

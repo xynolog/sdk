@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Engine
 {
-    [global::Xynolog.Serialization.Wire("model")] public required string Model { get; init; }
     [global::Xynolog.Serialization.Wire("provider")] public required global::Xynolog.Types.EngineProvider Provider { get; init; }
+    [global::Xynolog.Serialization.Wire("model")] public required string Model { get; init; }
 }

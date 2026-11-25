@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Session
 {
-    [global::Xynolog.Serialization.Wire("email")] public string? Email { get; init; }
     [global::Xynolog.Serialization.Wire("state")] public required global::Xynolog.Types.SessionState State { get; init; }
+    [global::Xynolog.Serialization.Wire("email")] public string? Email { get; init; }
 }

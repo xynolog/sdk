@@ -8,9 +8,9 @@ namespace Xynolog.Types;
 public sealed record StoredSession
 {
     [global::Xynolog.Serialization.Wire("access")] public required string Access { get; init; }
-    [global::Xynolog.Serialization.Wire("clientId")] public required string ClientId { get; init; }
-    [global::Xynolog.Serialization.Wire("personKey")] public string? PersonKey { get; init; }
     [global::Xynolog.Serialization.Wire("refresh")] public required string Refresh { get; init; }
-    [global::Xynolog.Serialization.Wire("revocationEndpoint")] public string? RevocationEndpoint { get; init; }
+    [global::Xynolog.Serialization.Wire("clientId")] public required string ClientId { get; init; }
     [global::Xynolog.Serialization.Wire("tokenEndpoint")] public required string TokenEndpoint { get; init; }
+    [global::Xynolog.Serialization.Wire("revocationEndpoint")] public string? RevocationEndpoint { get; init; }
+    [global::Xynolog.Serialization.Wire("personKey")] public string? PersonKey { get; init; }
 }

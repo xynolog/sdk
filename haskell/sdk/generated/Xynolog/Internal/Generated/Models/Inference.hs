@@ -35,14 +35,14 @@ inferenceKindText :: InferenceKind -> Text
 inferenceKindText InferenceKindInference = "Inference"
 
 data InferenceSpec = InferenceSpec
-  { inferenceSpecEngines :: ArchivistEngines,
-    inferenceSpecProviders :: InferenceSpecProviders
+  { inferenceSpecProviders :: InferenceSpecProviders,
+    inferenceSpecEngines :: ArchivistEngines
   }
   deriving (Eq, Show)
 
-instance FromJSON InferenceSpec where parseJSON = checked "InferenceSpec" $ withObject "InferenceSpec" (\fields -> InferenceSpec <$> (fields .: "engines") <*> (fields .: "providers"))
+instance FromJSON InferenceSpec where parseJSON = checked "InferenceSpec" $ withObject "InferenceSpec" (\fields -> InferenceSpec <$> (fields .: "providers") <*> (fields .: "engines"))
 
-instance ToJSON InferenceSpec where toJSON value = Object (KM.fromList (concat [[("engines", toJSON (inferenceSpecEngines value))], [("providers", toJSON (inferenceSpecProviders value))]]))
+instance ToJSON InferenceSpec where toJSON value = Object (KM.fromList (concat [[("providers", toJSON (inferenceSpecProviders value))], [("engines", toJSON (inferenceSpecEngines value))]]))
 
 data InferenceSpecProviders = InferenceSpecProviders
   { inferenceSpecProvidersAdditionalProperties :: KM.KeyMap Provider

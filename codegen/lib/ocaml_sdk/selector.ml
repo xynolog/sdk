@@ -160,10 +160,6 @@ let fault =
     Required.Ocaml.fault
 
 let files (tag, variants) =
-  let extra_type =
-    O.type_ "list"
-      ~args:[ O.type_tuple [ O.type_ "string"; O.type_ "Yojson.Safe.t" ] ]
-  in
   let types =
     List.map
       (fun v ->
@@ -174,8 +170,7 @@ let files (tag, variants) =
                   ( f.label,
                     if f.optional then O.type_ "option" ~args:[ f.type_ ]
                     else f.type_ ))
-                v.fields
-             @ [ ("extra", extra_type) ])))
+                v.fields)))
       variants
     @ [
         O.type_declaration "t"
@@ -206,8 +201,7 @@ let files (tag, variants) =
               (O.construct v.constructor
                  ~arg:
                    (O.record
-                      (List.map (fun f -> (f.label, O.ident f.label)) v.fields
-                      @ [ ("extra", O.call "rest" [ O.ident "reader" ]) ])))))
+                      (List.map (fun f -> (f.label, O.ident f.label)) v.fields)))))
   in
   let json = O.type_ "Yojson.Safe.t" in
   let of_json =
@@ -255,7 +249,6 @@ let files (tag, variants) =
                          else O.some (O.call f.writer [ field ]));
                       ])
                   v.fields);
-           O.field value "extra";
          ])
   in
   let to_json =

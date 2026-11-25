@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ProtectedResourceMetadata
 {
+    [global::Xynolog.Serialization.Wire("resource")] public required string Resource { get; init; }
     [global::Xynolog.Serialization.Wire("authorization_servers")] public required global::System.Collections.Generic.IReadOnlyList<string> AuthorizationServers { get; init; }
     [global::Xynolog.Serialization.Wire("bearer_methods_supported")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ProtectedResourceMetadataBearerMethodsSupportedItem> BearerMethodsSupported { get; init; }
-    [global::Xynolog.Serialization.Wire("resource")] public required string Resource { get; init; }
     [global::Xynolog.Serialization.Wire("resource_name")] public string? ResourceName { get; init; }
 }

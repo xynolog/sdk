@@ -11,15 +11,15 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.KbDid
 
 data LibrarianHealth = LibrarianHealth
-  { librarianHealthActors :: [LibrarianHealthActorsItem],
+  { librarianHealthStatus :: LibrarianHealthStatus,
     librarianHealthKb :: KbDid,
-    librarianHealthStatus :: LibrarianHealthStatus
+    librarianHealthActors :: [LibrarianHealthActorsItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON LibrarianHealth where parseJSON = checked "LibrarianHealth" $ withObject "LibrarianHealth" (\fields -> LibrarianHealth <$> (fields .: "actors") <*> (fields .: "kb") <*> (fields .: "status"))
+instance FromJSON LibrarianHealth where parseJSON = checked "LibrarianHealth" $ withObject "LibrarianHealth" (\fields -> LibrarianHealth <$> (fields .: "status") <*> (fields .: "kb") <*> (fields .: "actors"))
 
-instance ToJSON LibrarianHealth where toJSON value = Object (KM.fromList (concat [[("actors", toJSON (librarianHealthActors value))], [("kb", toJSON (librarianHealthKb value))], [("status", toJSON (librarianHealthStatus value))]]))
+instance ToJSON LibrarianHealth where toJSON value = Object (KM.fromList (concat [[("status", toJSON (librarianHealthStatus value))], [("kb", toJSON (librarianHealthKb value))], [("actors", toJSON (librarianHealthActors value))]]))
 
 data LibrarianHealthActorsItem = LibrarianHealthActorsItemMatcher | LibrarianHealthActorsItemGatherer deriving (Eq, Show)
 

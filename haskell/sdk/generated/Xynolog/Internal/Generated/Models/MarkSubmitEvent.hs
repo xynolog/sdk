@@ -13,14 +13,13 @@ import Xynolog.Internal.Generated.Models.Motivation
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data MarkSubmitEvent = MarkSubmitEvent
-  { markSubmitEventBody :: Maybe AnnotationBodies,
+  { markSubmitEventSource :: ResourceId,
     markSubmitEventMotivation :: Motivation,
     markSubmitEventSelector :: AnnotationSelector,
-    markSubmitEventSource :: ResourceId,
-    markSubmitEventAdditionalProperties :: KM.KeyMap Value
+    markSubmitEventBody :: Maybe AnnotationBodies
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkSubmitEvent where parseJSON = checked "MarkSubmitEvent" $ withObject "MarkSubmitEvent" (\fields -> MarkSubmitEvent <$> optional fields "body" <*> (fields .: "motivation") <*> (fields .: "selector") <*> (fields .: "source") <*> traverse parseJSON (withoutFields ["body", "motivation", "selector", "source"] fields))
+instance FromJSON MarkSubmitEvent where parseJSON = checked "MarkSubmitEvent" $ withObject "MarkSubmitEvent" (\fields -> MarkSubmitEvent <$> (fields .: "source") <*> (fields .: "motivation") <*> (fields .: "selector") <*> optional fields "body")
 
-instance ToJSON MarkSubmitEvent where toJSON value = Object (KM.fromList (concat [optionalPair "body" (markSubmitEventBody value), [("motivation", toJSON (markSubmitEventMotivation value))], [("selector", toJSON (markSubmitEventSelector value))], [("source", toJSON (markSubmitEventSource value))]]) <> fmap toJSON (withoutFields ["body", "motivation", "selector", "source"] (markSubmitEventAdditionalProperties value)))
+instance ToJSON MarkSubmitEvent where toJSON value = Object (KM.fromList (concat [[("source", toJSON (markSubmitEventSource value))], [("motivation", toJSON (markSubmitEventMotivation value))], [("selector", toJSON (markSubmitEventSelector value))], optionalPair "body" (markSubmitEventBody value)]))

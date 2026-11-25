@@ -13,14 +13,13 @@ import Xynolog.Internal.Generated.Models.AttributedEvent
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data GetAnnotationHistoryResponse = GetAnnotationHistoryResponse
-  { getAnnotationHistoryResponseAnnotationId :: AnnotationId,
-    getAnnotationHistoryResponseEvents :: [AttributedEvent],
-    getAnnotationHistoryResponseResourceId :: ResourceId,
+  { getAnnotationHistoryResponseEvents :: [AttributedEvent],
     getAnnotationHistoryResponseTotal :: Scientific,
-    getAnnotationHistoryResponseAdditionalProperties :: KM.KeyMap Value
+    getAnnotationHistoryResponseAnnotationId :: AnnotationId,
+    getAnnotationHistoryResponseResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON GetAnnotationHistoryResponse where parseJSON = checked "GetAnnotationHistoryResponse" $ withObject "GetAnnotationHistoryResponse" (\fields -> GetAnnotationHistoryResponse <$> (fields .: "annotationId") <*> (fields .: "events") <*> (fields .: "resourceId") <*> (fields .: "total") <*> traverse parseJSON (withoutFields ["annotationId", "events", "resourceId", "total"] fields))
+instance FromJSON GetAnnotationHistoryResponse where parseJSON = checked "GetAnnotationHistoryResponse" $ withObject "GetAnnotationHistoryResponse" (\fields -> GetAnnotationHistoryResponse <$> (fields .: "events") <*> (fields .: "total") <*> (fields .: "annotationId") <*> (fields .: "resourceId"))
 
-instance ToJSON GetAnnotationHistoryResponse where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (getAnnotationHistoryResponseAnnotationId value))], [("events", toJSON (getAnnotationHistoryResponseEvents value))], [("resourceId", toJSON (getAnnotationHistoryResponseResourceId value))], [("total", toJSON (getAnnotationHistoryResponseTotal value))]]) <> fmap toJSON (withoutFields ["annotationId", "events", "resourceId", "total"] (getAnnotationHistoryResponseAdditionalProperties value)))
+instance ToJSON GetAnnotationHistoryResponse where toJSON value = Object (KM.fromList (concat [[("events", toJSON (getAnnotationHistoryResponseEvents value))], [("total", toJSON (getAnnotationHistoryResponseTotal value))], [("annotationId", toJSON (getAnnotationHistoryResponseAnnotationId value))], [("resourceId", toJSON (getAnnotationHistoryResponseResourceId value))]]))

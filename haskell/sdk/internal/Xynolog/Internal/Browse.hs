@@ -94,13 +94,13 @@ newBrowse bus signals carrier contents clock settings = do
       scoped = cacheOptions clock settings (Transport.subscribeToResource carrier)
   descriptors <-
     Cache.newCache
-      (\identity -> browseResourceResultResponseResource . browseResourceResultResponse <$> ask BrowseResourceRequestedOperation (BrowseResourceRequest identity mempty))
+      (\identity -> browseResourceResultResponseResource . browseResourceResultResponse <$> ask BrowseResourceRequestedOperation (BrowseResourceRequest identity))
       scoped
   pages <- Cache.newCache (fmap browseResourcesResultResponse . ask BrowseResourcesRequestedOperation) unscoped
   lists <- Cache.newCache (Content.getAnnotations contents Nothing) scoped
   details <-
     Cache.newCache
-      (\(AnnotationKey identity mark) -> getAnnotationResponseAnnotation . browseAnnotationResultResponse <$> ask BrowseAnnotationRequestedOperation (BrowseAnnotationRequest mark identity mempty))
+      (\(AnnotationKey identity mark) -> getAnnotationResponseAnnotation . browseAnnotationResultResponse <$> ask BrowseAnnotationRequestedOperation (BrowseAnnotationRequest {browseAnnotationRequestAnnotationId = mark, browseAnnotationRequestResourceId = identity}))
       (cacheOptions clock settings (\(AnnotationKey identity _) -> Transport.subscribeToResource carrier identity))
   vocabulary <- Cache.newCache (\_ -> getEntityTypesResponseEntityTypes . browseEntityTypesResultResponse <$> ask BrowseEntityTypesRequestedOperation (BrowseEntityTypesRequest mempty)) unscoped
   schemas <- Cache.newCache (\_ -> getTagSchemasResponseTagSchemas . browseTagSchemasResultResponse <$> ask BrowseTagSchemasRequestedOperation (BrowseTagSchemasRequest mempty)) unscoped
@@ -120,7 +120,7 @@ newBrowse bus signals carrier contents clock settings = do
       unscoped
   history <-
     Cache.newCache
-      (\identity -> getEventsResponseEvents . browseEventsResultResponse <$> ask BrowseEventsRequestedOperation (BrowseEventsRequest Nothing identity Nothing Nothing mempty))
+      (\identity -> getEventsResponseEvents . browseEventsResultResponse <$> ask BrowseEventsRequestedOperation (BrowseEventsRequest {browseEventsRequestLimit = Nothing, browseEventsRequestResourceId = identity, browseEventsRequestType = Nothing, browseEventsRequestUserId = Nothing}))
       scoped
   life <- Lifetime.newLifetime "browse is disposed"
   pure (BrowseNamespace life carrier bus signals contents settings descriptors pages lists details vocabulary schemas models limits history)
@@ -131,7 +131,7 @@ resource namespace = Cache.query (resourceCache namespace)
 resources :: BrowseNamespace -> Maybe BrowseResourcesRequest -> Cache.Query ListResourcesResponse
 resources namespace options = Cache.query (resourcesCache namespace) selected
   where
-    chosen = fromMaybe (BrowseResourcesRequest Nothing Nothing Nothing Nothing mempty) options
+    chosen = fromMaybe (BrowseResourcesRequest {browseResourcesRequestArchived = Nothing, browseResourcesRequestEntityType = Nothing, browseResourcesRequestLimit = Nothing, browseResourcesRequestOffset = Nothing}) options
     selected =
       chosen
         { browseResourcesRequestLimit = Just (fromMaybe 100 (browseResourcesRequestLimit chosen)),
@@ -197,12 +197,12 @@ resourceRepresentationStream namespace identity consume = Content.getBinaryStrea
 resourceEvents :: BrowseNamespace -> ResourceId -> IO [AttributedEvent]
 resourceEvents namespace identity =
   getEventsResponseEvents . browseEventsResultResponse
-    <$> Bus.request (wire namespace) BrowseEventsRequestedOperation (BrowseEventsRequest Nothing identity Nothing Nothing mempty) (Timing.busRequestTimeoutMs (timing namespace))
+    <$> Bus.request (wire namespace) BrowseEventsRequestedOperation (BrowseEventsRequest {browseEventsRequestLimit = Nothing, browseEventsRequestResourceId = identity, browseEventsRequestType = Nothing, browseEventsRequestUserId = Nothing}) (Timing.busRequestTimeoutMs (timing namespace))
 
 annotationHistory :: BrowseNamespace -> ResourceId -> AnnotationId -> IO GetAnnotationHistoryResponse
 annotationHistory namespace identity mark =
   browseAnnotationHistoryResultResponse
-    <$> Bus.request (wire namespace) BrowseAnnotationHistoryRequestedOperation (BrowseAnnotationHistoryRequest mark identity mempty) (Timing.busRequestTimeoutMs (timing namespace))
+    <$> Bus.request (wire namespace) BrowseAnnotationHistoryRequestedOperation (BrowseAnnotationHistoryRequest {browseAnnotationHistoryRequestAnnotationId = mark, browseAnnotationHistoryRequestResourceId = identity}) (Timing.busRequestTimeoutMs (timing namespace))
 
 files :: BrowseNamespace -> Maybe Text -> Maybe BrowseDirectoryRequestSort -> IO BrowseDirectoryResultResponse
 files namespace path sort =
@@ -210,7 +210,7 @@ files namespace path sort =
     <$> Bus.request
       (wire namespace)
       BrowseDirectoryRequestedOperation
-      (BrowseDirectoryRequest (fromMaybe "." path) (Just (fromMaybe BrowseDirectoryRequestSortName sort)) mempty)
+      (BrowseDirectoryRequest (fromMaybe "." path) (Just (fromMaybe BrowseDirectoryRequestSortName sort)))
       (Timing.busRequestTimeoutMs (timing namespace))
 
 kb :: BrowseNamespace -> IO KbDescription
@@ -219,16 +219,16 @@ kb namespace = browseKbResultResponse <$> Bus.request (wire namespace) BrowseKbR
 -- | Open an annotation for this viewer, and where it is on this viewer's
 -- screen when that is known.
 click :: BrowseNamespace -> AnnotationId -> Maybe AnchorRect -> STM ()
-click namespace identity anchorRect = Local.signal (local namespace) BrowseClick (BrowseClickEvent anchorRect identity mempty) NoScope
+click namespace identity anchorRect = Local.signal (local namespace) BrowseClick (BrowseClickEvent {browseClickEventAnchorRect = anchorRect, browseClickEventAnnotationId = identity}) NoScope
 
 openResource :: BrowseNamespace -> ResourceId -> STM ()
-openResource namespace identity = Local.signal (local namespace) BrowseResourceOpen (BrowseResourceOpenEvent identity mempty) NoScope
+openResource namespace identity = Local.signal (local namespace) BrowseResourceOpen (BrowseResourceOpenEvent identity) NoScope
 
 resourceViewed :: BrowseNamespace -> ResourceId -> IO ()
 resourceViewed namespace identity =
   void
     $ Lifetime.start (signalLifetime namespace)
-    $ void (Bus.emit (wire namespace) BrowseResourceViewed (BrowseResourceViewedEvent identity mempty) NoScope Nothing)
+    $ void (Bus.emit (wire namespace) BrowseResourceViewed (BrowseResourceViewedEvent identity) NoScope Nothing)
       `catch` ( \(problem :: SomeException) -> case fromException problem :: Maybe SomeAsyncException of
                   Just _ -> throwIO problem
                   Nothing ->

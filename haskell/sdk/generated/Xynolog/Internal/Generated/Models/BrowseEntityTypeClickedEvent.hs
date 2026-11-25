@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data BrowseEntityTypeClickedEvent = BrowseEntityTypeClickedEvent
-  { browseEntityTypeClickedEventEntityType :: Text,
-    browseEntityTypeClickedEventAdditionalProperties :: KM.KeyMap Value
+  { browseEntityTypeClickedEventEntityType :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseEntityTypeClickedEvent where parseJSON = checked "BrowseEntityTypeClickedEvent" $ withObject "BrowseEntityTypeClickedEvent" (\fields -> BrowseEntityTypeClickedEvent <$> (fields .: "entityType") <*> traverse parseJSON (withoutFields ["entityType"] fields))
+instance FromJSON BrowseEntityTypeClickedEvent where parseJSON = checked "BrowseEntityTypeClickedEvent" $ withObject "BrowseEntityTypeClickedEvent" (\fields -> BrowseEntityTypeClickedEvent <$> (fields .: "entityType"))
 
-instance ToJSON BrowseEntityTypeClickedEvent where toJSON value = Object (KM.fromList (concat [[("entityType", toJSON (browseEntityTypeClickedEventEntityType value))]]) <> fmap toJSON (withoutFields ["entityType"] (browseEntityTypeClickedEventAdditionalProperties value)))
+instance ToJSON BrowseEntityTypeClickedEvent where toJSON value = Object (KM.fromList (concat [[("entityType", toJSON (browseEntityTypeClickedEventEntityType value))]]))

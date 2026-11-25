@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record JobCheckpointCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
-    [global::Xynolog.Serialization.Wire("completedUnits")] public required global::System.Collections.Generic.IReadOnlyList<string> CompletedUnits { get; init; }
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
+    [global::Xynolog.Serialization.Wire("completedUnits")] public required global::System.Collections.Generic.IReadOnlyList<string> CompletedUnits { get; init; }
     [global::Xynolog.Serialization.Wire("unitCursors")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.UnitCursor>? UnitCursors { get; init; }
 }

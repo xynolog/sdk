@@ -7,17 +7,17 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GenerationJobParams
 {
-    [global::Xynolog.Serialization.Wire("cite")] public bool? Cite { get; init; }
-    [global::Xynolog.Serialization.Wire("context")] public required global::Xynolog.Types.GatheredContext Context { get; init; }
+    [global::Xynolog.Serialization.Wire("title")] public required string Title { get; init; }
+    [global::Xynolog.Serialization.Wire("storageUri")] public required string StorageUri { get; init; }
+    [global::Xynolog.Serialization.Wire("prompt")] public string? Prompt { get; init; }
     [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
     [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
+    [global::Xynolog.Serialization.Wire("sourceLanguage")] public string? SourceLanguage { get; init; }
+    [global::Xynolog.Serialization.Wire("temperature")] public double? Temperature { get; init; }
     [global::Xynolog.Serialization.Wire("maxTokens")] public double? MaxTokens { get; init; }
     [global::Xynolog.Serialization.Wire("outputMediaType")] public global::Xynolog.Types.SupportedMediaType? OutputMediaType { get; init; }
-    [global::Xynolog.Serialization.Wire("prompt")] public string? Prompt { get; init; }
-    [global::Xynolog.Serialization.Wire("sourceLanguage")] public string? SourceLanguage { get; init; }
-    [global::Xynolog.Serialization.Wire("storageUri")] public required string StorageUri { get; init; }
-    [global::Xynolog.Serialization.Wire("structure")] public string? Structure { get; init; }
     [global::Xynolog.Serialization.Wire("task")] public string? Task { get; init; }
-    [global::Xynolog.Serialization.Wire("temperature")] public double? Temperature { get; init; }
-    [global::Xynolog.Serialization.Wire("title")] public required string Title { get; init; }
+    [global::Xynolog.Serialization.Wire("structure")] public string? Structure { get; init; }
+    [global::Xynolog.Serialization.Wire("cite")] public bool? Cite { get; init; }
+    [global::Xynolog.Serialization.Wire("context")] public required global::Xynolog.Types.GatheredContext Context { get; init; }
 }

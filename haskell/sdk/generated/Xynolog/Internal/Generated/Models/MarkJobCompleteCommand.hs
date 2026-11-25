@@ -15,20 +15,19 @@ import Xynolog.Internal.Generated.Models.ResourceId
 import Xynolog.Internal.Generated.Models.UserId
 
 data MarkJobCompleteCommand = MarkJobCompleteCommand
-  { markJobCompleteCommandU5f_userId :: Maybe UserId,
-    markJobCompleteCommandAttempt :: Maybe Integer,
-    markJobCompleteCommandDurability :: Maybe DurabilityEvidence,
+  { markJobCompleteCommandUserId :: Maybe UserId,
+    markJobCompleteCommandResourceId :: ResourceId,
     markJobCompleteCommandJobId :: JobId,
     markJobCompleteCommandJobType :: MarkJobCompleteCommandJobType,
-    markJobCompleteCommandResourceId :: ResourceId,
+    markJobCompleteCommandAttempt :: Maybe Integer,
     markJobCompleteCommandResult :: Maybe MarkJobResult,
-    markJobCompleteCommandAdditionalProperties :: KM.KeyMap Value
+    markJobCompleteCommandDurability :: Maybe DurabilityEvidence
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkJobCompleteCommand where parseJSON = checked "MarkJobCompleteCommand" $ withObject "MarkJobCompleteCommand" (\fields -> MarkJobCompleteCommand <$> optional fields "_userId" <*> optional fields "attempt" <*> optional fields "durability" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> optional fields "result" <*> traverse parseJSON (withoutFields ["_userId", "attempt", "durability", "jobId", "jobType", "resourceId", "result"] fields))
+instance FromJSON MarkJobCompleteCommand where parseJSON = checked "MarkJobCompleteCommand" $ withObject "MarkJobCompleteCommand" (\fields -> MarkJobCompleteCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "attempt" <*> optional fields "result" <*> optional fields "durability")
 
-instance ToJSON MarkJobCompleteCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markJobCompleteCommandU5f_userId value), optionalPair "attempt" (markJobCompleteCommandAttempt value), optionalPair "durability" (markJobCompleteCommandDurability value), [("jobId", toJSON (markJobCompleteCommandJobId value))], [("jobType", toJSON (markJobCompleteCommandJobType value))], [("resourceId", toJSON (markJobCompleteCommandResourceId value))], optionalPair "result" (markJobCompleteCommandResult value)]) <> fmap toJSON (withoutFields ["_userId", "attempt", "durability", "jobId", "jobType", "resourceId", "result"] (markJobCompleteCommandAdditionalProperties value)))
+instance ToJSON MarkJobCompleteCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markJobCompleteCommandUserId value), [("resourceId", toJSON (markJobCompleteCommandResourceId value))], [("jobId", toJSON (markJobCompleteCommandJobId value))], [("jobType", toJSON (markJobCompleteCommandJobType value))], optionalPair "attempt" (markJobCompleteCommandAttempt value), optionalPair "result" (markJobCompleteCommandResult value), optionalPair "durability" (markJobCompleteCommandDurability value)]))
 
 data MarkJobCompleteCommandJobType = MarkJobCompleteCommandJobTypeMark deriving (Eq, Show)
 
