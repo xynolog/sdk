@@ -33,7 +33,8 @@ import {
 } from '@xynolog/core';
 import { APIError, HttpTransport } from '@xynolog/http-transport';
 import { createCache, type CachePersister } from '../cache';
-import { JOB_CLAIM_CHANNELS, type HeldJob } from '../claims';
+import type { HeldJob } from '../claims';
+import { JOB_CLAIM_CHANNELS } from '../worker-channels';
 import { XynologClient } from '../client';
 import {
   subscribeDiscovery,

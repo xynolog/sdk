@@ -69,16 +69,21 @@ import {
 import type {
   Annotation,
   AnnotationId,
-  BusRequestErrorCode,
   BusPrimitive,
   ClaimOptions,
+  ClaimRefusal,
   EventMap,
+  HeldJobStall,
+  JobCheckpoint,
+  JobFailure,
   JobFilter,
   JobId,
+  JobReached,
   JobType,
   ResourceId,
   TraceCarrier,
   UnitCursor,
+  WorkerVitals,
   components,
 } from '@xynolog/core';
 import {
@@ -150,63 +155,6 @@ export function willRetryAfter(
   );
 }
 
-/**
- * A claim that was refused for a reason other than "nothing pending".
- *
- * `code` is the `BusRequestError` code the reply was promoted to, or `null`
- * when the refusal was the worker's own: a reply with a fault as its schema's
- * (a member it lacks, or one its schema does not allow, a job type that is
- * neither verb among them). Never a
- * manufactured bus code. `bus.none-pending` never appears: an empty queue is
- * not a fault. `bus.unauthorized` means this credential cannot claim, and
- * will not be able to later.
- */
-export interface ClaimRefusal {
-  code: BusRequestErrorCode | null;
-  message: string;
-}
-
-/**
- * What a worker can say of itself at any moment (WORKER-CONTRACT V1).
- *
- * `lastQueuedEventAt` is any `job:queued` received, matching or not. On an
- * idle stack with an empty queue it stands still by design, so a still stamp
- * alone is not a fault of the stream. `lastActivityAt` (a claim, a progress
- * report, a checkpoint, a settle) is the liveness of the work: a job stuck
- * partway stops advancing it, and that is what the stall rule reads.
- */
-export interface WorkerVitals {
-  lastQueuedEventAt: string | null;
-  lastClaimAt: string | null;
-  /** The last settle, whatever its outcome: a worker that fails and moves on is alive. */
-  lastFinishedAt: string | null;
-  lastActivityAt: string | null;
-  activeJob: { jobId: JobId; type: JobType; since: string } | null;
-  jobsCompleted: number;
-}
-
-/** A held job that showed no activity for `thresholdMs` (WORKER-CONTRACT V2). What its host does then is the host's. */
-export interface HeldJobStall {
-  jobId: JobId;
-  jobType: JobType;
-  heldSince: string;
-  lastActivityAt: string;
-  silentForMs: number;
-  thresholdMs: number;
-}
-
-/** The checkpoint a worker states: the units finished, and the furthest each unit begun got, a finished unit's cursor where it ended. */
-export interface JobCheckpoint {
-  completedUnits: string[];
-  unitCursors?: Record<string, UnitCursor>;
-}
-
-/** What a failure carries beside its error. What the job's commits observed is the held job's own to state. */
-export interface JobFailure extends Partial<JobCheckpoint> {
-  /** The failure's class, when the worker knows it. */
-  failureClass?: FailureClass;
-}
-
 interface Held<T extends JobType, R> {
   readonly jobId: JobId;
   readonly jobType: T;
@@ -255,7 +203,7 @@ interface Held<T extends JobType, R> {
    */
   fail(error: string, failure?: JobFailure): Promise<void>;
   /** Settle: `job:cancel`, once the work has stopped for a cancellation. */
-  cancel(reached?: Partial<JobCheckpoint>): Promise<void>;
+  cancel(reached?: JobReached): Promise<void>;
 }
 
 /** A `mark` job this worker holds. */
@@ -547,7 +495,7 @@ class HeldJobOf<T extends JobType, R> implements Held<T, R> {
     }));
   }
 
-  cancel(reached: Partial<JobCheckpoint> = {}): Promise<void> {
+  cancel(reached: JobReached = {}): Promise<void> {
     return this.settle('job:cancel', false, () => ({
       ...this.named,
       ...reached,

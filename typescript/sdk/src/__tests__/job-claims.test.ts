@@ -33,7 +33,14 @@ import {
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
 import { getActiveTraceparent, withTraceparent } from '@xynolog/observability';
-import type { Annotation, BusPrimitive, ClaimOptions } from '@xynolog/core';
+import type {
+  Annotation,
+  BusPrimitive,
+  ClaimOptions,
+  ClaimRefusal,
+  HeldJobStall,
+  JobFailure,
+} from '@xynolog/core';
 import {
   BusRequestError,
   ERRORS_KEPT_FOR_FIRST_READER_COUNT,
@@ -49,16 +56,12 @@ import {
 } from '@xynolog/core';
 import {
   ClaimsObservable,
-  JOB_CLAIM_CHANNELS,
-  JOB_COMMIT_CHANNELS,
   willRetryAfter,
-  type ClaimRefusal,
   type HeldJob,
-  type HeldJobStall,
   type HeldMarkJob,
   type HeldYieldJob,
-  type JobFailure,
 } from '../claims';
+import { JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS } from '../worker-channels';
 import { table as retryCases } from './cases/jobs_retry_cases';
 
 /** The job a `job:claimed` reply carries: running, under the claimant. */

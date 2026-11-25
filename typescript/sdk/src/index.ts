@@ -49,15 +49,18 @@ export {
 export {
   ClaimsObservable,
   willRetryAfter,
-  type ClaimRefusal,
   type HeldJob,
-  type HeldJobStall,
   type HeldMarkJob,
   type HeldYieldJob,
-  type JobCheckpoint,
-  type JobFailure,
-  type WorkerVitals,
 } from './claims';
+export type {
+  ClaimRefusal,
+  HeldJobStall,
+  JobCheckpoint,
+  JobFailure,
+  JobReached,
+  WorkerVitals,
+} from '@xynolog/core';
 export {
   JOB_CLAIM_CHANNELS,
   JOB_COMMIT_CHANNELS,
