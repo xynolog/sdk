@@ -316,7 +316,11 @@ library internal
     Xynolog.Internal.Generated.Models.BusSubscribeRequest
     Xynolog.Internal.Generated.Models.Cancelled
     Xynolog.Internal.Generated.Models.ClaimOptions
+    Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent
+    Xynolog.Internal.Generated.Models.ClientRefresh
     Xynolog.Internal.Generated.Models.ClientSecretForm
+    Xynolog.Internal.Generated.Models.ClientTesting
+    Xynolog.Internal.Generated.Models.ClientTiming
     Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponse
     Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponseBusEnvelope
     Xynolog.Internal.Generated.Models.CommandError
@@ -332,6 +336,8 @@ library internal
     Xynolog.Internal.Generated.Models.ContentFormat
     Xynolog.Internal.Generated.Models.ContextualSummaryResponse
     Xynolog.Internal.Generated.Models.ContextualSummaryResponseBusEnvelope
+    Xynolog.Internal.Generated.Models.ControlCli
+    Xynolog.Internal.Generated.Models.ControlMethods
     Xynolog.Internal.Generated.Models.CreateAnnotationRequest
     Xynolog.Internal.Generated.Models.CreateFromTokenOptions
     Xynolog.Internal.Generated.Models.CreateResourceResponse
@@ -360,6 +366,7 @@ library internal
     Xynolog.Internal.Generated.Models.EphemeralEventId
     Xynolog.Internal.Generated.Models.ErrorData
     Xynolog.Internal.Generated.Models.ErrorResponse
+    Xynolog.Internal.Generated.Models.ErrorsCodes
     Xynolog.Internal.Generated.Models.EventMetadata
     Xynolog.Internal.Generated.Models.Expected
     Xynolog.Internal.Generated.Models.ExtractedText
@@ -415,6 +422,7 @@ library internal
     Xynolog.Internal.Generated.Models.HostPort
     Xynolog.Internal.Generated.Models.HttpEndpoint
     Xynolog.Internal.Generated.Models.HttpStatus
+    Xynolog.Internal.Generated.Models.IdentifiersKinds
     Xynolog.Internal.Generated.Models.IdentityUser
     Xynolog.Internal.Generated.Models.IdentityUseraddParams
     Xynolog.Internal.Generated.Models.IdentityUseraddResult
@@ -543,6 +551,7 @@ library internal
     Xynolog.Internal.Generated.Models.MatchSearchResult
     Xynolog.Internal.Generated.Models.MediaTokenRequest
     Xynolog.Internal.Generated.Models.MediaTokenResponse
+    Xynolog.Internal.Generated.Models.MediaTypesRegistry
     Xynolog.Internal.Generated.Models.MemoryGraphConfig
     Xynolog.Internal.Generated.Models.MemoryVectorsConfig
     Xynolog.Internal.Generated.Models.Metadata
@@ -614,6 +623,7 @@ library internal
     Xynolog.Internal.Generated.Models.Runtime
     Xynolog.Internal.Generated.Models.RuntimeState
     Xynolog.Internal.Generated.Models.ScoredResource
+    Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry
     Xynolog.Internal.Generated.Models.SecretRef
     Xynolog.Internal.Generated.Models.Selector
     Xynolog.Internal.Generated.Models.SemanticMatch
@@ -638,6 +648,7 @@ library internal
     Xynolog.Internal.Generated.Models.SessionEnded
     Xynolog.Internal.Generated.Models.SessionJoinedEvent
     Xynolog.Internal.Generated.Models.SessionLeftEvent
+    Xynolog.Internal.Generated.Models.SessionOauth
     Xynolog.Internal.Generated.Models.Setting
     Xynolog.Internal.Generated.Models.SettingLine
     Xynolog.Internal.Generated.Models.SettingsGetParams
@@ -652,6 +663,7 @@ library internal
     Xynolog.Internal.Generated.Models.SettingsUnsetParams
     Xynolog.Internal.Generated.Models.SignIn
     Xynolog.Internal.Generated.Models.SignInOutcome
+    Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly
     Xynolog.Internal.Generated.Models.SignedIn
     Xynolog.Internal.Generated.Models.SmeltRebuildAnchorsCommand
     Xynolog.Internal.Generated.Models.SmeltSettled

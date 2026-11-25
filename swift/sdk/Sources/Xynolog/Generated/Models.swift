@@ -3531,6 +3531,439 @@ public struct ClaimOptions: Codable, Sendable, Hashable {
   }
 }
 
+public struct ClientDiscoveryAbsent: Codable, Sendable, Hashable {
+  public var comment: String
+  public var reasons: [ClientDiscoveryAbsentReasonsItem]
+  public init(comment: String, reasons: [ClientDiscoveryAbsentReasonsItem]) {
+    self.comment = comment
+    self.reasons = reasons
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "reasons"], in: "ClientDiscoveryAbsent")
+    self.comment = try c.value("$comment")
+    self.reasons = try c.value("reasons")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.reasons, as: "reasons")
+  }
+}
+
+public struct ClientDiscoveryAbsentReasonsItem: Codable, Sendable, Hashable {
+  public var reason: String
+  public var docs: String
+  public init(reason: String, docs: String) {
+    self.reason = reason
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["reason", "docs"], in: "ClientDiscoveryAbsentReasonsItem")
+    self.reason = try c.value("reason")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.reason, as: "reason")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ClientRefresh: Codable, Sendable, Hashable {
+  public var comment: String
+  public var queries: [ClientRefreshQueriesItem]
+  public var refresh: [ClientRefreshRefreshItem]
+  public init(
+    comment: String, queries: [ClientRefreshQueriesItem], refresh: [ClientRefreshRefreshItem]
+  ) {
+    self.comment = comment
+    self.queries = queries
+    self.refresh = refresh
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "queries", "refresh"], in: "ClientRefresh")
+    self.comment = try c.value("$comment")
+    self.queries = try c.value("queries")
+    self.refresh = try c.value("refresh")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.queries, as: "queries")
+    try c.encode(self.refresh, as: "refresh")
+  }
+}
+
+public indirect enum ClientRefreshQueriesItem: Codable, Sendable, Hashable {
+  case asks(ClientRefreshQueriesItemAsks)
+  case reads(ClientRefreshQueriesItemReads)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["name", "asks", "value", "docs"],
+        allowed: ["name", "per", "asks", "persisted", "value", "docs"],
+        fixed: [
+          .init(
+            property: "per", values: [.text("resource"), .text("annotation"), .text("filters")]),
+          .init(property: "persisted", values: [.boolean(true)]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["name", "reads", "value", "docs"],
+        allowed: ["name", "per", "reads", "persisted", "value", "docs"],
+        fixed: [
+          .init(
+            property: "per", values: [.text("resource"), .text("annotation"), .text("filters")]),
+          .init(property: "persisted", values: [.boolean(true)]),
+        ], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "ClientRefreshQueriesItem", members: Self.members,
+      variants: [
+        ("asks", { decoder in try Self.asks(ClientRefreshQueriesItemAsks(from: decoder)) }),
+        ("reads", { decoder in try Self.reads(ClientRefreshQueriesItemReads(from: decoder)) }),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .asks(let value): try value.encode(to: encoder)
+    case .reads(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ClientRefreshQueriesItemAsks: Codable, Sendable, Hashable {
+  public var name: String
+  public var per: ClientRefreshQueriesItemAsksPer?
+  public var asks: String
+  public var persisted: ClientRefreshQueriesItemAsksPersisted?
+  public var value: ClientRefreshQueriesItemAsksValue
+  public var docs: String
+  public init(
+    name: String, per: ClientRefreshQueriesItemAsksPer? = nil, asks: String,
+    persisted: ClientRefreshQueriesItemAsksPersisted? = nil,
+    value: ClientRefreshQueriesItemAsksValue, docs: String
+  ) {
+    self.name = name
+    self.per = per
+    self.asks = asks
+    self.persisted = persisted
+    self.value = value
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["name", "per", "asks", "persisted", "value", "docs"], in: "ClientRefreshQueriesItemAsks")
+    self.name = try c.value("name")
+    self.per = try c.ifPresent("per")
+    self.asks = try c.value("asks")
+    self.persisted = try c.ifPresent("persisted")
+    self.value = try c.value("value")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.per, as: "per")
+    try c.encode(self.asks, as: "asks")
+    try c.encodeIfPresent(self.persisted, as: "persisted")
+    try c.encode(self.value, as: "value")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public enum ClientRefreshQueriesItemAsksPer: String, Codable, Sendable, CaseIterable {
+  case resource = "resource"
+  case annotation = "annotation"
+  case filters = "filters"
+}
+
+public enum ClientRefreshQueriesItemAsksPersisted: Codable, Sendable, Hashable {
+  case value
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.singleValueContainer()
+    guard try c.decode(Bool.self) == true else {
+      throw DecodingError.dataCorruptedError(
+        in: c, debugDescription: "ClientRefreshQueriesItemAsksPersisted")
+    }
+    self = .value
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.singleValueContainer()
+    try c.encode(true)
+  }
+}
+
+public struct ClientRefreshQueriesItemAsksValue: Codable, Sendable, Hashable {
+  public var ref: String
+  public init(ref: String) {
+    self.ref = ref
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$ref"], in: "ClientRefreshQueriesItemAsksValue")
+    self.ref = try c.value("$ref")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.ref, as: "$ref")
+  }
+}
+
+public struct ClientRefreshQueriesItemReads: Codable, Sendable, Hashable {
+  public var name: String
+  public var per: ClientRefreshQueriesItemReadsPer?
+  public var reads: String
+  public var persisted: ClientRefreshQueriesItemReadsPersisted?
+  public var value: ClientRefreshQueriesItemReadsValue
+  public var docs: String
+  public init(
+    name: String, per: ClientRefreshQueriesItemReadsPer? = nil, reads: String,
+    persisted: ClientRefreshQueriesItemReadsPersisted? = nil,
+    value: ClientRefreshQueriesItemReadsValue, docs: String
+  ) {
+    self.name = name
+    self.per = per
+    self.reads = reads
+    self.persisted = persisted
+    self.value = value
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["name", "per", "reads", "persisted", "value", "docs"], in: "ClientRefreshQueriesItemReads")
+    self.name = try c.value("name")
+    self.per = try c.ifPresent("per")
+    self.reads = try c.value("reads")
+    self.persisted = try c.ifPresent("persisted")
+    self.value = try c.value("value")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encodeIfPresent(self.per, as: "per")
+    try c.encode(self.reads, as: "reads")
+    try c.encodeIfPresent(self.persisted, as: "persisted")
+    try c.encode(self.value, as: "value")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public enum ClientRefreshQueriesItemReadsPer: String, Codable, Sendable, CaseIterable {
+  case resource = "resource"
+  case annotation = "annotation"
+  case filters = "filters"
+}
+
+public enum ClientRefreshQueriesItemReadsPersisted: Codable, Sendable, Hashable {
+  case value
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.singleValueContainer()
+    guard try c.decode(Bool.self) == true else {
+      throw DecodingError.dataCorruptedError(
+        in: c, debugDescription: "ClientRefreshQueriesItemReadsPersisted")
+    }
+    self = .value
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.singleValueContainer()
+    try c.encode(true)
+  }
+}
+
+public struct ClientRefreshQueriesItemReadsValue: Codable, Sendable, Hashable {
+  public var ref: String
+  public init(ref: String) {
+    self.ref = ref
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$ref"], in: "ClientRefreshQueriesItemReadsValue")
+    self.ref = try c.value("$ref")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.ref, as: "$ref")
+  }
+}
+
+public indirect enum ClientRefreshRefreshItem: Codable, Sendable, Hashable {
+  case on(ClientRefreshRefreshItemOn)
+  case stream(ClientRefreshRefreshItemStream)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["on", "docs"],
+        allowed: [
+          "on", "when", "reach", "names", "carries", "refetches", "writes", "removes", "docs",
+        ],
+        fixed: [
+          .init(property: "when", values: [.text("enriched"), .text("unenriched")]),
+          .init(property: "reach", values: [.text("subject"), .text("held")]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["stream", "docs"],
+        allowed: ["stream", "reach", "refetches", "docs"],
+        fixed: [
+          .init(property: "stream", values: [.text("reopened"), .text("unreadable")]),
+          .init(property: "reach", values: [.text("subject"), .text("held")]),
+        ], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "ClientRefreshRefreshItem", members: Self.members,
+      variants: [
+        ("on", { decoder in try Self.on(ClientRefreshRefreshItemOn(from: decoder)) }),
+        ("stream", { decoder in try Self.stream(ClientRefreshRefreshItemStream(from: decoder)) }),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .on(let value): try value.encode(to: encoder)
+    case .stream(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ClientRefreshRefreshItemOn: Codable, Sendable, Hashable {
+  public var on: String
+  public var when: ClientRefreshRefreshItemOnWhen?
+  public var reach: ClientRefreshRefreshItemOnReach?
+  public var names: ClientRefreshRefreshItemOnNames?
+  public var carries: String?
+  public var refetches: [String]?
+  public var writes: [String]?
+  public var removes: [String]?
+  public var docs: String
+  public init(
+    on: String, when: ClientRefreshRefreshItemOnWhen? = nil,
+    reach: ClientRefreshRefreshItemOnReach? = nil, names: ClientRefreshRefreshItemOnNames? = nil,
+    carries: String? = nil, refetches: [String]? = nil, writes: [String]? = nil,
+    removes: [String]? = nil, docs: String
+  ) {
+    self.on = on
+    self.when = when
+    self.reach = reach
+    self.names = names
+    self.carries = carries
+    self.refetches = refetches
+    self.writes = writes
+    self.removes = removes
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["on", "when", "reach", "names", "carries", "refetches", "writes", "removes", "docs"],
+      in: "ClientRefreshRefreshItemOn")
+    self.on = try c.value("on")
+    self.when = try c.ifPresent("when")
+    self.reach = try c.ifPresent("reach")
+    self.names = try c.ifPresent("names")
+    self.carries = try c.ifPresent("carries")
+    self.refetches = try c.ifPresent("refetches")
+    self.writes = try c.ifPresent("writes")
+    self.removes = try c.ifPresent("removes")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.on, as: "on")
+    try c.encodeIfPresent(self.when, as: "when")
+    try c.encodeIfPresent(self.reach, as: "reach")
+    try c.encodeIfPresent(self.names, as: "names")
+    try c.encodeIfPresent(self.carries, as: "carries")
+    try c.encodeIfPresent(self.refetches, as: "refetches")
+    try c.encodeIfPresent(self.writes, as: "writes")
+    try c.encodeIfPresent(self.removes, as: "removes")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ClientRefreshRefreshItemOnNames: Codable, Sendable, Hashable {
+  public var resource: String?
+  public var annotation: String?
+  public init(resource: String? = nil, annotation: String? = nil) {
+    self.resource = resource
+    self.annotation = annotation
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["resource", "annotation"], in: "ClientRefreshRefreshItemOnNames")
+    self.resource = try c.ifPresent("resource")
+    self.annotation = try c.ifPresent("annotation")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.resource, as: "resource")
+    try c.encodeIfPresent(self.annotation, as: "annotation")
+  }
+}
+
+public enum ClientRefreshRefreshItemOnReach: String, Codable, Sendable, CaseIterable {
+  case subject = "subject"
+  case held = "held"
+}
+
+public enum ClientRefreshRefreshItemOnWhen: String, Codable, Sendable, CaseIterable {
+  case enriched = "enriched"
+  case unenriched = "unenriched"
+}
+
+public struct ClientRefreshRefreshItemStream: Codable, Sendable, Hashable {
+  public var stream: ClientRefreshRefreshItemStreamStream
+  public var reach: ClientRefreshRefreshItemStreamReach?
+  public var refetches: [String]?
+  public var docs: String
+  public init(
+    stream: ClientRefreshRefreshItemStreamStream, reach: ClientRefreshRefreshItemStreamReach? = nil,
+    refetches: [String]? = nil, docs: String
+  ) {
+    self.stream = stream
+    self.reach = reach
+    self.refetches = refetches
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["stream", "reach", "refetches", "docs"], in: "ClientRefreshRefreshItemStream")
+    self.stream = try c.value("stream")
+    self.reach = try c.ifPresent("reach")
+    self.refetches = try c.ifPresent("refetches")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.stream, as: "stream")
+    try c.encodeIfPresent(self.reach, as: "reach")
+    try c.encodeIfPresent(self.refetches, as: "refetches")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public enum ClientRefreshRefreshItemStreamReach: String, Codable, Sendable, CaseIterable {
+  case subject = "subject"
+  case held = "held"
+}
+
+public enum ClientRefreshRefreshItemStreamStream: String, Codable, Sendable, CaseIterable {
+  case reopened = "reopened"
+  case unreadable = "unreadable"
+}
+
 public struct ClientSecretForm: Codable, Sendable, Hashable {
   public let grantType: ClientSecretFormGrantType
   public var clientId: String
@@ -3556,6 +3989,265 @@ public struct ClientSecretForm: Codable, Sendable, Hashable {
 
 public enum ClientSecretFormGrantType: String, Codable, Sendable, CaseIterable {
   case clientCredentials = "client_credentials"
+}
+
+public struct ClientTesting: Codable, Sendable, Hashable {
+  public var comment: String
+  public var faultActions: [ClientTestingFaultActionsItem]
+  public var delayMs: ClientTestingDelayMs
+  public var scheduleLength: ClientTestingScheduleLength
+  public var slack: ClientTestingSlack
+  public var deliveryOps: ClientTestingDeliveryOps
+  public var records: [ClientTestingRecordsItem]
+  public init(
+    comment: String, faultActions: [ClientTestingFaultActionsItem], delayMs: ClientTestingDelayMs,
+    scheduleLength: ClientTestingScheduleLength, slack: ClientTestingSlack,
+    deliveryOps: ClientTestingDeliveryOps, records: [ClientTestingRecordsItem]
+  ) {
+    self.comment = comment
+    self.faultActions = faultActions
+    self.delayMs = delayMs
+    self.scheduleLength = scheduleLength
+    self.slack = slack
+    self.deliveryOps = deliveryOps
+    self.records = records
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "faultActions", "delayMs", "scheduleLength", "slack", "deliveryOps", "records"],
+      in: "ClientTesting")
+    self.comment = try c.value("$comment")
+    self.faultActions = try c.value("faultActions")
+    self.delayMs = try c.value("delayMs")
+    self.scheduleLength = try c.value("scheduleLength")
+    self.slack = try c.value("slack")
+    self.deliveryOps = try c.value("deliveryOps")
+    self.records = try c.value("records")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.faultActions, as: "faultActions")
+    try c.encode(self.delayMs, as: "delayMs")
+    try c.encode(self.scheduleLength, as: "scheduleLength")
+    try c.encode(self.slack, as: "slack")
+    try c.encode(self.deliveryOps, as: "deliveryOps")
+    try c.encode(self.records, as: "records")
+  }
+}
+
+public struct ClientTestingDelayMs: Codable, Sendable, Hashable {
+  public var docs: String
+  public var minimum: Int
+  public var maximum: Int
+  public init(docs: String, minimum: Int, maximum: Int) {
+    self.docs = docs
+    self.minimum = minimum
+    self.maximum = maximum
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "minimum", "maximum"], in: "ClientTestingDelayMs")
+    self.docs = try c.value("docs")
+    self.minimum = try c.value("minimum")
+    self.maximum = try c.value("maximum")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.minimum, as: "minimum")
+    try c.encode(self.maximum, as: "maximum")
+  }
+}
+
+public struct ClientTestingDeliveryOps: Codable, Sendable, Hashable {
+  public var docs: String
+  public var ops: [String]
+  public init(docs: String, ops: [String]) {
+    self.docs = docs
+    self.ops = ops
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "ops"], in: "ClientTestingDeliveryOps")
+    self.docs = try c.value("docs")
+    self.ops = try c.value("ops")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.ops, as: "ops")
+  }
+}
+
+public struct ClientTestingFaultActionsItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var kind: String
+  public var docs: String
+  public var holds: [String]
+  public init(name: String, kind: String, docs: String, holds: [String]) {
+    self.name = name
+    self.kind = kind
+    self.docs = docs
+    self.holds = holds
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "kind", "docs", "holds"], in: "ClientTestingFaultActionsItem")
+    self.name = try c.value("name")
+    self.kind = try c.value("kind")
+    self.docs = try c.value("docs")
+    self.holds = try c.value("holds")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.holds, as: "holds")
+  }
+}
+
+public struct ClientTestingRecordsItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var docs: String
+  public var members: [String]
+  public init(name: String, docs: String, members: [String]) {
+    self.name = name
+    self.docs = docs
+    self.members = members
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "docs", "members"], in: "ClientTestingRecordsItem")
+    self.name = try c.value("name")
+    self.docs = try c.value("docs")
+    self.members = try c.value("members")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.members, as: "members")
+  }
+}
+
+public struct ClientTestingScheduleLength: Codable, Sendable, Hashable {
+  public var docs: String
+  public var minimum: Int
+  public var maximum: Int
+  public init(docs: String, minimum: Int, maximum: Int) {
+    self.docs = docs
+    self.minimum = minimum
+    self.maximum = maximum
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "minimum", "maximum"], in: "ClientTestingScheduleLength")
+    self.docs = try c.value("docs")
+    self.minimum = try c.value("minimum")
+    self.maximum = try c.value("maximum")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.minimum, as: "minimum")
+    try c.encode(self.maximum, as: "maximum")
+  }
+}
+
+public struct ClientTestingSlack: Codable, Sendable, Hashable {
+  public var docs: String
+  public var times: Int
+  public init(docs: String, times: Int) {
+    self.docs = docs
+    self.times = times
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "times"], in: "ClientTestingSlack")
+    self.docs = try c.value("docs")
+    self.times = try c.value("times")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.times, as: "times")
+  }
+}
+
+public struct ClientTiming: Codable, Sendable, Hashable {
+  public var comment: String
+  public var timing: [ClientTimingTimingItem]
+  public init(comment: String, timing: [ClientTimingTimingItem]) {
+    self.comment = comment
+    self.timing = timing
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "timing"], in: "ClientTiming")
+    self.comment = try c.value("$comment")
+    self.timing = try c.value("timing")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.timing, as: "timing")
+  }
+}
+
+public struct ClientTimingTimingItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var value: ClientTimingTimingItemValue
+  public var docs: String
+  public init(name: String, value: ClientTimingTimingItemValue, docs: String) {
+    self.name = name
+    self.value = value
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "value", "docs"], in: "ClientTimingTimingItem")
+    self.name = try c.value("name")
+    self.value = try c.value("value")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.value, as: "value")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public indirect enum ClientTimingTimingItemValue: Codable, Sendable, Hashable {
+  case integer(Int)
+  case retryBudget(RetryBudget)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .integer, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["attempts", "initialDelayMs", "maxDelayMs"],
+        allowed: ["attempts", "initialDelayMs", "maxDelayMs"], fixed: [], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "ClientTimingTimingItemValue", members: Self.members,
+      variants: [
+        ("integer", { decoder in try Self.integer(Int(from: decoder)) }),
+        ("retryBudget", { decoder in try Self.retryBudget(RetryBudget(from: decoder)) }),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .integer(let value): try value.encode(to: encoder)
+    case .retryBudget(let value): try value.encode(to: encoder)
+    }
+  }
 }
 
 public struct CloneResourceWithTokenResponse: Codable, Sendable, Hashable {
@@ -5582,6 +6274,344 @@ public struct ContextualSummaryResponseRelevantFields: Codable, Sendable, Hashab
   }
 }
 
+public struct ControlCli: Codable, Sendable, Hashable {
+  public var comment: String
+  public var commands: [String: ControlCliCommandsValue]
+  public init(comment: String, commands: [String: ControlCliCommandsValue]) {
+    self.comment = comment
+    self.commands = commands
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "commands"], in: "ControlCli")
+    self.comment = try c.value("$comment")
+    self.commands = try c.value("commands")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.commands, as: "commands")
+  }
+}
+
+public struct ControlCliCommandsValue: Codable, Sendable, Hashable {
+  public var parser: String
+  public var method: String
+  public var positionals: [ControlCliCommandsValuePositionalsItem]?
+  public var flags: [String: ControlCliCommandsValueFlagsValue]
+  public init(
+    parser: String, method: String, positionals: [ControlCliCommandsValuePositionalsItem]? = nil,
+    flags: [String: ControlCliCommandsValueFlagsValue]
+  ) {
+    self.parser = parser
+    self.method = method
+    self.positionals = positionals
+    self.flags = flags
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["parser", "method", "positionals", "flags"], in: "ControlCliCommandsValue")
+    self.parser = try c.value("parser")
+    self.method = try c.value("method")
+    self.positionals = try c.ifPresent("positionals")
+    self.flags = try c.value("flags")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.parser, as: "parser")
+    try c.encode(self.method, as: "method")
+    try c.encodeIfPresent(self.positionals, as: "positionals")
+    try c.encode(self.flags, as: "flags")
+  }
+}
+
+public indirect enum ControlCliCommandsValueFlagsValue: Codable, Sendable, Hashable {
+  case fields(ControlCliCommandsValueFlagsValueFields)
+  case method(ControlCliCommandsValueFlagsValueMethod)
+  case cliOnly(ControlCliCommandsValueFlagsValueCliOnly)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["fields"], allowed: ["fields", "notes"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["method"], allowed: ["method"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["cliOnly"], allowed: ["cliOnly"], fixed: [], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "ControlCliCommandsValueFlagsValue", members: Self.members,
+      variants: [
+        (
+          "fields",
+          { decoder in try Self.fields(ControlCliCommandsValueFlagsValueFields(from: decoder)) }
+        ),
+        (
+          "method",
+          { decoder in try Self.method(ControlCliCommandsValueFlagsValueMethod(from: decoder)) }
+        ),
+        (
+          "cliOnly",
+          { decoder in try Self.cliOnly(ControlCliCommandsValueFlagsValueCliOnly(from: decoder)) }
+        ),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .fields(let value): try value.encode(to: encoder)
+    case .method(let value): try value.encode(to: encoder)
+    case .cliOnly(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ControlCliCommandsValueFlagsValueCliOnly: Codable, Sendable, Hashable {
+  public var cliOnly: String
+  public init(cliOnly: String) {
+    self.cliOnly = cliOnly
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["cliOnly"], in: "ControlCliCommandsValueFlagsValueCliOnly")
+    self.cliOnly = try c.value("cliOnly")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.cliOnly, as: "cliOnly")
+  }
+}
+
+public struct ControlCliCommandsValueFlagsValueFields: Codable, Sendable, Hashable {
+  public var fields: [String]
+  public var notes: String?
+  public init(fields: [String], notes: String? = nil) {
+    self.fields = fields
+    self.notes = notes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["fields", "notes"], in: "ControlCliCommandsValueFlagsValueFields")
+    self.fields = try c.value("fields")
+    self.notes = try c.ifPresent("notes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.fields, as: "fields")
+    try c.encodeIfPresent(self.notes, as: "notes")
+  }
+}
+
+public struct ControlCliCommandsValueFlagsValueMethod: Codable, Sendable, Hashable {
+  public var method: String
+  public init(method: String) {
+    self.method = method
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["method"], in: "ControlCliCommandsValueFlagsValueMethod")
+    self.method = try c.value("method")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.method, as: "method")
+  }
+}
+
+public indirect enum ControlCliCommandsValuePositionalsItem: Codable, Sendable, Hashable {
+  case fields(ControlCliCommandsValuePositionalsItemFields)
+  case cliOnly(ControlCliCommandsValuePositionalsItemCliOnly)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["name", "fields"], allowed: ["name", "fields"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["name", "cliOnly"], allowed: ["name", "cliOnly"], fixed: [],
+        values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "ControlCliCommandsValuePositionalsItem", members: Self.members,
+      variants: [
+        (
+          "fields",
+          { decoder in try Self.fields(ControlCliCommandsValuePositionalsItemFields(from: decoder))
+          }
+        ),
+        (
+          "cliOnly",
+          { decoder in
+            try Self.cliOnly(ControlCliCommandsValuePositionalsItemCliOnly(from: decoder))
+          }
+        ),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .fields(let value): try value.encode(to: encoder)
+    case .cliOnly(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ControlCliCommandsValuePositionalsItemCliOnly: Codable, Sendable, Hashable {
+  public var name: String
+  public var cliOnly: String
+  public init(name: String, cliOnly: String) {
+    self.name = name
+    self.cliOnly = cliOnly
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "cliOnly"], in: "ControlCliCommandsValuePositionalsItemCliOnly")
+    self.name = try c.value("name")
+    self.cliOnly = try c.value("cliOnly")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.cliOnly, as: "cliOnly")
+  }
+}
+
+public struct ControlCliCommandsValuePositionalsItemFields: Codable, Sendable, Hashable {
+  public var name: String
+  public var fields: [String]
+  public init(name: String, fields: [String]) {
+    self.name = name
+    self.fields = fields
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "fields"], in: "ControlCliCommandsValuePositionalsItemFields")
+    self.name = try c.value("name")
+    self.fields = try c.value("fields")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.fields, as: "fields")
+  }
+}
+
+public struct ControlMethods: Codable, Sendable, Hashable {
+  public var comment: String
+  public var apiVersion: String
+  public var errorData: String
+  public var methods: [ControlMethodsMethodsItem]
+  public var notifications: [ControlMethodsNotificationsItem]
+  public init(
+    comment: String, apiVersion: String, errorData: String, methods: [ControlMethodsMethodsItem],
+    notifications: [ControlMethodsNotificationsItem]
+  ) {
+    self.comment = comment
+    self.apiVersion = apiVersion
+    self.errorData = errorData
+    self.methods = methods
+    self.notifications = notifications
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "apiVersion", "errorData", "methods", "notifications"], in: "ControlMethods")
+    self.comment = try c.value("$comment")
+    self.apiVersion = try c.value("apiVersion")
+    self.errorData = try c.value("errorData")
+    self.methods = try c.value("methods")
+    self.notifications = try c.value("notifications")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.apiVersion, as: "apiVersion")
+    try c.encode(self.errorData, as: "errorData")
+    try c.encode(self.methods, as: "methods")
+    try c.encode(self.notifications, as: "notifications")
+  }
+}
+
+public struct ControlMethodsMethodsItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var params: String
+  public var result: String
+  public var exclusive: Bool
+  public var sends: [String]
+  public var docs: String
+  public init(
+    name: String, params: String, result: String, exclusive: Bool, sends: [String], docs: String
+  ) {
+    self.name = name
+    self.params = params
+    self.result = result
+    self.exclusive = exclusive
+    self.sends = sends
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["name", "params", "result", "exclusive", "sends", "docs"], in: "ControlMethodsMethodsItem")
+    self.name = try c.value("name")
+    self.params = try c.value("params")
+    self.result = try c.value("result")
+    self.exclusive = try c.value("exclusive")
+    self.sends = try c.value("sends")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.params, as: "params")
+    try c.encode(self.result, as: "result")
+    try c.encode(self.exclusive, as: "exclusive")
+    try c.encode(self.sends, as: "sends")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ControlMethodsNotificationsItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var from: ControlMethodsNotificationsItemFrom
+  public var params: String
+  public var docs: String
+  public init(name: String, from: ControlMethodsNotificationsItemFrom, params: String, docs: String)
+  {
+    self.name = name
+    self.from = from
+    self.params = params
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "from", "params", "docs"], in: "ControlMethodsNotificationsItem")
+    self.name = try c.value("name")
+    self.from = try c.value("from")
+    self.params = try c.value("params")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.from, as: "from")
+    try c.encode(self.params, as: "params")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public enum ControlMethodsNotificationsItemFrom: String, Codable, Sendable, CaseIterable {
+  case client = "client"
+  case launcher = "launcher"
+}
+
 public struct CreateAnnotationRequest: Codable, Sendable, Hashable {
   public var motivation: Motivation
   public var target: AnnotationTarget
@@ -6433,6 +7463,499 @@ public struct ErrorResponse: Codable, Sendable, Hashable {
     try c.encodeIfPresent(self.code, as: "code")
     try c.encodeIfPresent(self.hint, as: "hint")
     try c.encodeIfPresent(self.details, as: "details")
+  }
+}
+
+public struct ErrorsCodes: Codable, Sendable, Hashable {
+  public var comment: String
+  public var busRequest: ErrorsCodesBusRequest
+  public var transport: ErrorsCodesTransport
+  public var job: ErrorsCodesJob
+  public var session: ErrorsCodesSession
+  public var signIn: ErrorsCodesSignIn
+  public var kbIdentity: ErrorsCodesKbIdentity
+  public var spanRefusal: ErrorsCodesSpanRefusal
+  public var control: ErrorsCodesControl
+  public init(
+    comment: String, busRequest: ErrorsCodesBusRequest, transport: ErrorsCodesTransport,
+    job: ErrorsCodesJob, session: ErrorsCodesSession, signIn: ErrorsCodesSignIn,
+    kbIdentity: ErrorsCodesKbIdentity, spanRefusal: ErrorsCodesSpanRefusal,
+    control: ErrorsCodesControl
+  ) {
+    self.comment = comment
+    self.busRequest = busRequest
+    self.transport = transport
+    self.job = job
+    self.session = session
+    self.signIn = signIn
+    self.kbIdentity = kbIdentity
+    self.spanRefusal = spanRefusal
+    self.control = control
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "$comment", "busRequest", "transport", "job", "session", "signIn", "kbIdentity",
+        "spanRefusal", "control",
+      ], in: "ErrorsCodes")
+    self.comment = try c.value("$comment")
+    self.busRequest = try c.value("busRequest")
+    self.transport = try c.value("transport")
+    self.job = try c.value("job")
+    self.session = try c.value("session")
+    self.signIn = try c.value("signIn")
+    self.kbIdentity = try c.value("kbIdentity")
+    self.spanRefusal = try c.value("spanRefusal")
+    self.control = try c.value("control")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.busRequest, as: "busRequest")
+    try c.encode(self.transport, as: "transport")
+    try c.encode(self.job, as: "job")
+    try c.encode(self.session, as: "session")
+    try c.encode(self.signIn, as: "signIn")
+    try c.encode(self.kbIdentity, as: "kbIdentity")
+    try c.encode(self.spanRefusal, as: "spanRefusal")
+    try c.encode(self.control, as: "control")
+  }
+}
+
+public struct ErrorsCodesBusRequest: Codable, Sendable, Hashable {
+  public var docs: String
+  public var unrecognizedFailure: String
+  public var codes: [ErrorsCodesBusRequestCodesItem]
+  public init(docs: String, unrecognizedFailure: String, codes: [ErrorsCodesBusRequestCodesItem]) {
+    self.docs = docs
+    self.unrecognizedFailure = unrecognizedFailure
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "unrecognizedFailure", "codes"], in: "ErrorsCodesBusRequest")
+    self.docs = try c.value("docs")
+    self.unrecognizedFailure = try c.value("unrecognizedFailure")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.unrecognizedFailure, as: "unrecognizedFailure")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ErrorsCodesBusRequestCodesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public var wire: ErrorsCodesBusRequestCodesItemWire?
+  public init(code: String, docs: String, wire: ErrorsCodesBusRequestCodesItemWire? = nil) {
+    self.code = code
+    self.docs = docs
+    self.wire = wire
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs", "wire"], in: "ErrorsCodesBusRequestCodesItem")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+    self.wire = try c.ifPresent("wire")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+    try c.encodeIfPresent(self.wire, as: "wire")
+  }
+}
+
+public enum ErrorsCodesBusRequestCodesItemWire: String, Codable, Sendable, CaseIterable {
+  case peerUnavailable = "peer-unavailable"
+  case notFound = "not-found"
+  case unauthorized = "unauthorized"
+  case nonePending = "none-pending"
+}
+
+public struct ErrorsCodesControl: Codable, Sendable, Hashable {
+  public var docs: String
+  public var codes: [ErrorsCodesControlCodesItem]
+  public init(docs: String, codes: [ErrorsCodesControlCodesItem]) {
+    self.docs = docs
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesControl")
+    self.docs = try c.value("docs")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ErrorsCodesControlCodesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public init(code: String, docs: String) {
+    self.code = code
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesControlCodesItem")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ErrorsCodesJob: Codable, Sendable, Hashable {
+  public var docs: String
+  public var codes: [ErrorsCodesJobCodesItem]
+  public init(docs: String, codes: [ErrorsCodesJobCodesItem]) {
+    self.docs = docs
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesJob")
+    self.docs = try c.value("docs")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ErrorsCodesJobCodesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public init(code: String, docs: String) {
+    self.code = code
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesJobCodesItem")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ErrorsCodesKbIdentity: Codable, Sendable, Hashable {
+  public var docs: String
+  public var codes: [ErrorsCodesKbIdentityCodesItem]
+  public init(docs: String, codes: [ErrorsCodesKbIdentityCodesItem]) {
+    self.docs = docs
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesKbIdentity")
+    self.docs = try c.value("docs")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ErrorsCodesKbIdentityCodesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public init(code: String, docs: String) {
+    self.code = code
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesKbIdentityCodesItem")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ErrorsCodesSession: Codable, Sendable, Hashable {
+  public var docs: String
+  public var codes: [ErrorsCodesSessionCodesItem]
+  public init(docs: String, codes: [ErrorsCodesSessionCodesItem]) {
+    self.docs = docs
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesSession")
+    self.docs = try c.value("docs")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ErrorsCodesSessionCodesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public init(code: String, docs: String) {
+    self.code = code
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesSessionCodesItem")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ErrorsCodesSignIn: Codable, Sendable, Hashable {
+  public var docs: String
+  public var codes: [ErrorsCodesSignInCodesItem]
+  public init(docs: String, codes: [ErrorsCodesSignInCodesItem]) {
+    self.docs = docs
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesSignIn")
+    self.docs = try c.value("docs")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ErrorsCodesSignInCodesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public init(code: String, docs: String) {
+    self.code = code
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesSignInCodesItem")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ErrorsCodesSpanRefusal: Codable, Sendable, Hashable {
+  public var docs: String
+  public var codes: [ErrorsCodesSpanRefusalCodesItem]
+  public init(docs: String, codes: [ErrorsCodesSpanRefusalCodesItem]) {
+    self.docs = docs
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesSpanRefusal")
+    self.docs = try c.value("docs")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ErrorsCodesSpanRefusalCodesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public init(code: String, docs: String) {
+    self.code = code
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesSpanRefusalCodesItem")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ErrorsCodesTransport: Codable, Sendable, Hashable {
+  public var docs: String
+  public var unclassified: String
+  public var codes: [ErrorsCodesTransportCodesItem]
+  public init(docs: String, unclassified: String, codes: [ErrorsCodesTransportCodesItem]) {
+    self.docs = docs
+    self.unclassified = unclassified
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "unclassified", "codes"], in: "ErrorsCodesTransport")
+    self.docs = try c.value("docs")
+    self.unclassified = try c.value("unclassified")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.unclassified, as: "unclassified")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public indirect enum ErrorsCodesTransportCodesItem: Codable, Sendable, Hashable {
+  case status(ErrorsCodesTransportCodesItemStatus)
+  case statusFrom(ErrorsCodesTransportCodesItemStatusFrom)
+  case noStatus(ErrorsCodesTransportCodesItemNoStatus)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "docs", "status"], allowed: ["code", "docs", "status"],
+        fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "docs", "statusFrom"],
+        allowed: ["code", "docs", "statusFrom"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "docs"], allowed: ["code", "docs"], fixed: [], values: nil
+      )
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "ErrorsCodesTransportCodesItem", members: Self.members,
+      variants: [
+        (
+          "status",
+          { decoder in try Self.status(ErrorsCodesTransportCodesItemStatus(from: decoder)) }
+        ),
+        (
+          "statusFrom",
+          { decoder in try Self.statusFrom(ErrorsCodesTransportCodesItemStatusFrom(from: decoder)) }
+        ),
+        (
+          "noStatus",
+          { decoder in try Self.noStatus(ErrorsCodesTransportCodesItemNoStatus(from: decoder)) }
+        ),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .status(let value): try value.encode(to: encoder)
+    case .statusFrom(let value): try value.encode(to: encoder)
+    case .noStatus(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ErrorsCodesTransportCodesItemNoStatus: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public init(code: String, docs: String) {
+    self.code = code
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesTransportCodesItemNoStatus")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ErrorsCodesTransportCodesItemStatus: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public var status: HttpStatus
+  public init(code: String, docs: String, status: HttpStatus) {
+    self.code = code
+    self.docs = docs
+    self.status = status
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs", "status"], in: "ErrorsCodesTransportCodesItemStatus")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+    self.status = try c.value("status")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.status, as: "status")
+  }
+}
+
+public struct ErrorsCodesTransportCodesItemStatusFrom: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public var statusFrom: HttpStatus
+  public init(code: String, docs: String, statusFrom: HttpStatus) {
+    self.code = code
+    self.docs = docs
+    self.statusFrom = statusFrom
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["code", "docs", "statusFrom"], in: "ErrorsCodesTransportCodesItemStatusFrom")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+    self.statusFrom = try c.value("statusFrom")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.statusFrom, as: "statusFrom")
   }
 }
 
@@ -8778,6 +10301,124 @@ public enum HttpEndpointProtocol: String, Codable, Sendable, CaseIterable {
 }
 
 public typealias HttpStatus = Int
+
+public struct IdentifiersKinds: Codable, Sendable, Hashable {
+  public var comment: String
+  public var kinds: [IdentifiersKindsKindsItem]
+  public var others: [IdentifiersKindsOthersItem]
+  public init(
+    comment: String, kinds: [IdentifiersKindsKindsItem], others: [IdentifiersKindsOthersItem]
+  ) {
+    self.comment = comment
+    self.kinds = kinds
+    self.others = others
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "kinds", "others"], in: "IdentifiersKinds")
+    self.comment = try c.value("$comment")
+    self.kinds = try c.value("kinds")
+    self.others = try c.value("others")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.kinds, as: "kinds")
+    try c.encode(self.others, as: "others")
+  }
+}
+
+public struct IdentifiersKindsKindsItem: Codable, Sendable, Hashable {
+  public var schema: String
+  public var properties: [String]
+  public var accepts: [IdentifiersKindsKindsItemAcceptsItem]
+  public var refuses: [IdentifiersKindsKindsItemRefusesItem]
+  public init(
+    schema: String, properties: [String], accepts: [IdentifiersKindsKindsItemAcceptsItem],
+    refuses: [IdentifiersKindsKindsItemRefusesItem]
+  ) {
+    self.schema = schema
+    self.properties = properties
+    self.accepts = accepts
+    self.refuses = refuses
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["schema", "properties", "accepts", "refuses"], in: "IdentifiersKindsKindsItem")
+    self.schema = try c.value("schema")
+    self.properties = try c.value("properties")
+    self.accepts = try c.value("accepts")
+    self.refuses = try c.value("refuses")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.schema, as: "schema")
+    try c.encode(self.properties, as: "properties")
+    try c.encode(self.accepts, as: "accepts")
+    try c.encode(self.refuses, as: "refuses")
+  }
+}
+
+public struct IdentifiersKindsKindsItemAcceptsItem: Codable, Sendable, Hashable {
+  public var id: String
+  public var why: String
+  public init(id: String, why: String) {
+    self.id = id
+    self.why = why
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["id", "why"], in: "IdentifiersKindsKindsItemAcceptsItem")
+    self.id = try c.value("id")
+    self.why = try c.value("why")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.id, as: "id")
+    try c.encode(self.why, as: "why")
+  }
+}
+
+public struct IdentifiersKindsKindsItemRefusesItem: Codable, Sendable, Hashable {
+  public var id: String
+  public var why: String
+  public init(id: String, why: String) {
+    self.id = id
+    self.why = why
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["id", "why"], in: "IdentifiersKindsKindsItemRefusesItem")
+    self.id = try c.value("id")
+    self.why = try c.value("why")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.id, as: "id")
+    try c.encode(self.why, as: "why")
+  }
+}
+
+public struct IdentifiersKindsOthersItem: Codable, Sendable, Hashable {
+  public var property: String
+  public var docs: String
+  public init(property: String, docs: String) {
+    self.property = property
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["property", "docs"], in: "IdentifiersKindsOthersItem")
+    self.property = try c.value("property")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.property, as: "property")
+    try c.encode(self.docs, as: "docs")
+  }
+}
 
 public struct IdentityUser: Codable, Sendable, Hashable {
   public var email: String
@@ -13405,6 +15046,102 @@ public struct MediaTokenResponse: Codable, Sendable, Hashable {
   }
 }
 
+public struct MediaTypesRegistry: Codable, Sendable, Hashable {
+  public var comment: String
+  public var render: [String]
+  public var anchoring: [String]
+  public var textSource: [String]
+  public var extensionAliases: [String: String]
+  public var mediaTypes: [MediaTypesRegistryMediaTypesItem]
+  public init(
+    comment: String, render: [String], anchoring: [String], textSource: [String],
+    extensionAliases: [String: String], mediaTypes: [MediaTypesRegistryMediaTypesItem]
+  ) {
+    self.comment = comment
+    self.render = render
+    self.anchoring = anchoring
+    self.textSource = textSource
+    self.extensionAliases = extensionAliases
+    self.mediaTypes = mediaTypes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "render", "anchoring", "textSource", "extensionAliases", "mediaTypes"],
+      in: "MediaTypesRegistry")
+    self.comment = try c.value("$comment")
+    self.render = try c.value("render")
+    self.anchoring = try c.value("anchoring")
+    self.textSource = try c.value("textSource")
+    self.extensionAliases = try c.value("extensionAliases")
+    self.mediaTypes = try c.value("mediaTypes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.render, as: "render")
+    try c.encode(self.anchoring, as: "anchoring")
+    try c.encode(self.textSource, as: "textSource")
+    try c.encode(self.extensionAliases, as: "extensionAliases")
+    try c.encode(self.mediaTypes, as: "mediaTypes")
+  }
+}
+
+public struct MediaTypesRegistryMediaTypesItem: Codable, Sendable, Hashable {
+  public var mediaType: SupportedMediaType
+  public var `extension`: String
+  public var label: String
+  public var render: String
+  public var anchoring: String
+  public var textSource: String
+  public var authorable: Bool
+  public var uploadable: Bool
+  public var generatable: Bool
+  public init(
+    mediaType: SupportedMediaType, `extension`: String, label: String, render: String,
+    anchoring: String, textSource: String, authorable: Bool, uploadable: Bool, generatable: Bool
+  ) {
+    self.mediaType = mediaType
+    self.`extension` = `extension`
+    self.label = label
+    self.render = render
+    self.anchoring = anchoring
+    self.textSource = textSource
+    self.authorable = authorable
+    self.uploadable = uploadable
+    self.generatable = generatable
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "mediaType", "extension", "label", "render", "anchoring", "textSource", "authorable",
+        "uploadable", "generatable",
+      ], in: "MediaTypesRegistryMediaTypesItem")
+    self.mediaType = try c.value("mediaType")
+    self.`extension` = try c.value("extension")
+    self.label = try c.value("label")
+    self.render = try c.value("render")
+    self.anchoring = try c.value("anchoring")
+    self.textSource = try c.value("textSource")
+    self.authorable = try c.value("authorable")
+    self.uploadable = try c.value("uploadable")
+    self.generatable = try c.value("generatable")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.mediaType, as: "mediaType")
+    try c.encode(self.`extension`, as: "extension")
+    try c.encode(self.label, as: "label")
+    try c.encode(self.render, as: "render")
+    try c.encode(self.anchoring, as: "anchoring")
+    try c.encode(self.textSource, as: "textSource")
+    try c.encode(self.authorable, as: "authorable")
+    try c.encode(self.uploadable, as: "uploadable")
+    try c.encode(self.generatable, as: "generatable")
+  }
+}
+
 public struct MemoryGraphConfig: Codable, Sendable, Hashable {
   public let type: MemoryGraphConfigType
   public init() {
@@ -16155,6 +17892,249 @@ public struct ScoredResource: Codable, Sendable, Hashable {
   }
 }
 
+public struct SdkTelemetryTelemetry: Codable, Sendable, Hashable {
+  public var comment: String
+  public var spans: [SdkTelemetryTelemetrySpansItem]
+  public var metrics: [SdkTelemetryTelemetryMetricsItem]
+  public init(
+    comment: String, spans: [SdkTelemetryTelemetrySpansItem],
+    metrics: [SdkTelemetryTelemetryMetricsItem]
+  ) {
+    self.comment = comment
+    self.spans = spans
+    self.metrics = metrics
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "spans", "metrics"], in: "SdkTelemetryTelemetry")
+    self.comment = try c.value("$comment")
+    self.spans = try c.value("spans")
+    self.metrics = try c.value("metrics")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.spans, as: "spans")
+    try c.encode(self.metrics, as: "metrics")
+  }
+}
+
+public struct SdkTelemetryTelemetryMetricsItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var transport: SdkTelemetryTelemetryMetricsItemTransport
+  public var instrument: SdkTelemetryTelemetryMetricsItemInstrument
+  public var meaning: String
+  public var attributes: [SdkTelemetryTelemetryMetricsItemAttributesItem]
+  public init(
+    name: String, transport: SdkTelemetryTelemetryMetricsItemTransport,
+    instrument: SdkTelemetryTelemetryMetricsItemInstrument, meaning: String,
+    attributes: [SdkTelemetryTelemetryMetricsItemAttributesItem]
+  ) {
+    self.name = name
+    self.transport = transport
+    self.instrument = instrument
+    self.meaning = meaning
+    self.attributes = attributes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["name", "transport", "instrument", "meaning", "attributes"],
+      in: "SdkTelemetryTelemetryMetricsItem")
+    self.name = try c.value("name")
+    self.transport = try c.value("transport")
+    self.instrument = try c.value("instrument")
+    self.meaning = try c.value("meaning")
+    self.attributes = try c.value("attributes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.transport, as: "transport")
+    try c.encode(self.instrument, as: "instrument")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encode(self.attributes, as: "attributes")
+  }
+}
+
+public struct SdkTelemetryTelemetryMetricsItemAttributesItem: Codable, Sendable, Hashable {
+  public var key: String
+  public var only: String?
+  public var values: [SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem]?
+  public init(
+    key: String, only: String? = nil,
+    values: [SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem]? = nil
+  ) {
+    self.key = key
+    self.only = only
+    self.values = values
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["key", "only", "values"], in: "SdkTelemetryTelemetryMetricsItemAttributesItem")
+    self.key = try c.value("key")
+    self.only = try c.ifPresent("only")
+    self.values = try c.ifPresent("values")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.key, as: "key")
+    try c.encodeIfPresent(self.only, as: "only")
+    try c.encodeIfPresent(self.values, as: "values")
+  }
+}
+
+public indirect enum SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem: Codable, Sendable,
+  Hashable
+{
+  case text(String)
+  case boolean(Bool)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .boolean, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem",
+      members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("boolean", { decoder in try Self.boolean(Bool(from: decoder)) }),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .text(let value): try value.encode(to: encoder)
+    case .boolean(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public enum SdkTelemetryTelemetryMetricsItemInstrument: String, Codable, Sendable, CaseIterable {
+  case counter = "counter"
+  case upDownCounter = "up-down counter"
+  case gauge = "gauge"
+  case histogram = "histogram"
+}
+
+public enum SdkTelemetryTelemetryMetricsItemTransport: String, Codable, Sendable, CaseIterable {
+  case bus = "bus"
+  case content = "content"
+}
+
+public struct SdkTelemetryTelemetrySpansItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var transport: SdkTelemetryTelemetrySpansItemTransport
+  public var kind: SdkTelemetryTelemetrySpansItemKind
+  public var meaning: String
+  public var attributes: [SdkTelemetryTelemetrySpansItemAttributesItem]
+  public init(
+    name: String, transport: SdkTelemetryTelemetrySpansItemTransport,
+    kind: SdkTelemetryTelemetrySpansItemKind, meaning: String,
+    attributes: [SdkTelemetryTelemetrySpansItemAttributesItem]
+  ) {
+    self.name = name
+    self.transport = transport
+    self.kind = kind
+    self.meaning = meaning
+    self.attributes = attributes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["name", "transport", "kind", "meaning", "attributes"], in: "SdkTelemetryTelemetrySpansItem")
+    self.name = try c.value("name")
+    self.transport = try c.value("transport")
+    self.kind = try c.value("kind")
+    self.meaning = try c.value("meaning")
+    self.attributes = try c.value("attributes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.transport, as: "transport")
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encode(self.attributes, as: "attributes")
+  }
+}
+
+public struct SdkTelemetryTelemetrySpansItemAttributesItem: Codable, Sendable, Hashable {
+  public var key: String
+  public var only: String?
+  public var values: [SdkTelemetryTelemetrySpansItemAttributesItemValuesItem]?
+  public init(
+    key: String, only: String? = nil,
+    values: [SdkTelemetryTelemetrySpansItemAttributesItemValuesItem]? = nil
+  ) {
+    self.key = key
+    self.only = only
+    self.values = values
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["key", "only", "values"], in: "SdkTelemetryTelemetrySpansItemAttributesItem")
+    self.key = try c.value("key")
+    self.only = try c.ifPresent("only")
+    self.values = try c.ifPresent("values")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.key, as: "key")
+    try c.encodeIfPresent(self.only, as: "only")
+    try c.encodeIfPresent(self.values, as: "values")
+  }
+}
+
+public indirect enum SdkTelemetryTelemetrySpansItemAttributesItemValuesItem: Codable, Sendable,
+  Hashable
+{
+  case text(String)
+  case boolean(Bool)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .boolean, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "SdkTelemetryTelemetrySpansItemAttributesItemValuesItem",
+      members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("boolean", { decoder in try Self.boolean(Bool(from: decoder)) }),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .text(let value): try value.encode(to: encoder)
+    case .boolean(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public enum SdkTelemetryTelemetrySpansItemKind: String, Codable, Sendable, CaseIterable {
+  case client = "client"
+  case consumer = "consumer"
+  case `internal` = "internal"
+  case producer = "producer"
+  case server = "server"
+}
+
+public enum SdkTelemetryTelemetrySpansItemTransport: String, Codable, Sendable, CaseIterable {
+  case bus = "bus"
+  case content = "content"
+}
+
 public struct SecretRef: Codable, Sendable, Hashable {
   public var fromEnv: String
   public init(fromEnv: String) {
@@ -17416,6 +19396,74 @@ public struct SessionLeftEvent: Codable, Sendable, Hashable {
   }
 }
 
+public struct SessionOauth: Codable, Sendable, Hashable {
+  public var comment: String
+  public var clients: [SessionOauthClientsItem]
+  public var scopes: SessionOauthScopes
+  public init(comment: String, clients: [SessionOauthClientsItem], scopes: SessionOauthScopes) {
+    self.comment = comment
+    self.clients = clients
+    self.scopes = scopes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "clients", "scopes"], in: "SessionOauth")
+    self.comment = try c.value("$comment")
+    self.clients = try c.value("clients")
+    self.scopes = try c.value("scopes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.clients, as: "clients")
+    try c.encode(self.scopes, as: "scopes")
+  }
+}
+
+public struct SessionOauthClientsItem: Codable, Sendable, Hashable {
+  public var name: String
+  public var id: String
+  public var docs: String
+  public init(name: String, id: String, docs: String) {
+    self.name = name
+    self.id = id
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["name", "id", "docs"], in: "SessionOauthClientsItem")
+    self.name = try c.value("name")
+    self.id = try c.value("id")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.id, as: "id")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct SessionOauthScopes: Codable, Sendable, Hashable {
+  public var value: String
+  public var docs: String
+  public init(value: String, docs: String) {
+    self.value = value
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["value", "docs"], in: "SessionOauthScopes")
+    self.value = try c.value("value")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.value, as: "value")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
 public enum SessionState: String, Codable, Sendable, CaseIterable {
   case valid = "valid"
   case expired = "expired"
@@ -17781,6 +19829,125 @@ public struct SignInOutcome: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.kb, as: "kb")
     try c.encodeIfPresent(self.expected, as: "expected")
+  }
+}
+
+public struct SignInStoreOwnerOnly: Codable, Sendable, Hashable {
+  public var comment: String
+  public var directoryMode: SignInStoreOwnerOnlyDirectoryMode
+  public var fileMode: SignInStoreOwnerOnlyFileMode
+  public var directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList
+  public var fileAccessList: SignInStoreOwnerOnlyFileAccessList
+  public init(
+    comment: String, directoryMode: SignInStoreOwnerOnlyDirectoryMode,
+    fileMode: SignInStoreOwnerOnlyFileMode,
+    directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList,
+    fileAccessList: SignInStoreOwnerOnlyFileAccessList
+  ) {
+    self.comment = comment
+    self.directoryMode = directoryMode
+    self.fileMode = fileMode
+    self.directoryAccessList = directoryAccessList
+    self.fileAccessList = fileAccessList
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "directoryMode", "fileMode", "directoryAccessList", "fileAccessList"],
+      in: "SignInStoreOwnerOnly")
+    self.comment = try c.value("$comment")
+    self.directoryMode = try c.value("directoryMode")
+    self.fileMode = try c.value("fileMode")
+    self.directoryAccessList = try c.value("directoryAccessList")
+    self.fileAccessList = try c.value("fileAccessList")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.directoryMode, as: "directoryMode")
+    try c.encode(self.fileMode, as: "fileMode")
+    try c.encode(self.directoryAccessList, as: "directoryAccessList")
+    try c.encode(self.fileAccessList, as: "fileAccessList")
+  }
+}
+
+public struct SignInStoreOwnerOnlyDirectoryAccessList: Codable, Sendable, Hashable {
+  public var value: String
+  public var docs: String
+  public init(value: String, docs: String) {
+    self.value = value
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["value", "docs"], in: "SignInStoreOwnerOnlyDirectoryAccessList")
+    self.value = try c.value("value")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.value, as: "value")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct SignInStoreOwnerOnlyDirectoryMode: Codable, Sendable, Hashable {
+  public var value: String
+  public var docs: String
+  public init(value: String, docs: String) {
+    self.value = value
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["value", "docs"], in: "SignInStoreOwnerOnlyDirectoryMode")
+    self.value = try c.value("value")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.value, as: "value")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct SignInStoreOwnerOnlyFileAccessList: Codable, Sendable, Hashable {
+  public var value: String
+  public var docs: String
+  public init(value: String, docs: String) {
+    self.value = value
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["value", "docs"], in: "SignInStoreOwnerOnlyFileAccessList")
+    self.value = try c.value("value")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.value, as: "value")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct SignInStoreOwnerOnlyFileMode: Codable, Sendable, Hashable {
+  public var value: String
+  public var docs: String
+  public init(value: String, docs: String) {
+    self.value = value
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["value", "docs"], in: "SignInStoreOwnerOnlyFileMode")
+    self.value = try c.value("value")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.value, as: "value")
+    try c.encode(self.docs, as: "docs")
   }
 }
 
@@ -24036,12 +26203,544 @@ internal let requiredSchemas: [String: Shape] = {
       "accepts", "heldJobStallCheckMs", "heldJobStallMs", "jobClaimTimeoutMs",
       "markCommitTimeoutMs",
     ])
+  shapes["ClientDiscoveryAbsent"] = Shape(
+    kinds: [.object], required: ["$comment", "reasons"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "reasons": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["reason", "docs"],
+          members: [
+            "docs": Shape(kinds: [.string], minLength: 1),
+            "reason": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [97...122], min: 1, max: nil)),
+                .group(
+                  Group(
+                    either: [
+                      [
+                        .step(Step(of: [45...45], min: 1, max: 1)),
+                        .step(Step(of: [97...122], min: 1, max: nil)),
+                      ]
+                    ], min: 0, max: nil)),
+              ]),
+          ], closed: ["docs", "reason"])),
+    ], closed: ["$comment", "reasons"])
+  shapes["ClientRefresh"] = Shape(
+    kinds: [.object], required: ["$comment", "queries", "refresh"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "queries": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object],
+          oneOf: [
+            Shape(
+              kinds: [.object], required: ["name", "asks", "value", "docs"],
+              members: [
+                "asks": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .step(Step(of: [58...58], min: 1, max: 1)),
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...45], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]), "docs": Shape(kinds: [.string], minLength: 1),
+                "name": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: 1)),
+                    .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                  ]),
+                "per": Shape(
+                  kinds: [.string],
+                  enumeration: [.string("resource"), .string("annotation"), .string("filters")]),
+                "persisted": Shape(kinds: [.boolean], enumeration: [.bool(true)]),
+                "value": Shape(
+                  kinds: [.object], required: ["$ref"],
+                  members: [
+                    "$ref": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [104...104], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [112...112], min: 1, max: 1)),
+                        .step(Step(of: [115...115], min: 1, max: 1)),
+                        .step(Step(of: [58...58], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [120...120], min: 1, max: 1)),
+                        .step(Step(of: [121...121], min: 1, max: 1)),
+                        .step(Step(of: [110...110], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [108...108], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [103...103], min: 1, max: 1)),
+                        .step(Step(of: [46...46], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [114...114], min: 1, max: 1)),
+                        .step(Step(of: [103...103], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [112...112], min: 1, max: 1)),
+                        .step(Step(of: [114...114], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [99...99], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [108...108], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [65...90], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                        .step(Step(of: [46...46], min: 1, max: 1)),
+                        .step(Step(of: [106...106], min: 1, max: 1)),
+                        .step(Step(of: [115...115], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [110...110], min: 1, max: 1)),
+                        .group(
+                          Group(
+                            either: [
+                              [
+                                .step(Step(of: [35...35], min: 1, max: 1)),
+                                .group(
+                                  Group(
+                                    either: [
+                                      [
+                                        .step(Step(of: [47...47], min: 1, max: 1)),
+                                        .step(Step(of: [112...112], min: 1, max: 1)),
+                                        .step(Step(of: [114...114], min: 1, max: 1)),
+                                        .step(Step(of: [111...111], min: 1, max: 1)),
+                                        .step(Step(of: [112...112], min: 1, max: 1)),
+                                        .step(Step(of: [101...101], min: 1, max: 1)),
+                                        .step(Step(of: [114...114], min: 1, max: 1)),
+                                        .step(Step(of: [116...116], min: 1, max: 1)),
+                                        .step(Step(of: [105...105], min: 1, max: 1)),
+                                        .step(Step(of: [101...101], min: 1, max: 1)),
+                                        .step(Step(of: [115...115], min: 1, max: 1)),
+                                        .step(Step(of: [47...47], min: 1, max: 1)),
+                                        .step(Step(of: [97...122], min: 1, max: 1)),
+                                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                                      ]
+                                    ], min: 1, max: nil)),
+                              ]
+                            ], min: 0, max: 1)),
+                      ])
+                  ], closed: ["$ref"]),
+              ], closed: ["asks", "docs", "name", "per", "persisted", "value"]),
+            Shape(
+              kinds: [.object], required: ["name", "reads", "value", "docs"],
+              members: [
+                "docs": Shape(kinds: [.string], minLength: 1),
+                "name": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: 1)),
+                    .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                  ]),
+                "per": Shape(
+                  kinds: [.string],
+                  enumeration: [.string("resource"), .string("annotation"), .string("filters")]),
+                "persisted": Shape(kinds: [.boolean], enumeration: [.bool(true)]),
+                "reads": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [71...71], min: 1, max: 1)),
+                    .step(Step(of: [69...69], min: 1, max: 1)),
+                    .step(Step(of: [84...84], min: 1, max: 1)),
+                    .step(Step(of: [32...32], min: 1, max: 1)),
+                    .step(Step(of: [47...47], min: 1, max: 1)),
+                    .step(Step(of: [0...31, 33...1_114_111], min: 1, max: nil)),
+                  ]),
+                "value": Shape(
+                  kinds: [.object], required: ["$ref"],
+                  members: [
+                    "$ref": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [104...104], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [112...112], min: 1, max: 1)),
+                        .step(Step(of: [115...115], min: 1, max: 1)),
+                        .step(Step(of: [58...58], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [120...120], min: 1, max: 1)),
+                        .step(Step(of: [121...121], min: 1, max: 1)),
+                        .step(Step(of: [110...110], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [108...108], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [103...103], min: 1, max: 1)),
+                        .step(Step(of: [46...46], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [114...114], min: 1, max: 1)),
+                        .step(Step(of: [103...103], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [112...112], min: 1, max: 1)),
+                        .step(Step(of: [114...114], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [99...99], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [108...108], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [65...90], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                        .step(Step(of: [46...46], min: 1, max: 1)),
+                        .step(Step(of: [106...106], min: 1, max: 1)),
+                        .step(Step(of: [115...115], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [110...110], min: 1, max: 1)),
+                        .group(
+                          Group(
+                            either: [
+                              [
+                                .step(Step(of: [35...35], min: 1, max: 1)),
+                                .group(
+                                  Group(
+                                    either: [
+                                      [
+                                        .step(Step(of: [47...47], min: 1, max: 1)),
+                                        .step(Step(of: [112...112], min: 1, max: 1)),
+                                        .step(Step(of: [114...114], min: 1, max: 1)),
+                                        .step(Step(of: [111...111], min: 1, max: 1)),
+                                        .step(Step(of: [112...112], min: 1, max: 1)),
+                                        .step(Step(of: [101...101], min: 1, max: 1)),
+                                        .step(Step(of: [114...114], min: 1, max: 1)),
+                                        .step(Step(of: [116...116], min: 1, max: 1)),
+                                        .step(Step(of: [105...105], min: 1, max: 1)),
+                                        .step(Step(of: [101...101], min: 1, max: 1)),
+                                        .step(Step(of: [115...115], min: 1, max: 1)),
+                                        .step(Step(of: [47...47], min: 1, max: 1)),
+                                        .step(Step(of: [97...122], min: 1, max: 1)),
+                                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                                      ]
+                                    ], min: 1, max: nil)),
+                              ]
+                            ], min: 0, max: 1)),
+                      ])
+                  ], closed: ["$ref"]),
+              ], closed: ["docs", "name", "per", "persisted", "reads", "value"]),
+          ])),
+      "refresh": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object],
+          oneOf: [
+            Shape(
+              kinds: [.object], required: ["on", "docs"],
+              members: [
+                "carries": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: 1)),
+                    .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [46...46], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: 1)),
+                            .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]), "docs": Shape(kinds: [.string], minLength: 1),
+                "names": Shape(
+                  kinds: [.object],
+                  members: [
+                    "annotation": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [97...122], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                        .group(
+                          Group(
+                            either: [
+                              [
+                                .step(Step(of: [46...46], min: 1, max: 1)),
+                                .step(Step(of: [97...122], min: 1, max: 1)),
+                                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                              ]
+                            ], min: 0, max: nil)),
+                      ]),
+                    "resource": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [97...122], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                        .group(
+                          Group(
+                            either: [
+                              [
+                                .step(Step(of: [46...46], min: 1, max: 1)),
+                                .step(Step(of: [97...122], min: 1, max: 1)),
+                                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                              ]
+                            ], min: 0, max: nil)),
+                      ]),
+                  ], closed: ["annotation", "resource"]),
+                "on": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .step(Step(of: [58...58], min: 1, max: 1)),
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...45], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]),
+                "reach": Shape(
+                  kinds: [.string], enumeration: [.string("subject"), .string("held")]),
+                "refetches": Shape(
+                  kinds: [.array], minItems: 1,
+                  items: Shape(
+                    kinds: [.string],
+                    pattern: [
+                      .step(Step(of: [97...122], min: 1, max: 1)),
+                      .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                    ])),
+                "removes": Shape(
+                  kinds: [.array], minItems: 1,
+                  items: Shape(
+                    kinds: [.string],
+                    pattern: [
+                      .step(Step(of: [97...122], min: 1, max: 1)),
+                      .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                    ])),
+                "when": Shape(
+                  kinds: [.string], enumeration: [.string("enriched"), .string("unenriched")]),
+                "writes": Shape(
+                  kinds: [.array], minItems: 1,
+                  items: Shape(
+                    kinds: [.string],
+                    pattern: [
+                      .step(Step(of: [97...122], min: 1, max: 1)),
+                      .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                    ])),
+              ],
+              closed: [
+                "carries", "docs", "names", "on", "reach", "refetches", "removes", "when", "writes",
+              ]),
+            Shape(
+              kinds: [.object], required: ["stream", "docs"],
+              members: [
+                "docs": Shape(kinds: [.string], minLength: 1),
+                "reach": Shape(
+                  kinds: [.string], enumeration: [.string("subject"), .string("held")]),
+                "refetches": Shape(
+                  kinds: [.array], minItems: 1,
+                  items: Shape(
+                    kinds: [.string],
+                    pattern: [
+                      .step(Step(of: [97...122], min: 1, max: 1)),
+                      .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                    ])),
+                "stream": Shape(
+                  kinds: [.string], enumeration: [.string("reopened"), .string("unreadable")]),
+              ], closed: ["docs", "reach", "refetches", "stream"]),
+          ])),
+    ], closed: ["$comment", "queries", "refresh"])
   shapes["ClientSecretForm"] = Shape(
     kinds: [.object], required: ["grant_type", "client_id", "client_secret"],
     members: [
       "client_id": Shape(kinds: [.string]), "client_secret": Shape(kinds: [.string]),
       "grant_type": Shape(kinds: [.string], enumeration: [.string("client_credentials")]),
     ])
+  shapes["ClientTesting"] = Shape(
+    kinds: [.object],
+    required: [
+      "$comment", "faultActions", "delayMs", "scheduleLength", "slack", "deliveryOps", "records",
+    ],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "delayMs": Shape(
+        kinds: [.object], required: ["docs", "minimum", "maximum"],
+        members: [
+          "docs": Shape(kinds: [.string], minLength: 1),
+          "maximum": Shape(kinds: [.integer], minimum: 0.0),
+          "minimum": Shape(kinds: [.integer], minimum: 0.0),
+        ], closed: ["docs", "maximum", "minimum"]),
+      "deliveryOps": Shape(
+        kinds: [.object], required: ["docs", "ops"],
+        members: [
+          "docs": Shape(kinds: [.string], minLength: 1),
+          "ops": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(kinds: [.string], pattern: [.step(Step(of: [97...122], min: 1, max: nil))])
+          ),
+        ], closed: ["docs", "ops"]),
+      "faultActions": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["name", "kind", "docs", "holds"],
+          members: [
+            "docs": Shape(kinds: [.string], minLength: 1),
+            "holds": Shape(
+              kinds: [.array],
+              items: Shape(
+                kinds: [.string],
+                pattern: [
+                  .step(Step(of: [97...122], min: 1, max: 1)),
+                  .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                ])),
+            "kind": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [97...122], min: 1, max: nil)),
+                .group(
+                  Group(
+                    either: [
+                      [
+                        .step(Step(of: [45...45], min: 1, max: 1)),
+                        .step(Step(of: [97...122], min: 1, max: nil)),
+                      ]
+                    ], min: 0, max: nil)),
+              ]),
+            "name": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [65...90], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+              ]),
+          ], closed: ["docs", "holds", "kind", "name"])),
+      "records": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["name", "docs", "members"],
+          members: [
+            "docs": Shape(kinds: [.string], minLength: 1),
+            "members": Shape(
+              kinds: [.array], minItems: 1,
+              items: Shape(
+                kinds: [.string],
+                pattern: [
+                  .step(Step(of: [97...122], min: 1, max: 1)),
+                  .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                ])),
+            "name": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [65...90], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+              ]),
+          ], closed: ["docs", "members", "name"])),
+      "scheduleLength": Shape(
+        kinds: [.object], required: ["docs", "minimum", "maximum"],
+        members: [
+          "docs": Shape(kinds: [.string], minLength: 1),
+          "maximum": Shape(kinds: [.integer], minimum: 0.0),
+          "minimum": Shape(kinds: [.integer], minimum: 1.0),
+        ], closed: ["docs", "maximum", "minimum"]),
+      "slack": Shape(
+        kinds: [.object], required: ["docs", "times"],
+        members: [
+          "docs": Shape(kinds: [.string], minLength: 1),
+          "times": Shape(kinds: [.integer], minimum: 1.0),
+        ], closed: ["docs", "times"]),
+    ],
+    closed: [
+      "$comment", "delayMs", "deliveryOps", "faultActions", "records", "scheduleLength", "slack",
+    ])
+  shapes["ClientTiming"] = Shape(
+    kinds: [.object], required: ["$comment", "timing"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "timing": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["name", "value", "docs"],
+          members: [
+            "docs": Shape(kinds: [.string], minLength: 1),
+            "name": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [97...122], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                .group(
+                  Group(
+                    either: [
+                      [
+                        .step(Step(of: [77...77], min: 1, max: 1)),
+                        .step(Step(of: [115...115], min: 1, max: 1)),
+                      ],
+                      [
+                        .step(Step(of: [82...82], min: 1, max: 1)),
+                        .step(Step(of: [101...101], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [114...114], min: 1, max: 1)),
+                        .step(Step(of: [121...121], min: 1, max: 1)),
+                      ],
+                      [
+                        .step(Step(of: [67...67], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [117...117], min: 1, max: 1)),
+                        .step(Step(of: [110...110], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                      ],
+                    ], min: 1, max: 1)),
+              ]),
+            "value": Shape(
+              kinds: [.object, .integer],
+              oneOf: [Shape(kinds: [.integer], minimum: 1.0), Shape(ref: "RetryBudget")]),
+          ], closed: ["docs", "name", "value"])),
+    ], closed: ["$comment", "timing"])
   shapes["CloneResourceWithTokenResponse"] = Shape(
     kinds: [.object], required: ["token", "expiresAt", "resource"],
     members: [
@@ -24517,6 +27216,401 @@ internal let requiredSchemas: [String: Shape] = {
         ], closed: ["entityTypes", "resourceId", "resourceName"]),
       "summary": Shape(kinds: [.string]),
     ])
+  shapes["ControlCli"] = Shape(
+    kinds: [.object], required: ["$comment", "commands"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "commands": Shape(
+        kinds: [.object],
+        values: Shape(
+          kinds: [.object], required: ["parser", "method", "flags"],
+          members: [
+            "flags": Shape(
+              kinds: [.object],
+              values: Shape(
+                kinds: [.object],
+                oneOf: [
+                  Shape(
+                    kinds: [.object], required: ["fields"],
+                    members: [
+                      "fields": Shape(
+                        kinds: [.array], minItems: 1,
+                        items: Shape(
+                          kinds: [.string],
+                          pattern: [
+                            .step(Step(of: [97...122], min: 1, max: 1)),
+                            .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                            .group(
+                              Group(
+                                either: [
+                                  [
+                                    .step(Step(of: [46...46], min: 1, max: 1)),
+                                    .step(Step(of: [97...122], min: 1, max: 1)),
+                                    .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                                  ]
+                                ], min: 1, max: nil)),
+                          ])), "notes": Shape(kinds: [.string], minLength: 1),
+                    ], closed: ["fields", "notes"]),
+                  Shape(
+                    kinds: [.object], required: ["method"],
+                    members: [
+                      "method": Shape(
+                        kinds: [.string],
+                        pattern: [
+                          .step(Step(of: [97...122], min: 1, max: 1)),
+                          .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                          .group(
+                            Group(
+                              either: [
+                                [
+                                  .step(Step(of: [46...46], min: 1, max: 1)),
+                                  .step(Step(of: [97...122], min: 1, max: 1)),
+                                  .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                                ]
+                              ], min: 1, max: nil)),
+                        ])
+                    ], closed: ["method"]),
+                  Shape(
+                    kinds: [.object], required: ["cliOnly"],
+                    members: ["cliOnly": Shape(kinds: [.string], minLength: 1)], closed: ["cliOnly"]
+                  ),
+                ])),
+            "method": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [97...122], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                .group(
+                  Group(
+                    either: [
+                      [
+                        .step(Step(of: [46...46], min: 1, max: 1)),
+                        .step(Step(of: [97...122], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                      ]
+                    ], min: 1, max: nil)),
+              ]),
+            "parser": Shape(
+              kinds: [.string], pattern: [.step(Step(of: [65...90, 97...122], min: 1, max: nil))]),
+            "positionals": Shape(
+              kinds: [.array], minItems: 1,
+              items: Shape(
+                kinds: [.object],
+                oneOf: [
+                  Shape(
+                    kinds: [.object], required: ["name", "fields"],
+                    members: [
+                      "fields": Shape(
+                        kinds: [.array], minItems: 1,
+                        items: Shape(
+                          kinds: [.string],
+                          pattern: [
+                            .step(Step(of: [97...122], min: 1, max: 1)),
+                            .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                            .group(
+                              Group(
+                                either: [
+                                  [
+                                    .step(Step(of: [46...46], min: 1, max: 1)),
+                                    .step(Step(of: [97...122], min: 1, max: 1)),
+                                    .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                                  ]
+                                ], min: 1, max: nil)),
+                          ])), "name": Shape(kinds: [.string], minLength: 1),
+                    ], closed: ["fields", "name"]),
+                  Shape(
+                    kinds: [.object], required: ["name", "cliOnly"],
+                    members: [
+                      "cliOnly": Shape(kinds: [.string], minLength: 1),
+                      "name": Shape(kinds: [.string], minLength: 1),
+                    ], closed: ["cliOnly", "name"]),
+                ])),
+          ], closed: ["flags", "method", "parser", "positionals"])),
+    ], closed: ["$comment", "commands"])
+  shapes["ControlMethods"] = Shape(
+    kinds: [.object],
+    required: ["$comment", "apiVersion", "errorData", "methods", "notifications"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "apiVersion": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [104...104], min: 1, max: 1)),
+          .step(Step(of: [116...116], min: 1, max: 1)),
+          .step(Step(of: [116...116], min: 1, max: 1)),
+          .step(Step(of: [112...112], min: 1, max: 1)),
+          .step(Step(of: [115...115], min: 1, max: 1)), .step(Step(of: [58...58], min: 1, max: 1)),
+          .step(Step(of: [47...47], min: 1, max: 1)), .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(Step(of: [120...120], min: 1, max: 1)),
+          .step(Step(of: [121...121], min: 1, max: 1)),
+          .step(Step(of: [110...110], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [108...108], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [103...103], min: 1, max: 1)), .step(Step(of: [46...46], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [114...114], min: 1, max: 1)),
+          .step(Step(of: [103...103], min: 1, max: 1)), .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(Step(of: [112...112], min: 1, max: 1)),
+          .step(Step(of: [114...114], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [116...116], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)), .step(Step(of: [99...99], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [108...108], min: 1, max: 1)), .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(Step(of: [65...90], min: 1, max: 1)),
+          .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+          .step(Step(of: [46...46], min: 1, max: 1)), .step(Step(of: [106...106], min: 1, max: 1)),
+          .step(Step(of: [115...115], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [110...110], min: 1, max: 1)),
+        ]),
+      "errorData": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [104...104], min: 1, max: 1)),
+          .step(Step(of: [116...116], min: 1, max: 1)),
+          .step(Step(of: [116...116], min: 1, max: 1)),
+          .step(Step(of: [112...112], min: 1, max: 1)),
+          .step(Step(of: [115...115], min: 1, max: 1)), .step(Step(of: [58...58], min: 1, max: 1)),
+          .step(Step(of: [47...47], min: 1, max: 1)), .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(Step(of: [120...120], min: 1, max: 1)),
+          .step(Step(of: [121...121], min: 1, max: 1)),
+          .step(Step(of: [110...110], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [108...108], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [103...103], min: 1, max: 1)), .step(Step(of: [46...46], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [114...114], min: 1, max: 1)),
+          .step(Step(of: [103...103], min: 1, max: 1)), .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(Step(of: [112...112], min: 1, max: 1)),
+          .step(Step(of: [114...114], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [116...116], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)), .step(Step(of: [99...99], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [108...108], min: 1, max: 1)), .step(Step(of: [47...47], min: 1, max: 1)),
+          .step(Step(of: [65...90], min: 1, max: 1)),
+          .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+          .step(Step(of: [46...46], min: 1, max: 1)), .step(Step(of: [106...106], min: 1, max: 1)),
+          .step(Step(of: [115...115], min: 1, max: 1)),
+          .step(Step(of: [111...111], min: 1, max: 1)),
+          .step(Step(of: [110...110], min: 1, max: 1)),
+        ]),
+      "methods": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["name", "params", "result", "exclusive", "sends", "docs"],
+          members: [
+            "docs": Shape(kinds: [.string], minLength: 1), "exclusive": Shape(kinds: [.boolean]),
+            "name": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [97...122], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                .group(
+                  Group(
+                    either: [
+                      [
+                        .step(Step(of: [46...46], min: 1, max: 1)),
+                        .step(Step(of: [97...122], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                      ]
+                    ], min: 1, max: nil)),
+              ]),
+            "params": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [104...104], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [112...112], min: 1, max: 1)),
+                .step(Step(of: [115...115], min: 1, max: 1)),
+                .step(Step(of: [58...58], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [120...120], min: 1, max: 1)),
+                .step(Step(of: [121...121], min: 1, max: 1)),
+                .step(Step(of: [110...110], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [108...108], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [103...103], min: 1, max: 1)),
+                .step(Step(of: [46...46], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [114...114], min: 1, max: 1)),
+                .step(Step(of: [103...103], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [112...112], min: 1, max: 1)),
+                .step(Step(of: [114...114], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [99...99], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [108...108], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [65...90], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                .step(Step(of: [46...46], min: 1, max: 1)),
+                .step(Step(of: [106...106], min: 1, max: 1)),
+                .step(Step(of: [115...115], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [110...110], min: 1, max: 1)),
+              ]),
+            "result": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [104...104], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [112...112], min: 1, max: 1)),
+                .step(Step(of: [115...115], min: 1, max: 1)),
+                .step(Step(of: [58...58], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [120...120], min: 1, max: 1)),
+                .step(Step(of: [121...121], min: 1, max: 1)),
+                .step(Step(of: [110...110], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [108...108], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [103...103], min: 1, max: 1)),
+                .step(Step(of: [46...46], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [114...114], min: 1, max: 1)),
+                .step(Step(of: [103...103], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [112...112], min: 1, max: 1)),
+                .step(Step(of: [114...114], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [99...99], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [108...108], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [65...90], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                .step(Step(of: [46...46], min: 1, max: 1)),
+                .step(Step(of: [106...106], min: 1, max: 1)),
+                .step(Step(of: [115...115], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [110...110], min: 1, max: 1)),
+              ]),
+            "sends": Shape(
+              kinds: [.array],
+              items: Shape(
+                kinds: [.string],
+                pattern: [
+                  .step(Step(of: [110...110], min: 1, max: 1)),
+                  .step(Step(of: [111...111], min: 1, max: 1)),
+                  .step(Step(of: [116...116], min: 1, max: 1)),
+                  .step(Step(of: [105...105], min: 1, max: 1)),
+                  .step(Step(of: [102...102], min: 1, max: 1)),
+                  .step(Step(of: [105...105], min: 1, max: 1)),
+                  .step(Step(of: [99...99], min: 1, max: 1)),
+                  .step(Step(of: [97...97], min: 1, max: 1)),
+                  .step(Step(of: [116...116], min: 1, max: 1)),
+                  .step(Step(of: [105...105], min: 1, max: 1)),
+                  .step(Step(of: [111...111], min: 1, max: 1)),
+                  .step(Step(of: [110...110], min: 1, max: 1)),
+                  .step(Step(of: [115...115], min: 1, max: 1)),
+                  .step(Step(of: [47...47], min: 1, max: 1)),
+                  .step(Step(of: [97...122], min: 1, max: 1)),
+                  .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                ])),
+          ], closed: ["docs", "exclusive", "name", "params", "result", "sends"])),
+      "notifications": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["name", "from", "params", "docs"],
+          members: [
+            "docs": Shape(kinds: [.string], minLength: 1),
+            "from": Shape(kinds: [.string], enumeration: [.string("client"), .string("launcher")]),
+            "name": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [110...110], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [105...105], min: 1, max: 1)),
+                .step(Step(of: [102...102], min: 1, max: 1)),
+                .step(Step(of: [105...105], min: 1, max: 1)),
+                .step(Step(of: [99...99], min: 1, max: 1)),
+                .step(Step(of: [97...97], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [105...105], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [110...110], min: 1, max: 1)),
+                .step(Step(of: [115...115], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [97...122], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+              ]),
+            "params": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [104...104], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [112...112], min: 1, max: 1)),
+                .step(Step(of: [115...115], min: 1, max: 1)),
+                .step(Step(of: [58...58], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [120...120], min: 1, max: 1)),
+                .step(Step(of: [121...121], min: 1, max: 1)),
+                .step(Step(of: [110...110], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [108...108], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [103...103], min: 1, max: 1)),
+                .step(Step(of: [46...46], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [114...114], min: 1, max: 1)),
+                .step(Step(of: [103...103], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [112...112], min: 1, max: 1)),
+                .step(Step(of: [114...114], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [116...116], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [99...99], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [108...108], min: 1, max: 1)),
+                .step(Step(of: [47...47], min: 1, max: 1)),
+                .step(Step(of: [65...90], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                .step(Step(of: [46...46], min: 1, max: 1)),
+                .step(Step(of: [106...106], min: 1, max: 1)),
+                .step(Step(of: [115...115], min: 1, max: 1)),
+                .step(Step(of: [111...111], min: 1, max: 1)),
+                .step(Step(of: [110...110], min: 1, max: 1)),
+              ]),
+          ], closed: ["docs", "from", "name", "params"])),
+    ], closed: ["$comment", "apiVersion", "errorData", "methods", "notifications"])
   shapes["CreateAnnotationRequest"] = Shape(
     kinds: [.object], required: ["target", "motivation"],
     members: [
@@ -24693,6 +27787,484 @@ internal let requiredSchemas: [String: Shape] = {
     members: [
       "code": Shape(kinds: [.string]), "error": Shape(kinds: [.string]),
       "hint": Shape(kinds: [.string]),
+    ])
+  shapes["ErrorsCodes"] = Shape(
+    kinds: [.object],
+    required: [
+      "$comment", "busRequest", "transport", "job", "session", "signIn", "kbIdentity",
+      "spanRefusal", "control",
+    ],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "busRequest": Shape(
+        kinds: [.object], required: ["docs", "unrecognizedFailure", "codes"],
+        members: [
+          "codes": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(
+              kinds: [.object], required: ["code", "docs"],
+              members: [
+                "code": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...46], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]),
+                "docs": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    .step(
+                      Step(
+                        of: [
+                          0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                          8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                        ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                  ]),
+                "wire": Shape(
+                  kinds: [.string],
+                  enumeration: [
+                    .string("peer-unavailable"), .string("not-found"), .string("unauthorized"),
+                    .string("none-pending"),
+                  ]),
+              ], closed: ["code", "docs", "wire"])),
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+          "unrecognizedFailure": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [97...122], min: 1, max: nil)),
+              .group(
+                Group(
+                  either: [
+                    [
+                      .step(Step(of: [45...46], min: 1, max: 1)),
+                      .step(Step(of: [97...122], min: 1, max: nil)),
+                    ]
+                  ], min: 0, max: nil)),
+            ]),
+        ], closed: ["codes", "docs", "unrecognizedFailure"]),
+      "control": Shape(
+        kinds: [.object], required: ["docs", "codes"],
+        members: [
+          "codes": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(
+              kinds: [.object], required: ["code", "docs"],
+              members: [
+                "code": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...46], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]),
+                "docs": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    .step(
+                      Step(
+                        of: [
+                          0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                          8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                        ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                  ]),
+              ], closed: ["code", "docs"])),
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+        ], closed: ["codes", "docs"]),
+      "job": Shape(
+        kinds: [.object], required: ["docs", "codes"],
+        members: [
+          "codes": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(
+              kinds: [.object], required: ["code", "docs"],
+              members: [
+                "code": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...46], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]),
+                "docs": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    .step(
+                      Step(
+                        of: [
+                          0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                          8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                        ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                  ]),
+              ], closed: ["code", "docs"])),
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+        ], closed: ["codes", "docs"]),
+      "kbIdentity": Shape(
+        kinds: [.object], required: ["docs", "codes"],
+        members: [
+          "codes": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(
+              kinds: [.object], required: ["code", "docs"],
+              members: [
+                "code": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...46], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]),
+                "docs": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    .step(
+                      Step(
+                        of: [
+                          0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                          8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                        ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                  ]),
+              ], closed: ["code", "docs"])),
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+        ], closed: ["codes", "docs"]),
+      "session": Shape(
+        kinds: [.object], required: ["docs", "codes"],
+        members: [
+          "codes": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(
+              kinds: [.object], required: ["code", "docs"],
+              members: [
+                "code": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...46], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]),
+                "docs": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    .step(
+                      Step(
+                        of: [
+                          0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                          8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                        ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                  ]),
+              ], closed: ["code", "docs"])),
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+        ], closed: ["codes", "docs"]),
+      "signIn": Shape(
+        kinds: [.object], required: ["docs", "codes"],
+        members: [
+          "codes": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(
+              kinds: [.object], required: ["code", "docs"],
+              members: [
+                "code": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...46], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]),
+                "docs": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    .step(
+                      Step(
+                        of: [
+                          0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                          8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                        ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                  ]),
+              ], closed: ["code", "docs"])),
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+        ], closed: ["codes", "docs"]),
+      "spanRefusal": Shape(
+        kinds: [.object], required: ["docs", "codes"],
+        members: [
+          "codes": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(
+              kinds: [.object], required: ["code", "docs"],
+              members: [
+                "code": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [97...122], min: 1, max: nil)),
+                    .group(
+                      Group(
+                        either: [
+                          [
+                            .step(Step(of: [45...46], min: 1, max: 1)),
+                            .step(Step(of: [97...122], min: 1, max: nil)),
+                          ]
+                        ], min: 0, max: nil)),
+                  ]),
+                "docs": Shape(
+                  kinds: [.string],
+                  pattern: [
+                    .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    .step(
+                      Step(
+                        of: [
+                          0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                          8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                        ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                  ]),
+              ], closed: ["code", "docs"])),
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+        ], closed: ["codes", "docs"]),
+      "transport": Shape(
+        kinds: [.object], required: ["docs", "unclassified", "codes"],
+        members: [
+          "codes": Shape(
+            kinds: [.array], minItems: 1,
+            items: Shape(
+              kinds: [.object],
+              oneOf: [
+                Shape(
+                  kinds: [.object], required: ["code", "docs", "status"],
+                  members: [
+                    "code": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [97...122], min: 1, max: nil)),
+                        .group(
+                          Group(
+                            either: [
+                              [
+                                .step(Step(of: [45...46], min: 1, max: 1)),
+                                .step(Step(of: [97...122], min: 1, max: nil)),
+                              ]
+                            ], min: 0, max: nil)),
+                      ]),
+                    "docs": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                        .step(
+                          Step(
+                            of: [
+                              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                              8234...8238, 8240...8286, 8288...12287, 12289...65278,
+                              65280...1_114_111,
+                            ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                      ]), "status": Shape(ref: "HttpStatus"),
+                  ], closed: ["code", "docs", "status"]),
+                Shape(
+                  kinds: [.object], required: ["code", "docs", "statusFrom"],
+                  members: [
+                    "code": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [97...122], min: 1, max: nil)),
+                        .group(
+                          Group(
+                            either: [
+                              [
+                                .step(Step(of: [45...46], min: 1, max: 1)),
+                                .step(Step(of: [97...122], min: 1, max: nil)),
+                              ]
+                            ], min: 0, max: nil)),
+                      ]),
+                    "docs": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                        .step(
+                          Step(
+                            of: [
+                              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                              8234...8238, 8240...8286, 8288...12287, 12289...65278,
+                              65280...1_114_111,
+                            ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                      ]), "statusFrom": Shape(ref: "HttpStatus"),
+                  ], closed: ["code", "docs", "statusFrom"]),
+                Shape(
+                  kinds: [.object], required: ["code", "docs"],
+                  members: [
+                    "code": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [97...122], min: 1, max: nil)),
+                        .group(
+                          Group(
+                            either: [
+                              [
+                                .step(Step(of: [45...46], min: 1, max: 1)),
+                                .step(Step(of: [97...122], min: 1, max: nil)),
+                              ]
+                            ], min: 0, max: nil)),
+                      ]),
+                    "docs": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                        .step(
+                          Step(
+                            of: [
+                              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                              8234...8238, 8240...8286, 8288...12287, 12289...65278,
+                              65280...1_114_111,
+                            ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                      ]),
+                  ], closed: ["code", "docs"]),
+              ])),
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+          "unclassified": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [97...122], min: 1, max: nil)),
+              .group(
+                Group(
+                  either: [
+                    [
+                      .step(Step(of: [45...46], min: 1, max: 1)),
+                      .step(Step(of: [97...122], min: 1, max: nil)),
+                    ]
+                  ], min: 0, max: nil)),
+            ]),
+        ], closed: ["codes", "docs", "unclassified"]),
+    ],
+    closed: [
+      "$comment", "busRequest", "control", "job", "kbIdentity", "session", "signIn", "spanRefusal",
+      "transport",
     ])
   shapes["EventMetadata"] = Shape(
     kinds: [.object], required: ["sequenceNumber"],
@@ -25071,6 +28643,103 @@ internal let requiredSchemas: [String: Shape] = {
       "protocol": Shape(kinds: [.string], enumeration: [.string("http"), .string("https")]),
     ])
   shapes["HttpStatus"] = Shape(kinds: [.integer], minimum: 100.0, maximum: 599.0)
+  shapes["IdentifiersKinds"] = Shape(
+    kinds: [.object], required: ["$comment", "kinds", "others"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "kinds": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["schema", "properties", "accepts", "refuses"],
+          members: [
+            "accepts": Shape(
+              kinds: [.array], minItems: 1,
+              items: Shape(
+                kinds: [.object], required: ["id", "why"],
+                members: [
+                  "id": Shape(kinds: [.string]),
+                  "why": Shape(
+                    kinds: [.string],
+                    pattern: [
+                      .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                      .step(
+                        Step(
+                          of: [
+                            0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                            8234...8238, 8240...8286, 8288...12287, 12289...65278,
+                            65280...1_114_111,
+                          ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    ]),
+                ], closed: ["id", "why"])),
+            "properties": Shape(
+              kinds: [.array], minItems: 1,
+              items: Shape(
+                kinds: [.string],
+                pattern: [
+                  .step(Step(of: [95...95], min: 0, max: 1)),
+                  .step(Step(of: [97...122], min: 1, max: 1)),
+                  .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+                ])),
+            "refuses": Shape(
+              kinds: [.array], minItems: 1,
+              items: Shape(
+                kinds: [.object], required: ["id", "why"],
+                members: [
+                  "id": Shape(kinds: [.string]),
+                  "why": Shape(
+                    kinds: [.string],
+                    pattern: [
+                      .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                      .step(
+                        Step(
+                          of: [
+                            0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                            8234...8238, 8240...8286, 8288...12287, 12289...65278,
+                            65280...1_114_111,
+                          ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                    ]),
+                ], closed: ["id", "why"])),
+            "schema": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [65...90], min: 1, max: 1)),
+                .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+              ]),
+          ], closed: ["accepts", "properties", "refuses", "schema"])),
+      "others": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["property", "docs"],
+          members: [
+            "docs": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                .step(
+                  Step(
+                    of: [
+                      0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                      8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                    ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              ]),
+            "property": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [97...122], min: 1, max: 1)),
+                .step(Step(of: [48...57, 65...90, 97...122], min: 0, max: nil)),
+              ]),
+          ], closed: ["docs", "property"])),
+    ], closed: ["$comment", "kinds", "others"])
   shapes["IdentityUser"] = Shape(
     kinds: [.object], required: ["email", "identity", "enabled"],
     members: [
@@ -26067,6 +29736,118 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["resourceId"], members: ["resourceId": Shape(ref: "ResourceId")])
   shapes["MediaTokenResponse"] = Shape(
     kinds: [.object], required: ["token"], members: ["token": Shape(kinds: [.string])])
+  shapes["MediaTypesRegistry"] = Shape(
+    kinds: [.object],
+    required: ["$comment", "render", "anchoring", "textSource", "extensionAliases", "mediaTypes"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "anchoring": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.string],
+          pattern: [
+            .step(Step(of: [97...122], min: 1, max: 1)),
+            .step(Step(of: [45...45, 97...122], min: 0, max: nil)),
+          ])),
+      "extensionAliases": Shape(
+        kinds: [.object],
+        values: Shape(
+          kinds: [.string],
+          pattern: [
+            .step(Step(of: [46...46], min: 1, max: 1)),
+            .step(Step(of: [48...57, 97...122], min: 1, max: nil)),
+          ])),
+      "mediaTypes": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object],
+          required: [
+            "mediaType", "extension", "label", "render", "anchoring", "textSource", "authorable",
+            "uploadable", "generatable",
+          ],
+          members: [
+            "anchoring": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                .step(
+                  Step(
+                    of: [
+                      0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                      8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                    ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              ]), "authorable": Shape(kinds: [.boolean]),
+            "extension": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [46...46], min: 1, max: 1)),
+                .step(Step(of: [48...57, 97...122], min: 1, max: nil)),
+              ]), "generatable": Shape(kinds: [.boolean]),
+            "label": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                .step(
+                  Step(
+                    of: [
+                      0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                      8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                    ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              ]), "mediaType": Shape(ref: "SupportedMediaType"),
+            "render": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                .step(
+                  Step(
+                    of: [
+                      0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                      8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                    ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              ]),
+            "textSource": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                .step(
+                  Step(
+                    of: [
+                      0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                      8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                    ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              ]), "uploadable": Shape(kinds: [.boolean]),
+          ],
+          closed: [
+            "anchoring", "authorable", "extension", "generatable", "label", "mediaType", "render",
+            "textSource", "uploadable",
+          ])),
+      "render": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.string],
+          pattern: [
+            .step(Step(of: [97...122], min: 1, max: 1)),
+            .step(Step(of: [45...45, 97...122], min: 0, max: nil)),
+          ])),
+      "textSource": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.string],
+          pattern: [
+            .step(Step(of: [97...122], min: 1, max: 1)),
+            .step(Step(of: [45...45, 97...122], min: 0, max: nil)),
+          ])),
+    ], closed: ["$comment", "anchoring", "extensionAliases", "mediaTypes", "render", "textSource"])
   shapes["MemoryGraphConfig"] = Shape(
     kinds: [.object], required: ["type"],
     members: ["type": Shape(kinds: [.string], enumeration: [.string("memory")])], closed: ["type"])
@@ -26623,6 +30404,103 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object],
         members: ["matchReason": Shape(kinds: [.string]), "score": Shape(kinds: [.number])]),
     ])
+  shapes["SdkTelemetryTelemetry"] = Shape(
+    kinds: [.object], required: ["$comment", "spans", "metrics"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "metrics": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["name", "transport", "instrument", "meaning", "attributes"],
+          members: [
+            "attributes": Shape(
+              kinds: [.array],
+              items: Shape(
+                kinds: [.object], required: ["key"],
+                members: [
+                  "key": Shape(
+                    kinds: [.string],
+                    pattern: [
+                      .step(Step(of: [97...122], min: 1, max: 1)),
+                      .step(Step(of: [95...95, 97...122], min: 0, max: nil)),
+                      .group(
+                        Group(
+                          either: [
+                            [
+                              .step(Step(of: [46...46], min: 1, max: 1)),
+                              .step(Step(of: [97...122], min: 1, max: 1)),
+                              .step(Step(of: [95...95, 97...122], min: 0, max: nil)),
+                            ]
+                          ], min: 0, max: nil)),
+                    ]), "only": Shape(kinds: [.string], minLength: 1),
+                  "values": Shape(
+                    kinds: [.array], minItems: 1,
+                    items: Shape(
+                      kinds: [.string, .boolean],
+                      oneOf: [Shape(kinds: [.string], minLength: 1), Shape(kinds: [.boolean])])),
+                ], closed: ["key", "only", "values"])),
+            "instrument": Shape(
+              kinds: [.string],
+              enumeration: [
+                .string("counter"), .string("up-down counter"), .string("gauge"),
+                .string("histogram"),
+              ]), "meaning": Shape(kinds: [.string], minLength: 1),
+            "name": Shape(kinds: [.string], minLength: 1),
+            "transport": Shape(
+              kinds: [.string], enumeration: [.string("bus"), .string("content")]),
+          ], closed: ["attributes", "instrument", "meaning", "name", "transport"])),
+      "spans": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["name", "transport", "kind", "meaning", "attributes"],
+          members: [
+            "attributes": Shape(
+              kinds: [.array],
+              items: Shape(
+                kinds: [.object], required: ["key"],
+                members: [
+                  "key": Shape(
+                    kinds: [.string],
+                    pattern: [
+                      .step(Step(of: [97...122], min: 1, max: 1)),
+                      .step(Step(of: [95...95, 97...122], min: 0, max: nil)),
+                      .group(
+                        Group(
+                          either: [
+                            [
+                              .step(Step(of: [46...46], min: 1, max: 1)),
+                              .step(Step(of: [97...122], min: 1, max: 1)),
+                              .step(Step(of: [95...95, 97...122], min: 0, max: nil)),
+                            ]
+                          ], min: 0, max: nil)),
+                    ]), "only": Shape(kinds: [.string], minLength: 1),
+                  "values": Shape(
+                    kinds: [.array], minItems: 1,
+                    items: Shape(
+                      kinds: [.string, .boolean],
+                      oneOf: [Shape(kinds: [.string], minLength: 1), Shape(kinds: [.boolean])])),
+                ], closed: ["key", "only", "values"])),
+            "kind": Shape(
+              kinds: [.string],
+              enumeration: [
+                .string("client"), .string("consumer"), .string("internal"), .string("producer"),
+                .string("server"),
+              ]), "meaning": Shape(kinds: [.string], minLength: 1),
+            "name": Shape(kinds: [.string], minLength: 1),
+            "transport": Shape(
+              kinds: [.string], enumeration: [.string("bus"), .string("content")]),
+          ], closed: ["attributes", "kind", "meaning", "name", "transport"])),
+    ], closed: ["$comment", "metrics", "spans"])
   shapes["SecretRef"] = Shape(
     kinds: [.object], required: ["fromEnv"],
     members: [
@@ -26784,6 +30662,54 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["SessionLeftEvent"] = Shape(
     kinds: [.object], required: ["participant", "connectionId"],
     members: ["connectionId": Shape(kinds: [.string]), "participant": Shape(ref: "UserId")])
+  shapes["SessionOauth"] = Shape(
+    kinds: [.object], required: ["$comment", "clients", "scopes"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "clients": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["name", "id", "docs"],
+          members: [
+            "docs": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                .step(
+                  Step(
+                    of: [
+                      0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                      8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                    ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              ]), "id": Shape(kinds: [.string], minLength: 1),
+            "name": Shape(kinds: [.string], minLength: 1),
+          ], closed: ["docs", "id", "name"])),
+      "scopes": Shape(
+        kinds: [.object], required: ["value", "docs"],
+        members: [
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]), "value": Shape(kinds: [.string], minLength: 1),
+        ], closed: ["docs", "value"]),
+    ], closed: ["$comment", "clients", "scopes"])
   shapes["Setting"] = Shape(
     kinds: [.object], required: ["name", "default", "appliesTo", "values", "settable"],
     members: [
@@ -26854,6 +30780,118 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["kb"],
     members: ["expected": Shape(ref: "Expected"), "kb": Shape(ref: "KnowledgeBase")],
     closed: ["expected", "kb"])
+  shapes["SignInStoreOwnerOnly"] = Shape(
+    kinds: [.object],
+    required: ["$comment", "directoryMode", "fileMode", "directoryAccessList", "fileAccessList"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "directoryAccessList": Shape(
+        kinds: [.object], required: ["value", "docs"],
+        members: [
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+          "value": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [68...68], min: 1, max: 1)),
+              .step(Step(of: [58...58], min: 1, max: 1)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: nil)),
+            ]),
+        ], closed: ["docs", "value"]),
+      "directoryMode": Shape(
+        kinds: [.object], required: ["value", "docs"],
+        members: [
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+          "value": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [48...48], min: 1, max: 1)),
+              .step(Step(of: [48...55], min: 3, max: 3)),
+            ]),
+        ], closed: ["docs", "value"]),
+      "fileAccessList": Shape(
+        kinds: [.object], required: ["value", "docs"],
+        members: [
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+          "value": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [68...68], min: 1, max: 1)),
+              .step(Step(of: [58...58], min: 1, max: 1)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: nil)),
+            ]),
+        ], closed: ["docs", "value"]),
+      "fileMode": Shape(
+        kinds: [.object], required: ["value", "docs"],
+        members: [
+          "docs": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              .step(
+                Step(
+                  of: [
+                    0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                    8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                  ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+            ]),
+          "value": Shape(
+            kinds: [.string],
+            pattern: [
+              .step(Step(of: [48...48], min: 1, max: 1)),
+              .step(Step(of: [48...55], min: 3, max: 3)),
+            ]),
+        ], closed: ["docs", "value"]),
+    ], closed: ["$comment", "directoryAccessList", "directoryMode", "fileAccessList", "fileMode"])
   shapes["SignedIn"] = Shape(
     kinds: [.object], required: ["endpoint", "description", "session"],
     members: [

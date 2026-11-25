@@ -1991,6 +1991,1319 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "ClientDiscoveryAbsent",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "reasons"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "reasons",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["reason", "docs"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "reason",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: None,
+                                            }),
+                                            Term::Group(Group {
+                                                either: &[&[
+                                                    Term::Step(Step {
+                                                        of: &[(45, 45)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                ]],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["docs", "reason"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "reasons"]),
+            ..NONE
+        },
+    ),
+    (
+        "ClientRefresh",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "queries", "refresh"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "queries",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            one_of: &[
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["name", "asks", "value", "docs"],
+                                    members: &[
+                                        (
+                                            "asks",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                pattern: Some(&[
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(58, 58)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                    Term::Group(Group {
+                                                        either: &[&[
+                                                            Term::Step(Step {
+                                                                of: &[(45, 45)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(97, 122)],
+                                                                min: 1,
+                                                                max: None,
+                                                            }),
+                                                        ]],
+                                                        min: 0,
+                                                        max: None,
+                                                    }),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "docs",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "name",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                pattern: Some(&[
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(65, 90), (97, 122)],
+                                                        min: 0,
+                                                        max: None,
+                                                    }),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "per",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                enumeration: Some(&[
+                                                    Listed::Text("resource"),
+                                                    Listed::Text("annotation"),
+                                                    Listed::Text("filters"),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "persisted",
+                                            Shape {
+                                                kinds: Some(&[Kind::Boolean]),
+                                                enumeration: Some(&[Listed::Boolean(true)]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "value",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["$ref"],
+                                                members: &[(
+                                                    "$ref",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        pattern: Some(&[
+                                                            Term::Step(Step {
+                                                                of: &[(104, 104)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(116, 116)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(116, 116)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(112, 112)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(115, 115)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(58, 58)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(47, 47)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(47, 47)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(120, 120)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(121, 121)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(110, 110)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(108, 108)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(103, 103)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(46, 46)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(114, 114)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(103, 103)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(47, 47)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(112, 112)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(114, 114)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(116, 116)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(99, 99)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(108, 108)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(47, 47)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(65, 90)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(65, 90), (97, 122)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(46, 46)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(106, 106)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(115, 115)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(110, 110)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Group(Group {
+                                                                either: &[&[
+                                                                    Term::Step(Step {
+                                                                        of: &[(35, 35)],
+                                                                        min: 1,
+                                                                        max: Some(1),
+                                                                    }),
+                                                                    Term::Group(Group {
+                                                                        either: &[&[
+                                                                            Term::Step(Step {
+                                                                                of: &[(47, 47)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(112, 112)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(114, 114)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(111, 111)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(112, 112)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(101, 101)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(114, 114)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(116, 116)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(105, 105)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(101, 101)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(115, 115)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(47, 47)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(97, 122)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[
+                                                                                    (65, 90),
+                                                                                    (97, 122),
+                                                                                ],
+                                                                                min: 0,
+                                                                                max: None,
+                                                                            }),
+                                                                        ]],
+                                                                        min: 1,
+                                                                        max: None,
+                                                                    }),
+                                                                ]],
+                                                                min: 0,
+                                                                max: Some(1),
+                                                            }),
+                                                        ]),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["$ref"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&[
+                                        "asks",
+                                        "docs",
+                                        "name",
+                                        "per",
+                                        "persisted",
+                                        "value",
+                                    ]),
+                                    ..NONE
+                                },
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["name", "reads", "value", "docs"],
+                                    members: &[
+                                        (
+                                            "docs",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "name",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                pattern: Some(&[
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(65, 90), (97, 122)],
+                                                        min: 0,
+                                                        max: None,
+                                                    }),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "per",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                enumeration: Some(&[
+                                                    Listed::Text("resource"),
+                                                    Listed::Text("annotation"),
+                                                    Listed::Text("filters"),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "persisted",
+                                            Shape {
+                                                kinds: Some(&[Kind::Boolean]),
+                                                enumeration: Some(&[Listed::Boolean(true)]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "reads",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                pattern: Some(&[
+                                                    Term::Step(Step {
+                                                        of: &[(71, 71)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(69, 69)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(84, 84)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(32, 32)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(47, 47)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(0, 31), (33, 1114111)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "value",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["$ref"],
+                                                members: &[(
+                                                    "$ref",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        pattern: Some(&[
+                                                            Term::Step(Step {
+                                                                of: &[(104, 104)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(116, 116)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(116, 116)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(112, 112)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(115, 115)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(58, 58)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(47, 47)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(47, 47)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(120, 120)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(121, 121)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(110, 110)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(108, 108)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(103, 103)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(46, 46)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(114, 114)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(103, 103)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(47, 47)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(112, 112)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(114, 114)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(116, 116)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(99, 99)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(108, 108)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(47, 47)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(65, 90)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(65, 90), (97, 122)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(46, 46)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(106, 106)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(115, 115)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(111, 111)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(110, 110)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Group(Group {
+                                                                either: &[&[
+                                                                    Term::Step(Step {
+                                                                        of: &[(35, 35)],
+                                                                        min: 1,
+                                                                        max: Some(1),
+                                                                    }),
+                                                                    Term::Group(Group {
+                                                                        either: &[&[
+                                                                            Term::Step(Step {
+                                                                                of: &[(47, 47)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(112, 112)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(114, 114)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(111, 111)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(112, 112)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(101, 101)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(114, 114)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(116, 116)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(105, 105)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(101, 101)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(115, 115)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(47, 47)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[(97, 122)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[
+                                                                                    (65, 90),
+                                                                                    (97, 122),
+                                                                                ],
+                                                                                min: 0,
+                                                                                max: None,
+                                                                            }),
+                                                                        ]],
+                                                                        min: 1,
+                                                                        max: None,
+                                                                    }),
+                                                                ]],
+                                                                min: 0,
+                                                                max: Some(1),
+                                                            }),
+                                                        ]),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["$ref"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&[
+                                        "docs",
+                                        "name",
+                                        "per",
+                                        "persisted",
+                                        "reads",
+                                        "value",
+                                    ]),
+                                    ..NONE
+                                },
+                            ],
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "refresh",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            one_of: &[
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["on", "docs"],
+                                    members: &[
+                                        (
+                                            "carries",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                pattern: Some(&[
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(65, 90), (97, 122)],
+                                                        min: 0,
+                                                        max: None,
+                                                    }),
+                                                    Term::Group(Group {
+                                                        either: &[&[
+                                                            Term::Step(Step {
+                                                                of: &[(46, 46)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(97, 122)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(65, 90), (97, 122)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                        ]],
+                                                        min: 0,
+                                                        max: None,
+                                                    }),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "docs",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "names",
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                members: &[
+                                                    (
+                                                        "annotation",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(65, 90), (97, 122)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Group(Group {
+                                                                    either: &[&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(46, 46)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[(97, 122)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[
+                                                                                (65, 90),
+                                                                                (97, 122),
+                                                                            ],
+                                                                            min: 0,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    (
+                                                        "resource",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(65, 90), (97, 122)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Group(Group {
+                                                                    either: &[&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(46, 46)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[(97, 122)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[
+                                                                                (65, 90),
+                                                                                (97, 122),
+                                                                            ],
+                                                                            min: 0,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&["annotation", "resource"]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "on",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                pattern: Some(&[
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(58, 58)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                    Term::Group(Group {
+                                                        either: &[&[
+                                                            Term::Step(Step {
+                                                                of: &[(45, 45)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(97, 122)],
+                                                                min: 1,
+                                                                max: None,
+                                                            }),
+                                                        ]],
+                                                        min: 0,
+                                                        max: None,
+                                                    }),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "reach",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                enumeration: Some(&[
+                                                    Listed::Text("subject"),
+                                                    Listed::Text("held"),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "refetches",
+                                            Shape {
+                                                kinds: Some(&[Kind::Array]),
+                                                min_items: Some(1),
+                                                items: Some(&Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(65, 90), (97, 122)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                }),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "removes",
+                                            Shape {
+                                                kinds: Some(&[Kind::Array]),
+                                                min_items: Some(1),
+                                                items: Some(&Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(65, 90), (97, 122)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                }),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "when",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                enumeration: Some(&[
+                                                    Listed::Text("enriched"),
+                                                    Listed::Text("unenriched"),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "writes",
+                                            Shape {
+                                                kinds: Some(&[Kind::Array]),
+                                                min_items: Some(1),
+                                                items: Some(&Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(65, 90), (97, 122)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                }),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&[
+                                        "carries",
+                                        "docs",
+                                        "names",
+                                        "on",
+                                        "reach",
+                                        "refetches",
+                                        "removes",
+                                        "when",
+                                        "writes",
+                                    ]),
+                                    ..NONE
+                                },
+                                Shape {
+                                    kinds: Some(&[Kind::Object]),
+                                    required: &["stream", "docs"],
+                                    members: &[
+                                        (
+                                            "docs",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                min_length: Some(1),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "reach",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                enumeration: Some(&[
+                                                    Listed::Text("subject"),
+                                                    Listed::Text("held"),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "refetches",
+                                            Shape {
+                                                kinds: Some(&[Kind::Array]),
+                                                min_items: Some(1),
+                                                items: Some(&Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(65, 90), (97, 122)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                }),
+                                                ..NONE
+                                            },
+                                        ),
+                                        (
+                                            "stream",
+                                            Shape {
+                                                kinds: Some(&[Kind::String]),
+                                                enumeration: Some(&[
+                                                    Listed::Text("reopened"),
+                                                    Listed::Text("unreadable"),
+                                                ]),
+                                                ..NONE
+                                            },
+                                        ),
+                                    ],
+                                    closed: Some(&["docs", "reach", "refetches", "stream"]),
+                                    ..NONE
+                                },
+                            ],
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "queries", "refresh"]),
+            ..NONE
+        },
+    ),
+    (
         "ClientSecretForm",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -2007,6 +3320,542 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     },
                 ),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "ClientTesting",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "$comment",
+                "faultActions",
+                "delayMs",
+                "scheduleLength",
+                "slack",
+                "deliveryOps",
+                "records",
+            ],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "delayMs",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "minimum", "maximum"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "maximum",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(0.0),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "minimum",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(0.0),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "maximum", "minimum"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "deliveryOps",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "ops"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "ops",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[Term::Step(Step {
+                                            of: &[(97, 122)],
+                                            min: 1,
+                                            max: None,
+                                        })]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "ops"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "faultActions",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["name", "kind", "docs", "holds"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "holds",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::String]),
+                                            pattern: Some(&[
+                                                Term::Step(Step {
+                                                    of: &[(97, 122)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(65, 90), (97, 122)],
+                                                    min: 0,
+                                                    max: None,
+                                                }),
+                                            ]),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "kind",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: None,
+                                            }),
+                                            Term::Group(Group {
+                                                either: &[&[
+                                                    Term::Step(Step {
+                                                        of: &[(45, 45)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                ]],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(65, 90)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["docs", "holds", "kind", "name"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "records",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["name", "docs", "members"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "members",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        min_items: Some(1),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::String]),
+                                            pattern: Some(&[
+                                                Term::Step(Step {
+                                                    of: &[(97, 122)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(65, 90), (97, 122)],
+                                                    min: 0,
+                                                    max: None,
+                                                }),
+                                            ]),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(65, 90)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["docs", "members", "name"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "scheduleLength",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "minimum", "maximum"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "maximum",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(0.0),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "minimum",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(1.0),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "maximum", "minimum"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "slack",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "times"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "times",
+                                Shape {
+                                    kinds: Some(&[Kind::Integer]),
+                                    minimum: Some(1.0),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "times"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "$comment",
+                "delayMs",
+                "deliveryOps",
+                "faultActions",
+                "records",
+                "scheduleLength",
+                "slack",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "ClientTiming",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "timing"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "timing",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["name", "value", "docs"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Group(Group {
+                                                either: &[
+                                                    &[
+                                                        Term::Step(Step {
+                                                            of: &[(77, 77)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(115, 115)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                    ],
+                                                    &[
+                                                        Term::Step(Step {
+                                                            of: &[(82, 82)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(101, 101)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(116, 116)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(114, 114)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(121, 121)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                    ],
+                                                    &[
+                                                        Term::Step(Step {
+                                                            of: &[(67, 67)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(111, 111)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(117, 117)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(110, 110)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(116, 116)],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                    ],
+                                                ],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "value",
+                                    Shape {
+                                        kinds: Some(&[Kind::Object, Kind::Integer]),
+                                        one_of: &[
+                                            Shape {
+                                                kinds: Some(&[Kind::Integer]),
+                                                minimum: Some(1.0),
+                                                ..NONE
+                                            },
+                                            reference("RetryBudget"),
+                                        ],
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["docs", "name", "value"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "timing"]),
             ..NONE
         },
     ),
@@ -3529,6 +5378,1665 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "ControlCli",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "commands"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "commands",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["parser", "method", "flags"],
+                            members: &[
+                                (
+                                    "flags",
+                                    Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        values: Some(&Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            one_of: &[
+                                                Shape {
+                                                    kinds: Some(&[Kind::Object]),
+                                                    required: &["fields"],
+                                                    members: &[
+                                                        (
+                                                            "fields",
+                                                            Shape {
+                                                                kinds: Some(&[Kind::Array]),
+                                                                min_items: Some(1),
+                                                                items: Some(&Shape {
+                                                                    kinds: Some(&[Kind::String]),
+                                                                    pattern: Some(&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(97, 122)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[
+                                                                                (65, 90),
+                                                                                (97, 122),
+                                                                            ],
+                                                                            min: 0,
+                                                                            max: None,
+                                                                        }),
+                                                                        Term::Group(Group {
+                                                                            either: &[&[
+                                                                                Term::Step(Step {
+                                                                                    of: &[(46, 46)],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        97, 122,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[
+                                                                                        (65, 90),
+                                                                                        (97, 122),
+                                                                                    ],
+                                                                                    min: 0,
+                                                                                    max: None,
+                                                                                }),
+                                                                            ]],
+                                                                            min: 1,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]),
+                                                                    ..NONE
+                                                                }),
+                                                                ..NONE
+                                                            },
+                                                        ),
+                                                        (
+                                                            "notes",
+                                                            Shape {
+                                                                kinds: Some(&[Kind::String]),
+                                                                min_length: Some(1),
+                                                                ..NONE
+                                                            },
+                                                        ),
+                                                    ],
+                                                    closed: Some(&["fields", "notes"]),
+                                                    ..NONE
+                                                },
+                                                Shape {
+                                                    kinds: Some(&[Kind::Object]),
+                                                    required: &["method"],
+                                                    members: &[(
+                                                        "method",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(65, 90), (97, 122)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Group(Group {
+                                                                    either: &[&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(46, 46)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[(97, 122)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[
+                                                                                (65, 90),
+                                                                                (97, 122),
+                                                                            ],
+                                                                            min: 0,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    )],
+                                                    closed: Some(&["method"]),
+                                                    ..NONE
+                                                },
+                                                Shape {
+                                                    kinds: Some(&[Kind::Object]),
+                                                    required: &["cliOnly"],
+                                                    members: &[(
+                                                        "cliOnly",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            min_length: Some(1),
+                                                            ..NONE
+                                                        },
+                                                    )],
+                                                    closed: Some(&["cliOnly"]),
+                                                    ..NONE
+                                                },
+                                            ],
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "method",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Group(Group {
+                                                either: &[&[
+                                                    Term::Step(Step {
+                                                        of: &[(46, 46)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(65, 90), (97, 122)],
+                                                        min: 0,
+                                                        max: None,
+                                                    }),
+                                                ]],
+                                                min: 1,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "parser",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[Term::Step(Step {
+                                            of: &[(65, 90), (97, 122)],
+                                            min: 1,
+                                            max: None,
+                                        })]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "positionals",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        min_items: Some(1),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            one_of: &[
+                                                Shape {
+                                                    kinds: Some(&[Kind::Object]),
+                                                    required: &["name", "fields"],
+                                                    members: &[
+                                                        (
+                                                            "fields",
+                                                            Shape {
+                                                                kinds: Some(&[Kind::Array]),
+                                                                min_items: Some(1),
+                                                                items: Some(&Shape {
+                                                                    kinds: Some(&[Kind::String]),
+                                                                    pattern: Some(&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(97, 122)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[
+                                                                                (65, 90),
+                                                                                (97, 122),
+                                                                            ],
+                                                                            min: 0,
+                                                                            max: None,
+                                                                        }),
+                                                                        Term::Group(Group {
+                                                                            either: &[&[
+                                                                                Term::Step(Step {
+                                                                                    of: &[(46, 46)],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        97, 122,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[
+                                                                                        (65, 90),
+                                                                                        (97, 122),
+                                                                                    ],
+                                                                                    min: 0,
+                                                                                    max: None,
+                                                                                }),
+                                                                            ]],
+                                                                            min: 1,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]),
+                                                                    ..NONE
+                                                                }),
+                                                                ..NONE
+                                                            },
+                                                        ),
+                                                        (
+                                                            "name",
+                                                            Shape {
+                                                                kinds: Some(&[Kind::String]),
+                                                                min_length: Some(1),
+                                                                ..NONE
+                                                            },
+                                                        ),
+                                                    ],
+                                                    closed: Some(&["fields", "name"]),
+                                                    ..NONE
+                                                },
+                                                Shape {
+                                                    kinds: Some(&[Kind::Object]),
+                                                    required: &["name", "cliOnly"],
+                                                    members: &[
+                                                        (
+                                                            "cliOnly",
+                                                            Shape {
+                                                                kinds: Some(&[Kind::String]),
+                                                                min_length: Some(1),
+                                                                ..NONE
+                                                            },
+                                                        ),
+                                                        (
+                                                            "name",
+                                                            Shape {
+                                                                kinds: Some(&[Kind::String]),
+                                                                min_length: Some(1),
+                                                                ..NONE
+                                                            },
+                                                        ),
+                                                    ],
+                                                    closed: Some(&["cliOnly", "name"]),
+                                                    ..NONE
+                                                },
+                                            ],
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["flags", "method", "parser", "positionals"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "commands"]),
+            ..NONE
+        },
+    ),
+    (
+        "ControlMethods",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "$comment",
+                "apiVersion",
+                "errorData",
+                "methods",
+                "notifications",
+            ],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "apiVersion",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(104, 104)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(116, 116)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(116, 116)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(112, 112)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(115, 115)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(58, 58)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(120, 120)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(121, 121)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(110, 110)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(108, 108)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(103, 103)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(46, 46)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(114, 114)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(103, 103)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(112, 112)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(114, 114)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(116, 116)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(99, 99)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(108, 108)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(65, 90)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(65, 90), (97, 122)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[(46, 46)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(106, 106)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(115, 115)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(110, 110)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "errorData",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(104, 104)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(116, 116)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(116, 116)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(112, 112)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(115, 115)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(58, 58)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(120, 120)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(121, 121)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(110, 110)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(108, 108)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(103, 103)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(46, 46)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(114, 114)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(103, 103)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(112, 112)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(114, 114)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(116, 116)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(99, 99)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(108, 108)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(47, 47)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(65, 90)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(65, 90), (97, 122)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[(46, 46)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(106, 106)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(115, 115)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(111, 111)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(110, 110)],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "methods",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["name", "params", "result", "exclusive", "sends", "docs"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                ("exclusive", of(&[Kind::Boolean])),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Group(Group {
+                                                either: &[&[
+                                                    Term::Step(Step {
+                                                        of: &[(46, 46)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(65, 90), (97, 122)],
+                                                        min: 0,
+                                                        max: None,
+                                                    }),
+                                                ]],
+                                                min: 1,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "params",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(104, 104)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(112, 112)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(115, 115)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(58, 58)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(120, 120)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(121, 121)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(110, 110)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(108, 108)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(103, 103)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(46, 46)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(114, 114)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(103, 103)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(112, 112)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(114, 114)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(99, 99)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(108, 108)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(46, 46)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(106, 106)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(115, 115)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(110, 110)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "result",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(104, 104)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(112, 112)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(115, 115)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(58, 58)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(120, 120)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(121, 121)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(110, 110)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(108, 108)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(103, 103)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(46, 46)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(114, 114)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(103, 103)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(112, 112)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(114, 114)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(99, 99)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(108, 108)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(46, 46)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(106, 106)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(115, 115)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(110, 110)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "sends",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::String]),
+                                            pattern: Some(&[
+                                                Term::Step(Step {
+                                                    of: &[(110, 110)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(111, 111)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(116, 116)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(105, 105)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(102, 102)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(105, 105)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(99, 99)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(97, 97)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(116, 116)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(105, 105)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(111, 111)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(110, 110)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(115, 115)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(47, 47)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(97, 122)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(65, 90), (97, 122)],
+                                                    min: 0,
+                                                    max: None,
+                                                }),
+                                            ]),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&[
+                                "docs",
+                                "exclusive",
+                                "name",
+                                "params",
+                                "result",
+                                "sends",
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "notifications",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["name", "from", "params", "docs"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "from",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        enumeration: Some(&[
+                                            Listed::Text("client"),
+                                            Listed::Text("launcher"),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(110, 110)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(105, 105)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(102, 102)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(105, 105)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(99, 99)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(97, 97)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(105, 105)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(110, 110)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(115, 115)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "params",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(104, 104)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(112, 112)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(115, 115)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(58, 58)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(120, 120)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(121, 121)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(110, 110)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(108, 108)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(103, 103)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(46, 46)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(114, 114)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(103, 103)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(112, 112)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(114, 114)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(116, 116)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(99, 99)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(108, 108)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(47, 47)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(46, 46)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(106, 106)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(115, 115)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(111, 111)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(110, 110)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["docs", "from", "name", "params"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "$comment",
+                "apiVersion",
+                "errorData",
+                "methods",
+                "notifications",
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "CreateAnnotationRequest",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -4187,6 +7695,1334 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("error", of(&[Kind::String])),
                 ("hint", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "ErrorsCodes",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "$comment",
+                "busRequest",
+                "transport",
+                "job",
+                "session",
+                "signIn",
+                "kbIdentity",
+                "spanRefusal",
+                "control",
+            ],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "busRequest",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "unrecognizedFailure", "codes"],
+                        members: &[
+                            (
+                                "codes",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        required: &["code", "docs"],
+                                        members: &[
+                                            (
+                                                "code",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: None,
+                                                        }),
+                                                        Term::Group(Group {
+                                                            either: &[&[
+                                                                Term::Step(Step {
+                                                                    of: &[(45, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                            ]],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "docs",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[
+                                                                (0, 8),
+                                                                (14, 31),
+                                                                (33, 159),
+                                                                (161, 5759),
+                                                                (5761, 8191),
+                                                                (8203, 8231),
+                                                                (8234, 8238),
+                                                                (8240, 8286),
+                                                                (8288, 12287),
+                                                                (12289, 65278),
+                                                                (65280, 1114111),
+                                                            ],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "wire",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    enumeration: Some(&[
+                                                        Listed::Text("peer-unavailable"),
+                                                        Listed::Text("not-found"),
+                                                        Listed::Text("unauthorized"),
+                                                        Listed::Text("none-pending"),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                        ],
+                                        closed: Some(&["code", "docs", "wire"]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "unrecognizedFailure",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(97, 122)],
+                                            min: 1,
+                                            max: None,
+                                        }),
+                                        Term::Group(Group {
+                                            either: &[&[
+                                                Term::Step(Step {
+                                                    of: &[(45, 46)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(97, 122)],
+                                                    min: 1,
+                                                    max: None,
+                                                }),
+                                            ]],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["codes", "docs", "unrecognizedFailure"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "control",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "codes"],
+                        members: &[
+                            (
+                                "codes",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        required: &["code", "docs"],
+                                        members: &[
+                                            (
+                                                "code",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: None,
+                                                        }),
+                                                        Term::Group(Group {
+                                                            either: &[&[
+                                                                Term::Step(Step {
+                                                                    of: &[(45, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                            ]],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "docs",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[
+                                                                (0, 8),
+                                                                (14, 31),
+                                                                (33, 159),
+                                                                (161, 5759),
+                                                                (5761, 8191),
+                                                                (8203, 8231),
+                                                                (8234, 8238),
+                                                                (8240, 8286),
+                                                                (8288, 12287),
+                                                                (12289, 65278),
+                                                                (65280, 1114111),
+                                                            ],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                        ],
+                                        closed: Some(&["code", "docs"]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["codes", "docs"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "job",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "codes"],
+                        members: &[
+                            (
+                                "codes",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        required: &["code", "docs"],
+                                        members: &[
+                                            (
+                                                "code",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: None,
+                                                        }),
+                                                        Term::Group(Group {
+                                                            either: &[&[
+                                                                Term::Step(Step {
+                                                                    of: &[(45, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                            ]],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "docs",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[
+                                                                (0, 8),
+                                                                (14, 31),
+                                                                (33, 159),
+                                                                (161, 5759),
+                                                                (5761, 8191),
+                                                                (8203, 8231),
+                                                                (8234, 8238),
+                                                                (8240, 8286),
+                                                                (8288, 12287),
+                                                                (12289, 65278),
+                                                                (65280, 1114111),
+                                                            ],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                        ],
+                                        closed: Some(&["code", "docs"]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["codes", "docs"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "kbIdentity",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "codes"],
+                        members: &[
+                            (
+                                "codes",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        required: &["code", "docs"],
+                                        members: &[
+                                            (
+                                                "code",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: None,
+                                                        }),
+                                                        Term::Group(Group {
+                                                            either: &[&[
+                                                                Term::Step(Step {
+                                                                    of: &[(45, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                            ]],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "docs",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[
+                                                                (0, 8),
+                                                                (14, 31),
+                                                                (33, 159),
+                                                                (161, 5759),
+                                                                (5761, 8191),
+                                                                (8203, 8231),
+                                                                (8234, 8238),
+                                                                (8240, 8286),
+                                                                (8288, 12287),
+                                                                (12289, 65278),
+                                                                (65280, 1114111),
+                                                            ],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                        ],
+                                        closed: Some(&["code", "docs"]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["codes", "docs"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "session",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "codes"],
+                        members: &[
+                            (
+                                "codes",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        required: &["code", "docs"],
+                                        members: &[
+                                            (
+                                                "code",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: None,
+                                                        }),
+                                                        Term::Group(Group {
+                                                            either: &[&[
+                                                                Term::Step(Step {
+                                                                    of: &[(45, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                            ]],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "docs",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[
+                                                                (0, 8),
+                                                                (14, 31),
+                                                                (33, 159),
+                                                                (161, 5759),
+                                                                (5761, 8191),
+                                                                (8203, 8231),
+                                                                (8234, 8238),
+                                                                (8240, 8286),
+                                                                (8288, 12287),
+                                                                (12289, 65278),
+                                                                (65280, 1114111),
+                                                            ],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                        ],
+                                        closed: Some(&["code", "docs"]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["codes", "docs"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "signIn",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "codes"],
+                        members: &[
+                            (
+                                "codes",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        required: &["code", "docs"],
+                                        members: &[
+                                            (
+                                                "code",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: None,
+                                                        }),
+                                                        Term::Group(Group {
+                                                            either: &[&[
+                                                                Term::Step(Step {
+                                                                    of: &[(45, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                            ]],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "docs",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[
+                                                                (0, 8),
+                                                                (14, 31),
+                                                                (33, 159),
+                                                                (161, 5759),
+                                                                (5761, 8191),
+                                                                (8203, 8231),
+                                                                (8234, 8238),
+                                                                (8240, 8286),
+                                                                (8288, 12287),
+                                                                (12289, 65278),
+                                                                (65280, 1114111),
+                                                            ],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                        ],
+                                        closed: Some(&["code", "docs"]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["codes", "docs"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "spanRefusal",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "codes"],
+                        members: &[
+                            (
+                                "codes",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        required: &["code", "docs"],
+                                        members: &[
+                                            (
+                                                "code",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(97, 122)],
+                                                            min: 1,
+                                                            max: None,
+                                                        }),
+                                                        Term::Group(Group {
+                                                            either: &[&[
+                                                                Term::Step(Step {
+                                                                    of: &[(45, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                            ]],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                            (
+                                                "docs",
+                                                Shape {
+                                                    kinds: Some(&[Kind::String]),
+                                                    pattern: Some(&[
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[
+                                                                (0, 8),
+                                                                (14, 31),
+                                                                (33, 159),
+                                                                (161, 5759),
+                                                                (5761, 8191),
+                                                                (8203, 8231),
+                                                                (8234, 8238),
+                                                                (8240, 8286),
+                                                                (8288, 12287),
+                                                                (12289, 65278),
+                                                                (65280, 1114111),
+                                                            ],
+                                                            min: 1,
+                                                            max: Some(1),
+                                                        }),
+                                                        Term::Step(Step {
+                                                            of: &[(0, 1114111)],
+                                                            min: 0,
+                                                            max: None,
+                                                        }),
+                                                    ]),
+                                                    ..NONE
+                                                },
+                                            ),
+                                        ],
+                                        closed: Some(&["code", "docs"]),
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["codes", "docs"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "transport",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["docs", "unclassified", "codes"],
+                        members: &[
+                            (
+                                "codes",
+                                Shape {
+                                    kinds: Some(&[Kind::Array]),
+                                    min_items: Some(1),
+                                    items: Some(&Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        one_of: &[
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["code", "docs", "status"],
+                                                members: &[
+                                                    (
+                                                        "code",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Group(Group {
+                                                                    either: &[&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(45, 46)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[(97, 122)],
+                                                                            min: 1,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    (
+                                                        "docs",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(0, 1114111)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[
+                                                                        (0, 8),
+                                                                        (14, 31),
+                                                                        (33, 159),
+                                                                        (161, 5759),
+                                                                        (5761, 8191),
+                                                                        (8203, 8231),
+                                                                        (8234, 8238),
+                                                                        (8240, 8286),
+                                                                        (8288, 12287),
+                                                                        (12289, 65278),
+                                                                        (65280, 1114111),
+                                                                    ],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(0, 1114111)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    ("status", reference("HttpStatus")),
+                                                ],
+                                                closed: Some(&["code", "docs", "status"]),
+                                                ..NONE
+                                            },
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["code", "docs", "statusFrom"],
+                                                members: &[
+                                                    (
+                                                        "code",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Group(Group {
+                                                                    either: &[&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(45, 46)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[(97, 122)],
+                                                                            min: 1,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    (
+                                                        "docs",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(0, 1114111)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[
+                                                                        (0, 8),
+                                                                        (14, 31),
+                                                                        (33, 159),
+                                                                        (161, 5759),
+                                                                        (5761, 8191),
+                                                                        (8203, 8231),
+                                                                        (8234, 8238),
+                                                                        (8240, 8286),
+                                                                        (8288, 12287),
+                                                                        (12289, 65278),
+                                                                        (65280, 1114111),
+                                                                    ],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(0, 1114111)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    ("statusFrom", reference("HttpStatus")),
+                                                ],
+                                                closed: Some(&["code", "docs", "statusFrom"]),
+                                                ..NONE
+                                            },
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["code", "docs"],
+                                                members: &[
+                                                    (
+                                                        "code",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(97, 122)],
+                                                                    min: 1,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Group(Group {
+                                                                    either: &[&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(45, 46)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Step(Step {
+                                                                            of: &[(97, 122)],
+                                                                            min: 1,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    (
+                                                        "docs",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(0, 1114111)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[
+                                                                        (0, 8),
+                                                                        (14, 31),
+                                                                        (33, 159),
+                                                                        (161, 5759),
+                                                                        (5761, 8191),
+                                                                        (8203, 8231),
+                                                                        (8234, 8238),
+                                                                        (8240, 8286),
+                                                                        (8288, 12287),
+                                                                        (12289, 65278),
+                                                                        (65280, 1114111),
+                                                                    ],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(0, 1114111)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&["code", "docs"]),
+                                                ..NONE
+                                            },
+                                        ],
+                                        ..NONE
+                                    }),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "unclassified",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(97, 122)],
+                                            min: 1,
+                                            max: None,
+                                        }),
+                                        Term::Group(Group {
+                                            either: &[&[
+                                                Term::Step(Step {
+                                                    of: &[(45, 46)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(97, 122)],
+                                                    min: 1,
+                                                    max: None,
+                                                }),
+                                            ]],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["codes", "docs", "unclassified"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "$comment",
+                "busRequest",
+                "control",
+                "job",
+                "kbIdentity",
+                "session",
+                "signIn",
+                "spanRefusal",
+                "transport",
+            ]),
             ..NONE
         },
     ),
@@ -5455,6 +10291,294 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             kinds: Some(&[Kind::Integer]),
             minimum: Some(100.0),
             maximum: Some(599.0),
+            ..NONE
+        },
+    ),
+    (
+        "IdentifiersKinds",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "kinds", "others"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "kinds",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["schema", "properties", "accepts", "refuses"],
+                            members: &[
+                                (
+                                    "accepts",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        min_items: Some(1),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["id", "why"],
+                                            members: &[
+                                                ("id", of(&[Kind::String])),
+                                                (
+                                                    "why",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        pattern: Some(&[
+                                                            Term::Step(Step {
+                                                                of: &[(0, 1114111)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[
+                                                                    (0, 8),
+                                                                    (14, 31),
+                                                                    (33, 159),
+                                                                    (161, 5759),
+                                                                    (5761, 8191),
+                                                                    (8203, 8231),
+                                                                    (8234, 8238),
+                                                                    (8240, 8286),
+                                                                    (8288, 12287),
+                                                                    (12289, 65278),
+                                                                    (65280, 1114111),
+                                                                ],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(0, 1114111)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                        ]),
+                                                        ..NONE
+                                                    },
+                                                ),
+                                            ],
+                                            closed: Some(&["id", "why"]),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "properties",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        min_items: Some(1),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::String]),
+                                            pattern: Some(&[
+                                                Term::Step(Step {
+                                                    of: &[(95, 95)],
+                                                    min: 0,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(97, 122)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(48, 57), (65, 90), (97, 122)],
+                                                    min: 0,
+                                                    max: None,
+                                                }),
+                                            ]),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "refuses",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        min_items: Some(1),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["id", "why"],
+                                            members: &[
+                                                ("id", of(&[Kind::String])),
+                                                (
+                                                    "why",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        pattern: Some(&[
+                                                            Term::Step(Step {
+                                                                of: &[(0, 1114111)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[
+                                                                    (0, 8),
+                                                                    (14, 31),
+                                                                    (33, 159),
+                                                                    (161, 5759),
+                                                                    (5761, 8191),
+                                                                    (8203, 8231),
+                                                                    (8234, 8238),
+                                                                    (8240, 8286),
+                                                                    (8288, 12287),
+                                                                    (12289, 65278),
+                                                                    (65280, 1114111),
+                                                                ],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(0, 1114111)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                        ]),
+                                                        ..NONE
+                                                    },
+                                                ),
+                                            ],
+                                            closed: Some(&["id", "why"]),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "schema",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(65, 90)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(48, 57), (65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["accepts", "properties", "refuses", "schema"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "others",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["property", "docs"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[
+                                                    (0, 8),
+                                                    (14, 31),
+                                                    (33, 159),
+                                                    (161, 5759),
+                                                    (5761, 8191),
+                                                    (8203, 8231),
+                                                    (8234, 8238),
+                                                    (8240, 8286),
+                                                    (8288, 12287),
+                                                    (12289, 65278),
+                                                    (65280, 1114111),
+                                                ],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "property",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(48, 57), (65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["docs", "property"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "kinds", "others"]),
             ..NONE
         },
     ),
@@ -8776,6 +13900,365 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "MediaTypesRegistry",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "$comment",
+                "render",
+                "anchoring",
+                "textSource",
+                "extensionAliases",
+                "mediaTypes",
+            ],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "anchoring",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(45, 45), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "extensionAliases",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(46, 46)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(48, 57), (97, 122)],
+                                    min: 1,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "mediaTypes",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &[
+                                "mediaType",
+                                "extension",
+                                "label",
+                                "render",
+                                "anchoring",
+                                "textSource",
+                                "authorable",
+                                "uploadable",
+                                "generatable",
+                            ],
+                            members: &[
+                                (
+                                    "anchoring",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[
+                                                    (0, 8),
+                                                    (14, 31),
+                                                    (33, 159),
+                                                    (161, 5759),
+                                                    (5761, 8191),
+                                                    (8203, 8231),
+                                                    (8234, 8238),
+                                                    (8240, 8286),
+                                                    (8288, 12287),
+                                                    (12289, 65278),
+                                                    (65280, 1114111),
+                                                ],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                ("authorable", of(&[Kind::Boolean])),
+                                (
+                                    "extension",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(46, 46)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(48, 57), (97, 122)],
+                                                min: 1,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                ("generatable", of(&[Kind::Boolean])),
+                                (
+                                    "label",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[
+                                                    (0, 8),
+                                                    (14, 31),
+                                                    (33, 159),
+                                                    (161, 5759),
+                                                    (5761, 8191),
+                                                    (8203, 8231),
+                                                    (8234, 8238),
+                                                    (8240, 8286),
+                                                    (8288, 12287),
+                                                    (12289, 65278),
+                                                    (65280, 1114111),
+                                                ],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                ("mediaType", reference("SupportedMediaType")),
+                                (
+                                    "render",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[
+                                                    (0, 8),
+                                                    (14, 31),
+                                                    (33, 159),
+                                                    (161, 5759),
+                                                    (5761, 8191),
+                                                    (8203, 8231),
+                                                    (8234, 8238),
+                                                    (8240, 8286),
+                                                    (8288, 12287),
+                                                    (12289, 65278),
+                                                    (65280, 1114111),
+                                                ],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "textSource",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[
+                                                    (0, 8),
+                                                    (14, 31),
+                                                    (33, 159),
+                                                    (161, 5759),
+                                                    (5761, 8191),
+                                                    (8203, 8231),
+                                                    (8234, 8238),
+                                                    (8240, 8286),
+                                                    (8288, 12287),
+                                                    (12289, 65278),
+                                                    (65280, 1114111),
+                                                ],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                ("uploadable", of(&[Kind::Boolean])),
+                            ],
+                            closed: Some(&[
+                                "anchoring",
+                                "authorable",
+                                "extension",
+                                "generatable",
+                                "label",
+                                "mediaType",
+                                "render",
+                                "textSource",
+                                "uploadable",
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "render",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(45, 45), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "textSource",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            pattern: Some(&[
+                                Term::Step(Step {
+                                    of: &[(97, 122)],
+                                    min: 1,
+                                    max: Some(1),
+                                }),
+                                Term::Step(Step {
+                                    of: &[(45, 45), (97, 122)],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "$comment",
+                "anchoring",
+                "extensionAliases",
+                "mediaTypes",
+                "render",
+                "textSource",
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "MemoryGraphConfig",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -10763,6 +16246,344 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "SdkTelemetryTelemetry",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "spans", "metrics"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "metrics",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["name", "transport", "instrument", "meaning", "attributes"],
+                            members: &[
+                                (
+                                    "attributes",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["key"],
+                                            members: &[
+                                                (
+                                                    "key",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        pattern: Some(&[
+                                                            Term::Step(Step {
+                                                                of: &[(97, 122)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(95, 95), (97, 122)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                            Term::Group(Group {
+                                                                either: &[&[
+                                                                    Term::Step(Step {
+                                                                        of: &[(46, 46)],
+                                                                        min: 1,
+                                                                        max: Some(1),
+                                                                    }),
+                                                                    Term::Step(Step {
+                                                                        of: &[(97, 122)],
+                                                                        min: 1,
+                                                                        max: Some(1),
+                                                                    }),
+                                                                    Term::Step(Step {
+                                                                        of: &[(95, 95), (97, 122)],
+                                                                        min: 0,
+                                                                        max: None,
+                                                                    }),
+                                                                ]],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                        ]),
+                                                        ..NONE
+                                                    },
+                                                ),
+                                                (
+                                                    "only",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        min_length: Some(1),
+                                                        ..NONE
+                                                    },
+                                                ),
+                                                (
+                                                    "values",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::Array]),
+                                                        min_items: Some(1),
+                                                        items: Some(&Shape {
+                                                            kinds: Some(&[
+                                                                Kind::String,
+                                                                Kind::Boolean,
+                                                            ]),
+                                                            one_of: &[
+                                                                Shape {
+                                                                    kinds: Some(&[Kind::String]),
+                                                                    min_length: Some(1),
+                                                                    ..NONE
+                                                                },
+                                                                of(&[Kind::Boolean]),
+                                                            ],
+                                                            ..NONE
+                                                        }),
+                                                        ..NONE
+                                                    },
+                                                ),
+                                            ],
+                                            closed: Some(&["key", "only", "values"]),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "instrument",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        enumeration: Some(&[
+                                            Listed::Text("counter"),
+                                            Listed::Text("up-down counter"),
+                                            Listed::Text("gauge"),
+                                            Listed::Text("histogram"),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "meaning",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "transport",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        enumeration: Some(&[
+                                            Listed::Text("bus"),
+                                            Listed::Text("content"),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&[
+                                "attributes",
+                                "instrument",
+                                "meaning",
+                                "name",
+                                "transport",
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "spans",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["name", "transport", "kind", "meaning", "attributes"],
+                            members: &[
+                                (
+                                    "attributes",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        items: Some(&Shape {
+                                            kinds: Some(&[Kind::Object]),
+                                            required: &["key"],
+                                            members: &[
+                                                (
+                                                    "key",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        pattern: Some(&[
+                                                            Term::Step(Step {
+                                                                of: &[(97, 122)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(95, 95), (97, 122)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                            Term::Group(Group {
+                                                                either: &[&[
+                                                                    Term::Step(Step {
+                                                                        of: &[(46, 46)],
+                                                                        min: 1,
+                                                                        max: Some(1),
+                                                                    }),
+                                                                    Term::Step(Step {
+                                                                        of: &[(97, 122)],
+                                                                        min: 1,
+                                                                        max: Some(1),
+                                                                    }),
+                                                                    Term::Step(Step {
+                                                                        of: &[(95, 95), (97, 122)],
+                                                                        min: 0,
+                                                                        max: None,
+                                                                    }),
+                                                                ]],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                        ]),
+                                                        ..NONE
+                                                    },
+                                                ),
+                                                (
+                                                    "only",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        min_length: Some(1),
+                                                        ..NONE
+                                                    },
+                                                ),
+                                                (
+                                                    "values",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::Array]),
+                                                        min_items: Some(1),
+                                                        items: Some(&Shape {
+                                                            kinds: Some(&[
+                                                                Kind::String,
+                                                                Kind::Boolean,
+                                                            ]),
+                                                            one_of: &[
+                                                                Shape {
+                                                                    kinds: Some(&[Kind::String]),
+                                                                    min_length: Some(1),
+                                                                    ..NONE
+                                                                },
+                                                                of(&[Kind::Boolean]),
+                                                            ],
+                                                            ..NONE
+                                                        }),
+                                                        ..NONE
+                                                    },
+                                                ),
+                                            ],
+                                            closed: Some(&["key", "only", "values"]),
+                                            ..NONE
+                                        }),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "kind",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        enumeration: Some(&[
+                                            Listed::Text("client"),
+                                            Listed::Text("consumer"),
+                                            Listed::Text("internal"),
+                                            Listed::Text("producer"),
+                                            Listed::Text("server"),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "meaning",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "transport",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        enumeration: Some(&[
+                                            Listed::Text("bus"),
+                                            Listed::Text("content"),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["attributes", "kind", "meaning", "name", "transport"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "metrics", "spans"]),
+            ..NONE
+        },
+    ),
+    (
         "SecretRef",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -11296,6 +17117,176 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "SessionOauth",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "clients", "scopes"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "clients",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["name", "id", "docs"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[
+                                                    (0, 8),
+                                                    (14, 31),
+                                                    (33, 159),
+                                                    (161, 5759),
+                                                    (5761, 8191),
+                                                    (8203, 8231),
+                                                    (8234, 8238),
+                                                    (8240, 8286),
+                                                    (8288, 12287),
+                                                    (12289, 65278),
+                                                    (65280, 1114111),
+                                                ],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "id",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["docs", "id", "name"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "scopes",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["value", "docs"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "value",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    min_length: Some(1),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "value"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "clients", "scopes"]),
+            ..NONE
+        },
+    ),
+    (
         "Setting",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -11568,6 +17559,363 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("kb", reference("KnowledgeBase")),
             ],
             closed: Some(&["expected", "kb"]),
+            ..NONE
+        },
+    ),
+    (
+        "SignInStoreOwnerOnly",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "$comment",
+                "directoryMode",
+                "fileMode",
+                "directoryAccessList",
+                "fileAccessList",
+            ],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "directoryAccessList",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["value", "docs"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "value",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(68, 68)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(58, 58)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "value"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "directoryMode",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["value", "docs"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "value",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(48, 48)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(48, 55)],
+                                            min: 3,
+                                            max: Some(3),
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "value"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "fileAccessList",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["value", "docs"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "value",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(68, 68)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(58, 58)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "value"]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "fileMode",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        required: &["value", "docs"],
+                        members: &[
+                            (
+                                "docs",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[
+                                                (0, 8),
+                                                (14, 31),
+                                                (33, 159),
+                                                (161, 5759),
+                                                (5761, 8191),
+                                                (8203, 8231),
+                                                (8234, 8238),
+                                                (8240, 8286),
+                                                (8288, 12287),
+                                                (12289, 65278),
+                                                (65280, 1114111),
+                                            ],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(0, 1114111)],
+                                            min: 0,
+                                            max: None,
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                            (
+                                "value",
+                                Shape {
+                                    kinds: Some(&[Kind::String]),
+                                    pattern: Some(&[
+                                        Term::Step(Step {
+                                            of: &[(48, 48)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(48, 55)],
+                                            min: 3,
+                                            max: Some(3),
+                                        }),
+                                    ]),
+                                    ..NONE
+                                },
+                            ),
+                        ],
+                        closed: Some(&["docs", "value"]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "$comment",
+                "directoryAccessList",
+                "directoryMode",
+                "fileAccessList",
+                "fileMode",
+            ]),
             ..NONE
         },
     ),

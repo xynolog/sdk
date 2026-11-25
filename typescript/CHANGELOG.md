@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A type for each of Protocol's other tables, the ones no service keeps,
+  typed by the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+  `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
+  `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
+  `SignInStoreOwnerOnly`.
 - `@xynolog/core` exports the keys a registry and its sessions keep what
   they keep under, generated from Protocol's `session/stored.json`:
   `STORAGE_KEY`, `ACTIVE_KEY`, `OPEN_RESOURCES_BY_KB_KEY`,

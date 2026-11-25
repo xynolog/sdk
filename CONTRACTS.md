@@ -6,7 +6,7 @@ Each kind of contract the pinned Protocol states, how many items it has, and how
 
 | Contract | Items | TypeScript | Python | Rust | Go | C# | Haskell | Kotlin | OCaml | Swift |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| schemas | 447 | 447 | 447 | 447 | 447 | 447 | 447 | 447 | 447 | 447 |
+| schemas | 459 | 459 | 459 | 459 | 459 | 459 | 459 | 459 | 459 | 459 |
 | client registry types | 9 | 9 | 9 | 9 | 9 | 9 | 9 | 9 | 9 | 9 |
 | state-unit notices | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
 | bus channels | 187 | 187 | 187 | 187 | 187 | 187 | 187 | 187 | 187 | 187 |
