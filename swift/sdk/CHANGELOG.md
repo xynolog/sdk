@@ -54,6 +54,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `RetryBudget` is the model of Protocol's `client/RetryBudget.json`:
+  `Codable` and `Hashable`, its members `var`s.
+- `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
+  whole, which is a `String`.
 - The keys a registry keeps what it keeps under, and the prefixes of the
   keys made per knowledge base, are generated from Protocol's
   `session/stored.json`, with the names and values they had

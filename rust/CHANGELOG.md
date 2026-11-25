@@ -60,6 +60,16 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `types::RetryBudget`, the type of Protocol's
+  `client/RetryBudget.json`, where it was `retry::RetryPolicy`:
+  `timing::EMIT_RETRY` and `timing::REFRESH_RETRY` are one, a transport's
+  `Timing::emit_retry` is one, and `retry_with_backoff` takes one by
+  reference. Its delays are whole milliseconds, `initial_delay_ms` and
+  `max_delay_ms`, as Protocol states them, where they were `Duration`s,
+  `initial_delay` and `max_delay`, and its `attempts` is a `u64`. The
+  transport's `Timing` is no longer `Copy`.
+- `ResourceUpload::file` is a `types::Binary`, the type of Protocol's bytes
+  held whole, which is a `String`; `ResourceUpload::new` takes one.
 - The keys a registry keeps what it keeps under, and the prefixes of the
   keys made per knowledge base, are generated from Protocol's
   `session/stored.json`, with the names and values they had

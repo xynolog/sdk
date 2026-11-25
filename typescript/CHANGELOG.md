@@ -59,6 +59,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `RetryBudget`, the type of Protocol's
+  `client/RetryBudget.json` (`components['schemas']['RetryBudget']`), where
+  it was `RetryPolicy`: `EMIT_RETRY` and `REFRESH_RETRY` are one, and
+  `retryWithBackoff` and a transport's `emitRetry` take one. Its members are
+  as they were.
+- `ResourceUpload`'s `file` is `components['schemas']['Binary']`, the type of
+  Protocol's bytes held whole, which is still a `string`.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `GetAnnotationsResponse`'s `motivation` is an optional `Motivation`, where

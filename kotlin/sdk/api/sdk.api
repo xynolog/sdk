@@ -718,22 +718,22 @@ public final class xynolog/http/Timing {
 	public fun <init> (J)V
 	public fun <init> (JJ)V
 	public fun <init> (JJJ)V
-	public fun <init> (JJJLxynolog/retry/RetryPolicy;)V
-	public fun <init> (JJJLxynolog/retry/RetryPolicy;I)V
-	public fun <init> (JJJLxynolog/retry/RetryPolicy;IJ)V
-	public fun <init> (JJJLxynolog/retry/RetryPolicy;IJJ)V
-	public synthetic fun <init> (JJJLxynolog/retry/RetryPolicy;IJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (JJJLxynolog/types/RetryBudget;)V
+	public fun <init> (JJJLxynolog/types/RetryBudget;I)V
+	public fun <init> (JJJLxynolog/types/RetryBudget;IJ)V
+	public fun <init> (JJJLxynolog/types/RetryBudget;IJJ)V
+	public synthetic fun <init> (JJJLxynolog/types/RetryBudget;IJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()J
 	public final fun component2 ()J
 	public final fun component3 ()J
-	public final fun component4 ()Lxynolog/retry/RetryPolicy;
+	public final fun component4 ()Lxynolog/types/RetryBudget;
 	public final fun component5 ()I
 	public final fun component6 ()J
 	public final fun component7 ()J
-	public final fun copy (JJJLxynolog/retry/RetryPolicy;IJJ)Lxynolog/http/Timing;
-	public static synthetic fun copy$default (Lxynolog/http/Timing;JJJLxynolog/retry/RetryPolicy;IJJILjava/lang/Object;)Lxynolog/http/Timing;
+	public final fun copy (JJJLxynolog/types/RetryBudget;IJJ)Lxynolog/http/Timing;
+	public static synthetic fun copy$default (Lxynolog/http/Timing;JJJLxynolog/types/RetryBudget;IJJILjava/lang/Object;)Lxynolog/http/Timing;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getEmitRetry ()Lxynolog/retry/RetryPolicy;
+	public final fun getEmitRetry ()Lxynolog/types/RetryBudget;
 	public final fun getHttpRequestMs ()J
 	public final fun getLazyRemoveMs ()J
 	public final fun getLingerMs ()J
@@ -1201,27 +1201,12 @@ public final class xynolog/retry/RetryKt {
 	public static final fun getRETRY_RULES ()Ljava/util/Map;
 	public static final fun getTRANSPORT ()Lxynolog/retry/RetryRule;
 	public static final fun retryAfterMs (Ljava/lang/String;)Ljava/lang/Long;
-	public static final fun retryWithBackoff (Lxynolog/retry/RetryPolicy;Lkotlin/jvm/functions/Function1;Lkotlin/random/Random;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun retryWithBackoff$default (Lxynolog/retry/RetryPolicy;Lkotlin/jvm/functions/Function1;Lkotlin/random/Random;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun retryWithBackoffFuture (Lxynolog/retry/RetryPolicy;Ljava/util/function/Predicate;Ljava/util/function/Supplier;)Ljava/util/concurrent/CompletableFuture;
-	public static final fun retryWithBackoffFuture (Lxynolog/retry/RetryPolicy;Ljava/util/function/Predicate;Ljava/util/function/Supplier;Lkotlin/coroutines/CoroutineContext;)Ljava/util/concurrent/CompletableFuture;
-	public static final fun retryWithBackoffFuture (Lxynolog/retry/RetryPolicy;Ljava/util/function/Predicate;Ljava/util/function/Supplier;Lkotlin/coroutines/CoroutineContext;Lkotlin/random/Random;)Ljava/util/concurrent/CompletableFuture;
-	public static synthetic fun retryWithBackoffFuture$default (Lxynolog/retry/RetryPolicy;Ljava/util/function/Predicate;Ljava/util/function/Supplier;Lkotlin/coroutines/CoroutineContext;Lkotlin/random/Random;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
-}
-
-public final class xynolog/retry/RetryPolicy {
-	public fun <init> (IJJ)V
-	public final fun component1 ()I
-	public final fun component2 ()J
-	public final fun component3 ()J
-	public final fun copy (IJJ)Lxynolog/retry/RetryPolicy;
-	public static synthetic fun copy$default (Lxynolog/retry/RetryPolicy;IJJILjava/lang/Object;)Lxynolog/retry/RetryPolicy;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAttempts ()I
-	public final fun getInitialDelayMs ()J
-	public final fun getMaxDelayMs ()J
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
+	public static final fun retryWithBackoff (Lxynolog/types/RetryBudget;Lkotlin/jvm/functions/Function1;Lkotlin/random/Random;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun retryWithBackoff$default (Lxynolog/types/RetryBudget;Lkotlin/jvm/functions/Function1;Lkotlin/random/Random;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun retryWithBackoffFuture (Lxynolog/types/RetryBudget;Ljava/util/function/Predicate;Ljava/util/function/Supplier;)Ljava/util/concurrent/CompletableFuture;
+	public static final fun retryWithBackoffFuture (Lxynolog/types/RetryBudget;Ljava/util/function/Predicate;Ljava/util/function/Supplier;Lkotlin/coroutines/CoroutineContext;)Ljava/util/concurrent/CompletableFuture;
+	public static final fun retryWithBackoffFuture (Lxynolog/types/RetryBudget;Ljava/util/function/Predicate;Ljava/util/function/Supplier;Lkotlin/coroutines/CoroutineContext;Lkotlin/random/Random;)Ljava/util/concurrent/CompletableFuture;
+	public static synthetic fun retryWithBackoffFuture$default (Lxynolog/types/RetryBudget;Ljava/util/function/Predicate;Ljava/util/function/Supplier;Lkotlin/coroutines/CoroutineContext;Lkotlin/random/Random;ILjava/lang/Object;)Ljava/util/concurrent/CompletableFuture;
 }
 
 public final class xynolog/retry/RetryRule {

@@ -21,7 +21,7 @@ import Xynolog.Internal.Running qualified as Running
 import Xynolog.Internal.Sse
 import Xynolog.Retry qualified as Retry
 import Xynolog.Timing qualified as Timing
-import Xynolog.Types (BusFrame (..), BusFramePayload (..))
+import Xynolog.Types (BusFrame (..), BusFramePayload (..), RetryBudget (..))
 
 require :: String -> Bool -> IO ()
 require label good = unless good (ioError (userError label))
@@ -273,14 +273,14 @@ retryRuntimeCases = do
         counted <- readTVarIO attempts
         require "retry ran before its caller-controlled deadline" (counted == made)
         atomically (writeTVar clock deadline)
-        if made + 1 >= Timing.retryAttempts budget
+        if made + 1 >= retryBudgetAttempts budget
           then pure ()
           else
-            checkWait (made + 1) (min (Timing.retryMaxDelayMs budget) (cap * 2))
-  checkWait 1 (Timing.retryInitialDelayMs budget)
+            checkWait (made + 1) (min (retryBudgetMaxDelayMs budget) (cap * 2))
+  checkWait 1 (retryBudgetInitialDelayMs budget)
   exhausted <- wait working
   counted <- readTVarIO attempts
-  require "retry lost the last failure or exceeded its budget" (exhausted == Left RetryProbeFailure && counted == Timing.retryAttempts budget)
+  require "retry lost the last failure or exceeded its budget" (exhausted == Left RetryProbeFailure && counted == retryBudgetAttempts budget)
   atomically (writeTVar attempts 0)
   let advancing = options {Retry.retryWaitUntil = \deadline -> atomically (writeTQueue waits deadline >> writeTVar clock deadline)}
   beforeStated <- readTVarIO clock
@@ -313,7 +313,7 @@ retryRuntimeCases = do
   require "retry swallowed cancellation of its wait" $ case cancelledOutcome of
     Left exception -> case fromException exception :: Maybe SomeAsyncException of Just _ -> True; Nothing -> False
     Right _ -> False
-  invalid <- try (Retry.retryWithBackoff options (budget {Timing.retryAttempts = 0}) accepts (const Nothing) action) :: IO (Either Retry.RetryConfigurationError ())
+  invalid <- try (Retry.retryWithBackoff options (budget {retryBudgetAttempts = 0}) accepts (const Nothing) action) :: IO (Either Retry.RetryConfigurationError ())
   require "invalid retry budget was accepted" (invalid == Left Retry.InvalidRetryBudget)
 
 runtimeCases :: IO ()

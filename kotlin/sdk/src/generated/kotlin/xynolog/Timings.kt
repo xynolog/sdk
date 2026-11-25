@@ -3,13 +3,13 @@
 
 package xynolog
 
-import xynolog.retry.RetryPolicy
+import xynolog.types.RetryBudget
 
 /** The timing a client keeps (protocol/specs/src/client/timing.json). */
 internal object Timings {
     const val BUS_REQUEST_TIMEOUT_MS: Long = 30000
     const val EMIT_TIMEOUT_MS: Long = 30000
-    val EMIT_RETRY: RetryPolicy = RetryPolicy(attempts = 4, initialDelayMs = 1000, maxDelayMs = 4000)
+    val EMIT_RETRY: RetryBudget = RetryBudget(attempts = 4, initialDelayMs = 1000, maxDelayMs = 4000)
     const val HTTP_REQUEST_TIMEOUT_MS: Long = 30000
     const val REQUEST_RETRY_PAUSE_MS: Long = 300
     const val STREAM_OPEN_TIMEOUT_MS: Long = 30000
@@ -20,7 +20,7 @@ internal object Timings {
     const val SEEN_EVENT_IDS_COUNT: Long = 512
     const val RECONNECT_DEBOUNCE_MS: Long = 100
     const val LAZY_REMOVE_MS: Long = 5000
-    val REFRESH_RETRY: RetryPolicy = RetryPolicy(attempts = 4, initialDelayMs = 500, maxDelayMs = 4000)
+    val REFRESH_RETRY: RetryBudget = RetryBudget(attempts = 4, initialDelayMs = 500, maxDelayMs = 4000)
     const val REFRESH_BEFORE_EXP_MS: Long = 300000
     const val MIN_REFRESH_DELAY_MS: Long = 10000
     const val DEVICE_POLL_MS: Long = 5000

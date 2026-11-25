@@ -452,7 +452,7 @@ export {
   isRetryableRequestError,
   retryAfterMs,
 } from './retry';
-export type { HttpStatusError, RetryPolicy } from './retry';
+export type { HttpStatusError, RetryBudget } from './retry';
 
 // Browser ↔ launcher KB discovery — the canonical served URL of the
 // launcher's discovery document.

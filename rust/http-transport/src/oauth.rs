@@ -460,7 +460,7 @@ pub async fn renew_kept(
     }
     let mut attempts = 0;
     let renewed = retry_with_backoff(
-        REFRESH_RETRY,
+        &REFRESH_RETRY,
         random,
         || {
             attempts += 1;

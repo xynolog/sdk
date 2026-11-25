@@ -1,28 +1,8 @@
 -- Generated from protocol/specs/src/client/timing.json; do not edit.
 -- Regenerate: make generate (codegen/lib/timing/haskell.ml)
-{-# LANGUAGE OverloadedStrings #-}
+module Xynolog.Timing (busRequestTimeoutMs, emitTimeoutMs, emitRetry, httpRequestTimeoutMs, requestRetryPauseMs, streamOpenTimeoutMs, reconnectMs, maxReconnectMs, degradedThresholdMs, lingerMs, seenEventIdsCount, reconnectDebounceMs, lazyRemoveMs, refreshRetry, refreshBeforeExpMs, minRefreshDelayMs, devicePollMs, deviceSlowDownMs, devicePollFloorMs, invalidationWindowMs, saveDebounceMs, maxStoredBytesCount, errorsKeptForFirstReaderCount, jobSilenceMs, jobStatusPollMs, jobPollMs, jobPollTimeoutMs, generationStallFloorMs, generationStallPerTokenMs, generationStallAssumedTokensCount, delegateSilenceMs, jobClaimTimeoutMs, heldJobStallMs, heldJobStallCheckMs, markCommitTimeoutMs, generatedTextAsksCount, anchoredTextReaskMs, hoverDelayMs, searchDebounceMs, discoveryIntervalMs, checksAtOnceCount) where
 
-module Xynolog.Timing (RetryBudget (..), busRequestTimeoutMs, emitTimeoutMs, emitRetry, httpRequestTimeoutMs, requestRetryPauseMs, streamOpenTimeoutMs, reconnectMs, maxReconnectMs, degradedThresholdMs, lingerMs, seenEventIdsCount, reconnectDebounceMs, lazyRemoveMs, refreshRetry, refreshBeforeExpMs, minRefreshDelayMs, devicePollMs, deviceSlowDownMs, devicePollFloorMs, invalidationWindowMs, saveDebounceMs, maxStoredBytesCount, errorsKeptForFirstReaderCount, jobSilenceMs, jobStatusPollMs, jobPollMs, jobPollTimeoutMs, generationStallFloorMs, generationStallPerTokenMs, generationStallAssumedTokensCount, delegateSilenceMs, jobClaimTimeoutMs, heldJobStallMs, heldJobStallCheckMs, markCommitTimeoutMs, generatedTextAsksCount, anchoredTextReaskMs, hoverDelayMs, searchDebounceMs, discoveryIntervalMs, checksAtOnceCount) where
-
-import Control.Monad (unless)
-import Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
-import Data.Aeson.KeyMap qualified as KM
-
-data RetryBudget = RetryBudget
-  { retryAttempts :: Integer,
-    retryInitialDelayMs :: Integer,
-    retryMaxDelayMs :: Integer
-  }
-  deriving (Eq, Show)
-
-instance ToJSON RetryBudget where toJSON value = object ["attempts" .= retryAttempts value, "initialDelayMs" .= retryInitialDelayMs value, "maxDelayMs" .= retryMaxDelayMs value]
-
-instance FromJSON RetryBudget where
-  parseJSON = withObject "RetryBudget" $ \fields -> do
-    unless (all (`elem` ["attempts", "initialDelayMs", "maxDelayMs"]) (KM.keys fields)) (fail "Unknown retry budget member")
-    value <- RetryBudget <$> (fields .: "attempts") <*> (fields .: "initialDelayMs") <*> (fields .: "maxDelayMs")
-    unless (all (>= 0) [retryAttempts value, retryInitialDelayMs value, retryMaxDelayMs value]) (fail "Negative retry budget member")
-    pure value
+import Xynolog.Types (RetryBudget (..))
 
 busRequestTimeoutMs :: Integer
 busRequestTimeoutMs = 30000
@@ -31,7 +11,7 @@ emitTimeoutMs :: Integer
 emitTimeoutMs = 30000
 
 emitRetry :: RetryBudget
-emitRetry = RetryBudget {retryAttempts = 4, retryInitialDelayMs = 1000, retryMaxDelayMs = 4000}
+emitRetry = RetryBudget {retryBudgetAttempts = 4, retryBudgetInitialDelayMs = 1000, retryBudgetMaxDelayMs = 4000}
 
 httpRequestTimeoutMs :: Integer
 httpRequestTimeoutMs = 30000
@@ -64,7 +44,7 @@ lazyRemoveMs :: Integer
 lazyRemoveMs = 5000
 
 refreshRetry :: RetryBudget
-refreshRetry = RetryBudget {retryAttempts = 4, retryInitialDelayMs = 500, retryMaxDelayMs = 4000}
+refreshRetry = RetryBudget {retryBudgetAttempts = 4, retryBudgetInitialDelayMs = 500, retryBudgetMaxDelayMs = 4000}
 
 refreshBeforeExpMs :: Integer
 refreshBeforeExpMs = 300000

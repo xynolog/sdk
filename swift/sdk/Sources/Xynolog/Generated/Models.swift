@@ -2152,6 +2152,8 @@ public struct BeginAuthorizationOptions: Codable, Sendable, Hashable {
   }
 }
 
+public typealias Binary = String
+
 public struct BindBodyOperation: Codable, Sendable, Hashable {
   public var op: BindBodyOperationOp
   public var item: AnnotationBody?
@@ -15404,7 +15406,7 @@ public struct ResourceUpdatedPayload: Codable, Sendable, Hashable {
 
 public struct ResourceUpload: Codable, Sendable, Hashable {
   public var name: String
-  public var file: String
+  public var file: Binary
   public var format: String
   public var storageUri: String
   public var language: String?
@@ -15418,7 +15420,7 @@ public struct ResourceUpload: Codable, Sendable, Hashable {
   public var cloneToken: String?
   public var archiveOriginal: String?
   public init(
-    name: String, file: String, format: String, storageUri: String, language: String? = nil,
+    name: String, file: Binary, format: String, storageUri: String, language: String? = nil,
     entityTypes: String? = nil, sourceAnnotationId: AnnotationId? = nil,
     sourceResourceId: ResourceId? = nil, generationPrompt: String? = nil, generator: String? = nil,
     jobId: JobId? = nil, isDraft: String? = nil, cloneToken: String? = nil,
@@ -15528,6 +15530,30 @@ public struct ResourcesLimits: Codable, Sendable, Hashable {
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.memory, as: "memory")
+  }
+}
+
+public struct RetryBudget: Codable, Sendable, Hashable {
+  public var attempts: Int
+  public var initialDelayMs: Int
+  public var maxDelayMs: Int
+  public init(attempts: Int, initialDelayMs: Int, maxDelayMs: Int) {
+    self.attempts = attempts
+    self.initialDelayMs = initialDelayMs
+    self.maxDelayMs = maxDelayMs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["attempts", "initialDelayMs", "maxDelayMs"], in: "RetryBudget")
+    self.attempts = try c.value("attempts")
+    self.initialDelayMs = try c.value("initialDelayMs")
+    self.maxDelayMs = try c.value("maxDelayMs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.attempts, as: "attempts")
+    try c.encode(self.initialDelayMs, as: "initialDelayMs")
+    try c.encode(self.maxDelayMs, as: "maxDelayMs")
   }
 }
 
@@ -21615,11 +21641,6 @@ extension ReceivedFrame {
       payload: frame.payload, scope: frame.scope, trace: trace)
   }
 }
-public struct RetryBudget: Sendable {
-  public let attempts: Int
-  public let initialDelayMs: Int
-  public let maxDelayMs: Int
-}
 public enum Timings {
   public static let busRequestTimeoutMs: Int = 30000
   public static let emitTimeoutMs: Int = 30000
@@ -23729,6 +23750,7 @@ internal let requiredSchemas: [String: Shape] = {
       "kbId": Shape(kinds: [.string]), "redirectUri": Shape(kinds: [.string]),
       "target": Shape(ref: "HttpEndpoint"),
     ], closed: ["expectedDid", "expectedName", "kbId", "redirectUri", "target"])
+  shapes["Binary"] = Shape(kinds: [.string])
   shapes["BindBodyOperation"] = Shape(
     kinds: [.object], required: ["op"],
     members: [
@@ -26463,7 +26485,7 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["name", "file", "format", "storageUri"],
     members: [
       "archiveOriginal": Shape(kinds: [.string]), "cloneToken": Shape(kinds: [.string]),
-      "entityTypes": Shape(kinds: [.string]), "file": Shape(kinds: [.string]),
+      "entityTypes": Shape(kinds: [.string]), "file": Shape(ref: "Binary"),
       "format": Shape(kinds: [.string]), "generationPrompt": Shape(kinds: [.string]),
       "generator": Shape(kinds: [.string]), "isDraft": Shape(kinds: [.string]),
       "jobId": Shape(ref: "JobId"), "language": Shape(kinds: [.string]),
@@ -26492,6 +26514,13 @@ internal let requiredSchemas: [String: Shape] = {
             ])
         ], closed: ["memory"])
     ], closed: ["limits"])
+  shapes["RetryBudget"] = Shape(
+    kinds: [.object], required: ["attempts", "initialDelayMs", "maxDelayMs"],
+    members: [
+      "attempts": Shape(kinds: [.integer], minimum: 1.0),
+      "initialDelayMs": Shape(kinds: [.integer], minimum: 1.0),
+      "maxDelayMs": Shape(kinds: [.integer], minimum: 1.0),
+    ], closed: ["attempts", "initialDelayMs", "maxDelayMs"])
   shapes["Root"] = Shape(
     kinds: [.object], required: ["placement", "registered", "running"],
     members: [

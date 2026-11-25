@@ -9,12 +9,13 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
+import Xynolog.Internal.Generated.Models.Binary
 import Xynolog.Internal.Generated.Models.JobId
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ResourceUpload = ResourceUpload
   { resourceUploadName :: Text,
-    resourceUploadFile :: Text,
+    resourceUploadFile :: Binary,
     resourceUploadFormat :: Text,
     resourceUploadStorageUri :: Text,
     resourceUploadLanguage :: Maybe Text,

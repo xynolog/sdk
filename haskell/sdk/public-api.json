@@ -57,6 +57,7 @@
     "generated/Xynolog/Internal/Generated/Models/BeckonHoverEvent.hs": "b223c7aebbecaa46b41a024e3bedcadabc192ad796b648d6da1070c4025a4365",
     "generated/Xynolog/Internal/Generated/Models/BeckonSparkleEvent.hs": "45f45ffc677fad4f133197c990afca837d94f4dd3a07e9d2a9a063ba37b21893",
     "generated/Xynolog/Internal/Generated/Models/BeginAuthorizationOptions.hs": "8b3206c0559d9c20ca118fb02b1594c9fde022c73101e5bff61875e4b65ec1fc",
+    "generated/Xynolog/Internal/Generated/Models/Binary.hs": "2a1b28c78a1152ff6e59eb1e2a4ffa0b5ce6f6e6b9155b8993c3ad7bd66a0edb",
     "generated/Xynolog/Internal/Generated/Models/BindBodyOperation.hs": "3201c4f74d2e8cb3ca271292134990cfad2159f75ff3379fee09d14801847da0",
     "generated/Xynolog/Internal/Generated/Models/BindBodyUpdated.hs": "697a187a835878e6f6a1f099435934a182c5b9f2cd6fa9f2a3ce6ea5dd547abb",
     "generated/Xynolog/Internal/Generated/Models/BindInitiateCommand.hs": "a92475feaa4096813bdedbffcc9c98c4f625761efb356138f710835d0d47d4ba",
@@ -393,10 +394,11 @@
     "generated/Xynolog/Internal/Generated/Models/ResourceSearchFilters.hs": "77f415e041a8d37aab2f0f1394dd089326b7e383230df523535d272a7ee4f990",
     "generated/Xynolog/Internal/Generated/Models/ResourceUnarchivedPayload.hs": "fa8af18e7b882aa899de6c45ff12920abe9f8c0abcd28f03a9bfc0aa44205835",
     "generated/Xynolog/Internal/Generated/Models/ResourceUpdatedPayload.hs": "9eead1b198eddb2382cf843310d9ea22a7ad4b5e76c730ef9b3ea91edad133b6",
-    "generated/Xynolog/Internal/Generated/Models/ResourceUpload.hs": "06526bb594e1413c62244541928af9564434f78bf1ba5066993a0f9c77ba5c6a",
+    "generated/Xynolog/Internal/Generated/Models/ResourceUpload.hs": "47e7f5185eea72442d456db45977ebc8c3741c39448381613c80c38bf3e111ed",
     "generated/Xynolog/Internal/Generated/Models/ResourceUploadMetadata.hs": "0f61d240e03485273357d2fc302d13d2eeed8663c15d6e902b928f7f236baa98",
     "generated/Xynolog/Internal/Generated/Models/ResourceView.hs": "e5ce1b48dcd1bdde76aa6369ff745d855f794c5cc75a7584e0af2603d4da7bbe",
     "generated/Xynolog/Internal/Generated/Models/Resources.hs": "6f42a4636fc94c5ea86389f1bc58e1ef4be8e41a0362a2956b41276f96f9dea0",
+    "generated/Xynolog/Internal/Generated/Models/RetryBudget.hs": "980713ee698afc3d208a933df77f21feda259e00a3831d95a141b0b4b159c680",
     "generated/Xynolog/Internal/Generated/Models/RetryRules.hs": "d3858e6d909c58f3a7886d8ba386e4b0e45ad976a4b350baa6448587dd1392d4",
     "generated/Xynolog/Internal/Generated/Models/Root.hs": "02b42f8d0c53791b7d636b5280961d7aa209614bf2495fa66ed2153980745c36",
     "generated/Xynolog/Internal/Generated/Models/RootsForgetParams.hs": "ce35f1516fc220da9a2fded93ed9cc51b2733990a61b1f81e22a4891ee291cdd",
@@ -530,8 +532,8 @@
     "generated/Xynolog/Internal/Generated/OperationReports.hs": "8456e121145825e7e7b06f75e9a1baf6d5deb402218a4c854436f22378540046",
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
-    "generated/Xynolog/Internal/Generated/Required.hs": "deb6b8b25b226c3cd7eeebc2e736be18878f00003a06a507eca4c6de6002dd6e",
-    "generated/Xynolog/Internal/Generated/Schemas.hs": "860d27be9b31801044f7f44215d6871b79c1521bacc9576ae6afcdaa23e737f7",
+    "generated/Xynolog/Internal/Generated/Required.hs": "141564f3c7cb0f3c95ccede99a7ba370d2656dda8a898f4350f4f323496166df",
+    "generated/Xynolog/Internal/Generated/Schemas.hs": "76cde1e5f0651aca2dd19cfe8d86b17bec7f6cd48ca46df4d83f6e2522145a86",
     "generated/Xynolog/Internal/Generated/SearchState.hs": "d5994a174a2a535cb04661283a500feb97cf4e80783492c2cf390e712b38c0a9",
     "generated/Xynolog/Internal/Generated/ServiceProof.hs": "86e44db90b1ac4a3713f4794f4f1f2f32bdf7eeeb7ad24e12046c050f8acadaf",
     "generated/Xynolog/Internal/Generated/SessionFactoryOptions.hs": "1378c790f4a48832e1a0a938eb64c8759870e4ebf73f2445e8ba81c354334c45",
@@ -541,7 +543,7 @@
     "generated/Xynolog/Internal/Generated/TelemetryNames.hs": "6cd5e54f6d9de0db7c5bc15480435652cb161dd3017dc8b6b314306db1de2790",
     "generated/Xynolog/Internal/Generated/Testing.hs": "74b05f2827b3da0378e2f3f432498e691584d92b49c053359a465b7eda31e4e5",
     "generated/Xynolog/Internal/Generated/Text.hs": "09801fd98cc72a2f7ebf2ccdc7afada0c0f3890286d371cf8e3f08f2a97b66e5",
-    "generated/Xynolog/Internal/Generated/TimingSettings.hs": "6b19e592fb7a733ff6d44dcc211d72e343ba2f70c7d1c8e2f70d3b47a9db3ca5",
+    "generated/Xynolog/Internal/Generated/TimingSettings.hs": "bc51db2052b18424a0b2eb9aaa6d9c678b2e8385d3e79c6ea442d0fa1242d467",
     "generated/Xynolog/Internal/Generated/UnicodeCase.hs": "591ccb07b6a197882dbe614812ca1b7daece498898ce9af63254c70ea6c77b88",
     "generated/Xynolog/Internal/Generated/WorkerChannels.hs": "aa242bdc59042f12472ded21a6fc2ab1675743d457f103a03cc256f8c7f48e64",
     "generated/Xynolog/Internal/Generated/xynolog_store_policy.h": "1f5f2245c151f2352dd0358b3e75655155008bf6887af071665ee11c3c1de2af",
@@ -634,7 +636,7 @@
     "src/Xynolog/Registry/Resources.hs": "a41e917cfde7f72f5f5fb58b287df75d3a294338013bd7647df374a4926849ff",
     "src/Xynolog/Registry/Stored.hs": "72dc724e97f1bc50013c0b313299e5ab5a89a4d542134f592e03b7a7144e3769",
     "src/Xynolog/Resources.hs": "3dcf53f70e35ee8a9458a3a5658497817b69e307f30a9ae2f3ab6044a43878b0",
-    "src/Xynolog/Retry.hs": "38666ccb227cc8794ba07321f2ffc937cdfb7bcfa15014a56ad0d77473795962",
+    "src/Xynolog/Retry.hs": "fbf4dda71b99dd6476b15f030981b1341593a89c6f0a59f55faa4767fb51b14d",
     "src/Xynolog/Running.hs": "a4be3104795d2ceb80a50b15573fe99ce7227355e44a9364a5f562acf79c6bce",
     "src/Xynolog/ServiceEnvironment.hs": "8abe635a88470d6376ec42827ff02fed24ea215ec4cd1eeefa5f1ea6fa9b75f8",
     "src/Xynolog/ServiceTables.hs": "253fbcf1b33dab8746a231859478a0f3e446560bbee7823a538a35d2648dfb15",
@@ -661,12 +663,12 @@
     "src/Xynolog/Testing/Sessions.hs": "be95c0577505292cc32a380c322c2480156494a988ab403da7bbb146e8515092",
     "src/Xynolog/Testing/Storage.hs": "e0b914eecd3a20417272adc2fb49c359422ac28cc89f6a6d104feac8af5e115b",
     "src/Xynolog/Testing/Transport.hs": "617e7c7292842ce47023fe8ce9f764999844dd9b94ece918de42371d8b5b295d",
-    "src/Xynolog/Timing.hs": "381849a9758438510f41d51beea094501a00021933bd7ff7c8d2e59bd0b8d215",
+    "src/Xynolog/Timing.hs": "f7bce8979bb53cf62d2ccfe97e48135cca0f3d527967f04a75b20e6f0e89d3be",
     "src/Xynolog/Timing/Settings.hs": "32f36115557dcd909e44df0a79440595a004eebe7098755eece97fc1091ea7e0",
     "src/Xynolog/Tokens.hs": "bba264adde2b8a6c123b9e64e99aeae6fd917f9a09f10194684a8daf708bceca",
     "src/Xynolog/Transport.hs": "5f0c95953108daa834e02c580f0ffb49c3d8fb30ad4cf0424ae3b19c500de034",
     "src/Xynolog/Transport/Facts.hs": "b861a07eb1fc5319a56fec2889c08f9fe7d59c43682d5b488d14520377ff08ba",
-    "src/Xynolog/Types.hs": "4e2699b986232ad65853fe3615414a04992799713edeed4755811ce773d7f2c1",
+    "src/Xynolog/Types.hs": "2a7d02c395756ae149b9938d89e31158044b5d1e7a5564ca009f989a1cef3015",
     "src/Xynolog/Worker.hs": "74c13763bd2c52e1f12c2a9827a4a4f369200e56f11f68db644558c7b703ab20",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
     "xynolog.cabal.in": "171bc716a64f3a951ec37a9f6526c834d862ef12c5bb5723f7464a25b71748e9"
@@ -2267,7 +2269,7 @@
         "retryNow": "Xynolog.Retry.RetryOptions -> IO Integer",
         "retryRandom": "Xynolog.Retry.RetryOptions -> IO Double",
         "retryWaitUntil": "Xynolog.Retry.RetryOptions -> Integer -> IO ()",
-        "retryWithBackoff": "GHC.Internal.Exception.Type.Exception failure => Xynolog.Retry.RetryOptions -> Xynolog.Timing.RetryBudget -> (failure -> Bool) -> (failure -> Maybe Integer) -> IO value -> IO value",
+        "retryWithBackoff": "GHC.Internal.Exception.Type.Exception failure => Xynolog.Retry.RetryOptions -> Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget -> (failure -> Bool) -> (failure -> Maybe Integer) -> IO value -> IO value",
         "retryable": "Xynolog.Internal.RetryPolicy.RetryRule -> Maybe Int -> Maybe Data.Text.Internal.Text -> Bool -> Bool",
         "ruleName": "Xynolog.Internal.RetryPolicy.RetryRule -> Data.Text.Internal.Text"
       }
@@ -2923,14 +2925,8 @@
       }
     },
     "Xynolog.Timing": {
-      "types": {
-        "RetryBudget": {
-          "definition": "data Xynolog.Timing.RetryBudget = ...",
-          "kind": "*"
-        }
-      },
+      "types": {},
       "values": {
-        "RetryBudget": "Integer -> Integer -> Integer -> Xynolog.Timing.RetryBudget",
         "anchoredTextReaskMs": "Integer",
         "busRequestTimeoutMs": "Integer",
         "checksAtOnceCount": "Integer",
@@ -2940,7 +2936,7 @@
         "devicePollMs": "Integer",
         "deviceSlowDownMs": "Integer",
         "discoveryIntervalMs": "Integer",
-        "emitRetry": "Xynolog.Timing.RetryBudget",
+        "emitRetry": "Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget",
         "emitTimeoutMs": "Integer",
         "errorsKeptForFirstReaderCount": "Integer",
         "generatedTextAsksCount": "Integer",
@@ -2966,11 +2962,8 @@
         "reconnectDebounceMs": "Integer",
         "reconnectMs": "Integer",
         "refreshBeforeExpMs": "Integer",
-        "refreshRetry": "Xynolog.Timing.RetryBudget",
+        "refreshRetry": "Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget",
         "requestRetryPauseMs": "Integer",
-        "retryAttempts": "Xynolog.Timing.RetryBudget -> Integer",
-        "retryInitialDelayMs": "Xynolog.Timing.RetryBudget -> Integer",
-        "retryMaxDelayMs": "Xynolog.Timing.RetryBudget -> Integer",
         "saveDebounceMs": "Integer",
         "searchDebounceMs": "Integer",
         "seenEventIdsCount": "Integer",
@@ -2985,7 +2978,7 @@
         }
       },
       "values": {
-        "Settings": "Integer -> Integer -> Xynolog.Timing.RetryBudget -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Xynolog.Timing.RetryBudget -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Xynolog.Internal.Generated.TimingSettings.Settings",
+        "Settings": "Integer -> Integer -> Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Xynolog.Internal.Generated.TimingSettings.Settings",
         "anchoredTextReaskMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "busRequestTimeoutMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "checksAtOnceCount": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
@@ -2995,7 +2988,7 @@
         "devicePollMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "deviceSlowDownMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "discoveryIntervalMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
-        "emitRetry": "Xynolog.Internal.Generated.TimingSettings.Settings -> Xynolog.Timing.RetryBudget",
+        "emitRetry": "Xynolog.Internal.Generated.TimingSettings.Settings -> Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget",
         "emitTimeoutMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "errorsKeptForFirstReaderCount": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "generatedTextAsksCount": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
@@ -3022,7 +3015,7 @@
         "reconnectDebounceMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "reconnectMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "refreshBeforeExpMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
-        "refreshRetry": "Xynolog.Internal.Generated.TimingSettings.Settings -> Xynolog.Timing.RetryBudget",
+        "refreshRetry": "Xynolog.Internal.Generated.TimingSettings.Settings -> Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget",
         "requestRetryPauseMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "saveDebounceMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
         "searchDebounceMs": "Xynolog.Internal.Generated.TimingSettings.Settings -> Integer",
@@ -3516,6 +3509,10 @@
         },
         "BeginAuthorizationOptions": {
           "definition": "data Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions = ...",
+          "kind": "*"
+        },
+        "Binary": {
+          "definition": "newtype Xynolog.Internal.Generated.Models.Binary.Binary = ...",
           "kind": "*"
         },
         "BindBodyOperation": {
@@ -6018,6 +6015,10 @@
           "definition": "data Xynolog.Internal.Generated.Models.Resources.ResourcesLimits = ...",
           "kind": "*"
         },
+        "RetryBudget": {
+          "definition": "data Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget = ...",
+          "kind": "*"
+        },
         "RetryRules": {
           "definition": "data Xynolog.Internal.Generated.Models.RetryRules.RetryRules = ...",
           "kind": "*"
@@ -7098,6 +7099,7 @@
         "BeckonHoverEvent": "Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Xynolog.Internal.Generated.Models.BeckonHoverEvent.BeckonHoverEvent",
         "BeckonSparkleEvent": "Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Xynolog.Internal.Generated.Models.BeckonSparkleEvent.BeckonSparkleEvent",
         "BeginAuthorizationOptions": "Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions",
+        "Binary": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Binary.Binary",
         "BindBodyOperation": "Xynolog.Internal.Generated.Models.BindBodyOperation.BindBodyOperationOp -> Maybe Xynolog.Internal.Generated.Models.AnnotationBody.AnnotationBody -> Maybe Xynolog.Internal.Generated.Models.AnnotationBody.AnnotationBody -> Maybe Xynolog.Internal.Generated.Models.AnnotationBody.AnnotationBody -> Xynolog.Internal.Generated.Models.BindBodyOperation.BindBodyOperation",
         "BindBodyOperationOpAdd": "Xynolog.Internal.Generated.Models.BindBodyOperation.BindBodyOperationOp",
         "BindBodyOperationOpRemove": "Xynolog.Internal.Generated.Models.BindBodyOperation.BindBodyOperationOp",
@@ -7968,11 +7970,12 @@
         "ResourceSearchFilters": "Maybe Bool -> Maybe Data.Text.Internal.Text -> Maybe Integer -> Maybe Integer -> Xynolog.Internal.Generated.Models.ResourceSearchFilters.ResourceSearchFilters",
         "ResourceUnarchivedPayload": "Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.ResourceUnarchivedPayload.ResourceUnarchivedPayload",
         "ResourceUpdatedPayload": "Data.Text.Internal.Text -> Maybe Integer -> Xynolog.Internal.Generated.Models.ResourceUpdatedPayload.ResourceUpdatedPayload",
-        "ResourceUpload": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload",
+        "ResourceUpload": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Binary.Binary -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload",
         "ResourceUploadMetadata": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata",
         "ResourceView": "Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor -> Xynolog.Internal.Generated.Models.ResourceAnnotations.ResourceAnnotations -> Integer -> Xynolog.Internal.Generated.Models.ResourceView.ResourceView",
         "Resources": "Xynolog.Internal.Generated.Models.Resources.ResourcesLimits -> Xynolog.Internal.Generated.Models.Resources.Resources",
         "ResourcesLimits": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Resources.ResourcesLimits",
+        "RetryBudget": "Integer -> Integer -> Integer -> Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget",
         "RetryRules": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.RetryRules.RetryRulesBoot -> Xynolog.Internal.Generated.Models.RetryRules.RetryRulesJob -> Xynolog.Internal.Generated.Models.RetryRules.RetryRulesTransport -> Xynolog.Internal.Generated.Models.RetryRules.RetryRulesRefresh -> Xynolog.Internal.Generated.Models.RetryRules.RetryRules",
         "RetryRulesBoot": "[Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus] -> Xynolog.Internal.Generated.Models.RetryRules.RetryRulesBoot",
         "RetryRulesJob": "[Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus] -> Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus -> Xynolog.Internal.Generated.Models.RetryRules.RetryRulesJob",
@@ -8622,6 +8625,7 @@
         "beginAuthorizationOptionsKbId": "Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions -> Maybe Data.Text.Internal.Text",
         "beginAuthorizationOptionsRedirectUri": "Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions -> Data.Text.Internal.Text",
         "beginAuthorizationOptionsTarget": "Xynolog.Internal.Generated.Models.BeginAuthorizationOptions.BeginAuthorizationOptions -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint",
+        "binaryValue": "Xynolog.Internal.Generated.Models.Binary.Binary -> Data.Text.Internal.Text",
         "bindBodyOperationItem": "Xynolog.Internal.Generated.Models.BindBodyOperation.BindBodyOperation -> Maybe Xynolog.Internal.Generated.Models.AnnotationBody.AnnotationBody",
         "bindBodyOperationNewItem": "Xynolog.Internal.Generated.Models.BindBodyOperation.BindBodyOperation -> Maybe Xynolog.Internal.Generated.Models.AnnotationBody.AnnotationBody",
         "bindBodyOperationOldItem": "Xynolog.Internal.Generated.Models.BindBodyOperation.BindBodyOperation -> Maybe Xynolog.Internal.Generated.Models.AnnotationBody.AnnotationBody",
@@ -10106,7 +10110,7 @@
         "resourceUploadArchiveOriginal": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Data.Text.Internal.Text",
         "resourceUploadCloneToken": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Data.Text.Internal.Text",
         "resourceUploadEntityTypes": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Data.Text.Internal.Text",
-        "resourceUploadFile": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Data.Text.Internal.Text",
+        "resourceUploadFile": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Xynolog.Internal.Generated.Models.Binary.Binary",
         "resourceUploadFormat": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Data.Text.Internal.Text",
         "resourceUploadGenerationPrompt": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Data.Text.Internal.Text",
         "resourceUploadGenerator": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Data.Text.Internal.Text",
@@ -10135,6 +10139,9 @@
         "resourceViewResource": "Xynolog.Internal.Generated.Models.ResourceView.ResourceView -> Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor",
         "resourcesLimits": "Xynolog.Internal.Generated.Models.Resources.Resources -> Xynolog.Internal.Generated.Models.Resources.ResourcesLimits",
         "resourcesLimitsMemory": "Xynolog.Internal.Generated.Models.Resources.ResourcesLimits -> Data.Text.Internal.Text",
+        "retryBudgetAttempts": "Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget -> Integer",
+        "retryBudgetInitialDelayMs": "Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget -> Integer",
+        "retryBudgetMaxDelayMs": "Xynolog.Internal.Generated.Models.RetryBudget.RetryBudget -> Integer",
         "retryRulesBoot": "Xynolog.Internal.Generated.Models.RetryRules.RetryRules -> Xynolog.Internal.Generated.Models.RetryRules.RetryRulesBoot",
         "retryRulesBootStatuses": "Xynolog.Internal.Generated.Models.RetryRules.RetryRulesBoot -> [Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus]",
         "retryRulesComment": "Xynolog.Internal.Generated.Models.RetryRules.RetryRules -> Data.Text.Internal.Text",

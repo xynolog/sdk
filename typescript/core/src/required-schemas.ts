@@ -600,6 +600,7 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['expectedDid', 'expectedName', 'kbId', 'redirectUri', 'target'],
   },
+  Binary: { kinds: ['string'] },
   BindBodyOperation: {
     kinds: ['object'],
     required: ['op'],
@@ -5448,7 +5449,7 @@ export const REQUIRED_SCHEMAS: {
       archiveOriginal: { kinds: ['string'] },
       cloneToken: { kinds: ['string'] },
       entityTypes: { kinds: ['string'] },
-      file: { kinds: ['string'] },
+      file: { ref: 'Binary' },
       format: { kinds: ['string'] },
       generationPrompt: { kinds: ['string'] },
       generator: { kinds: ['string'] },
@@ -5499,6 +5500,16 @@ export const REQUIRED_SCHEMAS: {
       },
     },
     closed: ['limits'],
+  },
+  RetryBudget: {
+    kinds: ['object'],
+    required: ['attempts', 'initialDelayMs', 'maxDelayMs'],
+    members: {
+      attempts: { kinds: ['integer'], minimum: 1 },
+      initialDelayMs: { kinds: ['integer'], minimum: 1 },
+      maxDelayMs: { kinds: ['integer'], minimum: 1 },
+    },
+    closed: ['attempts', 'initialDelayMs', 'maxDelayMs'],
   },
   Root: {
     kinds: ['object'],

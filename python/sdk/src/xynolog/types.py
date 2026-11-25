@@ -88,6 +88,7 @@ __all__ = [
     "BeckonHoverEvent",
     "BeckonSparkleEvent",
     "BeginAuthorizationOptions",
+    "Binary",
     "BindBodyOperation",
     "BindBodyOperationOp",
     "BindBodyUpdated",
@@ -590,6 +591,7 @@ __all__ = [
     "ResourceView",
     "Resources",
     "ResourcesLimits",
+    "RetryBudget",
     "Root",
     "RootCurrent",
     "RootPlacement",
@@ -2063,6 +2065,10 @@ class BeginAuthorizationOptions(WireModel, frozen=True, extra="forbid"):
         Field(alias="expectedName", description="The knowledge base's name the person believed they chose: verified after, never assumed."),
     ] = None
 
+
+type Binary = Annotated[
+    bytes, Field(description="Bytes held whole. They can be read more than once, and sent again when an upload is retried.")
+]
 
 type BindBodyOperationOp = Annotated[Literal["add", "remove", "replace"], Field(description="The type of body operation")]
 
@@ -8261,7 +8267,7 @@ class ResourceUpload(WireModel, frozen=True):
     """
 
     name: Annotated[str, Field(description="Human-readable resource name")]
-    file: Annotated[bytes, Field(description="Binary content")]
+    file: Annotated[Binary, Field(description="Binary content")]
     format: Annotated[str, Field(description="Media type of the content (e.g. text/plain, text/markdown, image/png)")]
     storage_uri: Annotated[
         str,
@@ -8329,6 +8335,16 @@ class ResourceView(WireModel, frozen=True, extra="forbid"):
             description="The sequence number of the last event applied. A graph read that follows a write waits for the graph projection to reach it.",
         ),
     ]
+
+
+class RetryBudget(WireModel, frozen=True, extra="forbid"):
+    """
+    A retry budget: how many `attempts` are allowed, with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`.
+    """
+
+    attempts: Annotated[int, Field(description="How many attempts the budget allows.")]
+    initial_delay_ms: Annotated[int, Field(alias="initialDelayMs", description="The delay before the second attempt, in milliseconds.")]
+    max_delay_ms: Annotated[int, Field(alias="maxDelayMs", description="The longest delay between attempts, in milliseconds.")]
 
 
 type RootPlacement = Annotated[

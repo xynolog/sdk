@@ -544,7 +544,12 @@ let string_shape =
 
 let go =
   let declared =
-    [ ("A", None); ("B", Some "string"); ("C", Some "map[string]int") ]
+    [
+      ("A", None);
+      ("B", Some "string");
+      ("C", Some "map[string]int");
+      ("D", Some "[]byte");
+    ]
   in
   let check shapes =
     List.map Decode.error_to_string (Required.Go.check ~declared shapes)
@@ -567,6 +572,10 @@ let go =
                  Required.Shape.Shape
                    { Required.Shape.empty with kinds = Some [ Object ] } );
              ]));
+    case "an alias of bytes read as the string encoding/json writes" (fun () ->
+        Alcotest.(check (list string))
+          "refusals" []
+          (check [ ("D", string_shape) ]));
     case "an alias whose schema holds more is refused" (fun () ->
         Alcotest.(check (list string))
           "refusals"

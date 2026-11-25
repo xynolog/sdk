@@ -220,7 +220,7 @@ async fn keep_renewed(agent: Weak<AgentToken>, token: watch::Receiver<Option<Str
                 return;
             };
             let _ = retry_with_backoff(
-                REFRESH_RETRY,
+                &REFRESH_RETRY,
                 agent.random.as_deref(),
                 || agent.renew(Some(due.as_str())),
                 worth_another,

@@ -36,6 +36,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `xynolog.types.RetryBudget`, the type of Protocol's
+  `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
+  `Timing.emitRetry` is one, and `retryWithBackoff` and
+  `retryWithBackoffFuture` take one. Its `attempts` is a `Long`.
+- `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
+  whole, which is a `String`.
 - The keys a registry keeps what it keeps under (`KNOWLEDGE_BASES_KEY`,
   `ACTIVE_KEY`, `OPEN_RESOURCES_BY_KB_KEY`, `LAST_VIEWED_RESOURCE_BY_KB_KEY`,
   `PENDING_AUTHORIZATION_KEY`) are generated from Protocol's

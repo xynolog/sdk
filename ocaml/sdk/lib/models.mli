@@ -55,6 +55,7 @@ val beckon_focus_event : [ `BeckonFocusEvent ] descriptor
 val beckon_hover_event : [ `BeckonHoverEvent ] descriptor
 val beckon_sparkle_event : [ `BeckonSparkleEvent ] descriptor
 val begin_authorization_options : [ `BeginAuthorizationOptions ] descriptor
+val binary : [ `Binary ] descriptor
 val bind_body_operation : [ `BindBodyOperation ] descriptor
 val bind_body_updated : [ `BindBodyUpdated ] descriptor
 val bind_initiate_command : [ `BindInitiateCommand ] descriptor
@@ -415,6 +416,7 @@ val resource_updated_payload : [ `ResourceUpdatedPayload ] descriptor
 val resource_upload : [ `ResourceUpload ] descriptor
 val resource_view : [ `ResourceView ] descriptor
 val resources : [ `Resources ] descriptor
+val retry_budget : [ `RetryBudget ] descriptor
 val root : [ `Root ] descriptor
 val roots_forget_params : [ `RootsForgetParams ] descriptor
 val roots_forget_result : [ `RootsForgetResult ] descriptor

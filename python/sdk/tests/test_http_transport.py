@@ -25,13 +25,13 @@ from xynolog.http import HttpTransport, Timing
 from xynolog.http.stream import SeenIds, backoff_cap_ms
 from xynolog.identifiers import ResourceId
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
-from xynolog.retry import RetryPolicy
 from xynolog.testing.liveness import DeliverySubject, assert_exactly_once_delivery
 from xynolog.timing import ERRORS_KEPT_FOR_FIRST_READER_COUNT, MAX_RECONNECT_MS, RECONNECT_MS
 from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold
+from xynolog.types import RetryBudget
 from xynolog.watched import Variable, reached
 
-QUICK = Timing(reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryPolicy(attempts=2, initial_delay_ms=1, max_delay_ms=1))
+QUICK = Timing(reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1))
 CHANNELS = ("beckon:focus", "browse:resource-result", "browse:resource-failed")
 
 
@@ -188,7 +188,7 @@ def test_a_transport_closed_before_it_was_opened_is_closed_and_cannot_be_opened(
 
 def test_closing_ends_an_emit_that_is_waiting_to_be_made_again() -> None:
     async def scenario() -> tuple[str, int | None, int, float]:
-        patient = Timing(reconnect_ms=10, emit_retry=RetryPolicy(attempts=5, initial_delay_ms=1, max_delay_ms=1))
+        patient = Timing(reconnect_ms=10, emit_retry=RetryBudget(attempts=5, initial_delay_ms=1, max_delay_ms=1))
         async with GatewayServer() as gateway:
             gateway.scripted[("POST", "/bus/emit")] = [
                 Answer(status=429, headers={"Retry-After": "600"}, body=b'{"error":"not now","code":"emit-rate"}')

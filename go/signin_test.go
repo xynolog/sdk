@@ -103,7 +103,7 @@ func (s *stack) grantsMade() int {
 
 func quickTiming() Timing {
 	timing := DefaultTiming()
-	timing.RefreshRetry = RetryPolicy{Attempts: 3, InitialDelay: time.Millisecond, MaxDelay: time.Millisecond}
+	timing.RefreshRetry = api.RetryBudget{Attempts: 3, InitialDelayMs: 1, MaxDelayMs: 1}
 	timing.HttpRequestTimeout = 5 * time.Second
 	return timing
 }

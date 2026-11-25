@@ -258,6 +258,7 @@ library internal
     Xynolog.Internal.Generated.Models.BeckonHoverEvent
     Xynolog.Internal.Generated.Models.BeckonSparkleEvent
     Xynolog.Internal.Generated.Models.BeginAuthorizationOptions
+    Xynolog.Internal.Generated.Models.Binary
     Xynolog.Internal.Generated.Models.BindBodyOperation
     Xynolog.Internal.Generated.Models.BindBodyUpdated
     Xynolog.Internal.Generated.Models.BindInitiateCommand
@@ -598,6 +599,7 @@ library internal
     Xynolog.Internal.Generated.Models.ResourceUploadMetadata
     Xynolog.Internal.Generated.Models.ResourceView
     Xynolog.Internal.Generated.Models.Resources
+    Xynolog.Internal.Generated.Models.RetryBudget
     Xynolog.Internal.Generated.Models.RetryRules
     Xynolog.Internal.Generated.Models.Root
     Xynolog.Internal.Generated.Models.RootsForgetParams

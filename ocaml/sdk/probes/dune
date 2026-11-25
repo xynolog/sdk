@@ -1,14 +1,9 @@
 (test
  (name transport)
- (modules transport subscription_timing)
+ (modules transport)
  (libraries xynolog eio_main eio.mock cohttp-eio tls-eio mirage-crypto-rng.unix
   x509 uri mtime ptime cstruct domain-name alcotest)
  (deps peer-cert.pem peer-key.pem))
-
-(rule
- (targets subscription_timing.ml)
- (deps ../lib/client_timing.ml)
- (action (copy %{deps} %{targets})))
 
 ; The certificate expires two days after the rule runs, so no cache may keep it.
 (rule

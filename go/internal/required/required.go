@@ -136,6 +136,7 @@ func readSchemas(source []byte) map[string]*shape {
 var (
 	apiPackage = reflect.TypeFor[api.ResourceId]().PkgPath()
 	rawMessage = reflect.TypeFor[json.RawMessage]()
+	byteSlice  = reflect.TypeFor[[]byte]()
 	// byType is the shape of each type read from the type, once.
 	byType sync.Map
 )
@@ -211,7 +212,7 @@ func shapeAmong(generated reflect.Type, building map[reflect.Type]*shape) *shape
 			}
 		}
 	case reflect.Slice, reflect.Array:
-		if generated != rawMessage {
+		if generated != rawMessage && generated != byteSlice {
 			read.Items = shapeAmong(generated.Elem(), building)
 		}
 	case reflect.Map:
@@ -222,10 +223,14 @@ func shapeAmong(generated reflect.Type, building map[reflect.Type]*shape) *shape
 }
 
 // kindsOf is the kinds of value a type that is no type of package api's is
-// read from; none for one read from any.
+// read from; none for one read from any. Bytes are read from a string, which
+// encoding/json decodes as base64.
 func kindsOf(generated reflect.Type) []string {
 	if generated == rawMessage {
 		return nil
+	}
+	if generated == byteSlice {
+		return []string{"string"}
 	}
 	switch generated.Kind() {
 	case reflect.Struct, reflect.Map:

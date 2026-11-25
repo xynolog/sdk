@@ -241,28 +241,9 @@ let typing_rows ~key type_ = function
 
 (* Timings *)
 
+(* Each entry a constant, a retry budget the model of client/RetryBudget.json. *)
 let timings (entries : Timing.Table.t) =
   [
-    decl [ "public" ]
-      (S.Struct
-         {
-           name = "RetryBudget";
-           generics = [];
-           inherits = [ S.Named "Sendable" ];
-           layout = S.Inline;
-           members =
-             List.map
-               (fun n ->
-                 decl [ "public" ]
-                   (S.Property
-                      {
-                        var = false;
-                        name = n;
-                        type_ = Some (S.Named "Int");
-                        value = None;
-                      }))
-               [ "attempts"; "initialDelayMs"; "maxDelayMs" ];
-         });
     decl [ "public" ]
       (S.Enum
          {

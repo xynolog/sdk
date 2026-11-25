@@ -11,7 +11,7 @@ let constant (e : Table.entry) =
   match e.value with
   | Duration n | Count n -> T.const ~about name (Int n)
   | Budget { attempts; initial_delay_ms; max_delay_ms } ->
-      T.const ~about name ~annotation:(T_name "RetryPolicy")
+      T.const ~about name ~annotation:(T_name "RetryBudget")
         (Object
            {
              layout = Inline;
@@ -31,7 +31,7 @@ let text (t : Table.t) =
           ~authority:[ "protocol/specs/src/client/timing.json" ]
           __FILE__;
       body =
-        T.import ~type_only:true [ "RetryPolicy" ] "./retry"
+        T.import ~type_only:true [ "RetryBudget" ] "./retry"
         :: List.map constant t;
     }
 
