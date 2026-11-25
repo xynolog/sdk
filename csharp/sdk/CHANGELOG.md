@@ -43,6 +43,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A model whose JSON member was never set is refused when written, with a
+  `JsonException` that names the member, as a default identifier is. It
+  threw an `InvalidOperationException` from System.Text.Json.
 - A schema that is a map of its own is that map, as the other SDKs alias
   it: `LastEventIds` is an `IReadOnlyDictionary<ResourceId, string>`, where
   it was a record that held the map as its `AdditionalProperties`.

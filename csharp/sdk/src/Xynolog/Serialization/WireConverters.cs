@@ -169,6 +169,10 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
         internal void Write(object model, Dictionary<string, JsonElement> fields, JsonSerializerOptions options)
         {
             var value = Property.GetValue(model);
+            if (value is JsonElement { ValueKind: JsonValueKind.Undefined })
+            {
+                throw new JsonException(Schema + "." + Wire + " is unset.");
+            }
             switch (Kind)
             {
                 case Kind.Constant:

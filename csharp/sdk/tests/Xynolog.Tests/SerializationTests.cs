@@ -49,6 +49,13 @@ public sealed class SerializationTests
         Assert.DoesNotContain(typeof(ResourceId).GetConstructors(), constructor => constructor.GetParameters().Length > 0);
     }
 
+    [Fact]
+    public void AnUnsetJsonMemberIsRefusedWhenWritten()
+    {
+        var refused = Assert.Throws<JsonException>(() => JsonSerializer.Serialize(Activator.CreateInstance<Xynolog.Types.ArchivistLayoutStorageUriIndex>()));
+        Assert.Equal("ArchivistLayoutStorageUriIndex.schema is unset.", refused.Message);
+    }
+
     private static Type Model(string name) => Assembly.Load("Xynolog").GetType("Xynolog.Types." + name)
         ?? throw new InvalidOperationException("Missing generated model " + name);
 }
