@@ -24,4 +24,6 @@ public static partial class RegistryStorage
     private const string CacheKeyPrefix = "xynolog.cache.";
 
     internal const string WholeKey = "_";
+
+    internal const long CacheDocumentVersion = 1;
 }

@@ -38,3 +38,7 @@ const cacheKeyPrefix = "xynolog.cache."
 // wholeKey: The key a kept query that is per nothing (a `queries` row of
 // specs/src/client/refresh.json with no `per`) keeps its one entry under.
 const wholeKey = "_"
+
+// cacheDocumentVersion: The form of the document. A document of another
+// version is read as none.
+const cacheDocumentVersion = 1

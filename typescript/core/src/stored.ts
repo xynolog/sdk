@@ -29,3 +29,6 @@ export const CACHE_KEY_PREFIX = 'xynolog.cache.';
 
 /** The key a kept query that is per nothing (a `queries` row of specs/src/client/refresh.json with no `per`) keeps its one entry under. */
 export const WHOLE_KEY = '_';
+
+/** The form of the document. A document of another version is read as none. */
+export const CACHE_DOCUMENT_VERSION = 1;

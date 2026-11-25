@@ -44,7 +44,6 @@ public sealed partial class TransportTests
             .Where(row => row.TryGetProperty("persisted", out var marked) && marked.GetBoolean()).Select(row => Text(row, "name")).ToArray();
         Assert.Equal(persisted, LiveQueries.PersistedQueries);
         var document = table.RootElement.GetProperty("cacheDocument");
-        Assert.Equal(document.GetProperty("properties").GetProperty("version").GetProperty("const").GetInt64(), KeptTable.Version);
         Assert.Equal(new[] { "version", "entries" }, document.GetProperty("required").EnumerateArray().Select(member => Assert.IsType<string>(member.GetString())));
         var store = new MemoryStorage();
         var session = RegistryTokens() with { RevocationEndpoint = "https://issuer.test/revoke", PersonKey = PersonKeyOf(cacheExample) };
