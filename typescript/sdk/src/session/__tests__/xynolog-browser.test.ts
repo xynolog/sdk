@@ -77,20 +77,18 @@ import {
   TEST_TOKEN_ENDPOINT,
   TEST_REVOCATION_ENDPOINT,
 } from './test-storage-helpers';
-import {
-  STORAGE_KEY,
-  ACTIVE_KEY,
-  OPEN_RESOURCES_BY_KB_KEY,
-  LAST_VIEWED_RESOURCE_BY_KB_KEY,
-} from '../storage';
-import { PENDING_AUTHORIZATION_KEY } from '../oauth';
 import { IdentityUnverifiableError } from '../connect';
 import { mockResource } from '../../__tests__/fixtures/resource';
 import { sayOn, type XynologSession } from '../xynolog-session';
 import { XynologSessionError } from '../errors';
 import {
+  ACTIVE_KEY,
   BusRequestError,
   ERRORS_KEPT_FOR_FIRST_READER_COUNT,
+  LAST_VIEWED_RESOURCE_BY_KB_KEY,
+  OPEN_RESOURCES_BY_KB_KEY,
+  PENDING_AUTHORIZATION_KEY,
+  STORAGE_KEY,
   resourceId,
 } from '@xynolog/core';
 import type { XynologError } from '@xynolog/core';

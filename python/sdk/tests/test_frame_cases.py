@@ -25,9 +25,8 @@ from xynolog.http import HttpTransport, Timing
 from xynolog.identifiers import ResourceId
 from xynolog.model import written
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
-from xynolog.retry import RetryPolicy
 from xynolog.transport import Frame, FrameRefusal
-from xynolog.types import BeckonFocusEvent, BrowseResourceResult, CommandError, GatherFailed
+from xynolog.types import BeckonFocusEvent, BrowseResourceResult, CommandError, GatherFailed, RetryBudget
 from xynolog.watched import Variable, reached
 
 type Told = Literal["readers", "failure-report"]
@@ -80,7 +79,7 @@ DELIVERED: Final = [case for case in TABLE.cases if isinstance(case, DeliveredFr
 REFUSED: Final = [case for case in TABLE.cases if not isinstance(case, DeliveredFrame)]
 
 QUICK: Final = Timing(
-    reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryPolicy(attempts=2, initial_delay_ms=1, max_delay_ms=1)
+    reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1)
 )
 REPLY: Final = BROWSE_RESOURCE_REQUESTED.result
 """The channel of the reply a request's case awaits, which it is read on by type."""

@@ -41,6 +41,7 @@
 
 use crate::errors::{BusRequestError, BusRequestErrorCode, XynologError};
 use crate::locked;
+use crate::session::CACHE_DOCUMENT_VERSION;
 use crate::state_unit::StateUnit;
 use crate::storage::SessionStorage;
 use crate::transport::BoxFuture;
@@ -879,11 +880,6 @@ where
 
 // ── Keeping a cache in a `SessionStorage` ───────────────────────────────
 
-/// The version of the document a `StoragePersister` writes:
-/// protocol/specs/src/session/stored.json's `cacheDocument`. A document of
-/// another reads as nothing kept.
-const VERSION: u64 = 1;
-
 /// One entry as it is stored: the key, the value, and when the value was
 /// received, in milliseconds since the epoch.
 type Stored = (Value, Value, u64);
@@ -952,7 +948,7 @@ fn entries(stored: &str) -> Option<Vec<Stored>> {
     let Value::Object(mut document) = serde_json::from_str(stored).ok()? else {
         return None;
     };
-    if document.get("version").and_then(whole) != Some(VERSION) {
+    if document.get("version").and_then(whole) != Some(CACHE_DOCUMENT_VERSION) {
         return None;
     }
     let Value::Array(entries) = document.remove("entries")? else {
@@ -1028,7 +1024,7 @@ impl<K: Serialize, V: Serialize> StoragePersister<K, V> {
         }
         let serialized = |entries: &[Stored]| {
             serde_json::to_string(&Document {
-                version: VERSION,
+                version: CACHE_DOCUMENT_VERSION,
                 entries,
             })
         };

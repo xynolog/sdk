@@ -24,9 +24,6 @@ import (
 	"github.com/xynolog/sdk/go/internal/required"
 )
 
-// PendingAuthorizationKey is the key a pending sign-in is remembered under.
-const PendingAuthorizationKey = "xynolog.pendingAuthorization"
-
 // CodeChallenge is RFC 7636 §4.2: BASE64URL(SHA-256(verifier)).
 func CodeChallenge(verifier string) string { return sha256URLSafe(verifier) }
 

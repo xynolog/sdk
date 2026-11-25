@@ -544,7 +544,7 @@ public sealed partial class TransportTests
         };
         using var client = new HttpClient(server);
         using var transport = new HttpTransport("http://unit.test", "first", ["beckon:focus"],
-            new Timing { EmitRetry = new RetryPolicy(2, 1, 1) },
+            new Timing { EmitRetry = new RetryBudget { Attempts = 2, InitialDelayMs = 1, MaxDelayMs = 1 } },
             refresher: async (refused, cancellation) =>
             {
                 if (refused == "first") return "second";
@@ -1042,15 +1042,6 @@ public sealed partial class TransportTests
         }
     }
 
-    [Theory]
-    [InlineData("emitRetry")]
-    [InlineData("refreshRetry")]
-    public void RetryBudgetShapeIsHeldToItsOwner(string entry)
-    {
-        var actual = typeof(RetryPolicy).GetProperties().Select(property => char.ToLowerInvariant(property.Name[0]) + property.Name[1..]).Order();
-        Assert.Equal(ProtocolTiming.Of(entry).EnumerateObject().Select(property => property.Name).Order(), actual);
-    }
-
     // Timing is the timing a caller may set, by hand: each member is an entry of client/timing.json, under its name,
     // and the entry's value unless a caller sets its own.
     [Fact]
@@ -1061,7 +1052,7 @@ public sealed partial class TransportTests
         {
             var entry = ProtocolTiming.Of(char.ToLowerInvariant(property.Name[0]) + property.Name[1..]);
             var expected = entry.ValueKind == JsonValueKind.Object
-                ? (object)new RetryPolicy(entry.GetProperty("attempts").GetInt32(), entry.GetProperty("initialDelayMs").GetInt32(), entry.GetProperty("maxDelayMs").GetInt32())
+                ? (object)new RetryBudget { Attempts = entry.GetProperty("attempts").GetInt64(), InitialDelayMs = entry.GetProperty("initialDelayMs").GetInt64(), MaxDelayMs = entry.GetProperty("maxDelayMs").GetInt64() }
                 : entry.GetInt32();
             Assert.Equal(expected, property.GetValue(protocol));
         }

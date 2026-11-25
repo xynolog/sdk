@@ -439,7 +439,7 @@ let subscription_replay () =
   let base = Eio_mock.Clock.Mono.make () in
   let jitter = Random.State.make [| 42 |] in
   let expected_delay =
-    float Subscription_timing.reconnect_ms
+    float Xynolog.Client_timing.reconnect_ms
     *. (0.5 +. (Random.State.float (Random.State.copy jitter) 1. *. 0.5))
   in
   let retry_at = Int64.of_float (expected_delay *. 1_000_000.) in
@@ -655,7 +655,7 @@ let scope_handoff () =
     Eio_mock.Clock.Mono.set_time base time;
     Promise.await_exn barrier
   in
-  let handoff_at = nanos Subscription_timing.reconnect_debounce_ms in
+  let handoff_at = nanos Xynolog.Client_timing.reconnect_debounce_ms in
   await_timer handoff_at;
   tick (Int64.pred handoff_at);
   Alcotest.(check int) "addition is debounced" 1 !opened;
@@ -667,7 +667,9 @@ let scope_handoff () =
   check "handoff stays open" true
     (S.state subscription = Xynolog.Enums.Connection_state.Open);
   Promise.resolve open_successor ();
-  let retire_at = Int64.add handoff_at (nanos Subscription_timing.linger_ms) in
+  let retire_at =
+    Int64.add handoff_at (nanos Xynolog.Client_timing.linger_ms)
+  in
   await_timer retire_at;
   publish original "overlap";
   read "overlap";
@@ -687,7 +689,7 @@ let scope_handoff () =
   check "old body still open before linger" true (not (List.mem 1 !closed));
   tick retire_at;
   let removal_at =
-    Int64.add retire_at (nanos Subscription_timing.lazy_remove_ms)
+    Int64.add retire_at (nanos Xynolog.Client_timing.lazy_remove_ms)
   in
   release_second ();
   release_second ();
@@ -701,7 +703,7 @@ let scope_handoff () =
   Promise.resolve open_final ();
   let release_again = S.hold_scope subscription scope in
   let rejoin_at =
-    Int64.add removal_at (nanos Subscription_timing.reconnect_debounce_ms)
+    Int64.add removal_at (nanos Xynolog.Client_timing.reconnect_debounce_ms)
   in
   await_timer rejoin_at;
   tick rejoin_at;

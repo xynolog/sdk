@@ -5,10 +5,10 @@ pub const BUS_REQUEST_TIMEOUT: std::time::Duration = std::time::Duration::from_m
 /// The deadline on one POST /bus/emit. The gateway accepts an emit promptly; one still unanswered here means the gateway is unresponsive, and the emit is rejected rather than awaited forever. Without it a worker's emit to a wedged gateway hangs its loop.
 pub const EMIT_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(30000);
 /// The retry budget of ONE emit. Per request, never per boot pass: re-running a whole catch-up pass to recover from one refusal re-sends hundreds of emits that already succeeded. Small on purpose: an emit a caller awaits must fail while the caller still cares, and the patience for a gateway that is down belongs to the pass above it.
-pub const EMIT_RETRY: crate::retry::RetryPolicy = crate::retry::RetryPolicy {
+pub const EMIT_RETRY: crate::types::RetryBudget = crate::types::RetryBudget {
     attempts: 4,
-    initial_delay: std::time::Duration::from_millis(1000),
-    max_delay: std::time::Duration::from_millis(4000),
+    initial_delay_ms: 1000,
+    max_delay_ms: 4000,
 };
 /// The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's own operations (who a token is, a media token, the resource metadata, health, status), the wait for a resource's bytes to begin arriving, a read of a resource's description or of its anchored text, a request to the issuer (its discovery, a grant, a revocation), and a read of a launcher's discovery document. Unanswered here, the request fails as one that got no answer. It bounds the read of a refusal's body too, of such a request or of the request that opens the stream (`streamOpenTimeoutMs`): a body not read by then is the refusal with none of the gateway's words, refused, renewed or retried as any refusal is. Without it, a gateway or an issuer that accepts a connection and never answers holds a session's start, and every renewal after it, for as long as the process lives. An upload has no deadline: how long it takes is how large the resource is. A read of anchored text may be held by the Archivist while the Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds` and `readSeconds` together, and the hold is shorter than `readSeconds`, which the reader's protocol rules (`reader/lib/protocol_rules.ml`) hold.
 pub const HTTP_REQUEST_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(30000);
@@ -31,10 +31,10 @@ pub const RECONNECT_DEBOUNCE: std::time::Duration = std::time::Duration::from_mi
 /// How long a removal from the subscription waits before the stream is reopened without it. Removal only narrows delivery, and reopening on every scope a viewer brushes past would churn the connection.
 pub const LAZY_REMOVE: std::time::Duration = std::time::Duration::from_millis(5000);
 /// The retry budget of one token renewal: long enough to ride out a gateway restart or a rolling deploy, short enough that a user with no connectivity is told within seconds rather than a minute.
-pub const REFRESH_RETRY: crate::retry::RetryPolicy = crate::retry::RetryPolicy {
+pub const REFRESH_RETRY: crate::types::RetryBudget = crate::types::RetryBudget {
     attempts: 4,
-    initial_delay: std::time::Duration::from_millis(500),
-    max_delay: std::time::Duration::from_millis(4000),
+    initial_delay_ms: 500,
+    max_delay_ms: 4000,
 };
 /// The LARGEST margin before expiry at which a token is proactively renewed. A ceiling, not the margin: the margin is half the token's own lifetime, capped here. A fixed margin can equal the lifetime an issuer mints (Keycloak's default is five minutes), which makes every renewal already due: an idle signed-in page then sends over a hundred token requests a second.
 pub const REFRESH_BEFORE_EXP: std::time::Duration = std::time::Duration::from_millis(300000);

@@ -940,24 +940,6 @@ fn sign_in_error(failure: Box<dyn Error + Send + Sync>) -> SignInError {
     }
 }
 
-/// The key a pending sign-in is kept under is protocol/specs/src/session/stored.json's;
-/// xynolog's tests hold the table's other keys.
-#[test]
-fn a_pending_sign_in_is_kept_under_the_tables_key() {
-    let table: Value = serde_json::from_str(include_str!(
-        "../../../protocol/specs/src/session/stored.json"
-    ))
-    .expect("the table");
-    let key = table["keys"]
-        .as_array()
-        .expect("the keys")
-        .iter()
-        .find(|entry| entry["member"] == "pendingAuthorizationKey")
-        .and_then(|entry| entry["key"].as_str())
-        .expect("the table names the pending sign-in's key");
-    assert_eq!(PENDING_AUTHORIZATION_KEY, key);
-}
-
 #[tokio::test]
 async fn revoking_tells_the_issuer_as_the_client_the_token_was_issued_to() {
     let world = World::start().await;

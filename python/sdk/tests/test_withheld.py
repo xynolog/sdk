@@ -52,16 +52,15 @@ from xynolog.identifiers import ResourceId
 from xynolog.model import WireModel
 from xynolog.operations import YIELD_CLONE_TOKEN_REQUESTED
 from xynolog.required import Fault, fault_of
-from xynolog.retry import RetryPolicy
 from xynolog.testing import FaultyTransport
 from xynolog.transport import Frame, FrameRefusal
-from xynolog.types import YieldCloneTokenRequest
+from xynolog.types import RetryBudget, YieldCloneTokenRequest
 from xynolog.watched import Variable, reached
 
 MEDIA: Final = "/api/tokens/media"
 RESOURCE: Final = ResourceId("res-1")
 BYTES: Final = f"/resources/{RESOURCE}"
-QUICK: Final = Timing(reconnect_ms=10, emit_retry=RetryPolicy(attempts=2, initial_delay_ms=1, max_delay_ms=1))
+QUICK: Final = Timing(reconnect_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1))
 
 GRANT: Final = says({"access_token": CARRIED, "token": CARRIED}).body
 """An answer that grants a token, whichever request of this package it answers."""

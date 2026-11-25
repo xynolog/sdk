@@ -4,8 +4,9 @@ package xynolog
 // held to protocol/specs/src/session/stored.json: the keys of a stream's places
 // and of the kept queries, which queries are kept, the form of a kept document
 // and of the places, and how a sign-in pending is read. What each document
-// holds is cache_cases_test.go's. The registry's own keys are
-// registry/stored_test.go's.
+// holds is cache_cases_test.go's. The fixed keys, the prefixes and the whole
+// key and a kept document's version are generated from the table (stored_gen.go,
+// registry/stored_gen.go).
 
 import (
 	"context"
@@ -46,13 +47,8 @@ type sessionTable struct {
 		Prefix  string     `json:"prefix"`
 		Example keyExample `json:"example"`
 	} `json:"cacheKeyPrefix"`
-	WholeKey struct {
-		Key string `json:"key"`
-	} `json:"wholeKey"`
 	CacheDocument struct {
-		Properties map[string]struct {
-			Const json.RawMessage `json:"const"`
-		} `json:"properties"`
+		Properties map[string]json.RawMessage `json:"properties"`
 	} `json:"cacheDocument"`
 	PendingAuthorization objectShape `json:"pendingAuthorization"`
 }
@@ -124,13 +120,6 @@ func TestTheQueriesKeptAreThoseTheRefreshTablePersists(t *testing.T) {
 
 func TestAKeptDocumentAndThePlacesAreOfTheTablesForm(t *testing.T) {
 	table := readSessionTable(t)
-	if got, want := textOf(t, whole{}), textOf(t, table.WholeKey.Key); got != want {
-		t.Errorf("the key of a query of one value is written %s; the table's is %s", got, want)
-	}
-
-	if version := string(table.CacheDocument.Properties["version"].Const); !sameJSON(t, textOf(t, keptVersion), version) {
-		t.Errorf("a kept document is of version %d; the table's is %s", keptVersion, version)
-	}
 	storage := NewMemoryStorage()
 	key := CacheKey("kb-a", PersonKey("did:web:kb.example.org:users:jo%40example.org"), CacheQueryEntityTypes)
 	NewStoragePersister[whole, []string](storage, key, DefaultTiming().MaxStoredBytesCount).Save(map[whole][]string{{}: {"Person"}})

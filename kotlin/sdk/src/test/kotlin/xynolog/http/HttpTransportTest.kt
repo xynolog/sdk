@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test
 import xynolog.errors.TransportError
 import xynolog.errors.XynologError
 import xynolog.identifiers.ResourceId
-import xynolog.retry.RetryPolicy
 import xynolog.types.ConnectionState
+import xynolog.types.RetryBudget
 import java.io.IOException
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -209,7 +209,7 @@ class HttpTransportTest {
     fun aRefusedEmitWhoseBodySaysNothingIsReportedByItsStatus() = runBlocking {
         Answering(unavailable("", 0)).use { gateway ->
             // Carrying nothing, the transport opens no stream: the emit is its only request.
-            HttpTransport(gateway.origin, MutableStateFlow("token"), emptyList(), Timing(emitRetry = RetryPolicy(attempts = 1, initialDelayMs = 1, maxDelayMs = 1))).use { transport ->
+            HttpTransport(gateway.origin, MutableStateFlow("token"), emptyList(), Timing(emitRetry = RetryBudget(attempts = 1, initialDelayMs = 1, maxDelayMs = 1))).use { transport ->
                 val refused = try {
                     transport.emit("beckon:focus", JsonObject(emptyMap()), null, null)
                     null

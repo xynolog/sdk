@@ -2,16 +2,7 @@ import Crypto
 import Foundation
 import Synchronization
 
-public let knowledgeBasesKey = "xynolog.knowledgeBases"
-public let activeKey = "xynolog.activeKnowledgeBaseId"
-public let openResourcesByKbKey = "xynolog.openResourcesByKb"
-public let lastViewedResourceByKbKey = "xynolog.lastViewedResourceByKb"
-public let pendingAuthorizationKey = "xynolog.pendingAuthorization"
-private let sessionPrefix = "xynolog.session."
-let cacheKeyPrefix = "xynolog.cache."
-let lastEventIdKeyPrefix = "xynolog.lastEventId."
-
-public func sessionKey(_ kbId: String) -> String { sessionPrefix + kbId }
+public func sessionKey(_ kbId: String) -> String { sessionKeyPrefix + kbId }
 
 /// The key a person's caches and stream places are kept under: the unpadded base64url SHA-256 of
 /// the UTF-8 of their did, never the did itself.
@@ -37,8 +28,8 @@ func forgetKept(_ storage: any SessionStorage, kbId: String, of forgotten: Store
 }
 
 public func kbOfSessionKey(_ key: String) -> String? {
-  guard key.hasPrefix(sessionPrefix) else { return nil }
-  return String(key.dropFirst(sessionPrefix.count))
+  guard key.hasPrefix(sessionKeyPrefix) else { return nil }
+  return String(key.dropFirst(sessionKeyPrefix.count))
 }
 
 func storedText<Value: Encodable>(_ value: Value) throws -> String {

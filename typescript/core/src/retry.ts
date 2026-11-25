@@ -6,7 +6,7 @@
  * `emitRetry` (http-transport), one renewal inside `refreshRetry` (sdk).
  *
  * **What lives HERE — the mechanism, because it is one fact each:**
- *   - `RetryPolicy` / `retryWithBackoff` — the loop, deadline-aware
+ *   - `RetryBudget` / `retryWithBackoff` — the loop, deadline-aware
  *   - `equalJitter` — the backoff curve, shared with the SSE reconnect
  *   - the predicates that narrow an error type CORE owns (`isTransientFetchError`
  *     over `fetch`'s `TypeError`, `isRetryableRequestError` over `HttpStatusError`)
@@ -26,16 +26,10 @@
  */
 
 import { RETRY_RULES } from './retry-rules';
+import type { components } from './types';
 import { UnansweredError } from './unanswered';
 
-export interface RetryPolicy {
-  /** Total attempts, including the first one. */
-  attempts: number;
-  /** Ceiling on the delay before the second attempt; doubles each retry. */
-  initialDelayMs: number;
-  /** Ceiling for the doubled delay. */
-  maxDelayMs: number;
-}
+export type RetryBudget = components['schemas']['RetryBudget'];
 
 /**
  * Equal jitter: half the computed ceiling, plus a random share of the other
@@ -172,7 +166,7 @@ function waited(ms: number, signal: AbortSignal | undefined): Promise<boolean> {
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   isRetryable: (error: unknown) => boolean,
-  policy: RetryPolicy,
+  policy: RetryBudget,
   signal?: AbortSignal,
 ): Promise<T> {
   signal?.throwIfAborted();

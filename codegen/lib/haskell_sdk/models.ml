@@ -27,10 +27,6 @@ module Named = Map.Make (String)
 
 let lower = String.uncapitalize_ascii
 
-(* A record's field for its member [key]: the record's name begun lower case
-   and the member's in Pascal case. *)
-let field record key = lower record ^ Text.pascal key
-
 (* An enumeration's constructor for [value]: the enumeration's name and the
    value's ([Naming.variant]). *)
 let constructor enumeration : Schema.literal -> string = function
@@ -547,7 +543,7 @@ and object_ state name original (members : T.member list) (rest : T.rest) ~open_
          (fun found (m : T.member) ->
            let* found = found in
            let key = m.wire in
-           let accessor = field name key in
+           let accessor = H.field name key in
            let nullable, ty =
              match m.ty with Nullable ty -> (true, ty) | ty -> (false, ty)
            in

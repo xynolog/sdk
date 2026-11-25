@@ -25,7 +25,7 @@ import {
   type EventMap,
   type Fault,
   type ResourceId,
-  type RetryPolicy,
+  type RetryBudget,
   type StateUnit,
   type TraceCarrier,
   type TransportErrorCode,
@@ -118,7 +118,7 @@ export interface ActorStateUnitOptions {
    */
   lazyRemoveMs?: number;
   /** The retry budget of one emit. Default `EMIT_RETRY`. */
-  emitRetry?: RetryPolicy;
+  emitRetry?: RetryBudget;
   /** How long a superseded connection keeps draining after a handoff. Default `LINGER_MS`. */
   lingerMs?: number;
   /** How many of the event ids delivered last are remembered. Default `SEEN_EVENT_IDS_COUNT`. */

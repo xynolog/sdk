@@ -19,13 +19,13 @@ use tokio::sync::watch;
 use tokio::task::JoinSet;
 use xynolog::bus::{Bus, operation};
 use xynolog::errors::XynologError;
-use xynolog::retry::RetryPolicy;
 use xynolog::transport::{BoxFuture, ContentTransport, Envelope, GatewayOperations, PutBinaryRequest, ResourceHold, Transport};
 use xynolog::types::ConnectionState;
 use xynolog::types::{
     ConformanceDriverLine, ConformanceDriverLineErrorStream, ConformanceDriverLineFrame,
     ConformanceDriverLineFrameFrame, ConformanceDriverLineProgress,
-    ConformanceDriverLineProgressProgress, ConformanceDriverLineState, ResourceId, UploadProgress,
+    ConformanceDriverLineProgressProgress, ConformanceDriverLineState, ResourceId, RetryBudget,
+    UploadProgress,
 };
 use xynolog_conformance_drivers::{
     Arguments, Driver, Ended, Running, count, failure, identifier, locked, object,
@@ -111,11 +111,10 @@ impl Wire {
                 }
                 "emitRetry" => {
                     let budget = object(stated, name)?;
-                    timing.emit_retry = RetryPolicy {
-                        attempts: u32::try_from(count(budget, "attempts")?)
-                            .map_err(|_| Ended::Misuse("attempts is too large".to_owned()))?,
-                        initial_delay: Duration::from_millis(count(budget, "initialDelayMs")?),
-                        max_delay: Duration::from_millis(count(budget, "maxDelayMs")?),
+                    timing.emit_retry = RetryBudget {
+                        attempts: count(budget, "attempts")?,
+                        initial_delay_ms: count(budget, "initialDelayMs")?,
+                        max_delay_ms: count(budget, "maxDelayMs")?,
                     };
                 }
                 other => {

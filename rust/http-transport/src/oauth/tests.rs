@@ -324,7 +324,7 @@ async fn a_renewal_the_issuer_never_answers_is_tried_inside_the_budget_and_then_
     .map_err(sign_in_error)
     .expect_err("the budget is spent");
 
-    let attempts = REFRESH_RETRY.attempts;
+    let attempts = u32::try_from(REFRESH_RETRY.attempts).expect("a budget of a few attempts");
     assert_eq!(issuer.forms().len(), attempts as usize);
     assert_eq!(
         refused.message,

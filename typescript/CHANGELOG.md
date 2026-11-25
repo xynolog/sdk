@@ -8,6 +8,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `@xynolog/core` exports the keys a registry and its sessions keep what
+  they keep under, generated from Protocol's `session/stored.json`:
+  `STORAGE_KEY`, `ACTIVE_KEY`, `OPEN_RESOURCES_BY_KB_KEY`,
+  `LAST_VIEWED_RESOURCE_BY_KB_KEY`, `PENDING_AUTHORIZATION_KEY`, the
+  prefixes `SESSION_KEY_PREFIX`, `LAST_EVENT_ID_KEY_PREFIX` and
+  `CACHE_KEY_PREFIX`, `WHOLE_KEY`, and a kept query's document's version,
+  `CACHE_DOCUMENT_VERSION`. The SDK makes its keys and documents of them;
+  `@xynolog/sdk`'s `cache-persister` module no longer states the version.
 - `ServiceEnvironmentVariable`: every environment variable a Xynolog service
   reads, beside its configuration document, by its name
   (`ServiceEnvironmentVariable.XYNOLOG_BUS_LOG`). The bus log reads its
@@ -51,6 +59,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `RetryBudget`, the type of Protocol's
+  `client/RetryBudget.json` (`components['schemas']['RetryBudget']`), where
+  it was `RetryPolicy`: `EMIT_RETRY` and `REFRESH_RETRY` are one, and
+  `retryWithBackoff` and a transport's `emitRetry` take one. Its members are
+  as they were.
+- `ResourceUpload`'s `file` is `components['schemas']['Binary']`, the type of
+  Protocol's bytes held whole, which is still a `string`.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `GetAnnotationsResponse`'s `motivation` is an optional `Motivation`, where

@@ -124,8 +124,8 @@
     "lib/client_core.mli": "332f7bb6fde85b3730a125d768d85be422629c6364f34cfc75c11433a086ee74",
     "lib/client_query.ml": "eb6fc5678015e8e48f296efe403e21795b46005ddec65d042ef9a4d2eb5011e2",
     "lib/client_record.ml": "4426f9cc4ab4e5d96403cb5c1e780d8f5cbcc593905964062219847f202bcead",
-    "lib/client_timing.ml": "6a7215850e59f60a4c5d92477c73b4ac04a47510acff3a39d931a38789fb4de0",
-    "lib/client_timing.mli": "39d78d21f3de0f064ce6fd62d9f5a68d8b90ce21d85c3cc10a7177af3428c533",
+    "lib/client_timing.ml": "f0eba736f2f18a07c65f734c629fa94cfe6648e3e967b8b9e03447ba04cb2606",
+    "lib/client_timing.mli": "09c3204e45443ed9764d70785a9a4f33a3b76818c9901f0e870322cc8c0168af",
     "lib/clock.ml": "71063b036aa3069ad2ed649ba8a73505b4eb4a00631c48af43a01f732c6623ab",
     "lib/clock.mli": "5333b1d2447f81415c54bfc99d87ae98362a4ce249695d7783c35df41cdab364",
     "lib/control.ml": "e59aa7ab3626e5093d2414f08bfd9625b383a2a675ca6e32c1276d6c8c6a4562",
@@ -198,8 +198,8 @@
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "b5304c8b1d16637743f5036069431ea2b0f4f5ef4d856e76d14583178bf506f5",
     "lib/resources.mli": "19c9a01b99a577f62cf85d1922c4abdf6584c5648321b6500602ee22f8429460",
-    "lib/retry.ml": "c1d938db21bb4c1a99b5e103f0d552af5299b9f8c09ad6e299857bb4fa64ca11",
-    "lib/retry.mli": "dc9e910cc0c0ac2904e00416c4259b80deebf0fe296852bc3f0ff1adcbe3387b",
+    "lib/retry.ml": "5b706f83906d5d97c46fb3e55e9e38672e557404b4f1b59e69eadd73eb45cb3e",
+    "lib/retry.mli": "2792680b10e43d361d6c78bf5fe0758cd38adfd6fc6425ca333af18becd8202d",
     "lib/running.ml": "d1e491aa088ca534f4668aa784ce843b98aea9c83b0dfe42c8f679dbb8c0cb03",
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
@@ -274,7 +274,7 @@
     "lib/yield_state.ml": "964626f32956299da2c452708bd8be0e9c69017c7c98b8cef2a96cbfae777cf0",
     "lib/yield_state.mli": "fe746d0f5b1657d53c8a2856e1ee7b0626dd570e0c855ba57fe502958686b978",
     "probes/api_inventory.ml": "97b819335b2d6d55f2f4a7c73422ad4df34ca5e459fe4df300f01a0ff5efb36a",
-    "probes/dune": "ba1fed5d8ec703fcb895d69c0f59506fc2bcd19d8dcfcfaa6d50a2c72ff01bb1",
+    "probes/dune": "a6dfea54d41769a2f81ab943f4e8d1ce3588830d6bf690ce9d8248cba9abe4d3",
     "public-api.inputs.json": "d51dffdaf5479e46082425ce99f6a1de24d4e0443fc1dff943e91df103ee14e0",
     "xynolog.opam": "68040d9729a552220494a7a9055d55a470629e5259b7ac5d6b2156a4e696f095"
   },
@@ -39870,24 +39870,13 @@
     {
       "kind": "value",
       "path": "Xynolog.Retry.retry_with_backoff",
-      "declaration": "val retry_with_backoff :\n  clock:Xynolog__.Clock.t ->\n  budget:Xynolog__.Client_timing.retry ->\n  accepts:('error -> bool) ->\n  retry_after:('error -> int option) ->\n  (unit -> ('value, 'error) result) -> ('value, 'error) result"
+      "declaration": "val retry_with_backoff :\n  clock:Xynolog__.Clock.t ->\n  budget:Xynolog__.Records.Retry_budget.t ->\n  accepts:('error -> bool) ->\n  retry_after:('error -> int option) ->\n  (unit -> ('value, 'error) result) -> ('value, 'error) result"
     },
     {
       "kind": "module",
       "path": "Xynolog.Client_timing",
       "declaration": "module Client_timing = Xynolog__.Client_timing",
       "alias": "Xynolog__.Client_timing"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Client_timing.retry",
-      "declaration": "type retry = { attempts : int; initial_delay_ms : int; max_delay_ms : int; }",
-      "representation": "record",
-      "fields": [
-        "attempts",
-        "initial_delay_ms",
-        "max_delay_ms"
-      ]
     },
     {
       "kind": "value",
@@ -39902,7 +39891,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client_timing.emit_retry",
-      "declaration": "val emit_retry : retry"
+      "declaration": "val emit_retry : Xynolog__.Records.Retry_budget.t"
     },
     {
       "kind": "value",
@@ -39957,7 +39946,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client_timing.refresh_retry",
-      "declaration": "val refresh_retry : retry"
+      "declaration": "val refresh_retry : Xynolog__.Records.Retry_budget.t"
     },
     {
       "kind": "value",

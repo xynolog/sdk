@@ -11,7 +11,7 @@ let value (e : Table.entry) =
   match e.value with
   | Duration n | Count n -> P.Int n
   | Budget { attempts; initial_delay_ms; max_delay_ms } ->
-      P.call "RetryPolicy"
+      P.call "RetryBudget"
         [
           P.keyword "attempts" (P.Int attempts);
           P.keyword "initial_delay_ms" (P.Int initial_delay_ms);
@@ -37,7 +37,7 @@ let text (t : Table.t) =
       imports =
         [
           [ P.From ("typing", [ "Final" ]) ];
-          [ P.From ("xynolog.retry", [ "RetryPolicy" ]) ];
+          [ P.From ("xynolog.types", [ "RetryBudget" ]) ];
         ];
       body =
         P.assign "__all__"

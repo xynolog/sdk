@@ -333,6 +333,9 @@ export {
   type ControlErrorData,
 } from './control-methods';
 export * from './oauth-clients';
+// The keys a registry and its sessions keep what they keep under, generated
+// from protocol/specs/src/session/stored.json — the table every SDK generates from.
+export * from './stored';
 // The gateway's routes, headers and client secret form, generated from
 // protocol/specs/src/openapi.json and its paths.
 export * from './gateway-http';
@@ -458,7 +461,7 @@ export {
   isRetryableRequestError,
   retryAfterMs,
 } from './retry';
-export type { HttpStatusError, RetryPolicy } from './retry';
+export type { HttpStatusError, RetryBudget } from './retry';
 
 // Browser ↔ launcher KB discovery — the canonical served URL of the
 // launcher's discovery document.

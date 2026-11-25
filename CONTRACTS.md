@@ -15,6 +15,7 @@ Each kind of contract the pinned Protocol states, how many items it has, and how
 | error codes | 67 | 67 | 67 | 67 | 67 | 67 | 67 | 67 | 67 | 67 |
 | identifier kinds | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
 | timing | 41 | 41 | 41 | 41 | 41 | 41 | 41 | 41 | 41 | 41 |
+| stored keys | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
 | service environment variables | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 |
 | telemetry spans | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 |
 | telemetry metrics | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |

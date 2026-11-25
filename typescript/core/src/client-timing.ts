@@ -3,7 +3,7 @@
 // Authority:   protocol/specs/src/client/timing.json
 // Regenerate:  make generate  (codegen/lib/timing/typescript.ml)
 
-import type { RetryPolicy } from './retry';
+import type { RetryBudget } from './retry';
 
 /** How long a bus request has, from the call, to be answered: the wait for the stream to open, the emit with its retries and the waits between them, and the wait for the reply. When it falls due the request fails as timed out, and an emit still in flight is given up, with no attempt after it. The gateway keeps a reply for redelivery at least twice this long (`replyRetentionSeconds` on POST /bus/subscribe), so a reply published during an outage is still there when the requester reconnects inside its own deadline. */
 export const BUS_REQUEST_TIMEOUT_MS = 30000;
@@ -12,7 +12,7 @@ export const BUS_REQUEST_TIMEOUT_MS = 30000;
 export const EMIT_TIMEOUT_MS = 30000;
 
 /** The retry budget of ONE emit. Per request, never per boot pass: re-running a whole catch-up pass to recover from one refusal re-sends hundreds of emits that already succeeded. Small on purpose: an emit a caller awaits must fail while the caller still cares, and the patience for a gateway that is down belongs to the pass above it. */
-export const EMIT_RETRY: RetryPolicy = {
+export const EMIT_RETRY: RetryBudget = {
   attempts: 4,
   initialDelayMs: 1000,
   maxDelayMs: 4000,
@@ -49,7 +49,7 @@ export const RECONNECT_DEBOUNCE_MS = 100;
 export const LAZY_REMOVE_MS = 5000;
 
 /** The retry budget of one token renewal: long enough to ride out a gateway restart or a rolling deploy, short enough that a user with no connectivity is told within seconds rather than a minute. */
-export const REFRESH_RETRY: RetryPolicy = {
+export const REFRESH_RETRY: RetryBudget = {
   attempts: 4,
   initialDelayMs: 500,
   maxDelayMs: 4000,

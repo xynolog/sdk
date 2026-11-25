@@ -80,26 +80,37 @@ func readClockCases(t *testing.T) []clockCase {
 // ── Durations ───────────────────────────────────────────────────────────
 
 // clockTiming is the duration protocol/specs/src/client/timing.json names, as
-// this SDK's Timing holds it: "reconnectMs" is Timing.Reconnect, and a retry
-// budget's member follows its budget and a ".", "emitRetry.initialDelayMs"
-// being Timing.EmitRetry.InitialDelay.
+// this SDK's Timing holds it: "reconnectMs" is Timing.Reconnect, a
+// time.Duration, and a retry budget's member follows its budget and a ".",
+// "emitRetry.initialDelayMs" being Timing.EmitRetry.InitialDelayMs, in
+// milliseconds as the table states it.
 func clockTiming(name string) (time.Duration, error) {
-	value := reflect.ValueOf(xynolog.DefaultTiming())
-	for _, part := range strings.Split(name, ".") {
-		runes := []rune(strings.TrimSuffix(part, "Ms"))
+	field := func(of reflect.Value, part string) reflect.Value {
+		runes := []rune(part)
 		if len(runes) == 0 {
-			return 0, fmt.Errorf("%s is no timing of this SDK's", name)
+			return reflect.Value{}
 		}
 		runes[0] = unicode.ToUpper(runes[0])
-		value = value.FieldByName(string(runes))
-		if !value.IsValid() {
-			return 0, fmt.Errorf("%s is no timing of this SDK's", name)
+		return of.FieldByName(string(runes))
+	}
+	timing := reflect.ValueOf(xynolog.DefaultTiming())
+	entry, member, ofBudget := strings.Cut(name, ".")
+	if !ofBudget {
+		value := field(timing, strings.TrimSuffix(entry, "Ms"))
+		if !value.IsValid() || value.Type() != reflect.TypeFor[time.Duration]() {
+			return 0, fmt.Errorf("%s is no duration of this SDK's timing", name)
 		}
+		return time.Duration(value.Int()), nil
 	}
-	if value.Type() != reflect.TypeFor[time.Duration]() {
-		return 0, fmt.Errorf("%s is no duration of this SDK's timing", name)
+	budget := field(timing, entry)
+	if !budget.IsValid() || budget.Type() != reflect.TypeFor[api.RetryBudget]() {
+		return 0, fmt.Errorf("%s is no retry budget of this SDK's timing", name)
 	}
-	return time.Duration(value.Int()), nil
+	value := field(budget, member)
+	if !value.IsValid() || !strings.HasSuffix(member, "Ms") {
+		return 0, fmt.Errorf("%s is no delay of this SDK's timing", name)
+	}
+	return time.Duration(value.Int()) * time.Millisecond, nil
 }
 
 // clockDuration is a duration as the table states it: milliseconds, or a

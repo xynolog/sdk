@@ -4,13 +4,9 @@
 //! protocol/specs/src/session/stored.json.
 
 use serde_json::{Map, Value};
-use std::collections::BTreeMap;
 use xynolog::identity;
 use xynolog::refresh::CacheQuery;
-use xynolog::session::{
-    ACTIVE_KEY, KNOWLEDGE_BASES_KEY, LAST_VIEWED_RESOURCE_BY_KB_KEY, OPEN_RESOURCES_BY_KB_KEY,
-    cache_key, last_event_id_key, person_key, session_key,
-};
+use xynolog::session::{cache_key, last_event_id_key, person_key, session_key};
 use xynolog::testing::as_id;
 use xynolog::types::{OpenResource, StoredSession};
 
@@ -133,41 +129,10 @@ fn kind_cases() {
     }
 }
 
-/// The keys this crate states by hand, by the name the table gives each.
-/// `pendingAuthorizationKey` is the transport crate's, and its tests hold its
-/// value.
-const KEYS: [(&str, &str); 4] = [
-    ("knowledgeBasesKey", KNOWLEDGE_BASES_KEY),
-    ("activeKey", ACTIVE_KEY),
-    ("openResourcesByKbKey", OPEN_RESOURCES_BY_KB_KEY),
-    ("lastViewedResourceByKbKey", LAST_VIEWED_RESOURCE_BY_KB_KEY),
-];
-
-/// A key or a member the table gains fails here until Rust has it.
+/// A member the table gains fails here until Rust has it.
 #[test]
 fn what_a_registry_keeps_is_the_tables() {
     let stored = table(include_str!("../specs/session/stored.json"));
-    let keys: BTreeMap<String, String> = stored["keys"]
-        .as_array()
-        .expect("stored.json has keys")
-        .iter()
-        .map(|entry| (text(entry, "member"), text(entry, "key")))
-        .collect();
-    let mut known: Vec<&str> = KEYS
-        .iter()
-        .map(|(member, _)| *member)
-        .chain(["pendingAuthorizationKey"])
-        .collect();
-    known.sort_unstable();
-    assert_eq!(
-        keys.keys().map(String::as_str).collect::<Vec<_>>(),
-        known,
-        "the table's keys are the ones Rust states"
-    );
-    for (member, key) in KEYS {
-        assert_eq!(keys[member], key, "{member}");
-    }
-
     assert_eq!(
         session_key("kb-a"),
         format!("{}kb-a", text(&stored["sessionKeyPrefix"], "prefix")),

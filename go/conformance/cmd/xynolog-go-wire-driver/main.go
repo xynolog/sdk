@@ -227,7 +227,7 @@ func timing(args protocol.Arguments) (xynolog.Timing, error) {
 					return timing, e
 				}
 			}
-			timing.EmitRetry = xynolog.RetryPolicy{Attempts: int(attempts), InitialDelay: time.Duration(initial) * time.Millisecond, MaxDelay: time.Duration(maximum) * time.Millisecond}
+			timing.EmitRetry = api.RetryBudget{Attempts: int(attempts), InitialDelayMs: int(initial), MaxDelayMs: int(maximum)}
 		default:
 			return timing, protocol.Misused("this driver cannot override %s", name)
 		}

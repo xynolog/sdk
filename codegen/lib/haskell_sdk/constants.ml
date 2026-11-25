@@ -119,8 +119,7 @@ let modules (spec : Spec.t) =
                   "SessionFactoryOptions"
                   (List.map
                      (fun (field, type_) ->
-                       ( Models.field "SessionFactoryOptions" field,
-                         H.T_name type_ ))
+                       (H.field "SessionFactoryOptions" field, H.T_name type_))
                      fields);
               ];
           ])

@@ -1,7 +1,7 @@
 (* The timing as the Go SDK reads it (go/timing.go): one field of [Timing] per
    entry, and [DefaultTiming], the table's values. A duration is a
    time.Duration named without its unit ([reconnectMs] is [Reconnect]), a
-   retry budget a RetryPolicy, and a count an int. *)
+   retry budget package api's RetryBudget, and a count an int. *)
 
 module G = Go_syntax
 
@@ -21,11 +21,11 @@ let value (e : Table.entry) =
   match e.value with
   | Duration n -> ms n
   | Budget { attempts; initial_delay_ms; max_delay_ms } ->
-      G.inline ~of_:(G.Named "RetryPolicy")
+      G.inline ~of_:(G.Named "api.RetryBudget")
         [
           G.keyed "Attempts" (G.Int attempts);
-          G.keyed "InitialDelay" (ms initial_delay_ms);
-          G.keyed "MaxDelay" (ms max_delay_ms);
+          G.keyed "InitialDelayMs" (G.Int initial_delay_ms);
+          G.keyed "MaxDelayMs" (G.Int max_delay_ms);
         ]
   | Count n -> G.Int n
 
@@ -40,7 +40,7 @@ let text (t : Table.t) =
            The TypeScript, Python and Rust constants are generated from the \
            same table.";
       package = "xynolog";
-      imports = [ [ "time" ] ];
+      imports = [ [ "time" ]; [ "github.com/xynolog/sdk/go/api" ] ];
       decls =
         [
           G.Type
@@ -71,7 +71,7 @@ let text (t : Table.t) =
                               G.Named
                                 (match e.value with
                                 | Duration _ -> "time.Duration"
-                                | Budget _ -> "RetryPolicy"
+                                | Budget _ -> "api.RetryBudget"
                                 | Count _ -> "int");
                             tag = None;
                           })

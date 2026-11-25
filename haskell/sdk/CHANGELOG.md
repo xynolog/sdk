@@ -51,6 +51,14 @@ the coming release's, and gathers its changes as they land.
   `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
   and `TargetKind`; `InferenceProvider` names an inference provider, in
   place of `EngineProvider`.
+- A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
+  `client/RetryBudget.json`, where `Xynolog.Timing` declared one of its own:
+  its fields are `retryBudgetAttempts`, `retryBudgetInitialDelayMs` and
+  `retryBudgetMaxDelayMs`, where they were `retryAttempts`,
+  `retryInitialDelayMs` and `retryMaxDelayMs`. One read from JSON is held to
+  its schema, so each member is at least 1.
+- `ResourceUpload`'s `resourceUploadFile` is a `Binary`, the type of
+  Protocol's bytes held whole.
 - The HTTP transport names each span and its count by the SDK telemetry
   table, as generated values (`spanContentGet`, `metricXynologBusSent`, …)
   in place of names spelled at each call. What it reports is the same.

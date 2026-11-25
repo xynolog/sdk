@@ -26,13 +26,12 @@ from xynolog.errors import XynologError
 from xynolog.http import HttpTransport, Timing
 from xynolog.identifiers import ResourceId
 from xynolog.model import WireModel
-from xynolog.retry import RetryPolicy
 from xynolog.transport import PutBinaryRequest
-from xynolog.types import TraceCarrier
+from xynolog.types import RetryBudget, TraceCarrier
 from xynolog.watched import Variable, reached
 
 QUICK: Final = Timing(
-    reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryPolicy(attempts=2, initial_delay_ms=1, max_delay_ms=1)
+    reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1)
 )
 RESOURCE: Final = ResourceId("res-1")
 CORRELATION: Final = "a89a670a-1b2c-4d3e-8f90-123456789abc"

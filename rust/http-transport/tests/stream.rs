@@ -29,11 +29,10 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use xynolog::bus::{Bus, operation};
 use xynolog::errors::{TransportError, TransportErrorCode};
 use xynolog::gateway_http::{EMIT_ON_BUS, SUBSCRIBE_TO_BUS};
-use xynolog::retry::RetryPolicy;
 use xynolog::testing::as_id;
 use xynolog::testing::liveness::{DeliverySubject, assert_exactly_once_delivery_on};
 use xynolog::transport::{BoxFuture, ResourceHold, Transport};
-use xynolog::types::ConnectionState;
+use xynolog::types::{ConnectionState, RetryBudget};
 use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 
 const CHANNEL: &str = "beckon:focus";
@@ -283,10 +282,10 @@ fn quick(linger: Duration) -> Timing {
         reconnect: Duration::from_millis(20),
         lazy_remove: Duration::from_millis(20),
         linger,
-        emit_retry: RetryPolicy {
+        emit_retry: RetryBudget {
             attempts: 2,
-            initial_delay: Duration::from_millis(10),
-            max_delay: Duration::from_millis(10),
+            initial_delay_ms: 10,
+            max_delay_ms: 10,
         },
         ..Timing::default()
     }

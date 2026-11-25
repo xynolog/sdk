@@ -22,7 +22,6 @@ import xynolog.errors.XynologError
 import xynolog.identifiers.ResourceId
 import xynolog.retry.BOOT
 import xynolog.retry.RetryFacts
-import xynolog.retry.RetryPolicy
 import xynolog.retry.equalJitter
 import xynolog.retry.retryAfterMs
 import xynolog.telemetry.Telemetry
@@ -45,6 +44,7 @@ import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenRequest
 import xynolog.types.MediaTokenResponse
 import xynolog.types.ProtectedResourceMetadata
+import xynolog.types.RetryBudget
 import xynolog.types.StatusResponse
 import xynolog.types.UserResponse
 import xynolog.types.wireJson
@@ -63,7 +63,7 @@ public data class Timing @JvmOverloads constructor(
     public val reconnectMs: Long = Timings.RECONNECT_MS,
     public val lazyRemoveMs: Long = Timings.LAZY_REMOVE_MS,
     public val lingerMs: Long = Timings.LINGER_MS,
-    public val emitRetry: RetryPolicy = Timings.EMIT_RETRY,
+    public val emitRetry: RetryBudget = Timings.EMIT_RETRY,
     public val seenEventIdsCount: Int = Timings.SEEN_EVENT_IDS_COUNT.toInt(),
     /** The deadline on one request that is neither the stream nor an emit, and on reading any refusal's body, the stream's too. */
     public val httpRequestMs: Long = Timings.HTTP_REQUEST_TIMEOUT_MS,

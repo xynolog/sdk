@@ -5,7 +5,11 @@
 
 package xynolog
 
-import "time"
+import (
+	"time"
+
+	"github.com/xynolog/sdk/go/api"
+)
 
 // Timing is the timing a Xynolog client keeps: its deadlines, its retry
 // budgets, the cadence of its stream, and what it keeps count of, as
@@ -32,7 +36,7 @@ type Timing struct {
 	// refusal re-sends hundreds of emits that already succeeded. Small on
 	// purpose: an emit a caller awaits must fail while the caller still cares,
 	// and the patience for a gateway that is down belongs to the pass above it.
-	EmitRetry RetryPolicy
+	EmitRetry api.RetryBudget
 	// HttpRequestTimeout is httpRequestTimeoutMs: The deadline on one HTTP
 	// request that is neither the stream nor an emit: one of the gateway's own
 	// operations (who a token is, a media token, the resource metadata, health,
@@ -117,7 +121,7 @@ type Timing struct {
 	// enough to ride out a gateway restart or a rolling deploy, short enough
 	// that a user with no connectivity is told within seconds rather than a
 	// minute.
-	RefreshRetry RetryPolicy
+	RefreshRetry api.RetryBudget
 	// RefreshBeforeExp is refreshBeforeExpMs: The LARGEST margin before expiry
 	// at which a token is proactively renewed. A ceiling, not the margin: the
 	// margin is half the token's own lifetime, capped here. A fixed margin can
@@ -290,7 +294,7 @@ func DefaultTiming() Timing {
 	return Timing{
 		BusRequestTimeout:                 30000 * time.Millisecond,
 		EmitTimeout:                       30000 * time.Millisecond,
-		EmitRetry:                         RetryPolicy{Attempts: 4, InitialDelay: 1000 * time.Millisecond, MaxDelay: 4000 * time.Millisecond},
+		EmitRetry:                         api.RetryBudget{Attempts: 4, InitialDelayMs: 1000, MaxDelayMs: 4000},
 		HttpRequestTimeout:                30000 * time.Millisecond,
 		RequestRetryPause:                 300 * time.Millisecond,
 		StreamOpenTimeout:                 30000 * time.Millisecond,
@@ -301,7 +305,7 @@ func DefaultTiming() Timing {
 		SeenEventIdsCount:                 512,
 		ReconnectDebounce:                 100 * time.Millisecond,
 		LazyRemove:                        5000 * time.Millisecond,
-		RefreshRetry:                      RetryPolicy{Attempts: 4, InitialDelay: 500 * time.Millisecond, MaxDelay: 4000 * time.Millisecond},
+		RefreshRetry:                      api.RetryBudget{Attempts: 4, InitialDelayMs: 500, MaxDelayMs: 4000},
 		RefreshBeforeExp:                  300000 * time.Millisecond,
 		MinRefreshDelay:                   10000 * time.Millisecond,
 		DevicePoll:                        5000 * time.Millisecond,

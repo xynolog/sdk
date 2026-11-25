@@ -21847,11 +21847,6 @@ extension ReceivedFrame {
       payload: frame.payload, scope: frame.scope, trace: trace)
   }
 }
-public struct RetryBudget: Sendable {
-  public let attempts: Int
-  public let initialDelayMs: Int
-  public let maxDelayMs: Int
-}
 public enum Timings {
   public static let busRequestTimeoutMs: Int = 30000
   public static let emitTimeoutMs: Int = 30000

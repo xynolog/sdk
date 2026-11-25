@@ -26,7 +26,6 @@ from xynolog.http import HttpTransport, Timing, TokenRefresher
 from xynolog.identifiers import AnnotationId, InvalidIdentifier, JobId, ResourceId
 from xynolog.model import WireModel, stated
 from xynolog.operations import OPERATIONS
-from xynolog.retry import RetryPolicy
 from xynolog.transport import ConnectionState, Frame, FrameRefusal, PutBinaryRequest, ResourceHold
 from xynolog.types import (
     ConformanceDriverLineErrorStream,
@@ -35,6 +34,7 @@ from xynolog.types import (
     ConformanceDriverLineProgress,
     ConformanceDriverLineProgressProgress,
     ConformanceDriverLineState,
+    RetryBudget,
     UploadProgressProgress,
 )
 from xynolog.watched import Variable
@@ -91,7 +91,7 @@ def _timing(stated: Arguments) -> Timing:
                 seen_event_ids_count = count(stated, name)
             case "emitRetry":
                 budget = object_of(stated, name)
-                emit_retry = RetryPolicy(
+                emit_retry = RetryBudget(
                     attempts=count(budget, "attempts"),
                     initial_delay_ms=count(budget, "initialDelayMs"),
                     max_delay_ms=count(budget, "maxDelayMs"),

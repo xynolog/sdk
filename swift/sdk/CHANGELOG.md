@@ -79,6 +79,14 @@ the coming release's, and gathers its changes as they land.
   `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
   and `TargetKind`; `InferenceProvider` names an inference provider, in
   place of `EngineProvider`.
+- `RetryBudget` is the model of Protocol's `client/RetryBudget.json`:
+  `Codable` and `Hashable`, its members `var`s.
+- `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
+  whole, which is a `String`.
+- The keys a registry keeps what it keeps under, and the prefixes of the
+  keys made per knowledge base, are generated from Protocol's
+  `session/stored.json`, with the names and values they had
+  (`knowledgeBasesKey`, `pendingAuthorizationKey`, …).
 - A model's members are in its schema's order, as the other SDKs hold them,
   and so are its initializer's arguments and the members it writes: a call
   names them in that order (`JobProgress(percentage: 50, message: …)`),

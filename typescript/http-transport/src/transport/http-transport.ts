@@ -68,7 +68,7 @@ import {
   RETRY_RULES,
   RESOURCE_SCOPED_CHANNELS,
   watched,
-  type RetryPolicy,
+  type RetryBudget,
   type Watched,
 } from '@xynolog/core';
 import type { BusEnvelope, BusFrame, FrameRefusal } from '@xynolog/core';
@@ -128,7 +128,7 @@ export interface HttpTransportConfig {
   streamOpenTimeoutMs?: number;
   lazyRemoveMs?: number;
   lingerMs?: number;
-  emitRetry?: RetryPolicy;
+  emitRetry?: RetryBudget;
   seenEventIdsCount?: number;
   /**
    * What every request of the transport is sent with: its stream, its emits,

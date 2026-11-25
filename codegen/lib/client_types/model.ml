@@ -60,6 +60,16 @@ let derive (spec : Spec.t) =
   let described s =
     List.filter (fun k -> k <> "description") (Schema.keywords s)
   in
+  (* Whether a whole schema is bytes and nothing more (Binary, ByteStream):
+     what a member that refers to it holds, and no shape of its own. *)
+  let bytes = function
+    | Schema.Schema ({ type_ = Some [ String ]; format = Some Binary; _ } as l)
+      ->
+        List.for_all
+          (fun k -> List.mem k [ "$schema"; "$id"; "title"; "type"; "format" ])
+          (described l)
+    | _ -> false
+  in
   let rec held (member : Schema.t) : string -> string -> held option =
     Schema.para
       ~boolean:(fun _ file pointer ->
@@ -69,6 +79,9 @@ let derive (spec : Spec.t) =
         match l with
         | { ref_ = Some ref_; _ } when described l = [ "$ref" ] -> (
             match Decode.resolve spec.Spec.ids ref_ with
+            | target, ""
+              when Option.fold ~none:false ~some:bytes (schema target) ->
+                Some Binary
             | target, "" ->
                 let union =
                   match schema target with
@@ -245,7 +258,7 @@ let derive (spec : Spec.t) =
   let shapes =
     List.filter_map
       (fun (file, s) ->
-        if String.starts_with ~prefix:types file then (
+        if String.starts_with ~prefix:types file && not (bytes s) then (
           let before = !refusals in
           refusals := [];
           let found =

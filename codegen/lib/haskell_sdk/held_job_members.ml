@@ -51,8 +51,7 @@ let decls (models : Models.t) (t : Table.t) =
         Ok
           (List.map
              (fun (m : T.member) ->
-               ( Models.field t.record m.wire,
-                 (m.wire, Option.to_list m.description) ))
+               (H.field t.record m.wire, (m.wire, Option.to_list m.description)))
              members)
     | _ -> Error (t.record ^ " is no record")
   in

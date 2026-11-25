@@ -12,7 +12,7 @@ as the table states them, which is how a caller overrides one.
 
 from typing import Final
 
-from xynolog.retry import RetryPolicy
+from xynolog.types import RetryBudget
 
 __all__ = [
     "ANCHORED_TEXT_REASK_MS",
@@ -76,7 +76,7 @@ EMIT_TIMEOUT_MS: Final = 30000
 # pass to recover from one refusal re-sends hundreds of emits that already succeeded. Small on
 # purpose: an emit a caller awaits must fail while the caller still cares, and the patience for
 # a gateway that is down belongs to the pass above it.
-EMIT_RETRY: Final = RetryPolicy(attempts=4, initial_delay_ms=1000, max_delay_ms=4000)
+EMIT_RETRY: Final = RetryBudget(attempts=4, initial_delay_ms=1000, max_delay_ms=4000)
 
 # The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's
 # own operations (who a token is, a media token, the resource metadata, health, status), the
@@ -152,7 +152,7 @@ LAZY_REMOVE_MS: Final = 5000
 # The retry budget of one token renewal: long enough to ride out a gateway restart or a rolling
 # deploy, short enough that a user with no connectivity is told within seconds rather than a
 # minute.
-REFRESH_RETRY: Final = RetryPolicy(attempts=4, initial_delay_ms=500, max_delay_ms=4000)
+REFRESH_RETRY: Final = RetryBudget(attempts=4, initial_delay_ms=500, max_delay_ms=4000)
 
 # The LARGEST margin before expiry at which a token is proactively renewed. A ceiling, not the
 # margin: the margin is half the token's own lifetime, capped here. A fixed margin can equal the

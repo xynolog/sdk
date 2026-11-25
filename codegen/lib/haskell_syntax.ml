@@ -169,6 +169,10 @@ let instance ?(context = []) class_ instance methods =
 let method_ name body = (name, { patterns = []; body })
 let alias ?(about = []) name type_ = Alias { about; name; type_ }
 
+(* A record's field for its member [key]: the record's name begun lower case
+   and the member's in Pascal case. *)
+let field record key = String.uncapitalize_ascii record ^ Text.pascal key
+
 let value ?(about = []) name type_ body =
   Value { about; name; type_; clauses = [ { patterns = []; body } ] }
 

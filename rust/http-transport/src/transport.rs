@@ -26,7 +26,7 @@ use xynolog::channels::RESOURCE_SCOPED_CHANNELS;
 use xynolog::errors::{BusRequestError, TransportError, TransportErrorCode};
 use xynolog::event_bus::EventBus;
 use xynolog::gateway_http::{self, EMIT_ON_BUS, GET_CURRENT_USER, IDEMPOTENCY_KEY, Method, Route};
-use xynolog::retry::{self, RetryFacts, RetryPolicy, retry_after, retry_with_backoff};
+use xynolog::retry::{self, RetryFacts, retry_after, retry_with_backoff};
 use xynolog::timing;
 use xynolog::transport::{
     BoxFuture, Envelope, Events, FailureListener, FailureStream, Failures, FrameHub, Frames,
@@ -36,7 +36,8 @@ use xynolog::types::ConnectionState;
 use xynolog::types::TraceCarrier;
 use xynolog::types::{
     BusEmitAccepted, BusEmitRequest, ErrorResponse, HealthResponse, LimitRefusal, LimitRefusalCode,
-    MediaTokenRequest, MediaTokenResponse, ProtectedResourceMetadata, StatusResponse, UserResponse,
+    MediaTokenRequest, MediaTokenResponse, ProtectedResourceMetadata, RetryBudget, StatusResponse,
+    UserResponse,
 };
 use xynolog::types::{LastEventIds, ResourceId, Schema};
 
@@ -98,12 +99,12 @@ pub trait TokenRefresher: Send + Sync + 'static {
 /// The timing a transport keeps, from protocol/specs/src/client/timing.json unless a
 /// caller that must not wait it out (a test, a conformance driver) says
 /// otherwise.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Timing {
     pub reconnect: Duration,
     pub lazy_remove: Duration,
     pub linger: Duration,
-    pub emit_retry: RetryPolicy,
+    pub emit_retry: RetryBudget,
     pub seen_event_ids: usize,
     /// The deadline on one request that is neither the stream nor an emit,
     /// and on reading any refusal's body, the stream's too.
@@ -505,7 +506,7 @@ impl Shared {
                     .and_then(|accepted| accepted.subscribers))
             };
             let emitted = retry_with_backoff(
-                self.timing.emit_retry,
+                &self.timing.emit_retry,
                 self.random.as_deref(),
                 attempt,
                 |error: &TransportError| {

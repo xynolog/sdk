@@ -38,11 +38,10 @@ import xynolog.identifiers.ResourceId;
 import xynolog.identifiers.UserId;
 import xynolog.registry.KeepingKt;
 import xynolog.registry.SessionFactoryOptions;
-import xynolog.registry.StoredKt;
+import xynolog.registry.StoredKeysKt;
 import xynolog.registry.XynologBrowser;
 import xynolog.registry.XynologBrowserConfig;
 import xynolog.retry.RetryKt;
-import xynolog.retry.RetryPolicy;
 import xynolog.session.SessionSignals;
 import xynolog.session.TokensKt;
 import xynolog.storage.MemoryStorage;
@@ -68,6 +67,7 @@ import xynolog.types.PendingAuthorizationIssuer;
 import xynolog.types.QuotedText;
 import xynolog.types.ReconciledSpan;
 import xynolog.types.ReconciledSpanFuzzyMatch;
+import xynolog.types.RetryBudget;
 import xynolog.types.SignInOutcome;
 import xynolog.types.SignedIn;
 import xynolog.types.StoredSession;
@@ -178,7 +178,7 @@ final class ModulesTest {
             HttpEndpoint target = endpointOf(gateway);
             // The knowledge base names no issuer, so the sign-in cannot begin.
             assertNotNull(failure(AuthorizationKt.beginAuthorizationFuture(BeginAuthorizationOptions.builder(target, "kb-a").build(), storage)));
-            assertNull(storage.get(StoredKt.PENDING_AUTHORIZATION_KEY));
+            assertNull(storage.get(StoredKeysKt.PENDING_AUTHORIZATION_KEY));
             // Nothing was begun, so there is nothing to complete.
             assertNotNull(failure(AuthorizationKt.completeAuthorizationFuture("http://app.example/callback?code=c&state=s", storage)));
             // The knowledge base says what it is, and its did is made from the domain it states.
@@ -203,10 +203,10 @@ final class ModulesTest {
         KnowledgeBase kb = KnowledgeBase.builder("kb-a", "A KB", LocalEndpoint.builder("kb-a").build(), "did:web:kb.example").build();
         KeepingKt.saveKnowledgeBases(storage, List.of(kb));
         assertEquals(List.of(kb), KeepingKt.loadKnowledgeBases(storage));
-        assertNotNull(storage.get(StoredKt.KNOWLEDGE_BASES_KEY));
-        assertNull(storage.get(StoredKt.ACTIVE_KEY));
-        assertNull(storage.get(StoredKt.OPEN_RESOURCES_BY_KB_KEY));
-        assertNull(storage.get(StoredKt.LAST_VIEWED_RESOURCE_BY_KB_KEY));
+        assertNotNull(storage.get(StoredKeysKt.KNOWLEDGE_BASES_KEY));
+        assertNull(storage.get(StoredKeysKt.ACTIVE_KEY));
+        assertNull(storage.get(StoredKeysKt.OPEN_RESOURCES_BY_KB_KEY));
+        assertNull(storage.get(StoredKeysKt.LAST_VIEWED_RESOURCE_BY_KB_KEY));
         assertNotNull(KeepingKt.keptIn(storage, "kb-a"));
 
         StoredSession session = new StoredSession("an-access-token", "a-refresh-token", "xynolog-browser", "https://issuer.example/token", null, null);
@@ -231,7 +231,7 @@ final class ModulesTest {
     void aRetryIsRunFromJava() throws Exception {
         AtomicInteger attempts = new AtomicInteger();
         // What is retried is a failure the SDK names: here, a stream that cannot deliver a channel.
-        String done = RetryKt.retryWithBackoffFuture(new RetryPolicy(3, 1, 2), failed -> failed instanceof BusRequestError, () -> attempts.incrementAndGet() == 1
+        String done = RetryKt.retryWithBackoffFuture(new RetryBudget(3, 1, 2), failed -> failed instanceof BusRequestError, () -> attempts.incrementAndGet() == 1
                 ? CompletableFuture.<String>failedFuture(TransportKt.unsubscribed("job:queued"))
                 : CompletableFuture.completedFuture("done")).get(10, SECONDS);
         assertEquals("done", done);
