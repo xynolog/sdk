@@ -85,7 +85,7 @@ let vitals () =
         Records.Engine.of_model
           (Result.get_ok
              (Models.decode Models.engine {|{"provider":"ollama","model":"m"}|}));
-      jobs = [ Yield { job_type = Yield; extra = [] } ];
+      jobs = [ YieldJobFilter { job_type = Yield; extra = [] } ];
       last_queued_event_at = stamp last_queued_event_at;
       last_claim_at = stamp last_claim_at;
       last_finished_at = stamp last_finished_at;

@@ -236,7 +236,7 @@ let record_views () =
     |> R.Kb_endpoint.of_model
   in
   (match endpoint with
-  | Some (R.Kb_endpoint.Http view) ->
+  | R.Kb_endpoint.HttpEndpoint view ->
       Alcotest.(check string) "typed union selects HTTP" "example.org" view.host;
       Alcotest.(check bool)
         "open property retained" true
@@ -249,7 +249,7 @@ let record_views () =
     |> R.Extraction_outcome.of_model
   in
   match outcome with
-  | Some (R.Extraction_outcome.Extracted view) ->
+  | R.Extraction_outcome.ExtractedText view ->
       Alcotest.(check string) "composed record inherits text" "sample" view.text;
       Alcotest.(check bool)
         "composed record keeps branch method" true

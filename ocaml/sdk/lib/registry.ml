@@ -110,11 +110,11 @@ let save_knowledge_bases (storage : storage) values =
 
 let same_place a b =
   match (Records.Kb_endpoint.of_model a, Records.Kb_endpoint.of_model b) with
-  | Some (Http a), Some (Http b) ->
+  | HttpEndpoint a, HttpEndpoint b ->
       a.protocol = b.protocol
       && String.lowercase_ascii a.host = String.lowercase_ascii b.host
       && a.port = b.port
-  | Some (Local a), Some (Local b) -> a.kb_id = b.kb_id
+  | LocalEndpoint a, LocalEndpoint b -> a.kb_id = b.kb_id
   | _ -> false
 
 let sort_open_resources tabs =

@@ -105,8 +105,7 @@ let () =
               held
                 ~place:(e.module_ ^ "." ^ b.branch.variant)
                 b.held b.branch.ty)
-            branches
-      | Tagged _ -> ())
+            branches)
     entries;
   match List.rev !wrong with
   | [] ->

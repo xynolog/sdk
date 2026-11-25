@@ -10825,6 +10825,300 @@ module Worker_engine_health_active_job = struct
       value.extra
 end
 
+module Conformance_driver_line_ready = struct
+  type t = { ready : bool; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { ready = required reader bool "ready"; extra = [] } in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write [ ("ready", Some (json_bool value.ready)) ] value.extra
+end
+
+module Conformance_driver_line_ok = struct
+  type t = { id : int; ok : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        id = required reader int "id";
+        ok = required reader raw "ok";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [ ("id", Some (json_int value.id)); ("ok", Some (json_raw value.ok)) ]
+      value.extra
+end
+
+module Conformance_driver_line_abandoned = struct
+  type t = { id : int; abandoned : bool; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        id = required reader int "id";
+        abandoned = required reader bool "abandoned";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [
+        ("id", Some (json_int value.id));
+        ("abandoned", Some (json_bool value.abandoned));
+      ]
+      value.extra
+end
+
+module Conformance_driver_line_unsupported = struct
+  type t = {
+    id : int;
+    unsupported : bool;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        id = required reader int "id";
+        unsupported = required reader bool "unsupported";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [
+        ("id", Some (json_int value.id));
+        ("unsupported", Some (json_bool value.unsupported));
+      ]
+      value.extra
+end
+
+module Conformance_driver_line_misuse = struct
+  type t = { id : int; misuse : string; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        id = required reader int "id";
+        misuse = required reader string "misuse";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [
+        ("id", Some (json_int value.id));
+        ("misuse", Some (json_string value.misuse));
+      ]
+      value.extra
+end
+
+module Conformance_driver_line_state = struct
+  type t = { state : string; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { state = required reader string "state"; extra = [] } in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write [ ("state", Some (json_string value.state)) ] value.extra
+end
+
+module Conformance_driver_line_frame_frame = struct
+  type t = {
+    channel : string;
+    payload : Yojson.Raw.t Types.presence;
+    correlation_id : string option;
+    scope : string option;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        channel = required reader string "channel";
+        payload = optional reader raw "payload";
+        correlation_id = maybe reader string "correlationId";
+        scope = maybe reader string "scope";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [
+        ("channel", Some (json_string value.channel));
+        ("payload", present json_raw value.payload);
+        ("correlationId", Option.map json_string value.correlation_id);
+        ("scope", Option.map json_string value.scope);
+      ]
+      value.extra
+end
+
+module Conformance_driver_line_progress_progress = struct
+  type t = {
+    upload : int;
+    bytes_uploaded : int;
+    total_bytes : int;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        upload = required reader int "upload";
+        bytes_uploaded = required reader int "bytesUploaded";
+        total_bytes = required reader int "totalBytes";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [
+        ("upload", Some (json_int value.upload));
+        ("bytesUploaded", Some (json_int value.bytes_uploaded));
+        ("totalBytes", Some (json_int value.total_bytes));
+      ]
+      value.extra
+end
+
+module Conformance_driver_line_emission_emission_state_pending = struct
+  module Status = struct
+    type t = Pending
+
+    let to_string = function Pending -> "pending"
+    let of_string = function "pending" -> Some Pending | _ -> None
+  end
+
+  type t = { status : Status.t; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      { status = required reader (enum Status.of_string) "status"; extra = [] }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [ ("status", Some ((json_enum Status.to_string) value.status)) ]
+      value.extra
+end
+
+module Conformance_driver_line_emission_emission_state_ready = struct
+  module Status = struct
+    type t = Ready
+
+    let to_string = function Ready -> "ready"
+    let of_string = function "ready" -> Some Ready | _ -> None
+  end
+
+  type t = {
+    status : Status.t;
+    value : Yojson.Raw.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        status = required reader (enum Status.of_string) "status";
+        value = required reader raw "value";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [
+        ("status", Some ((json_enum Status.to_string) value.status));
+        ("value", Some (json_raw value.value));
+      ]
+      value.extra
+end
+
+module Conformance_driver_line_completed = struct
+  type t = { completed : string; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      { completed = required reader string "completed"; extra = [] }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write [ ("completed", Some (json_string value.completed)) ] value.extra
+end
+
+module Conformance_driver_line_claimed = struct
+  type t = {
+    claimed : (string * Yojson.Raw.t) list;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      { claimed = required reader (map raw) "claimed"; extra = [] }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write [ ("claimed", Some ((json_map json_raw) value.claimed)) ] value.extra
+end
+
+module Conformance_driver_line_signalled = struct
+  type t = { signalled : string; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      { signalled = required reader string "signalled"; extra = [] }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write [ ("signalled", Some (json_string value.signalled)) ] value.extra
+end
+
+module Conformance_driver_line_stalled = struct
+  type t = { stalled : string; extra : (string * Yojson.Raw.t) list }
+
+  let project fields =
+    let reader = start fields in
+    let record = { stalled = required reader string "stalled"; extra = [] } in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write [ ("stalled", Some (json_string value.stalled)) ] value.extra
+end
+
 module Browse_click_event = struct
   type t = {
     annotation_id : string;
@@ -13438,6 +13732,209 @@ module Resources = struct
     Models.decode Models.resources (Yojson.Raw.to_string (to_json value))
 end
 
+module Selector = struct
+  type t =
+    | TextPositionSelector of Text_position_selector.t
+    | TextQuoteSelector of Text_quote_selector.t
+    | SvgSelector of Svg_selector.t
+    | FragmentSelector of Fragment_selector.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "start"; "end" ];
+          allowed = None;
+          fixed = [ ("type", [ Text_value "TextPositionSelector" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "exact" ];
+          allowed = None;
+          fixed = [ ("type", [ Text_value "TextQuoteSelector" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "value" ];
+          allowed = None;
+          fixed = [ ("type", [ Text_value "SvgSelector" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "value" ];
+          allowed = None;
+          fixed = [ ("type", [ Text_value "FragmentSelector" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> TextPositionSelector ((record Text_position_selector.project) value)
+    | 1 -> TextQuoteSelector ((record Text_quote_selector.project) value)
+    | 2 -> SvgSelector ((record Svg_selector.project) value)
+    | 3 -> FragmentSelector ((record Fragment_selector.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `Selector ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | TextPositionSelector value -> Text_position_selector.to_json value
+    | TextQuoteSelector value -> Text_quote_selector.to_json value
+    | SvgSelector value -> Svg_selector.to_json value
+    | FragmentSelector value -> Fragment_selector.to_json value
+
+  let to_model value =
+    Models.decode Models.selector (Yojson.Raw.to_string (to_json value))
+end
+
+module Annotation_body = struct
+  type t =
+    | TextualBody of Textual_body.t
+    | SpecificResource of Specific_resource.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "value" ];
+          allowed = None;
+          fixed =
+            [
+              ("type", [ Text_value "TextualBody" ]);
+              ( "purpose",
+                [
+                  Text_value "assessing";
+                  Text_value "bookmarking";
+                  Text_value "classifying";
+                  Text_value "commenting";
+                  Text_value "describing";
+                  Text_value "editing";
+                  Text_value "highlighting";
+                  Text_value "identifying";
+                  Text_value "linking";
+                  Text_value "moderating";
+                  Text_value "questioning";
+                  Text_value "replying";
+                  Text_value "tagging";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "source" ];
+          allowed = None;
+          fixed =
+            [
+              ("type", [ Text_value "SpecificResource" ]);
+              ( "purpose",
+                [
+                  Text_value "assessing";
+                  Text_value "bookmarking";
+                  Text_value "classifying";
+                  Text_value "commenting";
+                  Text_value "describing";
+                  Text_value "editing";
+                  Text_value "highlighting";
+                  Text_value "identifying";
+                  Text_value "linking";
+                  Text_value "moderating";
+                  Text_value "questioning";
+                  Text_value "replying";
+                  Text_value "tagging";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> TextualBody ((record Textual_body.project) value)
+    | 1 -> SpecificResource ((record Specific_resource.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `AnnotationBody ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | TextualBody value -> Textual_body.to_json value
+    | SpecificResource value -> Specific_resource.to_json value
+
+  let to_model value =
+    Models.decode Models.annotation_body (Yojson.Raw.to_string (to_json value))
+end
+
+module Agent = struct
+  type t =
+    | AgentPerson of Agent_person.t
+    | AgentOrganization of Agent_organization.t
+    | AgentSoftware of Agent_software.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "@type" ];
+          allowed = None;
+          fixed = [ ("@type", [ Text_value "Person" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "@type"; "name" ];
+          allowed = None;
+          fixed = [ ("@type", [ Text_value "Organization" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "@type" ];
+          allowed = None;
+          fixed = [ ("@type", [ Text_value "Software" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> AgentPerson ((record Agent_person.project) value)
+    | 1 -> AgentOrganization ((record Agent_organization.project) value)
+    | 2 -> AgentSoftware ((record Agent_software.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `Agent ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | AgentPerson value -> Agent_person.to_json value
+    | AgentOrganization value -> Agent_organization.to_json value
+    | AgentSoftware value -> Agent_software.to_json value
+
+  let to_model value =
+    Models.decode Models.agent (Yojson.Raw.to_string (to_json value))
+end
+
 module Browse_profiles_result_response = struct
   type t = {
     profiles : (string * Profile.t) list;
@@ -13560,6 +14057,60 @@ module Resource_descriptor_identifier = struct
     | Object value -> Resource_descriptor_identifier_object.to_json value
 end
 
+module Directory_entry = struct
+  type t = FileEntry of File_entry.t | DirEntry of Dir_entry.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "name"; "path"; "size"; "mtime"; "tracked" ];
+          allowed =
+            Some
+              [
+                "type";
+                "name";
+                "path";
+                "size";
+                "mtime";
+                "tracked";
+                "resourceId";
+                "entityTypes";
+                "annotationCount";
+                "creator";
+              ];
+          fixed = [ ("type", [ Text_value "file" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "name"; "path"; "mtime" ];
+          allowed = Some [ "type"; "name"; "path"; "mtime" ];
+          fixed = [ ("type", [ Text_value "dir" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> FileEntry ((record File_entry.project) value)
+    | 1 -> DirEntry ((record Dir_entry.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `DirectoryEntry ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | FileEntry value -> File_entry.to_json value
+    | DirEntry value -> Dir_entry.to_json value
+
+  let to_model value =
+    Models.decode Models.directory_entry (Yojson.Raw.to_string (to_json value))
+end
+
 module Gathered_context_semantic_context = struct
   type t = {
     similar : Semantic_match.t list;
@@ -13622,6 +14173,183 @@ module Get_referenced_by_response_referenced_by_item_target = struct
              .to_json value.selector) );
       ]
       value.extra
+end
+
+module Job_progress_message = struct
+  type t =
+    | JobProgressLoading of Job_progress_loading.t
+    | JobProgressAnalyzing of Job_progress_analyzing.t
+    | JobProgressAnalyzingTags of Job_progress_analyzing_tags.t
+    | JobProgressGeneratingResource of Job_progress_generating_resource.t
+    | JobProgressCreatingResource of Job_progress_creating_resource.t
+    | JobProgressCompleteGenerated of Job_progress_complete_generated.t
+    | JobProgressDetectingEntities of Job_progress_detecting_entities.t
+    | JobProgressCreatingAnnotations of Job_progress_creating_annotations.t
+    | JobProgressCreatingTagAnnotations of
+        Job_progress_creating_tag_annotations.t
+    | JobProgressCompleteCreated of Job_progress_complete_created.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "code" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "loading" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "analyzing" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "analyzing-tags" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "generating-resource" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "creating-resource" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "truncated" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "complete-generated" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "entityType" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "detecting-entities" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "count" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "creating-annotations" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "count" ];
+          allowed = None;
+          fixed = [ ("code", [ Text_value "creating-tag-annotations" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "count"; "motivation" ];
+          allowed = None;
+          fixed =
+            [
+              ("code", [ Text_value "complete-created" ]);
+              ( "motivation",
+                [
+                  Text_value "assessing";
+                  Text_value "commenting";
+                  Text_value "highlighting";
+                  Text_value "linking";
+                  Text_value "tagging";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> JobProgressLoading ((record Job_progress_loading.project) value)
+    | 1 -> JobProgressAnalyzing ((record Job_progress_analyzing.project) value)
+    | 2 ->
+        JobProgressAnalyzingTags
+          ((record Job_progress_analyzing_tags.project) value)
+    | 3 ->
+        JobProgressGeneratingResource
+          ((record Job_progress_generating_resource.project) value)
+    | 4 ->
+        JobProgressCreatingResource
+          ((record Job_progress_creating_resource.project) value)
+    | 5 ->
+        JobProgressCompleteGenerated
+          ((record Job_progress_complete_generated.project) value)
+    | 6 ->
+        JobProgressDetectingEntities
+          ((record Job_progress_detecting_entities.project) value)
+    | 7 ->
+        JobProgressCreatingAnnotations
+          ((record Job_progress_creating_annotations.project) value)
+    | 8 ->
+        JobProgressCreatingTagAnnotations
+          ((record Job_progress_creating_tag_annotations.project) value)
+    | 9 ->
+        JobProgressCompleteCreated
+          ((record Job_progress_complete_created.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `JobProgressMessage ] Models.t) =
+    read (Models.json model)
+
+  let to_json = function
+    | JobProgressLoading value -> Job_progress_loading.to_json value
+    | JobProgressAnalyzing value -> Job_progress_analyzing.to_json value
+    | JobProgressAnalyzingTags value ->
+        Job_progress_analyzing_tags.to_json value
+    | JobProgressGeneratingResource value ->
+        Job_progress_generating_resource.to_json value
+    | JobProgressCreatingResource value ->
+        Job_progress_creating_resource.to_json value
+    | JobProgressCompleteGenerated value ->
+        Job_progress_complete_generated.to_json value
+    | JobProgressDetectingEntities value ->
+        Job_progress_detecting_entities.to_json value
+    | JobProgressCreatingAnnotations value ->
+        Job_progress_creating_annotations.to_json value
+    | JobProgressCreatingTagAnnotations value ->
+        Job_progress_creating_tag_annotations.to_json value
+    | JobProgressCompleteCreated value ->
+        Job_progress_complete_created.to_json value
+
+  let to_model value =
+    Models.decode Models.job_progress_message
+      (Yojson.Raw.to_string (to_json value))
 end
 
 module Job_progress_completed_items_item = struct
@@ -13735,6 +14463,186 @@ module Job_result = struct
 
   let to_model value =
     Models.decode Models.job_result (Yojson.Raw.to_string (to_json value))
+end
+
+module Kb_endpoint = struct
+  type t = HttpEndpoint of Http_endpoint.t | LocalEndpoint of Local_endpoint.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "kind"; "host"; "port"; "protocol" ];
+          allowed = None;
+          fixed =
+            [
+              ("kind", [ Text_value "http" ]);
+              ("protocol", [ Text_value "http"; Text_value "https" ]);
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "kind"; "kbId" ];
+          allowed = None;
+          fixed = [ ("kind", [ Text_value "local" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> HttpEndpoint ((record Http_endpoint.project) value)
+    | 1 -> LocalEndpoint ((record Local_endpoint.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `KbEndpoint ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | HttpEndpoint value -> Http_endpoint.to_json value
+    | LocalEndpoint value -> Local_endpoint.to_json value
+
+  let to_model value =
+    Models.decode Models.kb_endpoint (Yojson.Raw.to_string (to_json value))
+end
+
+module Mark_job_params = struct
+  type t =
+    | HighlightingJobParams of Highlighting_job_params.t
+    | CommentingJobParams of Commenting_job_params.t
+    | AssessingJobParams of Assessing_job_params.t
+    | LinkingJobParams of Linking_job_params.t
+    | TaggingJobParams of Tagging_job_params.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "motivation" ];
+          allowed =
+            Some [ "motivation"; "instructions"; "density"; "sourceLanguage" ];
+          fixed = [ ("motivation", [ Text_value "highlighting" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "motivation" ];
+          allowed =
+            Some
+              [
+                "motivation";
+                "instructions";
+                "tone";
+                "density";
+                "language";
+                "sourceLanguage";
+              ];
+          fixed =
+            [
+              ("motivation", [ Text_value "commenting" ]);
+              ( "tone",
+                [
+                  Text_value "scholarly";
+                  Text_value "explanatory";
+                  Text_value "conversational";
+                  Text_value "technical";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "motivation" ];
+          allowed =
+            Some
+              [
+                "motivation";
+                "instructions";
+                "tone";
+                "density";
+                "language";
+                "sourceLanguage";
+              ];
+          fixed =
+            [
+              ("motivation", [ Text_value "assessing" ]);
+              ( "tone",
+                [
+                  Text_value "analytical";
+                  Text_value "critical";
+                  Text_value "balanced";
+                  Text_value "constructive";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "motivation"; "entityTypes" ];
+          allowed =
+            Some
+              [
+                "motivation";
+                "entityTypes";
+                "includeDescriptiveReferences";
+                "language";
+                "sourceLanguage";
+              ];
+          fixed = [ ("motivation", [ Text_value "linking" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "motivation"; "schemaId"; "categories" ];
+          allowed =
+            Some
+              [
+                "motivation";
+                "schemaId";
+                "categories";
+                "language";
+                "sourceLanguage";
+              ];
+          fixed = [ ("motivation", [ Text_value "tagging" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 ->
+        HighlightingJobParams ((record Highlighting_job_params.project) value)
+    | 1 -> CommentingJobParams ((record Commenting_job_params.project) value)
+    | 2 -> AssessingJobParams ((record Assessing_job_params.project) value)
+    | 3 -> LinkingJobParams ((record Linking_job_params.project) value)
+    | 4 -> TaggingJobParams ((record Tagging_job_params.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `MarkJobParams ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | HighlightingJobParams value -> Highlighting_job_params.to_json value
+    | CommentingJobParams value -> Commenting_job_params.to_json value
+    | AssessingJobParams value -> Assessing_job_params.to_json value
+    | LinkingJobParams value -> Linking_job_params.to_json value
+    | TaggingJobParams value -> Tagging_job_params.to_json value
+
+  let to_model value =
+    Models.decode Models.mark_job_params (Yojson.Raw.to_string (to_json value))
 end
 
 module Mark_job_result = struct
@@ -14018,6 +14926,163 @@ module Conformance_implementations_sdks_value = struct
         ("exempt", Option.map (json_map json_string) value.exempt);
       ]
       value.extra
+end
+
+module Graph_config = struct
+  type t =
+    | Neo4jGraphConfig of Neo4j_graph_config.t
+    | JanusGraphConfig of Janus_graph_config.t
+    | NeptuneGraphConfig of Neptune_graph_config.t
+    | MemoryGraphConfig of Memory_graph_config.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "uri"; "username"; "passwordEnv"; "database" ];
+          allowed =
+            Some [ "type"; "uri"; "username"; "passwordEnv"; "database" ];
+          fixed = [ ("type", [ Text_value "neo4j" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "host"; "port" ];
+          allowed = Some [ "type"; "host"; "port" ];
+          fixed = [ ("type", [ Text_value "janusgraph" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "endpoint"; "port" ];
+          allowed = Some [ "type"; "endpoint"; "port" ];
+          fixed = [ ("type", [ Text_value "neptune" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type" ];
+          allowed = Some [ "type" ];
+          fixed = [ ("type", [ Text_value "memory" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> Neo4jGraphConfig ((record Neo4j_graph_config.project) value)
+    | 1 -> JanusGraphConfig ((record Janus_graph_config.project) value)
+    | 2 -> NeptuneGraphConfig ((record Neptune_graph_config.project) value)
+    | 3 -> MemoryGraphConfig ((record Memory_graph_config.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `GraphConfig ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | Neo4jGraphConfig value -> Neo4j_graph_config.to_json value
+    | JanusGraphConfig value -> Janus_graph_config.to_json value
+    | NeptuneGraphConfig value -> Neptune_graph_config.to_json value
+    | MemoryGraphConfig value -> Memory_graph_config.to_json value
+
+  let to_model value =
+    Models.decode Models.graph_config (Yojson.Raw.to_string (to_json value))
+end
+
+module Vectors_config = struct
+  type t =
+    | QdrantVectorsConfig of Qdrant_vectors_config.t
+    | MemoryVectorsConfig of Memory_vectors_config.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "host"; "port"; "tokenEnv" ];
+          allowed = Some [ "type"; "host"; "port"; "tokenEnv" ];
+          fixed = [ ("type", [ Text_value "qdrant" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type" ];
+          allowed = Some [ "type" ];
+          fixed = [ ("type", [ Text_value "memory" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> QdrantVectorsConfig ((record Qdrant_vectors_config.project) value)
+    | 1 -> MemoryVectorsConfig ((record Memory_vectors_config.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `VectorsConfig ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | QdrantVectorsConfig value -> Qdrant_vectors_config.to_json value
+    | MemoryVectorsConfig value -> Memory_vectors_config.to_json value
+
+  let to_model value =
+    Models.decode Models.vectors_config (Yojson.Raw.to_string (to_json value))
+end
+
+module Embedding_config = struct
+  type t =
+    | OllamaEmbeddingConfig of Ollama_embedding_config.t
+    | VoyageEmbeddingConfig of Voyage_embedding_config.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "model"; "baseUrl" ];
+          allowed = Some [ "type"; "model"; "baseUrl" ];
+          fixed = [ ("type", [ Text_value "ollama" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "model"; "endpoint"; "apiKeyEnv" ];
+          allowed = Some [ "type"; "model"; "endpoint"; "apiKeyEnv" ];
+          fixed = [ ("type", [ Text_value "voyage" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 ->
+        OllamaEmbeddingConfig ((record Ollama_embedding_config.project) value)
+    | 1 ->
+        VoyageEmbeddingConfig ((record Voyage_embedding_config.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `EmbeddingConfig ] Models.t) =
+    read (Models.json model)
+
+  let to_json = function
+    | OllamaEmbeddingConfig value -> Ollama_embedding_config.to_json value
+    | VoyageEmbeddingConfig value -> Voyage_embedding_config.to_json value
+
+  let to_model value =
+    Models.decode Models.embedding_config (Yojson.Raw.to_string (to_json value))
 end
 
 module Smelter_health_reconcile = struct
@@ -14353,440 +15418,166 @@ module Weaver_health_reconcile = struct
       value.extra
 end
 
-module Selector = struct
-  type t =
-    | TextPositionSelector of Text_position_selector.t
-    | TextQuoteSelector of Text_quote_selector.t
-    | SvgSelector of Svg_selector.t
-    | FragmentSelector of Fragment_selector.t
+module Conformance_driver_line_failed = struct
+  type t = {
+    id : int;
+    error : Conformance_failure.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
 
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "TextPositionSelector" ->
-            TextPositionSelector (Text_position_selector.project fields)
-        | "TextQuoteSelector" ->
-            TextQuoteSelector (Text_quote_selector.project fields)
-        | "SvgSelector" -> SvgSelector (Svg_selector.project fields)
-        | "FragmentSelector" ->
-            FragmentSelector (Fragment_selector.project fields)
-        | _ -> assert false)
-    | _ -> assert false
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        id = required reader int "id";
+        error = required reader (record Conformance_failure.project) "error";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
 
-  let of_model (model : [ `Selector ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "TextPositionSelector" ->
-            Some (TextPositionSelector (Text_position_selector.project fields))
-        | "TextQuoteSelector" ->
-            Some (TextQuoteSelector (Text_quote_selector.project fields))
-        | "SvgSelector" -> Some (SvgSelector (Svg_selector.project fields))
-        | "FragmentSelector" ->
-            Some (FragmentSelector (Fragment_selector.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | TextPositionSelector value -> Text_position_selector.to_json value
-    | TextQuoteSelector value -> Text_quote_selector.to_json value
-    | SvgSelector value -> Svg_selector.to_json value
-    | FragmentSelector value -> Fragment_selector.to_json value
-
-  let to_model value =
-    Models.decode Models.selector (Yojson.Raw.to_string (to_json value))
+  let to_json (value : t) =
+    write
+      [
+        ("id", Some (json_int value.id));
+        ("error", Some (Conformance_failure.to_json value.error));
+      ]
+      value.extra
 end
 
-module Annotation_body = struct
-  type t =
-    | TextualBody of Textual_body.t
-    | SpecificResource of Specific_resource.t
+module Conformance_driver_line_frame = struct
+  type t = {
+    frame : Conformance_driver_line_frame_frame.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
 
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "TextualBody" -> TextualBody (Textual_body.project fields)
-        | "SpecificResource" ->
-            SpecificResource (Specific_resource.project fields)
-        | _ -> assert false)
-    | _ -> assert false
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        frame =
+          required reader
+            (record Conformance_driver_line_frame_frame.project)
+            "frame";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
 
-  let of_model (model : [ `AnnotationBody ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "TextualBody" -> Some (TextualBody (Textual_body.project fields))
-        | "SpecificResource" ->
-            Some (SpecificResource (Specific_resource.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | TextualBody value -> Textual_body.to_json value
-    | SpecificResource value -> Specific_resource.to_json value
-
-  let to_model value =
-    Models.decode Models.annotation_body (Yojson.Raw.to_string (to_json value))
+  let to_json (value : t) =
+    write
+      [
+        ("frame", Some (Conformance_driver_line_frame_frame.to_json value.frame));
+      ]
+      value.extra
 end
 
-module Agent = struct
-  type t =
-    | Person of Agent_person.t
-    | Organization of Agent_organization.t
-    | Software of Agent_software.t
+module Conformance_driver_line_error_stream = struct
+  type t = {
+    error : Conformance_failure.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
 
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "@type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "Person" -> Person (Agent_person.project fields)
-        | "Organization" -> Organization (Agent_organization.project fields)
-        | "Software" -> Software (Agent_software.project fields)
-        | _ -> assert false)
-    | _ -> assert false
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        error = required reader (record Conformance_failure.project) "error";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
 
-  let of_model (model : [ `Agent ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "@type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "Person" -> Some (Person (Agent_person.project fields))
-        | "Organization" ->
-            Some (Organization (Agent_organization.project fields))
-        | "Software" -> Some (Software (Agent_software.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | Person value -> Agent_person.to_json value
-    | Organization value -> Agent_organization.to_json value
-    | Software value -> Agent_software.to_json value
-
-  let to_model value =
-    Models.decode Models.agent (Yojson.Raw.to_string (to_json value))
+  let to_json (value : t) =
+    write
+      [ ("error", Some (Conformance_failure.to_json value.error)) ]
+      value.extra
 end
 
-module Directory_entry = struct
-  type t = File of File_entry.t | Dir of Dir_entry.t
+module Conformance_driver_line_progress = struct
+  type t = {
+    progress : Conformance_driver_line_progress_progress.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
 
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "file" -> File (File_entry.project fields)
-        | "dir" -> Dir (Dir_entry.project fields)
-        | _ -> assert false)
-    | _ -> assert false
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        progress =
+          required reader
+            (record Conformance_driver_line_progress_progress.project)
+            "progress";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
 
-  let of_model (model : [ `DirectoryEntry ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "file" -> Some (File (File_entry.project fields))
-        | "dir" -> Some (Dir (Dir_entry.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | File value -> File_entry.to_json value
-    | Dir value -> Dir_entry.to_json value
-
-  let to_model value =
-    Models.decode Models.directory_entry (Yojson.Raw.to_string (to_json value))
+  let to_json (value : t) =
+    write
+      [
+        ( "progress",
+          Some
+            (Conformance_driver_line_progress_progress.to_json value.progress)
+        );
+      ]
+      value.extra
 end
 
-module Job_progress_message = struct
-  type t =
-    | Loading of Job_progress_loading.t
-    | Analyzing of Job_progress_analyzing.t
-    | AnalyzingTags of Job_progress_analyzing_tags.t
-    | GeneratingResource of Job_progress_generating_resource.t
-    | CreatingResource of Job_progress_creating_resource.t
-    | CompleteGenerated of Job_progress_complete_generated.t
-    | DetectingEntities of Job_progress_detecting_entities.t
-    | CreatingAnnotations of Job_progress_creating_annotations.t
-    | CreatingTagAnnotations of Job_progress_creating_tag_annotations.t
-    | CompleteCreated of Job_progress_complete_created.t
+module Conformance_driver_line_emission_emission_state_failed = struct
+  module Status = struct
+    type t = Failed
 
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "code" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "loading" -> Loading (Job_progress_loading.project fields)
-        | "analyzing" -> Analyzing (Job_progress_analyzing.project fields)
-        | "analyzing-tags" ->
-            AnalyzingTags (Job_progress_analyzing_tags.project fields)
-        | "generating-resource" ->
-            GeneratingResource (Job_progress_generating_resource.project fields)
-        | "creating-resource" ->
-            CreatingResource (Job_progress_creating_resource.project fields)
-        | "complete-generated" ->
-            CompleteGenerated (Job_progress_complete_generated.project fields)
-        | "detecting-entities" ->
-            DetectingEntities (Job_progress_detecting_entities.project fields)
-        | "creating-annotations" ->
-            CreatingAnnotations
-              (Job_progress_creating_annotations.project fields)
-        | "creating-tag-annotations" ->
-            CreatingTagAnnotations
-              (Job_progress_creating_tag_annotations.project fields)
-        | "complete-created" ->
-            CompleteCreated (Job_progress_complete_created.project fields)
-        | _ -> assert false)
-    | _ -> assert false
+    let to_string = function Failed -> "failed"
+    let of_string = function "failed" -> Some Failed | _ -> None
+  end
 
-  let of_model (model : [ `JobProgressMessage ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "code" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "loading" -> Some (Loading (Job_progress_loading.project fields))
-        | "analyzing" ->
-            Some (Analyzing (Job_progress_analyzing.project fields))
-        | "analyzing-tags" ->
-            Some (AnalyzingTags (Job_progress_analyzing_tags.project fields))
-        | "generating-resource" ->
-            Some
-              (GeneratingResource
-                 (Job_progress_generating_resource.project fields))
-        | "creating-resource" ->
-            Some
-              (CreatingResource (Job_progress_creating_resource.project fields))
-        | "complete-generated" ->
-            Some
-              (CompleteGenerated
-                 (Job_progress_complete_generated.project fields))
-        | "detecting-entities" ->
-            Some
-              (DetectingEntities
-                 (Job_progress_detecting_entities.project fields))
-        | "creating-annotations" ->
-            Some
-              (CreatingAnnotations
-                 (Job_progress_creating_annotations.project fields))
-        | "creating-tag-annotations" ->
-            Some
-              (CreatingTagAnnotations
-                 (Job_progress_creating_tag_annotations.project fields))
-        | "complete-created" ->
-            Some
-              (CompleteCreated (Job_progress_complete_created.project fields))
-        | _ -> None)
-    | _ -> None
+  type t = {
+    status : Status.t;
+    error : Conformance_failure.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
 
-  let to_json = function
-    | Loading value -> Job_progress_loading.to_json value
-    | Analyzing value -> Job_progress_analyzing.to_json value
-    | AnalyzingTags value -> Job_progress_analyzing_tags.to_json value
-    | GeneratingResource value -> Job_progress_generating_resource.to_json value
-    | CreatingResource value -> Job_progress_creating_resource.to_json value
-    | CompleteGenerated value -> Job_progress_complete_generated.to_json value
-    | DetectingEntities value -> Job_progress_detecting_entities.to_json value
-    | CreatingAnnotations value ->
-        Job_progress_creating_annotations.to_json value
-    | CreatingTagAnnotations value ->
-        Job_progress_creating_tag_annotations.to_json value
-    | CompleteCreated value -> Job_progress_complete_created.to_json value
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        status = required reader (enum Status.of_string) "status";
+        error = required reader (record Conformance_failure.project) "error";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
 
-  let to_model value =
-    Models.decode Models.job_progress_message
-      (Yojson.Raw.to_string (to_json value))
+  let to_json (value : t) =
+    write
+      [
+        ("status", Some ((json_enum Status.to_string) value.status));
+        ("error", Some (Conformance_failure.to_json value.error));
+      ]
+      value.extra
 end
 
-module Kb_endpoint = struct
-  type t = Http of Http_endpoint.t | Local of Local_endpoint.t
+module Conformance_driver_line_refused = struct
+  type t = {
+    refused : Conformance_failure.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
 
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "kind" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "http" -> Http (Http_endpoint.project fields)
-        | "local" -> Local (Local_endpoint.project fields)
-        | _ -> assert false)
-    | _ -> assert false
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        refused = required reader (record Conformance_failure.project) "refused";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
 
-  let of_model (model : [ `KbEndpoint ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "kind" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "http" -> Some (Http (Http_endpoint.project fields))
-        | "local" -> Some (Local (Local_endpoint.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | Http value -> Http_endpoint.to_json value
-    | Local value -> Local_endpoint.to_json value
-
-  let to_model value =
-    Models.decode Models.kb_endpoint (Yojson.Raw.to_string (to_json value))
-end
-
-module Mark_job_params = struct
-  type t =
-    | Highlighting of Highlighting_job_params.t
-    | Commenting of Commenting_job_params.t
-    | Assessing of Assessing_job_params.t
-    | Linking of Linking_job_params.t
-    | Tagging of Tagging_job_params.t
-
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "motivation" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "highlighting" ->
-            Highlighting (Highlighting_job_params.project fields)
-        | "commenting" -> Commenting (Commenting_job_params.project fields)
-        | "assessing" -> Assessing (Assessing_job_params.project fields)
-        | "linking" -> Linking (Linking_job_params.project fields)
-        | "tagging" -> Tagging (Tagging_job_params.project fields)
-        | _ -> assert false)
-    | _ -> assert false
-
-  let of_model (model : [ `MarkJobParams ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "motivation" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "highlighting" ->
-            Some (Highlighting (Highlighting_job_params.project fields))
-        | "commenting" ->
-            Some (Commenting (Commenting_job_params.project fields))
-        | "assessing" -> Some (Assessing (Assessing_job_params.project fields))
-        | "linking" -> Some (Linking (Linking_job_params.project fields))
-        | "tagging" -> Some (Tagging (Tagging_job_params.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | Highlighting value -> Highlighting_job_params.to_json value
-    | Commenting value -> Commenting_job_params.to_json value
-    | Assessing value -> Assessing_job_params.to_json value
-    | Linking value -> Linking_job_params.to_json value
-    | Tagging value -> Tagging_job_params.to_json value
-
-  let to_model value =
-    Models.decode Models.mark_job_params (Yojson.Raw.to_string (to_json value))
-end
-
-module Graph_config = struct
-  type t =
-    | Neo4j of Neo4j_graph_config.t
-    | Janusgraph of Janus_graph_config.t
-    | Neptune of Neptune_graph_config.t
-    | Memory of Memory_graph_config.t
-
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "neo4j" -> Neo4j (Neo4j_graph_config.project fields)
-        | "janusgraph" -> Janusgraph (Janus_graph_config.project fields)
-        | "neptune" -> Neptune (Neptune_graph_config.project fields)
-        | "memory" -> Memory (Memory_graph_config.project fields)
-        | _ -> assert false)
-    | _ -> assert false
-
-  let of_model (model : [ `GraphConfig ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "neo4j" -> Some (Neo4j (Neo4j_graph_config.project fields))
-        | "janusgraph" -> Some (Janusgraph (Janus_graph_config.project fields))
-        | "neptune" -> Some (Neptune (Neptune_graph_config.project fields))
-        | "memory" -> Some (Memory (Memory_graph_config.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | Neo4j value -> Neo4j_graph_config.to_json value
-    | Janusgraph value -> Janus_graph_config.to_json value
-    | Neptune value -> Neptune_graph_config.to_json value
-    | Memory value -> Memory_graph_config.to_json value
-
-  let to_model value =
-    Models.decode Models.graph_config (Yojson.Raw.to_string (to_json value))
-end
-
-module Vectors_config = struct
-  type t =
-    | Qdrant of Qdrant_vectors_config.t
-    | Memory of Memory_vectors_config.t
-
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "qdrant" -> Qdrant (Qdrant_vectors_config.project fields)
-        | "memory" -> Memory (Memory_vectors_config.project fields)
-        | _ -> assert false)
-    | _ -> assert false
-
-  let of_model (model : [ `VectorsConfig ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "qdrant" -> Some (Qdrant (Qdrant_vectors_config.project fields))
-        | "memory" -> Some (Memory (Memory_vectors_config.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | Qdrant value -> Qdrant_vectors_config.to_json value
-    | Memory value -> Memory_vectors_config.to_json value
-
-  let to_model value =
-    Models.decode Models.vectors_config (Yojson.Raw.to_string (to_json value))
-end
-
-module Embedding_config = struct
-  type t =
-    | Ollama of Ollama_embedding_config.t
-    | Voyage of Voyage_embedding_config.t
-
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "ollama" -> Ollama (Ollama_embedding_config.project fields)
-        | "voyage" -> Voyage (Voyage_embedding_config.project fields)
-        | _ -> assert false)
-    | _ -> assert false
-
-  let of_model (model : [ `EmbeddingConfig ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "type" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "ollama" -> Some (Ollama (Ollama_embedding_config.project fields))
-        | "voyage" -> Some (Voyage (Voyage_embedding_config.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | Ollama value -> Ollama_embedding_config.to_json value
-    | Voyage value -> Voyage_embedding_config.to_json value
-
-  let to_model value =
-    Models.decode Models.embedding_config (Yojson.Raw.to_string (to_json value))
+  let to_json (value : t) =
+    write
+      [ ("refused", Some (Conformance_failure.to_json value.refused)) ]
+      value.extra
 end
 
 module Attributed_event = struct
@@ -16444,6 +17235,49 @@ module One_or_more_agents = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
+module Job_filter = struct
+  type t =
+    | MarkJobFilter of Mark_job_filter.t
+    | YieldJobFilter of Yield_job_filter.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "jobType"; "params" ];
+          allowed = Some [ "jobType"; "params" ];
+          fixed = [ ("jobType", [ Text_value "mark" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "jobType" ];
+          allowed = Some [ "jobType" ];
+          fixed = [ ("jobType", [ Text_value "yield" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> MarkJobFilter ((record Mark_job_filter.project) value)
+    | 1 -> YieldJobFilter ((record Yield_job_filter.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `JobFilter ] Models.t) = read (Models.json model)
+
+  let to_json = function
+    | MarkJobFilter value -> Mark_job_filter.to_json value
+    | YieldJobFilter value -> Yield_job_filter.to_json value
+
+  let to_model value =
+    Models.decode Models.job_filter (Yojson.Raw.to_string (to_json value))
+end
+
 module Resource_descriptor_representations = struct
   type t = Representation of Representation.t | List of Representation.t list
 
@@ -17222,77 +18056,96 @@ module Worker_pool_spec_worker = struct
       value.extra
 end
 
-module Job_filter = struct
-  type t = Mark of Mark_job_filter.t | Yield of Yield_job_filter.t
-
-  let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "jobType" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "mark" -> Mark (Mark_job_filter.project fields)
-        | "yield" -> Yield (Yield_job_filter.project fields)
-        | _ -> assert false)
-    | _ -> assert false
-
-  let of_model (model : [ `JobFilter ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "jobType" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "mark" -> Some (Mark (Mark_job_filter.project fields))
-        | "yield" -> Some (Yield (Yield_job_filter.project fields))
-        | _ -> None)
-    | _ -> None
-
-  let to_json = function
-    | Mark value -> Mark_job_filter.to_json value
-    | Yield value -> Yield_job_filter.to_json value
-
-  let to_model value =
-    Models.decode Models.job_filter (Yojson.Raw.to_string (to_json value))
-end
-
 module Anchored_text_answer = struct
   type t =
-    | Extracted of Extracted_text.t
-    | Declined of Extraction_declined.t
-    | NotYet of Anchored_text_absent.t
-    | NoMap of Anchored_text_absent.t
-    | Unknown of Anchored_text_absent.t
+    | ExtractedText of Extracted_text.t
+    | ExtractionDeclined of Extraction_declined.t
+    | AnchoredTextAbsent of Anchored_text_absent.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "text"; "items"; "kind"; "method" ];
+          allowed = None;
+          fixed =
+            [
+              ("kind", [ Text_value "extracted" ]);
+              ( "method",
+                [
+                  Text_value "text-passthrough";
+                  Text_value "pdf-text-layer";
+                  Text_value "table";
+                  Text_value "form";
+                  Text_value "ocr";
+                ] );
+              ( "pdfClass",
+                [
+                  Text_value "A";
+                  Text_value "B";
+                  Text_value "C";
+                  Text_value "D";
+                  Text_value "E";
+                  Text_value "F";
+                  Text_value "G";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "kind"; "declined" ];
+          allowed = None;
+          fixed =
+            [
+              ("kind", [ Text_value "declined" ]);
+              ( "declined",
+                [
+                  Text_value "no-text-layer";
+                  Text_value "encrypted";
+                  Text_value "corrupt";
+                  Text_value "too-large";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "kind" ];
+          allowed = None;
+          fixed =
+            [
+              ( "kind",
+                [
+                  Text_value "not-yet";
+                  Text_value "no-map";
+                  Text_value "unknown";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+    ]
 
   let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "kind" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "extracted" -> Extracted (Extracted_text.project fields)
-        | "declined" -> Declined (Extraction_declined.project fields)
-        | "not-yet" -> NotYet (Anchored_text_absent.project fields)
-        | "no-map" -> NoMap (Anchored_text_absent.project fields)
-        | "unknown" -> Unknown (Anchored_text_absent.project fields)
-        | _ -> assert false)
+    match member members value with
+    | 0 -> ExtractedText ((record Extracted_text.project) value)
+    | 1 -> ExtractionDeclined ((record Extraction_declined.project) value)
+    | 2 -> AnchoredTextAbsent ((record Anchored_text_absent.project) value)
     | _ -> assert false
 
   let of_model (model : [ `AnchoredTextAnswer ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "kind" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "extracted" -> Some (Extracted (Extracted_text.project fields))
-        | "declined" -> Some (Declined (Extraction_declined.project fields))
-        | "not-yet" -> Some (NotYet (Anchored_text_absent.project fields))
-        | "no-map" -> Some (NoMap (Anchored_text_absent.project fields))
-        | "unknown" -> Some (Unknown (Anchored_text_absent.project fields))
-        | _ -> None)
-    | _ -> None
+    read (Models.json model)
 
   let to_json = function
-    | Extracted value -> Extracted_text.to_json value
-    | Declined value -> Extraction_declined.to_json value
-    | NotYet value -> Anchored_text_absent.to_json value
-    | NoMap value -> Anchored_text_absent.to_json value
-    | Unknown value -> Anchored_text_absent.to_json value
+    | ExtractedText value -> Extracted_text.to_json value
+    | ExtractionDeclined value -> Extraction_declined.to_json value
+    | AnchoredTextAbsent value -> Anchored_text_absent.to_json value
 
   let to_model value =
     Models.decode Models.anchored_text_answer
@@ -17300,35 +18153,188 @@ module Anchored_text_answer = struct
 end
 
 module Extraction_outcome = struct
-  type t = Extracted of Extracted_text.t | Declined of Extraction_declined.t
+  type t =
+    | ExtractedText of Extracted_text.t
+    | ExtractionDeclined of Extraction_declined.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "text"; "items"; "kind"; "method" ];
+          allowed = None;
+          fixed =
+            [
+              ("kind", [ Text_value "extracted" ]);
+              ( "method",
+                [
+                  Text_value "text-passthrough";
+                  Text_value "pdf-text-layer";
+                  Text_value "table";
+                  Text_value "form";
+                  Text_value "ocr";
+                ] );
+              ( "pdfClass",
+                [
+                  Text_value "A";
+                  Text_value "B";
+                  Text_value "C";
+                  Text_value "D";
+                  Text_value "E";
+                  Text_value "F";
+                  Text_value "G";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "kind"; "declined" ];
+          allowed = None;
+          fixed =
+            [
+              ("kind", [ Text_value "declined" ]);
+              ( "declined",
+                [
+                  Text_value "no-text-layer";
+                  Text_value "encrypted";
+                  Text_value "corrupt";
+                  Text_value "too-large";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+    ]
 
   let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "kind" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "extracted" -> Extracted (Extracted_text.project fields)
-        | "declined" -> Declined (Extraction_declined.project fields)
-        | _ -> assert false)
+    match member members value with
+    | 0 -> ExtractedText ((record Extracted_text.project) value)
+    | 1 -> ExtractionDeclined ((record Extraction_declined.project) value)
     | _ -> assert false
 
   let of_model (model : [ `ExtractionOutcome ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "kind" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "extracted" -> Some (Extracted (Extracted_text.project fields))
-        | "declined" -> Some (Declined (Extraction_declined.project fields))
-        | _ -> None)
-    | _ -> None
+    read (Models.json model)
 
   let to_json = function
-    | Extracted value -> Extracted_text.to_json value
-    | Declined value -> Extraction_declined.to_json value
+    | ExtractedText value -> Extracted_text.to_json value
+    | ExtractionDeclined value -> Extraction_declined.to_json value
 
   let to_model value =
     Models.decode Models.extraction_outcome
       (Yojson.Raw.to_string (to_json value))
+end
+
+module Bus_stream_message = struct
+  type t =
+    | BusEventMessage of Bus_event_message.t
+    | BusPingMessage of Bus_ping_message.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "event"; "id"; "data" ];
+          allowed = Some [ "event"; "id"; "data" ];
+          fixed = [ ("event", [ Text_value "bus-event" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "event"; "data" ];
+          allowed = Some [ "event"; "data" ];
+          fixed = [ ("event", [ Text_value "ping" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> BusEventMessage ((record Bus_event_message.project) value)
+    | 1 -> BusPingMessage ((record Bus_ping_message.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `BusStreamMessage ] Models.t) =
+    read (Models.json model)
+
+  let to_json = function
+    | BusEventMessage value -> Bus_event_message.to_json value
+    | BusPingMessage value -> Bus_ping_message.to_json value
+
+  let to_model value =
+    Models.decode Models.bus_stream_message
+      (Yojson.Raw.to_string (to_json value))
+end
+
+module Conformance_driver_line_emission_emission_state = struct
+  type t =
+    | Pending of Conformance_driver_line_emission_emission_state_pending.t
+    | Ready of Conformance_driver_line_emission_emission_state_ready.t
+    | Failed of Conformance_driver_line_emission_emission_state_failed.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "status" ];
+          allowed = Some [ "status" ];
+          fixed = [ ("status", [ Text_value "pending" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "status"; "value" ];
+          allowed = Some [ "status"; "value" ];
+          fixed = [ ("status", [ Text_value "ready" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "status"; "error" ];
+          allowed = Some [ "status"; "error" ];
+          fixed = [ ("status", [ Text_value "failed" ]) ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 ->
+        Pending
+          ((record
+              Conformance_driver_line_emission_emission_state_pending.project)
+             value)
+    | 1 ->
+        Ready
+          ((record Conformance_driver_line_emission_emission_state_ready.project)
+             value)
+    | 2 ->
+        Failed
+          ((record
+              Conformance_driver_line_emission_emission_state_failed.project)
+             value)
+    | _ -> assert false
+
+  let to_json = function
+    | Pending value ->
+        Conformance_driver_line_emission_emission_state_pending.to_json value
+    | Ready value ->
+        Conformance_driver_line_emission_emission_state_ready.to_json value
+    | Failed value ->
+        Conformance_driver_line_emission_emission_state_failed.to_json value
 end
 
 module Annotation_target = struct
@@ -19676,32 +20682,67 @@ end
 
 module Job_complete_command = struct
   type t =
-    | Mark of Mark_job_complete_command.t
-    | Yield of Yield_job_complete_command.t
+    | MarkJobCompleteCommand of Mark_job_complete_command.t
+    | YieldJobCompleteCommand of Yield_job_complete_command.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "resourceId"; "jobId"; "jobType" ];
+          allowed = None;
+          fixed =
+            [
+              ("jobType", [ Text_value "mark" ]);
+              ( "durability",
+                [
+                  Text_value "acknowledged";
+                  Text_value "probe-confirmed";
+                  Text_value "probe-refused";
+                  Text_value "probe-unreachable";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "resourceId"; "jobId"; "jobType" ];
+          allowed = None;
+          fixed =
+            [
+              ("jobType", [ Text_value "yield" ]);
+              ( "durability",
+                [
+                  Text_value "acknowledged";
+                  Text_value "probe-confirmed";
+                  Text_value "probe-refused";
+                  Text_value "probe-unreachable";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+    ]
 
   let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "jobType" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "mark" -> Mark (Mark_job_complete_command.project fields)
-        | "yield" -> Yield (Yield_job_complete_command.project fields)
-        | _ -> assert false)
+    match member members value with
+    | 0 ->
+        MarkJobCompleteCommand
+          ((record Mark_job_complete_command.project) value)
+    | 1 ->
+        YieldJobCompleteCommand
+          ((record Yield_job_complete_command.project) value)
     | _ -> assert false
 
   let of_model (model : [ `JobCompleteCommand ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "jobType" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "mark" -> Some (Mark (Mark_job_complete_command.project fields))
-        | "yield" -> Some (Yield (Yield_job_complete_command.project fields))
-        | _ -> None)
-    | _ -> None
+    read (Models.json model)
 
   let to_json = function
-    | Mark value -> Mark_job_complete_command.to_json value
-    | Yield value -> Yield_job_complete_command.to_json value
+    | MarkJobCompleteCommand value -> Mark_job_complete_command.to_json value
+    | YieldJobCompleteCommand value -> Yield_job_complete_command.to_json value
 
   let to_model value =
     Models.decode Models.job_complete_command
@@ -19709,34 +20750,78 @@ module Job_complete_command = struct
 end
 
 module Job_queued_event = struct
-  type t = Mark of Mark_job_queued_event.t | Yield of Yield_job_queued_event.t
+  type t =
+    | MarkJobQueuedEvent of Mark_job_queued_event.t
+    | YieldJobQueuedEvent of Yield_job_queued_event.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "jobId"; "jobType"; "resourceId"; "userId"; "params" ];
+          allowed = None;
+          fixed = [ ("jobType", [ Text_value "mark" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "jobId"; "jobType"; "resourceId"; "userId"; "params" ];
+          allowed = None;
+          fixed = [ ("jobType", [ Text_value "yield" ]) ];
+          values = None;
+        };
+      ];
+    ]
 
   let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "jobType" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "mark" -> Mark (Mark_job_queued_event.project fields)
-        | "yield" -> Yield (Yield_job_queued_event.project fields)
-        | _ -> assert false)
+    match member members value with
+    | 0 -> MarkJobQueuedEvent ((record Mark_job_queued_event.project) value)
+    | 1 -> YieldJobQueuedEvent ((record Yield_job_queued_event.project) value)
     | _ -> assert false
 
-  let of_model (model : [ `JobQueuedEvent ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "jobType" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "mark" -> Some (Mark (Mark_job_queued_event.project fields))
-        | "yield" -> Some (Yield (Yield_job_queued_event.project fields))
-        | _ -> None)
-    | _ -> None
+  let of_model (model : [ `JobQueuedEvent ] Models.t) = read (Models.json model)
 
   let to_json = function
-    | Mark value -> Mark_job_queued_event.to_json value
-    | Yield value -> Yield_job_queued_event.to_json value
+    | MarkJobQueuedEvent value -> Mark_job_queued_event.to_json value
+    | YieldJobQueuedEvent value -> Yield_job_queued_event.to_json value
 
   let to_model value =
     Models.decode Models.job_queued_event (Yojson.Raw.to_string (to_json value))
+end
+
+module Conformance_driver_line_emission_emission = struct
+  type t = {
+    observer : string;
+    state : Conformance_driver_line_emission_emission_state.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        observer = required reader string "observer";
+        state =
+          required reader Conformance_driver_line_emission_emission_state.read
+            "state";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [
+        ("observer", Some (json_string value.observer));
+        ( "state",
+          Some
+            (Conformance_driver_line_emission_emission_state.to_json value.state)
+        );
+      ]
+      value.extra
 end
 
 module Annotation_body_updated_payload = struct
@@ -20883,6 +21968,36 @@ module Inference_spec = struct
       value.extra
 end
 
+module Conformance_driver_line_emission = struct
+  type t = {
+    emission : Conformance_driver_line_emission_emission.t;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        emission =
+          required reader
+            (record Conformance_driver_line_emission_emission.project)
+            "emission";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let to_json (value : t) =
+    write
+      [
+        ( "emission",
+          Some
+            (Conformance_driver_line_emission_emission.to_json value.emission)
+        );
+      ]
+      value.extra
+end
+
 module Annotation = struct
   module Type_ = struct
     type t = Annotation
@@ -21313,47 +22428,335 @@ end
 
 module Job = struct
   type t =
-    | Pending of Job_pending.t
-    | Running of Job_running.t
-    | Complete of Job_complete.t
-    | Failed of Job_failed.t
-    | Cancelled of Job_cancelled.t
+    | JobPending of Job_pending.t
+    | JobRunning of Job_running.t
+    | JobComplete of Job_complete.t
+    | JobFailed of Job_failed.t
+    | JobCancelled of Job_cancelled.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "status"; "metadata"; "params" ];
+          allowed = Some [ "status"; "metadata"; "params" ];
+          fixed = [ ("status", [ Text_value "pending" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "status"; "metadata"; "params"; "startedAt"; "progress" ];
+          allowed =
+            Some [ "status"; "metadata"; "params"; "startedAt"; "progress" ];
+          fixed = [ ("status", [ Text_value "running" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required =
+            [
+              "status";
+              "metadata";
+              "params";
+              "startedAt";
+              "completedAt";
+              "result";
+            ];
+          allowed =
+            Some
+              [
+                "status";
+                "metadata";
+                "params";
+                "startedAt";
+                "completedAt";
+                "result";
+              ];
+          fixed = [ ("status", [ Text_value "complete" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "status"; "metadata"; "params"; "completedAt"; "error" ];
+          allowed =
+            Some
+              [
+                "status";
+                "metadata";
+                "params";
+                "startedAt";
+                "completedAt";
+                "error";
+                "failureClass";
+              ];
+          fixed =
+            [
+              ("status", [ Text_value "failed" ]);
+              ( "failureClass",
+                [
+                  Text_value "transient";
+                  Text_value "deterministic";
+                  Text_value "withheld";
+                ] );
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "status"; "metadata"; "params"; "completedAt" ];
+          allowed =
+            Some [ "status"; "metadata"; "params"; "startedAt"; "completedAt" ];
+          fixed = [ ("status", [ Text_value "cancelled" ]) ];
+          values = None;
+        };
+      ];
+    ]
 
   let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "status" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "pending" -> Pending (Job_pending.project fields)
-        | "running" -> Running (Job_running.project fields)
-        | "complete" -> Complete (Job_complete.project fields)
-        | "failed" -> Failed (Job_failed.project fields)
-        | "cancelled" -> Cancelled (Job_cancelled.project fields)
-        | _ -> assert false)
+    match member members value with
+    | 0 -> JobPending ((record Job_pending.project) value)
+    | 1 -> JobRunning ((record Job_running.project) value)
+    | 2 -> JobComplete ((record Job_complete.project) value)
+    | 3 -> JobFailed ((record Job_failed.project) value)
+    | 4 -> JobCancelled ((record Job_cancelled.project) value)
     | _ -> assert false
 
-  let of_model (model : [ `Job ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "status" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "pending" -> Some (Pending (Job_pending.project fields))
-        | "running" -> Some (Running (Job_running.project fields))
-        | "complete" -> Some (Complete (Job_complete.project fields))
-        | "failed" -> Some (Failed (Job_failed.project fields))
-        | "cancelled" -> Some (Cancelled (Job_cancelled.project fields))
-        | _ -> None)
-    | _ -> None
+  let of_model (model : [ `Job ] Models.t) = read (Models.json model)
 
   let to_json = function
-    | Pending value -> Job_pending.to_json value
-    | Running value -> Job_running.to_json value
-    | Complete value -> Job_complete.to_json value
-    | Failed value -> Job_failed.to_json value
-    | Cancelled value -> Job_cancelled.to_json value
+    | JobPending value -> Job_pending.to_json value
+    | JobRunning value -> Job_running.to_json value
+    | JobComplete value -> Job_complete.to_json value
+    | JobFailed value -> Job_failed.to_json value
+    | JobCancelled value -> Job_cancelled.to_json value
 
   let to_model value =
     Models.decode Models.job (Yojson.Raw.to_string (to_json value))
+end
+
+module Conformance_driver_line = struct
+  type t =
+    | Ready of Conformance_driver_line_ready.t
+    | Ok of Conformance_driver_line_ok.t
+    | Failed of Conformance_driver_line_failed.t
+    | Abandoned of Conformance_driver_line_abandoned.t
+    | Unsupported of Conformance_driver_line_unsupported.t
+    | Misuse of Conformance_driver_line_misuse.t
+    | State of Conformance_driver_line_state.t
+    | Frame of Conformance_driver_line_frame.t
+    | ErrorStream of Conformance_driver_line_error_stream.t
+    | Progress of Conformance_driver_line_progress.t
+    | Emission of Conformance_driver_line_emission.t
+    | Completed of Conformance_driver_line_completed.t
+    | Claimed of Conformance_driver_line_claimed.t
+    | Refused of Conformance_driver_line_refused.t
+    | Signalled of Conformance_driver_line_signalled.t
+    | Stalled of Conformance_driver_line_stalled.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "ready" ];
+          allowed = Some [ "ready" ];
+          fixed = [ ("ready", [ Boolean_value true ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "id"; "ok" ];
+          allowed = Some [ "id"; "ok" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "id"; "error" ];
+          allowed = Some [ "id"; "error" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "id"; "abandoned" ];
+          allowed = Some [ "id"; "abandoned" ];
+          fixed = [ ("abandoned", [ Boolean_value true ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "id"; "unsupported" ];
+          allowed = Some [ "id"; "unsupported" ];
+          fixed = [ ("unsupported", [ Boolean_value true ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "id"; "misuse" ];
+          allowed = Some [ "id"; "misuse" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "state" ];
+          allowed = Some [ "state" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "frame" ];
+          allowed = Some [ "frame" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "error" ];
+          allowed = Some [ "error" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "progress" ];
+          allowed = Some [ "progress" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "emission" ];
+          allowed = Some [ "emission" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "completed" ];
+          allowed = Some [ "completed" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "claimed" ];
+          allowed = Some [ "claimed" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "refused" ];
+          allowed = Some [ "refused" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "signalled" ];
+          allowed = Some [ "signalled" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "stalled" ];
+          allowed = Some [ "stalled" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> Ready ((record Conformance_driver_line_ready.project) value)
+    | 1 -> Ok ((record Conformance_driver_line_ok.project) value)
+    | 2 -> Failed ((record Conformance_driver_line_failed.project) value)
+    | 3 -> Abandoned ((record Conformance_driver_line_abandoned.project) value)
+    | 4 ->
+        Unsupported ((record Conformance_driver_line_unsupported.project) value)
+    | 5 -> Misuse ((record Conformance_driver_line_misuse.project) value)
+    | 6 -> State ((record Conformance_driver_line_state.project) value)
+    | 7 -> Frame ((record Conformance_driver_line_frame.project) value)
+    | 8 ->
+        ErrorStream
+          ((record Conformance_driver_line_error_stream.project) value)
+    | 9 -> Progress ((record Conformance_driver_line_progress.project) value)
+    | 10 -> Emission ((record Conformance_driver_line_emission.project) value)
+    | 11 -> Completed ((record Conformance_driver_line_completed.project) value)
+    | 12 -> Claimed ((record Conformance_driver_line_claimed.project) value)
+    | 13 -> Refused ((record Conformance_driver_line_refused.project) value)
+    | 14 -> Signalled ((record Conformance_driver_line_signalled.project) value)
+    | 15 -> Stalled ((record Conformance_driver_line_stalled.project) value)
+    | _ -> assert false
+
+  let of_model (model : [ `ConformanceDriverLine ] Models.t) =
+    read (Models.json model)
+
+  let to_json = function
+    | Ready value -> Conformance_driver_line_ready.to_json value
+    | Ok value -> Conformance_driver_line_ok.to_json value
+    | Failed value -> Conformance_driver_line_failed.to_json value
+    | Abandoned value -> Conformance_driver_line_abandoned.to_json value
+    | Unsupported value -> Conformance_driver_line_unsupported.to_json value
+    | Misuse value -> Conformance_driver_line_misuse.to_json value
+    | State value -> Conformance_driver_line_state.to_json value
+    | Frame value -> Conformance_driver_line_frame.to_json value
+    | ErrorStream value -> Conformance_driver_line_error_stream.to_json value
+    | Progress value -> Conformance_driver_line_progress.to_json value
+    | Emission value -> Conformance_driver_line_emission.to_json value
+    | Completed value -> Conformance_driver_line_completed.to_json value
+    | Claimed value -> Conformance_driver_line_claimed.to_json value
+    | Refused value -> Conformance_driver_line_refused.to_json value
+    | Signalled value -> Conformance_driver_line_signalled.to_json value
+    | Stalled value -> Conformance_driver_line_stalled.to_json value
+
+  let to_model value =
+    Models.decode Models.conformance_driver_line
+      (Yojson.Raw.to_string (to_json value))
 end
 
 module Annotation_added_payload = struct
@@ -22269,32 +23672,45 @@ end
 
 module Job_create_command = struct
   type t =
-    | Mark of Mark_job_create_command.t
-    | Yield of Yield_job_create_command.t
+    | MarkJobCreateCommand of Mark_job_create_command.t
+    | YieldJobCreateCommand of Yield_job_create_command.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "jobType"; "resourceId"; "params" ];
+          allowed =
+            Some [ "_userId"; "_roles"; "jobType"; "resourceId"; "params" ];
+          fixed = [ ("jobType", [ Text_value "mark" ]) ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "jobType"; "params" ];
+          allowed = Some [ "_userId"; "_roles"; "jobType"; "params" ];
+          fixed = [ ("jobType", [ Text_value "yield" ]) ];
+          values = None;
+        };
+      ];
+    ]
 
   let read value =
-    let fields = fields_of value in
-    match List.assoc_opt "jobType" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "mark" -> Mark (Mark_job_create_command.project fields)
-        | "yield" -> Yield (Yield_job_create_command.project fields)
-        | _ -> assert false)
+    match member members value with
+    | 0 -> MarkJobCreateCommand ((record Mark_job_create_command.project) value)
+    | 1 ->
+        YieldJobCreateCommand ((record Yield_job_create_command.project) value)
     | _ -> assert false
 
   let of_model (model : [ `JobCreateCommand ] Models.t) =
-    let fields = fields_of (Models.json model) in
-    match List.assoc_opt "jobType" fields with
-    | Some (`Stringlit literal) -> (
-        match string (`Stringlit literal) with
-        | "mark" -> Some (Mark (Mark_job_create_command.project fields))
-        | "yield" -> Some (Yield (Yield_job_create_command.project fields))
-        | _ -> None)
-    | _ -> None
+    read (Models.json model)
 
   let to_json = function
-    | Mark value -> Mark_job_create_command.to_json value
-    | Yield value -> Yield_job_create_command.to_json value
+    | MarkJobCreateCommand value -> Mark_job_create_command.to_json value
+    | YieldJobCreateCommand value -> Yield_job_create_command.to_json value
 
   let to_model value =
     Models.decode Models.job_create_command

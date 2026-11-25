@@ -88,6 +88,14 @@ the coming release's, and gathers its changes as they land.
   `Yojson.Raw.t`. `Resources.primary_representation` hands a
   `Records.Representation.t`, and `Testing.deliver`'s payload is an object,
   as a bus frame's is.
+- A union is a constructor per member, named as Protocol names the member,
+  and its value is the first member whose schema admits it, where a union a
+  tag told apart was a constructor per value of its tag:
+  `Records.Anchored_text_answer.t` is `ExtractedText | ExtractionDeclined |
+  AnchoredTextAbsent`, where it was five, and `Records.Kb_endpoint.t` is
+  `HttpEndpoint | LocalEndpoint`. Each union's `of_model` is the union, not
+  an option. Every union Protocol roots is a module of `Records`, among them
+  `Bus_stream_message` and `Conformance_driver_line`.
 
 - `Retry.retry_with_backoff` takes its `budget` as a `Client_timing.retry`,
   the type Protocol's client timing states, in place of `Retry.budget`.

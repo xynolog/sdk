@@ -6,10 +6,9 @@
    module of the record's own), the record or union it names, the table
    record it names, a list or a map of one of those, and its raw JSON only
    where Typing gives it no type. One that may be absent or null is an
-   option, and a raw one that may be absent a [Types.presence]. A union whose every member is a record Protocol roots and
-   that a tag tells apart is a constructor per value of its tag; any other is
-   a constructor per member, read as the first member whose signature admits
-   the value. Each is read from the value a [Models] descriptor accepted,
+   option, and a raw one that may be absent a [Types.presence]. A union is a
+   constructor per member, named as Typing names it, read as the first
+   member whose signature admits the value. Each is read from the value a [Models] descriptor accepted,
    through ocaml/sdk/lib/record_reader.ml, and written back with the members
    no read named, the descriptor holding what is written to the schema. The
    module has no interface, so each record's type is stated once. Where it
@@ -71,10 +70,9 @@ type held_member = { member : T.member; held : held; nullable : bool }
 (* A union's member: what Typing states of it, and how its value is held. *)
 type held_branch = { branch : T.branch; held : held }
 
-(* A module of records.ml: a record of [field]s, a union told apart by a
-   tag, a constructor per value of it, each its branch record's module, or
-   a union told apart by what each member admits. [name] is the schema
-   [Models] has a descriptor of. *)
+(* A module of records.ml: a record of its members, or a union of its
+   members, told apart by what each admits. [name] is the schema [Models]
+   has a descriptor of. *)
 type entry = {
   module_ : string;
   name : string option;
@@ -82,11 +80,7 @@ type entry = {
   shape : shape;
 }
 
-and shape =
-  | Object of held_member list
-  | Tagged of { property : string; variants : (string * string * string) list }
-      (** Each tag, its constructor and its branch's module. *)
-  | Members of held_branch list
+and shape = Object of held_member list | Members of held_branch list
 
 exception Refused of Decode.error
 
@@ -154,7 +148,6 @@ let depends (e : entry) =
   match e.shape with
   | Object fields ->
       List.concat_map (fun (f : held_member) -> modules_of f.held) fields
-  | Tagged { variants; _ } -> List.map (fun (_, _, m) -> m) variants
   | Members branches ->
       List.concat_map (fun (b : held_branch) -> modules_of b.held) branches
 
@@ -197,20 +190,6 @@ let components spec (typing : T.t) ~tabled ~enum_of =
   let record_form name =
     match (typing.find name).form with
     | T.Record { members = _ :: _ as members; _ } -> Some members
-    | _ -> None
-  in
-  (* A rooted union told apart by its tag, each of whose members is a record
-     of its own. *)
-  let tagged name =
-    match if rooted name then Some (typing.find name).form else None with
-    | Some (T.Union { tag = Some { property; values }; branches })
-      when List.for_all
-             (fun (b : T.branch) ->
-               match b.ty with
-               | T.Named branch -> record_form branch <> None
-               | _ -> false)
-             branches ->
-        Some (property, values, branches)
     | _ -> None
   in
   let rec held_of ~stated_in ~const (ty : T.ty) =
@@ -299,78 +278,42 @@ let components spec (typing : T.t) ~tabled ~enum_of =
         })
   and union ~module_ ~name ~file (u : T.union) =
     declare module_ (fun () ->
-        match tagged name with
-        | Some (property, values, branches) ->
-            let variants =
-              List.concat
-                (List.map2
-                   (fun (b : T.branch) tags ->
-                     let branch =
-                       match b.ty with
-                       | T.Named branch -> branch
-                       | _ -> assert false
-                     in
-                     ignore (named ~const:false branch);
-                     List.map
-                       (fun tag ->
-                         match variant_name tag with
-                         | Some c -> (tag, c, Enums.module_name branch)
-                         | None ->
-                             refuse file
-                               ("/discriminator/mapping/" ^ Decode.escape tag)
-                               "names no record of the SDK's")
-                       tags)
-                   branches values)
-            in
-            let constructors = List.map (fun (_, c, _) -> c) variants in
-            if
-              List.length (List.sort_uniq compare constructors)
-              <> List.length constructors
-            then refuse file "/discriminator/mapping" "names two variants alike";
-            {
-              module_;
-              name = Some name;
-              file;
-              shape = Tagged { property; variants };
-            }
-        | None ->
-            let unpatterned (s : T.signature) = { s with pattern = None } in
+        let unpatterned (s : T.signature) = { s with pattern = None } in
+        List.iteri
+          (fun i (a : T.branch) ->
             List.iteri
-              (fun i (a : T.branch) ->
-                List.iteri
-                  (fun j (b : T.branch) ->
-                    if
-                      j > i
-                      && List.exists
-                           (fun sa ->
-                             List.exists
-                               (fun sb ->
-                                 not
-                                   (T.disjoint (unpatterned sa) (unpatterned sb)))
-                               b.signature)
-                           a.signature
-                    then
-                      refuse file ""
-                        (Printf.sprintf
-                           "its members %s and %s are told apart by a pattern \
-                            alone, which the OCaml SDK does not read"
-                           a.variant b.variant))
-                  u.branches)
-              u.branches;
-            {
-              module_;
-              name = (if rooted name then Some name else None);
-              file;
-              shape =
-                Members
-                  (List.map
-                     (fun (b : T.branch) ->
-                       {
-                         branch = b;
-                         held = held_of ~stated_in:b.variant ~const:false b.ty;
-                       })
-                     u.branches);
-            })
+              (fun j (b : T.branch) ->
+                if
+                  j > i
+                  && List.exists
+                       (fun sa ->
+                         List.exists
+                           (fun sb ->
+                             not (T.disjoint (unpatterned sa) (unpatterned sb)))
+                           b.signature)
+                       a.signature
+                then
+                  refuse file ""
+                    (Printf.sprintf
+                       "its members %s and %s are told apart by a pattern \
+                        alone, which the OCaml SDK does not read"
+                       a.variant b.variant))
+              u.branches)
+          u.branches;
+        {
+          module_;
+          name = (if rooted name then Some name else None);
+          file;
+          shape =
+            Members
+              (List.map
+                 (fun (b : T.branch) ->
+                   {
+                     branch = b;
+                     held = held_of ~stated_in:b.variant ~const:false b.ty;
+                   })
+                 u.branches);
+        })
   in
   List.iter
     (fun (name, file) ->
@@ -381,8 +324,8 @@ let components spec (typing : T.t) ~tabled ~enum_of =
     roots;
   List.iter
     (fun (name, file) ->
-      match (tagged name, (typing.find name).form) with
-      | Some _, T.Union u ->
+      match (typing.find name).form with
+      | T.Union u when not (Deviations.text_union u) ->
           union ~module_:(Enums.module_name name) ~name ~file u
       | _ -> ())
     roots;
@@ -395,17 +338,7 @@ let components spec (typing : T.t) ~tabled ~enum_of =
         else None)
       roots
   in
-  let last =
-    List.filter
-      (fun e -> match e.shape with Tagged _ -> true | _ -> false)
-      discovered
-  in
-  ordered
-    (first
-    @ List.filter
-        (fun e -> not (List.memq e first || List.memq e last))
-        discovered
-    @ last)
+  ordered (first @ List.filter (fun e -> not (List.memq e first)) discovered)
 
 type base =
   | Text_base
@@ -850,65 +783,6 @@ let entry (e : entry) =
         @ [ O.type_item t; project ]
         @ rooted (fun name ->
             [ of_model name (O.call "project" [ model_fields ]) ])
-        @ [ to_json ]
-        @ rooted (fun name -> [ to_model name ]))
-  | Tagged { property; variants } ->
-      let t =
-        O.type_declaration "t"
-          (Variant
-             (List.map
-                (fun (_, c, branch) ->
-                  O.constructor c ~args:[ O.type_ (branch ^ ".t") ])
-                variants))
-      in
-      let by_tag fields ~found ~otherwise =
-        O.match_
-          (O.call "List.assoc_opt" [ O.string property; fields ])
-          [
-            O.case
-              (O.Pattern.construct "Some"
-                 ~arg:
-                   (O.Pattern.variant "Stringlit" ~arg:(O.Pattern.var "literal")))
-              (O.match_
-                 (O.call "string"
-                    [ O.variant "Stringlit" ~arg:(O.ident "literal") ])
-                 (List.map
-                    (fun (tag, c, branch) ->
-                      O.case (O.Pattern.string tag)
-                        (found
-                           (O.construct c
-                              ~arg:(O.call (branch ^ ".project") [ fields ]))))
-                    variants
-                 @ [ O.case O.Pattern.any otherwise ]));
-            O.case O.Pattern.any otherwise;
-          ]
-      in
-      let read =
-        O.define "read" [ "value" ]
-          (O.let_in "fields"
-             (O.call "fields_of" [ O.ident "value" ])
-             (by_tag (O.ident "fields") ~found:Fun.id ~otherwise:O.assert_false))
-      in
-      let of_model =
-        rooted (fun name ->
-            [
-              of_model name
-                (O.let_in "fields" model_fields
-                   (by_tag (O.ident "fields") ~found:O.some ~otherwise:O.none));
-            ])
-      in
-      let to_json =
-        O.let_ "to_json"
-          (O.function_
-             (List.map
-                (fun (_, c, branch) ->
-                  O.case
-                    (O.Pattern.construct c ~arg:(O.Pattern.var "value"))
-                    (O.call (branch ^ ".to_json") [ O.ident "value" ]))
-                variants))
-      in
-      O.module_ e.module_
-        ((O.type_item t :: read :: of_model)
         @ [ to_json ]
         @ rooted (fun name -> [ to_model name ]))
   | Members branches ->

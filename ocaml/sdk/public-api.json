@@ -189,10 +189,10 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "b593458f87d025c0bbc0283035b16a39c9f8c06a7d89027f6ba711c3cbfb79fb",
     "lib/record_reader.mli": "1c08f78d98db5840296684f52781f04df3bd8013ee45db693535c0f3d4a4c951",
-    "lib/records.ml": "42efc3f06af8a3ad2f3eecc3ea3dfc891469cd27d8af52b3b3388ce04e62fe1a",
+    "lib/records.ml": "59e73816aa6a638163664d4148acc705dc0d6e5b107bdef49c9f233a12663fd8",
     "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
-    "lib/registry.ml": "8c45ad08127ce44a391f72db9ec62f4a3636098141a9b339886143ff5815e29a",
+    "lib/registry.ml": "cbb2d6ccd19fd62371e52c7d5a02f4e2fa07b26db97762b2b836db49db66bc7e",
     "lib/registry.mli": "9b95a73c33583b9e737263db624a5fff5d441076ce74c134deaa119afdcef60d",
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "b5304c8b1d16637743f5036069431ea2b0f4f5ef4d856e76d14583178bf506f5",
@@ -19554,6 +19554,428 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_ready",
+      "declaration": "module Conformance_driver_line_ready :\n  sig\n    type t = { ready : bool; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_ready.t",
+      "declaration": "type t = { ready : bool; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "ready",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_ready.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_ready.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_ok",
+      "declaration": "module Conformance_driver_line_ok :\n  sig\n    type t = {\n      id : int;\n      ok : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_ok.t",
+      "declaration": "type t = {\n  id : int;\n  ok : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "id",
+        "ok",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_ok.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_ok.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_abandoned",
+      "declaration": "module Conformance_driver_line_abandoned :\n  sig\n    type t = {\n      id : int;\n      abandoned : bool;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_abandoned.t",
+      "declaration": "type t = {\n  id : int;\n  abandoned : bool;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "id",
+        "abandoned",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_abandoned.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_abandoned.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_unsupported",
+      "declaration": "module Conformance_driver_line_unsupported :\n  sig\n    type t = {\n      id : int;\n      unsupported : bool;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_unsupported.t",
+      "declaration": "type t = {\n  id : int;\n  unsupported : bool;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "id",
+        "unsupported",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_unsupported.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_unsupported.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_misuse",
+      "declaration": "module Conformance_driver_line_misuse :\n  sig\n    type t = {\n      id : int;\n      misuse : string;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_misuse.t",
+      "declaration": "type t = { id : int; misuse : string; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "id",
+        "misuse",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_misuse.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_misuse.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_state",
+      "declaration": "module Conformance_driver_line_state :\n  sig\n    type t = { state : string; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_state.t",
+      "declaration": "type t = { state : string; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "state",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_state.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_state.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_frame_frame",
+      "declaration": "module Conformance_driver_line_frame_frame :\n  sig\n    type t = {\n      channel : string;\n      payload : Yojson.Raw.t Xynolog__.Types.presence;\n      correlation_id : string option;\n      scope : string option;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_frame_frame.t",
+      "declaration": "type t = {\n  channel : string;\n  payload : Yojson.Raw.t Xynolog__.Types.presence;\n  correlation_id : string option;\n  scope : string option;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "channel",
+        "payload",
+        "correlation_id",
+        "scope",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_frame_frame.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_frame_frame.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_progress_progress",
+      "declaration": "module Conformance_driver_line_progress_progress :\n  sig\n    type t = {\n      upload : int;\n      bytes_uploaded : int;\n      total_bytes : int;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_progress_progress.t",
+      "declaration": "type t = {\n  upload : int;\n  bytes_uploaded : int;\n  total_bytes : int;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "upload",
+        "bytes_uploaded",
+        "total_bytes",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_progress_progress.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_progress_progress.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_pending",
+      "declaration": "module Conformance_driver_line_emission_emission_state_pending :\n  sig\n    module Status :\n      sig\n        type t = Pending\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = { status : Status.t; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_pending.Status",
+      "declaration": "module Status :\n  sig\n    type t = Pending\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_pending.Status.t",
+      "declaration": "type t = Pending",
+      "representation": "variant",
+      "constructors": [
+        "Pending"
+      ],
+      "variants": [
+        {
+          "name": "Pending",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_pending.Status.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_pending.Status.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_pending.t",
+      "declaration": "type t = { status : Status.t; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "status",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_pending.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_pending.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_ready",
+      "declaration": "module Conformance_driver_line_emission_emission_state_ready :\n  sig\n    module Status :\n      sig\n        type t = Ready\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      status : Status.t;\n      value : Yojson.Raw.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_ready.Status",
+      "declaration": "module Status :\n  sig\n    type t = Ready\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_ready.Status.t",
+      "declaration": "type t = Ready",
+      "representation": "variant",
+      "constructors": [
+        "Ready"
+      ],
+      "variants": [
+        {
+          "name": "Ready",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_ready.Status.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_ready.Status.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_ready.t",
+      "declaration": "type t = {\n  status : Status.t;\n  value : Yojson.Raw.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "status",
+        "value",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_ready.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_ready.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_completed",
+      "declaration": "module Conformance_driver_line_completed :\n  sig\n    type t = { completed : string; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_completed.t",
+      "declaration": "type t = { completed : string; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "completed",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_completed.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_completed.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_claimed",
+      "declaration": "module Conformance_driver_line_claimed :\n  sig\n    type t = {\n      claimed : (string * Yojson.Raw.t) list;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_claimed.t",
+      "declaration": "type t = {\n  claimed : (string * Yojson.Raw.t) list;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "claimed",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_claimed.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_claimed.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_signalled",
+      "declaration": "module Conformance_driver_line_signalled :\n  sig\n    type t = { signalled : string; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_signalled.t",
+      "declaration": "type t = { signalled : string; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "signalled",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_signalled.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_signalled.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_stalled",
+      "declaration": "module Conformance_driver_line_stalled :\n  sig\n    type t = { stalled : string; extra : (string * Yojson.Raw.t) list; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_stalled.t",
+      "declaration": "type t = { stalled : string; extra : (string * Yojson.Raw.t) list; }",
+      "representation": "record",
+      "fields": [
+        "stalled",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_stalled.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_stalled.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Browse_click_event",
       "declaration": "module Browse_click_event :\n  sig\n    type t = {\n      annotation_id : string;\n      anchor_rect : Anchor_rect.t option;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `BrowseClickEvent ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `BrowseClickEvent ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
@@ -22263,6 +22685,180 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Selector",
+      "declaration": "module Selector :\n  sig\n    type t =\n        TextPositionSelector of Text_position_selector.t\n      | TextQuoteSelector of Text_quote_selector.t\n      | SvgSelector of Svg_selector.t\n      | FragmentSelector of Fragment_selector.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `Selector ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Selector ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Selector.t",
+      "declaration": "type t =\n    TextPositionSelector of Text_position_selector.t\n  | TextQuoteSelector of Text_quote_selector.t\n  | SvgSelector of Svg_selector.t\n  | FragmentSelector of Fragment_selector.t",
+      "representation": "variant",
+      "constructors": [
+        "TextPositionSelector",
+        "TextQuoteSelector",
+        "SvgSelector",
+        "FragmentSelector"
+      ],
+      "variants": [
+        {
+          "name": "TextPositionSelector",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "TextQuoteSelector",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "SvgSelector",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "FragmentSelector",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Selector.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Selector.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Selector.of_model",
+      "declaration": "val of_model : [ `Selector ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Selector.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Selector.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `Selector ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Annotation_body",
+      "declaration": "module Annotation_body :\n  sig\n    type t =\n        TextualBody of Textual_body.t\n      | SpecificResource of Specific_resource.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `AnnotationBody ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AnnotationBody ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Annotation_body.t",
+      "declaration": "type t =\n    TextualBody of Textual_body.t\n  | SpecificResource of Specific_resource.t",
+      "representation": "variant",
+      "constructors": [
+        "TextualBody",
+        "SpecificResource"
+      ],
+      "variants": [
+        {
+          "name": "TextualBody",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "SpecificResource",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Annotation_body.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Annotation_body.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Annotation_body.of_model",
+      "declaration": "val of_model : [ `AnnotationBody ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Annotation_body.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Annotation_body.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `AnnotationBody ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Agent",
+      "declaration": "module Agent :\n  sig\n    type t =\n        AgentPerson of Agent_person.t\n      | AgentOrganization of Agent_organization.t\n      | AgentSoftware of Agent_software.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `Agent ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Agent ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Agent.t",
+      "declaration": "type t =\n    AgentPerson of Agent_person.t\n  | AgentOrganization of Agent_organization.t\n  | AgentSoftware of Agent_software.t",
+      "representation": "variant",
+      "constructors": [
+        "AgentPerson",
+        "AgentOrganization",
+        "AgentSoftware"
+      ],
+      "variants": [
+        {
+          "name": "AgentPerson",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "AgentOrganization",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "AgentSoftware",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Agent.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Agent.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Agent.of_model",
+      "declaration": "val of_model : [ `Agent ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Agent.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Agent.to_model",
+      "declaration": "val to_model :\n  t -> ([ `Agent ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Browse_profiles_result_response",
       "declaration": "module Browse_profiles_result_response :\n  sig\n    type t = {\n      profiles : (string * Profile.t) list;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -22384,6 +22980,58 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Directory_entry",
+      "declaration": "module Directory_entry :\n  sig\n    type t = FileEntry of File_entry.t | DirEntry of Dir_entry.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `DirectoryEntry ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `DirectoryEntry ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Directory_entry.t",
+      "declaration": "type t = FileEntry of File_entry.t | DirEntry of Dir_entry.t",
+      "representation": "variant",
+      "constructors": [
+        "FileEntry",
+        "DirEntry"
+      ],
+      "variants": [
+        {
+          "name": "FileEntry",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "DirEntry",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Directory_entry.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Directory_entry.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Directory_entry.of_model",
+      "declaration": "val of_model : [ `DirectoryEntry ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Directory_entry.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Directory_entry.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `DirectoryEntry ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Gathered_context_semantic_context",
       "declaration": "module Gathered_context_semantic_context :\n  sig\n    type t = {\n      similar : Semantic_match.t list;\n      excluded_entity_types : string list option;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -22433,6 +23081,106 @@
       "kind": "value",
       "path": "Xynolog.Records.Get_referenced_by_response_referenced_by_item_target.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Job_progress_message",
+      "declaration": "module Job_progress_message :\n  sig\n    type t =\n        JobProgressLoading of Job_progress_loading.t\n      | JobProgressAnalyzing of Job_progress_analyzing.t\n      | JobProgressAnalyzingTags of Job_progress_analyzing_tags.t\n      | JobProgressGeneratingResource of Job_progress_generating_resource.t\n      | JobProgressCreatingResource of Job_progress_creating_resource.t\n      | JobProgressCompleteGenerated of Job_progress_complete_generated.t\n      | JobProgressDetectingEntities of Job_progress_detecting_entities.t\n      | JobProgressCreatingAnnotations of Job_progress_creating_annotations.t\n      | JobProgressCreatingTagAnnotations of\n          Job_progress_creating_tag_annotations.t\n      | JobProgressCompleteCreated of Job_progress_complete_created.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobProgressMessage ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobProgressMessage ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Job_progress_message.t",
+      "declaration": "type t =\n    JobProgressLoading of Job_progress_loading.t\n  | JobProgressAnalyzing of Job_progress_analyzing.t\n  | JobProgressAnalyzingTags of Job_progress_analyzing_tags.t\n  | JobProgressGeneratingResource of Job_progress_generating_resource.t\n  | JobProgressCreatingResource of Job_progress_creating_resource.t\n  | JobProgressCompleteGenerated of Job_progress_complete_generated.t\n  | JobProgressDetectingEntities of Job_progress_detecting_entities.t\n  | JobProgressCreatingAnnotations of Job_progress_creating_annotations.t\n  | JobProgressCreatingTagAnnotations of\n      Job_progress_creating_tag_annotations.t\n  | JobProgressCompleteCreated of Job_progress_complete_created.t",
+      "representation": "variant",
+      "constructors": [
+        "JobProgressLoading",
+        "JobProgressAnalyzing",
+        "JobProgressAnalyzingTags",
+        "JobProgressGeneratingResource",
+        "JobProgressCreatingResource",
+        "JobProgressCompleteGenerated",
+        "JobProgressDetectingEntities",
+        "JobProgressCreatingAnnotations",
+        "JobProgressCreatingTagAnnotations",
+        "JobProgressCompleteCreated"
+      ],
+      "variants": [
+        {
+          "name": "JobProgressLoading",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressAnalyzing",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressAnalyzingTags",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressGeneratingResource",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressCreatingResource",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressCompleteGenerated",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressDetectingEntities",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressCreatingAnnotations",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressCreatingTagAnnotations",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JobProgressCompleteCreated",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_progress_message.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_progress_message.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_progress_message.of_model",
+      "declaration": "val of_model : [ `JobProgressMessage ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_progress_message.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_progress_message.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `JobProgressMessage ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
     },
     {
       "kind": "module",
@@ -22519,6 +23267,128 @@
       "kind": "value",
       "path": "Xynolog.Records.Job_result.to_model",
       "declaration": "val to_model :\n  t ->\n  ([ `JobResult ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Kb_endpoint",
+      "declaration": "module Kb_endpoint :\n  sig\n    type t =\n        HttpEndpoint of Http_endpoint.t\n      | LocalEndpoint of Local_endpoint.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `KbEndpoint ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `KbEndpoint ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Kb_endpoint.t",
+      "declaration": "type t = HttpEndpoint of Http_endpoint.t | LocalEndpoint of Local_endpoint.t",
+      "representation": "variant",
+      "constructors": [
+        "HttpEndpoint",
+        "LocalEndpoint"
+      ],
+      "variants": [
+        {
+          "name": "HttpEndpoint",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "LocalEndpoint",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_endpoint.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_endpoint.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_endpoint.of_model",
+      "declaration": "val of_model : [ `KbEndpoint ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_endpoint.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_endpoint.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `KbEndpoint ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Mark_job_params",
+      "declaration": "module Mark_job_params :\n  sig\n    type t =\n        HighlightingJobParams of Highlighting_job_params.t\n      | CommentingJobParams of Commenting_job_params.t\n      | AssessingJobParams of Assessing_job_params.t\n      | LinkingJobParams of Linking_job_params.t\n      | TaggingJobParams of Tagging_job_params.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `MarkJobParams ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `MarkJobParams ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Mark_job_params.t",
+      "declaration": "type t =\n    HighlightingJobParams of Highlighting_job_params.t\n  | CommentingJobParams of Commenting_job_params.t\n  | AssessingJobParams of Assessing_job_params.t\n  | LinkingJobParams of Linking_job_params.t\n  | TaggingJobParams of Tagging_job_params.t",
+      "representation": "variant",
+      "constructors": [
+        "HighlightingJobParams",
+        "CommentingJobParams",
+        "AssessingJobParams",
+        "LinkingJobParams",
+        "TaggingJobParams"
+      ],
+      "variants": [
+        {
+          "name": "HighlightingJobParams",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "CommentingJobParams",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "AssessingJobParams",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "LinkingJobParams",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "TaggingJobParams",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Mark_job_params.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Mark_job_params.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Mark_job_params.of_model",
+      "declaration": "val of_model : [ `MarkJobParams ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Mark_job_params.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Mark_job_params.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `MarkJobParams ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
     },
     {
       "kind": "module",
@@ -22774,6 +23644,174 @@
       "kind": "value",
       "path": "Xynolog.Records.Conformance_implementations_sdks_value.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Graph_config",
+      "declaration": "module Graph_config :\n  sig\n    type t =\n        Neo4jGraphConfig of Neo4j_graph_config.t\n      | JanusGraphConfig of Janus_graph_config.t\n      | NeptuneGraphConfig of Neptune_graph_config.t\n      | MemoryGraphConfig of Memory_graph_config.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `GraphConfig ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `GraphConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Graph_config.t",
+      "declaration": "type t =\n    Neo4jGraphConfig of Neo4j_graph_config.t\n  | JanusGraphConfig of Janus_graph_config.t\n  | NeptuneGraphConfig of Neptune_graph_config.t\n  | MemoryGraphConfig of Memory_graph_config.t",
+      "representation": "variant",
+      "constructors": [
+        "Neo4jGraphConfig",
+        "JanusGraphConfig",
+        "NeptuneGraphConfig",
+        "MemoryGraphConfig"
+      ],
+      "variants": [
+        {
+          "name": "Neo4jGraphConfig",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "JanusGraphConfig",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "NeptuneGraphConfig",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "MemoryGraphConfig",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Graph_config.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Graph_config.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Graph_config.of_model",
+      "declaration": "val of_model : [ `GraphConfig ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Graph_config.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Graph_config.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `GraphConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Vectors_config",
+      "declaration": "module Vectors_config :\n  sig\n    type t =\n        QdrantVectorsConfig of Qdrant_vectors_config.t\n      | MemoryVectorsConfig of Memory_vectors_config.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `VectorsConfig ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `VectorsConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Vectors_config.t",
+      "declaration": "type t =\n    QdrantVectorsConfig of Qdrant_vectors_config.t\n  | MemoryVectorsConfig of Memory_vectors_config.t",
+      "representation": "variant",
+      "constructors": [
+        "QdrantVectorsConfig",
+        "MemoryVectorsConfig"
+      ],
+      "variants": [
+        {
+          "name": "QdrantVectorsConfig",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "MemoryVectorsConfig",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vectors_config.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vectors_config.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vectors_config.of_model",
+      "declaration": "val of_model : [ `VectorsConfig ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vectors_config.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Vectors_config.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `VectorsConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Embedding_config",
+      "declaration": "module Embedding_config :\n  sig\n    type t =\n        OllamaEmbeddingConfig of Ollama_embedding_config.t\n      | VoyageEmbeddingConfig of Voyage_embedding_config.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `EmbeddingConfig ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `EmbeddingConfig ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Embedding_config.t",
+      "declaration": "type t =\n    OllamaEmbeddingConfig of Ollama_embedding_config.t\n  | VoyageEmbeddingConfig of Voyage_embedding_config.t",
+      "representation": "variant",
+      "constructors": [
+        "OllamaEmbeddingConfig",
+        "VoyageEmbeddingConfig"
+      ],
+      "variants": [
+        {
+          "name": "OllamaEmbeddingConfig",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "VoyageEmbeddingConfig",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Embedding_config.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Embedding_config.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Embedding_config.of_model",
+      "declaration": "val of_model : [ `EmbeddingConfig ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Embedding_config.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Embedding_config.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `EmbeddingConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
     },
     {
       "kind": "module",
@@ -23119,569 +24157,186 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Selector",
-      "declaration": "module Selector :\n  sig\n    type t =\n        TextPositionSelector of Text_position_selector.t\n      | TextQuoteSelector of Text_quote_selector.t\n      | SvgSelector of Svg_selector.t\n      | FragmentSelector of Fragment_selector.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `Selector ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Selector ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "path": "Xynolog.Records.Conformance_driver_line_failed",
+      "declaration": "module Conformance_driver_line_failed :\n  sig\n    type t = {\n      id : int;\n      error : Conformance_failure.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Selector.t",
-      "declaration": "type t =\n    TextPositionSelector of Text_position_selector.t\n  | TextQuoteSelector of Text_quote_selector.t\n  | SvgSelector of Svg_selector.t\n  | FragmentSelector of Fragment_selector.t",
-      "representation": "variant",
-      "constructors": [
-        "TextPositionSelector",
-        "TextQuoteSelector",
-        "SvgSelector",
-        "FragmentSelector"
-      ],
-      "variants": [
-        {
-          "name": "TextPositionSelector",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "TextQuoteSelector",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "SvgSelector",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "FragmentSelector",
-          "fields": [],
-          "unit": false
-        }
+      "path": "Xynolog.Records.Conformance_driver_line_failed.t",
+      "declaration": "type t = {\n  id : int;\n  error : Conformance_failure.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "id",
+        "error",
+        "extra"
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Selector.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
+      "path": "Xynolog.Records.Conformance_driver_line_failed.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Selector.of_model",
-      "declaration": "val of_model : [ `Selector ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Selector.to_json",
+      "path": "Xynolog.Records.Conformance_driver_line_failed.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Selector.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `Selector ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Annotation_body",
-      "declaration": "module Annotation_body :\n  sig\n    type t =\n        TextualBody of Textual_body.t\n      | SpecificResource of Specific_resource.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `AnnotationBody ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AnnotationBody ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "path": "Xynolog.Records.Conformance_driver_line_frame",
+      "declaration": "module Conformance_driver_line_frame :\n  sig\n    type t = {\n      frame : Conformance_driver_line_frame_frame.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Annotation_body.t",
-      "declaration": "type t =\n    TextualBody of Textual_body.t\n  | SpecificResource of Specific_resource.t",
-      "representation": "variant",
-      "constructors": [
-        "TextualBody",
-        "SpecificResource"
-      ],
-      "variants": [
-        {
-          "name": "TextualBody",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "SpecificResource",
-          "fields": [],
-          "unit": false
-        }
+      "path": "Xynolog.Records.Conformance_driver_line_frame.t",
+      "declaration": "type t = {\n  frame : Conformance_driver_line_frame_frame.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "frame",
+        "extra"
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Annotation_body.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
+      "path": "Xynolog.Records.Conformance_driver_line_frame.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Annotation_body.of_model",
-      "declaration": "val of_model : [ `AnnotationBody ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Annotation_body.to_json",
+      "path": "Xynolog.Records.Conformance_driver_line_frame.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Annotation_body.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `AnnotationBody ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Agent",
-      "declaration": "module Agent :\n  sig\n    type t =\n        Person of Agent_person.t\n      | Organization of Agent_organization.t\n      | Software of Agent_software.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `Agent ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Agent ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
+      "path": "Xynolog.Records.Conformance_driver_line_error_stream",
+      "declaration": "module Conformance_driver_line_error_stream :\n  sig\n    type t = {\n      error : Conformance_failure.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Agent.t",
-      "declaration": "type t =\n    Person of Agent_person.t\n  | Organization of Agent_organization.t\n  | Software of Agent_software.t",
-      "representation": "variant",
-      "constructors": [
-        "Person",
-        "Organization",
-        "Software"
-      ],
-      "variants": [
-        {
-          "name": "Person",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Organization",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Software",
-          "fields": [],
-          "unit": false
-        }
+      "path": "Xynolog.Records.Conformance_driver_line_error_stream.t",
+      "declaration": "type t = {\n  error : Conformance_failure.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "error",
+        "extra"
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Agent.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
+      "path": "Xynolog.Records.Conformance_driver_line_error_stream.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Agent.of_model",
-      "declaration": "val of_model : [ `Agent ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Agent.to_json",
+      "path": "Xynolog.Records.Conformance_driver_line_error_stream.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Agent.to_model",
-      "declaration": "val to_model :\n  t -> ([ `Agent ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Directory_entry",
-      "declaration": "module Directory_entry :\n  sig\n    type t = File of File_entry.t | Dir of Dir_entry.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `DirectoryEntry ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `DirectoryEntry ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "path": "Xynolog.Records.Conformance_driver_line_progress",
+      "declaration": "module Conformance_driver_line_progress :\n  sig\n    type t = {\n      progress : Conformance_driver_line_progress_progress.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Directory_entry.t",
-      "declaration": "type t = File of File_entry.t | Dir of Dir_entry.t",
-      "representation": "variant",
-      "constructors": [
-        "File",
-        "Dir"
-      ],
-      "variants": [
-        {
-          "name": "File",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Dir",
-          "fields": [],
-          "unit": false
-        }
+      "path": "Xynolog.Records.Conformance_driver_line_progress.t",
+      "declaration": "type t = {\n  progress : Conformance_driver_line_progress_progress.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "progress",
+        "extra"
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Directory_entry.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
+      "path": "Xynolog.Records.Conformance_driver_line_progress.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Directory_entry.of_model",
-      "declaration": "val of_model : [ `DirectoryEntry ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Directory_entry.to_json",
+      "path": "Xynolog.Records.Conformance_driver_line_progress.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Directory_entry.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `DirectoryEntry ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Job_progress_message",
-      "declaration": "module Job_progress_message :\n  sig\n    type t =\n        Loading of Job_progress_loading.t\n      | Analyzing of Job_progress_analyzing.t\n      | AnalyzingTags of Job_progress_analyzing_tags.t\n      | GeneratingResource of Job_progress_generating_resource.t\n      | CreatingResource of Job_progress_creating_resource.t\n      | CompleteGenerated of Job_progress_complete_generated.t\n      | DetectingEntities of Job_progress_detecting_entities.t\n      | CreatingAnnotations of Job_progress_creating_annotations.t\n      | CreatingTagAnnotations of Job_progress_creating_tag_annotations.t\n      | CompleteCreated of Job_progress_complete_created.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobProgressMessage ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobProgressMessage ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Job_progress_message.t",
-      "declaration": "type t =\n    Loading of Job_progress_loading.t\n  | Analyzing of Job_progress_analyzing.t\n  | AnalyzingTags of Job_progress_analyzing_tags.t\n  | GeneratingResource of Job_progress_generating_resource.t\n  | CreatingResource of Job_progress_creating_resource.t\n  | CompleteGenerated of Job_progress_complete_generated.t\n  | DetectingEntities of Job_progress_detecting_entities.t\n  | CreatingAnnotations of Job_progress_creating_annotations.t\n  | CreatingTagAnnotations of Job_progress_creating_tag_annotations.t\n  | CompleteCreated of Job_progress_complete_created.t",
-      "representation": "variant",
-      "constructors": [
-        "Loading",
-        "Analyzing",
-        "AnalyzingTags",
-        "GeneratingResource",
-        "CreatingResource",
-        "CompleteGenerated",
-        "DetectingEntities",
-        "CreatingAnnotations",
-        "CreatingTagAnnotations",
-        "CompleteCreated"
-      ],
-      "variants": [
-        {
-          "name": "Loading",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Analyzing",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "AnalyzingTags",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "GeneratingResource",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "CreatingResource",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "CompleteGenerated",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "DetectingEntities",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "CreatingAnnotations",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "CreatingTagAnnotations",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "CompleteCreated",
-          "fields": [],
-          "unit": false
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Job_progress_message.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Job_progress_message.of_model",
-      "declaration": "val of_model : [ `JobProgressMessage ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Job_progress_message.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Job_progress_message.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `JobProgressMessage ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_failed",
+      "declaration": "module Conformance_driver_line_emission_emission_state_failed :\n  sig\n    module Status :\n      sig\n        type t = Failed\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      status : Status.t;\n      error : Conformance_failure.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Kb_endpoint",
-      "declaration": "module Kb_endpoint :\n  sig\n    type t = Http of Http_endpoint.t | Local of Local_endpoint.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `KbEndpoint ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `KbEndpoint ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_failed.Status",
+      "declaration": "module Status :\n  sig\n    type t = Failed\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Kb_endpoint.t",
-      "declaration": "type t = Http of Http_endpoint.t | Local of Local_endpoint.t",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_failed.Status.t",
+      "declaration": "type t = Failed",
       "representation": "variant",
       "constructors": [
-        "Http",
-        "Local"
+        "Failed"
       ],
       "variants": [
         {
-          "name": "Http",
+          "name": "Failed",
           "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Local",
-          "fields": [],
-          "unit": false
+          "unit": true
         }
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Kb_endpoint.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_failed.Status.to_string",
+      "declaration": "val to_string : t -> string"
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Kb_endpoint.of_model",
-      "declaration": "val of_model : [ `KbEndpoint ] Xynolog__.Models.t -> t option"
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_failed.Status.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_failed.t",
+      "declaration": "type t = {\n  status : Status.t;\n  error : Conformance_failure.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "status",
+        "error",
+        "extra"
+      ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Kb_endpoint.to_json",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_failed.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state_failed.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Kb_endpoint.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `KbEndpoint ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Mark_job_params",
-      "declaration": "module Mark_job_params :\n  sig\n    type t =\n        Highlighting of Highlighting_job_params.t\n      | Commenting of Commenting_job_params.t\n      | Assessing of Assessing_job_params.t\n      | Linking of Linking_job_params.t\n      | Tagging of Tagging_job_params.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `MarkJobParams ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `MarkJobParams ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "path": "Xynolog.Records.Conformance_driver_line_refused",
+      "declaration": "module Conformance_driver_line_refused :\n  sig\n    type t = {\n      refused : Conformance_failure.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Mark_job_params.t",
-      "declaration": "type t =\n    Highlighting of Highlighting_job_params.t\n  | Commenting of Commenting_job_params.t\n  | Assessing of Assessing_job_params.t\n  | Linking of Linking_job_params.t\n  | Tagging of Tagging_job_params.t",
-      "representation": "variant",
-      "constructors": [
-        "Highlighting",
-        "Commenting",
-        "Assessing",
-        "Linking",
-        "Tagging"
-      ],
-      "variants": [
-        {
-          "name": "Highlighting",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Commenting",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Assessing",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Linking",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Tagging",
-          "fields": [],
-          "unit": false
-        }
+      "path": "Xynolog.Records.Conformance_driver_line_refused.t",
+      "declaration": "type t = {\n  refused : Conformance_failure.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "refused",
+        "extra"
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Mark_job_params.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
+      "path": "Xynolog.Records.Conformance_driver_line_refused.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Mark_job_params.of_model",
-      "declaration": "val of_model : [ `MarkJobParams ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Mark_job_params.to_json",
+      "path": "Xynolog.Records.Conformance_driver_line_refused.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Mark_job_params.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `MarkJobParams ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Graph_config",
-      "declaration": "module Graph_config :\n  sig\n    type t =\n        Neo4j of Neo4j_graph_config.t\n      | Janusgraph of Janus_graph_config.t\n      | Neptune of Neptune_graph_config.t\n      | Memory of Memory_graph_config.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `GraphConfig ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `GraphConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Graph_config.t",
-      "declaration": "type t =\n    Neo4j of Neo4j_graph_config.t\n  | Janusgraph of Janus_graph_config.t\n  | Neptune of Neptune_graph_config.t\n  | Memory of Memory_graph_config.t",
-      "representation": "variant",
-      "constructors": [
-        "Neo4j",
-        "Janusgraph",
-        "Neptune",
-        "Memory"
-      ],
-      "variants": [
-        {
-          "name": "Neo4j",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Janusgraph",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Neptune",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Memory",
-          "fields": [],
-          "unit": false
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Graph_config.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Graph_config.of_model",
-      "declaration": "val of_model : [ `GraphConfig ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Graph_config.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Graph_config.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `GraphConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Vectors_config",
-      "declaration": "module Vectors_config :\n  sig\n    type t =\n        Qdrant of Qdrant_vectors_config.t\n      | Memory of Memory_vectors_config.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `VectorsConfig ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `VectorsConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Vectors_config.t",
-      "declaration": "type t =\n    Qdrant of Qdrant_vectors_config.t\n  | Memory of Memory_vectors_config.t",
-      "representation": "variant",
-      "constructors": [
-        "Qdrant",
-        "Memory"
-      ],
-      "variants": [
-        {
-          "name": "Qdrant",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Memory",
-          "fields": [],
-          "unit": false
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Vectors_config.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Vectors_config.of_model",
-      "declaration": "val of_model : [ `VectorsConfig ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Vectors_config.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Vectors_config.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `VectorsConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Embedding_config",
-      "declaration": "module Embedding_config :\n  sig\n    type t =\n        Ollama of Ollama_embedding_config.t\n      | Voyage of Voyage_embedding_config.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `EmbeddingConfig ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `EmbeddingConfig ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Embedding_config.t",
-      "declaration": "type t =\n    Ollama of Ollama_embedding_config.t\n  | Voyage of Voyage_embedding_config.t",
-      "representation": "variant",
-      "constructors": [
-        "Ollama",
-        "Voyage"
-      ],
-      "variants": [
-        {
-          "name": "Ollama",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Voyage",
-          "fields": [],
-          "unit": false
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Embedding_config.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Embedding_config.of_model",
-      "declaration": "val of_model : [ `EmbeddingConfig ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Embedding_config.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Embedding_config.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `EmbeddingConfig ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
     },
     {
       "kind": "module",
@@ -25375,6 +26030,58 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Job_filter",
+      "declaration": "module Job_filter :\n  sig\n    type t =\n        MarkJobFilter of Mark_job_filter.t\n      | YieldJobFilter of Yield_job_filter.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobFilter ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobFilter ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Job_filter.t",
+      "declaration": "type t =\n    MarkJobFilter of Mark_job_filter.t\n  | YieldJobFilter of Yield_job_filter.t",
+      "representation": "variant",
+      "constructors": [
+        "MarkJobFilter",
+        "YieldJobFilter"
+      ],
+      "variants": [
+        {
+          "name": "MarkJobFilter",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "YieldJobFilter",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_filter.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_filter.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_filter.of_model",
+      "declaration": "val of_model : [ `JobFilter ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_filter.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_filter.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `JobFilter ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Resource_descriptor_representations",
       "declaration": "module Resource_descriptor_representations :\n  sig\n    type t =\n        Representation of Representation.t\n      | List of Representation.t list\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -25984,95 +26691,41 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Job_filter",
-      "declaration": "module Job_filter :\n  sig\n    type t = Mark of Mark_job_filter.t | Yield of Yield_job_filter.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobFilter ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobFilter ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Job_filter.t",
-      "declaration": "type t = Mark of Mark_job_filter.t | Yield of Yield_job_filter.t",
-      "representation": "variant",
-      "constructors": [
-        "Mark",
-        "Yield"
-      ],
-      "variants": [
-        {
-          "name": "Mark",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Yield",
-          "fields": [],
-          "unit": false
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Job_filter.read",
-      "declaration": "val read : Yojson.Raw.t -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Job_filter.of_model",
-      "declaration": "val of_model : [ `JobFilter ] Xynolog__.Models.t -> t option"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Job_filter.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Job_filter.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `JobFilter ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Anchored_text_answer",
-      "declaration": "module Anchored_text_answer :\n  sig\n    type t =\n        Extracted of Extracted_text.t\n      | Declined of Extraction_declined.t\n      | NotYet of Anchored_text_absent.t\n      | NoMap of Anchored_text_absent.t\n      | Unknown of Anchored_text_absent.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `AnchoredTextAnswer ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AnchoredTextAnswer ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Anchored_text_answer :\n  sig\n    type t =\n        ExtractedText of Extracted_text.t\n      | ExtractionDeclined of Extraction_declined.t\n      | AnchoredTextAbsent of Anchored_text_absent.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `AnchoredTextAnswer ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `AnchoredTextAnswer ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Anchored_text_answer.t",
-      "declaration": "type t =\n    Extracted of Extracted_text.t\n  | Declined of Extraction_declined.t\n  | NotYet of Anchored_text_absent.t\n  | NoMap of Anchored_text_absent.t\n  | Unknown of Anchored_text_absent.t",
+      "declaration": "type t =\n    ExtractedText of Extracted_text.t\n  | ExtractionDeclined of Extraction_declined.t\n  | AnchoredTextAbsent of Anchored_text_absent.t",
       "representation": "variant",
       "constructors": [
-        "Extracted",
-        "Declined",
-        "NotYet",
-        "NoMap",
-        "Unknown"
+        "ExtractedText",
+        "ExtractionDeclined",
+        "AnchoredTextAbsent"
       ],
       "variants": [
         {
-          "name": "Extracted",
+          "name": "ExtractedText",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Declined",
+          "name": "ExtractionDeclined",
           "fields": [],
           "unit": false
         },
         {
-          "name": "NotYet",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "NoMap",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Unknown",
+          "name": "AnchoredTextAbsent",
           "fields": [],
           "unit": false
         }
       ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Anchored_text_answer.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
     },
     {
       "kind": "value",
@@ -26082,7 +26735,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Anchored_text_answer.of_model",
-      "declaration": "val of_model : [ `AnchoredTextAnswer ] Xynolog__.Models.t -> t option"
+      "declaration": "val of_model : [ `AnchoredTextAnswer ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "value",
@@ -26097,29 +26750,34 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Extraction_outcome",
-      "declaration": "module Extraction_outcome :\n  sig\n    type t =\n        Extracted of Extracted_text.t\n      | Declined of Extraction_declined.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `ExtractionOutcome ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ExtractionOutcome ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Extraction_outcome :\n  sig\n    type t =\n        ExtractedText of Extracted_text.t\n      | ExtractionDeclined of Extraction_declined.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `ExtractionOutcome ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ExtractionOutcome ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Extraction_outcome.t",
-      "declaration": "type t = Extracted of Extracted_text.t | Declined of Extraction_declined.t",
+      "declaration": "type t =\n    ExtractedText of Extracted_text.t\n  | ExtractionDeclined of Extraction_declined.t",
       "representation": "variant",
       "constructors": [
-        "Extracted",
-        "Declined"
+        "ExtractedText",
+        "ExtractionDeclined"
       ],
       "variants": [
         {
-          "name": "Extracted",
+          "name": "ExtractedText",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Declined",
+          "name": "ExtractionDeclined",
           "fields": [],
           "unit": false
         }
       ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Extraction_outcome.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
     },
     {
       "kind": "value",
@@ -26129,7 +26787,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Extraction_outcome.of_model",
-      "declaration": "val of_model : [ `ExtractionOutcome ] Xynolog__.Models.t -> t option"
+      "declaration": "val of_model : [ `ExtractionOutcome ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "value",
@@ -26140,6 +26798,106 @@
       "kind": "value",
       "path": "Xynolog.Records.Extraction_outcome.to_model",
       "declaration": "val to_model :\n  t ->\n  ([ `ExtractionOutcome ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Bus_stream_message",
+      "declaration": "module Bus_stream_message :\n  sig\n    type t =\n        BusEventMessage of Bus_event_message.t\n      | BusPingMessage of Bus_ping_message.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `BusStreamMessage ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `BusStreamMessage ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Bus_stream_message.t",
+      "declaration": "type t =\n    BusEventMessage of Bus_event_message.t\n  | BusPingMessage of Bus_ping_message.t",
+      "representation": "variant",
+      "constructors": [
+        "BusEventMessage",
+        "BusPingMessage"
+      ],
+      "variants": [
+        {
+          "name": "BusEventMessage",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "BusPingMessage",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Bus_stream_message.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Bus_stream_message.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Bus_stream_message.of_model",
+      "declaration": "val of_model : [ `BusStreamMessage ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Bus_stream_message.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Bus_stream_message.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `BusStreamMessage ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state",
+      "declaration": "module Conformance_driver_line_emission_emission_state :\n  sig\n    type t =\n        Pending of Conformance_driver_line_emission_emission_state_pending.t\n      | Ready of Conformance_driver_line_emission_emission_state_ready.t\n      | Failed of Conformance_driver_line_emission_emission_state_failed.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state.t",
+      "declaration": "type t =\n    Pending of Conformance_driver_line_emission_emission_state_pending.t\n  | Ready of Conformance_driver_line_emission_emission_state_ready.t\n  | Failed of Conformance_driver_line_emission_emission_state_failed.t",
+      "representation": "variant",
+      "constructors": [
+        "Pending",
+        "Ready",
+        "Failed"
+      ],
+      "variants": [
+        {
+          "name": "Pending",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Ready",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Failed",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission_state.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
       "kind": "module",
@@ -28110,29 +28868,34 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Job_complete_command",
-      "declaration": "module Job_complete_command :\n  sig\n    type t =\n        Mark of Mark_job_complete_command.t\n      | Yield of Yield_job_complete_command.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobCompleteCommand ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobCompleteCommand ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Job_complete_command :\n  sig\n    type t =\n        MarkJobCompleteCommand of Mark_job_complete_command.t\n      | YieldJobCompleteCommand of Yield_job_complete_command.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobCompleteCommand ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobCompleteCommand ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Job_complete_command.t",
-      "declaration": "type t =\n    Mark of Mark_job_complete_command.t\n  | Yield of Yield_job_complete_command.t",
+      "declaration": "type t =\n    MarkJobCompleteCommand of Mark_job_complete_command.t\n  | YieldJobCompleteCommand of Yield_job_complete_command.t",
       "representation": "variant",
       "constructors": [
-        "Mark",
-        "Yield"
+        "MarkJobCompleteCommand",
+        "YieldJobCompleteCommand"
       ],
       "variants": [
         {
-          "name": "Mark",
+          "name": "MarkJobCompleteCommand",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Yield",
+          "name": "YieldJobCompleteCommand",
           "fields": [],
           "unit": false
         }
       ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_complete_command.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
     },
     {
       "kind": "value",
@@ -28142,7 +28905,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Job_complete_command.of_model",
-      "declaration": "val of_model : [ `JobCompleteCommand ] Xynolog__.Models.t -> t option"
+      "declaration": "val of_model : [ `JobCompleteCommand ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "value",
@@ -28157,29 +28920,34 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Job_queued_event",
-      "declaration": "module Job_queued_event :\n  sig\n    type t =\n        Mark of Mark_job_queued_event.t\n      | Yield of Yield_job_queued_event.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobQueuedEvent ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobQueuedEvent ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Job_queued_event :\n  sig\n    type t =\n        MarkJobQueuedEvent of Mark_job_queued_event.t\n      | YieldJobQueuedEvent of Yield_job_queued_event.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobQueuedEvent ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobQueuedEvent ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Job_queued_event.t",
-      "declaration": "type t = Mark of Mark_job_queued_event.t | Yield of Yield_job_queued_event.t",
+      "declaration": "type t =\n    MarkJobQueuedEvent of Mark_job_queued_event.t\n  | YieldJobQueuedEvent of Yield_job_queued_event.t",
       "representation": "variant",
       "constructors": [
-        "Mark",
-        "Yield"
+        "MarkJobQueuedEvent",
+        "YieldJobQueuedEvent"
       ],
       "variants": [
         {
-          "name": "Mark",
+          "name": "MarkJobQueuedEvent",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Yield",
+          "name": "YieldJobQueuedEvent",
           "fields": [],
           "unit": false
         }
       ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_queued_event.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
     },
     {
       "kind": "value",
@@ -28189,7 +28957,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Job_queued_event.of_model",
-      "declaration": "val of_model : [ `JobQueuedEvent ] Xynolog__.Models.t -> t option"
+      "declaration": "val of_model : [ `JobQueuedEvent ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "value",
@@ -28200,6 +28968,32 @@
       "kind": "value",
       "path": "Xynolog.Records.Job_queued_event.to_model",
       "declaration": "val to_model :\n  t ->\n  ([ `JobQueuedEvent ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission",
+      "declaration": "module Conformance_driver_line_emission_emission :\n  sig\n    type t = {\n      observer : string;\n      state : Conformance_driver_line_emission_emission_state.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission.t",
+      "declaration": "type t = {\n  observer : string;\n  state : Conformance_driver_line_emission_emission_state.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "observer",
+        "state",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission_emission.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
       "kind": "module",
@@ -29457,6 +30251,31 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line_emission",
+      "declaration": "module Conformance_driver_line_emission :\n  sig\n    type t = {\n      emission : Conformance_driver_line_emission_emission.t;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line_emission.t",
+      "declaration": "type t = {\n  emission : Conformance_driver_line_emission_emission.t;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "emission",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line_emission.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Annotation",
       "declaration": "module Annotation :\n  sig\n    module Type_ :\n      sig\n        type t = Annotation\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      field_context : string;\n      type_ : Type_.t;\n      id : string;\n      motivation : Xynolog__.Enums.Motivation.t;\n      target : Annotation_target_value.t;\n      body : Annotation_bodies.t option;\n      creator : Agent.t option;\n      created : string;\n      modified : string option;\n      generator : One_or_more_agents.t option;\n      was_attributed_to : One_or_more_agents.t option;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `Annotation ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Annotation ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
     },
@@ -29924,47 +30743,52 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Job",
-      "declaration": "module Job :\n  sig\n    type t =\n        Pending of Job_pending.t\n      | Running of Job_running.t\n      | Complete of Job_complete.t\n      | Failed of Job_failed.t\n      | Cancelled of Job_cancelled.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `Job ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Job ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
+      "declaration": "module Job :\n  sig\n    type t =\n        JobPending of Job_pending.t\n      | JobRunning of Job_running.t\n      | JobComplete of Job_complete.t\n      | JobFailed of Job_failed.t\n      | JobCancelled of Job_cancelled.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `Job ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Job ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Job.t",
-      "declaration": "type t =\n    Pending of Job_pending.t\n  | Running of Job_running.t\n  | Complete of Job_complete.t\n  | Failed of Job_failed.t\n  | Cancelled of Job_cancelled.t",
+      "declaration": "type t =\n    JobPending of Job_pending.t\n  | JobRunning of Job_running.t\n  | JobComplete of Job_complete.t\n  | JobFailed of Job_failed.t\n  | JobCancelled of Job_cancelled.t",
       "representation": "variant",
       "constructors": [
-        "Pending",
-        "Running",
-        "Complete",
-        "Failed",
-        "Cancelled"
+        "JobPending",
+        "JobRunning",
+        "JobComplete",
+        "JobFailed",
+        "JobCancelled"
       ],
       "variants": [
         {
-          "name": "Pending",
+          "name": "JobPending",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Running",
+          "name": "JobRunning",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Complete",
+          "name": "JobComplete",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Failed",
+          "name": "JobFailed",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Cancelled",
+          "name": "JobCancelled",
           "fields": [],
           "unit": false
         }
       ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
     },
     {
       "kind": "value",
@@ -29974,7 +30798,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Job.of_model",
-      "declaration": "val of_model : [ `Job ] Xynolog__.Models.t -> t option"
+      "declaration": "val of_model : [ `Job ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "value",
@@ -29985,6 +30809,142 @@
       "kind": "value",
       "path": "Xynolog.Records.Job.to_model",
       "declaration": "val to_model :\n  t -> ([ `Job ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Conformance_driver_line",
+      "declaration": "module Conformance_driver_line :\n  sig\n    type t =\n        Ready of Conformance_driver_line_ready.t\n      | Ok of Conformance_driver_line_ok.t\n      | Failed of Conformance_driver_line_failed.t\n      | Abandoned of Conformance_driver_line_abandoned.t\n      | Unsupported of Conformance_driver_line_unsupported.t\n      | Misuse of Conformance_driver_line_misuse.t\n      | State of Conformance_driver_line_state.t\n      | Frame of Conformance_driver_line_frame.t\n      | ErrorStream of Conformance_driver_line_error_stream.t\n      | Progress of Conformance_driver_line_progress.t\n      | Emission of Conformance_driver_line_emission.t\n      | Completed of Conformance_driver_line_completed.t\n      | Claimed of Conformance_driver_line_claimed.t\n      | Refused of Conformance_driver_line_refused.t\n      | Signalled of Conformance_driver_line_signalled.t\n      | Stalled of Conformance_driver_line_stalled.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `ConformanceDriverLine ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ConformanceDriverLine ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Conformance_driver_line.t",
+      "declaration": "type t =\n    Ready of Conformance_driver_line_ready.t\n  | Ok of Conformance_driver_line_ok.t\n  | Failed of Conformance_driver_line_failed.t\n  | Abandoned of Conformance_driver_line_abandoned.t\n  | Unsupported of Conformance_driver_line_unsupported.t\n  | Misuse of Conformance_driver_line_misuse.t\n  | State of Conformance_driver_line_state.t\n  | Frame of Conformance_driver_line_frame.t\n  | ErrorStream of Conformance_driver_line_error_stream.t\n  | Progress of Conformance_driver_line_progress.t\n  | Emission of Conformance_driver_line_emission.t\n  | Completed of Conformance_driver_line_completed.t\n  | Claimed of Conformance_driver_line_claimed.t\n  | Refused of Conformance_driver_line_refused.t\n  | Signalled of Conformance_driver_line_signalled.t\n  | Stalled of Conformance_driver_line_stalled.t",
+      "representation": "variant",
+      "constructors": [
+        "Ready",
+        "Ok",
+        "Failed",
+        "Abandoned",
+        "Unsupported",
+        "Misuse",
+        "State",
+        "Frame",
+        "ErrorStream",
+        "Progress",
+        "Emission",
+        "Completed",
+        "Claimed",
+        "Refused",
+        "Signalled",
+        "Stalled"
+      ],
+      "variants": [
+        {
+          "name": "Ready",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Ok",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Failed",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Abandoned",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Unsupported",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Misuse",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "State",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Frame",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "ErrorStream",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Progress",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Emission",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Completed",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Claimed",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Refused",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Signalled",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Stalled",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line.read",
+      "declaration": "val read : Yojson.Raw.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line.of_model",
+      "declaration": "val of_model : [ `ConformanceDriverLine ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Conformance_driver_line.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `ConformanceDriverLine ] Xynolog__.Models.t,\n   Xynolog__.Models.decode_error)\n  result"
     },
     {
       "kind": "module",
@@ -30883,29 +31843,34 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Job_create_command",
-      "declaration": "module Job_create_command :\n  sig\n    type t =\n        Mark of Mark_job_create_command.t\n      | Yield of Yield_job_create_command.t\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobCreateCommand ] Xynolog__.Models.t -> t option\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobCreateCommand ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Job_create_command :\n  sig\n    type t =\n        MarkJobCreateCommand of Mark_job_create_command.t\n      | YieldJobCreateCommand of Yield_job_create_command.t\n    val members : Xynolog__.Record_reader.signature list list\n    val read : Yojson.Raw.t -> t\n    val of_model : [ `JobCreateCommand ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `JobCreateCommand ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Job_create_command.t",
-      "declaration": "type t =\n    Mark of Mark_job_create_command.t\n  | Yield of Yield_job_create_command.t",
+      "declaration": "type t =\n    MarkJobCreateCommand of Mark_job_create_command.t\n  | YieldJobCreateCommand of Yield_job_create_command.t",
       "representation": "variant",
       "constructors": [
-        "Mark",
-        "Yield"
+        "MarkJobCreateCommand",
+        "YieldJobCreateCommand"
       ],
       "variants": [
         {
-          "name": "Mark",
+          "name": "MarkJobCreateCommand",
           "fields": [],
           "unit": false
         },
         {
-          "name": "Yield",
+          "name": "YieldJobCreateCommand",
           "fields": [],
           "unit": false
         }
       ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_create_command.members",
+      "declaration": "val members : Xynolog__.Record_reader.signature list list"
     },
     {
       "kind": "value",
@@ -30915,7 +31880,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Job_create_command.of_model",
-      "declaration": "val of_model : [ `JobCreateCommand ] Xynolog__.Models.t -> t option"
+      "declaration": "val of_model : [ `JobCreateCommand ] Xynolog__.Models.t -> t"
     },
     {
       "kind": "value",
