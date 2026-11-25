@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record FileEntry
 {
-    public const string TypeValue = "file";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.FileEntryType Type => global::Xynolog.Types.FileEntryType.File;
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
     [global::Xynolog.Serialization.Wire("size")] public required long Size { get; init; }

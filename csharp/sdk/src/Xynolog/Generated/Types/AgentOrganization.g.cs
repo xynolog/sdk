@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AgentOrganization
 {
-    public const string TypeValue = "Organization";
-    [global::Xynolog.Serialization.Wire("@type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("@type")] public global::Xynolog.Types.AgentOrganizationType Type => global::Xynolog.Types.AgentOrganizationType.Organization;
     [global::Xynolog.Serialization.Wire("@id")] public string? Id { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("homepage")] public string? Homepage { get; init; }

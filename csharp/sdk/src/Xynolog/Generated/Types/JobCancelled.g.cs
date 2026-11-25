@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobCancelled
 {
-    public const string StatusValue = "cancelled";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("status")] public global::Xynolog.Types.JobCancelledStatus Status => global::Xynolog.Types.JobCancelledStatus.Cancelled;
     [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.JobMetadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.JobParams Params { get; init; }
     [global::Xynolog.Serialization.Wire("startedAt")] public string? StartedAt { get; init; }

@@ -18,6 +18,7 @@ import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlin.reflect.KClass
 
@@ -224,5 +225,27 @@ internal open class OpenObjectSerializer<T : Any>(
         val json = encoder as? JsonEncoder ?: throw SerializationException("a $type is written as JSON alone")
         val known = json.json.encodeToJsonElement(named, value).jsonObject
         json.encodeJsonElement(JsonObject(known + rest(value)))
+    }
+}
+
+/** A type of one value: read from that value alone, and written as it, [wire]. */
+internal open class ConstantSerializer<T : Any>(
+    private val constant: T,
+    internal val wire: JsonPrimitive,
+) : KSerializer<T> {
+    private val type: String = serialNameOf(constant::class)
+
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(type, if (wire.booleanOrNull != null) PrimitiveKind.BOOLEAN else PrimitiveKind.LONG)
+
+    override fun deserialize(decoder: Decoder): T {
+        val json = decoder as? JsonDecoder ?: throw SerializationException("a $type is read from JSON alone")
+        if (json.decodeJsonElement() != wire) throw SerializationException("a ${type.substringAfterLast('.')} is $wire")
+        return constant
+    }
+
+    override fun serialize(encoder: Encoder, value: T) {
+        val json = encoder as? JsonEncoder ?: throw SerializationException("a $type is written as JSON alone")
+        json.encodeJsonElement(wire)
     }
 }

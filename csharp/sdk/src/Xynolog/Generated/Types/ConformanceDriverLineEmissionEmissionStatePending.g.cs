@@ -7,6 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceDriverLineEmissionEmissionStatePending
 {
-    public const string StatusValue = "pending";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("status")] public global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStatePendingStatus Status => global::Xynolog.Types.ConformanceDriverLineEmissionEmissionStatePendingStatus.Pending;
 }

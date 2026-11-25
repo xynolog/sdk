@@ -12,7 +12,6 @@ public sealed record ReconciledSpanFuzzyMatch
     [global::Xynolog.Serialization.Wire("exact")] public required string Exact { get; init; }
     [global::Xynolog.Serialization.Wire("prefix")] public string? Prefix { get; init; }
     [global::Xynolog.Serialization.Wire("suffix")] public string? Suffix { get; init; }
-    public const string AnchorMethodValue = "fuzzy-match";
-    [global::Xynolog.Serialization.Wire("anchorMethod")] public string AnchorMethod => AnchorMethodValue;
+    [global::Xynolog.Serialization.Wire("anchorMethod")] public global::Xynolog.Types.ReconciledSpanFuzzyMatchAnchorMethod AnchorMethod => global::Xynolog.Types.ReconciledSpanFuzzyMatchAnchorMethod.FuzzyMatch;
     [global::Xynolog.Serialization.Wire("matchQuality")] public required global::Xynolog.Types.MatchQuality MatchQuality { get; init; }
 }

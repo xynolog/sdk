@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record VoyageEmbeddingConfig
 {
-    public const string TypeValue = "voyage";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.VoyageEmbeddingConfigType Type => global::Xynolog.Types.VoyageEmbeddingConfigType.Voyage;
     [global::Xynolog.Serialization.Wire("model")] public required string Model { get; init; }
     [global::Xynolog.Serialization.Wire("endpoint")] public required string Endpoint { get; init; }
     [global::Xynolog.Serialization.Wire("apiKeyEnv")] public required string ApiKeyEnv { get; init; }

@@ -7,10 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Annotation
 {
-    public const string ContextValue = "http://www.w3.org/ns/anno.jsonld";
-    [global::Xynolog.Serialization.Wire("@context")] public string Context => ContextValue;
-    public const string TypeValue = "Annotation";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("@context")] public global::Xynolog.Types.AnnotationContext Context => global::Xynolog.Types.AnnotationContext.HttpWwwW3OrgNsAnnoJsonld;
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.AnnotationType Type => global::Xynolog.Types.AnnotationType.Annotation;
     [global::Xynolog.Serialization.Wire("id")] public required global::Xynolog.Identifiers.AnnotationId Id { get; init; }
     [global::Xynolog.Serialization.Wire("motivation")] public required global::Xynolog.Types.Motivation Motivation { get; init; }
     [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.AnnotationTargetValue Target { get; init; }

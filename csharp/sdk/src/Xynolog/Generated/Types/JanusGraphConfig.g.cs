@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JanusGraphConfig
 {
-    public const string TypeValue = "janusgraph";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.JanusGraphConfigType Type => global::Xynolog.Types.JanusGraphConfigType.Janusgraph;
     [global::Xynolog.Serialization.Wire("host")] public required string Host { get; init; }
     [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
 }

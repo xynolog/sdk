@@ -43,10 +43,9 @@ let closed_empty_named (form : T.form) =
 (* Python writes a union in place, but for one a list holds, as what it
    holds, naming none of what [Typing] invents. *)
 
-(* Kotlin describes as Rust and Go do ([node_description]), and holds a
-   union every member of which is text as a [String] ([text_union]). It
-   holds an enumeration in place of integers, numbers or booleans, as a
-   const of one is, as its scalar, dropping its values. *)
+(* Kotlin describes as Rust and Go do ([node_description]), and holds a union
+   every member of which is text as a [String] ([text_union]). It holds an
+   enumeration in place of numbers as a [Double], dropping its values. *)
 
 (* Swift holds an [allOf] of one schema as that schema, reading past what is
    stated beside it (a const of the schema's values), where [Typing] has
@@ -54,9 +53,8 @@ let closed_empty_named (form : T.form) =
    [String] ([text_union]), and an enumeration in place of numbers as a
    [Double], dropping its values. *)
 
-(* C# holds a member that is required, not null and of one string as a
-   constant of [string], no type of its own. It holds a union every member
-   of which is text as a [string] ([text_union]). It holds an enumeration
-   in place of integers, numbers or booleans as its scalar, dropping its
-   values, and declares a map as a record that keeps its members
-   ([AdditionalProperties]), where [Typing] has an alias. *)
+(* C# holds a union every member of which is text as a [string]
+   ([text_union]). It holds an enumeration in place of numbers as a
+   [double], dropping its values, and declares a map as a record that
+   keeps its members ([AdditionalProperties]), where [Typing] has an
+   alias. *)

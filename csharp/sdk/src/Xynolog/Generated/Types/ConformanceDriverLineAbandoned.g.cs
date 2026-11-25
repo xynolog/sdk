@@ -8,5 +8,5 @@ namespace Xynolog.Types;
 public sealed record ConformanceDriverLineAbandoned
 {
     [global::Xynolog.Serialization.Wire("id")] public required long Id { get; init; }
-    [global::Xynolog.Serialization.Wire("abandoned")] public required bool Abandoned { get; init; }
+    [global::Xynolog.Serialization.Wire("abandoned")] public global::Xynolog.Types.ConformanceDriverLineAbandonedAbandoned Abandoned => global::Xynolog.Types.ConformanceDriverLineAbandonedAbandoned.Value;
 }

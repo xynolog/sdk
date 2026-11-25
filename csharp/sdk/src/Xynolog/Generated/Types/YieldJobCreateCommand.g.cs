@@ -9,7 +9,6 @@ public sealed record YieldJobCreateCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
     [global::Xynolog.Serialization.Wire("_roles")] public global::System.Collections.Generic.IReadOnlyList<string>? Roles { get; init; }
-    public const string JobTypeValue = "yield";
-    [global::Xynolog.Serialization.Wire("jobType")] public string JobType => JobTypeValue;
+    [global::Xynolog.Serialization.Wire("jobType")] public global::Xynolog.Types.YieldJobCreateCommandJobType JobType => global::Xynolog.Types.YieldJobCreateCommandJobType.Yield;
     [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.GenerationJobParams Params { get; init; }
 }

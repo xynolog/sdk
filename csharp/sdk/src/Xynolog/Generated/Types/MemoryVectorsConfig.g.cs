@@ -7,6 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MemoryVectorsConfig
 {
-    public const string TypeValue = "memory";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.MemoryVectorsConfigType Type => global::Xynolog.Types.MemoryVectorsConfigType.Memory;
 }

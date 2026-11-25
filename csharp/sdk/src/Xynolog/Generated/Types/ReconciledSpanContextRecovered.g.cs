@@ -12,6 +12,5 @@ public sealed record ReconciledSpanContextRecovered
     [global::Xynolog.Serialization.Wire("exact")] public required string Exact { get; init; }
     [global::Xynolog.Serialization.Wire("prefix")] public string? Prefix { get; init; }
     [global::Xynolog.Serialization.Wire("suffix")] public string? Suffix { get; init; }
-    public const string AnchorMethodValue = "context-recovered";
-    [global::Xynolog.Serialization.Wire("anchorMethod")] public string AnchorMethod => AnchorMethodValue;
+    [global::Xynolog.Serialization.Wire("anchorMethod")] public global::Xynolog.Types.ReconciledSpanContextRecoveredAnchorMethod AnchorMethod => global::Xynolog.Types.ReconciledSpanContextRecoveredAnchorMethod.ContextRecovered;
 }

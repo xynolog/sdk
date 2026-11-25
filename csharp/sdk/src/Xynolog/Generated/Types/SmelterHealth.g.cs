@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SmelterHealth
 {
-    public const string StatusValue = "ok";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("status")] public global::Xynolog.Types.SmelterHealthStatus Status => global::Xynolog.Types.SmelterHealthStatus.Ok;
     [global::Xynolog.Serialization.Wire("kb")] public required string Kb { get; init; }
     [global::Xynolog.Serialization.Wire("stream")] public required global::Xynolog.Types.SmelterHealthStream Stream { get; init; }
     [global::Xynolog.Serialization.Wire("following")] public required global::Xynolog.Types.FollowerFollowing Following { get; init; }

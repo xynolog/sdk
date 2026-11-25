@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 using Xynolog.Errors;
 using Xynolog.Http;
+using Xynolog.Serialization;
 using Xynolog.Types;
 
 namespace Xynolog.Testing;
@@ -163,7 +164,7 @@ public sealed class FaultyTransport(IEnumerable<FaultAction>? schedule = null, R
 
     private void SendFrame(BusFrame frame, string id, string? clientId = null)
     {
-        var text = Encoding.UTF8.GetBytes($"id: {id}\nevent: {BusEventMessage.EventValue}\ndata: {JsonSerializer.Serialize(frame)}\n\n");
+        var text = Encoding.UTF8.GetBytes($"id: {id}\nevent: {WireEnumConverter<BusEventMessageEvent>.Wire(BusEventMessageEvent.BusEvent)}\ndata: {JsonSerializer.Serialize(frame)}\n\n");
         foreach (var stream in streams.Where(stream => stream.Accepts(frame, clientId))) stream.WriteFrame(text);
     }
 

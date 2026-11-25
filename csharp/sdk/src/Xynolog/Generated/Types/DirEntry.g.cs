@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DirEntry
 {
-    public const string TypeValue = "dir";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("type")] public global::Xynolog.Types.DirEntryType Type => global::Xynolog.Types.DirEntryType.Dir;
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
     [global::Xynolog.Serialization.Wire("mtime")] public required string Mtime { get; init; }

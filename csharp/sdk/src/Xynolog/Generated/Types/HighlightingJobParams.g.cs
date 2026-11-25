@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record HighlightingJobParams
 {
-    public const string MotivationValue = "highlighting";
-    [global::Xynolog.Serialization.Wire("motivation")] public string Motivation => MotivationValue;
+    [global::Xynolog.Serialization.Wire("motivation")] public global::Xynolog.Types.HighlightingJobParamsMotivation Motivation => global::Xynolog.Types.HighlightingJobParamsMotivation.Highlighting;
     [global::Xynolog.Serialization.Wire("instructions")] public string? Instructions { get; init; }
     [global::Xynolog.Serialization.Wire("density")] public double? Density { get; init; }
     [global::Xynolog.Serialization.Wire("sourceLanguage")] public string? SourceLanguage { get; init; }

@@ -44,6 +44,7 @@ let invalid_identifier = "InvalidIdentifier"
 let signature_union_serializer = "SignatureUnionSerializer"
 let wrapper_serializer = "WrapperSerializer"
 let open_object_serializer = "OpenObjectSerializer"
+let constant_serializer = "ConstantSerializer"
 let rest = "rest"
 
 (* The names a generated file imports: no schema may be named as one. *)
@@ -64,6 +65,7 @@ let imported =
     "kotlinx.serialization.json.JsonElement";
     "kotlinx.serialization.json.JsonIgnoreUnknownKeys";
     "kotlinx.serialization.json.JsonObject";
+    "kotlinx.serialization.json.JsonPrimitive";
     "kotlinx.serialization.serializer";
   ]
 
@@ -111,7 +113,7 @@ let is_identifier spec name =
   List.mem name spec.names
   && match (spec.find name).form with T.Identifier _ -> true | _ -> false
 
-type form = Stated_nullable | Single of string | Required | Optional
+type form = Stated_nullable | Single of Schema.literal | Required | Optional
 
 (* One property of an object, as its class and its builder have it. *)
 type property = {
@@ -225,9 +227,8 @@ and in_place st what (i : T.inline) =
   | T.Union u, None ->
       if Deviations.text_union u then t "String" else inline st i
   | T.Enum { base = Some (T.Text _); _ }, None -> inline st i
-  | T.Enum { base = Some (T.Integer _); _ }, None -> t "Long"
+  | T.Enum { base = Some (T.Integer _ | T.Boolean); _ }, None -> inline st i
   | T.Enum { base = Some T.Number; _ }, None -> t "Double"
-  | T.Enum { base = Some T.Boolean; _ }, None -> t "Boolean"
   | (T.Empty _ as form), None when T.holds_none form -> the_empty_object st
   | T.Empty _, None -> t "JsonObject"
   | T.Map { key; value }, None -> map_of st what key value
@@ -265,7 +266,12 @@ and declaration st name (form : T.form) about : written =
   | T.Union u -> union_declaration st name u about
   | T.Enum { base = Some (T.Text _); values } ->
       enum_declaration name values about
-  | T.Enum _ -> refuse "%s: only string enumerations are generated" name
+  | T.Enum
+      { values = [ ((Schema.Int_literal _ | Schema.Bool_literal _) as v) ]; _ }
+    ->
+      constant_declaration name v about
+  | T.Enum _ ->
+      refuse "%s: only string enumerations and constants are generated" name
   | T.Alias (T.Scalar (T.Text _)) -> alias (t "String")
   | T.Alias (T.Scalar (T.Integer _)) -> alias (t "Long")
   | T.Alias (T.Scalar T.Number) -> alias (t "Double")
@@ -333,7 +339,7 @@ and property st owner (m : T.member) =
   let form =
     match (m.required, nullable, m.fixed) with
     | true, true, _ -> Stated_nullable
-    | true, false, Some (Schema.String_literal only) -> Single only
+    | true, false, Some only -> Single only
     | true, false, _ -> Required
     | false, _, _ -> Optional
   in
@@ -413,10 +419,12 @@ and declared p =
     match p.form with
     | Stated_nullable -> (K.Nullable p.type_, None)
     | Single only -> (
-        match name_of p.type_ with
-        | Some type_name ->
+        match (name_of p.type_, only) with
+        | Some type_name, Schema.String_literal only ->
             (p.type_, Some (K.Name (type_name ^ "." ^ Names.variant_of only)))
-        | None ->
+        | Some type_name, (Schema.Int_literal _ | Schema.Bool_literal _) ->
+            (p.type_, Some (K.Name type_name))
+        | None, _ ->
             refuse "%s: a property of one value that is not an enumeration"
               p.wire)
     | Required -> (p.type_, None)
@@ -552,6 +560,40 @@ and builder name props open_ =
 
 (* An open object's serializer: what the schema names, read and written by
    the serializer the plugin generates, and the rest kept as it came. *)
+(* A schema of one integer or boolean: an object, read and written as that
+   value. *)
+and constant_declaration name (value : Schema.literal) about : written =
+  let literal : K.expr =
+    match value with
+    | Schema.Int_literal i -> Int i
+    | Schema.Bool_literal b -> Bool b
+    | Schema.String_literal _ ->
+        refuse "%s: a constant of text is an enumeration" name
+  in
+  Declared
+    (fun unions ->
+      [
+        K.class_ ?about
+          ~annotations:[ serializable_with (name ^ ".Serializer") ]
+          ~visibility:K.Public ~supers:(supers unions)
+          ~members:
+            [
+              K.class_ ~visibility:K.Internal
+                ~supers:
+                  [
+                    K.super
+                      ~args:
+                        [
+                          K.arg (K.Name name);
+                          K.arg (K.call (K.Name "JsonPrimitive") [ literal ]);
+                        ]
+                      (K.Generic (constant_serializer, [ t name ]));
+                  ]
+                K.Object "Serializer";
+            ]
+          K.Data_object name;
+      ])
+
 and open_serializer name =
   [
     K.class_ ~visibility:K.Internal
@@ -903,6 +945,7 @@ let generate spec =
             "Found";
             wrapper_serializer;
             open_object_serializer;
+            constant_serializer;
           ]
       then refuse "%s is a schema's name, and one the SDK declares by hand" name)
     spec.names;

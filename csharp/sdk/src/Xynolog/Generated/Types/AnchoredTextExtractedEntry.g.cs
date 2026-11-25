@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AnchoredTextExtractedEntry
 {
-    [global::Xynolog.Serialization.Wire("v")] public required long V { get; init; }
+    [global::Xynolog.Serialization.Wire("v")] public global::Xynolog.Types.AnchoredTextExtractedEntryV V => global::Xynolog.Types.AnchoredTextExtractedEntryV.Value;
     [global::Xynolog.Serialization.Wire("stamp")] public required string Stamp { get; init; }
     [global::Xynolog.Serialization.Wire("text")] public required string Text { get; init; }
     [global::Xynolog.Serialization.Wire("lines")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.AnchoredTextExtractedEntryLinesItem> Lines { get; init; }

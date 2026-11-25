@@ -7,5 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceDriverLineReady
 {
-    [global::Xynolog.Serialization.Wire("ready")] public required bool Ready { get; init; }
+    [global::Xynolog.Serialization.Wire("ready")] public global::Xynolog.Types.ConformanceDriverLineReadyReady Ready => global::Xynolog.Types.ConformanceDriverLineReadyReady.Value;
 }

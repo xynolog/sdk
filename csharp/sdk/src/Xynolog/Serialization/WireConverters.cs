@@ -44,6 +44,15 @@ internal sealed class WireEnumAttribute : JsonConverterAttribute
         ?? throw new InvalidOperationException("No converter of " + type.Name + ".");
 }
 
+/// <summary>A schema of one integer or boolean, read and written by <see cref="WireConstantConverter{T}"/> as <paramref name="value"/>.</summary>
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class WireConstantAttribute(object value) : JsonConverterAttribute
+{
+    public override JsonConverter CreateConverter(Type type) =>
+        Activator.CreateInstance(typeof(WireConstantConverter<>).MakeGenericType(type), [value]) as JsonConverter
+        ?? throw new InvalidOperationException("No converter of " + type.Name + ".");
+}
+
 /// <summary>
 /// A model read from and written to its schema's object. What each property is comes from its declaration:
 /// one with no setter is the schema's constant, a <c>required</c> one must be present (and is null only where its type admits null), and any other is absent when null.
@@ -237,6 +246,29 @@ internal sealed class WireUnionConverter<T> : JsonConverter<T>
         held.GetProperty("Value") ?? throw new JsonException(held.Name + " holds no Value.");
 }
 
+/// <summary>
+/// A type of one value, read from that value alone and written as it. Its one instance is its <c>Value</c>.
+/// </summary>
+internal sealed class WireConstantConverter<T>(object value) : JsonConverter<T>
+    where T : class
+{
+    private static readonly string Schema = typeof(T).Name;
+    private static readonly T Instance =
+        typeof(T).GetField("Value", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) as T
+        ?? throw new InvalidOperationException(Schema + " holds no Value.");
+    private readonly JsonElement wire = JsonSerializer.SerializeToElement(value);
+
+    public override T Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        return JsonElement.DeepEquals(document.RootElement, wire)
+            ? Instance
+            : throw new JsonException("a " + Schema + " is " + wire.GetRawText());
+    }
+
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) => wire.WriteTo(writer);
+}
+
 /// <summary>An enumeration read from and written as the string each constant's <see cref="JsonStringEnumMemberNameAttribute"/> names.</summary>
 internal sealed class WireEnumConverter<T> : JsonConverter<T>
     where T : struct, Enum
@@ -265,14 +297,16 @@ internal sealed class WireEnumConverter<T> : JsonConverter<T>
         throw new JsonException("Unknown enumeration value.");
     }
 
-    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) => writer.WriteStringValue(Wire(value));
+
+    /// <summary>The string <paramref name="value"/> is on the wire.</summary>
+    internal static string Wire(T value)
     {
         foreach (var (constant, wire) in Constants)
         {
             if (EqualityComparer<T>.Default.Equals(constant, value))
             {
-                writer.WriteStringValue(wire);
-                return;
+                return wire;
             }
         }
         throw new JsonException("Unknown enumeration value.");

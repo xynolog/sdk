@@ -8,7 +8,7 @@ using Xynolog.Types;
 /// <summary>Each line the driver writes, as the suite reads it (ConformanceDriverLine).</summary>
 internal static class Lines
 {
-    internal static ConformanceDriverLine Ready { get; } = new ConformanceDriverLine.Ready(new() { Ready = true });
+    internal static ConformanceDriverLine Ready { get; } = new ConformanceDriverLine.Ready(new());
 
     internal static ConformanceDriverLine Ok(long id, JsonElement answer) =>
         new ConformanceDriverLine.Ok(new() { Id = id, Ok = answer });
@@ -17,10 +17,10 @@ internal static class Lines
         new ConformanceDriverLine.Failed(new() { Id = id, Error = Failure(error) });
 
     internal static ConformanceDriverLine Abandoned(long id) =>
-        new ConformanceDriverLine.Abandoned(new() { Id = id, Abandoned = true });
+        new ConformanceDriverLine.Abandoned(new() { Id = id });
 
     internal static ConformanceDriverLine Unsupported(long id) =>
-        new ConformanceDriverLine.Unsupported(new() { Id = id, Unsupported = true });
+        new ConformanceDriverLine.Unsupported(new() { Id = id });
 
     internal static ConformanceDriverLine Misuse(long id, Exception error) =>
         new ConformanceDriverLine.Misuse(new() { Id = id, Misuse = error.Message });

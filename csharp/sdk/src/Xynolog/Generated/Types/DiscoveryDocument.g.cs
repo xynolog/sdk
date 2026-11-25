@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DiscoveryDocument
 {
-    [global::Xynolog.Serialization.Wire("version")] public required long Version { get; init; }
+    [global::Xynolog.Serialization.Wire("version")] public global::Xynolog.Types.DiscoveryDocumentVersion Version => global::Xynolog.Types.DiscoveryDocumentVersion.Value;
     [global::Xynolog.Serialization.Wire("kbs")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DiscoveredKB> Kbs { get; init; }
 }

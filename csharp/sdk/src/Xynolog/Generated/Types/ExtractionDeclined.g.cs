@@ -7,7 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ExtractionDeclined
 {
-    public const string KindValue = "declined";
-    [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.ExtractionDeclinedKind Kind => global::Xynolog.Types.ExtractionDeclinedKind.Declined;
     [global::Xynolog.Serialization.Wire("declined")] public required global::Xynolog.Types.ExtractionDeclinedReason Declined { get; init; }
 }

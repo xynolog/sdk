@@ -43,6 +43,15 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A member of one value is a type of its own, as the other SDKs hold it:
+  one of text is an enumeration of one constant
+  (`ExtractionDeclined.Kind` is an `ExtractionDeclinedKind`, always
+  `ExtractionDeclinedKind.Declined`), and one integer or boolean a record of
+  one `Value`, read and written as that value
+  (`ConformanceDriverLineReady.Ready` is a
+  `ConformanceDriverLineReadyReady`). The text was a `string` and its
+  `const string` (`ExtractionDeclined.KindValue`), and the integer or
+  boolean a `long` or `bool` a caller set; neither remains.
 - A model's properties are declared in its schema's order, as the other
   SDKs hold them, where they were in the order of their names. A model is
   made by naming its properties, so no code that makes one changes, and its

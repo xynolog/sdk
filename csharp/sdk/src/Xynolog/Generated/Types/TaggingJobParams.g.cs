@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record TaggingJobParams
 {
-    public const string MotivationValue = "tagging";
-    [global::Xynolog.Serialization.Wire("motivation")] public string Motivation => MotivationValue;
+    [global::Xynolog.Serialization.Wire("motivation")] public global::Xynolog.Types.TaggingJobParamsMotivation Motivation => global::Xynolog.Types.TaggingJobParamsMotivation.Tagging;
     [global::Xynolog.Serialization.Wire("schemaId")] public required string SchemaId { get; init; }
     [global::Xynolog.Serialization.Wire("categories")] public required global::System.Collections.Generic.IReadOnlyList<string> Categories { get; init; }
     [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }

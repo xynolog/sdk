@@ -7,8 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatheredContextFocusAnnotation
 {
-    public const string KindValue = "annotation";
-    [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.GatheredContextFocusAnnotationKind Kind => global::Xynolog.Types.GatheredContextFocusAnnotationKind.Annotation;
     [global::Xynolog.Serialization.Wire("annotation")] public required global::Xynolog.Types.Annotation Annotation { get; init; }
     [global::Xynolog.Serialization.Wire("sourceResource")] public required global::Xynolog.Types.ResourceDescriptor SourceResource { get; init; }
     [global::Xynolog.Serialization.Wire("selected")] public global::Xynolog.Types.GatheredContextFocusAnnotationSelected? Selected { get; init; }

@@ -9,8 +9,7 @@ public sealed record MarkJobCreateCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
     [global::Xynolog.Serialization.Wire("_roles")] public global::System.Collections.Generic.IReadOnlyList<string>? Roles { get; init; }
-    public const string JobTypeValue = "mark";
-    [global::Xynolog.Serialization.Wire("jobType")] public string JobType => JobTypeValue;
+    [global::Xynolog.Serialization.Wire("jobType")] public global::Xynolog.Types.MarkJobCreateCommandJobType JobType => global::Xynolog.Types.MarkJobCreateCommandJobType.Mark;
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.MarkJobParams Params { get; init; }
 }

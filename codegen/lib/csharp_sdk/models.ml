@@ -125,7 +125,7 @@ type field = {
   type_ : C.type_;
   required : bool;
   nullable : bool;
-  constant : string option;
+  constant : C.expr option;
 }
 
 let rec named state name =
@@ -178,9 +178,8 @@ and in_place state owner property (i : T.inline) validated =
   | _, Some _
   | (T.Record _ | T.Union _ | T.Enum { base = Some (T.Text _); _ }), None ->
       inline ()
-  | T.Enum { base = Some (T.Integer _); _ }, None -> T "long"
+  | T.Enum { base = Some (T.Integer _ | T.Boolean); _ }, None -> inline ()
   | T.Enum { base = Some T.Number; _ }, None -> T "double"
-  | T.Enum { base = Some T.Boolean; _ }, None -> T "bool"
   | (T.Empty _ as form), None when T.holds_none form -> inline ()
   | T.Empty _, None -> element
   | T.Map { value; _ }, None ->
@@ -205,6 +204,10 @@ and declare state name (form : T.form) composition validated =
     | None -> validated
   in
   match form with
+  | T.Enum
+      { values = [ ((Schema.Int_literal _ | Schema.Bool_literal _) as v) ]; _ }
+    ->
+      constant name v
   | T.Enum { values; _ } -> enum name ~attribute:(read_as "WireEnum") values
   | T.Union u -> union state name u validated
   | T.Record { members; rest } ->
@@ -228,6 +231,47 @@ and merged state name schema =
   with
   | Ok s -> s
   | Error message -> refuse "%s: %s" name message
+
+(* A schema of one integer or boolean: a record of one [Value], read and
+   written as that value. *)
+and constant name (value : Schema.literal) =
+  let literal : C.expr =
+    match value with
+    | Schema.Int_literal i -> Int i
+    | Schema.Bool_literal b -> Bool b
+    | Schema.String_literal _ ->
+        refuse "%s: a constant of text is an enumeration." name
+  in
+  [
+    C.Type
+      {
+        attributes =
+          [
+            {
+              name = "global::Xynolog.Serialization.WireConstant";
+              args = [ literal ];
+            };
+          ];
+        modifiers = [ Public; Sealed ];
+        kind = Record;
+        name;
+        params = None;
+        base = None;
+        body =
+          Some
+            ( Packed,
+              [
+                C.Field
+                  {
+                    modifiers = [ Public; Static; Readonly ];
+                    type_ = T name;
+                    name = "Value";
+                    value =
+                      Some (New { type_ = None; args = Some []; init = None });
+                  };
+              ] );
+      };
+  ]
 
 and enum name ~attribute values =
   let members =
@@ -287,17 +331,23 @@ and object_ state name ~attribute (members : T.member list) (rest : T.rest) ~key
       (fun (m : T.member) ->
         let field = field_name name m.wire in
         let nullable = match m.ty with T.Nullable _ -> true | _ -> false in
-        let constant =
-          match m.fixed with
-          | Some (Schema.String_literal c) when m.required && not nullable ->
-              Some c
-          | _ -> None
-        in
         let type_ =
-          match constant with
-          | Some _ -> C.T "string"
-          | None ->
-              type_of state m.owner field (m.ty, property_of m.wire validated)
+          type_of state m.owner field (m.ty, property_of m.wire validated)
+        in
+        (* A member of one value, required and not null, is that value. *)
+        let constant =
+          match (m.fixed, type_) with
+          | Some fixed, C.T held when m.required && not nullable ->
+              Some
+                (C.Member
+                   ( Name held,
+                     match fixed with
+                     | Schema.String_literal c -> enum_constant c
+                     | Schema.Int_literal _ | Schema.Bool_literal _ -> "Value"
+                   ))
+          | Some _, _ when m.required && not nullable ->
+              refuse "%s.%s: a constant of no declared type" name m.wire
+          | _ -> None
         in
         {
           wire = m.wire;
@@ -309,17 +359,7 @@ and object_ state name ~attribute (members : T.member list) (rest : T.rest) ~key
         })
       members
   in
-  (* A constant member's value is also the model's own, so code that reads
-     the wire before it is a model names it. *)
-  let constant_name f = f.name ^ "Value" in
-  let names =
-    List.concat_map
-      (fun f ->
-        match f.constant with
-        | Some _ -> [ f.name; constant_name f ]
-        | None -> [ f.name ])
-      fields
-  in
+  let names = List.map (fun f -> f.name) fields in
   if
     List.length (List.sort_uniq String.compare names) <> List.length names
     || (Option.is_some rest && List.mem "AdditionalProperties" names)
@@ -331,22 +371,15 @@ and object_ state name ~attribute (members : T.member list) (rest : T.rest) ~key
     List.concat_map
       (fun f ->
         match f.constant with
-        | Some c ->
+        | Some value ->
             [
-              C.Field
-                {
-                  modifiers = [ Public; Const ];
-                  type_ = T "string";
-                  name = constant_name f;
-                  value = Some (Str c);
-                };
               C.Expression_property
                 {
                   attributes = [ wire_name f ];
                   modifiers = [ Public ];
-                  type_ = T "string";
+                  type_ = f.type_;
                   name = f.name;
-                  value = Name (constant_name f);
+                  value;
                 };
             ]
         | None ->
