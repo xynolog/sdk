@@ -60,6 +60,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A resource's bytes, read whole, are a `types::ResourceRepresentation`, the
+  type of Protocol's `client/types/ResourceRepresentation.json`, where they
+  were `transport::Content`: `browse.resource_representation` and
+  `ContentTransport::get_binary` answer one, and its bytes are its `data`,
+  where they were `bytes`.
 - `BrowseNamespace::engines` is a `Cached<types::EnginesWithLimits>`, the type
   of Protocol's `client/types/EnginesWithLimits.json`, where it was of
   `namespaces::EngineWithLimits`: an engine's `engine` and `jobs` are its own

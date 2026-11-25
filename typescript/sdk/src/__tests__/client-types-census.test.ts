@@ -1,8 +1,7 @@
 /**
  * The client types the generator leaves to each SDK (protocol/specs/src/client/types):
- * SearchState and JobEvent, which are generic, and PutBinaryRequest,
- * ResourceRepresentation and ResourceRepresentationStream, which hold bytes.
- * This census holds each to
+ * SearchState and JobEvent, which are generic, and PutBinaryRequest and
+ * ResourceRepresentationStream, which hold bytes. This census holds each to
  * its schema. The compiler holds each list below to the type's members (and
  * which it requires) and branches, and the test holds the list to the
  * schema's, so a member or a branch either side gains or loses fails.
@@ -11,7 +10,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type {
   PutBinaryRequest,
-  ResourceRepresentation,
   ResourceRepresentationStream,
 } from '@xynolog/core';
 import type { JobEvent } from '../awaitable';
@@ -19,7 +17,6 @@ import type { SearchState } from '../state/lib/search-pipeline';
 import { schema as jobEvent } from './cases/client_types_job_event_schema';
 import { schema as searchState } from './cases/client_types_search_state_schema';
 import { schema as putBinaryRequest } from './cases/client_types_put_binary_request_schema';
-import { schema as resourceRepresentation } from './cases/client_types_resource_representation_schema';
 import { schema as resourceRepresentationStream } from './cases/client_types_resource_representation_stream_schema';
 
 const sorted = (names: readonly string[]) => [...names].sort();
@@ -121,11 +118,6 @@ const PUT_BINARY_REQUEST = {
   archiveOriginal: false,
 } as const satisfies Members<PutBinaryRequest>;
 
-const RESOURCE_REPRESENTATION = {
-  data: true,
-  contentType: true,
-} as const satisfies Members<ResourceRepresentation>;
-
 const RESOURCE_REPRESENTATION_STREAM = {
   stream: true,
   contentType: true,
@@ -153,14 +145,10 @@ describe('the client types that hold bytes', () => {
     expectTypeOf<RequiredOf<PutBinaryRequest>>().toEqualTypeOf<
       RequiredIn<typeof PUT_BINARY_REQUEST>
     >();
-    expectTypeOf<RequiredOf<ResourceRepresentation>>().toEqualTypeOf<
-      RequiredIn<typeof RESOURCE_REPRESENTATION>
-    >();
     expectTypeOf<RequiredOf<ResourceRepresentationStream>>().toEqualTypeOf<
       RequiredIn<typeof RESOURCE_REPRESENTATION_STREAM>
     >();
     heldTo(putBinaryRequest, PUT_BINARY_REQUEST);
-    heldTo(resourceRepresentation, RESOURCE_REPRESENTATION);
     heldTo(resourceRepresentationStream, RESOURCE_REPRESENTATION_STREAM);
   });
 });

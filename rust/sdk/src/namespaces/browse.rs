@@ -30,7 +30,7 @@ use crate::resources::decode_representation;
 use crate::session::{WHOLE_KEY, cache_key};
 use crate::state_unit::StateUnit;
 use crate::timing::MAX_STORED_BYTES_COUNT;
-use crate::transport::{BoxFuture, Content, ContentStream, ContentTransport, Envelope};
+use crate::transport::{BoxFuture, ContentStream, ContentTransport, Envelope};
 use crate::types::{
     AnchorRect, AnchoredTextAnswer, Annotation, AttributedEvent, BrowseAnnotationHistoryRequest,
     BrowseAnnotationRequest, BrowseClickEvent, BrowseDirectoryRequest, BrowseDirectoryRequestSort,
@@ -41,7 +41,7 @@ use crate::types::{
     GetAnnotationsResponse, GetResourceResponse, InferenceLimitsResultResponse, KbDescription,
     ListResourcesResponse, ResourceDescriptor, TagSchema,
 };
-use crate::types::{AnnotationId, ResourceId};
+use crate::types::{AnnotationId, ResourceId, ResourceRepresentation};
 use futures_core::Stream;
 use serde::de::{DeserializeOwned, Error as _, Unexpected};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -895,10 +895,7 @@ impl BrowseNamespace {
     /// an image, which has none.
     pub async fn resource_content(&self, resource_id: &ResourceId) -> Result<String, XynologError> {
         let content = self.content.get_binary(resource_id).await?;
-        Ok(decode_representation(
-            &content.bytes,
-            &content.content_type,
-        )?)
+        Ok(decode_representation(&content.data, &content.content_type)?)
     }
 
     /// A resource's description as linked data: itself and its annotations.
@@ -923,7 +920,7 @@ impl BrowseNamespace {
     pub async fn resource_representation(
         &self,
         resource_id: &ResourceId,
-    ) -> Result<Content, XynologError> {
+    ) -> Result<ResourceRepresentation, XynologError> {
         Ok(self.content.get_binary(resource_id).await?)
     }
 

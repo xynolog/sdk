@@ -723,6 +723,7 @@ roundTrip name value = case name of
   "ResourceErrorEvent" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceErrorEvent)
   "ResourceId" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceId)
   "ResourceMovedPayload" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceMovedPayload)
+  "ResourceRepresentation" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceRepresentation)
   "ResourceSearchFilters" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceSearchFilters)
   "ResourceUnarchivedPayload" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceUnarchivedPayload)
   "ResourceUpdatedPayload" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceUpdatedPayload)

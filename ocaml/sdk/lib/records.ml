@@ -772,6 +772,28 @@ module Reconciled_span = struct
           ]
 end
 
+module Resource_representation = struct
+  type t = { data : string; content_type : string }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* data = required string "data" members in
+        let* content_type = required string "contentType" members in
+        Ok { data; content_type }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("data", Some (json_string value.data));
+          ("contentType", Some (json_string value.content_type));
+        ]
+end
+
 module Resource_search_filters = struct
   type t = {
     archived : bool option;

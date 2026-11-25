@@ -15370,6 +15370,26 @@ public struct ResourceMovedPayload: Codable, Sendable, Hashable {
   }
 }
 
+public struct ResourceRepresentation: Codable, Sendable, Hashable {
+  public var data: Binary
+  public var contentType: String
+  public init(data: Binary, contentType: String) {
+    self.data = data
+    self.contentType = contentType
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["data", "contentType"], in: "ResourceRepresentation")
+    self.data = try c.value("data")
+    self.contentType = try c.value("contentType")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.data, as: "data")
+    try c.encode(self.contentType, as: "contentType")
+  }
+}
+
 public struct ResourceSearchFilters: Codable, Sendable, Hashable {
   public var archived: Bool?
   public var entityType: String?
@@ -26502,6 +26522,10 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["ResourceMovedPayload"] = Shape(
     kinds: [.object], required: ["fromUri", "toUri"],
     members: ["fromUri": Shape(kinds: [.string]), "toUri": Shape(kinds: [.string])])
+  shapes["ResourceRepresentation"] = Shape(
+    kinds: [.object], required: ["data", "contentType"],
+    members: ["contentType": Shape(kinds: [.string], minLength: 1), "data": Shape(ref: "Binary")],
+    closed: ["contentType", "data"])
   shapes["ResourceSearchFilters"] = Shape(
     kinds: [.object],
     members: [

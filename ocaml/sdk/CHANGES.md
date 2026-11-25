@@ -53,6 +53,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `Browse.resource_representation` answers a
+  `Records.Resource_representation.t`, the record of Protocol's
+  `client/types/ResourceRepresentation.json`, `{ data; content_type }`, where
+  it answered a pair of the media type and the bytes.
 - `Annotations.span_refusal` is `Error_codes.Span_refusal.t`, the
   generated vocabulary, in place of a variant of its own.
 - A member that holds null where its schema does not allow null is refused

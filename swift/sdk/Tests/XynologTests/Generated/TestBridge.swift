@@ -398,6 +398,7 @@ func roundTripModel(_ name: String, _ value: JSONValue) throws -> JSONValue {
   case "ResourceErrorEvent": return try roundTrip(ResourceErrorEvent.self, value)
   case "ResourceId": return try roundTrip(ResourceId.self, value)
   case "ResourceMovedPayload": return try roundTrip(ResourceMovedPayload.self, value)
+  case "ResourceRepresentation": return try roundTrip(ResourceRepresentation.self, value)
   case "ResourceSearchFilters": return try roundTrip(ResourceSearchFilters.self, value)
   case "ResourceUnarchivedPayload": return try roundTrip(ResourceUnarchivedPayload.self, value)
   case "ResourceUpdatedPayload": return try roundTrip(ResourceUpdatedPayload.self, value)

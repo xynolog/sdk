@@ -28,7 +28,6 @@ from xynolog.running import Running
 from xynolog.testing import FaultyTransport, GetAnchoredText, InMemoryContent, StubGateway, create_test_client
 from xynolog.transport import (
     ConnectionState,
-    Content,
     Frame,
     FrameRefusal,
     FrameSink,
@@ -36,7 +35,14 @@ from xynolog.transport import (
     ResourceHold,
     Transport,
 )
-from xynolog.types import AnchoredTextAbsent, EngineWithLimits, GatheredContext, JobStatusResponse, MatchSearchResult
+from xynolog.types import (
+    AnchoredTextAbsent,
+    EngineWithLimits,
+    GatheredContext,
+    JobStatusResponse,
+    MatchSearchResult,
+    ResourceRepresentation,
+)
 from xynolog.watched import Watched
 
 RESOURCE = ResourceId("res-1")
@@ -373,7 +379,7 @@ def test_a_resources_representation_is_its_bytes_as_stored_whatever_text_they_ar
 
     async def scenario() -> None:
         made = create_test_client()
-        made.content.seed(RESOURCE, Content(data=data, content_type=content_type))
+        made.content.seed(RESOURCE, ResourceRepresentation(data=data, content_type=content_type))
         client = made.client
         try:
             representation = await client.browse.resource_representation(RESOURCE)

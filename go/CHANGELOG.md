@@ -43,6 +43,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A resource's bytes, read whole, are an `api.ResourceRepresentation`, the
+  type of Protocol's `client/types/ResourceRepresentation.json`, where they
+  were the SDK's own `Content`: `BrowseNamespace.ResourceRepresentation` and
+  `ContentTransport.GetBinary` answer one, and its bytes are its `Data`, where
+  they were `Bytes`. `xynologtest.InMemoryContent.Seed` takes one.
 - `BrowseNamespace.Engines` is a `Cached[api.EnginesWithLimits]`, the type of
   Protocol's `client/types/EnginesWithLimits.json`, where it was of the SDK's
   own `EngineWithLimits`: an engine's `Engine` and `Jobs` are its own fields,

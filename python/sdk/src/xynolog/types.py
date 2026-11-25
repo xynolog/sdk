@@ -586,6 +586,7 @@ __all__ = [
     "ResourceDescriptorIdentifierObject",
     "ResourceErrorEvent",
     "ResourceMovedPayload",
+    "ResourceRepresentation",
     "ResourceSearchFilters",
     "ResourceUnarchivedPayload",
     "ResourceUpdatedPayload",
@@ -8256,6 +8257,15 @@ class ResourceMovedPayload(WireModel, frozen=True):
 
     from_uri: Annotated[str, Field(alias="fromUri", description="Previous file:// URI")]
     to_uri: Annotated[str, Field(alias="toUri", description="New file:// URI")]
+
+
+class ResourceRepresentation(WireModel, frozen=True, extra="forbid"):
+    """
+    A resource's bytes as the content transport answers them, whole, with the media type it answered with.
+    """
+
+    data: Annotated[Binary, Field(description="The bytes, whole.")]
+    content_type: Annotated[str, Field(alias="contentType", description="The media type the content transport answered with.")]
 
 
 class ResourceSearchFilters(WireModel, frozen=True, extra="forbid"):

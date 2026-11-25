@@ -15573,6 +15573,19 @@ pub struct ResourceMovedPayload {
 
 schema!(ResourceMovedPayload);
 
+/// A resource's bytes as the content transport answers them, whole, with the media type it answered with.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResourceRepresentation {
+    /// The bytes, whole.
+    pub data: Binary,
+    /// The media type the content transport answered with.
+    #[serde(rename = "contentType")]
+    pub content_type: String,
+}
+
+schema!(ResourceRepresentation);
+
 /// What a text search for resources is told beside its text: MatchResourcesRequest's other members. client/surface.json's `match.resources` cases state what is sent for one left out.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

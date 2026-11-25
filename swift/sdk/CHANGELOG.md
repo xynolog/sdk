@@ -54,6 +54,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A resource's bytes, read whole, are a `ResourceRepresentation`, the type of
+  Protocol's `client/types/ResourceRepresentation.json`, where they were the
+  SDK's own `Content`: `browse.resourceRepresentation` and
+  `ContentTransport.getBinary` answer one, made by
+  `ResourceRepresentation(data:contentType:)`, and its bytes are its `data`,
+  where they were `bytes`.
 - `BrowseNamespace.engines()` is a `Cached<EnginesWithLimits>`, the type of
   Protocol's `client/types/EnginesWithLimits.json`, whose `EngineWithLimits`
   is `Codable` and `Hashable` as every generated type is, where the SDK's own

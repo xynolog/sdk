@@ -35,6 +35,7 @@ from xynolog.types import (
     HealthResponse,
     MediaTokenResponse,
     ProtectedResourceMetadata,
+    ResourceRepresentation,
     StatusResponse,
     UploadProgress,
     UploadProgressFinished,
@@ -46,7 +47,6 @@ __all__ = [
     "CONNECTION_STATES",
     "CONNECTION_STATE_MAY_BECOME",
     "ConnectionState",
-    "Content",
     "ContentStream",
     "ContentTransport",
     "Frame",
@@ -499,15 +499,6 @@ class Upload:
 
 
 @final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class Content:
-    """A resource's bytes, with their media type."""
-
-    data: bytes
-    content_type: str
-
-
-@final
 class ContentStream:
     """A resource's bytes as they arrive, with their media type.
 
@@ -540,7 +531,7 @@ class ContentTransport(Protocol):
         """Upload `request`'s bytes as a new resource."""
         ...
 
-    async def get_binary(self, resource_id: ResourceId) -> Content:
+    async def get_binary(self, resource_id: ResourceId) -> ResourceRepresentation:
         """A resource's bytes, unchanged, with their media type."""
         ...
 

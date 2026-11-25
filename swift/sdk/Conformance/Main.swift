@@ -312,7 +312,7 @@ private actor Driver {
       let contentType: String
       if op == "get" {
         let read = try await client.getBinary(resource)
-        bytes = read.bytes
+        bytes = read.data
         contentType = read.contentType
       } else {
         let read = try await client.getBinaryStream(resource)

@@ -393,7 +393,7 @@ impl Wire {
             (stream.content_type, bytes)
         } else {
             let content = client.content.get_binary(&resource).await?;
-            (content.content_type, content.bytes.to_vec())
+            (content.content_type, content.data.to_vec())
         };
         Ok(json!({ "contentType": content_type, "bytes": STANDARD.encode(bytes) }))
     }

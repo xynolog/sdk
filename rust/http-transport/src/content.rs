@@ -28,13 +28,12 @@ use xynolog::gateway_http::{
     GET_RESOURCE_ANCHORED_TEXT, GET_RESOURCE_ANNOTATIONS, GET_RESOURCE_JSON_LD,
     GET_RESOURCE_REPRESENTATION, IDEMPOTENCY_KEY, UPLOAD_RESOURCE, UploadField,
 };
-use xynolog::transport::{
-    BoxFuture, Content, ContentStream, ContentTransport, PutBinaryRequest, Upload,
-};
+use xynolog::transport::{BoxFuture, ContentStream, ContentTransport, PutBinaryRequest, Upload};
 use xynolog::types::AnchoredTextAnswer;
 use xynolog::types::GetAnnotationsResponse;
 use xynolog::types::GetResourceResponse;
 use xynolog::types::ResourceId;
+use xynolog::types::ResourceRepresentation;
 use xynolog::types::{AnnotationId, JobId};
 use xynolog::types::{UploadProgress, UploadProgressProgress, UploadProgressStarted};
 
@@ -234,7 +233,7 @@ impl ContentTransport for HttpContentTransport {
     fn get_binary<'a>(
         &'a self,
         resource_id: &'a ResourceId,
-    ) -> BoxFuture<'a, Result<Content, TransportError>> {
+    ) -> BoxFuture<'a, Result<ResourceRepresentation, TransportError>> {
         Box::pin(async move {
             bus_log(
                 "GET",
@@ -250,8 +249,8 @@ impl ContentTransport for HttpContentTransport {
                     .bytes()
                     .await
                     .map_err(|error| self.shared.failed(interrupted(resource_id, &error)))?;
-                Ok(Content {
-                    bytes,
+                Ok(ResourceRepresentation {
+                    data: bytes,
                     content_type,
                 })
             })

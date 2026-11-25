@@ -10239,6 +10239,26 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "ResourceRepresentation",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["data", "contentType"],
+            members: &[
+                (
+                    "contentType",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("data", reference("Binary")),
+            ],
+            closed: Some(&["contentType", "data"]),
+            ..NONE
+        },
+    ),
+    (
         "ResourceSearchFilters",
         Shape {
             kinds: Some(&[Kind::Object]),

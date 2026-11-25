@@ -360,6 +360,7 @@
     "ResourceErrorEvent": {"kinds":["object"],"required":["resourceId","message"],"members":{"message":{"kinds":["string"]},"resourceId":{"ref":"ResourceId"}}},
     "ResourceId": {"kinds":["string"],"pattern":[{"of":[[45,45],[48,57],[65,90],[95,95],[97,122]],"min":1,"max":128}]},
     "ResourceMovedPayload": {"kinds":["object"],"required":["fromUri","toUri"],"members":{"fromUri":{"kinds":["string"]},"toUri":{"kinds":["string"]}}},
+    "ResourceRepresentation": {"kinds":["object"],"required":["data","contentType"],"members":{"contentType":{"kinds":["string"],"minLength":1},"data":{"ref":"Binary"}},"closed":["contentType","data"]},
     "ResourceSearchFilters": {"kinds":["object"],"members":{"archived":{"kinds":["boolean"]},"entityType":{"kinds":["string"]},"limit":{"kinds":["integer"],"minimum":1,"maximum":200},"offset":{"kinds":["integer"],"minimum":0}},"closed":["archived","entityType","limit","offset"]},
     "ResourceUnarchivedPayload": {"kinds":["object"]},
     "ResourceUpdatedPayload": {"kinds":["object"],"required":["contentChecksum"],"members":{"contentByteSize":{"kinds":["integer"]},"contentChecksum":{"kinds":["string"]}}},

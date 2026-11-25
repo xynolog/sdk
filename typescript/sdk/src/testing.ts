@@ -87,9 +87,8 @@ export function inMemoryContent(): IContentTransport {
       _options?: PutBinaryOptions,
     ): Promise<{ resourceId: ResourceId }> {
       const rId = makeResourceId(`test-content-${++seq}`);
-      const data = await toBuffer(request.file);
       store.set(rId as string, {
-        data,
+        data: new Blob([await toBuffer(request.file)]),
         contentType: String(request.format),
       });
       return { resourceId: rId };
@@ -106,10 +105,11 @@ export function inMemoryContent(): IContentTransport {
       rId: ResourceId,
     ): Promise<ResourceRepresentationStream> {
       const { data, contentType } = await this.getBinary(rId);
+      const bytes = new Uint8Array(await data.arrayBuffer());
       return {
         stream: new ReadableStream<Uint8Array>({
           start(controller) {
-            controller.enqueue(new Uint8Array(data));
+            controller.enqueue(bytes);
             controller.close();
           },
         }),

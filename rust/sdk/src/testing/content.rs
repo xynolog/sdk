@@ -8,12 +8,11 @@
 
 use crate::errors::TransportError;
 use crate::locked;
-use crate::transport::{
-    BoxFuture, Content, ContentStream, ContentTransport, PutBinaryRequest, Upload,
-};
+use crate::transport::{BoxFuture, ContentStream, ContentTransport, PutBinaryRequest, Upload};
 use crate::types::{
     AnchoredTextAnswer, CreateResourceResponse, GetAnnotationsResponse, GetResourceResponse,
-    ResourceId, UploadProgress, UploadProgressProgress, UploadProgressStarted,
+    ResourceId, ResourceRepresentation, UploadProgress, UploadProgressProgress,
+    UploadProgressStarted,
 };
 use std::collections::HashMap;
 use std::pin::Pin;
@@ -34,7 +33,7 @@ pub enum ContentCall {
 
 #[derive(Default)]
 struct Inner {
-    stored: Mutex<HashMap<ResourceId, Content>>,
+    stored: Mutex<HashMap<ResourceId, ResourceRepresentation>>,
     graphs: Mutex<HashMap<ResourceId, GetResourceResponse>>,
     annotations: Mutex<HashMap<ResourceId, GetAnnotationsResponse>>,
     anchored_texts: Mutex<HashMap<ResourceId, AnchoredTextAnswer>>,
@@ -61,7 +60,7 @@ impl InMemoryContent {
     }
 
     /// Store `content` as the bytes of `resource_id`.
-    pub fn seed(&self, resource_id: &ResourceId, content: Content) {
+    pub fn seed(&self, resource_id: &ResourceId, content: ResourceRepresentation) {
         locked(&self.inner.stored).insert(resource_id.clone(), content);
     }
 
@@ -85,7 +84,7 @@ impl InMemoryContent {
         locked(&self.inner.calls).clone()
     }
 
-    fn read(&self, resource_id: &ResourceId) -> Result<Content, TransportError> {
+    fn read(&self, resource_id: &ResourceId) -> Result<ResourceRepresentation, TransportError> {
         locked(&self.inner.stored)
             .get(resource_id)
             .cloned()
@@ -122,8 +121,8 @@ impl ContentTransport for InMemoryContent {
                         super::as_id(&format!("test-content-{}", stored.len() + 1));
                     stored.insert(
                         resource_id.clone(),
-                        Content {
-                            bytes: request.bytes.clone(),
+                        ResourceRepresentation {
+                            data: request.bytes.clone(),
                             content_type: request.format.clone(),
                         },
                     );
@@ -142,7 +141,7 @@ impl ContentTransport for InMemoryContent {
     fn get_binary<'a>(
         &'a self,
         resource_id: &'a ResourceId,
-    ) -> BoxFuture<'a, Result<Content, TransportError>> {
+    ) -> BoxFuture<'a, Result<ResourceRepresentation, TransportError>> {
         Box::pin(async move {
             locked(&self.inner.calls).push(ContentCall::GetBinary(resource_id.clone()));
             self.read(resource_id)
@@ -157,7 +156,7 @@ impl ContentTransport for InMemoryContent {
             locked(&self.inner.calls).push(ContentCall::GetBinaryStream(resource_id.clone()));
             let content = self.read(resource_id)?;
             Ok(ContentStream {
-                bytes: Box::pin(Once(Some(content.bytes))),
+                bytes: Box::pin(Once(Some(content.data))),
                 content_type: content.content_type,
             })
         })

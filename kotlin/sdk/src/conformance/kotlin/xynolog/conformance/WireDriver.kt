@@ -236,7 +236,7 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
             stream.contentType to read.toByteArray()
         } else {
             val content = current().content.getBinary(id)
-            content.contentType to content.bytes
+            content.contentType to content.data
         }
         return Say.of("contentType" to JsonPrimitive(contentType), "bytes" to JsonPrimitive(Base64.getEncoder().encodeToString(bytes)))
     }

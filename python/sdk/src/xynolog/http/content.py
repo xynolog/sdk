@@ -36,13 +36,14 @@ from xynolog.http.gateway_http import (
     GatewayRoute,
 )
 from xynolog.identifiers import ResourceId
-from xynolog.transport import Content, ContentStream, ContentTransport, PutBinaryRequest, Upload
+from xynolog.transport import ContentStream, ContentTransport, PutBinaryRequest, Upload
 from xynolog.types import (
     Agent,
     AnchoredTextAnswer,
     CreateResourceResponse,
     GetAnnotationsResponse,
     GetResourceResponse,
+    ResourceRepresentation,
     ResourceUpload,
     UploadProgress,
     UploadProgressProgress,
@@ -242,7 +243,7 @@ class HttpContentTransport(ContentTransport):
             )
 
     @override
-    async def get_binary(self, resource_id: ResourceId) -> Content:
+    async def get_binary(self, resource_id: ResourceId) -> ResourceRepresentation:
         bus_log("GET", "content", {"resourceId": resource_id})
         with telemetry.getting(resource_id, stream=False):
             # The deadline is on the bytes beginning to arrive: how long they take after that is how many there are.
@@ -253,7 +254,7 @@ class HttpContentTransport(ContentTransport):
                 raise self._exchange.failed(_interrupted(resource_id, error)) from None
             finally:
                 await response.aclose()
-            return Content(data=data, content_type=_content_type(response))
+            return ResourceRepresentation(data=data, content_type=_content_type(response))
 
     @override
     async def get_binary_stream(self, resource_id: ResourceId) -> ContentStream:

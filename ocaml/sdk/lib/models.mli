@@ -412,6 +412,7 @@ val resource_descriptor : [ `ResourceDescriptor ] descriptor
 val resource_error_event : [ `ResourceErrorEvent ] descriptor
 val resource_id : [ `ResourceId ] descriptor
 val resource_moved_payload : [ `ResourceMovedPayload ] descriptor
+val resource_representation : [ `ResourceRepresentation ] descriptor
 val resource_search_filters : [ `ResourceSearchFilters ] descriptor
 val resource_unarchived_payload : [ `ResourceUnarchivedPayload ] descriptor
 val resource_updated_payload : [ `ResourceUpdatedPayload ] descriptor

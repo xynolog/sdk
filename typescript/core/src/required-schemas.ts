@@ -5434,6 +5434,15 @@ export const REQUIRED_SCHEMAS: {
     required: ['fromUri', 'toUri'],
     members: { fromUri: { kinds: ['string'] }, toUri: { kinds: ['string'] } },
   },
+  ResourceRepresentation: {
+    kinds: ['object'],
+    required: ['data', 'contentType'],
+    members: {
+      contentType: { kinds: ['string'], minLength: 1 },
+      data: { ref: 'Binary' },
+    },
+    closed: ['contentType', 'data'],
+  },
   ResourceSearchFilters: {
     kinds: ['object'],
     members: {

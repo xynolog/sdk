@@ -18,6 +18,7 @@ import xynolog.types.GetResourceResponse
 import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenResponse
 import xynolog.types.ProtectedResourceMetadata
+import xynolog.types.ResourceRepresentation
 import xynolog.types.StatusResponse
 import xynolog.types.UploadProgress
 import xynolog.types.UserResponse
@@ -137,9 +138,6 @@ public class Upload internal constructor(
     override fun close(): Unit = sending.cancel()
 }
 
-/** A resource's bytes, with their media type. */
-public class Content(public val contentType: String, public val bytes: ByteArray)
-
 /** A resource's bytes as they arrive, with their media type: read once. Closing it before its end gives up the read. */
 public class ContentStream internal constructor(
     public val contentType: String,
@@ -159,10 +157,10 @@ public interface ContentTransport : AutoCloseable {
     public fun putBinary(request: PutBinaryRequest): Upload
 
     /** A resource's bytes, whole. */
-    public suspend fun getBinary(resourceId: ResourceId): Content
+    public suspend fun getBinary(resourceId: ResourceId): ResourceRepresentation
 
     /** `getBinary`, for Java. */
-    public fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<Content>
+    public fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation>
 
     /** A resource's bytes, as they arrive. */
     public suspend fun getBinaryStream(resourceId: ResourceId): ContentStream

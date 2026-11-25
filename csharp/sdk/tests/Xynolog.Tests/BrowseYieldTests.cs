@@ -52,7 +52,7 @@ public sealed partial class TransportTests
                 case "resourceRepresentation":
                     var bytes = await client.Browse.ResourceRepresentationAsync(resource, deadline.Token);
                     Assert.StartsWith("text/plain", bytes.ContentType);
-                    Assert.Equal("hello", Encoding.UTF8.GetString(bytes.Bytes));
+                    Assert.Equal("hello", Encoding.UTF8.GetString(bytes.Data));
                     break;
                 case "resourceRepresentationStream":
                     using (var stream = await client.Browse.ResourceRepresentationStreamAsync(resource, deadline.Token))

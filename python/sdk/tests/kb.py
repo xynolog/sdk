@@ -13,8 +13,8 @@ from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.operations import OPERATIONS
 from xynolog.refresh import CacheQuery, CacheRefreshChannel, CacheRefreshWhen
 from xynolog.testing import ContentCall, DropReply, FaultyTransport, GetAnnotations, InMemoryContent, Refuse, refuse_unscripted_operation
-from xynolog.transport import Content, ContentStream, ContentTransport, Frame, PutBinaryRequest, Upload
-from xynolog.types import AnchoredTextAnswer, GetAnnotationsResponse, GetResourceResponse
+from xynolog.transport import ContentStream, ContentTransport, Frame, PutBinaryRequest, Upload
+from xynolog.types import AnchoredTextAnswer, GetAnnotationsResponse, GetResourceResponse, ResourceRepresentation
 
 RESOURCE, OTHER = ResourceId("res-1"), ResourceId("res-2")
 ANNOTATION, ELSEWHERE = AnnotationId("ann-1"), AnnotationId("ann-2")
@@ -110,7 +110,7 @@ class SilentContent(ContentTransport):
         raise AssertionError("a live query uploads nothing")
 
     @override
-    async def get_binary(self, resource_id: ResourceId) -> Content:
+    async def get_binary(self, resource_id: ResourceId) -> ResourceRepresentation:
         raise AssertionError("a live query reads no bytes")
 
     @override

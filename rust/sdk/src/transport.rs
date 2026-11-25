@@ -25,8 +25,8 @@ use crate::locked;
 use crate::required::{Fault, fault_of, schema};
 use crate::types::{
     AnchoredTextAnswer, CreateResourceResponse, GetAnnotationsResponse, GetResourceResponse,
-    HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, StatusResponse, UploadProgress,
-    UploadProgressFinished, UserResponse,
+    HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, ResourceRepresentation,
+    StatusResponse, UploadProgress, UploadProgressFinished, UserResponse,
 };
 use crate::types::{AnnotationId, JobId};
 use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema};
@@ -722,13 +722,6 @@ impl IntoFuture for Upload {
     }
 }
 
-/// A resource's bytes, with their media type.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Content {
-    pub bytes: Bytes,
-    pub content_type: String,
-}
-
 /// A resource's bytes as they arrive, with their media type.
 pub struct ContentStream {
     pub bytes: Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send>>,
@@ -745,7 +738,7 @@ pub trait ContentTransport: Send + Sync + 'static {
     fn get_binary<'a>(
         &'a self,
         resource_id: &'a ResourceId,
-    ) -> BoxFuture<'a, Result<Content, TransportError>>;
+    ) -> BoxFuture<'a, Result<ResourceRepresentation, TransportError>>;
 
     /// The same, as a stream.
     fn get_binary_stream<'a>(

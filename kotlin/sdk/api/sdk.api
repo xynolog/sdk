@@ -945,19 +945,6 @@ public final class xynolog/namespaces/BrowseNamespace {
 	public final fun tagSchemas ()Lxynolog/cache/Cached;
 }
 
-public final class xynolog/namespaces/EngineWithLimits {
-	public fun <init> (Lxynolog/types/EngineEntry;Lxynolog/types/InferenceLimits;)V
-	public final fun component1 ()Lxynolog/types/EngineEntry;
-	public final fun component2 ()Lxynolog/types/InferenceLimits;
-	public final fun copy (Lxynolog/types/EngineEntry;Lxynolog/types/InferenceLimits;)Lxynolog/namespaces/EngineWithLimits;
-	public static synthetic fun copy$default (Lxynolog/namespaces/EngineWithLimits;Lxynolog/types/EngineEntry;Lxynolog/types/InferenceLimits;ILjava/lang/Object;)Lxynolog/namespaces/EngineWithLimits;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getEntry ()Lxynolog/types/EngineEntry;
-	public final fun getLimits ()Lxynolog/types/InferenceLimits;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class xynolog/namespaces/FrameNamespace {
 	public final fun addEntityType (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun addEntityTypeFuture (Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
@@ -1594,8 +1581,8 @@ public final class xynolog/testing/InMemoryContent : xynolog/transport/ContentTr
 	public fun getResourceGraphFuture (Lxynolog/identifiers/ResourceId;)Ljava/util/concurrent/CompletableFuture;
 	public fun getResourceGraphFuture-n-VWWI8 (Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 	public fun putBinary (Lxynolog/transport/PutBinaryRequest;)Lxynolog/transport/Upload;
-	public final fun seed (Lxynolog/identifiers/ResourceId;Lxynolog/transport/Content;)V
-	public final fun seed-Tz_IDJk (Ljava/lang/String;Lxynolog/transport/Content;)V
+	public final fun seed (Lxynolog/identifiers/ResourceId;Lxynolog/types/ResourceRepresentation;)V
+	public final fun seed-Tz_IDJk (Ljava/lang/String;Lxynolog/types/ResourceRepresentation;)V
 	public final fun seedAnchoredText (Lxynolog/identifiers/ResourceId;Lxynolog/types/AnchoredTextAnswer;)V
 	public final fun seedAnchoredText-Tz_IDJk (Ljava/lang/String;Lxynolog/types/AnchoredTextAnswer;)V
 	public final fun seedAnnotations (Lxynolog/identifiers/ResourceId;Lxynolog/types/GetAnnotationsResponse;)V
@@ -1755,12 +1742,6 @@ public final class xynolog/transport/ConnectionState : java/lang/Enum {
 	public final fun getWire ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lxynolog/transport/ConnectionState;
 	public static fun values ()[Lxynolog/transport/ConnectionState;
-}
-
-public final class xynolog/transport/Content {
-	public fun <init> (Ljava/lang/String;[B)V
-	public final fun getBytes ()[B
-	public final fun getContentType ()Ljava/lang/String;
 }
 
 public final class xynolog/transport/ContentStream {

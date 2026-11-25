@@ -35,7 +35,7 @@ type ContentTransport interface {
 	// PutBinary uploads a resource's bytes and its fields.
 	PutBinary(ctx context.Context, request PutBinaryRequest) *Upload
 	// GetBinary reads a resource's bytes, whole, with their media type.
-	GetBinary(ctx context.Context, resource api.ResourceId) (Content, error)
+	GetBinary(ctx context.Context, resource api.ResourceId) (api.ResourceRepresentation, error)
 	// GetBinaryStream reads a resource's bytes as a stream, with their media
 	// type.
 	GetBinaryStream(ctx context.Context, resource api.ResourceId) (ContentStream, error)
@@ -149,12 +149,6 @@ func (u *Upload) Wait(ctx context.Context) (api.CreateResourceResponse, error) {
 	case <-ctx.Done():
 		return api.CreateResourceResponse{}, ctx.Err()
 	}
-}
-
-// Content is a resource's bytes, with their media type.
-type Content struct {
-	Bytes       []byte
-	ContentType string
 }
 
 // ContentStream is a resource's bytes as they arrive, with their media type.
@@ -358,23 +352,23 @@ func interrupted(resource api.ResourceId, err error) *TransportError {
 }
 
 // GetBinary reads a resource's bytes, whole.
-func (c *HTTPContentTransport) GetBinary(ctx context.Context, resource api.ResourceId) (Content, error) {
+func (c *HTTPContentTransport) GetBinary(ctx context.Context, resource api.ResourceId) (api.ResourceRepresentation, error) {
 	busLog(ctx, busGet, "content", map[string]any{"resourceId": resource}, Envelope{})
 	ctx, span := getting(ctx, resource, false)
 	defer span.End()
 	got, err := c.read(ctx, resource)
 	if err != nil {
-		return Content{}, err
+		return api.ResourceRepresentation{}, err
 	}
 	defer got.done()
 	read, err := io.ReadAll(got.response.Body)
 	if err != nil {
 		if ctx.Err() != nil {
-			return Content{}, ctx.Err()
+			return api.ResourceRepresentation{}, ctx.Err()
 		}
-		return Content{}, c.shared.failures.Report(interrupted(resource, err))
+		return api.ResourceRepresentation{}, c.shared.failures.Report(interrupted(resource, err))
 	}
-	return Content{Bytes: read, ContentType: contentType(got.response)}, nil
+	return api.ResourceRepresentation{Data: read, ContentType: contentType(got.response)}, nil
 }
 
 // streamed reports a read whose bytes stopped coming, and releases the

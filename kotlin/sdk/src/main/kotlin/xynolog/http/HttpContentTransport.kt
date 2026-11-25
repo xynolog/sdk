@@ -24,7 +24,6 @@ import xynolog.identifiers.ResourceId
 import xynolog.telemetry.Telemetry
 import xynolog.telemetry.callersTrace
 import xynolog.telemetry.futureOf
-import xynolog.transport.Content
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.Events
@@ -35,6 +34,7 @@ import xynolog.types.AnchoredTextAnswer
 import xynolog.types.CreateResourceResponse
 import xynolog.types.GetAnnotationsResponse
 import xynolog.types.GetResourceResponse
+import xynolog.types.ResourceRepresentation
 import xynolog.types.ResourceUpload
 import xynolog.types.UploadProgress
 import xynolog.types.UploadProgressFinished
@@ -198,23 +198,23 @@ public class HttpContentTransport(private val transport: HttpTransport) : Conten
         return response.headers().firstValue("content-type").orElse("application/octet-stream") to response.body()
     }
 
-    override suspend fun getBinary(resourceId: ResourceId): Content {
+    override suspend fun getBinary(resourceId: ResourceId): ResourceRepresentation {
         BusLog.line(Logged.GET, "content", asked(resourceId, null), null, null)
         return Telemetry.getting(resourceId, stream = false) { whole(resourceId) }
     }
 
-    private suspend fun whole(resourceId: ResourceId): Content {
+    private suspend fun whole(resourceId: ResourceId): ResourceRepresentation {
         val (contentType, body) = arriving(resourceId)
         val bytes = try {
             readAll(body)
         } catch (error: IOException) {
             throw exchange.failed(TransportError.withoutResponse("${GET_RESOURCE_REPRESENTATION.method} ${GET_RESOURCE_REPRESENTATION.pathOf(resourceId)} ended before its bytes did: ${error.message}"))
         }
-        return Content(contentType, bytes)
+        return ResourceRepresentation(data = bytes, contentType = contentType)
     }
 
     @JvmExposeBoxed
-    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<Content> = scope.futureOf { getBinary(resourceId) }
+    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation> = scope.futureOf { getBinary(resourceId) }
 
     override suspend fun getBinaryStream(resourceId: ResourceId): ContentStream {
         BusLog.line(Logged.GET, "content", asked(resourceId, "stream"), null, null)

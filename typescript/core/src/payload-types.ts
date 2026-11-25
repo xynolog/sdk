@@ -62,6 +62,9 @@ export type EngineEntry = components['schemas']['EngineEntry'];
 export type EngineWithLimits = records['EngineWithLimits'];
 export type EnginesWithLimits = records['EnginesWithLimits'];
 
+/** A resource's bytes, whole, with the media type they were answered with. */
+export type ResourceRepresentation = records['ResourceRepresentation'];
+
 /**
  * What a knowledge base says of itself (`browse:kb-result`): its committed
  * name and domain, and the working tree's branch. The Archivist answers it;

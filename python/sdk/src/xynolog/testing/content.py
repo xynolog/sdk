@@ -15,12 +15,13 @@ from typing import Final, final, override
 
 from xynolog.errors import TransportError
 from xynolog.identifiers import ResourceId
-from xynolog.transport import Content, ContentStream, ContentTransport, PutBinaryRequest, Upload
+from xynolog.transport import ContentStream, ContentTransport, PutBinaryRequest, Upload
 from xynolog.types import (
     AnchoredTextAnswer,
     CreateResourceResponse,
     GetAnnotationsResponse,
     GetResourceResponse,
+    ResourceRepresentation,
     UploadProgress,
     UploadProgressProgress,
     UploadProgressStarted,
@@ -103,13 +104,13 @@ class InMemoryContent(ContentTransport):
     """See the module's documentation."""
 
     def __init__(self) -> None:
-        self._stored: Final[dict[ResourceId, Content]] = {}
+        self._stored: Final[dict[ResourceId, ResourceRepresentation]] = {}
         self._graphs: Final[dict[ResourceId, GetResourceResponse]] = {}
         self._annotations: Final[dict[ResourceId, GetAnnotationsResponse]] = {}
         self._anchored_texts: Final[dict[ResourceId, AnchoredTextAnswer]] = {}
         self._calls: Final[list[ContentCall]] = []
 
-    def seed(self, resource_id: ResourceId, content: Content) -> None:
+    def seed(self, resource_id: ResourceId, content: ResourceRepresentation) -> None:
         """Store `content` as the bytes of `resource_id`."""
         self._stored[resource_id] = content
 
@@ -130,7 +131,7 @@ class InMemoryContent(ContentTransport):
         """Every call made, in order."""
         return self._calls
 
-    def _read(self, resource_id: ResourceId) -> Content:
+    def _read(self, resource_id: ResourceId) -> ResourceRepresentation:
         content = self._stored.get(resource_id)
         if content is None:
             raise _not_found("content", resource_id)
@@ -143,7 +144,7 @@ class InMemoryContent(ContentTransport):
         async def stored(report: Callable[[UploadProgress], None]) -> CreateResourceResponse:
             report(UploadProgressStarted(phase="started", total_bytes=len(request.file)))
             resource_id = ResourceId(f"test-content-{len(self._stored) + 1}")
-            self._stored[resource_id] = Content(data=request.file, content_type=request.format)
+            self._stored[resource_id] = ResourceRepresentation(data=request.file, content_type=request.format)
             self._calls.append(PutBinary(request))
             report(UploadProgressProgress(phase="progress", bytes_uploaded=len(request.file), total_bytes=len(request.file)))
             return CreateResourceResponse(resource_id=resource_id)
@@ -151,7 +152,7 @@ class InMemoryContent(ContentTransport):
         return Upload(lambda report: asyncio.ensure_future(stored(report)))
 
     @override
-    async def get_binary(self, resource_id: ResourceId) -> Content:
+    async def get_binary(self, resource_id: ResourceId) -> ResourceRepresentation:
         self._calls.append(GetBinary(resource_id))
         return self._read(resource_id)
 

@@ -43,6 +43,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A resource's bytes, read whole, are a `ResourceRepresentation`
+  (`Xynolog.Types`), the type of Protocol's
+  `client/types/ResourceRepresentation.json`, where they were
+  `Xynolog.Http.BinaryContent`: `Browse.ResourceRepresentationAsync` and
+  `HttpContentTransport.GetBinaryAsync` answer one, and its bytes are its
+  `Data`, where they were `Bytes`.
 - `BrowseNamespace.Engines()` is a
   `Cached<IReadOnlyList<Xynolog.Types.EngineWithLimits>>`, the type of
   Protocol's `client/types/EnginesWithLimits.json`, where it was of

@@ -364,6 +364,7 @@ internal val REQUIRED_SCHEMAS: Map<String, String> = mapOf(
     "ResourceErrorEvent" to "{\"kinds\":[\"object\"],\"required\":[\"resourceId\",\"message\"],\"members\":{\"message\":{\"kinds\":[\"string\"]},\"resourceId\":{\"ref\":\"ResourceId\"}}}",
     "ResourceId" to "{\"kinds\":[\"string\"],\"pattern\":[{\"of\":[[45,45],[48,57],[65,90],[95,95],[97,122]],\"min\":1,\"max\":128}]}",
     "ResourceMovedPayload" to "{\"kinds\":[\"object\"],\"required\":[\"fromUri\",\"toUri\"],\"members\":{\"fromUri\":{\"kinds\":[\"string\"]},\"toUri\":{\"kinds\":[\"string\"]}}}",
+    "ResourceRepresentation" to "{\"kinds\":[\"object\"],\"required\":[\"data\",\"contentType\"],\"members\":{\"contentType\":{\"kinds\":[\"string\"],\"minLength\":1},\"data\":{\"ref\":\"Binary\"}},\"closed\":[\"contentType\",\"data\"]}",
     "ResourceSearchFilters" to "{\"kinds\":[\"object\"],\"members\":{\"archived\":{\"kinds\":[\"boolean\"]},\"entityType\":{\"kinds\":[\"string\"]},\"limit\":{\"kinds\":[\"integer\"],\"minimum\":1,\"maximum\":200},\"offset\":{\"kinds\":[\"integer\"],\"minimum\":0}},\"closed\":[\"archived\",\"entityType\",\"limit\",\"offset\"]}",
     "ResourceUnarchivedPayload" to "{\"kinds\":[\"object\"]}",
     "ResourceUpdatedPayload" to "{\"kinds\":[\"object\"],\"required\":[\"contentChecksum\"],\"members\":{\"contentByteSize\":{\"kinds\":[\"integer\"]},\"contentChecksum\":{\"kinds\":[\"string\"]}}}",

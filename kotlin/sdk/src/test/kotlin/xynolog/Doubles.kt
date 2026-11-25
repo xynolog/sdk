@@ -15,7 +15,6 @@ import xynolog.identifiers.ResourceId
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
 import xynolog.transport.ConnectionState
-import xynolog.transport.Content
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.Events
@@ -36,6 +35,7 @@ import xynolog.types.GetResourceResponse
 import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenResponse
 import xynolog.types.ProtectedResourceMetadata
+import xynolog.types.ResourceRepresentation
 import xynolog.types.StatusResponse
 import xynolog.types.UserResponse
 import java.util.concurrent.CompletableFuture
@@ -68,7 +68,7 @@ internal class Recording :
     private val answers = ConcurrentHashMap<String, JsonElement>()
 
     /** A resource's bytes, served to whoever reads any resource's: nothing is served when it is none. */
-    var serves: Content? = null
+    var serves: ResourceRepresentation? = null
 
     private fun saw(route: String, name: String, sends: JsonObject) {
         did += Did(route, name, sends)
@@ -152,9 +152,9 @@ internal class Recording :
         return Upload(CompletableDeferred(), Events(emptyFlow()) {})
     }
 
-    override suspend fun getBinary(resourceId: ResourceId): Content = serves ?: asked("content", "getBinary", resource(resourceId))
+    override suspend fun getBinary(resourceId: ResourceId): ResourceRepresentation = serves ?: asked("content", "getBinary", resource(resourceId))
 
-    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<Content> = unasked()
+    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation> = unasked()
 
     override suspend fun getBinaryStream(resourceId: ResourceId): ContentStream = asked("content", "getBinaryStream", resource(resourceId))
 

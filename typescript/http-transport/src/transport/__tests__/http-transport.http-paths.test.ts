@@ -233,19 +233,18 @@ describe('HttpTransport — HTTP wire shape', () => {
   describe('Binary content (HttpContentTransport.getBinary)', () => {
     test('returns buffer + content type', async () => {
       const text = 'hello';
-      const buffer = new TextEncoder().encode(text).buffer;
       vi.mocked(mockKy.get).mockReturnValue({
         headers: {
           get: vi.fn((h: string) =>
             h === 'content-type' ? 'text/plain' : null,
           ),
         },
-        arrayBuffer: vi.fn().mockResolvedValue(buffer),
+        blob: vi.fn().mockResolvedValue(new Blob([text])),
       } as never);
 
       const result = await content.getBinary(testResourceId);
       expect(result.contentType).toBe('text/plain');
-      expect(new TextDecoder().decode(result.data)).toBe(text);
+      expect(await result.data.text()).toBe(text);
     });
 
     test('getBinaryStream returns readable stream', async () => {

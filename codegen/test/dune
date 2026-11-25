@@ -238,3 +238,8 @@
  (name ocaml_raw_census)
  (modules ocaml_raw_census)
  (libraries xynolog_codegen))
+
+(test
+ (name haskell_models)
+ (modules haskell_models)
+ (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema yojson alcotest))

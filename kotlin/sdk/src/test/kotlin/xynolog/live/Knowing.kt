@@ -37,7 +37,6 @@ import xynolog.storage.CachePersistence
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
 import xynolog.transport.ConnectionState
-import xynolog.transport.Content
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.Events
@@ -53,6 +52,7 @@ import xynolog.transport.Watched
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.GetAnnotationsResponse
 import xynolog.types.GetResourceResponse
+import xynolog.types.ResourceRepresentation
 import xynolog.types.wireJson
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
@@ -245,9 +245,9 @@ internal class KbContent(private val answered: Boolean = true) : ContentTranspor
 
     override fun putBinary(request: PutBinaryRequest): Upload = unasked()
 
-    override suspend fun getBinary(resourceId: ResourceId): Content = unasked()
+    override suspend fun getBinary(resourceId: ResourceId): ResourceRepresentation = unasked()
 
-    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<Content> = unasked()
+    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation> = unasked()
 
     override suspend fun getBinaryStream(resourceId: ResourceId): ContentStream = unasked()
 

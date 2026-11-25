@@ -24,6 +24,7 @@
 import type { Observable } from 'rxjs';
 
 import type { components } from './types';
+import type { ResourceRepresentation } from './payload-types';
 import type { AccessToken, BaseUrl } from './branded-types';
 import type { AnnotationId, JobId, ResourceId } from './identifiers';
 import type { EventMap } from './bus-protocol';
@@ -275,12 +276,6 @@ export type PutBinaryRequest = Pick<
     sourceResourceId?: ResourceId;
     jobId?: JobId;
   };
-
-/** A resource's bytes, whole, with the media type they were answered with (client/types/ResourceRepresentation.json). */
-export interface ResourceRepresentation {
-  data: ArrayBuffer;
-  contentType: string;
-}
 
 /** A resource's bytes as they arrive, read once, with the media type they were answered with (client/types/ResourceRepresentationStream.json). */
 export interface ResourceRepresentationStream {

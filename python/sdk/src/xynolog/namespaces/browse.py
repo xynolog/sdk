@@ -21,7 +21,7 @@ from xynolog.namespaces.live import LIMITS_HOLDERS, LIST_LIMIT, Live
 from xynolog.operations import BROWSE_ANNOTATION_HISTORY_REQUESTED, BROWSE_DIRECTORY_REQUESTED, BROWSE_KB_REQUESTED
 from xynolog.resources import decode_representation
 from xynolog.stored import WHOLE_KEY
-from xynolog.transport import Content, ContentStream, ContentTransport, ResourceHold
+from xynolog.transport import ContentStream, ContentTransport, ResourceHold
 from xynolog.types import (
     AnchoredTextAnswer,
     AnchorRect,
@@ -46,6 +46,7 @@ from xynolog.types import (
     KbDescription,
     ListResourcesResponse,
     ResourceDescriptor,
+    ResourceRepresentation,
     TagSchema,
 )
 
@@ -244,7 +245,7 @@ class BrowseNamespace:
         """A resource's anchored text: the text of its content with where each run is on a page, a stored decline, or why there is none."""
         return await self._content.get_anchored_text(resource_id)
 
-    async def resource_representation(self, resource_id: ResourceId) -> Content:
+    async def resource_representation(self, resource_id: ResourceId) -> ResourceRepresentation:
         """A resource's bytes, unchanged, with their media type."""
         return await self._content.get_binary(resource_id)
 

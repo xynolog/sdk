@@ -25,14 +25,14 @@ use xynolog::testing::{
 };
 use xynolog::timing::ERRORS_KEPT_FOR_FIRST_READER_COUNT;
 use xynolog::transport::{
-    ConnectionState, Content, ContentTransport, Events, Failures, PutBinaryRequest, Transport,
+    ConnectionState, ContentTransport, Events, Failures, PutBinaryRequest, Transport,
 };
-use xynolog::types::StoredSession;
 use xynolog::types::{
     AnchoredTextAnswer, GatherResourceOptions, HttpEndpoint, HttpEndpointProtocol, KbEndpoint,
     KbTarget, KnowledgeBase, ResourceId, UploadProgress, UploadProgressFinished,
     UploadProgressProgress, UploadProgressStarted, UserResponse,
 };
+use xynolog::types::{ResourceRepresentation, StoredSession};
 
 fn message(error: XynologError) -> String {
     match error {
@@ -105,8 +105,8 @@ async fn a_test_client_is_built_over_what_the_test_gives_it() {
     // The content is the one given: what the test stored in it is read.
     content.seed(
         &as_id("res-1"),
-        Content {
-            bytes: bytes::Bytes::from_static(b"hello"),
+        ResourceRepresentation {
+            data: bytes::Bytes::from_static(b"hello"),
             content_type: "text/plain".to_owned(),
         },
     );

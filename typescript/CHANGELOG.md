@@ -59,6 +59,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `ResourceRepresentation` is `records['ResourceRepresentation']`, generated
+  from Protocol's `client/types/ResourceRepresentation.json`, and its `data`
+  is a `Blob`, where it was an `ArrayBuffer`: `browse.resourceRepresentation`
+  and `getBinary` answer the bytes as the response held them. A reader that
+  wants them as a buffer has `await data.arrayBuffer()`.
 - `EngineWithLimits` is `records['EngineWithLimits']`, generated from
   Protocol's `client/types/EngineWithLimits.json`, with the members it had,
   and `EnginesWithLimits` is its list; `browse.engines()` is a

@@ -11181,6 +11181,15 @@ type ResourceMovedPayload struct {
 	ToUri string `json:"toUri"`
 }
 
+// ResourceRepresentation A resource's bytes as the content transport answers
+// them, whole, with the media type it answered with.
+type ResourceRepresentation struct {
+	// Data The bytes, whole.
+	Data Binary `json:"data"`
+	// ContentType The media type the content transport answered with.
+	ContentType string `json:"contentType"`
+}
+
 // ResourceSearchFilters What a text search for resources is told beside its
 // text: MatchResourcesRequest's other members. client/surface.json's
 // `match.resources` cases state what is sent for one left out.

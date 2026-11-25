@@ -23,7 +23,6 @@ import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
 import xynolog.registry.WHOLE_KEY
 import xynolog.resources.decodeRepresentation
-import xynolog.transport.Content
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.ResourceHold
@@ -50,6 +49,7 @@ import xynolog.types.GetResourceResponse
 import xynolog.types.KbDescription
 import xynolog.types.ListResourcesResponse
 import xynolog.types.ResourceDescriptor
+import xynolog.types.ResourceRepresentation
 import xynolog.types.TagSchema
 import java.util.concurrent.CompletableFuture
 
@@ -154,7 +154,7 @@ public class BrowseNamespace internal constructor(private val links: Links, priv
      */
     public suspend fun resourceContent(resourceId: ResourceId): String {
         val read = content.getBinary(resourceId)
-        return decodeRepresentation(read.bytes, read.contentType)
+        return decodeRepresentation(read.data, read.contentType)
     }
 
     /** `resourceContent`, for Java. */
@@ -162,11 +162,11 @@ public class BrowseNamespace internal constructor(private val links: Links, priv
     public fun resourceContentFuture(resourceId: ResourceId): CompletableFuture<String> = links.future { resourceContent(resourceId) }
 
     /** A resource's bytes, unchanged, with their media type. */
-    public suspend fun resourceRepresentation(resourceId: ResourceId): Content = content.getBinary(resourceId)
+    public suspend fun resourceRepresentation(resourceId: ResourceId): ResourceRepresentation = content.getBinary(resourceId)
 
     /** `resourceRepresentation`, for Java. */
     @JvmExposeBoxed
-    public fun resourceRepresentationFuture(resourceId: ResourceId): CompletableFuture<Content> = links.future { resourceRepresentation(resourceId) }
+    public fun resourceRepresentationFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation> = links.future { resourceRepresentation(resourceId) }
 
     /** The same, as they arrive. */
     public suspend fun resourceRepresentationStream(resourceId: ResourceId): ContentStream = content.getBinaryStream(resourceId)

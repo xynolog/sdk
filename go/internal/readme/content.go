@@ -39,8 +39,8 @@ func Store(ctx context.Context, content xynolog.ContentTransport, gateway xynolo
 	if err != nil {
 		return api.ResourceId{}, err
 	}
-	if !bytes.Equal(stored.Bytes, page) || stored.ContentType != "text/markdown" {
-		return api.ResourceId{}, fmt.Errorf("read back %d bytes of %s", len(stored.Bytes), stored.ContentType)
+	if !bytes.Equal(stored.Data, page) || stored.ContentType != "text/markdown" {
+		return api.ResourceId{}, fmt.Errorf("read back %d bytes of %s", len(stored.Data), stored.ContentType)
 	}
 
 	me, err := gateway.GetCurrentUser(ctx)

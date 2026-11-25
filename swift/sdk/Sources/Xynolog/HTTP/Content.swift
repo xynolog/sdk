@@ -71,15 +71,6 @@ public final class Upload: AsyncSequence, Sendable {
     progress.dispose()
   }
 }
-public struct Content: Sendable {
-  public let contentType: String
-  public let bytes: Data
-
-  public init(contentType: String, bytes: Data) {
-    self.contentType = contentType
-    self.bytes = bytes
-  }
-}
 public final class ContentStream: AsyncSequence, Sendable {
   public typealias Element = Data
   public typealias AsyncIterator = Events<Data>.AsyncIterator
@@ -334,7 +325,7 @@ extension HttpTransport: ContentTransport {
       }
     }
   }
-  public func getBinary(_ resource: ResourceId) async throws -> Content {
+  public func getBinary(_ resource: ResourceId) async throws -> ResourceRepresentation {
     try await owned { owner in
       let read = transportSpan(
         .contentGet, attributes: [attributeResourceId: .string(resource.value)])
@@ -351,7 +342,7 @@ extension HttpTransport: ContentTransport {
         return try await within(exchange.remaining(), on: owner.clock) {
           var data = Data()
           for try await chunk in stream { data.append(chunk) }
-          return Content(contentType: stream.contentType, bytes: data)
+          return ResourceRepresentation(data: data, contentType: stream.contentType)
         }
       } catch {
         if Task.isCancelled || owner.lifetime.ended { throw CancellationError() }

@@ -126,7 +126,7 @@ internal sealed class WireDriver : IDisposable
                 case "get":
                     var content = new HttpContentTransport(Current);
                     var bytes = await content.GetBinaryAsync(ResourceId.Parse(Text(args, "resource")), cancellation.Token);
-                    answer = new { contentType = bytes.ContentType, bytes = Convert.ToBase64String(bytes.Bytes) };
+                    answer = new { contentType = bytes.ContentType, bytes = Convert.ToBase64String(bytes.Data) };
                     break;
                 case "abandon":
                     lock (gate)

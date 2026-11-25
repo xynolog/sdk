@@ -58,6 +58,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A resource's bytes, read whole, are a `ResourceRepresentation`
+  (`xynolog.types`), the type of Protocol's
+  `client/types/ResourceRepresentation.json`, where they were
+  `xynolog.transport.Content`, with the members it had, `data` and
+  `content_type`.
 - `browse.engines()` is a `Cached[EnginesWithLimits]` of
   `xynolog.types.EngineWithLimits`, the types of Protocol's
   `client/types/EnginesWithLimits.json`, where it was of

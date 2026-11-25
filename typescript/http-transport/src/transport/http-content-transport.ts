@@ -231,7 +231,7 @@ export class HttpContentTransport implements IContentTransport {
         );
         const contentType =
           response.headers.get('content-type') || 'application/octet-stream';
-        const data = await response.arrayBuffer();
+        const data = await response.blob();
         return { data, contentType };
       },
       {

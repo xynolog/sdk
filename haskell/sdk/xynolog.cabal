@@ -593,6 +593,7 @@ library internal
     Xynolog.Internal.Generated.Models.ResourceErrorEvent
     Xynolog.Internal.Generated.Models.ResourceId
     Xynolog.Internal.Generated.Models.ResourceMovedPayload
+    Xynolog.Internal.Generated.Models.ResourceRepresentation
     Xynolog.Internal.Generated.Models.ResourceSearchFilters
     Xynolog.Internal.Generated.Models.ResourceUnarchivedPayload
     Xynolog.Internal.Generated.Models.ResourceUpdatedPayload

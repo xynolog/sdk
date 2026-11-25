@@ -95,7 +95,7 @@ func (n *BrowseNamespace) ResourceContent(ctx context.Context, resourceID api.Re
 	if err != nil {
 		return "", err
 	}
-	return DecodeRepresentation(content.Bytes, content.ContentType)
+	return DecodeRepresentation(content.Data, content.ContentType)
 }
 
 // ResourceGraph is a resource's description as linked data.
@@ -110,7 +110,7 @@ func (n *BrowseNamespace) ResourceAnchoredText(ctx context.Context, resourceID a
 }
 
 // ResourceRepresentation is a resource's bytes, with their media type.
-func (n *BrowseNamespace) ResourceRepresentation(ctx context.Context, resourceID api.ResourceId) (Content, error) {
+func (n *BrowseNamespace) ResourceRepresentation(ctx context.Context, resourceID api.ResourceId) (api.ResourceRepresentation, error) {
 	return n.content.GetBinary(ctx, resourceID)
 }
 

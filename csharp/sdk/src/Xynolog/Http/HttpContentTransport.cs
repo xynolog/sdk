@@ -9,10 +9,6 @@ using Xynolog.Types;
 
 namespace Xynolog.Http;
 
-/// <summary>A resource's bytes, read whole, with their media type.</summary>
-/// <param name="ContentType">The bytes' media type.</param>
-/// <param name="Bytes">The content, read whole.</param>
-public sealed record BinaryContent(string ContentType, byte[] Bytes);
 /// <summary>A resource's bytes as a stream to read, with their media type; disposing it ends the read.</summary>
 /// <param name="ContentType">The bytes' media type.</param>
 /// <param name="Stream">The bytes, as they arrive.</param>
@@ -90,13 +86,13 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
     }
 
     /// <summary>Reads a resource's representation whole.</summary>
-    public async Task<BinaryContent> GetBinaryAsync(ResourceId resource, CancellationToken cancellation = default)
+    public async Task<ResourceRepresentation> GetBinaryAsync(ResourceId resource, CancellationToken cancellation = default)
     {
         using var linked = Link(cancellation);
         cancellation = linked.Token;
         using var activity = SdkTelemetry.Start(TelemetrySpans.ContentGet, new ActivityTagsCollection { { TelemetryKeys.ResourceId, resource.Value } });
         using var response = await transport.ExchangeAsync(GatewayRoute.GetResourceRepresentation.Method, PathOf(GatewayRoute.GetResourceRepresentation, resource), cancellation: cancellation).ConfigureAwait(Spawning.Captures);
-        return new BinaryContent(ContentType(response.Content), await response.Content.ReadAsByteArrayAsync(cancellation).ConfigureAwait(Spawning.Captures));
+        return new ResourceRepresentation { Data = await response.Content.ReadAsByteArrayAsync(cancellation).ConfigureAwait(Spawning.Captures), ContentType = ContentType(response.Content) };
     }
 
     /// <summary>Opens a resource's representation as a stream, which the caller disposes.</summary>

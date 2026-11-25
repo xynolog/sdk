@@ -181,7 +181,7 @@ events namespace = Cache.query (eventsCache namespace)
 resourceContent :: BrowseNamespace -> ResourceId -> IO Text
 resourceContent namespace identity = do
   binary <- Content.getBinary (content namespace) Nothing identity
-  Resources.decodeRepresentation (Content.contentBytes binary) (Content.contentType binary)
+  Resources.decodeRepresentation (binaryValue (resourceRepresentationData binary)) (resourceRepresentationContentType binary)
 
 resourceGraph :: BrowseNamespace -> ResourceId -> IO GetResourceResponse
 resourceGraph namespace identity = Content.getResourceGraph (content namespace) Nothing identity
@@ -189,7 +189,7 @@ resourceGraph namespace identity = Content.getResourceGraph (content namespace) 
 resourceAnchoredText :: BrowseNamespace -> ResourceId -> IO AnchoredTextAnswer
 resourceAnchoredText namespace identity = Content.getAnchoredText (content namespace) Nothing identity
 
-resourceRepresentation :: BrowseNamespace -> ResourceId -> IO Content.BinaryContent
+resourceRepresentation :: BrowseNamespace -> ResourceId -> IO ResourceRepresentation
 resourceRepresentation namespace identity = Content.getBinary (content namespace) Nothing identity
 
 resourceRepresentationStream :: BrowseNamespace -> ResourceId -> (Text -> Stream (Of ByteString) IO () -> IO result) -> IO result

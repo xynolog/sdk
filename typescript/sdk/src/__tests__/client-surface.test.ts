@@ -303,7 +303,7 @@ function recordingContent(calls: Recorded[]): IContentTransport {
     },
     async getBinary(id) {
       read('getBinary', id);
-      return { data: new ArrayBuffer(0), contentType: 'text/plain' };
+      return { data: new Blob([]), contentType: 'text/plain' };
     },
     async getBinaryStream(id) {
       read('getBinaryStream', id);

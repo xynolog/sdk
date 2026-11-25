@@ -700,7 +700,7 @@ public sealed partial class TransportTests
         Assert.Equal("r-uploaded", uploaded.Value);
         var buffered = await content.GetBinaryAsync(uploaded);
         Assert.Equal("image/png", buffered.ContentType);
-        Assert.Equal(payload, buffered.Bytes);
+        Assert.Equal(payload, buffered.Data);
         using var streamed = await content.GetBinaryStreamAsync(uploaded);
         using var destination = new MemoryStream();
         await streamed.Stream.CopyToAsync(destination);

@@ -206,6 +206,10 @@ variant k depth schema
               | KM.member "type" fields -> choose [value | Right value <- map (nested . Object . within fields) (toList alternatives)]
               | otherwise -> choose [value | Right value <- map nested (toList alternatives)]
             _ -> case KM.lookup "type" fields of
+              Just (String "string")
+                | KM.lookup "format" fields == Just (String "binary") ->
+                    -- Bytes are base64 in JSON, so a sample of them is too.
+                    choose [String text | text <- ["", "YQ==", "YWI=", "YWJj"]]
               Just (String "string") -> do
                 let width = case KM.lookup "minLength" fields of Just (Number n) -> ceiling n; _ -> 0
                 let patterned = case KM.lookup "pattern" fields of Just (String pattern) -> [patternSample pattern]; _ -> []

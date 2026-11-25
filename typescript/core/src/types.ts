@@ -7140,6 +7140,16 @@ export interface records {
     | ReconciledSpanFirstOfMany
     | ReconciledSpanFuzzyMatch;
   /**
+   * A resource's bytes as the content transport answers them, whole, with the
+   * media type it answered with.
+   */
+  ResourceRepresentation: {
+    /** The bytes, whole. */
+    data: components['schemas']['Binary'];
+    /** The media type the content transport answered with. */
+    contentType: string;
+  };
+  /**
    * What a text search for resources is told beside its text:
    * MatchResourcesRequest's other members. client/surface.json's
    * `match.resources` cases state what is sent for one left out.

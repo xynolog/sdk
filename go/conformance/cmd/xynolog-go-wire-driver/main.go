@@ -517,7 +517,7 @@ func (w *wire) get(ctx context.Context, args protocol.Arguments, asStream bool) 
 		if err != nil {
 			return nil, err
 		}
-		contentType, bytes = content.ContentType, content.Bytes
+		contentType, bytes = content.ContentType, content.Data
 	}
 	return map[string]any{"contentType": contentType, "bytes": base64.StdEncoding.EncodeToString(bytes)}, nil
 }
