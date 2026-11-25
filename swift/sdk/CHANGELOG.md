@@ -54,6 +54,15 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A union is decoded as the one member that admits a value, by what each
+  member's schema states, where one whose schema names no `discriminator`
+  was decoded as the first member that decoded. A value that no member
+  admits, but that one member names by its kind and the values it states, is
+  refused for what is wrong with it as that member; one that none names is
+  refused.
+- A union every member of which is text is a `String`, as a bus event's
+  `id` (`BusEventMessage.id`) is, where it was an enumeration of its members
+  that read every value as the first.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - The smelter's and the weaver's health name how far they have followed the

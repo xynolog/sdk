@@ -67,17 +67,34 @@ public indirect enum Agent: Codable, Sendable, Hashable {
   case agentPerson(AgentPerson)
   case agentOrganization(AgentOrganization)
   case agentSoftware(AgentSoftware)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["@type"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Person")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["@type", "name"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Organization")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["@type"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Software")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("@type"))
-    switch tag {
-    case "Person": self = .agentPerson(try AgentPerson(from: decoder))
-    case "Organization": self = .agentOrganization(try AgentOrganization(from: decoder))
-    case "Software": self = .agentSoftware(try AgentSoftware(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("@type"), in: c, debugDescription: "unknown Agent discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "Agent", members: Self.members,
+      variants: [
+        ("agentPerson", { decoder in try Self.agentPerson(AgentPerson(from: decoder)) }),
+        (
+          "agentOrganization",
+          { decoder in try Self.agentOrganization(AgentOrganization(from: decoder)) }
+        ),
+        ("agentSoftware", { decoder in try Self.agentSoftware(AgentSoftware(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -326,19 +343,59 @@ public indirect enum AnchoredTextAnswer: Codable, Sendable, Hashable {
   case extractedText(ExtractedText)
   case extractionDeclined(ExtractionDeclined)
   case anchoredTextAbsent(AnchoredTextAbsent)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["text", "items", "kind", "method"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("extracted")]),
+          .init(
+            property: "method",
+            values: [
+              .text("text-passthrough"), .text("pdf-text-layer"), .text("table"), .text("form"),
+              .text("ocr"),
+            ]),
+          .init(
+            property: "pdfClass",
+            values: [
+              .text("A"), .text("B"), .text("C"), .text("D"), .text("E"), .text("F"), .text("G"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "declined"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("declined")]),
+          .init(
+            property: "declined",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("not-yet"), .text("no-map"), .text("unknown")])
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("kind"))
-    switch tag {
-    case "extracted": self = .extractedText(try ExtractedText(from: decoder))
-    case "declined": self = .extractionDeclined(try ExtractionDeclined(from: decoder))
-    case "not-yet", "no-map", "unknown":
-      self = .anchoredTextAbsent(try AnchoredTextAbsent(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("kind"), in: c, debugDescription: "unknown AnchoredTextAnswer discriminator"
-      )
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnchoredTextAnswer", members: Self.members,
+      variants: [
+        ("extractedText", { decoder in try Self.extractedText(ExtractedText(from: decoder)) }),
+        (
+          "extractionDeclined",
+          { decoder in try Self.extractionDeclined(ExtractionDeclined(from: decoder)) }
+        ),
+        (
+          "anchoredTextAbsent",
+          { decoder in try Self.anchoredTextAbsent(AnchoredTextAbsent(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -407,18 +464,57 @@ public struct AnchoredTextEntries: Codable, Sendable, Hashable {
 public indirect enum AnchoredTextEntry: Codable, Sendable, Hashable {
   case anchoredTextExtractedEntry(AnchoredTextExtractedEntry)
   case anchoredTextDeclinedEntry(AnchoredTextDeclinedEntry)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["v", "stamp", "text", "lines", "method"],
+        allowed: [
+          "v", "stamp", "text", "lines", "method", "pdfClass", "ocrConfidence", "unreadPages",
+        ],
+        fixed: [
+          .init(property: "v", values: [.integer(3)]),
+          .init(
+            property: "method",
+            values: [
+              .text("text-passthrough"), .text("pdf-text-layer"), .text("table"), .text("form"),
+              .text("ocr"),
+            ]),
+          .init(
+            property: "pdfClass",
+            values: [
+              .text("A"), .text("B"), .text("C"), .text("D"), .text("E"), .text("F"), .text("G"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["v", "stamp", "declined"], allowed: ["v", "stamp", "declined"],
+        fixed: [
+          .init(property: "v", values: [.integer(3)]),
+          .init(
+            property: "declined",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? AnchoredTextExtractedEntry(from: decoder) {
-      self = .anchoredTextExtractedEntry(value)
-      return
-    }
-    if let value = try? AnchoredTextDeclinedEntry(from: decoder) {
-      self = .anchoredTextDeclinedEntry(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of AnchoredTextEntry fits")
-    )
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnchoredTextEntry", members: Self.members,
+      variants: [
+        (
+          "anchoredTextExtractedEntry",
+          { decoder in
+            try Self.anchoredTextExtractedEntry(AnchoredTextExtractedEntry(from: decoder))
+          }
+        ),
+        (
+          "anchoredTextDeclinedEntry",
+          { decoder in try Self.anchoredTextDeclinedEntry(AnchoredTextDeclinedEntry(from: decoder))
+          }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -638,17 +734,46 @@ public struct AnnotationAddedPayload: Codable, Sendable, Hashable {
 public indirect enum AnnotationBodies: Codable, Sendable, Hashable {
   case annotationBody(AnnotationBody)
   case list([AnnotationBody])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [
+          .init(property: "type", values: [.text("TextualBody")]),
+          .init(
+            property: "purpose",
+            values: [
+              .text("assessing"), .text("bookmarking"), .text("classifying"), .text("commenting"),
+              .text("describing"), .text("editing"), .text("highlighting"), .text("identifying"),
+              .text("linking"), .text("moderating"), .text("questioning"), .text("replying"),
+              .text("tagging"),
+            ]),
+        ], values: nil),
+      UnionSignature(
+        kind: .object, required: ["type", "source"], allowed: nil,
+        fixed: [
+          .init(property: "type", values: [.text("SpecificResource")]),
+          .init(
+            property: "purpose",
+            values: [
+              .text("assessing"), .text("bookmarking"), .text("classifying"), .text("commenting"),
+              .text("describing"), .text("editing"), .text("highlighting"), .text("identifying"),
+              .text("linking"), .text("moderating"), .text("questioning"), .text("replying"),
+              .text("tagging"),
+            ]),
+        ], values: nil),
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? AnnotationBody(from: decoder) {
-      self = .annotationBody(value)
-      return
-    }
-    if let value = try? [AnnotationBody](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of AnnotationBodies fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnnotationBodies", members: Self.members,
+      variants: [
+        ("annotationBody", { decoder in try Self.annotationBody(AnnotationBody(from: decoder)) }),
+        ("list", { decoder in try Self.list([AnnotationBody](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -661,16 +786,48 @@ public indirect enum AnnotationBodies: Codable, Sendable, Hashable {
 public indirect enum AnnotationBody: Codable, Sendable, Hashable {
   case textualBody(TextualBody)
   case specificResource(SpecificResource)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [
+          .init(property: "type", values: [.text("TextualBody")]),
+          .init(
+            property: "purpose",
+            values: [
+              .text("assessing"), .text("bookmarking"), .text("classifying"), .text("commenting"),
+              .text("describing"), .text("editing"), .text("highlighting"), .text("identifying"),
+              .text("linking"), .text("moderating"), .text("questioning"), .text("replying"),
+              .text("tagging"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "source"], allowed: nil,
+        fixed: [
+          .init(property: "type", values: [.text("SpecificResource")]),
+          .init(
+            property: "purpose",
+            values: [
+              .text("assessing"), .text("bookmarking"), .text("classifying"), .text("commenting"),
+              .text("describing"), .text("editing"), .text("highlighting"), .text("identifying"),
+              .text("linking"), .text("moderating"), .text("questioning"), .text("replying"),
+              .text("tagging"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "TextualBody": self = .textualBody(try TextualBody(from: decoder))
-    case "SpecificResource": self = .specificResource(try SpecificResource(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown AnnotationBody discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnnotationBody", members: Self.members,
+      variants: [
+        ("textualBody", { decoder in try Self.textualBody(TextualBody(from: decoder)) }),
+        (
+          "specificResource",
+          { decoder in try Self.specificResource(SpecificResource(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -757,18 +914,32 @@ public struct AnnotationRemovedPayload: Codable, Sendable, Hashable {
 public indirect enum AnnotationSelector: Codable, Sendable, Hashable {
   case selector(Selector)
   case list([Selector])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "start", "end"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("TextPositionSelector")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["type", "exact"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("TextQuoteSelector")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("SvgSelector")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("FragmentSelector")])], values: nil),
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? Selector(from: decoder) {
-      self = .selector(value)
-      return
-    }
-    if let value = try? [Selector](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of AnnotationSelector fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnnotationSelector", members: Self.members,
+      variants: [
+        ("selector", { decoder in try Self.selector(Selector(from: decoder)) }),
+        ("list", { decoder in try Self.list([Selector](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -810,19 +981,26 @@ public enum AnnotationTargetType: String, Codable, Sendable, CaseIterable {
 public indirect enum AnnotationTargetValue: Codable, Sendable, Hashable {
   case resourceId(ResourceId)
   case annotationTarget(AnnotationTarget)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["source"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("SpecificResource")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ResourceId(from: decoder) {
-      self = .resourceId(value)
-      return
-    }
-    if let value = try? AnnotationTarget(from: decoder) {
-      self = .annotationTarget(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of AnnotationTargetValue fits")
-    )
+    self = try UnionSignature.decode(
+      from: decoder, union: "AnnotationTargetValue", members: Self.members,
+      variants: [
+        ("resourceId", { decoder in try Self.resourceId(ResourceId(from: decoder)) }),
+        (
+          "annotationTarget",
+          { decoder in try Self.annotationTarget(AnnotationTarget(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -2082,21 +2260,40 @@ public indirect enum BodyOperation: Codable, Sendable, Hashable {
   case bodyOperationAdd(BodyOperationAdd)
   case bodyOperationRemove(BodyOperationRemove)
   case bodyOperationReplace(BodyOperationReplace)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["op", "item"], allowed: nil,
+        fixed: [.init(property: "op", values: [.text("add")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["op", "item"], allowed: nil,
+        fixed: [.init(property: "op", values: [.text("remove")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["op", "oldItem", "newItem"], allowed: nil,
+        fixed: [.init(property: "op", values: [.text("replace")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? BodyOperationAdd(from: decoder) {
-      self = .bodyOperationAdd(value)
-      return
-    }
-    if let value = try? BodyOperationRemove(from: decoder) {
-      self = .bodyOperationRemove(value)
-      return
-    }
-    if let value = try? BodyOperationReplace(from: decoder) {
-      self = .bodyOperationReplace(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of BodyOperation fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "BodyOperation", members: Self.members,
+      variants: [
+        (
+          "bodyOperationAdd",
+          { decoder in try Self.bodyOperationAdd(BodyOperationAdd(from: decoder)) }
+        ),
+        (
+          "bodyOperationRemove",
+          { decoder in try Self.bodyOperationRemove(BodyOperationRemove(from: decoder)) }
+        ),
+        (
+          "bodyOperationReplace",
+          { decoder in try Self.bodyOperationReplace(BodyOperationReplace(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -2989,8 +3186,8 @@ public struct BusEmptyPayload: Codable, Sendable, Hashable {
 public struct BusEventMessage: Codable, Sendable, Hashable {
   public var data: BusFrame
   public let event: BusEventMessageEvent
-  public var id: BusEventMessageId
-  public init(data: BusFrame, id: BusEventMessageId) {
+  public var id: String
+  public init(data: BusFrame, id: String) {
     self.data = data
     self.event = .busEvent
     self.id = id
@@ -3012,36 +3209,6 @@ public struct BusEventMessage: Codable, Sendable, Hashable {
 
 public enum BusEventMessageEvent: String, Codable, Sendable, CaseIterable {
   case busEvent = "bus-event"
-}
-
-public indirect enum BusEventMessageId: Codable, Sendable, Hashable {
-  case persistedEventId(PersistedEventId)
-  case replyEventId(ReplyEventId)
-  case ephemeralEventId(EphemeralEventId)
-  public init(from decoder: any Decoder) throws {
-    if let value = try? PersistedEventId(from: decoder) {
-      self = .persistedEventId(value)
-      return
-    }
-    if let value = try? ReplyEventId(from: decoder) {
-      self = .replyEventId(value)
-      return
-    }
-    if let value = try? EphemeralEventId(from: decoder) {
-      self = .ephemeralEventId(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of BusEventMessageId fits")
-    )
-  }
-  public func encode(to encoder: any Encoder) throws {
-    switch self {
-    case .persistedEventId(let value): try value.encode(to: encoder)
-    case .replyEventId(let value): try value.encode(to: encoder)
-    case .ephemeralEventId(let value): try value.encode(to: encoder)
-    }
-  }
 }
 
 public struct BusFrame: Codable, Sendable, Hashable {
@@ -3122,19 +3289,24 @@ public struct BusReplyBounds: Codable, Sendable, Hashable {
 public indirect enum BusReplyBoundsRepliesValueValue: Codable, Sendable, Hashable {
   case by(BusReplyBoundsRepliesValueValueBy)
   case grows(BusReplyBoundsRepliesValueValueGrows)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .object, required: ["by"], allowed: ["by"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["grows"], allowed: ["grows"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? BusReplyBoundsRepliesValueValueBy(from: decoder) {
-      self = .by(value)
-      return
-    }
-    if let value = try? BusReplyBoundsRepliesValueValueGrows(from: decoder) {
-      self = .grows(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of BusReplyBoundsRepliesValueValue fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "BusReplyBoundsRepliesValueValue", members: Self.members,
+      variants: [
+        ("by", { decoder in try Self.by(BusReplyBoundsRepliesValueValueBy(from: decoder)) }),
+        (
+          "grows",
+          { decoder in try Self.grows(BusReplyBoundsRepliesValueValueGrows(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -3210,17 +3382,27 @@ public enum BusResumeGapReason: String, Codable, Sendable, CaseIterable {
 public indirect enum BusStreamMessage: Codable, Sendable, Hashable {
   case busEventMessage(BusEventMessage)
   case busPingMessage(BusPingMessage)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["event", "id", "data"], allowed: ["event", "id", "data"],
+        fixed: [.init(property: "event", values: [.text("bus-event")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["event", "data"], allowed: ["event", "data"],
+        fixed: [.init(property: "event", values: [.text("ping")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? BusEventMessage(from: decoder) {
-      self = .busEventMessage(value)
-      return
-    }
-    if let value = try? BusPingMessage(from: decoder) {
-      self = .busPingMessage(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of BusStreamMessage fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "BusStreamMessage", members: Self.members,
+      variants: [
+        (
+          "busEventMessage", { decoder in try Self.busEventMessage(BusEventMessage(from: decoder)) }
+        ),
+        ("busPingMessage", { decoder in try Self.busPingMessage(BusPingMessage(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -3584,75 +3766,113 @@ public indirect enum ConformanceDriverLine: Codable, Sendable, Hashable {
   case refused(ConformanceDriverLineRefused)
   case signalled(ConformanceDriverLineSignalled)
   case stalled(ConformanceDriverLineStalled)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["ready"], allowed: ["ready"],
+        fixed: [.init(property: "ready", values: [.boolean(true)])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "ok"], allowed: ["id", "ok"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "error"], allowed: ["id", "error"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "abandoned"], allowed: ["id", "abandoned"],
+        fixed: [.init(property: "abandoned", values: [.boolean(true)])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "unsupported"], allowed: ["id", "unsupported"],
+        fixed: [.init(property: "unsupported", values: [.boolean(true)])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "misuse"], allowed: ["id", "misuse"], fixed: [], values: nil
+      )
+    ],
+    [
+      UnionSignature(kind: .object, required: ["state"], allowed: ["state"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["frame"], allowed: ["frame"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["error"], allowed: ["error"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["progress"], allowed: ["progress"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["emission"], allowed: ["emission"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["completed"], allowed: ["completed"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["claimed"], allowed: ["claimed"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["refused"], allowed: ["refused"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["signalled"], allowed: ["signalled"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["stalled"], allowed: ["stalled"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ConformanceDriverLineReady(from: decoder) {
-      self = .ready(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineOk(from: decoder) {
-      self = .ok(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineFailed(from: decoder) {
-      self = .failed(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineAbandoned(from: decoder) {
-      self = .abandoned(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineUnsupported(from: decoder) {
-      self = .unsupported(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineMisuse(from: decoder) {
-      self = .misuse(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineState(from: decoder) {
-      self = .state(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineFrame(from: decoder) {
-      self = .frame(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineErrorStream(from: decoder) {
-      self = .errorStream(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineProgress(from: decoder) {
-      self = .progress(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineEmission(from: decoder) {
-      self = .emission(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineCompleted(from: decoder) {
-      self = .completed(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineClaimed(from: decoder) {
-      self = .claimed(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineRefused(from: decoder) {
-      self = .refused(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineSignalled(from: decoder) {
-      self = .signalled(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineStalled(from: decoder) {
-      self = .stalled(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of ConformanceDriverLine fits")
-    )
+    self = try UnionSignature.decode(
+      from: decoder, union: "ConformanceDriverLine", members: Self.members,
+      variants: [
+        ("ready", { decoder in try Self.ready(ConformanceDriverLineReady(from: decoder)) }),
+        ("ok", { decoder in try Self.ok(ConformanceDriverLineOk(from: decoder)) }),
+        ("failed", { decoder in try Self.failed(ConformanceDriverLineFailed(from: decoder)) }),
+        (
+          "abandoned",
+          { decoder in try Self.abandoned(ConformanceDriverLineAbandoned(from: decoder)) }
+        ),
+        (
+          "unsupported",
+          { decoder in try Self.unsupported(ConformanceDriverLineUnsupported(from: decoder)) }
+        ),
+        ("misuse", { decoder in try Self.misuse(ConformanceDriverLineMisuse(from: decoder)) }),
+        ("state", { decoder in try Self.state(ConformanceDriverLineState(from: decoder)) }),
+        ("frame", { decoder in try Self.frame(ConformanceDriverLineFrame(from: decoder)) }),
+        (
+          "errorStream",
+          { decoder in try Self.errorStream(ConformanceDriverLineErrorStream(from: decoder)) }
+        ),
+        (
+          "progress", { decoder in try Self.progress(ConformanceDriverLineProgress(from: decoder)) }
+        ),
+        (
+          "emission", { decoder in try Self.emission(ConformanceDriverLineEmission(from: decoder)) }
+        ),
+        (
+          "completed",
+          { decoder in try Self.completed(ConformanceDriverLineCompleted(from: decoder)) }
+        ),
+        ("claimed", { decoder in try Self.claimed(ConformanceDriverLineClaimed(from: decoder)) }),
+        ("refused", { decoder in try Self.refused(ConformanceDriverLineRefused(from: decoder)) }),
+        (
+          "signalled",
+          { decoder in try Self.signalled(ConformanceDriverLineSignalled(from: decoder)) }
+        ),
+        ("stalled", { decoder in try Self.stalled(ConformanceDriverLineStalled(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -3784,23 +4004,46 @@ public indirect enum ConformanceDriverLineEmissionEmissionState: Codable, Sendab
   case pending(ConformanceDriverLineEmissionEmissionStatePending)
   case ready(ConformanceDriverLineEmissionEmissionStateReady)
   case failed(ConformanceDriverLineEmissionEmissionStateFailed)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["status"], allowed: ["status"],
+        fixed: [.init(property: "status", values: [.text("pending")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "value"], allowed: ["status", "value"],
+        fixed: [.init(property: "status", values: [.text("ready")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "error"], allowed: ["status", "error"],
+        fixed: [.init(property: "status", values: [.text("failed")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ConformanceDriverLineEmissionEmissionStatePending(from: decoder) {
-      self = .pending(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineEmissionEmissionStateReady(from: decoder) {
-      self = .ready(value)
-      return
-    }
-    if let value = try? ConformanceDriverLineEmissionEmissionStateFailed(from: decoder) {
-      self = .failed(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ConformanceDriverLineEmissionEmissionState fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ConformanceDriverLineEmissionEmissionState", members: Self.members,
+      variants: [
+        (
+          "pending",
+          { decoder in
+            try Self.pending(ConformanceDriverLineEmissionEmissionStatePending(from: decoder))
+          }
+        ),
+        (
+          "ready",
+          { decoder in
+            try Self.ready(ConformanceDriverLineEmissionEmissionStateReady(from: decoder))
+          }
+        ),
+        (
+          "failed",
+          { decoder in
+            try Self.failed(ConformanceDriverLineEmissionEmissionStateFailed(from: decoder))
+          }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -4351,121 +4594,197 @@ public indirect enum ConformanceStep: Codable, Sendable, Hashable {
   case refused(ConformanceStepRefused)
   case signalled(ConformanceStepSignalled)
   case stalled(ConformanceStepStalled)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .object, required: ["let"], allowed: ["let"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["driver"], allowed: ["driver", "with", "returns", "fails", "as"],
+        fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["abandon"], allowed: ["abandon"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["settles"],
+        allowed: ["settles", "returns", "fails", "abandoned"],
+        fixed: [.init(property: "abandoned", values: [.boolean(true)])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["wire"],
+        allowed: [
+          "wire", "at", "status", "params", "body", "token", "headers", "answer", "as", "follows",
+          "waited",
+        ],
+        fixed: [.init(property: "at", values: [.text("arrival"), .text("answer"), .text("live")])],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["carried", "is"], allowed: ["carried", "is"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["closed"], allowed: ["closed"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["progress"], allowed: ["progress"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["state"], allowed: ["state"],
+        fixed: [
+          .init(
+            property: "state",
+            values: [
+              .text("initial"), .text("connecting"), .text("open"), .text("reconnecting"),
+              .text("degraded"), .text("unauthenticated"), .text("closed"),
+            ])
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["stays"], allowed: ["stays"],
+        fixed: [
+          .init(
+            property: "stays",
+            values: [
+              .text("initial"), .text("connecting"), .text("open"), .text("reconnecting"),
+              .text("degraded"), .text("unauthenticated"), .text("closed"),
+            ])
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["frame", "is"], allowed: ["frame", "is"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["frames", "count"], allowed: ["frames", "count"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["error"], allowed: ["error"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["backend"], allowed: ["backend", "with"],
+        fixed: [
+          .init(
+            property: "backend",
+            values: [
+              .text("listen"), .text("emit"), .text("record"), .text("content"),
+              .text("description"), .text("annotations"), .text("anchored-text"), .text("uploaded"),
+              .text("refuse"), .text("unanswered"), .text("answer-lost"), .text("hold"),
+              .text("release"), .text("rechunk"), .text("carry"), .text("cut"), .text("down"),
+              .text("up"), .text("archivist"),
+            ])
+        ], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["quiet"], allowed: ["quiet"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["observe", "as"], allowed: ["observe", "as"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: ["leave"], allowed: ["leave"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["reaches", "state"], allowed: ["reaches", "state"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["holds", "state"], allowed: ["holds", "state"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["completes"], allowed: ["completes"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["fetch", "as"], allowed: ["fetch", "payload", "as"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["fetch"], allowed: ["fetch", "params"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["fetches"], allowed: ["fetches"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["scopes"], allowed: ["scopes"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["claimed"], allowed: ["claimed"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["refused"], allowed: ["refused"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["signalled"], allowed: ["signalled"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["stalled"], allowed: ["stalled"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ConformanceStepLet(from: decoder) {
-      self = .`let`(value)
-      return
-    }
-    if let value = try? ConformanceStepDriver(from: decoder) {
-      self = .driver(value)
-      return
-    }
-    if let value = try? ConformanceStepAbandon(from: decoder) {
-      self = .abandon(value)
-      return
-    }
-    if let value = try? ConformanceStepSettles(from: decoder) {
-      self = .settles(value)
-      return
-    }
-    if let value = try? ConformanceStepWire(from: decoder) {
-      self = .wire(value)
-      return
-    }
-    if let value = try? ConformanceStepCarried(from: decoder) {
-      self = .carried(value)
-      return
-    }
-    if let value = try? ConformanceStepClosed(from: decoder) {
-      self = .closed(value)
-      return
-    }
-    if let value = try? ConformanceStepProgress(from: decoder) {
-      self = .progress(value)
-      return
-    }
-    if let value = try? ConformanceStepState(from: decoder) {
-      self = .state(value)
-      return
-    }
-    if let value = try? ConformanceStepStays(from: decoder) {
-      self = .stays(value)
-      return
-    }
-    if let value = try? ConformanceStepFrame(from: decoder) {
-      self = .frame(value)
-      return
-    }
-    if let value = try? ConformanceStepFrames(from: decoder) {
-      self = .frames(value)
-      return
-    }
-    if let value = try? ConformanceStepError(from: decoder) {
-      self = .error(value)
-      return
-    }
-    if let value = try? ConformanceStepBackend(from: decoder) {
-      self = .backend(value)
-      return
-    }
-    if let value = try? ConformanceStepQuiet(from: decoder) {
-      self = .quiet(value)
-      return
-    }
-    if let value = try? ConformanceStepObserve(from: decoder) {
-      self = .observe(value)
-      return
-    }
-    if let value = try? ConformanceStepLeave(from: decoder) {
-      self = .leave(value)
-      return
-    }
-    if let value = try? ConformanceStepReaches(from: decoder) {
-      self = .reaches(value)
-      return
-    }
-    if let value = try? ConformanceStepHolds(from: decoder) {
-      self = .holds(value)
-      return
-    }
-    if let value = try? ConformanceStepCompletes(from: decoder) {
-      self = .completes(value)
-      return
-    }
-    if let value = try? ConformanceBusFetch(from: decoder) {
-      self = .conformanceBusFetch(value)
-      return
-    }
-    if let value = try? ConformanceHttpFetch(from: decoder) {
-      self = .conformanceHttpFetch(value)
-      return
-    }
-    if let value = try? ConformanceStepFetches(from: decoder) {
-      self = .fetches(value)
-      return
-    }
-    if let value = try? ConformanceStepScopes(from: decoder) {
-      self = .scopes(value)
-      return
-    }
-    if let value = try? ConformanceStepClaimed(from: decoder) {
-      self = .claimed(value)
-      return
-    }
-    if let value = try? ConformanceStepRefused(from: decoder) {
-      self = .refused(value)
-      return
-    }
-    if let value = try? ConformanceStepSignalled(from: decoder) {
-      self = .signalled(value)
-      return
-    }
-    if let value = try? ConformanceStepStalled(from: decoder) {
-      self = .stalled(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of ConformanceStep fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ConformanceStep", members: Self.members,
+      variants: [
+        ("let", { decoder in try Self.`let`(ConformanceStepLet(from: decoder)) }),
+        ("driver", { decoder in try Self.driver(ConformanceStepDriver(from: decoder)) }),
+        ("abandon", { decoder in try Self.abandon(ConformanceStepAbandon(from: decoder)) }),
+        ("settles", { decoder in try Self.settles(ConformanceStepSettles(from: decoder)) }),
+        ("wire", { decoder in try Self.wire(ConformanceStepWire(from: decoder)) }),
+        ("carried", { decoder in try Self.carried(ConformanceStepCarried(from: decoder)) }),
+        ("closed", { decoder in try Self.closed(ConformanceStepClosed(from: decoder)) }),
+        ("progress", { decoder in try Self.progress(ConformanceStepProgress(from: decoder)) }),
+        ("state", { decoder in try Self.state(ConformanceStepState(from: decoder)) }),
+        ("stays", { decoder in try Self.stays(ConformanceStepStays(from: decoder)) }),
+        ("frame", { decoder in try Self.frame(ConformanceStepFrame(from: decoder)) }),
+        ("frames", { decoder in try Self.frames(ConformanceStepFrames(from: decoder)) }),
+        ("error", { decoder in try Self.error(ConformanceStepError(from: decoder)) }),
+        ("backend", { decoder in try Self.backend(ConformanceStepBackend(from: decoder)) }),
+        ("quiet", { decoder in try Self.quiet(ConformanceStepQuiet(from: decoder)) }),
+        ("observe", { decoder in try Self.observe(ConformanceStepObserve(from: decoder)) }),
+        ("leave", { decoder in try Self.leave(ConformanceStepLeave(from: decoder)) }),
+        ("reaches", { decoder in try Self.reaches(ConformanceStepReaches(from: decoder)) }),
+        ("holds", { decoder in try Self.holds(ConformanceStepHolds(from: decoder)) }),
+        ("completes", { decoder in try Self.completes(ConformanceStepCompletes(from: decoder)) }),
+        (
+          "conformanceBusFetch",
+          { decoder in try Self.conformanceBusFetch(ConformanceBusFetch(from: decoder)) }
+        ),
+        (
+          "conformanceHttpFetch",
+          { decoder in try Self.conformanceHttpFetch(ConformanceHttpFetch(from: decoder)) }
+        ),
+        ("fetches", { decoder in try Self.fetches(ConformanceStepFetches(from: decoder)) }),
+        ("scopes", { decoder in try Self.scopes(ConformanceStepScopes(from: decoder)) }),
+        ("claimed", { decoder in try Self.claimed(ConformanceStepClaimed(from: decoder)) }),
+        ("refused", { decoder in try Self.refused(ConformanceStepRefused(from: decoder)) }),
+        ("signalled", { decoder in try Self.signalled(ConformanceStepSignalled(from: decoder)) }),
+        ("stalled", { decoder in try Self.stalled(ConformanceStepStalled(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -4697,19 +5016,30 @@ public struct ConformanceStepFetches: Codable, Sendable, Hashable {
 public indirect enum ConformanceStepFetchesFetchesItem: Codable, Sendable, Hashable {
   case conformanceBusFetch(ConformanceBusFetch)
   case conformanceHttpFetch(ConformanceHttpFetch)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["fetch", "as"], allowed: ["fetch", "payload", "as"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["fetch"], allowed: ["fetch", "params"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ConformanceBusFetch(from: decoder) {
-      self = .conformanceBusFetch(value)
-      return
-    }
-    if let value = try? ConformanceHttpFetch(from: decoder) {
-      self = .conformanceHttpFetch(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ConformanceStepFetchesFetchesItem fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ConformanceStepFetchesFetchesItem", members: Self.members,
+      variants: [
+        (
+          "conformanceBusFetch",
+          { decoder in try Self.conformanceBusFetch(ConformanceBusFetch(from: decoder)) }
+        ),
+        (
+          "conformanceHttpFetch",
+          { decoder in try Self.conformanceHttpFetch(ConformanceHttpFetch(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -5385,16 +5715,29 @@ public enum DirEntryType: String, Codable, Sendable, CaseIterable {
 public indirect enum DirectoryEntry: Codable, Sendable, Hashable {
   case fileEntry(FileEntry)
   case dirEntry(DirEntry)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "name", "path", "size", "mtime", "tracked"],
+        allowed: [
+          "type", "name", "path", "size", "mtime", "tracked", "resourceId", "entityTypes",
+          "annotationCount", "creator",
+        ], fixed: [.init(property: "type", values: [.text("file")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "name", "path", "mtime"],
+        allowed: ["type", "name", "path", "mtime"],
+        fixed: [.init(property: "type", values: [.text("dir")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "file": self = .fileEntry(try FileEntry(from: decoder))
-    case "dir": self = .dirEntry(try DirEntry(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown DirectoryEntry discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "DirectoryEntry", members: Self.members,
+      variants: [
+        ("fileEntry", { decoder in try Self.fileEntry(FileEntry(from: decoder)) }),
+        ("dirEntry", { decoder in try Self.dirEntry(DirEntry(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -5742,16 +6085,33 @@ public enum DurabilityEvidence: String, Codable, Sendable, CaseIterable {
 public indirect enum EmbeddingConfig: Codable, Sendable, Hashable {
   case ollamaEmbeddingConfig(OllamaEmbeddingConfig)
   case voyageEmbeddingConfig(VoyageEmbeddingConfig)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "model", "baseUrl"],
+        allowed: ["type", "model", "baseUrl"],
+        fixed: [.init(property: "type", values: [.text("ollama")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "model", "endpoint", "apiKeyEnv"],
+        allowed: ["type", "model", "endpoint", "apiKeyEnv"],
+        fixed: [.init(property: "type", values: [.text("voyage")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "ollama": self = .ollamaEmbeddingConfig(try OllamaEmbeddingConfig(from: decoder))
-    case "voyage": self = .voyageEmbeddingConfig(try VoyageEmbeddingConfig(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown EmbeddingConfig discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "EmbeddingConfig", members: Self.members,
+      variants: [
+        (
+          "ollamaEmbeddingConfig",
+          { decoder in try Self.ollamaEmbeddingConfig(OllamaEmbeddingConfig(from: decoder)) }
+        ),
+        (
+          "voyageEmbeddingConfig",
+          { decoder in try Self.voyageEmbeddingConfig(VoyageEmbeddingConfig(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -6195,16 +6555,48 @@ public enum ExtractionMethod: String, Codable, Sendable, CaseIterable {
 public indirect enum ExtractionOutcome: Codable, Sendable, Hashable {
   case extractedText(ExtractedText)
   case extractionDeclined(ExtractionDeclined)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["text", "items", "kind", "method"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("extracted")]),
+          .init(
+            property: "method",
+            values: [
+              .text("text-passthrough"), .text("pdf-text-layer"), .text("table"), .text("form"),
+              .text("ocr"),
+            ]),
+          .init(
+            property: "pdfClass",
+            values: [
+              .text("A"), .text("B"), .text("C"), .text("D"), .text("E"), .text("F"), .text("G"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "declined"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("declined")]),
+          .init(
+            property: "declined",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("kind"))
-    switch tag {
-    case "extracted": self = .extractedText(try ExtractedText(from: decoder))
-    case "declined": self = .extractionDeclined(try ExtractionDeclined(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("kind"), in: c, debugDescription: "unknown ExtractionOutcome discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "ExtractionOutcome", members: Self.members,
+      variants: [
+        ("extractedText", { decoder in try Self.extractedText(ExtractedText(from: decoder)) }),
+        (
+          "extractionDeclined",
+          { decoder in try Self.extractionDeclined(ExtractionDeclined(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -7249,18 +7641,28 @@ public struct GatheredContext: Codable, Sendable, Hashable {
 public indirect enum GatheredContextFocus: Codable, Sendable, Hashable {
   case annotation(GatheredContextFocusAnnotation)
   case resource(GatheredContextFocusResource)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "annotation", "sourceResource"], allowed: nil,
+        fixed: [.init(property: "kind", values: [.text("annotation")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "resource"], allowed: nil,
+        fixed: [.init(property: "kind", values: [.text("resource")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? GatheredContextFocusAnnotation(from: decoder) {
-      self = .annotation(value)
-      return
-    }
-    if let value = try? GatheredContextFocusResource(from: decoder) {
-      self = .resource(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of GatheredContextFocus fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "GatheredContextFocus", members: Self.members,
+      variants: [
+        (
+          "annotation",
+          { decoder in try Self.annotation(GatheredContextFocusAnnotation(from: decoder)) }
+        ),
+        ("resource", { decoder in try Self.resource(GatheredContextFocusResource(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -7888,18 +8290,51 @@ public indirect enum GraphConfig: Codable, Sendable, Hashable {
   case janusGraphConfig(JanusGraphConfig)
   case neptuneGraphConfig(NeptuneGraphConfig)
   case memoryGraphConfig(MemoryGraphConfig)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "uri", "username", "passwordEnv", "database"],
+        allowed: ["type", "uri", "username", "passwordEnv", "database"],
+        fixed: [.init(property: "type", values: [.text("neo4j")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "host", "port"], allowed: ["type", "host", "port"],
+        fixed: [.init(property: "type", values: [.text("janusgraph")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "endpoint", "port"],
+        allowed: ["type", "endpoint", "port"],
+        fixed: [.init(property: "type", values: [.text("neptune")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type"], allowed: ["type"],
+        fixed: [.init(property: "type", values: [.text("memory")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "neo4j": self = .neo4jGraphConfig(try Neo4jGraphConfig(from: decoder))
-    case "janusgraph": self = .janusGraphConfig(try JanusGraphConfig(from: decoder))
-    case "neptune": self = .neptuneGraphConfig(try NeptuneGraphConfig(from: decoder))
-    case "memory": self = .memoryGraphConfig(try MemoryGraphConfig(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown GraphConfig discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "GraphConfig", members: Self.members,
+      variants: [
+        (
+          "neo4jGraphConfig",
+          { decoder in try Self.neo4jGraphConfig(Neo4jGraphConfig(from: decoder)) }
+        ),
+        (
+          "janusGraphConfig",
+          { decoder in try Self.janusGraphConfig(JanusGraphConfig(from: decoder)) }
+        ),
+        (
+          "neptuneGraphConfig",
+          { decoder in try Self.neptuneGraphConfig(NeptuneGraphConfig(from: decoder)) }
+        ),
+        (
+          "memoryGraphConfig",
+          { decoder in try Self.memoryGraphConfig(MemoryGraphConfig(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -8772,19 +9207,56 @@ public indirect enum Job: Codable, Sendable, Hashable {
   case jobComplete(JobComplete)
   case jobFailed(JobFailed)
   case jobCancelled(JobCancelled)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "metadata", "params"],
+        allowed: ["status", "metadata", "params"],
+        fixed: [.init(property: "status", values: [.text("pending")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "metadata", "params", "startedAt", "progress"],
+        allowed: ["status", "metadata", "params", "startedAt", "progress"],
+        fixed: [.init(property: "status", values: [.text("running")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object,
+        required: ["status", "metadata", "params", "startedAt", "completedAt", "result"],
+        allowed: ["status", "metadata", "params", "startedAt", "completedAt", "result"],
+        fixed: [.init(property: "status", values: [.text("complete")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "metadata", "params", "completedAt", "error"],
+        allowed: [
+          "status", "metadata", "params", "startedAt", "completedAt", "error", "failureClass",
+        ],
+        fixed: [
+          .init(property: "status", values: [.text("failed")]),
+          .init(
+            property: "failureClass",
+            values: [.text("transient"), .text("deterministic"), .text("withheld")]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["status", "metadata", "params", "completedAt"],
+        allowed: ["status", "metadata", "params", "startedAt", "completedAt"],
+        fixed: [.init(property: "status", values: [.text("cancelled")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("status"))
-    switch tag {
-    case "pending": self = .jobPending(try JobPending(from: decoder))
-    case "running": self = .jobRunning(try JobRunning(from: decoder))
-    case "complete": self = .jobComplete(try JobComplete(from: decoder))
-    case "failed": self = .jobFailed(try JobFailed(from: decoder))
-    case "cancelled": self = .jobCancelled(try JobCancelled(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("status"), in: c, debugDescription: "unknown Job discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "Job", members: Self.members,
+      variants: [
+        ("jobPending", { decoder in try Self.jobPending(JobPending(from: decoder)) }),
+        ("jobRunning", { decoder in try Self.jobRunning(JobRunning(from: decoder)) }),
+        ("jobComplete", { decoder in try Self.jobComplete(JobComplete(from: decoder)) }),
+        ("jobFailed", { decoder in try Self.jobFailed(JobFailed(from: decoder)) }),
+        ("jobCancelled", { decoder in try Self.jobCancelled(JobCancelled(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -9091,17 +9563,47 @@ public struct JobComplete: Codable, Sendable, Hashable {
 public indirect enum JobCompleteCommand: Codable, Sendable, Hashable {
   case markJobCompleteCommand(MarkJobCompleteCommand)
   case yieldJobCompleteCommand(YieldJobCompleteCommand)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["resourceId", "jobId", "jobType"], allowed: nil,
+        fixed: [
+          .init(property: "jobType", values: [.text("mark")]),
+          .init(
+            property: "durability",
+            values: [
+              .text("acknowledged"), .text("probe-confirmed"), .text("probe-refused"),
+              .text("probe-unreachable"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["resourceId", "jobId", "jobType"], allowed: nil,
+        fixed: [
+          .init(property: "jobType", values: [.text("yield")]),
+          .init(
+            property: "durability",
+            values: [
+              .text("acknowledged"), .text("probe-confirmed"), .text("probe-refused"),
+              .text("probe-unreachable"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("jobType"))
-    switch tag {
-    case "mark": self = .markJobCompleteCommand(try MarkJobCompleteCommand(from: decoder))
-    case "yield": self = .yieldJobCompleteCommand(try YieldJobCompleteCommand(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("jobType"), in: c,
-        debugDescription: "unknown JobCompleteCommand discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobCompleteCommand", members: Self.members,
+      variants: [
+        (
+          "markJobCompleteCommand",
+          { decoder in try Self.markJobCompleteCommand(MarkJobCompleteCommand(from: decoder)) }
+        ),
+        (
+          "yieldJobCompleteCommand",
+          { decoder in try Self.yieldJobCompleteCommand(YieldJobCompleteCommand(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -9173,17 +9675,33 @@ public struct JobCompletedPayload: Codable, Sendable, Hashable {
 public indirect enum JobCreateCommand: Codable, Sendable, Hashable {
   case markJobCreateCommand(MarkJobCreateCommand)
   case yieldJobCreateCommand(YieldJobCreateCommand)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["jobType", "resourceId", "params"],
+        allowed: ["_userId", "_roles", "jobType", "resourceId", "params"],
+        fixed: [.init(property: "jobType", values: [.text("mark")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["jobType", "params"],
+        allowed: ["_userId", "_roles", "jobType", "params"],
+        fixed: [.init(property: "jobType", values: [.text("yield")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("jobType"))
-    switch tag {
-    case "mark": self = .markJobCreateCommand(try MarkJobCreateCommand(from: decoder))
-    case "yield": self = .yieldJobCreateCommand(try YieldJobCreateCommand(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("jobType"), in: c,
-        debugDescription: "unknown JobCreateCommand discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobCreateCommand", members: Self.members,
+      variants: [
+        (
+          "markJobCreateCommand",
+          { decoder in try Self.markJobCreateCommand(MarkJobCreateCommand(from: decoder)) }
+        ),
+        (
+          "yieldJobCreateCommand",
+          { decoder in try Self.yieldJobCreateCommand(YieldJobCreateCommand(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -9429,16 +9947,25 @@ public enum JobFailedStatus: String, Codable, Sendable, CaseIterable {
 public indirect enum JobFilter: Codable, Sendable, Hashable {
   case markJobFilter(MarkJobFilter)
   case yieldJobFilter(YieldJobFilter)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["jobType", "params"], allowed: ["jobType", "params"],
+        fixed: [.init(property: "jobType", values: [.text("mark")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["jobType"], allowed: ["jobType"],
+        fixed: [.init(property: "jobType", values: [.text("yield")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("jobType"))
-    switch tag {
-    case "mark": self = .markJobFilter(try MarkJobFilter(from: decoder))
-    case "yield": self = .yieldJobFilter(try YieldJobFilter(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("jobType"), in: c, debugDescription: "unknown JobFilter discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobFilter", members: Self.members,
+      variants: [
+        ("markJobFilter", { decoder in try Self.markJobFilter(MarkJobFilter(from: decoder)) }),
+        ("yieldJobFilter", { decoder in try Self.yieldJobFilter(YieldJobFilter(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -9966,34 +10493,126 @@ public indirect enum JobProgressMessage: Codable, Sendable, Hashable {
   case jobProgressCreatingAnnotations(JobProgressCreatingAnnotations)
   case jobProgressCreatingTagAnnotations(JobProgressCreatingTagAnnotations)
   case jobProgressCompleteCreated(JobProgressCompleteCreated)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("loading")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("analyzing")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("analyzing-tags")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("generating-resource")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("creating-resource")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "truncated"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("complete-generated")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "entityType"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("detecting-entities")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "count"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("creating-annotations")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "count"], allowed: nil,
+        fixed: [.init(property: "code", values: [.text("creating-tag-annotations")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["code", "count", "motivation"], allowed: nil,
+        fixed: [
+          .init(property: "code", values: [.text("complete-created")]),
+          .init(
+            property: "motivation",
+            values: [
+              .text("assessing"), .text("commenting"), .text("highlighting"), .text("linking"),
+              .text("tagging"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("code"))
-    switch tag {
-    case "loading": self = .jobProgressLoading(try JobProgressLoading(from: decoder))
-    case "analyzing": self = .jobProgressAnalyzing(try JobProgressAnalyzing(from: decoder))
-    case "analyzing-tags":
-      self = .jobProgressAnalyzingTags(try JobProgressAnalyzingTags(from: decoder))
-    case "generating-resource":
-      self = .jobProgressGeneratingResource(try JobProgressGeneratingResource(from: decoder))
-    case "creating-resource":
-      self = .jobProgressCreatingResource(try JobProgressCreatingResource(from: decoder))
-    case "complete-generated":
-      self = .jobProgressCompleteGenerated(try JobProgressCompleteGenerated(from: decoder))
-    case "detecting-entities":
-      self = .jobProgressDetectingEntities(try JobProgressDetectingEntities(from: decoder))
-    case "creating-annotations":
-      self = .jobProgressCreatingAnnotations(try JobProgressCreatingAnnotations(from: decoder))
-    case "creating-tag-annotations":
-      self = .jobProgressCreatingTagAnnotations(
-        try JobProgressCreatingTagAnnotations(from: decoder))
-    case "complete-created":
-      self = .jobProgressCompleteCreated(try JobProgressCompleteCreated(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("code"), in: c, debugDescription: "unknown JobProgressMessage discriminator"
-      )
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobProgressMessage", members: Self.members,
+      variants: [
+        (
+          "jobProgressLoading",
+          { decoder in try Self.jobProgressLoading(JobProgressLoading(from: decoder)) }
+        ),
+        (
+          "jobProgressAnalyzing",
+          { decoder in try Self.jobProgressAnalyzing(JobProgressAnalyzing(from: decoder)) }
+        ),
+        (
+          "jobProgressAnalyzingTags",
+          { decoder in try Self.jobProgressAnalyzingTags(JobProgressAnalyzingTags(from: decoder)) }
+        ),
+        (
+          "jobProgressGeneratingResource",
+          { decoder in
+            try Self.jobProgressGeneratingResource(JobProgressGeneratingResource(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCreatingResource",
+          { decoder in
+            try Self.jobProgressCreatingResource(JobProgressCreatingResource(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCompleteGenerated",
+          { decoder in
+            try Self.jobProgressCompleteGenerated(JobProgressCompleteGenerated(from: decoder))
+          }
+        ),
+        (
+          "jobProgressDetectingEntities",
+          { decoder in
+            try Self.jobProgressDetectingEntities(JobProgressDetectingEntities(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCreatingAnnotations",
+          { decoder in
+            try Self.jobProgressCreatingAnnotations(JobProgressCreatingAnnotations(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCreatingTagAnnotations",
+          { decoder in
+            try Self.jobProgressCreatingTagAnnotations(
+              JobProgressCreatingTagAnnotations(from: decoder))
+          }
+        ),
+        (
+          "jobProgressCompleteCreated",
+          { decoder in
+            try Self.jobProgressCompleteCreated(JobProgressCompleteCreated(from: decoder))
+          }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10040,16 +10659,31 @@ public enum JobProgressRequestParamsItemLabel: String, Codable, Sendable, CaseIt
 public indirect enum JobQueuedEvent: Codable, Sendable, Hashable {
   case markJobQueuedEvent(MarkJobQueuedEvent)
   case yieldJobQueuedEvent(YieldJobQueuedEvent)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["jobId", "jobType", "resourceId", "userId", "params"],
+        allowed: nil, fixed: [.init(property: "jobType", values: [.text("mark")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["jobId", "jobType", "resourceId", "userId", "params"],
+        allowed: nil, fixed: [.init(property: "jobType", values: [.text("yield")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("jobType"))
-    switch tag {
-    case "mark": self = .markJobQueuedEvent(try MarkJobQueuedEvent(from: decoder))
-    case "yield": self = .yieldJobQueuedEvent(try YieldJobQueuedEvent(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("jobType"), in: c, debugDescription: "unknown JobQueuedEvent discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobQueuedEvent", members: Self.members,
+      variants: [
+        (
+          "markJobQueuedEvent",
+          { decoder in try Self.markJobQueuedEvent(MarkJobQueuedEvent(from: decoder)) }
+        ),
+        (
+          "yieldJobQueuedEvent",
+          { decoder in try Self.yieldJobQueuedEvent(YieldJobQueuedEvent(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10129,21 +10763,41 @@ public indirect enum JobResult: Codable, Sendable, Hashable {
   case markJobDone(MarkJobDone)
   case yieldJobDone(YieldJobDone)
   case jobDeclined(JobDeclined)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["found", "persisted"],
+        allowed: [
+          "found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces",
+        ], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["resourceId", "resourceName", "truncated"],
+        allowed: ["resourceId", "resourceName", "truncated"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["declined", "reason"], allowed: ["declined", "reason"],
+        fixed: [
+          .init(property: "declined", values: [.boolean(true)]),
+          .init(
+            property: "reason",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+              .text("empty"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? MarkJobDone(from: decoder) {
-      self = .markJobDone(value)
-      return
-    }
-    if let value = try? YieldJobDone(from: decoder) {
-      self = .yieldJobDone(value)
-      return
-    }
-    if let value = try? JobDeclined(from: decoder) {
-      self = .jobDeclined(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of JobResult fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobResult", members: Self.members,
+      variants: [
+        ("markJobDone", { decoder in try Self.markJobDone(MarkJobDone(from: decoder)) }),
+        ("yieldJobDone", { decoder in try Self.yieldJobDone(YieldJobDone(from: decoder)) }),
+        ("jobDeclined", { decoder in try Self.jobDeclined(JobDeclined(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10361,18 +11015,21 @@ public struct JobStatusResult: Codable, Sendable, Hashable {
 public indirect enum JobStoredProgress: Codable, Sendable, Hashable {
   case jobProgress(JobProgress)
   case empty(JobStoredProgressEmpty)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .object, required: ["percentage"], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: [], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? JobProgress(from: decoder) {
-      self = .jobProgress(value)
-      return
-    }
-    if let value = try? JobStoredProgressEmpty(from: decoder) {
-      self = .empty(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of JobStoredProgress fits")
-    )
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobStoredProgress", members: Self.members,
+      variants: [
+        ("jobProgress", { decoder in try Self.jobProgress(JobProgress(from: decoder)) }),
+        ("empty", { decoder in try Self.empty(JobStoredProgressEmpty(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10397,17 +11054,39 @@ public struct JobStoredProgressEmpty: Codable, Sendable, Hashable {
 public indirect enum JobStoredResult: Codable, Sendable, Hashable {
   case jobResult(JobResult)
   case empty(JobStoredResultEmpty)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["found", "persisted"],
+        allowed: [
+          "found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces",
+        ], fixed: [], values: nil),
+      UnionSignature(
+        kind: .object, required: ["resourceId", "resourceName", "truncated"],
+        allowed: ["resourceId", "resourceName", "truncated"], fixed: [], values: nil),
+      UnionSignature(
+        kind: .object, required: ["declined", "reason"], allowed: ["declined", "reason"],
+        fixed: [
+          .init(property: "declined", values: [.boolean(true)]),
+          .init(
+            property: "reason",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+              .text("empty"),
+            ]),
+        ], values: nil),
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: [], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? JobResult(from: decoder) {
-      self = .jobResult(value)
-      return
-    }
-    if let value = try? JobStoredResultEmpty(from: decoder) {
-      self = .empty(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of JobStoredResult fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "JobStoredResult", members: Self.members,
+      variants: [
+        ("jobResult", { decoder in try Self.jobResult(JobResult(from: decoder)) }),
+        ("empty", { decoder in try Self.empty(JobStoredResultEmpty(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10589,16 +11268,28 @@ public typealias KbDid = String
 public indirect enum KbEndpoint: Codable, Sendable, Hashable {
   case httpEndpoint(HttpEndpoint)
   case localEndpoint(LocalEndpoint)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "host", "port", "protocol"], allowed: nil,
+        fixed: [
+          .init(property: "kind", values: [.text("http")]),
+          .init(property: "protocol", values: [.text("http"), .text("https")]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "kbId"], allowed: nil,
+        fixed: [.init(property: "kind", values: [.text("local")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("kind"))
-    switch tag {
-    case "http": self = .httpEndpoint(try HttpEndpoint(from: decoder))
-    case "local": self = .localEndpoint(try LocalEndpoint(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("kind"), in: c, debugDescription: "unknown KbEndpoint discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "KbEndpoint", members: Self.members,
+      variants: [
+        ("httpEndpoint", { decoder in try Self.httpEndpoint(HttpEndpoint(from: decoder)) }),
+        ("localEndpoint", { decoder in try Self.localEndpoint(LocalEndpoint(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10677,17 +11368,32 @@ public indirect enum KbReadVerdict: Codable, Sendable, Hashable {
   case recorded(KbReadVerdictRecorded)
   case conflict(KbReadVerdictConflict)
   case noVerdict(KbReadVerdictNoVerdict)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind"], allowed: ["kind"],
+        fixed: [.init(property: "kind", values: [.text("recorded")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "observedDid", "observedName"],
+        allowed: ["kind", "observedDid", "observedName"],
+        fixed: [.init(property: "kind", values: [.text("conflict")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind"], allowed: ["kind"],
+        fixed: [.init(property: "kind", values: [.text("no-verdict")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("kind"))
-    switch tag {
-    case "recorded": self = .recorded(try KbReadVerdictRecorded(from: decoder))
-    case "conflict": self = .conflict(try KbReadVerdictConflict(from: decoder))
-    case "no-verdict": self = .noVerdict(try KbReadVerdictNoVerdict(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("kind"), in: c, debugDescription: "unknown KbReadVerdict discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "KbReadVerdict", members: Self.members,
+      variants: [
+        ("recorded", { decoder in try Self.recorded(KbReadVerdictRecorded(from: decoder)) }),
+        ("conflict", { decoder in try Self.conflict(KbReadVerdictConflict(from: decoder)) }),
+        ("noVerdict", { decoder in try Self.noVerdict(KbReadVerdictNoVerdict(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -10982,17 +11688,31 @@ public struct KnowledgeGraphEdgesItem: Codable, Sendable, Hashable {
 public indirect enum KnowledgeGraphNodesItem: Codable, Sendable, Hashable {
   case graphResourceNode(GraphResourceNode)
   case graphAnnotationNode(GraphAnnotationNode)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "type", "label"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("resource")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["id", "type", "label", "annotation"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("annotation")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "resource": self = .graphResourceNode(try GraphResourceNode(from: decoder))
-    case "annotation": self = .graphAnnotationNode(try GraphAnnotationNode(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c,
-        debugDescription: "unknown KnowledgeGraphNodesItem discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "KnowledgeGraphNodesItem", members: Self.members,
+      variants: [
+        (
+          "graphResourceNode",
+          { decoder in try Self.graphResourceNode(GraphResourceNode(from: decoder)) }
+        ),
+        (
+          "graphAnnotationNode",
+          { decoder in try Self.graphAnnotationNode(GraphAnnotationNode(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12154,20 +12874,78 @@ public indirect enum MarkJobParams: Codable, Sendable, Hashable {
   case assessingJobParams(AssessingJobParams)
   case linkingJobParams(LinkingJobParams)
   case taggingJobParams(TaggingJobParams)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation"],
+        allowed: ["motivation", "instructions", "density", "sourceLanguage"],
+        fixed: [.init(property: "motivation", values: [.text("highlighting")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation"],
+        allowed: ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"],
+        fixed: [
+          .init(property: "motivation", values: [.text("commenting")]),
+          .init(
+            property: "tone",
+            values: [
+              .text("scholarly"), .text("explanatory"), .text("conversational"), .text("technical"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation"],
+        allowed: ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"],
+        fixed: [
+          .init(property: "motivation", values: [.text("assessing")]),
+          .init(
+            property: "tone",
+            values: [
+              .text("analytical"), .text("critical"), .text("balanced"), .text("constructive"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation", "entityTypes"],
+        allowed: [
+          "motivation", "entityTypes", "includeDescriptiveReferences", "language", "sourceLanguage",
+        ], fixed: [.init(property: "motivation", values: [.text("linking")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["motivation", "schemaId", "categories"],
+        allowed: ["motivation", "schemaId", "categories", "language", "sourceLanguage"],
+        fixed: [.init(property: "motivation", values: [.text("tagging")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("motivation"))
-    switch tag {
-    case "highlighting": self = .highlightingJobParams(try HighlightingJobParams(from: decoder))
-    case "commenting": self = .commentingJobParams(try CommentingJobParams(from: decoder))
-    case "assessing": self = .assessingJobParams(try AssessingJobParams(from: decoder))
-    case "linking": self = .linkingJobParams(try LinkingJobParams(from: decoder))
-    case "tagging": self = .taggingJobParams(try TaggingJobParams(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("motivation"), in: c,
-        debugDescription: "unknown MarkJobParams discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "MarkJobParams", members: Self.members,
+      variants: [
+        (
+          "highlightingJobParams",
+          { decoder in try Self.highlightingJobParams(HighlightingJobParams(from: decoder)) }
+        ),
+        (
+          "commentingJobParams",
+          { decoder in try Self.commentingJobParams(CommentingJobParams(from: decoder)) }
+        ),
+        (
+          "assessingJobParams",
+          { decoder in try Self.assessingJobParams(AssessingJobParams(from: decoder)) }
+        ),
+        (
+          "linkingJobParams",
+          { decoder in try Self.linkingJobParams(LinkingJobParams(from: decoder)) }
+        ),
+        (
+          "taggingJobParams",
+          { decoder in try Self.taggingJobParams(TaggingJobParams(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12218,17 +12996,35 @@ public enum MarkJobQueuedEventJobType: String, Codable, Sendable, CaseIterable {
 public indirect enum MarkJobResult: Codable, Sendable, Hashable {
   case markJobDone(MarkJobDone)
   case jobDeclined(JobDeclined)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["found", "persisted"],
+        allowed: [
+          "found", "persisted", "errors", "byCategory", "underReportedPieces", "uncheckedPieces",
+        ], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["declined", "reason"], allowed: ["declined", "reason"],
+        fixed: [
+          .init(property: "declined", values: [.boolean(true)]),
+          .init(
+            property: "reason",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+              .text("empty"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? MarkJobDone(from: decoder) {
-      self = .markJobDone(value)
-      return
-    }
-    if let value = try? JobDeclined(from: decoder) {
-      self = .jobDeclined(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of MarkJobResult fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "MarkJobResult", members: Self.members,
+      variants: [
+        ("markJobDone", { decoder in try Self.markJobDone(MarkJobDone(from: decoder)) }),
+        ("jobDeclined", { decoder in try Self.jobDeclined(JobDeclined(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12826,17 +13622,29 @@ public enum OllamaEmbeddingConfigType: String, Codable, Sendable, CaseIterable {
 public indirect enum OneOrMoreAgents: Codable, Sendable, Hashable {
   case agent(Agent)
   case list([Agent])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["@type"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Person")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["@type", "name"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Organization")])], values: nil),
+      UnionSignature(
+        kind: .object, required: ["@type"], allowed: nil,
+        fixed: [.init(property: "@type", values: [.text("Software")])], values: nil),
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? Agent(from: decoder) {
-      self = .agent(value)
-      return
-    }
-    if let value = try? [Agent](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of OneOrMoreAgents fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "OneOrMoreAgents", members: Self.members,
+      variants: [
+        ("agent", { decoder in try Self.agent(Agent(from: decoder)) }),
+        ("list", { decoder in try Self.list([Agent](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12849,17 +13657,21 @@ public indirect enum OneOrMoreAgents: Codable, Sendable, Hashable {
 public indirect enum OneOrMoreStrings: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of OneOrMoreStrings fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "OneOrMoreStrings", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("list", { decoder in try Self.list([String](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -12872,17 +13684,21 @@ public indirect enum OneOrMoreStrings: Codable, Sendable, Hashable {
 public indirect enum OneOrMoreUris: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of OneOrMoreUris fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "OneOrMoreUris", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("list", { decoder in try Self.list([String](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -13483,20 +14299,55 @@ public indirect enum ReconciledSpan: Codable, Sendable, Hashable {
   case contextRecovered(ReconciledSpanContextRecovered)
   case firstOfMany(ReconciledSpanFirstOfMany)
   case fuzzyMatch(ReconciledSpanFuzzyMatch)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["start", "end", "exact", "anchorMethod"],
+        allowed: ["start", "end", "exact", "prefix", "suffix", "anchorMethod"],
+        fixed: [.init(property: "anchorMethod", values: [.text("unique-match")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["start", "end", "exact", "anchorMethod"],
+        allowed: ["start", "end", "exact", "prefix", "suffix", "anchorMethod"],
+        fixed: [.init(property: "anchorMethod", values: [.text("context-recovered")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["start", "end", "exact", "anchorMethod"],
+        allowed: ["start", "end", "exact", "prefix", "suffix", "anchorMethod"],
+        fixed: [.init(property: "anchorMethod", values: [.text("first-of-many")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["start", "end", "exact", "anchorMethod", "matchQuality"],
+        allowed: ["start", "end", "exact", "prefix", "suffix", "anchorMethod", "matchQuality"],
+        fixed: [
+          .init(property: "anchorMethod", values: [.text("fuzzy-match")]),
+          .init(
+            property: "matchQuality",
+            values: [.text("normalized"), .text("case-insensitive"), .text("fuzzy")]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("anchorMethod"))
-    switch tag {
-    case "unique-match": self = .uniqueMatch(try ReconciledSpanUniqueMatch(from: decoder))
-    case "context-recovered":
-      self = .contextRecovered(try ReconciledSpanContextRecovered(from: decoder))
-    case "first-of-many": self = .firstOfMany(try ReconciledSpanFirstOfMany(from: decoder))
-    case "fuzzy-match": self = .fuzzyMatch(try ReconciledSpanFuzzyMatch(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("anchorMethod"), in: c,
-        debugDescription: "unknown ReconciledSpan discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "ReconciledSpan", members: Self.members,
+      variants: [
+        (
+          "uniqueMatch",
+          { decoder in try Self.uniqueMatch(ReconciledSpanUniqueMatch(from: decoder)) }
+        ),
+        (
+          "contextRecovered",
+          { decoder in try Self.contextRecovered(ReconciledSpanContextRecovered(from: decoder)) }
+        ),
+        (
+          "firstOfMany",
+          { decoder in try Self.firstOfMany(ReconciledSpanFirstOfMany(from: decoder)) }
+        ),
+        ("fuzzyMatch", { decoder in try Self.fuzzyMatch(ReconciledSpanFuzzyMatch(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -13861,17 +14712,21 @@ public struct RepresentationRemovedPayload: Codable, Sendable, Hashable {
 public indirect enum RequestId: Codable, Sendable, Hashable {
   case text(String)
   case integer(Int)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .integer, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? Int(from: decoder) {
-      self = .integer(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of RequestId fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "RequestId", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("integer", { decoder in try Self.integer(Int(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -14221,23 +15076,25 @@ public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
   case text(String)
   case empty([String: JSONValue])
   case list([ResourceDescriptorContextListItem])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String: JSONValue](from: decoder) {
-      self = .empty(value)
-      return
-    }
-    if let value = try? [ResourceDescriptorContextListItem](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorContext fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorContext", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("empty", { decoder in try Self.empty([String: JSONValue](from: decoder)) }),
+        ("list", { decoder in try Self.list([ResourceDescriptorContextListItem](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -14251,19 +15108,21 @@ public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
 public indirect enum ResourceDescriptorContextListItem: Codable, Sendable, Hashable {
   case text(String)
   case empty([String: JSONValue])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String: JSONValue](from: decoder) {
-      self = .empty(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorContextListItem fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorContextListItem", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("empty", { decoder in try Self.empty([String: JSONValue](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -14277,23 +15136,28 @@ public indirect enum ResourceDescriptorIdentifier: Codable, Sendable, Hashable {
   case text(String)
   case list([String])
   case object(ResourceDescriptorIdentifierObject)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .object, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? [String](from: decoder) {
-      self = .list(value)
-      return
-    }
-    if let value = try? ResourceDescriptorIdentifierObject(from: decoder) {
-      self = .object(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorIdentifier fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorIdentifier", members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("list", { decoder in try Self.list([String](from: decoder)) }),
+        (
+          "object",
+          { decoder in try Self.object(ResourceDescriptorIdentifierObject(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -14337,19 +15201,30 @@ public struct ResourceDescriptorIdentifierObject: Codable, Sendable, Hashable {
 public indirect enum ResourceDescriptorRepresentations: Codable, Sendable, Hashable {
   case representation(Representation)
   case list([Representation])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["mediaType"], allowed: nil,
+        fixed: [
+          .init(
+            property: "rel",
+            values: [
+              .text("original"), .text("thumbnail"), .text("preview"), .text("optimized"),
+              .text("derived"), .text("other"),
+            ])
+        ], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? Representation(from: decoder) {
-      self = .representation(value)
-      return
-    }
-    if let value = try? [Representation](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorRepresentations fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorRepresentations", members: Self.members,
+      variants: [
+        ("representation", { decoder in try Self.representation(Representation(from: decoder)) }),
+        ("list", { decoder in try Self.list([Representation](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -14362,19 +15237,21 @@ public indirect enum ResourceDescriptorRepresentations: Codable, Sendable, Hasha
 public indirect enum ResourceDescriptorWasDerivedFrom: Codable, Sendable, Hashable {
   case resourceId(ResourceId)
   case list([ResourceId])
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .list, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? ResourceId(from: decoder) {
-      self = .resourceId(value)
-      return
-    }
-    if let value = try? [ResourceId](from: decoder) {
-      self = .list(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription: "no member of ResourceDescriptorWasDerivedFrom fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ResourceDescriptorWasDerivedFrom", members: Self.members,
+      variants: [
+        ("resourceId", { decoder in try Self.resourceId(ResourceId(from: decoder)) }),
+        ("list", { decoder in try Self.list([ResourceId](from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -15264,19 +16141,46 @@ public indirect enum Selector: Codable, Sendable, Hashable {
   case textQuoteSelector(TextQuoteSelector)
   case svgSelector(SvgSelector)
   case fragmentSelector(FragmentSelector)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "start", "end"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("TextPositionSelector")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "exact"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("TextQuoteSelector")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("SvgSelector")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "value"], allowed: nil,
+        fixed: [.init(property: "type", values: [.text("FragmentSelector")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "TextPositionSelector":
-      self = .textPositionSelector(try TextPositionSelector(from: decoder))
-    case "TextQuoteSelector": self = .textQuoteSelector(try TextQuoteSelector(from: decoder))
-    case "SvgSelector": self = .svgSelector(try SvgSelector(from: decoder))
-    case "FragmentSelector": self = .fragmentSelector(try FragmentSelector(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown Selector discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "Selector", members: Self.members,
+      variants: [
+        (
+          "textPositionSelector",
+          { decoder in try Self.textPositionSelector(TextPositionSelector(from: decoder)) }
+        ),
+        (
+          "textQuoteSelector",
+          { decoder in try Self.textQuoteSelector(TextQuoteSelector(from: decoder)) }
+        ),
+        ("svgSelector", { decoder in try Self.svgSelector(SvgSelector(from: decoder)) }),
+        (
+          "fragmentSelector",
+          { decoder in try Self.fragmentSelector(FragmentSelector(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -16172,20 +17076,22 @@ public indirect enum ServiceTelemetryTelemetryMetricsItemAttributesItemValuesIte
 {
   case text(String)
   case boolean(Bool)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .boolean, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? Bool(from: decoder) {
-      self = .boolean(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription:
-          "no member of ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem",
+      members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("boolean", { decoder in try Self.boolean(Bool(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -16348,20 +17254,22 @@ public indirect enum ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem:
 {
   case text(String)
   case boolean(Bool)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(kind: .boolean, required: [], allowed: nil, fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? String(from: decoder) {
-      self = .text(value)
-      return
-    }
-    if let value = try? Bool(from: decoder) {
-      self = .boolean(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath,
-        debugDescription:
-          "no member of ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem",
+      members: Self.members,
+      variants: [
+        ("text", { decoder in try Self.text(String(from: decoder)) }),
+        ("boolean", { decoder in try Self.boolean(Bool(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -18434,17 +19342,31 @@ public indirect enum TabCheck: Codable, Sendable, Hashable {
   case gone(TabCheckGone)
   case ready(TabCheckReady)
   case unknown(TabCheckUnknown)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["verdict"], allowed: ["verdict"],
+        fixed: [.init(property: "verdict", values: [.text("gone")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["verdict", "name"], allowed: ["verdict", "name", "mediaType"],
+        fixed: [.init(property: "verdict", values: [.text("ready")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["verdict"], allowed: ["verdict"],
+        fixed: [.init(property: "verdict", values: [.text("unknown")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("verdict"))
-    switch tag {
-    case "gone": self = .gone(try TabCheckGone(from: decoder))
-    case "ready": self = .ready(try TabCheckReady(from: decoder))
-    case "unknown": self = .unknown(try TabCheckUnknown(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("verdict"), in: c, debugDescription: "unknown TabCheck discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "TabCheck", members: Self.members,
+      variants: [
+        ("gone", { decoder in try Self.gone(TabCheckGone(from: decoder)) }),
+        ("ready", { decoder in try Self.ready(TabCheckReady(from: decoder)) }),
+        ("unknown", { decoder in try Self.unknown(TabCheckUnknown(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -18858,17 +19780,32 @@ public indirect enum UploadProgress: Codable, Sendable, Hashable {
   case started(UploadProgressStarted)
   case progress(UploadProgressProgress)
   case finished(UploadProgressFinished)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["phase", "totalBytes"], allowed: ["phase", "totalBytes"],
+        fixed: [.init(property: "phase", values: [.text("started")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["phase", "bytesUploaded", "totalBytes"],
+        allowed: ["phase", "bytesUploaded", "totalBytes"],
+        fixed: [.init(property: "phase", values: [.text("progress")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["phase", "resourceId"], allowed: ["phase", "resourceId"],
+        fixed: [.init(property: "phase", values: [.text("finished")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("phase"))
-    switch tag {
-    case "started": self = .started(try UploadProgressStarted(from: decoder))
-    case "progress": self = .progress(try UploadProgressProgress(from: decoder))
-    case "finished": self = .finished(try UploadProgressFinished(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("phase"), in: c, debugDescription: "unknown UploadProgress discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "UploadProgress", members: Self.members,
+      variants: [
+        ("started", { decoder in try Self.started(UploadProgressStarted(from: decoder)) }),
+        ("progress", { decoder in try Self.progress(UploadProgressProgress(from: decoder)) }),
+        ("finished", { decoder in try Self.finished(UploadProgressFinished(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -19122,16 +20059,32 @@ public struct VectorStoreSpec: Codable, Sendable, Hashable {
 public indirect enum VectorsConfig: Codable, Sendable, Hashable {
   case qdrantVectorsConfig(QdrantVectorsConfig)
   case memoryVectorsConfig(MemoryVectorsConfig)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "host", "port", "tokenEnv"],
+        allowed: ["type", "host", "port", "tokenEnv"],
+        fixed: [.init(property: "type", values: [.text("qdrant")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type"], allowed: ["type"],
+        fixed: [.init(property: "type", values: [.text("memory")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    let tag = try c.decode(String.self, forKey: WireKey("type"))
-    switch tag {
-    case "qdrant": self = .qdrantVectorsConfig(try QdrantVectorsConfig(from: decoder))
-    case "memory": self = .memoryVectorsConfig(try MemoryVectorsConfig(from: decoder))
-    default:
-      throw DecodingError.dataCorruptedError(
-        forKey: WireKey("type"), in: c, debugDescription: "unknown VectorsConfig discriminator")
-    }
+    self = try UnionSignature.decode(
+      from: decoder, union: "VectorsConfig", members: Self.members,
+      variants: [
+        (
+          "qdrantVectorsConfig",
+          { decoder in try Self.qdrantVectorsConfig(QdrantVectorsConfig(from: decoder)) }
+        ),
+        (
+          "memoryVectorsConfig",
+          { decoder in try Self.memoryVectorsConfig(MemoryVectorsConfig(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -19717,19 +20670,34 @@ public struct WorkerMessages: Codable, Sendable, Hashable {
 public indirect enum WorkerMessagesBootItem: Codable, Sendable, Hashable {
   case ownBootRefusal(WorkerMessagesBootItemOwnBootRefusal)
   case sharedBootRefusal(WorkerMessagesBootItemSharedBootRefusal)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["name", "situation", "refusal"],
+        allowed: ["name", "situation", "refusal"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["name", "situation", "bootRefusal"],
+        allowed: ["name", "situation", "bootRefusal"], fixed: [], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? WorkerMessagesBootItemOwnBootRefusal(from: decoder) {
-      self = .ownBootRefusal(value)
-      return
-    }
-    if let value = try? WorkerMessagesBootItemSharedBootRefusal(from: decoder) {
-      self = .sharedBootRefusal(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(
-        codingPath: decoder.codingPath, debugDescription: "no member of WorkerMessagesBootItem fits"
-      ))
+    self = try UnionSignature.decode(
+      from: decoder, union: "WorkerMessagesBootItem", members: Self.members,
+      variants: [
+        (
+          "ownBootRefusal",
+          { decoder in try Self.ownBootRefusal(WorkerMessagesBootItemOwnBootRefusal(from: decoder))
+          }
+        ),
+        (
+          "sharedBootRefusal",
+          { decoder in
+            try Self.sharedBootRefusal(WorkerMessagesBootItemSharedBootRefusal(from: decoder))
+          }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
@@ -20515,17 +21483,33 @@ public enum YieldJobQueuedEventJobType: String, Codable, Sendable, CaseIterable 
 public indirect enum YieldJobResult: Codable, Sendable, Hashable {
   case yieldJobDone(YieldJobDone)
   case jobDeclined(JobDeclined)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["resourceId", "resourceName", "truncated"],
+        allowed: ["resourceId", "resourceName", "truncated"], fixed: [], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["declined", "reason"], allowed: ["declined", "reason"],
+        fixed: [
+          .init(property: "declined", values: [.boolean(true)]),
+          .init(
+            property: "reason",
+            values: [
+              .text("no-text-layer"), .text("encrypted"), .text("corrupt"), .text("too-large"),
+              .text("empty"),
+            ]),
+        ], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    if let value = try? YieldJobDone(from: decoder) {
-      self = .yieldJobDone(value)
-      return
-    }
-    if let value = try? JobDeclined(from: decoder) {
-      self = .jobDeclined(value)
-      return
-    }
-    throw DecodingError.dataCorrupted(
-      .init(codingPath: decoder.codingPath, debugDescription: "no member of YieldJobResult fits"))
+    self = try UnionSignature.decode(
+      from: decoder, union: "YieldJobResult", members: Self.members,
+      variants: [
+        ("yieldJobDone", { decoder in try Self.yieldJobDone(YieldJobDone(from: decoder)) }),
+        ("jobDeclined", { decoder in try Self.jobDeclined(JobDeclined(from: decoder)) }),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {

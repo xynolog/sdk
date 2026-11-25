@@ -55,9 +55,9 @@ let closed_empty_named (form : T.form) =
    what they merge to. It names a union's member that is an object of no
    named member [empty], and the items of its member that is a list for the
    union's place and [ListItem], where [Typing] has [Object] and the union's
-   place and [Item]. It decodes a union not told apart by its
-   [discriminator] as the first member that decodes. It holds an
-   enumeration in place of numbers as a [Double], dropping its values. *)
+   place and [Item]. It holds a union every member of which is text as a
+   [String] ([text_union]), and an enumeration in place of numbers as a
+   [Double], dropping its values. *)
 
 (* C# holds an object's members in the order of their names, where [Typing]
    has the schema's order, and so takes them in that order to make one. It

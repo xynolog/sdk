@@ -2,7 +2,9 @@
    swift/sdk/Sources/Xynolog/Generated/Models.swift declares them: a struct
    with its Codable conformance for an object, an enum for a string
    enumeration or a union, a typealias for a schema that names another, and a
-   checked struct for an identifier the identifier kinds name. A schema
+   checked struct for an identifier the identifier kinds name. A union
+   states what each member admits ([Typing]'s signatures), and a value is
+   decoded as the one member that admits it (UnionSignature.swift). A schema
    within another is declared by the name [Typing] gives it. Where Swift
    reads otherwise than [Typing], [Deviations] names it. *)
 
@@ -206,6 +208,7 @@ and in_place t what (i : T.inline) =
   | T.Enum { base = Some T.Number; _ }, None -> S.Named "Double"
   | T.Empty { rest = T.Open; _ }, None -> dictionary_of json_value
   | T.Map { key; value }, None -> map_of t what key value
+  | T.Union u, None when Deviations.text_union u -> string_type
   | _, None -> declare t ~modifiers:[ "public" ] i
 
 and map_of t what key value =
@@ -235,6 +238,7 @@ and declaration t ~modifiers n (form : T.form) composition =
   match (form, single_ref composition) with
   | T.Identifier { pattern }, _ -> identifier n pattern
   | _, Some r -> alias (named t r)
+  | T.Union u, None when Deviations.text_union u -> alias string_type
   | T.Union u, None -> union t ~modifiers n u
   | T.Enum { base; values }, None ->
       enumeration ~modifiers n values
@@ -570,113 +574,107 @@ and union t ~modifiers n (u : T.union) =
         (label, type_))
       u.branches
   in
-  let decoder = name "decoder" in
-  let decoding =
-    match u.tag with
-    | Some { property = d; values } ->
-        let c = name "c" in
-        [
-          S.Let
-            {
-              var = false;
-              name = "c";
-              type_ = None;
-              value =
-                try_
-                  (labelled
-                     (member decoder "container")
-                     [ arg "keyedBy" (type_self (S.Named "WireKey")) ]);
-            };
-          S.Let
-            {
-              var = false;
-              name = "tag";
-              type_ = None;
-              value =
-                try_
-                  (labelled (member c "decode")
-                     [
-                       { label = None; value = type_self string_type };
-                       arg "forKey" (wire_key d);
-                     ]);
-            };
-          S.Switch
-            {
-              subject = name "tag";
-              layout = S.Lines;
-              cases =
-                List.map2
-                  (fun (label, type_) tags ->
-                    {
-                      S.patterns = List.map (fun tag -> S.String tag) tags;
-                      body =
-                        [
-                          assign (name "self")
-                            (call (S.Implicit_member label)
-                               [
-                                 try_
-                                   (labelled (S.Type_value type_)
-                                      [ arg "from" decoder ]);
-                               ]);
-                        ];
-                    })
-                  variants values
-                @ [
-                    {
-                      S.patterns = [];
-                      body =
-                        [
-                          S.Throw
-                            (labelled
-                               (member (name "DecodingError")
-                                  "dataCorruptedError")
-                               [
-                                 arg "forKey" (wire_key d);
-                                 arg "in" c;
-                                 arg "debugDescription"
-                                   (S.String ("unknown " ^ n ^ " discriminator"));
-                               ]);
-                        ];
-                    };
-                  ];
-            };
-        ]
-    | None ->
-        List.map
-          (fun (label, type_) ->
-            S.If
-              {
-                conditions =
-                  [
-                    S.Let_bound
-                      ( "value",
-                        S.Try_optional
-                          (labelled (S.Type_value type_) [ arg "from" decoder ])
-                      );
-                  ];
-                body =
-                  inline_block
-                    [
-                      assign (name "self")
-                        (call (S.Implicit_member label) [ name "value" ]);
-                      S.Return None;
-                    ];
-                else_ = None;
-              })
-          variants
-        @ [
-            S.Throw
-              (call
-                 (member (name "DecodingError") "dataCorrupted")
-                 [
+  (match T.apart_by_pattern_only u with
+  | Some (a, b) ->
+      refuse
+        "%s: its members %s and %s are told apart only by a pattern, which the \
+         Swift SDK does not read"
+        n a b
+  | None -> ());
+  let words ws = S.Array (S.Inline, List.map (fun w -> S.String w) ws) in
+  let literal (l : Schema.literal) =
+    match l with
+    | Schema.String_literal s -> call (S.Implicit_member "text") [ S.String s ]
+    | Schema.Int_literal i -> call (S.Implicit_member "integer") [ S.Int i ]
+    | Schema.Bool_literal b -> call (S.Implicit_member "boolean") [ S.Bool b ]
+  in
+  let literals ls = S.Array (S.Inline, List.map literal ls) in
+  let stated f = function Some v -> f v | None -> S.Nil in
+  let signature (s : T.signature) =
+    let kind =
+      match s.kind with
+      | T.Text_kind -> "text"
+      | T.Integer_kind -> "integer"
+      | T.Number_kind -> "number"
+      | T.Boolean_kind -> "boolean"
+      | T.List_kind -> "list"
+      | T.Object_kind -> "object"
+      | T.Null_kind -> "null"
+      | T.Any_kind -> "any"
+    in
+    labelled (name "UnionSignature")
+      [
+        arg "kind" (S.Implicit_member kind);
+        arg "required" (words s.required);
+        arg "allowed" (stated words s.allowed);
+        arg "fixed"
+          (S.Array
+             ( S.Inline,
+               List.map
+                 (fun (p, vs) ->
                    labelled (S.Implicit_member "init")
-                     [
-                       arg "codingPath" (member decoder "codingPath");
-                       arg "debugDescription"
-                         (S.String ("no member of " ^ n ^ " fits"));
-                     ];
-                 ]);
-          ]
+                     [ arg "property" (S.String p); arg "values" (literals vs) ])
+                 s.fixed ));
+        arg "values" (stated literals s.values);
+      ]
+  in
+  let members =
+    decl [ "static" ]
+      (S.Property
+         {
+           var = false;
+           name = "members";
+           type_ = Some (S.Array_of (S.Array_of (S.Named "UnionSignature")));
+           value =
+             Some
+               (S.Array
+                  ( S.Lines,
+                    List.map
+                      (fun (b : T.branch) ->
+                        S.Array (S.Lines, List.map signature b.signature))
+                      u.branches ));
+         })
+  in
+  let decoding =
+    [
+      assign (name "self")
+        (try_
+           (labelled
+              (member (name "UnionSignature") "decode")
+              [
+                arg "from" (name "decoder");
+                arg "union" (S.String n);
+                arg "members" (member (name "Self") "members");
+                arg "variants"
+                  (S.Array
+                     ( S.Lines,
+                       List.map
+                         (fun (label, type_) ->
+                           S.Tuple
+                             [
+                               S.String label;
+                               S.Closure
+                                 {
+                                   params = [ "decoder" ];
+                                   layout = S.Inline;
+                                   body =
+                                     [
+                                       S.Expr
+                                         (try_
+                                            (call
+                                               (member (name "Self") label)
+                                               [
+                                                 labelled (S.Type_value type_)
+                                                   [
+                                                     arg "from" (name "decoder");
+                                                   ];
+                                               ]));
+                                     ];
+                                 };
+                             ])
+                         variants ));
+              ]));
+    ]
   in
   decl
     (modifiers @ [ "indirect" ])
@@ -691,6 +689,7 @@ and union t ~modifiers n (u : T.union) =
                decl [] (S.Case { name = label; value = S.Associated [ type_ ] }))
              variants
            @ [
+               members;
                decoding_init decoding;
                encoding_func S.Lines
                  [
