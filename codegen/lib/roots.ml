@@ -1,6 +1,6 @@
 (* The schemas a generation is rooted on, by name: every schema of Protocol,
    each a whole file, but the schema ([Places.schema_of]) of a case table, of
-   a service table ([service_tables]) or of one of [untyped_tables], a table's
+   a service table ([service_tables]) or of one of [unrooted_tables], a table's
    record, which is named by its title ([Table_records]), the sign-in store's
    entry ([sign_in_entry]), which each SDK's sign-in store roots of its own, the two
    that describe tables ([Places.case_table], [Places.json_schema]) and the
@@ -36,20 +36,21 @@ let service_tables (spec : Spec.t) =
     spec.table_files
   @ [ "bus/reply-bounds.json" ]
 
-(* The tables no SDK types by their own schema. Every other table that is no
-   case table and no service table is rooted, its schema named as its file
-   is. *)
-let untyped_tables =
+(* The tables whose schemas [all] does not root, each with why. Every other
+   table that is no case table and no service table is rooted, its schema
+   named as its file is. *)
+let unrooted_tables =
   [
-    (* A channel's validate is an anyOf of one $ref and { "type": "null" },
-       which no writer types. *)
+    (* A channel's validate is an anyOf of { "type": "null" } and a $ref to a
+       member, which is written in its place: a null form no writer reads. *)
     "bus/registry.json";
     (* Its content is schemas, whose records each SDK types already. *)
     "client/registry.json";
     (* Its cases, which conformance alone reads, hold a step union no writer
        knows. *)
     "client/state-units.json";
-    (* A method's returns is an anyOf of one $ref and { "type": "null" }. *)
+    (* A method's returns is a null form no writer reads, as the registry's
+       validate is. *)
     "client/surface.json";
     (* The Haskell SDK carries it, typed by its schema, in Xynolog.Tables. *)
     "locales/registry.json";
@@ -67,15 +68,16 @@ let all (spec : Spec.t) =
   List.iter
     (fun table ->
       if not (List.mem table spec.table_files) then
-        failwith (table ^ ", a table no SDK types, is no table of Protocol's"))
-    untyped_tables;
+        failwith
+          (table ^ ", which all does not root, is no table of Protocol's"))
+    unrooted_tables;
   let service = service_tables spec in
   let table_schemas =
     List.map Places.schema_of
       (List.filter
          (fun table ->
            Places.is_case_table table || List.mem table service
-           || List.mem table untyped_tables)
+           || List.mem table unrooted_tables)
          spec.table_files)
   in
   let records =
