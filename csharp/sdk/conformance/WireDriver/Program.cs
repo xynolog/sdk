@@ -192,7 +192,7 @@ internal sealed class WireDriver : IDisposable
         // The driver protocol reports the bytes sent: the upload's start and its end are its answer's.
         public void Report(UploadProgress value)
         {
-            if (value is UploadProgress.ProgressCase(var sent))
+            if (value is UploadProgress.Progress(var sent))
                 Say(Lines.Progress(id, sent.BytesUploaded, sent.TotalBytes));
         }
     }

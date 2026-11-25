@@ -4,10 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(JobFilter.MarkJobFilterCase), typeof(JobFilter.YieldJobFilterCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(JobFilter.MarkJobFilter), typeof(JobFilter.YieldJobFilter))]
 public closed record JobFilter
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["jobType", "params"], ["jobType", "params"], [new("jobType", [new global::Xynolog.Serialization.Literal.Text("mark")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["jobType"], ["jobType"], [new("jobType", [new global::Xynolog.Serialization.Literal.Text("yield")])], null)]];
-    public sealed record MarkJobFilterCase(global::Xynolog.Types.MarkJobFilter Value) : JobFilter;
-    public sealed record YieldJobFilterCase(global::Xynolog.Types.YieldJobFilter Value) : JobFilter;
+    public sealed record MarkJobFilter(global::Xynolog.Types.MarkJobFilter Value) : JobFilter;
+    public sealed record YieldJobFilter(global::Xynolog.Types.YieldJobFilter Value) : JobFilter;
 }

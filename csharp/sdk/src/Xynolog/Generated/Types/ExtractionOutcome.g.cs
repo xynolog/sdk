@@ -4,10 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ExtractionOutcome.ExtractedTextCase), typeof(ExtractionOutcome.ExtractionDeclinedCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(ExtractionOutcome.ExtractedText), typeof(ExtractionOutcome.ExtractionDeclined))]
 public closed record ExtractionOutcome
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["text", "items", "kind", "method"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("extracted")]), new("method", [new global::Xynolog.Serialization.Literal.Text("text-passthrough"), new global::Xynolog.Serialization.Literal.Text("pdf-text-layer"), new global::Xynolog.Serialization.Literal.Text("table"), new global::Xynolog.Serialization.Literal.Text("form"), new global::Xynolog.Serialization.Literal.Text("ocr")]), new("pdfClass", [new global::Xynolog.Serialization.Literal.Text("A"), new global::Xynolog.Serialization.Literal.Text("B"), new global::Xynolog.Serialization.Literal.Text("C"), new global::Xynolog.Serialization.Literal.Text("D"), new global::Xynolog.Serialization.Literal.Text("E"), new global::Xynolog.Serialization.Literal.Text("F"), new global::Xynolog.Serialization.Literal.Text("G")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind", "declined"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("declined")]), new("declined", [new global::Xynolog.Serialization.Literal.Text("no-text-layer"), new global::Xynolog.Serialization.Literal.Text("encrypted"), new global::Xynolog.Serialization.Literal.Text("corrupt"), new global::Xynolog.Serialization.Literal.Text("too-large")])], null)]];
-    public sealed record ExtractedTextCase(global::Xynolog.Types.ExtractedText Value) : ExtractionOutcome;
-    public sealed record ExtractionDeclinedCase(global::Xynolog.Types.ExtractionDeclined Value) : ExtractionOutcome;
+    public sealed record ExtractedText(global::Xynolog.Types.ExtractedText Value) : ExtractionOutcome;
+    public sealed record ExtractionDeclined(global::Xynolog.Types.ExtractionDeclined Value) : ExtractionOutcome;
 }

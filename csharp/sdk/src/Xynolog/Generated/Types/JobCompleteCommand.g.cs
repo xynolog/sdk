@@ -4,10 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(JobCompleteCommand.MarkJobCompleteCommandCase), typeof(JobCompleteCommand.YieldJobCompleteCommandCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(JobCompleteCommand.MarkJobCompleteCommand), typeof(JobCompleteCommand.YieldJobCompleteCommand))]
 public closed record JobCompleteCommand
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["resourceId", "jobId", "jobType"], null, [new("jobType", [new global::Xynolog.Serialization.Literal.Text("mark")]), new("durability", [new global::Xynolog.Serialization.Literal.Text("acknowledged"), new global::Xynolog.Serialization.Literal.Text("probe-confirmed"), new global::Xynolog.Serialization.Literal.Text("probe-refused"), new global::Xynolog.Serialization.Literal.Text("probe-unreachable")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["resourceId", "jobId", "jobType"], null, [new("jobType", [new global::Xynolog.Serialization.Literal.Text("yield")]), new("durability", [new global::Xynolog.Serialization.Literal.Text("acknowledged"), new global::Xynolog.Serialization.Literal.Text("probe-confirmed"), new global::Xynolog.Serialization.Literal.Text("probe-refused"), new global::Xynolog.Serialization.Literal.Text("probe-unreachable")])], null)]];
-    public sealed record MarkJobCompleteCommandCase(global::Xynolog.Types.MarkJobCompleteCommand Value) : JobCompleteCommand;
-    public sealed record YieldJobCompleteCommandCase(global::Xynolog.Types.YieldJobCompleteCommand Value) : JobCompleteCommand;
+    public sealed record MarkJobCompleteCommand(global::Xynolog.Types.MarkJobCompleteCommand Value) : JobCompleteCommand;
+    public sealed record YieldJobCompleteCommand(global::Xynolog.Types.YieldJobCompleteCommand Value) : JobCompleteCommand;
 }

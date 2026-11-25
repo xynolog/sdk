@@ -4,11 +4,11 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(AnchoredTextAnswer.ExtractedTextCase), typeof(AnchoredTextAnswer.ExtractionDeclinedCase), typeof(AnchoredTextAnswer.AnchoredTextAbsentCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(AnchoredTextAnswer.ExtractedText), typeof(AnchoredTextAnswer.ExtractionDeclined), typeof(AnchoredTextAnswer.AnchoredTextAbsent))]
 public closed record AnchoredTextAnswer
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["text", "items", "kind", "method"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("extracted")]), new("method", [new global::Xynolog.Serialization.Literal.Text("text-passthrough"), new global::Xynolog.Serialization.Literal.Text("pdf-text-layer"), new global::Xynolog.Serialization.Literal.Text("table"), new global::Xynolog.Serialization.Literal.Text("form"), new global::Xynolog.Serialization.Literal.Text("ocr")]), new("pdfClass", [new global::Xynolog.Serialization.Literal.Text("A"), new global::Xynolog.Serialization.Literal.Text("B"), new global::Xynolog.Serialization.Literal.Text("C"), new global::Xynolog.Serialization.Literal.Text("D"), new global::Xynolog.Serialization.Literal.Text("E"), new global::Xynolog.Serialization.Literal.Text("F"), new global::Xynolog.Serialization.Literal.Text("G")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind", "declined"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("declined")]), new("declined", [new global::Xynolog.Serialization.Literal.Text("no-text-layer"), new global::Xynolog.Serialization.Literal.Text("encrypted"), new global::Xynolog.Serialization.Literal.Text("corrupt"), new global::Xynolog.Serialization.Literal.Text("too-large")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("not-yet"), new global::Xynolog.Serialization.Literal.Text("no-map"), new global::Xynolog.Serialization.Literal.Text("unknown")])], null)]];
-    public sealed record ExtractedTextCase(global::Xynolog.Types.ExtractedText Value) : AnchoredTextAnswer;
-    public sealed record ExtractionDeclinedCase(global::Xynolog.Types.ExtractionDeclined Value) : AnchoredTextAnswer;
-    public sealed record AnchoredTextAbsentCase(global::Xynolog.Types.AnchoredTextAbsent Value) : AnchoredTextAnswer;
+    public sealed record ExtractedText(global::Xynolog.Types.ExtractedText Value) : AnchoredTextAnswer;
+    public sealed record ExtractionDeclined(global::Xynolog.Types.ExtractionDeclined Value) : AnchoredTextAnswer;
+    public sealed record AnchoredTextAbsent(global::Xynolog.Types.AnchoredTextAbsent Value) : AnchoredTextAnswer;
 }

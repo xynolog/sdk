@@ -111,10 +111,6 @@ let refusals =
            );
          ]
          "X has colliding C# property names.");
-    case "a union of two members of one case is refused"
-      (refuses
-         [ ("X", {|{"oneOf":[{"type":"integer"},{"type":"boolean"}]}|}) ]
-         "X has colliding C# union cases.");
     case "a payload named as a component is refused"
       (refuses
          ~payloads:[ ("X", {|{"type":"object","maxProperties":0}|}) ]

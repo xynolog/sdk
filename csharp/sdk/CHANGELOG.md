@@ -43,6 +43,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A union's case is named by its member's variant, as the Swift and Kotlin
+  SDKs name it: a member a union names is the case of that type's name
+  (`ConformanceStep.ConformanceBusFetch`, `KbEndpoint.HttpEndpoint`), text
+  is `Text`, a list `List`, and an object of no named member `Empty` or
+  `Object`, where each was its variant and `Case`
+  (`ConformanceBusFetchCase`), a list `ArrayCase` and any other `ObjectCase`.
 - A union is read as the one member that admits a value, by what each
   member's schema states (each union's `Members`), and validated against
   that member's schema alone, where it was read as the first member whose

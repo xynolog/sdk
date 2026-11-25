@@ -15074,7 +15074,7 @@ public struct ResourceDescriptor: Codable, Sendable, Hashable {
 
 public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
   case text(String)
-  case empty([String: JSONValue])
+  case object([String: JSONValue])
   case list([ResourceDescriptorContextListItem])
   static let members: [[UnionSignature]] = [
     [
@@ -15092,14 +15092,14 @@ public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
       from: decoder, union: "ResourceDescriptorContext", members: Self.members,
       variants: [
         ("text", { decoder in try Self.text(String(from: decoder)) }),
-        ("empty", { decoder in try Self.empty([String: JSONValue](from: decoder)) }),
+        ("object", { decoder in try Self.object([String: JSONValue](from: decoder)) }),
         ("list", { decoder in try Self.list([ResourceDescriptorContextListItem](from: decoder)) }),
       ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
     case .text(let value): try value.encode(to: encoder)
-    case .empty(let value): try value.encode(to: encoder)
+    case .object(let value): try value.encode(to: encoder)
     case .list(let value): try value.encode(to: encoder)
     }
   }
@@ -15107,7 +15107,7 @@ public indirect enum ResourceDescriptorContext: Codable, Sendable, Hashable {
 
 public indirect enum ResourceDescriptorContextListItem: Codable, Sendable, Hashable {
   case text(String)
-  case empty([String: JSONValue])
+  case object([String: JSONValue])
   static let members: [[UnionSignature]] = [
     [
       UnionSignature(kind: .text, required: [], allowed: nil, fixed: [], values: nil)
@@ -15121,13 +15121,13 @@ public indirect enum ResourceDescriptorContextListItem: Codable, Sendable, Hasha
       from: decoder, union: "ResourceDescriptorContextListItem", members: Self.members,
       variants: [
         ("text", { decoder in try Self.text(String(from: decoder)) }),
-        ("empty", { decoder in try Self.empty([String: JSONValue](from: decoder)) }),
+        ("object", { decoder in try Self.object([String: JSONValue](from: decoder)) }),
       ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
     case .text(let value): try value.encode(to: encoder)
-    case .empty(let value): try value.encode(to: encoder)
+    case .object(let value): try value.encode(to: encoder)
     }
   }
 }

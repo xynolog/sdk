@@ -406,8 +406,7 @@ and object_ state name ~attribute (members : T.member list) (rest : T.rest) ~key
       };
   ]
 
-(* The case a union's member is: what it refers to, Array, Text, an object's
-   variant ([Typing]), else Object. *)
+(* A union: a case per member, named by its variant ([Typing]). *)
 and union state name (u : T.union) validated =
   (match T.apart_by_pattern_only u with
   | Some (a, b) ->
@@ -416,14 +415,6 @@ and union state name (u : T.union) validated =
          C# SDK does not read"
         name a b
   | None -> ());
-  let variant (b : T.branch) =
-    match b.ty with
-    | T.Named _ -> b.variant
-    | T.List _ -> "Array"
-    | T.Scalar (T.Text _) -> "Text"
-    | T.Inline { form = T.Record _; _ } -> b.variant
-    | _ -> "Object"
-  in
   (* A member of no named member is the union's [Object], and a list's
      items its [ArrayItem] ([Deviations]). *)
   let renamed part (i : T.inline) =
@@ -446,14 +437,11 @@ and union state name (u : T.union) validated =
   let cases =
     List.mapi
       (fun i (b : T.branch) ->
-        let v = variant b in
-        ( identifier (Text.pascal v) ^ "Case",
-          type_of state name v (held b.ty, member_of i validated) ))
+        ( identifier (Text.pascal b.variant),
+          type_of state name b.variant (held b.ty, member_of i validated) ))
       u.branches
   in
   let names = List.map fst cases in
-  if List.length (List.sort_uniq String.compare names) <> List.length names then
-    refuse "%s has colliding C# union cases." name;
   let attribute : C.attribute =
     {
       name = "global::Xynolog.Serialization.WireUnion";

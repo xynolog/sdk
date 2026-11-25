@@ -4,10 +4,10 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(WorkerMessagesBootItem.OwnBootRefusalCase), typeof(WorkerMessagesBootItem.SharedBootRefusalCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(WorkerMessagesBootItem.OwnBootRefusal), typeof(WorkerMessagesBootItem.SharedBootRefusal))]
 public closed record WorkerMessagesBootItem
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["name", "situation", "refusal"], ["name", "situation", "refusal"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["name", "situation", "bootRefusal"], ["name", "situation", "bootRefusal"], [], null)]];
-    public sealed record OwnBootRefusalCase(global::Xynolog.Types.WorkerMessagesBootItemOwnBootRefusal Value) : WorkerMessagesBootItem;
-    public sealed record SharedBootRefusalCase(global::Xynolog.Types.WorkerMessagesBootItemSharedBootRefusal Value) : WorkerMessagesBootItem;
+    public sealed record OwnBootRefusal(global::Xynolog.Types.WorkerMessagesBootItemOwnBootRefusal Value) : WorkerMessagesBootItem;
+    public sealed record SharedBootRefusal(global::Xynolog.Types.WorkerMessagesBootItemSharedBootRefusal Value) : WorkerMessagesBootItem;
 }

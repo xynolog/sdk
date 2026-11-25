@@ -4,11 +4,11 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(BodyOperation.BodyOperationAddCase), typeof(BodyOperation.BodyOperationRemoveCase), typeof(BodyOperation.BodyOperationReplaceCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(BodyOperation.BodyOperationAdd), typeof(BodyOperation.BodyOperationRemove), typeof(BodyOperation.BodyOperationReplace))]
 public closed record BodyOperation
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["op", "item"], null, [new("op", [new global::Xynolog.Serialization.Literal.Text("add")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["op", "item"], null, [new("op", [new global::Xynolog.Serialization.Literal.Text("remove")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["op", "oldItem", "newItem"], null, [new("op", [new global::Xynolog.Serialization.Literal.Text("replace")])], null)]];
-    public sealed record BodyOperationAddCase(global::Xynolog.Types.BodyOperationAdd Value) : BodyOperation;
-    public sealed record BodyOperationRemoveCase(global::Xynolog.Types.BodyOperationRemove Value) : BodyOperation;
-    public sealed record BodyOperationReplaceCase(global::Xynolog.Types.BodyOperationReplace Value) : BodyOperation;
+    public sealed record BodyOperationAdd(global::Xynolog.Types.BodyOperationAdd Value) : BodyOperation;
+    public sealed record BodyOperationRemove(global::Xynolog.Types.BodyOperationRemove Value) : BodyOperation;
+    public sealed record BodyOperationReplace(global::Xynolog.Types.BodyOperationReplace Value) : BodyOperation;
 }

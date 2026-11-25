@@ -33,8 +33,8 @@ public sealed class UnionTests
     [Fact]
     public void AUnionIsReadAsTheOneMemberThatAdmitsAValue()
     {
-        Assert.IsType<AnchoredTextAnswer.AnchoredTextAbsentCase>(Answer("{\"kind\":\"no-map\"}"));
-        Assert.IsType<AnchoredTextAnswer.ExtractionDeclinedCase>(Answer("{\"kind\":\"declined\",\"declined\":\"encrypted\"}"));
+        Assert.IsType<AnchoredTextAnswer.AnchoredTextAbsent>(Answer("{\"kind\":\"no-map\"}"));
+        Assert.IsType<AnchoredTextAnswer.ExtractionDeclined>(Answer("{\"kind\":\"declined\",\"declined\":\"encrypted\"}"));
         Assert.Contains("declined", Assert.Throws<JsonException>(() => Answer("{\"kind\":\"declined\"}")).Message);
         Assert.Equal(
             "a AnchoredTextAnswer states a `kind` that is one of `extracted`, `declined`, `not-yet`, `no-map`, `unknown`",

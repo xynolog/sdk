@@ -65,12 +65,12 @@ public sealed class YieldNamespace
     {
         var resource = parameters.Context.Focus switch
         {
-            GatheredContextFocus.ResourceCase(var focus) => focus.Resource.Id,
-            GatheredContextFocus.AnnotationCase(var focus) => focus.SourceResource.Id,
+            GatheredContextFocus.Resource(var focus) => focus.Resource.Id,
+            GatheredContextFocus.Annotation(var focus) => focus.SourceResource.Id,
         };
         var stall = stallDeadlineMs ?? GenerationStallMs(parameters.MaxTokens);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(stall);
-        return follower.Follow(new JobCreateCommand.YieldJobCreateCommandCase(new YieldJobCreateCommand
+        return follower.Follow(new JobCreateCommand.YieldJobCreateCommand(new YieldJobCreateCommand
         {
             Params = parameters,
         }), resource, JobCompletion.Yield, stall);

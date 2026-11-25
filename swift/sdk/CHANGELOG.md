@@ -54,6 +54,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A union's member that is an object of no named member, and holds any, is
+  its `object` case, as Typing names its variant
+  (`ResourceDescriptorContext.object`), where it was `empty`.
 - A union is decoded as the one member that admits a value, by what each
   member's schema states, where one whose schema names no `discriminator`
   was decoded as the first member that decoded. A value that no member

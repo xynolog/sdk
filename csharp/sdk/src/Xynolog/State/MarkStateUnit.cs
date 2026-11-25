@@ -50,11 +50,11 @@ public sealed class MarkStateUnit : IStateUnit
             if (!work.Active) return;
             var motivation = parameters switch
             {
-                MarkJobParams.HighlightingJobParamsCase => Motivation.Highlighting,
-                MarkJobParams.CommentingJobParamsCase => Motivation.Commenting,
-                MarkJobParams.AssessingJobParamsCase => Motivation.Assessing,
-                MarkJobParams.LinkingJobParamsCase => Motivation.Linking,
-                MarkJobParams.TaggingJobParamsCase => Motivation.Tagging,
+                MarkJobParams.HighlightingJobParams => Motivation.Highlighting,
+                MarkJobParams.CommentingJobParams => Motivation.Commenting,
+                MarkJobParams.AssessingJobParams => Motivation.Assessing,
+                MarkJobParams.LinkingJobParams => Motivation.Linking,
+                MarkJobParams.TaggingJobParams => Motivation.Tagging,
             };
             DelegatingMotivation.Set(motivation);
             Progress.Set(null);

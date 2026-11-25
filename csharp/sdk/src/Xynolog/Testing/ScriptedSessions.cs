@@ -66,7 +66,7 @@ public sealed class ScriptedSessions(Func<string, string, JsonElement, JsonEleme
         var kb = options.Kb;
         if (constructFailure is { } reason)
             throw new SessionError(SessionErrorCode.ConstructFailed, reason);
-        if (kb.Endpoint is not KbEndpoint.HttpEndpointCase(var endpoint))
+        if (kb.Endpoint is not KbEndpoint.HttpEndpoint(var endpoint))
             throw new SessionError(SessionErrorCode.ConstructFailed, "The scripted session requires an HTTP endpoint.");
         var origin = Gateway.Origin(endpoint);
         var transport = new FaultyTransport(respond: Answer, timeProvider: clock)

@@ -70,7 +70,7 @@ public sealed partial class TransportTests
             {
                 var resource = args.GetProperty("resourceId").Deserialize<ResourceId>();
                 await VerifyAsync(client.Mark.Delegate(resource, Required<MarkJobParams>(args.GetProperty("params"))),
-                    new JobCompleteCommand.MarkJobCompleteCommandCase(new MarkJobCompleteCommand
+                    new JobCompleteCommand.MarkJobCompleteCommand(new MarkJobCompleteCommand
                     {
                         JobId = DelegatedJob,
                         ResourceId = resource,
@@ -82,7 +82,7 @@ public sealed partial class TransportTests
                 var delegation = args.TryGetProperty("stallDeadlineMs", out var stall)
                     ? client.Yield.Delegate(parameters, stall.GetInt32())
                     : client.Yield.Delegate(parameters);
-                await VerifyAsync(delegation, new JobCompleteCommand.YieldJobCompleteCommandCase(new YieldJobCompleteCommand
+                await VerifyAsync(delegation, new JobCompleteCommand.YieldJobCompleteCommand(new YieldJobCompleteCommand
                 {
                     JobId = DelegatedJob,
                     ResourceId = DelegatedResource,
@@ -122,7 +122,7 @@ public sealed partial class TransportTests
             {
                 Type = JobType.Yield,
                 Result = terminal == JobStatusResponseStatus.Complete
-                    ? new JobStoredResult.JobResultCase(new JobResult.YieldJobDoneCase(generated)) : null,
+                    ? new JobStoredResult.JobResult(new JobResult.YieldJobDone(generated)) : null,
                 Error = terminal == JobStatusResponseStatus.Failed ? "model refused" : null,
                 FailureClass = terminal == JobStatusResponseStatus.Failed ? FailureClass.Withheld : null,
             },
@@ -132,7 +132,7 @@ public sealed partial class TransportTests
         {
             var completion = await following;
             Assert.Equal(DelegatedResource, completion.ResourceId);
-            Assert.Equal(generated, Assert.IsType<YieldJobResult.YieldJobDoneCase>(completion.Result).Value);
+            Assert.Equal(generated, Assert.IsType<YieldJobResult.YieldJobDone>(completion.Result).Value);
         }
         else
         {
@@ -169,7 +169,7 @@ public sealed partial class TransportTests
         Assert.IsType<JobEvent<MarkJobCompleteCommand>.Failed>(reader.Current);
         Reply(server, stale, BusOperations.JobStatusRequested.Result.Name, JobStatus(DelegatedJob, JobStatusResponseStatus.Failed));
         clock.Advance(JobSilence + JobPoll);
-        client.Bus.Emit(BusChannels.JobComplete, new JobCompleteCommand.MarkJobCompleteCommandCase(new MarkJobCompleteCommand
+        client.Bus.Emit(BusChannels.JobComplete, new JobCompleteCommand.MarkJobCompleteCommand(new MarkJobCompleteCommand
         {
             JobId = DelegatedJob,
             ResourceId = DelegatedResource,
@@ -269,7 +269,7 @@ public sealed partial class TransportTests
         }
         else
         {
-            PushJobFrame(server, BusChannels.JobComplete, new JobCompleteCommand.YieldJobCompleteCommandCase(new YieldJobCompleteCommand
+            PushJobFrame(server, BusChannels.JobComplete, new JobCompleteCommand.YieldJobCompleteCommand(new YieldJobCompleteCommand
             {
                 JobId = DelegatedJob,
                 ResourceId = DelegatedResource,
@@ -294,7 +294,7 @@ public sealed partial class TransportTests
             AnswerCreate(server, sent);
             PushRawFrame(server, BusChannels.JobComplete.Name, new { jobId = "job-1", resourceId = "res-1", jobType = "summary" });
             PushJobFrame(server, BusChannels.JobReportProgress, Progress(DelegatedJob, JobType.Mark, 30));
-            PushJobFrame(server, BusChannels.JobComplete, new JobCompleteCommand.MarkJobCompleteCommandCase(new MarkJobCompleteCommand
+            PushJobFrame(server, BusChannels.JobComplete, new JobCompleteCommand.MarkJobCompleteCommand(new MarkJobCompleteCommand
             {
                 JobId = DelegatedJob,
                 ResourceId = DelegatedResource,

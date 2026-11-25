@@ -4,12 +4,12 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ReconciledSpan.UniqueMatchCase), typeof(ReconciledSpan.ContextRecoveredCase), typeof(ReconciledSpan.FirstOfManyCase), typeof(ReconciledSpan.FuzzyMatchCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(ReconciledSpan.UniqueMatch), typeof(ReconciledSpan.ContextRecovered), typeof(ReconciledSpan.FirstOfMany), typeof(ReconciledSpan.FuzzyMatch))]
 public closed record ReconciledSpan
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["start", "end", "exact", "anchorMethod"], ["start", "end", "exact", "prefix", "suffix", "anchorMethod"], [new("anchorMethod", [new global::Xynolog.Serialization.Literal.Text("unique-match")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["start", "end", "exact", "anchorMethod"], ["start", "end", "exact", "prefix", "suffix", "anchorMethod"], [new("anchorMethod", [new global::Xynolog.Serialization.Literal.Text("context-recovered")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["start", "end", "exact", "anchorMethod"], ["start", "end", "exact", "prefix", "suffix", "anchorMethod"], [new("anchorMethod", [new global::Xynolog.Serialization.Literal.Text("first-of-many")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["start", "end", "exact", "anchorMethod", "matchQuality"], ["start", "end", "exact", "prefix", "suffix", "anchorMethod", "matchQuality"], [new("anchorMethod", [new global::Xynolog.Serialization.Literal.Text("fuzzy-match")]), new("matchQuality", [new global::Xynolog.Serialization.Literal.Text("normalized"), new global::Xynolog.Serialization.Literal.Text("case-insensitive"), new global::Xynolog.Serialization.Literal.Text("fuzzy")])], null)]];
-    public sealed record UniqueMatchCase(global::Xynolog.Types.ReconciledSpanUniqueMatch Value) : ReconciledSpan;
-    public sealed record ContextRecoveredCase(global::Xynolog.Types.ReconciledSpanContextRecovered Value) : ReconciledSpan;
-    public sealed record FirstOfManyCase(global::Xynolog.Types.ReconciledSpanFirstOfMany Value) : ReconciledSpan;
-    public sealed record FuzzyMatchCase(global::Xynolog.Types.ReconciledSpanFuzzyMatch Value) : ReconciledSpan;
+    public sealed record UniqueMatch(global::Xynolog.Types.ReconciledSpanUniqueMatch Value) : ReconciledSpan;
+    public sealed record ContextRecovered(global::Xynolog.Types.ReconciledSpanContextRecovered Value) : ReconciledSpan;
+    public sealed record FirstOfMany(global::Xynolog.Types.ReconciledSpanFirstOfMany Value) : ReconciledSpan;
+    public sealed record FuzzyMatch(global::Xynolog.Types.ReconciledSpanFuzzyMatch Value) : ReconciledSpan;
 }

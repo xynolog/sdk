@@ -547,8 +547,6 @@ and union t ~modifiers n (u : T.union) =
       (fun (b : T.branch) ->
         let part, type_ =
           match b.ty with
-          | T.Inline { form = T.Empty _ | T.Map _; composition = None; _ } ->
-              ("Empty", type_of t (n ^ ".Empty") b.ty)
           | T.List (Some (T.Inline i)) ->
               ( b.variant,
                 S.Array_of

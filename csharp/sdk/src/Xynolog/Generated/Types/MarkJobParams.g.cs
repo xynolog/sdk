@@ -4,13 +4,13 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(MarkJobParams.HighlightingJobParamsCase), typeof(MarkJobParams.CommentingJobParamsCase), typeof(MarkJobParams.AssessingJobParamsCase), typeof(MarkJobParams.LinkingJobParamsCase), typeof(MarkJobParams.TaggingJobParamsCase))]
+[global::Xynolog.Serialization.WireUnion(typeof(MarkJobParams.HighlightingJobParams), typeof(MarkJobParams.CommentingJobParams), typeof(MarkJobParams.AssessingJobParams), typeof(MarkJobParams.LinkingJobParams), typeof(MarkJobParams.TaggingJobParams))]
 public closed record MarkJobParams
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["motivation"], ["motivation", "instructions", "density", "sourceLanguage"], [new("motivation", [new global::Xynolog.Serialization.Literal.Text("highlighting")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["motivation"], ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"], [new("motivation", [new global::Xynolog.Serialization.Literal.Text("commenting")]), new("tone", [new global::Xynolog.Serialization.Literal.Text("scholarly"), new global::Xynolog.Serialization.Literal.Text("explanatory"), new global::Xynolog.Serialization.Literal.Text("conversational"), new global::Xynolog.Serialization.Literal.Text("technical")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["motivation"], ["motivation", "instructions", "tone", "density", "language", "sourceLanguage"], [new("motivation", [new global::Xynolog.Serialization.Literal.Text("assessing")]), new("tone", [new global::Xynolog.Serialization.Literal.Text("analytical"), new global::Xynolog.Serialization.Literal.Text("critical"), new global::Xynolog.Serialization.Literal.Text("balanced"), new global::Xynolog.Serialization.Literal.Text("constructive")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["motivation", "entityTypes"], ["motivation", "entityTypes", "includeDescriptiveReferences", "language", "sourceLanguage"], [new("motivation", [new global::Xynolog.Serialization.Literal.Text("linking")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["motivation", "schemaId", "categories"], ["motivation", "schemaId", "categories", "language", "sourceLanguage"], [new("motivation", [new global::Xynolog.Serialization.Literal.Text("tagging")])], null)]];
-    public sealed record HighlightingJobParamsCase(global::Xynolog.Types.HighlightingJobParams Value) : MarkJobParams;
-    public sealed record CommentingJobParamsCase(global::Xynolog.Types.CommentingJobParams Value) : MarkJobParams;
-    public sealed record AssessingJobParamsCase(global::Xynolog.Types.AssessingJobParams Value) : MarkJobParams;
-    public sealed record LinkingJobParamsCase(global::Xynolog.Types.LinkingJobParams Value) : MarkJobParams;
-    public sealed record TaggingJobParamsCase(global::Xynolog.Types.TaggingJobParams Value) : MarkJobParams;
+    public sealed record HighlightingJobParams(global::Xynolog.Types.HighlightingJobParams Value) : MarkJobParams;
+    public sealed record CommentingJobParams(global::Xynolog.Types.CommentingJobParams Value) : MarkJobParams;
+    public sealed record AssessingJobParams(global::Xynolog.Types.AssessingJobParams Value) : MarkJobParams;
+    public sealed record LinkingJobParams(global::Xynolog.Types.LinkingJobParams Value) : MarkJobParams;
+    public sealed record TaggingJobParams(global::Xynolog.Types.TaggingJobParams Value) : MarkJobParams;
 }
