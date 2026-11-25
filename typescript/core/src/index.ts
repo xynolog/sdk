@@ -307,6 +307,7 @@ export * from './cache-refresh';
 // protocol/specs/src/errors/codes.json — the table every SDK generates from.
 export {
   transportErrorCodeForStatus,
+  limitRefusalTransportCodes,
   type BusRequestErrorCode,
   type TransportErrorCode,
   type JobErrorCode,

@@ -171,22 +171,6 @@ let files ~root (spec : Spec.t) =
       (Channels.readers bus ~normalize ~definition ~typing:models.typing
          spec.tables.errors_codes)
   in
-  let* credential =
-    within Http.classifier
-      (let* c = Http.credential ~root in
-       let* limit = Result.bind (definition "LimitRefusal") normalize in
-       let* code =
-         match Option.bind limit.properties (List.assoc_opt c.field) with
-         | Some p -> normalize p
-         | None -> Error ("HTTP schema has no requested field: " ^ c.field)
-       in
-       if
-         code.type_ = Some [ String ]
-         && List.mem (Schema.String_literal c.refusal)
-              (Option.value code.enum ~default:[])
-       then Ok c
-       else Error "credential refusal reader no longer matches its schema")
-  in
   let* bus_event =
     within "openapi.json"
       (match Result.bind (definition "BusEventMessage") Normalize.layer with
@@ -263,9 +247,8 @@ let files ~root (spec : Spec.t) =
           (Http.file
              ~banner:
                (banner
-                  "protocol/specs/src/openapi.json, its paths, and the \
-                   reference credential classifier")
-             http ~credential ~bus_event);
+                  "protocol/specs/src/openapi.json and its paths")
+             http ~bus_event);
         file ~under:"src"
           (Http.archivist_file
              ~banner:

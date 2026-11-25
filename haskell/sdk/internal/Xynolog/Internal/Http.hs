@@ -453,11 +453,14 @@ emit http frame = Telemetry.sending frame $ do
   Lifetime.run (lifetime http) (Transport.ownAction (transport http) sending)
     `catch` (\problem -> throwIO (failure problem))
 
--- | Whether a response refused the credential it was sent with, as the
--- reference transport reads one: the unauthorized status, or the limited one
--- with the refusal's code.
+-- | Whether a response refused the credential it was sent with: a status
+-- read as the transport's unauthorized code, or a limit's refusal whose status
+-- and LimitRefusal code are one that is unauthorized too.
 wireRefusesCredential :: Int -> Maybe Value -> Bool
-wireRefusesCredential status body = status == unauthorizedStatus || (status == limitedStatus && maybe False matches body)
+wireRefusesCredential status body = Code.transportCodeFromStatus status == Code.TransportUnauthorized || any refuses Code.limitRefusalTransportCodes
   where
-    matches (Object fields) = KM.lookup refusalField fields == Just (String refusalCode)
-    matches _ = False
+    refuses (limited, code, Code.TransportUnauthorized) = status == limited && maybe False (names code) body
+    refuses _ = False
+    names code value = case fromJSON value of
+      Success refusal -> limitRefusalCodeText (limitRefusalCode refusal) == code
+      Error _ -> False

@@ -41,6 +41,10 @@ type t = {
   from : (int * code) option;
       (** The status every one at or above which becomes the code. *)
   unclassified : code;  (** What any other status becomes. *)
+  limit_refusals : (int * string * code) list;
+      (** Each gateway refusal of a limit, by its status and LimitRefusal
+          code, that is the transport code too (a transport code's
+          [limitRefusals]). *)
   others : vocabulary list;
       (** The vocabularies that state nothing but their codes. *)
   control : vocabulary;  (** The control plane's codes. *)
@@ -295,6 +299,17 @@ let derive (table : Tables.Errors_codes.t) =
           exact = List.map (fun (_, status, code) -> (status, code)) exact;
           from;
           unclassified;
+          limit_refusals =
+            List.concat_map
+              (fun (stated, (code : code)) ->
+                match stated with
+                | Status { limit_refusals = Some refusals; _ } ->
+                    List.map
+                      (fun (r : limit_refusals_item) ->
+                        (r.status, limit_refusal_code_value r.code, code))
+                      refusals
+                | Status _ | Status_from _ | No_status _ -> [])
+              (List.combine table.transport.codes transport.codes);
           others;
           control =
             plain ~member:"control" table.control;

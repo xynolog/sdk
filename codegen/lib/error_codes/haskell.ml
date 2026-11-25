@@ -141,7 +141,7 @@ let declarations f =
 
 (* The module of [families] and the test that round-trips each, by its
    name. *)
-let modules ~from_ ~module_name ~test_name families =
+let modules ?(beside = []) ~from_ ~module_name ~test_name families =
   let families =
     List.sort (fun a b -> String.compare a.member b.member) families
   in
@@ -171,7 +171,7 @@ let modules ~from_ ~module_name ~test_name families =
                     ];
                 H.import "Data.Text" ~items:[ Plain "Text" ];
               ];
-            body = List.concat_map declarations families;
+            body = List.concat_map declarations families @ beside;
           };
     };
     {
@@ -256,7 +256,27 @@ let files (t : Table.t) =
     { member = v.member; codes = codes v; statuses = None }
   in
   let code (c : Table.code) = c.code in
+  let transport (c : Table.code) =
+    H.Name (code_constructor t.transport.member c.code)
+  in
   modules
+    ~beside:
+      [
+        H.value
+          ~about:
+            [
+              "Each gateway refusal of a limit that is a transport code too: \
+               its status, its LimitRefusal code, and the transport code it \
+               is.";
+            ]
+          "limitRefusalTransportCodes"
+          (T_list (T_tuple [ T_name "Int"; T_name "Text"; T_name (type_of t.transport.member) ]))
+          (List
+             (List.map
+                (fun (status, limit, c) ->
+                  H.Tuple [ Int status; Str limit; transport c ])
+                t.limit_refusals));
+      ]
     ~from_:("protocol/specs/src/" ^ Table.file)
     ~module_name:"Xynolog.ErrorCodes" ~test_name:"ErrorRoundTrip"
     ((plain t.bus :: plain t.control :: List.map plain t.others)
