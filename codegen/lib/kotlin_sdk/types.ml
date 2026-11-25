@@ -123,6 +123,9 @@ type property = {
   about : K.doc option;
   boxed : bool;
   form : form;
+  bytes : bool;
+      (** Whether it holds bytes, which a ByteArray compares by which array
+          holds them. *)
 }
 
 (* A declaration of [xynolog.types]: [Pending] while what it reaches is
@@ -211,6 +214,7 @@ and type_of st what (ty : T.ty) =
   | T.Named name -> t (named st name)
   | T.Any -> t "JsonElement"
   | T.Nullable inner -> type_of st what inner
+  | T.Scalar (T.Text { binary = true; _ }) -> t "ByteArray"
   | T.Scalar (T.Text _) -> t "String"
   | T.Scalar T.Boolean -> t "Boolean"
   | T.Scalar T.Number -> t "Double"
@@ -272,11 +276,13 @@ and declaration st name (form : T.form) about : written =
       constant_declaration name v about
   | T.Enum _ ->
       refuse "%s: only string enumerations and constants are generated" name
+  | T.Alias (T.Scalar (T.Text { binary = true; _ })) -> alias (t "ByteArray")
   | T.Alias (T.Scalar (T.Text _)) -> alias (t "String")
   | T.Alias (T.Scalar (T.Integer _)) -> alias (t "Long")
   | T.Alias (T.Scalar T.Number) -> alias (t "Double")
   | T.Alias (T.Scalar T.Boolean) -> alias (t "Boolean")
   | T.Map { key; value } -> alias (map_of st name key value)
+  | T.Alias (T.List (Some items)) -> alias (list_of (type_of st name items))
   | T.Empty { rest = T.Open; _ } -> alias (t "JsonObject")
   | T.Empty { rest; _ } ->
       (* An object with nothing to state is one value: the same [{}] every time. *)
@@ -343,7 +349,29 @@ and property st owner (m : T.member) =
     | true, false, _ -> Required
     | false, _, _ -> Optional
   in
-  { wire = m.wire; name; type_; about = doc m.node_description; boxed; form }
+  {
+    wire = m.wire;
+    name;
+    type_;
+    about = doc m.node_description;
+    boxed;
+    form;
+    bytes = holds_bytes st (owner ^ "." ^ m.wire) m.ty;
+  }
+
+(* Whether a value of [ty] is bytes; a list of them, which a list compares
+   item by item as arrays, is refused. *)
+and holds_bytes st what (ty : T.ty) =
+  match ty with
+  | T.Nullable inner -> holds_bytes st what inner
+  | T.Scalar (T.Text { binary = true; _ }) -> true
+  | T.Named name -> (
+      match (st.spec.find name).form with
+      | T.Alias inner -> holds_bytes st what inner
+      | _ -> false)
+  | T.List (Some items) when holds_bytes st what items ->
+      refuse "%s: a list of bytes, which Kotlin compares array by array" what
+  | _ -> false
 
 and object_declaration st name (members : T.member list) (rest_ : T.rest) about
     : written =
@@ -401,10 +429,48 @@ and object_declaration st name (members : T.member list) (rest_ : T.rest) about
                (List.map declared props @ if open_ then [ rest_param ] else []))
           ~supers:(supers unions)
           ~members:
-            (builder name props open_
+            (by_content name props open_
+            @ builder name props open_
             @ if open_ then open_serializer name else [])
           K.Data_class name;
       ])
+
+(* A data class that holds bytes compares and hashes them by what they hold,
+   where a ByteArray's own [equals] is which array holds them; any other
+   compares as the data class does. *)
+and by_content name props open_ =
+  if not (List.exists (fun p -> p.bytes) props) then []
+  else
+    let names =
+      List.map (fun p -> (p.name, p.bytes)) props
+      @ if open_ then [ (rest, false) ] else []
+    in
+    let other = K.Name "other" in
+    let equal (n, bytes) =
+      if bytes then
+        K.call (K.Member (K.Name n, "contentEquals")) [ K.Member (other, n) ]
+      else K.Binary (K.Name n, K.Eq, K.Member (other, n))
+    in
+    let hashed (n, bytes) =
+      if bytes then K.call (K.Member (K.Name n, "contentHashCode")) []
+      else K.Name n
+    in
+    [
+      K.function_ ~override:true
+        ~params:[ ("other", K.Nullable (t "Any")) ]
+        ~returns:(t "Boolean") "equals"
+        (K.Same_line
+           (List.fold_left
+              (fun all field -> K.Binary (all, K.And, equal field))
+              (K.Binary (other, K.Is, K.Name name))
+              names));
+      K.function_ ~override:true ~returns:(t "Int") "hashCode"
+        (K.Same_line
+           (K.call
+              (K.Member
+                 (K.call (K.Name "listOf") (List.map hashed names), "hashCode"))
+              []));
+    ]
 
 (* As the data class declares it. *)
 and declared p =

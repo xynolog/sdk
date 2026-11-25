@@ -425,6 +425,36 @@ module Device_code = struct
         ]
 end
 
+module Engine_with_limits = struct
+  type t = {
+    engine : [ `Engine ] Models.t;
+    jobs : [ `JobFilter ] Models.t list option;
+    limits : [ `InferenceLimits ] Models.t option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* engine = required (model Models.engine) "engine" members in
+        let* jobs = optional (list (model Models.job_filter)) "jobs" members in
+        let* limits =
+          optional (model Models.inference_limits) "limits" members
+        in
+        Ok { engine; jobs; limits }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("engine", Some (json_model value.engine));
+          ("jobs", Option.map (json_list json_model) value.jobs);
+          ("limits", Option.map json_model value.limits);
+        ]
+end
+
 module Gather_resource_options = struct
   type t = {
     depth : int option;
@@ -977,6 +1007,18 @@ module Pending_authorization = struct
           ("expectedDid", Option.map json_string value.expected_did);
           ("expectedName", Option.map json_string value.expected_name);
         ]
+end
+
+module Engines_with_limits = struct
+  type t = Engine_with_limits.t list
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    list (record Engine_with_limits.of_json) ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    json_list Engine_with_limits.to_json
 end
 
 module Agent_organization = struct

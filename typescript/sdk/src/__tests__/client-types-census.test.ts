@@ -1,8 +1,8 @@
 /**
  * The client types the generator leaves to each SDK (protocol/specs/src/client/types):
- * SearchState and JobEvent, which are generic, and EngineWithLimits,
- * PutBinaryRequest, ResourceRepresentation and ResourceRepresentationStream,
- * which hold bytes or join what two answers say. This census holds each to
+ * SearchState and JobEvent, which are generic, and PutBinaryRequest,
+ * ResourceRepresentation and ResourceRepresentationStream, which hold bytes.
+ * This census holds each to
  * its schema. The compiler holds each list below to the type's members (and
  * which it requires) and branches, and the test holds the list to the
  * schema's, so a member or a branch either side gains or loses fails.
@@ -10,7 +10,6 @@
 
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type {
-  EngineWithLimits,
   PutBinaryRequest,
   ResourceRepresentation,
   ResourceRepresentationStream,
@@ -19,7 +18,6 @@ import type { JobEvent } from '../awaitable';
 import type { SearchState } from '../state/lib/search-pipeline';
 import { schema as jobEvent } from './cases/client_types_job_event_schema';
 import { schema as searchState } from './cases/client_types_search_state_schema';
-import { schema as engineWithLimits } from './cases/client_types_engine_with_limits_schema';
 import { schema as putBinaryRequest } from './cases/client_types_put_binary_request_schema';
 import { schema as resourceRepresentation } from './cases/client_types_resource_representation_schema';
 import { schema as resourceRepresentationStream } from './cases/client_types_resource_representation_stream_schema';
@@ -106,12 +104,6 @@ type RequiredOf<T> = {
   [K in keyof T]-?: object extends Pick<T, K> ? never : K;
 }[keyof T];
 
-const ENGINE_WITH_LIMITS = {
-  engine: true,
-  jobs: false,
-  limits: false,
-} as const satisfies Members<EngineWithLimits>;
-
 const PUT_BINARY_REQUEST = {
   name: true,
   file: true,
@@ -156,11 +148,8 @@ function heldTo(
   );
 }
 
-describe('the client types that hold bytes or join two answers', () => {
+describe('the client types that hold bytes', () => {
   it('each has its schema’s members, and requires what it requires', () => {
-    expectTypeOf<RequiredOf<EngineWithLimits>>().toEqualTypeOf<
-      RequiredIn<typeof ENGINE_WITH_LIMITS>
-    >();
     expectTypeOf<RequiredOf<PutBinaryRequest>>().toEqualTypeOf<
       RequiredIn<typeof PUT_BINARY_REQUEST>
     >();
@@ -170,7 +159,6 @@ describe('the client types that hold bytes or join two answers', () => {
     expectTypeOf<RequiredOf<ResourceRepresentationStream>>().toEqualTypeOf<
       RequiredIn<typeof RESOURCE_REPRESENTATION_STREAM>
     >();
-    heldTo(engineWithLimits, ENGINE_WITH_LIMITS);
     heldTo(putBinaryRequest, PUT_BINARY_REQUEST);
     heldTo(resourceRepresentation, RESOURCE_REPRESENTATION);
     heldTo(resourceRepresentationStream, RESOURCE_REPRESENTATION_STREAM);

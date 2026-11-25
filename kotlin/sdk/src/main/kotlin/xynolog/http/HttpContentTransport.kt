@@ -70,7 +70,7 @@ private class Form(request: PutBinaryRequest) {
             ResourceUpload.serializer(),
             ResourceUpload(
                 name = request.name,
-                file = "",
+                file = ByteArray(0),
                 format = request.format,
                 storageUri = request.storageUri,
                 language = request.language?.takeIf { it.isNotEmpty() },

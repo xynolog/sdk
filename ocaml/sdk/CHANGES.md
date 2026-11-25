@@ -8,6 +8,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Records.Engine_with_limits` and `Records.Engines_with_limits`, the types of
+  Protocol's `client/types/EngineWithLimits.json` and
+  `client/types/EnginesWithLimits.json`.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,

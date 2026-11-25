@@ -2152,7 +2152,7 @@ public struct BeginAuthorizationOptions: Codable, Sendable, Hashable {
   }
 }
 
-public typealias Binary = String
+public typealias Binary = Data
 
 public struct BindBodyOperation: Codable, Sendable, Hashable {
   public var op: BindBodyOperationOp
@@ -6269,6 +6269,32 @@ public enum EngineProvider: String, Codable, Sendable, CaseIterable {
   case together = "together"
   case vllm = "vllm"
 }
+
+public struct EngineWithLimits: Codable, Sendable, Hashable {
+  public var engine: Engine
+  public var jobs: [JobFilter]?
+  public var limits: InferenceLimits?
+  public init(engine: Engine, jobs: [JobFilter]? = nil, limits: InferenceLimits? = nil) {
+    self.engine = engine
+    self.jobs = jobs
+    self.limits = limits
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["engine", "jobs", "limits"], in: "EngineWithLimits")
+    self.engine = try c.value("engine")
+    self.jobs = try c.ifPresent("jobs")
+    self.limits = try c.ifPresent("limits")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.engine, as: "engine")
+    try c.encodeIfPresent(self.jobs, as: "jobs")
+    try c.encodeIfPresent(self.limits, as: "limits")
+  }
+}
+
+public typealias EnginesWithLimits = [EngineWithLimits]
 
 public struct EnrichedResourceEvent: Codable, Sendable, Hashable {
   public var id: String
@@ -24642,6 +24668,14 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["engine", "limits"],
     members: ["engine": Shape(ref: "Engine"), "limits": Shape(ref: "InferenceLimits")],
     closed: ["engine", "limits"])
+  shapes["EngineWithLimits"] = Shape(
+    kinds: [.object], required: ["engine"],
+    members: [
+      "engine": Shape(ref: "Engine"),
+      "jobs": Shape(kinds: [.array], items: Shape(ref: "JobFilter")),
+      "limits": Shape(ref: "InferenceLimits"),
+    ], closed: ["engine", "jobs", "limits"])
+  shapes["EnginesWithLimits"] = Shape(kinds: [.array], items: Shape(ref: "EngineWithLimits"))
   shapes["EnrichedResourceEvent"] = Shape(
     kinds: [.object],
     allOf: [

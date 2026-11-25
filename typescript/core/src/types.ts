@@ -6906,6 +6906,27 @@ export interface records {
     expiresIn: number;
   };
   /**
+   * One of the knowledge base's engines as a client joins it: the entry
+   * `browse:engines-result` names, with the inference limits the service
+   * holding its credentials reported. A client asks each such service for its
+   * limits; an engine no service reported has no `limits`.
+   */
+  EngineWithLimits: {
+    engine: components['schemas']['Engine'];
+    /**
+     * The jobs the knowledge base's Inference document has this engine used
+     * for, as a claim names them. Absent for an engine only Librarian actors
+     * ask.
+     */
+    jobs?: components['schemas']['JobFilter'][];
+    limits?: components['schemas']['InferenceLimits'];
+  };
+  /**
+   * The knowledge base's engines, in the order `browse:engines-result` names
+   * them, each with the limits reported for it.
+   */
+  EnginesWithLimits: records['EngineWithLimits'][];
+  /**
    * What a person believed they were signing in to: the did and the name of the
    * row they clicked, or of the entry they signed in to again.
    */

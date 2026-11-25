@@ -136,6 +136,8 @@ internal val REQUIRED_SCHEMAS: Map<String, String> = mapOf(
     "Engine" to "{\"kinds\":[\"object\"],\"required\":[\"provider\",\"model\"],\"members\":{\"model\":{\"kinds\":[\"string\"],\"minLength\":1},\"provider\":{\"kinds\":[\"string\"],\"enum\":[\"anthropic\",\"google\",\"llamacpp\",\"ollama\",\"openai\",\"together\",\"vllm\"]}},\"closed\":[\"model\",\"provider\"]}",
     "EngineEntry" to "{\"kinds\":[\"object\"],\"required\":[\"engine\"],\"members\":{\"engine\":{\"ref\":\"Engine\"},\"jobs\":{\"kinds\":[\"array\"],\"items\":{\"ref\":\"JobFilter\"}}},\"closed\":[\"engine\",\"jobs\"]}",
     "EngineLimits" to "{\"kinds\":[\"object\"],\"required\":[\"engine\",\"limits\"],\"members\":{\"engine\":{\"ref\":\"Engine\"},\"limits\":{\"ref\":\"InferenceLimits\"}},\"closed\":[\"engine\",\"limits\"]}",
+    "EngineWithLimits" to "{\"kinds\":[\"object\"],\"required\":[\"engine\"],\"members\":{\"engine\":{\"ref\":\"Engine\"},\"jobs\":{\"kinds\":[\"array\"],\"items\":{\"ref\":\"JobFilter\"}},\"limits\":{\"ref\":\"InferenceLimits\"}},\"closed\":[\"engine\",\"jobs\",\"limits\"]}",
+    "EnginesWithLimits" to "{\"kinds\":[\"array\"],\"items\":{\"ref\":\"EngineWithLimits\"}}",
     "EnrichedResourceEvent" to "{\"kinds\":[\"object\"],\"allOf\":[{\"ref\":\"StoredEventResponse\"},{\"kinds\":[\"object\"],\"members\":{\"annotation\":{\"ref\":\"Annotation\"}}}]}",
     "EntityTagChangedPayload" to "{\"kinds\":[\"object\"],\"required\":[\"entityType\"],\"members\":{\"entityType\":{\"kinds\":[\"string\"]}}}",
     "EntityTypeAddedPayload" to "{\"kinds\":[\"object\"],\"required\":[\"entityType\"],\"members\":{\"entityType\":{\"kinds\":[\"string\"]}}}",

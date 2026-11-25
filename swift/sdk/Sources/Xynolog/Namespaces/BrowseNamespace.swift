@@ -13,7 +13,7 @@ public struct BrowseNamespace: Sendable {
   > {
     live.listedResources.observe(filters.paged)
   }
-  public func engines() -> Cached<[EngineWithLimits]> { live.enginesWithLimits }
+  public func engines() -> Cached<EnginesWithLimits> { live.enginesWithLimits }
 
   public func resource(_ resourceId: ResourceId) -> Cached<ResourceDescriptor> {
     live.resources.observe(resourceId)

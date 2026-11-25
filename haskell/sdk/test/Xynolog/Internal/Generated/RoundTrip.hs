@@ -317,6 +317,7 @@ roundTrip name value = case name of
   "EngineLimits" -> toJSON <$> (parseEither parseJSON value :: Either String EngineLimits)
   "EngineProvider" -> toJSON <$> (parseEither parseJSON value :: Either String EngineProvider)
   "EngineWithLimits" -> toJSON <$> (parseEither parseJSON value :: Either String EngineWithLimits)
+  "EnginesWithLimits" -> toJSON <$> (parseEither parseJSON value :: Either String EnginesWithLimits)
   "EnrichedResourceEvent" -> toJSON <$> (parseEither parseJSON value :: Either String EnrichedResourceEvent)
   "EntityTagChangedPayload" -> toJSON <$> (parseEither parseJSON value :: Either String EntityTagChangedPayload)
   "EntityTypeAddedPayload" -> toJSON <$> (parseEither parseJSON value :: Either String EntityTypeAddedPayload)

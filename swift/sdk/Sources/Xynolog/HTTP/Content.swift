@@ -143,7 +143,7 @@ private struct Multipart: Sendable {
       String(decoding: try JSONEncoder().encode(value), as: UTF8.self)
     }
     let form = ResourceUpload(
-      name: request.name, file: "", format: request.format, storageUri: request.storageUri,
+      name: request.name, file: Data(), format: request.format, storageUri: request.storageUri,
       language: request.language,
       entityTypes: request.entityTypes.isEmpty ? nil : try json(request.entityTypes),
       sourceAnnotationId: request.sourceAnnotationId, sourceResourceId: request.sourceResourceId,

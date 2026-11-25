@@ -59,6 +59,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `EngineWithLimits` is `records['EngineWithLimits']`, generated from
+  Protocol's `client/types/EngineWithLimits.json`, with the members it had,
+  and `EnginesWithLimits` is its list; `browse.engines()` is a
+  `CacheObservable<EnginesWithLimits>`.
 - A retry budget is `RetryBudget`, the type of Protocol's
   `client/RetryBudget.json` (`components['schemas']['RetryBudget']`), where
   it was `RetryPolicy`: `EMIT_RETRY` and `REFRESH_RETRY` are one, and

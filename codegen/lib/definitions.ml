@@ -185,19 +185,17 @@ let typed (spec : Spec.t) =
   fun s -> Result.map Normalize.shape_only (whole s)
 
 (* The client types each SDK writes by hand: SearchState and JobEvent, each
-   held to its schema by a census in every SDK; PutBinaryRequest, whose file
-   is bytes, which the Swift, Kotlin and Haskell writers state as text; and
-   what the engines and content methods return, which waits on each SDK's
-   methods returning what client/surface.json says they return; and
-   ByteStream, which only ResourceRepresentationStream holds, as each SDK's
-   own read-once stream. *)
+   held to its schema by a census in every SDK; PutBinaryRequest and
+   ResourceRepresentation, which hold bytes, which the Haskell models state
+   as text; ResourceRepresentationStream, which the content methods return,
+   which waits on each SDK's methods returning what client/surface.json says
+   they return; and ByteStream, which only ResourceRepresentationStream
+   holds, as each SDK's own read-once stream. *)
 let hand_written_client_types =
   [
     "SearchState";
     "JobEvent";
     "PutBinaryRequest";
-    "EngineWithLimits";
-    "EnginesWithLimits";
     "ResourceRepresentation";
     "ResourceRepresentationStream";
     "ByteStream";

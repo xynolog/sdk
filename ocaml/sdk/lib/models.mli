@@ -157,6 +157,8 @@ val embedding_config : [ `EmbeddingConfig ] descriptor
 val engine : [ `Engine ] descriptor
 val engine_entry : [ `EngineEntry ] descriptor
 val engine_limits : [ `EngineLimits ] descriptor
+val engine_with_limits : [ `EngineWithLimits ] descriptor
+val engines_with_limits : [ `EnginesWithLimits ] descriptor
 val enriched_resource_event : [ `EnrichedResourceEvent ] descriptor
 val entity_tag_changed_payload : [ `EntityTagChangedPayload ] descriptor
 val entity_type_added_payload : [ `EntityTypeAddedPayload ] descriptor

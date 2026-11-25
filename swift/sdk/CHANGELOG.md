@@ -54,6 +54,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `BrowseNamespace.engines()` is a `Cached<EnginesWithLimits>`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, whose `EngineWithLimits`
+  is `Codable` and `Hashable` as every generated type is, where the SDK's own
+  was only `Encodable`.
+- `Binary`, the type of Protocol's bytes held whole, is `Data`, where it was a
+  `String`, and `ResourceUpload`'s `file` is one.
 - `RetryBudget` is the model of Protocol's `client/RetryBudget.json`:
   `Codable` and `Hashable`, its members `var`s.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held

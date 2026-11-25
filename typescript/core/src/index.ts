@@ -103,6 +103,7 @@ export type {
   JobType,
   EngineEntry,
   EngineWithLimits,
+  EnginesWithLimits,
   KbDescription,
   DiscoveryDocument,
   DiscoveredKB,

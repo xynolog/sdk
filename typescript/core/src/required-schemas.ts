@@ -2282,6 +2282,17 @@ export const REQUIRED_SCHEMAS: {
     members: { engine: { ref: 'Engine' }, limits: { ref: 'InferenceLimits' } },
     closed: ['engine', 'limits'],
   },
+  EngineWithLimits: {
+    kinds: ['object'],
+    required: ['engine'],
+    members: {
+      engine: { ref: 'Engine' },
+      jobs: { kinds: ['array'], items: { ref: 'JobFilter' } },
+      limits: { ref: 'InferenceLimits' },
+    },
+    closed: ['engine', 'jobs', 'limits'],
+  },
+  EnginesWithLimits: { kinds: ['array'], items: { ref: 'EngineWithLimits' } },
   EnrichedResourceEvent: {
     kinds: ['object'],
     allOf: [

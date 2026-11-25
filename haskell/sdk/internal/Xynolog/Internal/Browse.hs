@@ -150,15 +150,16 @@ entityTypes namespace = Cache.query (entityTypesCache namespace) Whole
 tagSchemas :: BrowseNamespace -> Cache.Query [TagSchema]
 tagSchemas namespace = Cache.query (tagSchemasCache namespace) Whole
 
-engines :: BrowseNamespace -> Cache.Query [EngineWithLimits]
-engines namespace = case reports of
-  [] -> error "the derived inference-limits operation set is empty"
-  first : rest ->
-    Cache.liftQuery2
-      combine
-      joinLimits
-      (Cache.query (enginesCache namespace) ())
-      (foldl (Cache.liftQuery2 combineReports (++)) first rest)
+engines :: BrowseNamespace -> Cache.Query EnginesWithLimits
+engines namespace =
+  EnginesWithLimits <$> case reports of
+    [] -> error "the derived inference-limits operation set is empty"
+    first : rest ->
+      Cache.liftQuery2
+        combine
+        joinLimits
+        (Cache.query (enginesCache namespace) ())
+        (foldl (Cache.liftQuery2 combineReports (++)) first rest)
   where
     reports = [Cache.query (limitsCache namespace) (channelName request) | operation <- limitsOperations, let (request, _, _) = operationChannels operation]
     combine state limits = case state of

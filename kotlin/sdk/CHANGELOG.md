@@ -36,6 +36,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `BrowseNamespace.engines()` is a `Cached<EnginesWithLimits>` of
+  `xynolog.types.EngineWithLimits`, the types of Protocol's
+  `client/types/EnginesWithLimits.json`, where it was of
+  `xynolog.namespaces.EngineWithLimits`: an engine's `engine` and `jobs` are
+  its own, where they were its `entry`'s.
+- `Binary`, the type of Protocol's bytes held whole, is a `ByteArray`, where
+  it was a `String`, and `ResourceUpload`'s `file` is one. A generated class
+  that holds bytes compares and hashes them by what they hold.
 - A retry budget is `xynolog.types.RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
   `Timing.emitRetry` is one, and `retryWithBackoff` and

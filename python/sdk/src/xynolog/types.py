@@ -261,6 +261,8 @@ __all__ = [
     "EngineEntry",
     "EngineLimits",
     "EngineProvider",
+    "EngineWithLimits",
+    "EnginesWithLimits",
     "EnrichedResourceEvent",
     "EntityTagChangedPayload",
     "EntityTypeAddedPayload",
@@ -4238,6 +4240,29 @@ class EngineLimits(WireModel, frozen=True, extra="forbid"):
 
     engine: Engine
     limits: InferenceLimits
+
+
+class EngineWithLimits(WireModel, frozen=True, extra="forbid"):
+    """
+    One of the knowledge base's engines as a client joins it: the entry `browse:engines-result` names, with the inference limits the service holding its credentials reported. A client asks each such service for its limits; an engine no service reported has no `limits`.
+    """
+
+    engine: Engine
+    jobs: Annotated[
+        list[JobFilter] | None,
+        Field(
+            description="The jobs the knowledge base's Inference document has this engine used for, as a claim names them. Absent for an engine only Librarian actors ask."
+        ),
+    ] = None
+    limits: InferenceLimits | None = None
+
+
+type EnginesWithLimits = Annotated[
+    list[EngineWithLimits],
+    Field(
+        description="The knowledge base's engines, in the order `browse:engines-result` names them, each with the limits reported for it."
+    ),
+]
 
 
 class EnrichedResourceEvent(StoredEventResponse, frozen=True):

@@ -3990,6 +3990,35 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "EngineWithLimits",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["engine"],
+            members: &[
+                ("engine", reference("Engine")),
+                (
+                    "jobs",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("JobFilter")),
+                        ..NONE
+                    },
+                ),
+                ("limits", reference("InferenceLimits")),
+            ],
+            closed: Some(&["engine", "jobs", "limits"]),
+            ..NONE
+        },
+    ),
+    (
+        "EnginesWithLimits",
+        Shape {
+            kinds: Some(&[Kind::Array]),
+            items: Some(&reference("EngineWithLimits")),
+            ..NONE
+        },
+    ),
+    (
         "EnrichedResourceEvent",
         Shape {
             kinds: Some(&[Kind::Object]),

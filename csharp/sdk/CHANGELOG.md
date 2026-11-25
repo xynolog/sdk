@@ -43,6 +43,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `BrowseNamespace.Engines()` is a
+  `Cached<IReadOnlyList<Xynolog.Types.EngineWithLimits>>`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, where it was of
+  `Xynolog.EngineWithLimits`: an engine's `Engine` and `Jobs` are its own,
+  where they were its `Entry`'s.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `Xynolog.Http.RetryPolicy`:
   `Timing.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes one. It

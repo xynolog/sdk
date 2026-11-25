@@ -60,6 +60,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `BrowseNamespace::engines` is a `Cached<types::EnginesWithLimits>`, the type
+  of Protocol's `client/types/EnginesWithLimits.json`, where it was of
+  `namespaces::EngineWithLimits`: an engine's `engine` and `jobs` are its own
+  fields, where they were its `entry`'s.
 - A retry budget is `types::RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `retry::RetryPolicy`:
   `timing::EMIT_RETRY` and `timing::REFRESH_RETRY` are one, a transport's

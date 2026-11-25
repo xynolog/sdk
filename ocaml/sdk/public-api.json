@@ -180,8 +180,8 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "d474d42e4b163c10e26b2206ffc5f05049f32f97d902c13648fef834141355f5",
-    "lib/models.mli": "b99a1cdfa29cdeb8f84327d4c61b073c1a5b181dceb13b935ed371c0502fdabf",
+    "lib/models.ml": "aa6a62052c0e5749795b4cfa78ce1eef81a5630a0751532165210b8081d11442",
+    "lib/models.mli": "29ff4a9a795c79bc995affd171505b91178ff2836a6737e9f36aabaa81ba6c08",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "83e3a22603a7623efa040692be2134de278c2b08a8d1d9a74e077fcb2c039f58",
     "lib/oauth.mli": "e553d7b097ce242bcb9309a2bf829c6c2611d1fad4a335a69ef91164668ca088",
@@ -189,7 +189,7 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "5af102e98c69b9d766b5ece0ff7e1292dd4c78912db035652a9d1f83bc05fc1b",
+    "lib/records.ml": "dd335be530e2f836b944d0ead84ed7d14dfbccab4ca9e2700b05ffeaf296772c",
     "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "cbb2d6ccd19fd62371e52c7d5a02f4e2fa07b26db97762b2b836db49db66bc7e",
@@ -203,7 +203,7 @@
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "e87b349e909a1a915ce2731432ada5f67f16a35a72fdaa1d9d284236e1c32573",
+    "lib/schema_shapes.ml": "ea156c995859f4bd71a89c9e018f605f9e98d55d3d3166a736b5f71f77da6c46",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "f631bad7d16a82910665c02614d271aa21ec4e8f8262848c82b360f95072e07a",
@@ -4298,6 +4298,16 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.engine_with_limits",
+      "declaration": "val engine_with_limits : [ `EngineWithLimits ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.engines_with_limits",
+      "declaration": "val engines_with_limits : [ `EnginesWithLimits ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.enriched_resource_event",
       "declaration": "val enriched_resource_event : [ `EnrichedResourceEvent ] descriptor"
     },
@@ -6462,6 +6472,32 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Engine_with_limits",
+      "declaration": "module Engine_with_limits :\n  sig\n    type t = {\n      engine : [ `Engine ] Xynolog__.Models.t;\n      jobs : [ `JobFilter ] Xynolog__.Models.t list option;\n      limits : [ `InferenceLimits ] Xynolog__.Models.t option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Engine_with_limits.t",
+      "declaration": "type t = {\n  engine : [ `Engine ] Xynolog__.Models.t;\n  jobs : [ `JobFilter ] Xynolog__.Models.t list option;\n  limits : [ `InferenceLimits ] Xynolog__.Models.t option;\n}",
+      "representation": "record",
+      "fields": [
+        "engine",
+        "jobs",
+        "limits"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Engine_with_limits.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Engine_with_limits.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Gather_resource_options",
       "declaration": "module Gather_resource_options :\n  sig\n    type t = {\n      depth : int option;\n      max_resources : int option;\n      include_content : bool option;\n      include_summary : bool option;\n      exclude_entity_types : string list option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6904,6 +6940,27 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Pending_authorization.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Engines_with_limits",
+      "declaration": "module Engines_with_limits :\n  sig\n    type t = Engine_with_limits.t list\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Engines_with_limits.t",
+      "declaration": "type t = Engine_with_limits.t list",
+      "representation": "abstract"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Engines_with_limits.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Engines_with_limits.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {

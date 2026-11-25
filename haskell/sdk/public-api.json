@@ -152,6 +152,7 @@
     "generated/Xynolog/Internal/Generated/Models/EngineEntry.hs": "c5f257f1ede9f14a1d66843cc01f1854078406d09e3c00606559178f28c913f4",
     "generated/Xynolog/Internal/Generated/Models/EngineLimits.hs": "e8e6bd7288380202316a3e40987936191fb33a410dfebcbd109c7e7cb785bb47",
     "generated/Xynolog/Internal/Generated/Models/EngineWithLimits.hs": "66f00abb19cfe29973b5f3ddec8f503c3012d2aaa5774c9fe822ba509810532d",
+    "generated/Xynolog/Internal/Generated/Models/EnginesWithLimits.hs": "2be4e80821115c845dfcdee95d46f6e6c9fa4bedb2b292727bb592f6ebcddd03",
     "generated/Xynolog/Internal/Generated/Models/EnrichedResourceEvent.hs": "5a340847e68762a9a1746b045d565201e50d335b84aa044ec4161a013916df8e",
     "generated/Xynolog/Internal/Generated/Models/EntityTagChangedPayload.hs": "c2dbab322daff53421560dc551c142f0646dc728e9b9559a0dc2cec0ab9d5ff9",
     "generated/Xynolog/Internal/Generated/Models/EntityTypeAddedPayload.hs": "6a5b90598caf196d6d2d80150096f7a9a95ee840041f86c43857a8008b80a8d0",
@@ -532,8 +533,8 @@
     "generated/Xynolog/Internal/Generated/OperationReports.hs": "8456e121145825e7e7b06f75e9a1baf6d5deb402218a4c854436f22378540046",
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
-    "generated/Xynolog/Internal/Generated/Required.hs": "141564f3c7cb0f3c95ccede99a7ba370d2656dda8a898f4350f4f323496166df",
-    "generated/Xynolog/Internal/Generated/Schemas.hs": "76cde1e5f0651aca2dd19cfe8d86b17bec7f6cd48ca46df4d83f6e2522145a86",
+    "generated/Xynolog/Internal/Generated/Required.hs": "44df4bc5dc999dcb2a567746b043031d6a7d8618adb8ef0fecc728d0b3f7cad6",
+    "generated/Xynolog/Internal/Generated/Schemas.hs": "6468ac06adb54bac389c4f433813403d11d1380d58f6acdb94df3ea8e86286fa",
     "generated/Xynolog/Internal/Generated/SearchState.hs": "d5994a174a2a535cb04661283a500feb97cf4e80783492c2cf390e712b38c0a9",
     "generated/Xynolog/Internal/Generated/ServiceProof.hs": "86e44db90b1ac4a3713f4794f4f1f2f32bdf7eeeb7ad24e12046c050f8acadaf",
     "generated/Xynolog/Internal/Generated/SessionFactoryOptions.hs": "1378c790f4a48832e1a0a938eb64c8759870e4ebf73f2445e8ba81c354334c45",
@@ -552,7 +553,7 @@
     "internal/Xynolog/Internal/Annotations/Pdf.hs": "5072e39c92ed275d86fb6fe41ec610006b65a8f21364aa50bd42ef09b73fb8b6",
     "internal/Xynolog/Internal/Annotations/Spans.hs": "554d49dbde1e6be8b8556a021e528562d7017e28066e939ffa16b99122417bc6",
     "internal/Xynolog/Internal/Broadcast.hs": "336246ac6d68e996f3a618dc295e2ca88445c7c04c6aa189b8271a763bc19ee8",
-    "internal/Xynolog/Internal/Browse.hs": "fb4aa27219d027329a433295ef904ffa9e61beeb44f0c6d8d5d529108e26670e",
+    "internal/Xynolog/Internal/Browse.hs": "005713957f1a1e17f44e1491e8397d4f5304406a11f7a244c5f6494e202ac2a3",
     "internal/Xynolog/Internal/Bus.hs": "df3d57b3b5d9149c6c6bc795781125efedfdbbddf7d6013833e0936a5a09bc7c",
     "internal/Xynolog/Internal/BusLog.hs": "0ad7baef1b416579ad51a626ce85cbdbc9989418bb74303207b1419833bba32e",
     "internal/Xynolog/Internal/Cache.hs": "41299da4f86b18d8852236e361f26a6ffddc45862b76a09c7421a032c776c915",
@@ -668,7 +669,7 @@
     "src/Xynolog/Tokens.hs": "bba264adde2b8a6c123b9e64e99aeae6fd917f9a09f10194684a8daf708bceca",
     "src/Xynolog/Transport.hs": "5f0c95953108daa834e02c580f0ffb49c3d8fb30ad4cf0424ae3b19c500de034",
     "src/Xynolog/Transport/Facts.hs": "b861a07eb1fc5319a56fec2889c08f9fe7d59c43682d5b488d14520377ff08ba",
-    "src/Xynolog/Types.hs": "2a7d02c395756ae149b9938d89e31158044b5d1e7a5564ca009f989a1cef3015",
+    "src/Xynolog/Types.hs": "2a856768b9817a251d7367fd39289e54f38fc53e40a13619efaebd3b1aa025d0",
     "src/Xynolog/Worker.hs": "74c13763bd2c52e1f12c2a9827a4a4f369200e56f11f68db644558c7b703ab20",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
     "xynolog.cabal.in": "171bc716a64f3a951ec37a9f6526c834d862ef12c5bb5723f7464a25b71748e9"
@@ -858,7 +859,7 @@
         "annotationHistory": "Xynolog.Internal.Browse.BrowseNamespace -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> IO Xynolog.Internal.Generated.Models.GetAnnotationHistoryResponse.GetAnnotationHistoryResponse",
         "annotations": "Xynolog.Internal.Browse.BrowseNamespace -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Xynolog.Internal.Cache.Query [Xynolog.Internal.Generated.Models.Annotation.Annotation]",
         "click": "Xynolog.Internal.Browse.BrowseNamespace -> Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Maybe Xynolog.Internal.Generated.Models.AnchorRect.AnchorRect -> GHC.Internal.Conc.Sync.STM ()",
-        "engines": "Xynolog.Internal.Browse.BrowseNamespace -> Xynolog.Internal.Cache.Query [Xynolog.Internal.Generated.Models.EngineWithLimits.EngineWithLimits]",
+        "engines": "Xynolog.Internal.Browse.BrowseNamespace -> Xynolog.Internal.Cache.Query Xynolog.Internal.Generated.Models.EnginesWithLimits.EnginesWithLimits",
         "entityTypes": "Xynolog.Internal.Browse.BrowseNamespace -> Xynolog.Internal.Cache.Query [Data.Text.Internal.Text]",
         "events": "Xynolog.Internal.Browse.BrowseNamespace -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Xynolog.Internal.Cache.Query [Xynolog.Internal.Generated.Models.AttributedEvent.AttributedEvent]",
         "files": "Xynolog.Internal.Browse.BrowseNamespace -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.BrowseDirectoryRequest.BrowseDirectoryRequestSort -> IO Xynolog.Internal.Generated.Models.BrowseDirectoryResultResponse.BrowseDirectoryResultResponse",
@@ -4363,6 +4364,10 @@
           "definition": "data Xynolog.Internal.Generated.Models.EngineWithLimits.EngineWithLimits = ...",
           "kind": "*"
         },
+        "EnginesWithLimits": {
+          "definition": "newtype Xynolog.Internal.Generated.Models.EnginesWithLimits.EnginesWithLimits = ...",
+          "kind": "*"
+        },
         "EnrichedResourceEvent": {
           "definition": "data Xynolog.Internal.Generated.Models.EnrichedResourceEvent.EnrichedResourceEvent = ...",
           "kind": "*"
@@ -7391,6 +7396,7 @@
         "EngineProviderTogether": "Xynolog.Internal.Generated.Models.Engine.EngineProvider",
         "EngineProviderVllm": "Xynolog.Internal.Generated.Models.Engine.EngineProvider",
         "EngineWithLimits": "Xynolog.Internal.Generated.Models.Engine.Engine -> Maybe [Xynolog.Internal.Generated.Models.JobFilter.JobFilter] -> Maybe Xynolog.Internal.Generated.Models.InferenceLimits.InferenceLimits -> Xynolog.Internal.Generated.Models.EngineWithLimits.EngineWithLimits",
+        "EnginesWithLimits": "[Xynolog.Internal.Generated.Models.EngineWithLimits.EngineWithLimits] -> Xynolog.Internal.Generated.Models.EnginesWithLimits.EnginesWithLimits",
         "EnrichedResourceEvent": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.UserId.UserId -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Integer -> Xynolog.Internal.Generated.Models.StoredEventResponse.StoredEventResponsePayload -> Xynolog.Internal.Generated.Models.EventMetadata.EventMetadata -> Maybe Xynolog.Internal.Generated.Models.Annotation.Annotation -> Xynolog.Internal.Generated.Models.EnrichedResourceEvent.EnrichedResourceEvent",
         "EntityTagChangedPayload": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.EntityTagChangedPayload.EntityTagChangedPayload",
         "EntityTypeAddedPayload": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.EntityTypeAddedPayload.EntityTypeAddedPayload",
@@ -9015,6 +9021,7 @@
         "engineWithLimitsEngine": "Xynolog.Internal.Generated.Models.EngineWithLimits.EngineWithLimits -> Xynolog.Internal.Generated.Models.Engine.Engine",
         "engineWithLimitsJobs": "Xynolog.Internal.Generated.Models.EngineWithLimits.EngineWithLimits -> Maybe [Xynolog.Internal.Generated.Models.JobFilter.JobFilter]",
         "engineWithLimitsLimits": "Xynolog.Internal.Generated.Models.EngineWithLimits.EngineWithLimits -> Maybe Xynolog.Internal.Generated.Models.InferenceLimits.InferenceLimits",
+        "enginesWithLimitsValue": "Xynolog.Internal.Generated.Models.EnginesWithLimits.EnginesWithLimits -> [Xynolog.Internal.Generated.Models.EngineWithLimits.EngineWithLimits]",
         "enrichedResourceEventAnnotation": "Xynolog.Internal.Generated.Models.EnrichedResourceEvent.EnrichedResourceEvent -> Maybe Xynolog.Internal.Generated.Models.Annotation.Annotation",
         "enrichedResourceEventId": "Xynolog.Internal.Generated.Models.EnrichedResourceEvent.EnrichedResourceEvent -> Data.Text.Internal.Text",
         "enrichedResourceEventMetadata": "Xynolog.Internal.Generated.Models.EnrichedResourceEvent.EnrichedResourceEvent -> Xynolog.Internal.Generated.Models.EventMetadata.EventMetadata",

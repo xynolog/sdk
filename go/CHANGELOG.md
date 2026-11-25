@@ -43,6 +43,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `BrowseNamespace.Engines` is a `Cached[api.EnginesWithLimits]`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, where it was of the SDK's
+  own `EngineWithLimits`: an engine's `Engine` and `Jobs` are its own fields,
+  where they were its `Entry`'s.
 - A retry budget is `api.RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `RetryPolicy`: `Timing.EmitRetry`
   and `Timing.RefreshRetry` are one, and `RetryWithBackoff` takes one. Its

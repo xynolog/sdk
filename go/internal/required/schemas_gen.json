@@ -132,6 +132,8 @@
     "Engine": {"kinds":["object"],"required":["provider","model"],"members":{"model":{"kinds":["string"],"minLength":1},"provider":{"kinds":["string"],"enum":["anthropic","google","llamacpp","ollama","openai","together","vllm"]}},"closed":["model","provider"]},
     "EngineEntry": {"kinds":["object"],"required":["engine"],"members":{"engine":{"ref":"Engine"},"jobs":{"kinds":["array"],"items":{"ref":"JobFilter"}}},"closed":["engine","jobs"]},
     "EngineLimits": {"kinds":["object"],"required":["engine","limits"],"members":{"engine":{"ref":"Engine"},"limits":{"ref":"InferenceLimits"}},"closed":["engine","limits"]},
+    "EngineWithLimits": {"kinds":["object"],"required":["engine"],"members":{"engine":{"ref":"Engine"},"jobs":{"kinds":["array"],"items":{"ref":"JobFilter"}},"limits":{"ref":"InferenceLimits"}},"closed":["engine","jobs","limits"]},
+    "EnginesWithLimits": {"kinds":["array"],"items":{"ref":"EngineWithLimits"}},
     "EnrichedResourceEvent": {"kinds":["object"],"allOf":[{"ref":"StoredEventResponse"},{"kinds":["object"],"members":{"annotation":{"ref":"Annotation"}}}]},
     "EntityTagChangedPayload": {"kinds":["object"],"required":["entityType"],"members":{"entityType":{"kinds":["string"]}}},
     "EntityTypeAddedPayload": {"kinds":["object"],"required":["entityType"],"members":{"entityType":{"kinds":["string"]}}},

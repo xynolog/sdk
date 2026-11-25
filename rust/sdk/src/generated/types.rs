@@ -6178,6 +6178,34 @@ impl EngineProvider {
     }
 }
 
+/// One of the knowledge base's engines as a client joins it: the entry `browse:engines-result` names, with the inference limits the service holding its credentials reported. A client asks each such service for its limits; an engine no service reported has no `limits`.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EngineWithLimits {
+    pub engine: Engine,
+    /// The jobs the knowledge base's Inference document has this engine used for, as a claim names them. Absent for an engine only Librarian actors ask.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub jobs: Option<Vec<JobFilter>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limits: Option<InferenceLimits>,
+}
+
+impl EngineWithLimits {
+    /// The `EngineWithLimits` that states these and nothing else.
+    pub fn new(engine: Engine) -> Self {
+        Self {
+            engine,
+            jobs: None,
+            limits: None,
+        }
+    }
+}
+
+schema!(EngineWithLimits);
+
+/// The knowledge base's engines, in the order `browse:engines-result` names them, each with the limits reported for it.
+pub type EnginesWithLimits = Vec<EngineWithLimits>;
+
 /// Wire format for persisted events delivered over the bus SSE stream (GET /bus/subscribe). Extends StoredEventResponse with optional enrichment fields the EventStore populates from the materialized view at publish time (persistence → view → enrich → notification). Subscribers read the enrichment fields directly to update local caches without an additional fetch.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct EnrichedResourceEvent {

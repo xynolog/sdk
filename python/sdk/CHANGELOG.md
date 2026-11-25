@@ -58,6 +58,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `browse.engines()` is a `Cached[EnginesWithLimits]` of
+  `xynolog.types.EngineWithLimits`, the types of Protocol's
+  `client/types/EnginesWithLimits.json`, where it was of
+  `xynolog.namespaces.browse.EngineWithLimits`: an engine's `engine` and
+  `jobs` are its own, where they were its `entry`'s.
 - A retry budget is `xynolog.types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
   `EMIT_RETRY` and `REFRESH_RETRY` are one, and `retry_with_backoff` and

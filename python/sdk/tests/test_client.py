@@ -24,7 +24,6 @@ from xynolog.errors import BusRequestError, TransportError, XynologError
 from xynolog.event_bus import EventBus
 from xynolog.events import Events
 from xynolog.identifiers import AnnotationId, JobId, ResourceId
-from xynolog.namespaces.browse import EngineWithLimits
 from xynolog.running import Running
 from xynolog.testing import FaultyTransport, GetAnchoredText, InMemoryContent, StubGateway, create_test_client
 from xynolog.transport import (
@@ -37,7 +36,7 @@ from xynolog.transport import (
     ResourceHold,
     Transport,
 )
-from xynolog.types import AnchoredTextAbsent, GatheredContext, JobStatusResponse, MatchSearchResult
+from xynolog.types import AnchoredTextAbsent, EngineWithLimits, GatheredContext, JobStatusResponse, MatchSearchResult
 from xynolog.watched import Watched
 
 RESOURCE = ResourceId("res-1")
@@ -246,7 +245,7 @@ def test_the_engines_are_the_knowledge_bases_with_each_engines_limits_as_its_key
 
         engines = await soon(client.browse.engines().fresh())
         assert [type(engine) for engine in engines] == [EngineWithLimits] * 3
-        assert [(each.entry.engine.provider, each.entry.engine.model) for each in engines] == [
+        assert [(each.engine.provider, each.engine.model) for each in engines] == [
             ("ollama", "gemma2:27b"),
             ("anthropic", "claude"),
             ("ollama", "llama3"),

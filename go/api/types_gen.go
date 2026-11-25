@@ -4565,6 +4565,25 @@ func (e EngineProvider) Valid() bool {
 	return false
 }
 
+// EngineWithLimits One of the knowledge base's engines as a client joins it:
+// the entry `browse:engines-result` names, with the inference limits the
+// service holding its credentials reported. A client asks each such service
+// for its limits; an engine no service reported has no `limits`.
+type EngineWithLimits struct {
+	Engine Engine `json:"engine"`
+	// Jobs The jobs the knowledge base's Inference document has this engine used
+	// for, as a claim names them. Absent for an engine only Librarian actors
+	// ask.
+	Jobs   *[]JobFilter     `json:"jobs,omitempty"`
+	Limits *InferenceLimits `json:"limits,omitempty"`
+}
+
+// EnginesWithLimits The knowledge base's engines, in the order
+// `browse:engines-result` names them, each with the limits reported for it.
+type (
+	EnginesWithLimits = []EngineWithLimits
+)
+
 // EnrichedResourceEvent Wire format for persisted events delivered over the
 // bus SSE stream (GET /bus/subscribe). Extends StoredEventResponse with
 // optional enrichment fields the EventStore populates from the materialized

@@ -353,6 +353,7 @@ library internal
     Xynolog.Internal.Generated.Models.EngineEntry
     Xynolog.Internal.Generated.Models.EngineLimits
     Xynolog.Internal.Generated.Models.EngineWithLimits
+    Xynolog.Internal.Generated.Models.EnginesWithLimits
     Xynolog.Internal.Generated.Models.EnrichedResourceEvent
     Xynolog.Internal.Generated.Models.EntityTagChangedPayload
     Xynolog.Internal.Generated.Models.EntityTypeAddedPayload

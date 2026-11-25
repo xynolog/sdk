@@ -154,6 +154,8 @@ func roundTripModel(_ name: String, _ value: JSONValue) throws -> JSONValue {
   case "Engine": return try roundTrip(Engine.self, value)
   case "EngineEntry": return try roundTrip(EngineEntry.self, value)
   case "EngineLimits": return try roundTrip(EngineLimits.self, value)
+  case "EngineWithLimits": return try roundTrip(EngineWithLimits.self, value)
+  case "EnginesWithLimits": return try roundTrip(EnginesWithLimits.self, value)
   case "EnrichedResourceEvent": return try roundTrip(EnrichedResourceEvent.self, value)
   case "EntityTagChangedPayload": return try roundTrip(EntityTagChangedPayload.self, value)
   case "EntityTypeAddedPayload": return try roundTrip(EntityTypeAddedPayload.self, value)

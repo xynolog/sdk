@@ -41,6 +41,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `Browse.engines` is a `Cache.Query EnginesWithLimits`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, where it was a list of
+  `EngineWithLimits`; `enginesWithLimitsValue` is that list.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where `Xynolog.Timing` declared one of its own:
   its fields are `retryBudgetAttempts`, `retryBudgetInitialDelayMs` and

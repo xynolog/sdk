@@ -63,8 +63,6 @@ let reads : Coverage_sdk.t -> (read * string list) list = function
           [ "typescript/sdk/src/__tests__/client-types-census.test.ts" ] );
         ( Schema "client/types/SearchState.json",
           [ "typescript/sdk/src/__tests__/client-types-census.test.ts" ] );
-        ( Schema "client/types/EngineWithLimits.json",
-          [ "typescript/sdk/src/__tests__/client-types-census.test.ts" ] );
         ( Schema "client/types/PutBinaryRequest.json",
           [ "typescript/sdk/src/__tests__/client-types-census.test.ts" ] );
         ( Schema "client/types/ResourceRepresentation.json",
