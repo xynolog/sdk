@@ -224,18 +224,17 @@ let describe_connection client =
           in
           match Models.decode Models.kb_description (json response) with
           | Error _ -> Error Error_codes.Kb_identity.not_reported
-          | Ok description ->
+          | Ok description -> (
               let domain =
                 (Records.Kb_description.of_model description).domain
               in
-              if domain = "" then Error Error_codes.Kb_identity.not_reported
-              else
-                Ok
-                  {
-                    Records.Connection_identity.did =
-                      Identity.knowledge_base_did domain;
-                    description;
-                  }))
+              match
+                Identifiers.User_id.of_string
+                  (Identity.knowledge_base_did domain)
+              with
+              | Ok did when domain <> "" ->
+                  Ok { Records.Connection_identity.did; description }
+              | Ok _ | Error _ -> Error Error_codes.Kb_identity.not_reported)))
 
 let with_identity ~id ~endpoint (identity : Records.Connection_identity.t) =
   let info = Records.Kb_description.of_model identity.description in
@@ -244,7 +243,7 @@ let with_identity ~id ~endpoint (identity : Records.Connection_identity.t) =
       [
         ("id", text id);
         ("label", text info.name);
-        ("did", text identity.did);
+        ("did", text (Identifiers.User_id.to_string identity.did));
         ("endpoint", Yojson.Safe.from_string (Models.encode endpoint));
       ]
   in
@@ -252,59 +251,64 @@ let with_identity ~id ~endpoint (identity : Records.Connection_identity.t) =
 
 let record_sign_in browser (signed : Records.Signed_in.t) =
   let info = Records.Kb_description.of_model signed.description in
-  if info.domain = "" then Error Error_codes.Kb_identity.not_reported
-  else
-    let identity =
-      {
-        Records.Connection_identity.did =
-          Identity.knowledge_base_did info.domain;
-        description = signed.description;
-      }
-    in
-    locked browser (fun () ->
-        let values = knowledge_bases browser in
-        let verified =
-          List.filter
-            (fun kb ->
-              same_place (endpoint kb) signed.endpoint && did kb = identity.did)
-            values
-        in
-        let prior =
-          match
-            List.find_opt (fun kb -> Some (id kb) = signed.kb_id) verified
-          with
-          | Some _ as match_ -> match_
-          | None -> List.nth_opt verified 0
-        in
-        let key =
-          match prior with
-          | Some kb -> id kb
-          | None -> browser.config.fresh_id ()
-        in
-        if prior = None && List.exists (fun kb -> id kb = key) values then
-          Error "kb.id-conflict"
-        else
-          let kb = with_identity ~id:key ~endpoint:signed.endpoint identity in
-          let values =
+  match
+    Identifiers.User_id.of_string (Identity.knowledge_base_did info.domain)
+  with
+  | Ok _ when info.domain = "" -> Error Error_codes.Kb_identity.not_reported
+  | Error _ -> Error Error_codes.Kb_identity.not_reported
+  | Ok reported ->
+      let identity =
+        {
+          Records.Connection_identity.did = reported;
+          description = signed.description;
+        }
+      in
+      locked browser (fun () ->
+          let values = knowledge_bases browser in
+          let verified =
+            List.filter
+              (fun kb ->
+                same_place (endpoint kb) signed.endpoint
+                && did kb = Identifiers.User_id.to_string identity.did)
+              values
+          in
+          let prior =
+            match
+              List.find_opt (fun kb -> Some (id kb) = signed.kb_id) verified
+            with
+            | Some _ as match_ -> match_
+            | None -> List.nth_opt verified 0
+          in
+          let key =
             match prior with
-            | None -> values @ [ kb ]
-            | Some _ ->
-                List.map
-                  (fun prior -> if id prior = key then kb else prior)
-                  values
+            | Some kb -> id kb
+            | None -> browser.config.fresh_id ()
           in
-          let storage = browser.config.storage in
-          store_session storage key signed.session;
-          save_knowledge_bases storage values;
-          storage.write active_key key;
-          browser.generation <- ref ();
-          disconnect browser;
-          let expected =
-            Option.map
-              (fun did -> { Records.Expected.did; name = signed.expected_name })
-              signed.expected_did
-          in
-          Ok { Records.Sign_in_outcome.kb; expected })
+          if prior = None && List.exists (fun kb -> id kb = key) values then
+            Error "kb.id-conflict"
+          else
+            let kb = with_identity ~id:key ~endpoint:signed.endpoint identity in
+            let values =
+              match prior with
+              | None -> values @ [ kb ]
+              | Some _ ->
+                  List.map
+                    (fun prior -> if id prior = key then kb else prior)
+                    values
+            in
+            let storage = browser.config.storage in
+            store_session storage key signed.session;
+            save_knowledge_bases storage values;
+            storage.write active_key key;
+            browser.generation <- ref ();
+            disconnect browser;
+            let expected =
+              Option.map
+                (fun did ->
+                  { Records.Expected.did; name = signed.expected_name })
+                signed.expected_did
+            in
+            Ok { Records.Sign_in_outcome.kb; expected })
 
 let activate browser key =
   let begun =
@@ -339,9 +343,10 @@ let activate browser key =
               let connection = { session; signals } in
               read browser connection;
               locked browser (fun () ->
-                  if identity.did <> did kb then (
+                  let reported = Identifiers.User_id.to_string identity.did in
+                  if reported <> did kb then (
                     finish connection;
-                    Error (Identity_conflict identity.did))
+                    Error (Identity_conflict reported))
                   else if
                     browser.generation != generation
                     || active_id browser <> before

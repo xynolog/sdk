@@ -64,17 +64,8 @@ let make ?(silence_ms = Client_timing.delegate_silence_ms) client ~resource =
   in
   let request =
     listen B.Channels.mark_requested (fun body ->
-        let member descriptor name =
-          Models.decode descriptor (Yojson.Safe.to_string (J.member name body))
-          |> Result.get_ok
-        in
         set t.pending
-          (Some
-             {
-               Records.Pending_annotation.selector =
-                 member Models.annotation_selector "selector";
-               motivation = member Models.motivation "motivation";
-             }))
+          (Some (Result.get_ok (Records.Pending_annotation.of_json body))))
   in
   let submit =
     listen B.Channels.mark_submit (fun body ->

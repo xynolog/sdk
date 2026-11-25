@@ -18,6 +18,13 @@ let field name input =
 let string name input = J.to_string (field name input)
 let optional read name input = J.to_option read (field name input)
 
+(* The record [of_json] reads of an operation's arguments. *)
+let record of_json input =
+  match of_json input with
+  | Ok value -> value
+  | Error (fault : Xynolog.Models.fault) ->
+      raise (Misuse ("invalid argument " ^ fault.member))
+
 let write stdout value =
   Eio.Flow.copy_string (Yojson.Safe.to_string value ^ "\n") stdout
 
@@ -503,18 +510,27 @@ let run mode env =
           })
         telemetry
     in
-    let on_refused code =
+    let on_refused (refusal : Xynolog.Records.Claim_refusal.t) =
       let fields =
-        ("detail", text (Option.value code ~default:"invalid claim reply"))
-        :: Option.to_list (Option.map (fun code -> ("code", text code)) code)
+        ("detail", text refusal.message)
+        :: Option.to_list
+             (Option.map
+                (fun code ->
+                  ("code", text (Xynolog.Error_codes.Bus_request.code code)))
+                refusal.code)
       in
       output_json (`Assoc [ ("refused", `Assoc fields) ])
     in
     let on_cancel job =
       output_json (`Assoc [ ("signalled", text (W.id job)) ])
     in
-    let on_stalled job =
-      output_json (`Assoc [ ("stalled", text (W.id job)) ])
+    let on_stalled (stall : Xynolog.Records.Held_job_stall.t) =
+      output_json
+        (`Assoc
+           [
+             ( "stalled",
+               text (Xynolog.Identifiers.Job_id.to_string stall.job_id) );
+           ])
     in
     let stream =
       Xynolog.Client.Job.claim
@@ -534,28 +550,12 @@ let run mode env =
           match Xynolog.Claims.next stream with
           | Some job when not !stopping ->
               held := Some job;
-              let view =
-                `Assoc
-                  [
-                    ( "jobId",
-                      text (Xynolog.Identifiers.Job_id.to_string (W.job_id job))
-                    );
-                    ( "jobType",
-                      text (Xynolog.Enums.Job_type.to_string (W.job_type job))
-                    );
-                    ( "resourceId",
-                      text
-                        (Xynolog.Identifiers.Resource_id.to_string
-                           (W.resource_id job)) );
-                    ("params", W.params job);
-                    ( "completedUnits",
-                      `List (List.map text (W.completed_units job)) );
-                    ("unitCursors", W.unit_cursors job);
-                    ("retryCount", `Int (W.retry_count job));
-                    ("maxRetries", `Int (W.max_retries job));
-                  ]
-              in
-              output_json (`Assoc [ ("claimed", view) ]);
+              output_json
+                (`Assoc
+                   [
+                     ( "claimed",
+                       Xynolog.Records.Held_job_record.to_json (W.record job) );
+                   ]);
               consume ()
           | _ -> ()
         in
@@ -612,38 +612,13 @@ let run mode env =
     | "claim" when mode = Worker ->
         start_claims (field "accepts" input);
         done_
-    | "vitals" when mode = Worker ->
-        let vitals = Option.map Xynolog.Claims.vitals !claims in
-        let value get encode =
-          Option.fold ~none:`Null ~some:encode (Option.bind vitals get)
-        in
-        let stamp get = value get (fun time -> `Float time) in
-        let active_job =
-          value
-            (fun v -> v.Xynolog.Claims.active_job)
-            (fun (job, since) ->
-              `Assoc
-                [
-                  ("jobId", text (W.id job));
-                  ( "type",
-                    text (Xynolog.Enums.Job_type.to_string (W.job_type job)) );
-                  ("since", `Float since);
-                ])
-        in
-        ok
-          (`Assoc
-             [
-               ("lastQueuedEventAt", stamp (fun v -> v.last_queued_event_at));
-               ("lastClaimAt", stamp (fun v -> v.last_claim_at));
-               ("lastFinishedAt", stamp (fun v -> v.last_finished_at));
-               ("lastActivityAt", stamp (fun v -> v.last_activity_at));
-               ("activeJob", active_job);
-               ( "jobsCompleted",
-                 `Int
-                   (Option.fold ~none:0
-                      ~some:(fun v -> v.Xynolog.Claims.jobs_completed)
-                      vitals) );
-             ])
+    | "vitals" when mode = Worker -> (
+        match !claims with
+        | Some claims ->
+            ok
+              (Xynolog.Records.Worker_vitals.to_json
+                 (Xynolog.Claims.vitals claims))
+        | None -> raise (Misuse "no claims"))
     | "start" when mode = Worker ->
         W.start (job ());
         done_
@@ -654,8 +629,7 @@ let run mode env =
         done_
     | "checkpoint" when mode = Worker ->
         W.checkpoint (job ())
-          ~completed:(field "completedUnits" input)
-          ~cursors:(field "unitCursors" input);
+          (record Xynolog.Records.Job_checkpoint.of_json input);
         done_
     | "commit" when mode = Worker -> (
         let client = get_client () in
@@ -673,19 +647,12 @@ let run mode env =
         settle (fun job -> W.complete job (field "result" input));
         done_
     | "cancel" when mode = Worker ->
-        settle (fun job ->
-            W.cancel job ~completed:(optional Fun.id "completedUnits" input));
+        let reached = record Xynolog.Records.Job_reached.of_json input in
+        settle (fun job -> W.cancel job ~reached);
         done_
     | "fail" when mode = Worker ->
-        let failure_class =
-          Option.bind
-            (optional J.to_string "failureClass" input)
-            Xynolog.Enums.Failure_class.of_string
-        in
-        settle (fun job ->
-            W.fail job ~error:(string "error" input) ~failure_class
-              ~completed:(optional Fun.id "completedUnits" input)
-              ~cursors:(optional Fun.id "unitCursors" input));
+        let failure = record Xynolog.Records.Job_failure.of_json input in
+        settle (fun job -> W.fail job ~failure ~error:(string "error" input));
         done_
     | "delete" when mode = Live -> (
         let payload =

@@ -475,7 +475,8 @@ let real_delivery () =
       Ok
         ( test.session,
           {
-            Records.Connection_identity.did = "did:web:kb.example";
+            Records.Connection_identity.did =
+              Result.get_ok (Identifiers.User_id.of_string "did:web:kb.example");
             description;
           } ));
   let factory = Testing.factory scripted in

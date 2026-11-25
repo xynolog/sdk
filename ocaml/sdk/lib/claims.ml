@@ -2,7 +2,8 @@ open Eio.Std
 module B = Bus_registry
 module S = Subscription
 
-type vitals = {
+(* When each thing the vitals say last happened, in wall seconds. *)
+type activity = {
   last_queued_event_at : float option;
   last_claim_at : float option;
   last_finished_at : float option;
@@ -11,7 +12,7 @@ type vitals = {
   jobs_completed : int;
 }
 
-let initial_vitals =
+let initial_activity =
   {
     last_queued_event_at = None;
     last_claim_at = None;
@@ -30,9 +31,9 @@ type t = {
   trace : unit -> Records.Trace_carrier.t option;
   mutable last_active : Mtime.t option;
   mutable did_stall : bool;
-  refusals : string option Kept_for_first_reader.t;
-  stalls : Worker.held Kept_for_first_reader.t;
-  mutable vitals : vitals;
+  refusals : Records.Claim_refusal.t Kept_for_first_reader.t;
+  stalls : Records.Held_job_stall.t Kept_for_first_reader.t;
+  mutable activity : activity;
   on_cancel : Worker.held -> unit;
   mutable held : Worker.held option;
   mutable waiting : bool;
@@ -63,7 +64,7 @@ let make client ?timeout_ms ?(stall_ms = Worker.default_stall_ms)
     did_stall = false;
     refusals = Kept_for_first_reader.make ();
     stalls = Kept_for_first_reader.make ();
-    vitals = initial_vitals;
+    activity = initial_activity;
     on_cancel;
     held = None;
     waiting = false;
@@ -75,8 +76,36 @@ let make client ?timeout_ms ?(stall_ms = Worker.default_stall_ms)
 
 let refused t = Kept_for_first_reader.read t.refusals
 let stalled t = Kept_for_first_reader.read t.stalls
-let vitals t = t.vitals
 let now t = Clock.wall_now (Client_core.clock t.client)
+
+(* A wall time as a date-time, to the millisecond. *)
+let stamp time =
+  Ptime.to_rfc3339 ~frac_s:3 ~tz_offset_s:0 (Option.get (Ptime.of_float_s time))
+
+let vitals t : Records.Worker_vitals.t =
+  let a = t.activity in
+  {
+    last_queued_event_at = Option.map stamp a.last_queued_event_at;
+    last_claim_at = Option.map stamp a.last_claim_at;
+    last_finished_at = Option.map stamp a.last_finished_at;
+    last_activity_at = Option.map stamp a.last_activity_at;
+    active_job =
+      Option.map
+        (fun (job, since) ->
+          match
+            Records.Worker_active_job.to_model
+              {
+                job_id = Worker.id job;
+                type_ = Worker.job_type job;
+                since = stamp since;
+              }
+          with
+          | Ok active -> active
+          | Error _ -> invalid_arg "a held job is no WorkerActiveJob")
+        a.active_job;
+    jobs_completed = a.jobs_completed;
+  }
+
 let stopped t = Promise.is_resolved t.stopped
 
 let wake t =
@@ -87,7 +116,7 @@ let listen t =
     let queued = B.name B.Channels.job_queued in
     let cancel = B.name B.Channels.job_cancel_requested in
     let queued_seen () =
-      t.vitals <- { t.vitals with last_queued_event_at = Some (now t) }
+      t.activity <- { t.activity with last_queued_event_at = Some (now t) }
     in
     let receive = function
       | Ok (Wire_stream.Frame { route; payload; _ }) when route.channel = queued
@@ -126,13 +155,31 @@ let listen t =
       let bus = Client_core.subscription t.client in
       let rec check () =
         let now = Clock.monotonic_now clock in
-        (match (t.held, t.last_active) with
-        | Some job, Some active
+        (match (t.held, t.last_active, t.activity) with
+        | ( Some job,
+            Some active,
+            {
+              active_job = Some (_, held_since);
+              last_activity_at = Some told;
+              _;
+            } )
           when (not t.did_stall)
                && (not (Worker.is_settled job))
                && Mtime.Span.compare (Mtime.span now active) threshold > 0 ->
             t.did_stall <- true;
-            Kept_for_first_reader.say t.stalls job
+            Kept_for_first_reader.say t.stalls
+              {
+                job_id = Worker.job_id job;
+                job_type = Worker.job_type job;
+                held_since = stamp held_since;
+                last_activity_at = stamp told;
+                silent_for_ms =
+                  Int64.to_int
+                    (Int64.div
+                       (Mtime.Span.to_uint64_ns (Mtime.span now active))
+                       1_000_000L);
+                threshold_ms = t.stall_ms;
+              }
         | _ -> ());
         let next =
           Mtime.add_span now interval |> Option.value ~default:Mtime.max_stamp
@@ -175,13 +222,13 @@ let next t =
     let bus = Client_core.subscription t.client in
     let activity () =
       t.last_active <- Some (Clock.monotonic_now (Client_core.clock t.client));
-      t.vitals <- { t.vitals with last_activity_at = Some (now t) }
+      t.activity <- { t.activity with last_activity_at = Some (now t) }
     in
     let on_settled completed =
-      let jobs_completed = t.vitals.jobs_completed + Bool.to_int completed in
-      t.vitals <-
+      let jobs_completed = t.activity.jobs_completed + Bool.to_int completed in
+      t.activity <-
         {
-          t.vitals with
+          t.activity with
           active_job = None;
           last_finished_at = Some (now t);
           jobs_completed;
@@ -201,7 +248,8 @@ let next t =
               ~client_id:(Client_core.client_id t.client)
               ~correlation_id:(Client_core.next_key t.client)
               ~accepts:t.accepts ()
-          with Http_wire.Failed failure -> Worker.Refused (Some failure.code)
+          with Http_wire.Failed failure ->
+            Worker.Refused { code = None; message = failure.message }
         in
         match result with
         | Worker.Held job ->
@@ -209,9 +257,9 @@ let next t =
             activity ();
             t.did_stall <- false;
             let claimed = now t in
-            t.vitals <-
+            t.activity <-
               {
-                t.vitals with
+                t.activity with
                 active_job = Some (job, claimed);
                 last_claim_at = Some claimed;
               };
@@ -219,8 +267,8 @@ let next t =
         | Worker.Empty ->
             Promise.await (fst t.wake);
             claim ()
-        | Worker.Refused reason ->
-            Kept_for_first_reader.say t.refusals reason;
+        | Worker.Refused refusal ->
+            Kept_for_first_reader.say t.refusals refusal;
             Promise.await (fst t.wake);
             claim ()
       in
@@ -240,13 +288,9 @@ let stop ?(settle = true) t =
     Promise.resolve t.stop_now ();
     Option.iter (fun release -> release ()) t.release;
     if settle then
-      Option.iter
-        (fun job ->
-          Worker.fail job ~error:"worker stopped" ~failure_class:None
-            ~completed:None ~cursors:None)
-        t.held;
+      Option.iter (fun job -> Worker.fail job ~error:"worker stopped") t.held;
     t.held <- None;
-    t.vitals <- { t.vitals with active_job = None };
+    t.activity <- { t.activity with active_job = None };
     Kept_for_first_reader.close t.refusals;
     Kept_for_first_reader.close t.stalls)
 

@@ -289,7 +289,9 @@ let run_case ~fixture (row : Units.cases_item) =
                    assoc
                      [
                        ("selector", json pending.selector);
-                       ("motivation", json pending.motivation);
+                       ( "motivation",
+                         `String (Enums.Motivation.to_string pending.motivation)
+                       );
                      ]));
             watch "delegatingMotivation"
               (M.delegating_motivation unit)

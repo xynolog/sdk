@@ -38,13 +38,18 @@ module Pending_authorization_issuer = struct
 end
 
 module Connection_identity = struct
-  type t = { did : string; description : [ `KbDescription ] Models.t }
+  type t = {
+    did : Identifiers.User_id.t;
+    description : [ `KbDescription ] Models.t;
+  }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
     let open Table_codec in
     function
     | `Assoc members ->
-        let* did = required string "did" members in
+        let* did =
+          required (identifier Identifiers.User_id.of_string) "did" members
+        in
         let* description =
           required (model Models.kb_description) "description" members
         in
@@ -56,7 +61,7 @@ module Connection_identity = struct
     fun value ->
       write
         [
-          ("did", Some (json_string value.did));
+          ("did", Some ((json_id Identifiers.User_id.to_string) value.did));
           ("description", Some (json_model value.description));
         ]
 end
@@ -501,9 +506,9 @@ end
 
 module Held_job_record = struct
   type t = {
-    job_id : string;
-    job_type : [ `JobType ] Models.t;
-    resource_id : string;
+    job_id : Identifiers.Job_id.t;
+    job_type : Enums.Job_type.t;
+    resource_id : Identifiers.Resource_id.t;
     params : [ `JobParams ] Models.t;
     completed_units : string list;
     unit_cursors : (string * [ `UnitCursor ] Models.t) list;
@@ -515,9 +520,17 @@ module Held_job_record = struct
     let open Table_codec in
     function
     | `Assoc members ->
-        let* job_id = required string "jobId" members in
-        let* job_type = required (model Models.job_type) "jobType" members in
-        let* resource_id = required string "resourceId" members in
+        let* job_id =
+          required (identifier Identifiers.Job_id.of_string) "jobId" members
+        in
+        let* job_type =
+          required (enum Enums.Job_type.of_string) "jobType" members
+        in
+        let* resource_id =
+          required
+            (identifier Identifiers.Resource_id.of_string)
+            "resourceId" members
+        in
         let* params = required (model Models.job_params) "params" members in
         let* completed_units =
           required (list string) "completedUnits" members
@@ -545,9 +558,11 @@ module Held_job_record = struct
     fun value ->
       write
         [
-          ("jobId", Some (json_string value.job_id));
-          ("jobType", Some (json_model value.job_type));
-          ("resourceId", Some (json_string value.resource_id));
+          ("jobId", Some ((json_id Identifiers.Job_id.to_string) value.job_id));
+          ("jobType", Some ((json_enum Enums.Job_type.to_string) value.job_type));
+          ( "resourceId",
+            Some ((json_id Identifiers.Resource_id.to_string) value.resource_id)
+          );
           ("params", Some (json_model value.params));
           ( "completedUnits",
             Some ((json_list json_string) value.completed_units) );
@@ -559,8 +574,8 @@ end
 
 module Held_job_stall = struct
   type t = {
-    job_id : string;
-    job_type : [ `JobType ] Models.t;
+    job_id : Identifiers.Job_id.t;
+    job_type : Enums.Job_type.t;
     held_since : string;
     last_activity_at : string;
     silent_for_ms : int;
@@ -571,8 +586,12 @@ module Held_job_stall = struct
     let open Table_codec in
     function
     | `Assoc members ->
-        let* job_id = required string "jobId" members in
-        let* job_type = required (model Models.job_type) "jobType" members in
+        let* job_id =
+          required (identifier Identifiers.Job_id.of_string) "jobId" members
+        in
+        let* job_type =
+          required (enum Enums.Job_type.of_string) "jobType" members
+        in
         let* held_since = required string "heldSince" members in
         let* last_activity_at = required string "lastActivityAt" members in
         let* silent_for_ms = required int "silentForMs" members in
@@ -593,8 +612,8 @@ module Held_job_stall = struct
     fun value ->
       write
         [
-          ("jobId", Some (json_string value.job_id));
-          ("jobType", Some (json_model value.job_type));
+          ("jobId", Some ((json_id Identifiers.Job_id.to_string) value.job_id));
+          ("jobType", Some ((json_enum Enums.Job_type.to_string) value.job_type));
           ("heldSince", Some (json_string value.held_since));
           ("lastActivityAt", Some (json_string value.last_activity_at));
           ("silentForMs", Some (json_int value.silent_for_ms));
@@ -658,7 +677,7 @@ module Job_failure = struct
   type t = {
     completed_units : string list option;
     unit_cursors : (string * [ `UnitCursor ] Models.t) list option;
-    failure_class : [ `FailureClass ] Models.t option;
+    failure_class : Enums.Failure_class.t option;
   }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
@@ -672,7 +691,7 @@ module Job_failure = struct
           optional (assoc (model Models.unit_cursor)) "unitCursors" members
         in
         let* failure_class =
-          optional (model Models.failure_class) "failureClass" members
+          optional (enum Enums.Failure_class.of_string) "failureClass" members
         in
         Ok { completed_units; unit_cursors; failure_class }
     | _ -> malformed ""
@@ -685,7 +704,10 @@ module Job_failure = struct
           ( "completedUnits",
             Option.map (json_list json_string) value.completed_units );
           ("unitCursors", Option.map (json_map json_model) value.unit_cursors);
-          ("failureClass", Option.map json_model value.failure_class);
+          ( "failureClass",
+            Option.map
+              (json_enum Enums.Failure_class.to_string)
+              value.failure_class );
         ]
 end
 
@@ -796,7 +818,7 @@ end
 module Pending_annotation = struct
   type t = {
     selector : [ `AnnotationSelector ] Models.t;
-    motivation : [ `Motivation ] Models.t;
+    motivation : Enums.Motivation.t;
   }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
@@ -807,7 +829,7 @@ module Pending_annotation = struct
           required (model Models.annotation_selector) "selector" members
         in
         let* motivation =
-          required (model Models.motivation) "motivation" members
+          required (enum Enums.Motivation.of_string) "motivation" members
         in
         Ok { selector; motivation }
     | _ -> malformed ""
@@ -818,7 +840,8 @@ module Pending_annotation = struct
       write
         [
           ("selector", Some (json_model value.selector));
-          ("motivation", Some (json_model value.motivation));
+          ( "motivation",
+            Some ((json_enum Enums.Motivation.to_string) value.motivation) );
         ]
 end
 
@@ -1061,7 +1084,7 @@ module Upload_progress = struct
   type t =
     | Started of { total_bytes : int }
     | Progress of { bytes_uploaded : int; total_bytes : int }
-    | Finished of { resource_id : string }
+    | Finished of { resource_id : Identifiers.Resource_id.t }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
     let open Table_codec in
@@ -1077,7 +1100,11 @@ module Upload_progress = struct
             let* total_bytes = required int "totalBytes" members in
             Ok (Progress { bytes_uploaded; total_bytes })
         | "finished" ->
-            let* resource_id = required string "resourceId" members in
+            let* resource_id =
+              required
+                (identifier Identifiers.Resource_id.of_string)
+                "resourceId" members
+            in
             Ok (Finished { resource_id })
         | _ -> malformed "phase")
     | _ -> malformed ""
@@ -1102,7 +1129,10 @@ module Upload_progress = struct
         write
           [
             ("phase", Some (json_string "finished"));
-            ("resourceId", Some (json_string value.resource_id));
+            ( "resourceId",
+              Some
+                ((json_id Identifiers.Resource_id.to_string) value.resource_id)
+            );
           ]
 end
 

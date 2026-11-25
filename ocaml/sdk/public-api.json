@@ -116,8 +116,8 @@
     "lib/bus_reply_bounds.ml": "f2b227aadf8284d8a8060f036e4d159f057d26f7ee21dc97af938c699b53d66c",
     "lib/cache_state.ml": "b270721df6ee9432f61bfa450fb280036a1c1a1f880de8eabed84aec0fab8c5a",
     "lib/cache_state.mli": "940957912e84b57a1404ea6adceeb35efbc6ecb7cdc3bd28f5c6e98b24ecb13f",
-    "lib/claims.ml": "dc97d28a2403abdc25b9e6e95fbac4ff6e0f25602db6a7a4698a1833549f7381",
-    "lib/claims.mli": "589d82f757f14584a1855525dca2fe2781f2fb75c73064cd1f5a6f27321a2237",
+    "lib/claims.ml": "b3588f1c699659d33d1cd067485db060e12b04a63bf039b2f366fcefcbe59c26",
+    "lib/claims.mli": "4996e729b6dc400b97b4854e7f00e3b07e8a5a956d67441d2bd6f54d0250cf2d",
     "lib/client.ml": "bd8b8934d2931bd1037c34763287324828ae26e726ecaa832e3e11cbc91340ad",
     "lib/client.mli": "6e08b6b7851820acced98ca320e6ec093455f2d0340828149b2f43e255d30e39",
     "lib/client_core.ml": "d9bf7f2a8530b6b82b232486615a662b42e6ffafdb030e8b7edc7b9e23afe58f",
@@ -148,12 +148,13 @@
     "lib/gather_state.ml": "a05e57b36c0b128cb30f94f70432582326b186f8cebb3e52de37de585f0f3954",
     "lib/gather_state.mli": "f5da939b80588f462f13befe2c6974e46448be17e64bb43bfaabfaf848cfe6ae",
     "lib/graph_schema.ml": "60629639fec1c9666f455a28e28eb511500f519c604d138363bd3b6246837c40",
+    "lib/held_job_members.ml": "956498482537e526b9c0a187437d0c7342ac30423088d882eff2600fc46d097f",
     "lib/host_name.ml": "d4895a9a34e8e1bd70aa25452c24a73efa06e4d648c654d6e52982f8a2bb3635",
     "lib/host_name.mli": "ae48395a873d6cb0d60dc1fce328a283adb07c6e0bb9d7107260a1ae8d57bc69",
     "lib/hover_dwell.ml": "2a8e9fef90c75ce18569793c04f553523e3dc523d53d869ceef4dab6a7702122",
     "lib/hover_dwell.mli": "3bf63911f6482ad960a6e4d3881e4a637caa0d9929dc8d62dbf7b69421fa19af",
     "lib/http_facts.ml": "fa5774ea443d7d01c8a1186238031bc3b90d65e77cf419ecee487eb3dc65fce8",
-    "lib/http_wire.ml": "69b457f05017da7d54887456966c427148b5f2540f99b7db9d8da2114a81b8e1",
+    "lib/http_wire.ml": "3a5f91953fdb1132258bd25a9a97f01a7a48c1d464f4bcbaa472326156a377ac",
     "lib/http_wire.mli": "84d35fa7ac6e419457ceb3784960de7a2b9cd5d845a599f973340de6b1fea165",
     "lib/identifiers.ml": "1ee61e8298715512590d2e8045869efb0687ace6df642970da0d54baffe26448",
     "lib/identifiers.mli": "d344831d9323c9ab0934e9027f4e8269b5d3554ef347c1d71b04cedc65d6a92b",
@@ -171,7 +172,7 @@
     "lib/log_facts.ml": "1bf6dc1bb379d78ebf88e28eaad640364552b8f2f469926f7f62333313d04d97",
     "lib/mark.ml": "7bb5dc6de229d81c29c5349f719a2902263b1026d02a10e274facc4781d82b82",
     "lib/mark.mli": "daa70a35284997cf8b5796bda5f3262c19e8690a40090dc415729c4e3dddbbb3",
-    "lib/mark_state.ml": "6cbd44642fe6813f5e5087ffd4dce61014ba9e33cdc59f62ab433d9d92d5de09",
+    "lib/mark_state.ml": "6b89a6e7ff15ecfc90bb565b335db6297e23547ed31f284ba547781f208b55f3",
     "lib/mark_state.mli": "bf975ad19fabb066cc94f6815911fe1fd39c7fcfd8274525a97539af770e5afb",
     "lib/match.ml": "688566865cf768c0b4bfb6cddeda957366e7dedce57ddd19d8a2588927f821e6",
     "lib/match.mli": "54ac094a6a9f8e8a09b7bc5f175ae198788c3d82b9b80a1f7efc9014fd135179",
@@ -189,10 +190,10 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "9d1d2fe37db6cbb5c0d955a6339de629624f5bcb64fd66ee13894b8de55d67ae",
+    "lib/records.ml": "2100ce3678992a6896e6317d1afa9534352969c6d0e3a51eaa4e763f2ac9a892",
     "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
-    "lib/registry.ml": "cbb2d6ccd19fd62371e52c7d5a02f4e2fa07b26db97762b2b836db49db66bc7e",
+    "lib/registry.ml": "616898eab847dbcdaddcdd7645ba68226bea598b67b398e44d0cc866f8c570e9",
     "lib/registry.mli": "9b95a73c33583b9e737263db624a5fff5d441076ce74c134deaa119afdcef60d",
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "b5304c8b1d16637743f5036069431ea2b0f4f5ef4d856e76d14583178bf506f5",
@@ -244,7 +245,7 @@
     "lib/subscription.ml": "9983c994547862c90e13e4b623828189ce9d2e7e72da14daf50f0e8fc69e9ecf",
     "lib/subscription.mli": "6a87af157d49f51fad7c42eb99d36c6546625babd5c4a87fe30681077b9d3879",
     "lib/system.ml": "2b48cd685aa8882505bcdb8b75ba376730082ff377aeb67caeaabde6b4070459",
-    "lib/table_codec.ml": "5d531832dabb14a698a0fa75c2e4f40c3d94935a0d392c8ed37c51d06ad4ea30",
+    "lib/table_codec.ml": "00d65005b735387ad5496622991fbed9e3be9847cae6938df4af37324f95187b",
     "lib/telemetry.ml": "34a37e065b0e01d85e631334204d4f6df3432544a3909227ee3e9722841c6e61",
     "lib/telemetry.mli": "621a2b22cc1c772d6759995561e88c666d566da26e7fdfc026459912b0b5d6db",
     "lib/telemetry_facts.ml": "abd1ec8dd54a246db71223dcf1cb7b4085df79c48de53dca7a36f5a747ee0f83",
@@ -261,8 +262,8 @@
     "lib/upload.mli": "2da3e555f0e86db3441a21ce158920509c48a0bafd9d446d8c9d5dc428b658c6",
     "lib/wire_stream.ml": "cf1f72d3c871ab9d305d229b9fe8c2e0cbd34c346062cb846d66fc2ca4a893b9",
     "lib/wire_stream.mli": "9f3d5ac3500f9829c589430fedf9de25742dc4d5db4a33aa1b7b5e06ed85a9d0",
-    "lib/worker.ml": "3acaa5ad15acb2a393ecfbf05483ef45a0047622225e5e0cc802f6db6ceb4f16",
-    "lib/worker.mli": "1125a2e3b6dda1e77c3a4f35fbb5ea43303b2fa95b52f674458e05769a6aa8fb",
+    "lib/worker.ml": "672c55f9cd8f847fa56d891b329f56e69901e6c1ffa40d9c5274a803cbd3ad31",
+    "lib/worker.mli": "10f7f47a4e945da088c9d5c00c4fe59a65e1427599e46c77f6f93dd7e7b1ff28",
     "lib/worker_answer_formats.ml": "da2a821edb0788848608a6195f7fb7f2109cdeac8e29223064da7fcba0efaebe",
     "lib/worker_facts.ml": "2d7077df05d7d6f8099e878b30a29fefadb5d78f4078a57e9aa878cacb81557e",
     "lib/worker_messages.ml": "f1afd7b85f6a93528e39a878d15d51c8047c00320f07417fd85ccef28554cfc7",
@@ -6320,12 +6321,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Connection_identity",
-      "declaration": "module Connection_identity :\n  sig\n    type t = {\n      did : string;\n      description : [ `KbDescription ] Xynolog__.Models.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Connection_identity :\n  sig\n    type t = {\n      did : Xynolog__.Identifiers.User_id.t;\n      description : [ `KbDescription ] Xynolog__.Models.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Connection_identity.t",
-      "declaration": "type t = {\n  did : string;\n  description : [ `KbDescription ] Xynolog__.Models.t;\n}",
+      "declaration": "type t = {\n  did : Xynolog__.Identifiers.User_id.t;\n  description : [ `KbDescription ] Xynolog__.Models.t;\n}",
       "representation": "record",
       "fields": [
         "did",
@@ -6748,12 +6749,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Held_job_record",
-      "declaration": "module Held_job_record :\n  sig\n    type t = {\n      job_id : string;\n      job_type : [ `JobType ] Xynolog__.Models.t;\n      resource_id : string;\n      params : [ `JobParams ] Xynolog__.Models.t;\n      completed_units : string list;\n      unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list;\n      retry_count : int;\n      max_retries : int;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Held_job_record :\n  sig\n    type t = {\n      job_id : Xynolog__.Identifiers.Job_id.t;\n      job_type : Xynolog__.Enums.Job_type.t;\n      resource_id : Xynolog__.Identifiers.Resource_id.t;\n      params : [ `JobParams ] Xynolog__.Models.t;\n      completed_units : string list;\n      unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list;\n      retry_count : int;\n      max_retries : int;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Held_job_record.t",
-      "declaration": "type t = {\n  job_id : string;\n  job_type : [ `JobType ] Xynolog__.Models.t;\n  resource_id : string;\n  params : [ `JobParams ] Xynolog__.Models.t;\n  completed_units : string list;\n  unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list;\n  retry_count : int;\n  max_retries : int;\n}",
+      "declaration": "type t = {\n  job_id : Xynolog__.Identifiers.Job_id.t;\n  job_type : Xynolog__.Enums.Job_type.t;\n  resource_id : Xynolog__.Identifiers.Resource_id.t;\n  params : [ `JobParams ] Xynolog__.Models.t;\n  completed_units : string list;\n  unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list;\n  retry_count : int;\n  max_retries : int;\n}",
       "representation": "record",
       "fields": [
         "job_id",
@@ -6779,12 +6780,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Held_job_stall",
-      "declaration": "module Held_job_stall :\n  sig\n    type t = {\n      job_id : string;\n      job_type : [ `JobType ] Xynolog__.Models.t;\n      held_since : string;\n      last_activity_at : string;\n      silent_for_ms : int;\n      threshold_ms : int;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Held_job_stall :\n  sig\n    type t = {\n      job_id : Xynolog__.Identifiers.Job_id.t;\n      job_type : Xynolog__.Enums.Job_type.t;\n      held_since : string;\n      last_activity_at : string;\n      silent_for_ms : int;\n      threshold_ms : int;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Held_job_stall.t",
-      "declaration": "type t = {\n  job_id : string;\n  job_type : [ `JobType ] Xynolog__.Models.t;\n  held_since : string;\n  last_activity_at : string;\n  silent_for_ms : int;\n  threshold_ms : int;\n}",
+      "declaration": "type t = {\n  job_id : Xynolog__.Identifiers.Job_id.t;\n  job_type : Xynolog__.Enums.Job_type.t;\n  held_since : string;\n  last_activity_at : string;\n  silent_for_ms : int;\n  threshold_ms : int;\n}",
       "representation": "record",
       "fields": [
         "job_id",
@@ -6858,12 +6859,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Job_failure",
-      "declaration": "module Job_failure :\n  sig\n    type t = {\n      completed_units : string list option;\n      unit_cursors :\n        (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n      failure_class : [ `FailureClass ] Xynolog__.Models.t option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Job_failure :\n  sig\n    type t = {\n      completed_units : string list option;\n      unit_cursors :\n        (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n      failure_class : Xynolog__.Enums.Failure_class.t option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Job_failure.t",
-      "declaration": "type t = {\n  completed_units : string list option;\n  unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n  failure_class : [ `FailureClass ] Xynolog__.Models.t option;\n}",
+      "declaration": "type t = {\n  completed_units : string list option;\n  unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n  failure_class : Xynolog__.Enums.Failure_class.t option;\n}",
       "representation": "record",
       "fields": [
         "completed_units",
@@ -6987,12 +6988,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Pending_annotation",
-      "declaration": "module Pending_annotation :\n  sig\n    type t = {\n      selector : [ `AnnotationSelector ] Xynolog__.Models.t;\n      motivation : [ `Motivation ] Xynolog__.Models.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Pending_annotation :\n  sig\n    type t = {\n      selector : [ `AnnotationSelector ] Xynolog__.Models.t;\n      motivation : Xynolog__.Enums.Motivation.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Pending_annotation.t",
-      "declaration": "type t = {\n  selector : [ `AnnotationSelector ] Xynolog__.Models.t;\n  motivation : [ `Motivation ] Xynolog__.Models.t;\n}",
+      "declaration": "type t = {\n  selector : [ `AnnotationSelector ] Xynolog__.Models.t;\n  motivation : Xynolog__.Enums.Motivation.t;\n}",
       "representation": "record",
       "fields": [
         "selector",
@@ -7192,12 +7193,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Upload_progress",
-      "declaration": "module Upload_progress :\n  sig\n    type t =\n        Started of { total_bytes : int; }\n      | Progress of { bytes_uploaded : int; total_bytes : int; }\n      | Finished of { resource_id : string; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Upload_progress :\n  sig\n    type t =\n        Started of { total_bytes : int; }\n      | Progress of { bytes_uploaded : int; total_bytes : int; }\n      | Finished of { resource_id : Xynolog__.Identifiers.Resource_id.t; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Upload_progress.t",
-      "declaration": "type t =\n    Started of { total_bytes : int; }\n  | Progress of { bytes_uploaded : int; total_bytes : int; }\n  | Finished of { resource_id : string; }",
+      "declaration": "type t =\n    Started of { total_bytes : int; }\n  | Progress of { bytes_uploaded : int; total_bytes : int; }\n  | Finished of { resource_id : Xynolog__.Identifiers.Resource_id.t; }",
       "representation": "variant",
       "constructors": [
         "Started",
@@ -33623,7 +33624,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Worker.claim",
-      "declaration": "type claim = Held of held | Empty | Refused of string option",
+      "declaration": "type claim =\n    Held of held\n  | Empty\n  | Refused of Xynolog__.Records.Claim_refusal.t",
       "representation": "variant",
       "constructors": [
         "Held",
@@ -33650,6 +33651,51 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Worker.record",
+      "declaration": "val record : held -> Xynolog__.Records.Held_job_record.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.job_id",
+      "declaration": "val job_id : held -> Xynolog__.Identifiers.Job_id.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.job_type",
+      "declaration": "val job_type : held -> Xynolog__.Enums.Job_type.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.resource_id",
+      "declaration": "val resource_id : held -> Xynolog__.Identifiers.Resource_id.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.params",
+      "declaration": "val params : held -> [ `JobParams ] Xynolog__.Models.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.completed_units",
+      "declaration": "val completed_units : held -> string list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.unit_cursors",
+      "declaration": "val unit_cursors : held -> (string * [ `UnitCursor ] Xynolog__.Models.t) list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.retry_count",
+      "declaration": "val retry_count : held -> int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.max_retries",
+      "declaration": "val max_retries : held -> int"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Worker.accepts",
       "declaration": "val accepts : filters:Yojson.Safe.t -> announcement:Yojson.Safe.t -> bool"
     },
@@ -33657,11 +33703,6 @@
       "kind": "value",
       "path": "Xynolog.Worker.claim",
       "declaration": "val claim :\n  Xynolog__.Subscription.t ->\n  Xynolog__.Http_wire.t ->\n  client_id:string ->\n  correlation_id:string ->\n  ?trace:Xynolog__.Records.Trace_carrier.t ->\n  ?on_activity:(unit -> unit) ->\n  ?on_settled:(bool -> unit) ->\n  ?timeout_ms:int -> accepts:Yojson.Safe.t -> unit -> claim"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.view",
-      "declaration": "val view : held -> Yojson.Safe.t"
     },
     {
       "kind": "value",
@@ -33686,7 +33727,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Worker.checkpoint",
-      "declaration": "val checkpoint :\n  held -> completed:Yojson.Safe.t -> cursors:Yojson.Safe.t -> unit"
+      "declaration": "val checkpoint : held -> Xynolog__.Records.Job_checkpoint.t -> unit"
     },
     {
       "kind": "value",
@@ -33701,12 +33742,12 @@
     {
       "kind": "value",
       "path": "Xynolog.Worker.cancel",
-      "declaration": "val cancel : held -> completed:Yojson.Safe.t option -> unit"
+      "declaration": "val cancel : ?reached:Xynolog__.Records.Job_reached.t -> held -> unit"
     },
     {
       "kind": "value",
       "path": "Xynolog.Worker.fail",
-      "declaration": "val fail :\n  held ->\n  error:string ->\n  failure_class:Xynolog__.Enums.Failure_class.t option ->\n  completed:Yojson.Safe.t option -> cursors:Yojson.Safe.t option -> unit"
+      "declaration": "val fail :\n  ?failure:Xynolog__.Records.Job_failure.t -> held -> error:string -> unit"
     },
     {
       "kind": "value",
@@ -33732,46 +33773,6 @@
       "kind": "value",
       "path": "Xynolog.Worker.is_settled",
       "declaration": "val is_settled : held -> bool"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.job_id",
-      "declaration": "val job_id : held -> Xynolog__.Identifiers.Job_id.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.job_type",
-      "declaration": "val job_type : held -> Xynolog__.Enums.Job_type.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.resource_id",
-      "declaration": "val resource_id : held -> Xynolog__.Identifiers.Resource_id.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.params",
-      "declaration": "val params : held -> Yojson.Safe.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.completed_units",
-      "declaration": "val completed_units : held -> string list"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.unit_cursors",
-      "declaration": "val unit_cursors : held -> Yojson.Safe.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.retry_count",
-      "declaration": "val retry_count : held -> int"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.max_retries",
-      "declaration": "val max_retries : held -> int"
     },
     {
       "kind": "value",
@@ -38348,33 +38349,19 @@
       "declaration": "val will_retry_after :\n  retry_count:int ->\n  max_retries:int -> Xynolog__.Enums.Failure_class.t option -> bool"
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Claims.vitals",
-      "declaration": "type vitals = {\n  last_queued_event_at : float option;\n  last_claim_at : float option;\n  last_finished_at : float option;\n  last_activity_at : float option;\n  active_job : (Xynolog__.Worker.held * float) option;\n  jobs_completed : int;\n}",
-      "representation": "record",
-      "fields": [
-        "last_queued_event_at",
-        "last_claim_at",
-        "last_finished_at",
-        "last_activity_at",
-        "active_job",
-        "jobs_completed"
-      ]
-    },
-    {
       "kind": "value",
       "path": "Xynolog.Claims.refused",
-      "declaration": "val refused :\n  t ->\n  on_value:(string option -> unit) -> on_close:(unit -> unit) -> unit -> unit"
+      "declaration": "val refused :\n  t ->\n  on_value:(Xynolog__.Records.Claim_refusal.t -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
     },
     {
       "kind": "value",
       "path": "Xynolog.Claims.stalled",
-      "declaration": "val stalled :\n  t ->\n  on_value:(Xynolog__.Worker.held -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
+      "declaration": "val stalled :\n  t ->\n  on_value:(Xynolog__.Records.Held_job_stall.t -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
     },
     {
       "kind": "value",
       "path": "Xynolog.Claims.vitals",
-      "declaration": "val vitals : t -> vitals"
+      "declaration": "val vitals : t -> Xynolog__.Records.Worker_vitals.t"
     },
     {
       "kind": "module",

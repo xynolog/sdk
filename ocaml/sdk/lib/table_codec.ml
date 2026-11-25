@@ -21,6 +21,10 @@ let enum of_string member json =
   let* text = string member json in
   match of_string text with Some value -> Ok value | None -> malformed member
 
+let identifier of_string member json =
+  let* text = string member json in
+  match of_string text with Ok value -> Ok value | Error _ -> malformed member
+
 let record of_json member json = Result.map_error (within member) (of_json json)
 
 let model descriptor member json =
@@ -70,6 +74,7 @@ let json_bool value = `Bool value
 let json_int value = `Int value
 let json_float value = `Float value
 let json_enum to_string value = `String (to_string value)
+let json_id to_string value = `String (to_string value)
 let json_model value = Yojson.Safe.from_string (Models.encode value)
 let json_list write values = `List (List.map write values)
 

@@ -446,13 +446,16 @@ let put t ~fields ~bytes ~on_progress =
           ~attempts:2 ~initial_delay:Client_timing.request_retry_pause_ms
           Gateway_http.upload_resource read_text
       in
-      match Models.decode Models.create_resource_response answer with
-      | Ok response ->
-          let created = Records.Create_resource_response.of_model response in
-          on_progress
-            (Records.Upload_progress.Finished
-               { resource_id = created.resource_id });
+      match
+        Result.map
+          (fun response ->
+            Identifiers.Resource_id.of_string
+              (Records.Create_resource_response.of_model response).resource_id)
+          (Models.decode Models.create_resource_response answer)
+      with
+      | Ok (Ok resource_id) ->
+          on_progress (Records.Upload_progress.Finished { resource_id });
           answer
-      | Error _ ->
+      | Ok (Error _) | Error _ ->
           fail t ~message:"The gateway's answer to the upload names no resource"
             Error_codes.Transport.error)

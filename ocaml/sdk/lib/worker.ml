@@ -7,13 +7,7 @@ type held = {
   http : Http_wire.t;
   client_id : string;
   trace : Records.Trace_carrier.t option;
-  metadata : Yojson.Safe.t;
-  params : Yojson.Safe.t;
-  job_id : Identifiers.Job_id.t;
-  resource : Identifiers.Resource_id.t;
-  verb : Enums.Job_type.t;
-  retry_count : int;
-  max_retries : int;
+  record : Records.Held_job_record.t;
   lock : Eio.Mutex.t;
   on_activity : unit -> unit;
   on_settled : bool -> unit;
@@ -23,18 +17,18 @@ type held = {
   mutable durability : (int * Enums.Durability_evidence.t) option;
 }
 
-type claim = Held of held | Empty | Refused of string option
+type claim = Held of held | Empty | Refused of Records.Claim_refusal.t
 
-let string name value = J.member name value |> J.to_string
-let int name value = J.member name value |> J.to_int
+include Held_job_members.Held_job_record.Make (struct
+  type t = held
 
-let optional name value =
-  match J.member name value with `Null -> None | value -> Some value
+  let record job = job.record
+end)
 
 let text value = `String value
 let trace job = job.trace
-let id job = Identifiers.Job_id.to_string job.job_id
-let kind job = Enums.Job_type.to_string job.verb
+let id job = Identifiers.Job_id.to_string (job_id job)
+let attempt job = retry_count job + 1
 
 let accepts ~filters ~announcement =
   let verb = J.member "jobType" announcement in
@@ -73,73 +67,89 @@ let claim subscription http ~client_id ~correlation_id ?trace
     Subscription.request subscription ~timeout_ms ~correlation_id operation
       ~send
   with
-  | Error Subscription.Timeout -> Refused (Some Error_codes.Bus_request.timeout)
-  | Error _ -> Refused None
-  | Ok (Subscription.Failure payload) ->
-      let code = Http_wire.bus_failure payload in
-      if code = Error_codes.Bus_request.none_pending then Empty
-      else Refused (Some code)
+  | Error Subscription.Timeout ->
+      Refused
+        {
+          code = Some Error_codes.Bus_request.Timeout;
+          message = "The claim had no answer within its timeout.";
+        }
+  | Error _ ->
+      Refused { code = None; message = "The claim ended with no answer." }
+  | Ok (Subscription.Failure payload) -> (
+      match
+        ( Error_codes.Bus_request.of_code (Http_wire.bus_failure payload),
+          Models.decode Models.command_error (B.encode payload) )
+      with
+      | Some Error_codes.Bus_request.None_pending, _ -> Empty
+      | code, Ok failure ->
+          Refused
+            { code; message = (Records.Command_error.of_model failure).message }
+      | _, Error _ ->
+          Refused
+            {
+              code = None;
+              message = "The claim's refusal is not a CommandError.";
+            })
   | Ok (Subscription.Result payload) -> (
-      try
-        let response =
-          J.member "response" (Yojson.Safe.from_string (B.encode payload))
-        in
-        let metadata = J.member "metadata" response in
-        let params = J.member "params" response in
-        let job_id =
-          Result.get_ok (Identifiers.Job_id.of_string (string "id" metadata))
-        in
-        let resource =
-          Result.get_ok
-            (Identifiers.Resource_id.of_string (string "resourceId" params))
-        in
-        let verb =
-          Option.get (Enums.Job_type.of_string (string "type" metadata))
-        in
-        Held
-          {
-            http;
-            client_id;
-            trace;
-            metadata;
-            params;
-            job_id;
-            resource;
-            verb;
-            retry_count = int "retryCount" metadata;
-            max_retries = int "maxRetries" metadata;
-            lock = Eio.Mutex.create ();
-            on_activity;
-            on_settled;
-            settled = Eio.Promise.create ();
-            phase = Claimed;
-            cancellation = State_value.make false;
-            durability = None;
-          }
-      with J.Type_error _ | Invalid_argument _ -> Refused None)
-
-let view job =
-  let default name fallback =
-    Option.value (optional name job.metadata) ~default:fallback
-  in
-  `Assoc
-    [
-      ("jobId", text (id job));
-      ("jobType", text (kind job));
-      ("resourceId", text (Identifiers.Resource_id.to_string job.resource));
-      ("params", job.params);
-      ("completedUnits", default "completedUnits" (`List []));
-      ("unitCursors", default "unitCursors" (`Assoc []));
-      ("retryCount", `Int job.retry_count);
-      ("maxRetries", `Int job.max_retries);
-    ]
+      let refused () =
+        Refused
+          { code = None; message = "The claim's answer is not a held job." }
+      in
+      match
+        J.member "response" (Yojson.Safe.from_string (B.encode payload))
+      with
+      | exception J.Type_error _ -> refused ()
+      | response -> (
+          let metadata = J.member "metadata" response in
+          let params = J.member "params" response in
+          (* Both appear on the metadata once an attempt has checkpointed.
+             Absent, each is none. *)
+          let stated name none =
+            match J.member name metadata with `Null -> none | value -> value
+          in
+          match
+            Records.Held_job_record.of_json
+              (`Assoc
+                 [
+                   ("jobId", J.member "id" metadata);
+                   ("jobType", J.member "type" metadata);
+                   ("resourceId", J.member "resourceId" params);
+                   ("params", params);
+                   ("completedUnits", stated "completedUnits" (`List []));
+                   ("unitCursors", stated "unitCursors" (`Assoc []));
+                   ("retryCount", J.member "retryCount" metadata);
+                   ("maxRetries", J.member "maxRetries" metadata);
+                 ])
+          with
+          | exception J.Type_error _ -> refused ()
+          | Error _ -> refused ()
+          | Ok record ->
+              Held
+                {
+                  http;
+                  client_id;
+                  trace;
+                  record;
+                  lock = Eio.Mutex.create ();
+                  on_activity;
+                  on_settled;
+                  settled = Eio.Promise.create ();
+                  phase = Claimed;
+                  cancellation = State_value.make false;
+                  durability = None;
+                }))
 
 let identity job =
   [
-    ("resourceId", text (Identifiers.Resource_id.to_string job.resource));
+    ("resourceId", text (Identifiers.Resource_id.to_string (resource_id job)));
     ("jobId", text (id job));
-    ("jobType", text (kind job));
+    ("jobType", text (Enums.Job_type.to_string (job_type job)));
   ]
+
+(* The members [to_json] writes of a record, which is an object. *)
+let members = function
+  | `Assoc members -> members
+  | _ -> invalid_arg "a record is written as an object"
 
 let send job channel fields =
   ignore
@@ -148,8 +158,7 @@ let send job channel fields =
   job.on_activity ()
 
 let lifecycle job channel fields =
-  send job channel
-    ((("attempt", `Int (job.retry_count + 1)) :: identity job) @ fields)
+  send job channel ((("attempt", `Int (attempt job)) :: identity job) @ fields)
 
 let locked job f = Eio.Mutex.use_rw ~protect:false job.lock f
 
@@ -171,14 +180,11 @@ let progress job ~percentage ~message =
       lifecycle job B.Channels.job_report_progress
         [ ("percentage", percentage); ("progress", `Assoc detail) ])
 
-let checkpoint job ~completed ~cursors =
+let checkpoint job reached =
   running job (fun () ->
       send job B.Channels.job_checkpoint
-        [
-          ("jobId", text (id job));
-          ("completedUnits", completed);
-          ("unitCursors", cursors);
-        ])
+        (("jobId", text (id job))
+        :: members (Records.Job_checkpoint.to_json reached)))
 
 let commit job subscription ~correlation_id
     ?(timeout_ms = Client_timing.mark_commit_timeout_ms) ~resource ~annotations
@@ -262,12 +268,13 @@ let complete job result =
       lifecycle job B.Channels.job_complete
         (("result", result) :: durability job))
 
-let cancel job ~completed =
+let cancel ?reached job =
   settle job ~completed:false (fun () ->
       send job B.Channels.job_cancel
         (identity job
-        @ Option.to_list
-            (Option.map (fun value -> ("completedUnits", value)) completed)))
+        @ Option.fold ~none:[]
+            ~some:(fun reached -> members (Records.Job_reached.to_json reached))
+            reached))
 
 let will_retry_after ~retry_count ~max_retries failure_class =
   retry_count < max_retries
@@ -277,24 +284,18 @@ let will_retry_after ~retry_count ~max_retries failure_class =
       false
   | _ -> true
 
-let fail job ~error ~failure_class ~completed ~cursors =
-  let optional name value = Option.map (fun value -> (name, value)) value in
+let fail ?failure job ~error =
   let will_retry =
-    will_retry_after ~retry_count:job.retry_count ~max_retries:job.max_retries
-      failure_class
+    will_retry_after ~retry_count:(retry_count job)
+      ~max_retries:(max_retries job)
+      (Option.bind failure (fun (failure : Records.Job_failure.t) ->
+           failure.failure_class))
   in
   let fields =
-    List.filter_map Fun.id
-      [
-        Some ("error", text error);
-        Some ("willRetry", `Bool will_retry);
-        optional "failureClass"
-          (Option.map
-             (fun value -> text (Enums.Failure_class.to_string value))
-             failure_class);
-        optional "completedUnits" completed;
-        optional "unitCursors" cursors;
-      ]
+    [ ("error", text error); ("willRetry", `Bool will_retry) ]
+    @ Option.fold ~none:[]
+        ~some:(fun failure -> members (Records.Job_failure.to_json failure))
+        failure
   in
   settle job ~completed:false (fun () ->
       lifecycle job B.Channels.job_fail (fields @ durability job))
@@ -303,31 +304,22 @@ let default_stall_ms = Client_timing.held_job_stall_ms
 let default_stall_check_ms = Client_timing.held_job_stall_check_ms
 let await_settled job = Eio.Promise.await (fst job.settled)
 let is_settled job = job.phase = Settled
-let job_id job = job.job_id
-let job_type job = job.verb
-let resource_id job = job.resource
-let params job = job.params
-
-let completed_units job =
-  J.member "completedUnits" (view job) |> J.to_list |> List.map J.to_string
-
-let unit_cursors job = J.member "unitCursors" (view job)
-let retry_count job = job.retry_count
-let max_retries job = job.max_retries
-let attempt job = job.retry_count + 1
 
 let annotation_id job =
-  Option.bind (optional "annotationId" job.params) (function
-    | `String value ->
-        Result.to_option (Identifiers.Annotation_id.of_string value)
-    | _ -> None)
+  match
+    J.member "annotationId"
+      (Yojson.Safe.from_string (Models.encode (params job)))
+  with
+  | `String value ->
+      Result.to_option (Identifiers.Annotation_id.of_string value)
+  | _ -> None
 
 let cancelled job = State_value.get (fst job.cancellation)
 let notify_cancelled job = State_value.set (snd job.cancellation) true
 let settled = is_settled
 
 let complete_for verb job result =
-  if job.verb <> verb then invalid_arg "result belongs to another job verb";
+  if job_type job <> verb then invalid_arg "result belongs to another job verb";
   complete job (Yojson.Safe.from_string (Models.encode result))
 
 module Mark = struct

@@ -1,7 +1,10 @@
 (** A claimed job and its serialized lifecycle over the typed wire. *)
 
 type held
-type claim = Held of held | Empty | Refused of string option
+type claim = Held of held | Empty | Refused of Records.Claim_refusal.t
+
+include Held_job_members.Held_job_record.S with type held := held
+(** A held job's record, and each of its members. *)
 
 val accepts : filters:Yojson.Safe.t -> announcement:Yojson.Safe.t -> bool
 
@@ -18,14 +21,11 @@ val claim :
   unit ->
   claim
 
-val view : held -> Yojson.Safe.t
 val trace : held -> Records.Trace_carrier.t option
 val id : held -> string
 val start : held -> unit
 val progress : held -> percentage:int -> message:Yojson.Safe.t option -> unit
-
-val checkpoint :
-  held -> completed:Yojson.Safe.t -> cursors:Yojson.Safe.t -> unit
+val checkpoint : held -> Records.Job_checkpoint.t -> unit
 
 val commit :
   held ->
@@ -38,15 +38,13 @@ val commit :
   (unit, string) result
 
 val complete : held -> Yojson.Safe.t -> unit
-val cancel : held -> completed:Yojson.Safe.t option -> unit
 
-val fail :
-  held ->
-  error:string ->
-  failure_class:Enums.Failure_class.t option ->
-  completed:Yojson.Safe.t option ->
-  cursors:Yojson.Safe.t option ->
-  unit
+val cancel : ?reached:Records.Job_reached.t -> held -> unit
+(** Cancel the job, saying how far it got when [reached] says so. *)
+
+val fail : ?failure:Records.Job_failure.t -> held -> error:string -> unit
+(** Fail the job, saying how far it got and how it failed when [failure] says
+    so. *)
 
 val default_stall_ms : int
 val default_stall_check_ms : int
@@ -56,14 +54,6 @@ val will_retry_after :
   retry_count:int -> max_retries:int -> Enums.Failure_class.t option -> bool
 
 val is_settled : held -> bool
-val job_id : held -> Identifiers.Job_id.t
-val job_type : held -> Enums.Job_type.t
-val resource_id : held -> Identifiers.Resource_id.t
-val params : held -> Yojson.Safe.t
-val completed_units : held -> string list
-val unit_cursors : held -> Yojson.Safe.t
-val retry_count : held -> int
-val max_retries : held -> int
 val attempt : held -> int
 val annotation_id : held -> Identifiers.Annotation_id.t option
 val cancelled : held -> bool

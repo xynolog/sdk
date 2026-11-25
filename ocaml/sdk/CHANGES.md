@@ -58,6 +58,26 @@ the coming release's, and gathers its changes as they land.
   `Records.Knowledge_base_status.Placement` and `Records.Target.Kind`;
   `Enums.Inference_provider` names an inference provider, in place of
   `Records.Engine.Provider`.
+- A held job is its record, the generated `Records.Held_job_record.t`:
+  `Worker.record` returns it, and `Worker.job_id`, `job_type`, `resource_id`,
+  `params`, `completed_units`, `unit_cursors`, `retry_count` and
+  `max_retries` each read its member, as it types it. `Worker.params` is the
+  job's `[ \`JobParams ] Models.t` and `Worker.unit_cursors` a list of
+  `[ \`UnitCursor ] Models.t`, in place of JSON. `Worker.view` is gone.
+- `Worker.checkpoint` takes a `Records.Job_checkpoint.t`, `Worker.fail` an
+  optional `~failure:Records.Job_failure.t`, and `Worker.cancel` an optional
+  `~reached:Records.Job_reached.t`, in place of `~completed`, `~cursors` and
+  `~failure_class`. Each command carries every member of its record.
+- `Claims.vitals` is the generated `Records.Worker_vitals.t`, its times
+  date-times, in place of `Claims.vitals`'s seconds since the epoch;
+  `Claims.refused` says a `Records.Claim_refusal.t` (its code and message) in
+  place of a code; `Claims.stalled` says a `Records.Held_job_stall.t` in place
+  of the held job. `Worker.claim`'s `Refused` carries the refusal.
+- Each table record of `Records` holds an id member as its
+  `Identifiers` kind (`Records.Held_job_stall.job_id` is an
+  `Identifiers.Job_id.t`) and a member that names a string enum Protocol
+  roots as its `Enums` type (`Records.Job_failure.failure_class` is an
+  `Enums.Failure_class.t`), in place of a string and a `Models.t`.
 - `Annotations.span_refusal` is `Error_codes.Span_refusal.t`, the
   generated vocabulary, in place of a variant of its own.
 - A member that holds null where its schema does not allow null is refused

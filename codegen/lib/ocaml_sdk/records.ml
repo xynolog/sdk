@@ -358,6 +358,7 @@ type base =
   | Int_base
   | Float_base
   | Enum_base of string  (** its module *)
+  | Id_base of string  (** its module of Identifiers *)
   | Code_base of string  (** its module of Error_codes *)
   | Record_base of string  (** its module *)
   | Model_base of string  (** its component *)
@@ -410,7 +411,11 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
         | None, Some m -> (Record_base m, Some m)
         | None, None when rooted name -> (
             match (typing.find name).form with
-            | T.Alias (T.Scalar (T.Text _)) | T.Identifier _ -> (Text_base, None)
+            | T.Alias (T.Scalar (T.Text _)) -> (Text_base, None)
+            | T.Identifier _ ->
+                (Id_base (Identifiers.Ocaml.module_name name), None)
+            | T.Enum { base = Some (T.Text _); _ } ->
+                (Enum_base (Enums.module_name name), None)
             | _ -> (Model_base name, None))
         | None, None ->
             refuse key at "names no schema the OCaml SDK has a type for")
@@ -858,6 +863,7 @@ let rec base_type = function
   | Int_base -> O.type_ "int"
   | Float_base -> O.type_ "float"
   | Enum_base m -> O.type_ ("Enums." ^ m ^ ".t")
+  | Id_base m -> O.type_ ("Identifiers." ^ m ^ ".t")
   | Code_base m -> O.type_ ("Error_codes." ^ m ^ ".t")
   | Record_base m -> O.type_ (m ^ ".t")
   | Model_base c -> O.type_ "Models.t" ~args:[ O.tags [ c ] ]
@@ -871,6 +877,8 @@ let rec base_reader = function
   | Int_base -> O.ident "int"
   | Float_base -> O.ident "float"
   | Enum_base m -> O.call "enum" [ O.ident ("Enums." ^ m ^ ".of_string") ]
+  | Id_base m ->
+      O.call "identifier" [ O.ident ("Identifiers." ^ m ^ ".of_string") ]
   | Code_base m -> O.call "enum" [ O.ident ("Error_codes." ^ m ^ ".of_code") ]
   | Record_base m -> O.call "record" [ O.ident (m ^ ".of_json") ]
   | Model_base c -> O.call "model" [ descriptor c ]
@@ -883,6 +891,8 @@ let rec base_writer = function
   | Int_base -> O.ident "json_int"
   | Float_base -> O.ident "json_float"
   | Enum_base m -> O.call "json_enum" [ O.ident ("Enums." ^ m ^ ".to_string") ]
+  | Id_base m ->
+      O.call "json_id" [ O.ident ("Identifiers." ^ m ^ ".to_string") ]
   | Code_base m -> O.call "json_enum" [ O.ident ("Error_codes." ^ m ^ ".code") ]
   | Record_base m -> O.ident (m ^ ".to_json")
   | Model_base _ -> O.ident "json_model"
@@ -904,6 +914,7 @@ let codec_names =
     "int";
     "float";
     "enum";
+    "identifier";
     "record";
     "model";
     "list";

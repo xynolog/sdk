@@ -1057,14 +1057,18 @@ let claims_refused () =
   Fiber.fork ~sw (fun () -> assert (Option.is_none (Claims.next claims)));
   Promise.await all_said;
   let first = ref [] and later = Eio.Stream.create max_int and ended = ref [] in
+  let code (refusal : Records.Claim_refusal.t) =
+    Option.map Error_codes.Bus_request.code refusal.code
+  in
   let _release =
     Claims.refused claims
-      ~on_value:(fun code -> first := code :: !first)
+      ~on_value:(fun refusal -> first := code refusal :: !first)
       ~on_close:(fun () -> ended := "first" :: !ended)
   in
   let _release =
-    Claims.refused claims ~on_value:(Eio.Stream.add later) ~on_close:(fun () ->
-        ended := "later" :: !ended)
+    Claims.refused claims
+      ~on_value:(fun refusal -> Eio.Stream.add later (code refusal))
+      ~on_close:(fun () -> ended := "later" :: !ended)
   in
   let let_go =
     Claims.refused claims
@@ -1158,21 +1162,21 @@ let claims_stalled () =
     pass mono clock (2 * stall_ms);
     job
   in
-  let settle job =
-    Worker.fail job ~error:"stalled" ~failure_class:None ~completed:None
-      ~cursors:None
-  in
+  let settle job = Worker.fail job ~error:"stalled" in
   settle (stall ());
   let second = stall () in
   let first = ref [] and later = Eio.Stream.create max_int and ended = ref [] in
+  let id (stall : Records.Held_job_stall.t) =
+    Identifiers.Job_id.to_string stall.job_id
+  in
   let _release =
     Claims.stalled claims
-      ~on_value:(fun job -> first := Worker.id job :: !first)
+      ~on_value:(fun stall -> first := id stall :: !first)
       ~on_close:(fun () -> ended := "first" :: !ended)
   in
   let _release =
     Claims.stalled claims
-      ~on_value:(fun job -> Eio.Stream.add later (Worker.id job))
+      ~on_value:(fun stall -> Eio.Stream.add later (id stall))
       ~on_close:(fun () -> ended := "later" :: !ended)
   in
   let jobs = Alcotest.(list string) in
@@ -1201,6 +1205,113 @@ let claims_stalled () =
     "a reader after the end hears only the end" true !told_end;
   Client.close client
 
+(* Each command a held job settles or checkpoints with carries every member
+   of the record it is given, as the record writes it. *)
+let held_job_commands () =
+  Eio_mock.Backend.run @@ fun () ->
+  Switch.run @@ fun sw ->
+  let _, clock = mock_clock () in
+  let claimed = ref 0 and sent = ref [] in
+  let held_job id =
+    `Assoc
+      [
+        ( "response",
+          `Assoc
+            [
+              ("status", text "running");
+              ( "metadata",
+                `Assoc
+                  [
+                    ("id", text id);
+                    ("type", text "mark");
+                    ("userId", text "did:web:kb.example:users:one");
+                    ("created", text "2026-01-01T00:00:00Z");
+                    ("retryCount", `Int 0);
+                    ("maxRetries", `Int 3);
+                  ] );
+              ( "params",
+                `Assoc
+                  [
+                    ("resourceId", text "res-1");
+                    ("motivation", text "highlighting");
+                  ] );
+              ("startedAt", text "2026-01-01T00:00:01Z");
+              ("progress", `Assoc []);
+            ] );
+      ]
+  in
+  let client, claims =
+    claims_over ~sw ~clock (fun _ ~channel payload ->
+        match channel with
+        | "job:claim" ->
+            incr claimed;
+            Some ("job:claimed", held_job ("job-" ^ string_of_int !claimed))
+        | channel ->
+            sent := (channel, payload) :: !sent;
+            None)
+  in
+  let held = Eio.Stream.create max_int in
+  Fiber.fork ~sw (fun () ->
+      let rec consume () =
+        match Claims.next claims with
+        | Some job ->
+            Eio.Stream.add held job;
+            consume ()
+        | None -> ()
+      in
+      consume ());
+  let cursor =
+    decode Models.unit_cursor
+      (`Assoc
+         [
+           ("next", `Int 4);
+           ("size", `Int 2);
+           ("found", `Int 1);
+           ("emitted", `Int 1);
+           ("errors", `Int 0);
+         ])
+  in
+  let carries channel record =
+    match (List.assoc_opt channel !sent, record) with
+    | Some (`Assoc payload), `Assoc members ->
+        List.iter
+          (fun (name, value) ->
+            Alcotest.(check (option string))
+              (channel ^ " carries " ^ name)
+              (Some (Yojson.Safe.to_string value))
+              (Option.map Yojson.Safe.to_string (List.assoc_opt name payload)))
+          members
+    | _ -> Alcotest.fail (channel ^ " was not sent as an object")
+  in
+  let first = Eio.Stream.take held in
+  let checkpoint : Records.Job_checkpoint.t =
+    {
+      completed_units = [ "highlighting" ];
+      unit_cursors = Some [ ("u", cursor) ];
+    }
+  in
+  Worker.checkpoint first checkpoint;
+  carries "job:checkpoint" (Records.Job_checkpoint.to_json checkpoint);
+  let failure : Records.Job_failure.t =
+    {
+      completed_units = Some [ "highlighting" ];
+      unit_cursors = Some [ ("u", cursor) ];
+      failure_class = Some Enums.Failure_class.Deterministic;
+    }
+  in
+  Worker.fail first ~failure ~error:"failed";
+  carries "job:fail" (Records.Job_failure.to_json failure);
+  let reached : Records.Job_reached.t =
+    {
+      completed_units = Some [ "highlighting" ];
+      unit_cursors = Some [ ("u", cursor) ];
+    }
+  in
+  Worker.cancel (Eio.Stream.take held) ~reached;
+  carries "job:cancel" (Records.Job_reached.to_json reached);
+  Claims.stop claims;
+  Client.close client
+
 (* protocol/specs/src/session/registry-errors-cases.json: a registry reads the
    errors of each session it activates, from the first thing the session said,
    over a factory that builds a scripted session and reads none of them. *)
@@ -1225,7 +1336,9 @@ let errors_kb =
 
 let errors_identity : Records.Connection_identity.t =
   {
-    did = "did:web:kb.example.org:kb-a";
+    did =
+      Result.get_ok
+        (Identifiers.User_id.of_string "did:web:kb.example.org:kb-a");
     description =
       decode Models.kb_description
         (`Assoc [ ("name", text "KB A"); ("domain", text "kb.example.org") ]);
@@ -1612,6 +1725,8 @@ let () =
             claims_refused;
           Alcotest.test_case "stalls kept for the first reader" `Quick
             claims_stalled;
+          Alcotest.test_case "commands carry every member of their record"
+            `Quick held_job_commands;
         ] );
       ( "registry errors",
         List.map
