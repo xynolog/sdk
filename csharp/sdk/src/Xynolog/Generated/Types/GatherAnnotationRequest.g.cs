@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record GatherAnnotationRequest
 {
     [global::Xynolog.Serialization.Wire("annotationId")] public required global::Xynolog.Identifiers.AnnotationId AnnotationId { get; init; }
-    [global::Xynolog.Serialization.Wire("options")] public global::Xynolog.Types.GatherAnnotationOptions? Options { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("options")] public global::Xynolog.Types.GatherAnnotationOptions? Options { get; init; }
 }

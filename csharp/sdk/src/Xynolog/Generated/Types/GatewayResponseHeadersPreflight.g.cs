@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatewayResponseHeadersPreflight
 {
-    [global::Xynolog.Serialization.Wire("echoes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.GatewayResponseHeadersPreflightEchoesItem> Echoes { get; init; }
-    [global::Xynolog.Serialization.Wire("headers")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.GatewayResponseHeadersPreflightHeadersItem> Headers { get; init; }
     [global::Xynolog.Serialization.Wire("status")] public required long Status { get; init; }
+    [global::Xynolog.Serialization.Wire("headers")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.GatewayResponseHeadersPreflightHeadersItem> Headers { get; init; }
+    [global::Xynolog.Serialization.Wire("echoes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.GatewayResponseHeadersPreflightEchoesItem> Echoes { get; init; }
     [global::Xynolog.Serialization.Wire("vary")] public required string Vary { get; init; }
 }

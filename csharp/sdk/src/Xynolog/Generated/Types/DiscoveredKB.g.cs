@@ -7,11 +7,11 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DiscoveredKB
 {
-    [global::Xynolog.Serialization.Wire("did")] public required string Did { get; init; }
     [global::Xynolog.Serialization.Wire("host")] public required string Host { get; init; }
-    [global::Xynolog.Serialization.Wire("managedBy")] public required string ManagedBy { get; init; }
-    [global::Xynolog.Serialization.Wire("placement")] public required global::Xynolog.Types.DiscoveredKBPlacement Placement { get; init; }
     [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
+    [global::Xynolog.Serialization.Wire("placement")] public required global::Xynolog.Types.DiscoveredKBPlacement Placement { get; init; }
     [global::Xynolog.Serialization.Wire("repo")] public string? Repo { get; init; }
+    [global::Xynolog.Serialization.Wire("did")] public required string Did { get; init; }
     [global::Xynolog.Serialization.Wire("siteName")] public string? SiteName { get; init; }
+    [global::Xynolog.Serialization.Wire("managedBy")] public required string ManagedBy { get; init; }
 }

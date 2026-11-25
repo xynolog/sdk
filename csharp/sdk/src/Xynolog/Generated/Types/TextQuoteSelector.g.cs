@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record TextQuoteSelector
 {
+    public const string TypeValue = "TextQuoteSelector";
+    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
     [global::Xynolog.Serialization.Wire("exact")] public required string Exact { get; init; }
     [global::Xynolog.Serialization.Wire("prefix")] public string? Prefix { get; init; }
     [global::Xynolog.Serialization.Wire("suffix")] public string? Suffix { get; init; }
-    public const string TypeValue = "TextQuoteSelector";
-    [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
 }

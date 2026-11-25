@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ClientSecretForm
 {
-    [global::Xynolog.Serialization.Wire("client_id")] public required string ClientId { get; init; }
-    [global::Xynolog.Serialization.Wire("client_secret")] public required string ClientSecret { get; init; }
     public const string GrantTypeValue = "client_credentials";
     [global::Xynolog.Serialization.Wire("grant_type")] public string GrantType => GrantTypeValue;
+    [global::Xynolog.Serialization.Wire("client_id")] public required string ClientId { get; init; }
+    [global::Xynolog.Serialization.Wire("client_secret")] public required string ClientSecret { get; init; }
 }

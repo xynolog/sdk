@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record TextualBody
 {
-    [global::Xynolog.Serialization.Wire("format")] public string? Format { get; init; }
-    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
-    [global::Xynolog.Serialization.Wire("purpose")] public global::Xynolog.Types.BodyPurpose? Purpose { get; init; }
     public const string TypeValue = "TextualBody";
     [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
     [global::Xynolog.Serialization.Wire("value")] public required string Value { get; init; }
+    [global::Xynolog.Serialization.Wire("purpose")] public global::Xynolog.Types.BodyPurpose? Purpose { get; init; }
+    [global::Xynolog.Serialization.Wire("format")] public string? Format { get; init; }
+    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
 }

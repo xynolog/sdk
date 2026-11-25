@@ -7,13 +7,13 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AgentPerson
 {
-    [global::Xynolog.Serialization.Wire("@id")] public string? Id { get; init; }
     public const string TypeValue = "Person";
     [global::Xynolog.Serialization.Wire("@type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("@id")] public string? Id { get; init; }
+    [global::Xynolog.Serialization.Wire("name")] public string? Name { get; init; }
+    [global::Xynolog.Serialization.Wire("nickname")] public string? Nickname { get; init; }
     [global::Xynolog.Serialization.Wire("email")] public string? Email { get; init; }
     [global::Xynolog.Serialization.Wire("email_sha1")] public string? EmailSha1 { get; init; }
     [global::Xynolog.Serialization.Wire("homepage")] public string? Homepage { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public string? Name { get; init; }
-    [global::Xynolog.Serialization.Wire("nickname")] public string? Nickname { get; init; }
     [global::Xynolog.Serialization.WireRest] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement> AdditionalProperties { get; init; } = new global::System.Collections.Generic.Dictionary<string, global::System.Text.Json.JsonElement>();
 }

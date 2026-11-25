@@ -8,13 +8,13 @@ namespace Xynolog.Types;
 public sealed record ArchivistLayout
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
+    [global::Xynolog.Serialization.Wire("eventStream")] public required global::Xynolog.Types.ArchivistLayoutEventStream EventStream { get; init; }
+    [global::Xynolog.Serialization.Wire("systemStream")] public required global::Xynolog.Types.ArchivistLayoutSystemStream SystemStream { get; init; }
+    [global::Xynolog.Serialization.Wire("eventFile")] public required global::Xynolog.Types.ArchivistLayoutEventFile EventFile { get; init; }
+    [global::Xynolog.Serialization.Wire("storedEvent")] public required global::System.Text.Json.JsonElement StoredEvent { get; init; }
+    [global::Xynolog.Serialization.Wire("view")] public required global::Xynolog.Types.ArchivistLayoutView View { get; init; }
+    [global::Xynolog.Serialization.Wire("systemProjections")] public required global::Xynolog.Types.ArchivistLayoutSystemProjections SystemProjections { get; init; }
+    [global::Xynolog.Serialization.Wire("storageUriIndex")] public required global::Xynolog.Types.ArchivistLayoutStorageUriIndex StorageUriIndex { get; init; }
     [global::Xynolog.Serialization.Wire("anchoredTextEntry")] public required global::Xynolog.Types.ArchivistLayoutAnchoredTextEntry AnchoredTextEntry { get; init; }
     [global::Xynolog.Serialization.Wire("anchoredTextStamp")] public required global::Xynolog.Types.ArchivistLayoutAnchoredTextStamp AnchoredTextStamp { get; init; }
-    [global::Xynolog.Serialization.Wire("eventFile")] public required global::Xynolog.Types.ArchivistLayoutEventFile EventFile { get; init; }
-    [global::Xynolog.Serialization.Wire("eventStream")] public required global::Xynolog.Types.ArchivistLayoutEventStream EventStream { get; init; }
-    [global::Xynolog.Serialization.Wire("storageUriIndex")] public required global::Xynolog.Types.ArchivistLayoutStorageUriIndex StorageUriIndex { get; init; }
-    [global::Xynolog.Serialization.Wire("storedEvent")] public required global::System.Text.Json.JsonElement StoredEvent { get; init; }
-    [global::Xynolog.Serialization.Wire("systemProjections")] public required global::Xynolog.Types.ArchivistLayoutSystemProjections SystemProjections { get; init; }
-    [global::Xynolog.Serialization.Wire("systemStream")] public required global::Xynolog.Types.ArchivistLayoutSystemStream SystemStream { get; init; }
-    [global::Xynolog.Serialization.Wire("view")] public required global::Xynolog.Types.ArchivistLayoutView View { get; init; }
 }

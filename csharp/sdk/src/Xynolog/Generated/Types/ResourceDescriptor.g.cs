@@ -10,28 +10,28 @@ public sealed record ResourceDescriptor
     [global::Xynolog.Serialization.Wire("@context")] public required global::Xynolog.Types.ResourceDescriptorContext Context { get; init; }
     [global::Xynolog.Serialization.Wire("@id")] public required global::Xynolog.Identifiers.ResourceId Id { get; init; }
     [global::Xynolog.Serialization.Wire("@type")] public global::Xynolog.Types.OneOrMoreStrings? Type { get; init; }
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("description")] public string? Description { get; init; }
+    [global::Xynolog.Serialization.Wire("identifier")] public global::Xynolog.Types.ResourceDescriptorIdentifier? Identifier { get; init; }
     [global::Xynolog.Serialization.Wire("about")] public global::Xynolog.Types.OneOrMoreStrings? About { get; init; }
-    [global::Xynolog.Serialization.Wire("archived")] public bool? Archived { get; init; }
-    [global::Xynolog.Serialization.Wire("availableFormats")] public global::System.Collections.Generic.IReadOnlyList<string>? AvailableFormats { get; init; }
-    [global::Xynolog.Serialization.Wire("conformsTo")] public global::Xynolog.Types.OneOrMoreUris? ConformsTo { get; init; }
+    [global::Xynolog.Serialization.Wire("sameAs")] public global::System.Collections.Generic.IReadOnlyList<string>? SameAs { get; init; }
+    [global::Xynolog.Serialization.Wire("isPartOf")] public global::System.Collections.Generic.IReadOnlyList<string>? IsPartOf { get; init; }
+    [global::Xynolog.Serialization.Wire("hasPart")] public global::System.Collections.Generic.IReadOnlyList<string>? HasPart { get; init; }
+    [global::Xynolog.Serialization.Wire("license")] public string? License { get; init; }
+    [global::Xynolog.Serialization.Wire("version")] public string? Version { get; init; }
     [global::Xynolog.Serialization.Wire("dateCreated")] public string? DateCreated { get; init; }
     [global::Xynolog.Serialization.Wire("dateModified")] public string? DateModified { get; init; }
-    [global::Xynolog.Serialization.Wire("description")] public string? Description { get; init; }
-    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("wasDerivedFrom")] public global::Xynolog.Types.ResourceDescriptorWasDerivedFrom? WasDerivedFrom { get; init; }
+    [global::Xynolog.Serialization.Wire("wasAttributedTo")] public global::Xynolog.Types.OneOrMoreAgents? WasAttributedTo { get; init; }
     [global::Xynolog.Serialization.Wire("generator")] public global::Xynolog.Types.OneOrMoreAgents? Generator { get; init; }
-    [global::Xynolog.Serialization.Wire("hasPart")] public global::System.Collections.Generic.IReadOnlyList<string>? HasPart { get; init; }
-    [global::Xynolog.Serialization.Wire("identifier")] public global::Xynolog.Types.ResourceDescriptorIdentifier? Identifier { get; init; }
-    [global::Xynolog.Serialization.Wire("isDraft")] public bool? IsDraft { get; init; }
-    [global::Xynolog.Serialization.Wire("isPartOf")] public global::System.Collections.Generic.IReadOnlyList<string>? IsPartOf { get; init; }
-    [global::Xynolog.Serialization.Wire("license")] public string? License { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("originatedFrom")] public string? OriginatedFrom { get; init; }
+    [global::Xynolog.Serialization.Wire("conformsTo")] public global::Xynolog.Types.OneOrMoreUris? ConformsTo { get; init; }
+    [global::Xynolog.Serialization.Wire("availableFormats")] public global::System.Collections.Generic.IReadOnlyList<string>? AvailableFormats { get; init; }
     [global::Xynolog.Serialization.Wire("representations")] public required global::Xynolog.Types.ResourceDescriptorRepresentations Representations { get; init; }
-    [global::Xynolog.Serialization.Wire("sameAs")] public global::System.Collections.Generic.IReadOnlyList<string>? SameAs { get; init; }
+    [global::Xynolog.Serialization.Wire("archived")] public bool? Archived { get; init; }
+    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("isDraft")] public bool? IsDraft { get; init; }
     [global::Xynolog.Serialization.Wire("sourceAnnotationId")] public global::Xynolog.Identifiers.AnnotationId? SourceAnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("sourceResourceId")] public global::Xynolog.Identifiers.ResourceId? SourceResourceId { get; init; }
-    [global::Xynolog.Serialization.Wire("version")] public string? Version { get; init; }
-    [global::Xynolog.Serialization.Wire("wasAttributedTo")] public global::Xynolog.Types.OneOrMoreAgents? WasAttributedTo { get; init; }
-    [global::Xynolog.Serialization.Wire("wasDerivedFrom")] public global::Xynolog.Types.ResourceDescriptorWasDerivedFrom? WasDerivedFrom { get; init; }
+    [global::Xynolog.Serialization.Wire("originatedFrom")] public string? OriginatedFrom { get; init; }
     [global::Xynolog.Serialization.WireRest] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement> AdditionalProperties { get; init; } = new global::System.Collections.Generic.Dictionary<string, global::System.Text.Json.JsonElement>();
 }

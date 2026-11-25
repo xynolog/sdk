@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ResourceCreatedPayloadGeneratedFrom
 {
-    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
 }

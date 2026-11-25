@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record WorkerKnowledgeBaseConfigIdentity
 {
-    [global::Xynolog.Serialization.Wire("clientId")] public required string ClientId { get; init; }
     [global::Xynolog.Serialization.Wire("issuer")] public required string Issuer { get; init; }
+    [global::Xynolog.Serialization.Wire("clientId")] public required string ClientId { get; init; }
 }

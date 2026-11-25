@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MarkDelegateTimeoutEvent
 {
-    [global::Xynolog.Serialization.Wire("motivation")] public required global::Xynolog.Types.Motivation Motivation { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("motivation")] public required global::Xynolog.Types.Motivation Motivation { get; init; }
 }

@@ -7,11 +7,11 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record CommentingJobParams
 {
-    [global::Xynolog.Serialization.Wire("density")] public double? Density { get; init; }
-    [global::Xynolog.Serialization.Wire("instructions")] public string? Instructions { get; init; }
-    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
     public const string MotivationValue = "commenting";
     [global::Xynolog.Serialization.Wire("motivation")] public string Motivation => MotivationValue;
-    [global::Xynolog.Serialization.Wire("sourceLanguage")] public string? SourceLanguage { get; init; }
+    [global::Xynolog.Serialization.Wire("instructions")] public string? Instructions { get; init; }
     [global::Xynolog.Serialization.Wire("tone")] public global::Xynolog.Types.CommentingJobParamsTone? Tone { get; init; }
+    [global::Xynolog.Serialization.Wire("density")] public double? Density { get; init; }
+    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
+    [global::Xynolog.Serialization.Wire("sourceLanguage")] public string? SourceLanguage { get; init; }
 }

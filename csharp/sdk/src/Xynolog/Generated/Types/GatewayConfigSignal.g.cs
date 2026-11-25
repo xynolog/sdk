@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatewayConfigSignal
 {
-    [global::Xynolog.Serialization.Wire("passwordEnv")] public string? PasswordEnv { get; init; }
-    [global::Xynolog.Serialization.Wire("servers")] public string? Servers { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public required global::Xynolog.Types.GatewayConfigSignalType Type { get; init; }
+    [global::Xynolog.Serialization.Wire("servers")] public string? Servers { get; init; }
     [global::Xynolog.Serialization.Wire("userEnv")] public string? UserEnv { get; init; }
+    [global::Xynolog.Serialization.Wire("passwordEnv")] public string? PasswordEnv { get; init; }
 }

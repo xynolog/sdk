@@ -7,14 +7,14 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobCompletedPayload
 {
-    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
-    [global::Xynolog.Serialization.Wire("annotationUri")] public string? AnnotationUri { get; init; }
-    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
-    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
-    [global::Xynolog.Serialization.Wire("foundCount")] public long? FoundCount { get; init; }
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
     [global::Xynolog.Serialization.Wire("jobType")] public required global::Xynolog.Types.JobType JobType { get; init; }
-    [global::Xynolog.Serialization.Wire("result")] public global::System.Text.Json.JsonElement? Result { get; init; }
-    [global::Xynolog.Serialization.Wire("resultResourceId")] public global::Xynolog.Identifiers.ResourceId? ResultResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
     [global::Xynolog.Serialization.Wire("totalSteps")] public long? TotalSteps { get; init; }
+    [global::Xynolog.Serialization.Wire("foundCount")] public long? FoundCount { get; init; }
+    [global::Xynolog.Serialization.Wire("resultResourceId")] public global::Xynolog.Identifiers.ResourceId? ResultResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationUri")] public string? AnnotationUri { get; init; }
+    [global::Xynolog.Serialization.Wire("result")] public global::System.Text.Json.JsonElement? Result { get; init; }
+    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
 }

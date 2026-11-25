@@ -143,15 +143,14 @@ private struct Multipart: Sendable {
       String(decoding: try JSONEncoder().encode(value), as: UTF8.self)
     }
     let form = ResourceUpload(
-      archiveOriginal: request.archiveOriginal.map(String.init), cloneToken: request.cloneToken,
-      entityTypes: request.entityTypes.isEmpty ? nil : try json(request.entityTypes), file: "",
-      format: request.format,
+      name: request.name, file: "", format: request.format, storageUri: request.storageUri,
+      language: request.language,
+      entityTypes: request.entityTypes.isEmpty ? nil : try json(request.entityTypes),
+      sourceAnnotationId: request.sourceAnnotationId, sourceResourceId: request.sourceResourceId,
       generationPrompt: request.generationPrompt,
       generator: request.generator.isEmpty ? nil : try json(request.generator),
-      isDraft: request.isDraft.map(String.init), jobId: request.jobId, language: request.language,
-      name: request.name,
-      sourceAnnotationId: request.sourceAnnotationId, sourceResourceId: request.sourceResourceId,
-      storageUri: request.storageUri)
+      jobId: request.jobId, isDraft: request.isDraft.map(String.init),
+      cloneToken: request.cloneToken, archiveOriginal: request.archiveOriginal.map(String.init))
     let fields = try JSONDecoder().decode(
       [String: JSONValue].self, from: JSONEncoder().encode(form))
     var data = Data()

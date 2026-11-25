@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobFailed
 {
-    [global::Xynolog.Serialization.Wire("completedAt")] public required string CompletedAt { get; init; }
-    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
-    [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
+    public const string StatusValue = "failed";
+    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
     [global::Xynolog.Serialization.Wire("metadata")] public required global::Xynolog.Types.JobMetadata Metadata { get; init; }
     [global::Xynolog.Serialization.Wire("params")] public required global::Xynolog.Types.JobParams Params { get; init; }
     [global::Xynolog.Serialization.Wire("startedAt")] public string? StartedAt { get; init; }
-    public const string StatusValue = "failed";
-    [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("completedAt")] public required string CompletedAt { get; init; }
+    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
+    [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
 }

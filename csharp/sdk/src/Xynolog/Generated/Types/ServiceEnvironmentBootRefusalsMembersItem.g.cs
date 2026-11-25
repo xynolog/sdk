@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceEnvironmentBootRefusalsMembersItem
 {
-    [global::Xynolog.Serialization.Wire("line")] public required string Line { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("situation")] public required string Situation { get; init; }
+    [global::Xynolog.Serialization.Wire("line")] public required string Line { get; init; }
 }

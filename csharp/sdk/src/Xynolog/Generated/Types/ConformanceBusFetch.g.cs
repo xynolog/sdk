@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceBusFetch
 {
-    [global::Xynolog.Serialization.Wire("as")] public required string As { get; init; }
     [global::Xynolog.Serialization.Wire("fetch")] public required string Fetch { get; init; }
     [global::Xynolog.Serialization.Wire("payload")] public global::System.Text.Json.JsonElement? Payload { get; init; }
+    [global::Xynolog.Serialization.Wire("as")] public required string As { get; init; }
 }

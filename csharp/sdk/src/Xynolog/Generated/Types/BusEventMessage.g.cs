@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BusEventMessage
 {
-    [global::Xynolog.Serialization.Wire("data")] public required global::Xynolog.Types.BusFrame Data { get; init; }
     public const string EventValue = "bus-event";
     [global::Xynolog.Serialization.Wire("event")] public string Event => EventValue;
     [global::Xynolog.Serialization.Wire("id")] public required string Id { get; init; }
+    [global::Xynolog.Serialization.Wire("data")] public required global::Xynolog.Types.BusFrame Data { get; init; }
 }

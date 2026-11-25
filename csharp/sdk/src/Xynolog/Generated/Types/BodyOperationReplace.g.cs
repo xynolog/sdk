@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BodyOperationReplace
 {
-    [global::Xynolog.Serialization.Wire("newItem")] public required global::Xynolog.Types.AnnotationBody NewItem { get; init; }
-    [global::Xynolog.Serialization.Wire("oldItem")] public required global::Xynolog.Types.AnnotationBody OldItem { get; init; }
     public const string OpValue = "replace";
     [global::Xynolog.Serialization.Wire("op")] public string Op => OpValue;
+    [global::Xynolog.Serialization.Wire("oldItem")] public required global::Xynolog.Types.AnnotationBody OldItem { get; init; }
+    [global::Xynolog.Serialization.Wire("newItem")] public required global::Xynolog.Types.AnnotationBody NewItem { get; init; }
 }

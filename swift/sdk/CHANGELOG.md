@@ -54,6 +54,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A model's members are in its schema's order, as the other SDKs hold them,
+  and so are its initializer's arguments and the members it writes: a call
+  names them in that order (`JobProgress(percentage: 50, message: …)`),
+  where it named them in the order of their names.
 - The items of a union's member that is a list are the union's type and
   `Item`, as the other SDKs name them (`ResourceDescriptorContextItem`),
   where they were `ResourceDescriptorContextListItem`.

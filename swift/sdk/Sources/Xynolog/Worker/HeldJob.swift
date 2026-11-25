@@ -171,8 +171,8 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await say(
       Channels.jobStart,
       JobStartCommand(
-        annotationId: annotationId, attempt: attempt, jobId: jobId, jobType: jobType,
-        resourceId: resourceId))
+        resourceId: resourceId, jobId: jobId, jobType: jobType, annotationId: annotationId,
+        attempt: attempt))
   }
 
   func progress(_ progress: JobProgress) async throws {
@@ -186,8 +186,8 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await say(
       Channels.jobReportProgress,
       JobReportProgressCommand(
-        annotationId: annotationId, attempt: attempt, jobId: jobId, jobType: jobType,
-        percentage: progress.percentage, progress: progress, resourceId: resourceId))
+        resourceId: resourceId, jobId: jobId, jobType: jobType, attempt: attempt,
+        annotationId: annotationId, percentage: progress.percentage, progress: progress))
   }
 
   func checkpoint(
@@ -200,7 +200,7 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     await owner?.active()
     try await say(
       Channels.jobCheckpoint,
-      JobCheckpointCommand(completedUnits: completedUnits, jobId: jobId, unitCursors: unitCursors))
+      JobCheckpointCommand(jobId: jobId, completedUnits: completedUnits, unitCursors: unitCursors))
   }
 
   func commit(resourceId: ResourceId, annotations: [Annotation]) async throws {
@@ -212,14 +212,14 @@ actor HeldWork<Result: Sendable>: WorkerLease {
       _ = try await resultOf(
         Operations.markCommit.request.name,
         wirePayload(
-          MarkCommitCommand(annotations: annotations, jobId: jobId, resourceId: resourceId)),
+          MarkCommitCommand(jobId: jobId, resourceId: resourceId, annotations: annotations)),
         over: transport, timeoutMs: options.commitTimeoutMs, clock: clock, parent: workingTrace)
       observed(.acknowledged)
     } catch let timeout as BusRequestError where timeout.reason == .busTimeout {
       do {
         _ = try await resultOf(
           Operations.browseAnnotationRequested.request.name,
-          wirePayload(BrowseAnnotationRequest(annotationId: last.id, resourceId: resourceId)),
+          wirePayload(BrowseAnnotationRequest(resourceId: resourceId, annotationId: last.id)),
           over: transport, timeoutMs: options.commitTimeoutMs, clock: clock, parent: workingTrace)
         observed(.probeConfirmed)
       } catch {
@@ -274,11 +274,12 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await settle(
       Channels.jobFail,
       JobFailCommand(
-        annotationId: annotationId, attempt: attempt, completedUnits: completedUnits,
-        durability: notEstablished, error: message, failureClass: failureClass, jobId: jobId,
-        jobType: jobType, resourceId: resourceId, unitCursors: unitCursors,
-        willRetry: willRetryAfter(
-          retryCount: retryCount, maxRetries: maxRetries, failureClass: failureClass)))
+        resourceId: resourceId, jobId: jobId, jobType: jobType,
+        attempt: attempt, annotationId: annotationId, error: message,
+        completedUnits: completedUnits,
+        unitCursors: unitCursors, failureClass: failureClass, willRetry: willRetryAfter(
+          retryCount: retryCount, maxRetries: maxRetries, failureClass: failureClass),
+        durability: notEstablished))
   }
 
   func cancel(
@@ -289,8 +290,8 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await settle(
       Channels.jobCancel,
       JobCancelCommand(
-        annotationId: annotationId, completedUnits: completedUnits, jobId: jobId, jobType: jobType,
-        resourceId: resourceId, unitCursors: unitCursors))
+        resourceId: resourceId, jobId: jobId, jobType: jobType, annotationId: annotationId,
+        completedUnits: completedUnits, unitCursors: unitCursors))
   }
 }
 
@@ -302,8 +303,8 @@ extension HeldWork: HeldMarkJob where Result == MarkJobResult {
       Channels.jobComplete,
       .markJobCompleteCommand(
         MarkJobCompleteCommand(
-          attempt: attempt, durability: durability, jobId: jobId, resourceId: resourceId,
-          result: result)),
+          resourceId: resourceId, jobId: jobId, attempt: attempt, result: result,
+          durability: durability)),
       completed: true)
   }
 }
@@ -316,8 +317,8 @@ extension HeldWork: HeldYieldJob where Result == YieldJobResult {
       Channels.jobComplete,
       .yieldJobCompleteCommand(
         YieldJobCompleteCommand(
-          annotationId: annotationId, attempt: attempt, durability: durability, jobId: jobId,
-          resourceId: resourceId, result: result)),
+          resourceId: resourceId, jobId: jobId, attempt: attempt, annotationId: annotationId,
+          result: result, durability: durability)),
       completed: true)
   }
 }

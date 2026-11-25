@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistHealth
 {
-    [global::Xynolog.Serialization.Wire("actors")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistHealthActorsItem> Actors { get; init; }
     public const string StatusValue = "ok";
     [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("actors")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ArchivistHealthActorsItem> Actors { get; init; }
 }

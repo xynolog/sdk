@@ -7,18 +7,18 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ResourceCreatedPayload
 {
-    [global::Xynolog.Serialization.Wire("contentByteSize")] public long? ContentByteSize { get; init; }
-    [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
-    [global::Xynolog.Serialization.Wire("creator")] public global::Xynolog.Types.Agent? Creator { get; init; }
-    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("format")] public required string Format { get; init; }
+    [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
+    [global::Xynolog.Serialization.Wire("contentByteSize")] public long? ContentByteSize { get; init; }
+    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("storageUri")] public string? StorageUri { get; init; }
+    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
+    [global::Xynolog.Serialization.Wire("isDraft")] public bool? IsDraft { get; init; }
+    [global::Xynolog.Serialization.Wire("jobId")] public global::Xynolog.Identifiers.JobId? JobId { get; init; }
     [global::Xynolog.Serialization.Wire("generatedFrom")] public global::Xynolog.Types.ResourceCreatedPayloadGeneratedFrom? GeneratedFrom { get; init; }
     [global::Xynolog.Serialization.Wire("generationPrompt")] public string? GenerationPrompt { get; init; }
     [global::Xynolog.Serialization.Wire("generator")] public global::Xynolog.Types.OneOrMoreAgents? Generator { get; init; }
-    [global::Xynolog.Serialization.Wire("isDraft")] public bool? IsDraft { get; init; }
-    [global::Xynolog.Serialization.Wire("jobId")] public global::Xynolog.Identifiers.JobId? JobId { get; init; }
-    [global::Xynolog.Serialization.Wire("language")] public string? Language { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("storageUri")] public string? StorageUri { get; init; }
+    [global::Xynolog.Serialization.Wire("creator")] public global::Xynolog.Types.Agent? Creator { get; init; }
     [global::Xynolog.Serialization.Wire("wasAttributedTo")] public global::Xynolog.Types.OneOrMoreAgents? WasAttributedTo { get; init; }
 }

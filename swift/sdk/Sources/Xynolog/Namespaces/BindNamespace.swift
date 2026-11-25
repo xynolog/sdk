@@ -7,7 +7,7 @@ public struct BindNamespace: Sendable {
     _ = try await wire.request(
       Operations.bindUpdateBody,
       BindUpdateBodyCommand(
-        annotationId: annotationId, operations: operations, resourceId: resourceId))
+        annotationId: annotationId, resourceId: resourceId, operations: operations))
   }
   public func initiate(_ input: BindInitiateCommand) throws {
     try bus.emit(Channels.bindInitiate, input)

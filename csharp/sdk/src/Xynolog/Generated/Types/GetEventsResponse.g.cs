@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record GetEventsResponse
 {
     [global::Xynolog.Serialization.Wire("events")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.AttributedEvent> Events { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("total")] public required double Total { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
 }

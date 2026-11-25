@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobMetadata
 {
-    [global::Xynolog.Serialization.Wire("completedUnits")] public global::System.Collections.Generic.IReadOnlyList<string>? CompletedUnits { get; init; }
-    [global::Xynolog.Serialization.Wire("created")] public required string Created { get; init; }
     [global::Xynolog.Serialization.Wire("id")] public required global::Xynolog.Identifiers.JobId Id { get; init; }
-    [global::Xynolog.Serialization.Wire("maxRetries")] public required long MaxRetries { get; init; }
-    [global::Xynolog.Serialization.Wire("retryCount")] public required long RetryCount { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public required global::Xynolog.Types.JobType Type { get; init; }
-    [global::Xynolog.Serialization.Wire("unitCursors")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.UnitCursor>? UnitCursors { get; init; }
     [global::Xynolog.Serialization.Wire("userId")] public required global::Xynolog.Identifiers.UserId UserId { get; init; }
+    [global::Xynolog.Serialization.Wire("created")] public required string Created { get; init; }
+    [global::Xynolog.Serialization.Wire("retryCount")] public required long RetryCount { get; init; }
+    [global::Xynolog.Serialization.Wire("maxRetries")] public required long MaxRetries { get; init; }
+    [global::Xynolog.Serialization.Wire("completedUnits")] public global::System.Collections.Generic.IReadOnlyList<string>? CompletedUnits { get; init; }
+    [global::Xynolog.Serialization.Wire("unitCursors")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.UnitCursor>? UnitCursors { get; init; }
 }

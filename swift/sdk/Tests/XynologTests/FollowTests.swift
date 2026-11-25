@@ -35,8 +35,8 @@ func progress(_ job: String = "job-1", percentage: Double) throws
   -> JobReportProgressCommand
 {
   JobReportProgressCommand(
-    jobId: try JobId(job), jobType: .mark, percentage: percentage,
-    progress: JobProgress(percentage: percentage), resourceId: try ResourceId("res-1"))
+    resourceId: try ResourceId("res-1"), jobId: try JobId(job), jobType: .mark,
+    percentage: percentage, progress: JobProgress(percentage: percentage))
 }
 private func report<Payload>(_ channel: Channel<Payload>, _ payload: Payload, on bus: EventBus)
   throws
@@ -148,7 +148,7 @@ func sleeping(_ clock: TestClock, until due: TestClock.Instant) async throws {
   try report(
     Channels.jobComplete,
     .markJobCompleteCommand(
-      MarkJobCompleteCommand(jobId: JobId("job-1"), resourceId: ResourceId("res-1"))),
+      MarkJobCompleteCommand(resourceId: ResourceId("res-1"), jobId: JobId("job-1"))),
     on: client.bus)
   try await withinTestDeadline { try await reading.value }
   #expect(
@@ -176,7 +176,7 @@ func sleeping(_ clock: TestClock, until due: TestClock.Instant) async throws {
   try report(
     Channels.jobComplete,
     .markJobCompleteCommand(
-      MarkJobCompleteCommand(jobId: JobId("job-1"), resourceId: ResourceId("res-1"))),
+      MarkJobCompleteCommand(resourceId: ResourceId("res-1"), jobId: JobId("job-1"))),
     on: client.bus)
   try await withinTestDeadline { try await reading.value }
   #expect(names.value == ["created", "refused job:complete payload.jobType malformed", "complete"])
@@ -228,7 +228,7 @@ func sleeping(_ clock: TestClock, until due: TestClock.Instant) async throws {
     return try wirePayload(ResponseEnvelope(response: JobCancelResult(cancelled: true)))
   }
   let params = try GenerationJobParams(
-    context: contextFixture(), storageUri: "file://notes.md", title: "Notes")
+    title: "Notes", storageUri: "file://notes.md", context: contextFixture())
   let (names, reading) = named(try client.yield.delegate(params: params, stallDeadlineMs: 1000))
   try await withinTestDeadline { for await heard in names where heard == ["created"] { return } }
   // The deadline was set when the following began, at the clock's start.
@@ -314,8 +314,8 @@ final class AskedClock: Clock {
     try report(
       Channels.jobFail,
       JobFailCommand(
-        error: "try again", failureClass: .transient,
-        jobId: JobId("job-1"), jobType: .mark, resourceId: ResourceId("res-1"), willRetry: true),
+        resourceId: ResourceId("res-1"), jobId: JobId("job-1"),
+        jobType: .mark, error: "try again", failureClass: .transient, willRetry: true),
       on: bus)
     try report(Channels.jobReportProgress, progress(percentage: 20), on: bus)
     try report(
@@ -340,8 +340,8 @@ final class AskedClock: Clock {
       try report(
         Channels.jobFail,
         JobFailCommand(
-          error: "the model refused", failureClass: .withheld,
-          jobId: JobId("job-1"), jobType: .mark, resourceId: ResourceId("res-1"), willRetry: retry),
+          resourceId: ResourceId("res-1"), jobId: JobId("job-1"),
+          jobType: .mark, error: "the model refused", failureClass: .withheld, willRetry: retry),
         on: #require(client?.bus))
       return try jobCreatedFixture()
     }
@@ -416,15 +416,15 @@ final class AskedClock: Clock {
   try report(
     Channels.jobFail,
     JobFailCommand(
-      error: "retry", jobId: JobId("job-1"), jobType: .mark,
-      resourceId: ResourceId("res-1"), willRetry: true), on: client.bus)
+      resourceId: ResourceId("res-1"), jobId: JobId("job-1"), jobType: .mark,
+      error: "retry", willRetry: true), on: client.bus)
   try await withinTestDeadline { for await value in observed where value == 1 { return } }
   await gate.release(stale)
   try await Task.sleep(for: .milliseconds(20))
   try report(
     Channels.jobComplete,
     JobCompleteCommand.markJobCompleteCommand(
-      MarkJobCompleteCommand(jobId: JobId("job-1"), resourceId: ResourceId("res-1"))),
+      MarkJobCompleteCommand(resourceId: ResourceId("res-1"), jobId: JobId("job-1"))),
     on: client.bus)
   #expect(
     try await withinTestDeadline { try await collecting.value }.jobId.value == "job-1")
@@ -472,7 +472,7 @@ final class AskedClock: Clock {
     return try wirePayload(ResponseEnvelope(response: JobCancelResult(cancelled: true)))
   }
   let params = try GenerationJobParams(
-    context: contextFixture(), storageUri: "file://notes.md", title: "Notes")
+    title: "Notes", storageUri: "file://notes.md", context: contextFixture())
   let (names, reading) = named(try client.yield.delegate(params: params, stallDeadlineMs: 100))
   try await withinTestDeadline { for await heard in names where heard == ["created"] { return } }
   // The deadline was set when the following began, at the clock's start.
@@ -496,7 +496,7 @@ final class AskedClock: Clock {
   defer { client.dispose() }
   probe.handle { _, _ in try jobCreatedFixture() }
   let params = try GenerationJobParams(
-    context: contextFixture(), storageUri: "file://notes.md", title: "Notes")
+    title: "Notes", storageUri: "file://notes.md", context: contextFixture())
   let stallMs = 2_000
   let following = try client.yield.delegate(params: params, stallDeadlineMs: stallMs)
   let created = Watched(false)
@@ -518,7 +518,7 @@ final class AskedClock: Clock {
     try report(
       Channels.jobReportProgress,
       JobReportProgressCommand(
-        jobId: JobId("job-1"), jobType: .yield, percentage: 10, resourceId: ResourceId("res-1")),
+        resourceId: ResourceId("res-1"), jobId: JobId("job-1"), jobType: .yield, percentage: 10),
       on: client.bus)
     deadline = clock.now.advanced(by: .milliseconds(stallMs))
   }
@@ -526,7 +526,7 @@ final class AskedClock: Clock {
   try report(
     Channels.jobComplete,
     JobCompleteCommand.yieldJobCompleteCommand(
-      YieldJobCompleteCommand(jobId: JobId("job-1"), resourceId: ResourceId("res-1"))),
+      YieldJobCompleteCommand(resourceId: ResourceId("res-1"), jobId: JobId("job-1"))),
     on: client.bus)
   #expect(
     try await withinTestDeadline { try await collector.value }.jobId.value == "job-1")
@@ -564,7 +564,7 @@ private struct UnexpectedStatusFailure: Error {}
           try report(
             Channels.jobComplete,
             JobCompleteCommand.yieldJobCompleteCommand(
-              YieldJobCompleteCommand(jobId: JobId("job-1"), resourceId: ResourceId("res-1"))),
+              YieldJobCompleteCommand(resourceId: ResourceId("res-1"), jobId: JobId("job-1"))),
             on: #require(client?.bus))
         }
         return try jobCreatedFixture()

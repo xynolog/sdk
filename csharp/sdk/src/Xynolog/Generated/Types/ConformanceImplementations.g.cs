@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ConformanceImplementations
 {
     [global::Xynolog.Serialization.Wire("launcher")] public required global::System.Collections.Generic.IReadOnlyList<string> Launcher { get; init; }
-    [global::Xynolog.Serialization.Wire("modelCatalogue")] public string? ModelCatalogue { get; init; }
-    [global::Xynolog.Serialization.Wire("sdks")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.ConformanceImplementationsSdksValue> Sdks { get; init; }
     [global::Xynolog.Serialization.Wire("target")] public required global::Xynolog.Types.LocalTarget Target { get; init; }
+    [global::Xynolog.Serialization.Wire("sdks")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.ConformanceImplementationsSdksValue> Sdks { get; init; }
+    [global::Xynolog.Serialization.Wire("modelCatalogue")] public string? ModelCatalogue { get; init; }
 }

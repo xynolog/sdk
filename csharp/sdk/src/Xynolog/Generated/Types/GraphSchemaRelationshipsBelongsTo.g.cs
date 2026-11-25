@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GraphSchemaRelationshipsBelongsTo
 {
-    [global::Xynolog.Serialization.Wire("from")] public required string From { get; init; }
-    [global::Xynolog.Serialization.Wire("says")] public required string Says { get; init; }
-    [global::Xynolog.Serialization.Wire("to")] public required string To { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("from")] public required string From { get; init; }
+    [global::Xynolog.Serialization.Wire("to")] public required string To { get; init; }
+    [global::Xynolog.Serialization.Wire("says")] public required string Says { get; init; }
 }

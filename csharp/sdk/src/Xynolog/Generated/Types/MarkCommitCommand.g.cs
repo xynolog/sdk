@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record MarkCommitCommand
 {
-    [global::Xynolog.Serialization.Wire("_roles")] public global::System.Collections.Generic.IReadOnlyList<string>? Roles { get; init; }
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
-    [global::Xynolog.Serialization.Wire("annotations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Annotation> Annotations { get; init; }
+    [global::Xynolog.Serialization.Wire("_roles")] public global::System.Collections.Generic.IReadOnlyList<string>? Roles { get; init; }
     [global::Xynolog.Serialization.Wire("jobId")] public global::Xynolog.Identifiers.JobId? JobId { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("annotations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Annotation> Annotations { get; init; }
 }

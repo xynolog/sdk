@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceRunResult
 {
-    [global::Xynolog.Serialization.Wire("exitCode")] public required long ExitCode { get; init; }
     [global::Xynolog.Serialization.Wire("instance")] public required string Instance { get; init; }
+    [global::Xynolog.Serialization.Wire("exitCode")] public required long ExitCode { get; init; }
     [global::Xynolog.Serialization.Wire("ranMs")] public required long RanMs { get; init; }
 }

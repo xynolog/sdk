@@ -7,16 +7,16 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceStatus
 {
-    [global::Xynolog.Serialization.Wire("containerState")] public string? ContainerState { get; init; }
-    [global::Xynolog.Serialization.Wire("counted")] public required bool Counted { get; init; }
-    [global::Xynolog.Serialization.Wire("group")] public required global::Xynolog.Types.ServiceGroup Group { get; init; }
-    [global::Xynolog.Serialization.Wire("healthy")] public required bool Healthy { get; init; }
-    [global::Xynolog.Serialization.Wire("page")] public string? Page { get; init; }
-    [global::Xynolog.Serialization.Wire("probe")] public string? Probe { get; init; }
-    [global::Xynolog.Serialization.Wire("product")] public string? Product { get; init; }
-    [global::Xynolog.Serialization.Wire("realm")] public string? Realm { get; init; }
     [global::Xynolog.Serialization.Wire("role")] public required string Role { get; init; }
+    [global::Xynolog.Serialization.Wire("group")] public required global::Xynolog.Types.ServiceGroup Group { get; init; }
+    [global::Xynolog.Serialization.Wire("product")] public string? Product { get; init; }
     [global::Xynolog.Serialization.Wire("runsOn")] public string? RunsOn { get; init; }
-    [global::Xynolog.Serialization.Wire("serves")] public global::System.Collections.Generic.IReadOnlyList<string>? Serves { get; init; }
     [global::Xynolog.Serialization.Wire("state")] public required global::Xynolog.Types.ServiceStatusState State { get; init; }
+    [global::Xynolog.Serialization.Wire("containerState")] public string? ContainerState { get; init; }
+    [global::Xynolog.Serialization.Wire("healthy")] public required bool Healthy { get; init; }
+    [global::Xynolog.Serialization.Wire("counted")] public required bool Counted { get; init; }
+    [global::Xynolog.Serialization.Wire("probe")] public string? Probe { get; init; }
+    [global::Xynolog.Serialization.Wire("page")] public string? Page { get; init; }
+    [global::Xynolog.Serialization.Wire("realm")] public string? Realm { get; init; }
+    [global::Xynolog.Serialization.Wire("serves")] public global::System.Collections.Generic.IReadOnlyList<string>? Serves { get; init; }
 }

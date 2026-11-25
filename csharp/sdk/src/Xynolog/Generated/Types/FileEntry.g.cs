@@ -7,15 +7,15 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record FileEntry
 {
-    [global::Xynolog.Serialization.Wire("annotationCount")] public long? AnnotationCount { get; init; }
-    [global::Xynolog.Serialization.Wire("creator")] public string? Creator { get; init; }
-    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
-    [global::Xynolog.Serialization.Wire("mtime")] public required string Mtime { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public global::Xynolog.Identifiers.ResourceId? ResourceId { get; init; }
-    [global::Xynolog.Serialization.Wire("size")] public required long Size { get; init; }
-    [global::Xynolog.Serialization.Wire("tracked")] public required bool Tracked { get; init; }
     public const string TypeValue = "file";
     [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
+    [global::Xynolog.Serialization.Wire("size")] public required long Size { get; init; }
+    [global::Xynolog.Serialization.Wire("mtime")] public required string Mtime { get; init; }
+    [global::Xynolog.Serialization.Wire("tracked")] public required bool Tracked { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceId")] public global::Xynolog.Identifiers.ResourceId? ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("entityTypes")] public global::System.Collections.Generic.IReadOnlyList<string>? EntityTypes { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationCount")] public long? AnnotationCount { get; init; }
+    [global::Xynolog.Serialization.Wire("creator")] public string? Creator { get; init; }
 }

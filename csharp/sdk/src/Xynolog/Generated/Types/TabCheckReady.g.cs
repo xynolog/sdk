@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record TabCheckReady
 {
-    [global::Xynolog.Serialization.Wire("mediaType")] public string? MediaType { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     public const string VerdictValue = "ready";
     [global::Xynolog.Serialization.Wire("verdict")] public string Verdict => VerdictValue;
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("mediaType")] public string? MediaType { get; init; }
 }

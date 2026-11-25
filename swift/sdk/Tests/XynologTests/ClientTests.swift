@@ -113,8 +113,8 @@ final class ProbeTransport: Transport, GatewayOperations, Sendable {
   func getCurrentUser() async throws -> UserResponse {
     storage.withLock { $0.calls.append(Call(via: "gateway", name: "getCurrentUser", payload: [:])) }
     return UserResponse(
-      did: try UserId("did:web:kb.test:users:person"), domain: "kb.test", email: nil, image: nil,
-      name: nil)
+      did: try UserId("did:web:kb.test:users:person"), email: nil, name: nil, image: nil,
+      domain: "kb.test")
   }
   func getMediaToken(_ resource: ResourceId) async throws -> MediaTokenResponse {
     storage.withLock {
@@ -129,19 +129,20 @@ final class ProbeTransport: Transport, GatewayOperations, Sendable {
       $0.calls.append(Call(via: "gateway", name: "getProtectedResourceMetadata", payload: [:]))
     }
     return ProtectedResourceMetadata(
-      authorizationServers: ["https://issuer.test"], bearerMethodsSupported: [.header],
-      resource: "http://kb.test")
+      resource: "http://kb.test", authorizationServers: ["https://issuer.test"],
+      bearerMethodsSupported: [.header])
   }
   func healthCheck() async throws -> HealthResponse {
     storage.withLock { $0.calls.append(Call(via: "gateway", name: "healthCheck", payload: [:])) }
     return HealthResponse(
-      message: "healthy", status: "ok", timestamp: "2026-11-03T00:00:00Z", version: "test")
+      status: "ok", message: "healthy", version: "test", timestamp: "2026-11-03T00:00:00Z")
   }
   func getStatus() async throws -> StatusResponse {
     storage.withLock { $0.calls.append(Call(via: "gateway", name: "getStatus", payload: [:])) }
     return StatusResponse(
-      features: StatusResponseFeatures(collaboration: "yes", semanticContent: "yes"),
-      message: "ready", status: "ok", version: "test")
+      status: "ok", version: "test",
+      features: StatusResponseFeatures(semanticContent: "yes", collaboration: "yes"),
+      message: "ready")
   }
 }
 extension ProbeTransport: ContentTransport {
@@ -175,7 +176,7 @@ extension ProbeTransport: ContentTransport {
     guard case .resource(let focus) = try contextFixture().focus else {
       throw SpecFailure.shape("resource focus")
     }
-    return GetResourceResponse(annotations: [], resource: focus.resource)
+    return GetResourceResponse(resource: focus.resource, annotations: [])
   }
   func getAnchoredText(_ resource: ResourceId) async throws -> AnchoredTextAnswer {
     recordContent("getAnchoredText", resource: resource)
@@ -859,9 +860,9 @@ private struct ReadFailure: Error {}
   let array = JSONValue.object(["annotations": .array([.object(annotation)]), "total": .number(1)])
   #expect(
     faultOf("GetAnnotationsResponse", array) == Fault(member: "annotations.id", reason: .lacks))
-  let cursor = UnitCursor(emitted: 2, errors: 0, found: 3, next: 20, size: 100)
+  let cursor = UnitCursor(next: 20, size: 100, found: 3, emitted: 2, errors: 0)
   let failed = try JobFailCommand(
-    error: "failure", jobId: JobId("job-1"), jobType: .mark, resourceId: ResourceId("res-1"),
+    resourceId: ResourceId("res-1"), jobId: JobId("job-1"), jobType: .mark, error: "failure",
     unitCursors: ["some-unit": cursor])
   var payload = try wirePayload(failed)
   var incomplete = try wirePayload(cursor)

@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceStepDriver
 {
-    [global::Xynolog.Serialization.Wire("as")] public string? As { get; init; }
     [global::Xynolog.Serialization.Wire("driver")] public required string Driver { get; init; }
-    [global::Xynolog.Serialization.Wire("fails")] public global::System.Text.Json.JsonElement? Fails { get; init; }
-    [global::Xynolog.Serialization.Wire("returns")] public global::System.Text.Json.JsonElement? Returns { get; init; }
     [global::Xynolog.Serialization.Wire("with")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement>? With { get; init; }
+    [global::Xynolog.Serialization.Wire("returns")] public global::System.Text.Json.JsonElement? Returns { get; init; }
+    [global::Xynolog.Serialization.Wire("fails")] public global::System.Text.Json.JsonElement? Fails { get; init; }
+    [global::Xynolog.Serialization.Wire("as")] public string? As { get; init; }
 }

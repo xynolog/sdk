@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceTelemetryLogLinesBusPartsItem
 {
-    [global::Xynolog.Serialization.Wire("characters")] public long? Characters { get; init; }
     [global::Xynolog.Serialization.Wire("part")] public required string Part { get; init; }
     [global::Xynolog.Serialization.Wire("text")] public required string Text { get; init; }
+    [global::Xynolog.Serialization.Wire("characters")] public long? Characters { get; init; }
 }

@@ -8,11 +8,11 @@ namespace Xynolog.Types;
 public sealed record StackStopParams
 {
     [global::Xynolog.Serialization.Wire("apiVersion")] public required global::Xynolog.Types.ApiVersion ApiVersion { get; init; }
+    [global::Xynolog.Serialization.Wire("target")] public global::Xynolog.Types.Target? Target { get; init; }
+    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
+    [global::Xynolog.Serialization.Wire("service")] public string? Service { get; init; }
+    [global::Xynolog.Serialization.Wire("group")] public global::Xynolog.Types.ServiceGroup? Group { get; init; }
     [global::Xynolog.Serialization.Wire("delete")] public bool? Delete { get; init; }
     [global::Xynolog.Serialization.Wire("deleteConfirmed")] public bool? DeleteConfirmed { get; init; }
     [global::Xynolog.Serialization.Wire("dryRun")] public bool? DryRun { get; init; }
-    [global::Xynolog.Serialization.Wire("group")] public global::Xynolog.Types.ServiceGroup? Group { get; init; }
-    [global::Xynolog.Serialization.Wire("runtime")] public global::Xynolog.Types.Runtime? Runtime { get; init; }
-    [global::Xynolog.Serialization.Wire("service")] public string? Service { get; init; }
-    [global::Xynolog.Serialization.Wire("target")] public global::Xynolog.Types.Target? Target { get; init; }
 }

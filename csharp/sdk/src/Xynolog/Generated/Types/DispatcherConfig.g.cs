@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DispatcherConfig
 {
+    [global::Xynolog.Serialization.Wire("kb")] public required global::Xynolog.Types.KbIdentity Kb { get; init; }
     [global::Xynolog.Serialization.Wire("gatewayUrl")] public required string GatewayUrl { get; init; }
     [global::Xynolog.Serialization.Wire("identity")] public required global::Xynolog.Types.ServiceIdentity Identity { get; init; }
-    [global::Xynolog.Serialization.Wire("kb")] public required global::Xynolog.Types.KbIdentity Kb { get; init; }
-    [global::Xynolog.Serialization.Wire("logFormat")] public required global::Xynolog.Types.LogFormat LogFormat { get; init; }
-    [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
-    [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     [global::Xynolog.Serialization.Wire("queue")] public required global::Xynolog.Types.DispatcherConfigQueue Queue { get; init; }
+    [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     [global::Xynolog.Serialization.Wire("timing")] public required global::Xynolog.Types.DispatcherConfigTiming Timing { get; init; }
+    [global::Xynolog.Serialization.Wire("logLevel")] public required global::Xynolog.Types.LogLevel LogLevel { get; init; }
+    [global::Xynolog.Serialization.Wire("logFormat")] public required global::Xynolog.Types.LogFormat LogFormat { get; init; }
 }

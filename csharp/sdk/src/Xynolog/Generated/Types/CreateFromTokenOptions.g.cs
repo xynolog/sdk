@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record CreateFromTokenOptions
 {
-    [global::Xynolog.Serialization.Wire("archiveOriginal")] public bool? ArchiveOriginal { get; init; }
-    [global::Xynolog.Serialization.Wire("content")] public required string Content { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("token")] public required string Token { get; init; }
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
+    [global::Xynolog.Serialization.Wire("content")] public required string Content { get; init; }
+    [global::Xynolog.Serialization.Wire("archiveOriginal")] public bool? ArchiveOriginal { get; init; }
 }

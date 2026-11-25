@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AnchoredTextExtractedEntry
 {
-    [global::Xynolog.Serialization.Wire("lines")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.AnchoredTextExtractedEntryLinesItem> Lines { get; init; }
-    [global::Xynolog.Serialization.Wire("method")] public required global::Xynolog.Types.ExtractionMethod Method { get; init; }
-    [global::Xynolog.Serialization.Wire("ocrConfidence")] public global::Xynolog.Types.OcrConfidence? OcrConfidence { get; init; }
-    [global::Xynolog.Serialization.Wire("pdfClass")] public global::Xynolog.Types.PdfClass? PdfClass { get; init; }
+    [global::Xynolog.Serialization.Wire("v")] public required long V { get; init; }
     [global::Xynolog.Serialization.Wire("stamp")] public required string Stamp { get; init; }
     [global::Xynolog.Serialization.Wire("text")] public required string Text { get; init; }
+    [global::Xynolog.Serialization.Wire("lines")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.AnchoredTextExtractedEntryLinesItem> Lines { get; init; }
+    [global::Xynolog.Serialization.Wire("method")] public required global::Xynolog.Types.ExtractionMethod Method { get; init; }
+    [global::Xynolog.Serialization.Wire("pdfClass")] public global::Xynolog.Types.PdfClass? PdfClass { get; init; }
+    [global::Xynolog.Serialization.Wire("ocrConfidence")] public global::Xynolog.Types.OcrConfidence? OcrConfidence { get; init; }
     [global::Xynolog.Serialization.Wire("unreadPages")] public global::System.Collections.Generic.IReadOnlyList<long>? UnreadPages { get; init; }
-    [global::Xynolog.Serialization.Wire("v")] public required long V { get; init; }
 }

@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record NeptuneGraphConfig
 {
-    [global::Xynolog.Serialization.Wire("endpoint")] public required string Endpoint { get; init; }
-    [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     public const string TypeValue = "neptune";
     [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("endpoint")] public required string Endpoint { get; init; }
+    [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
 }

@@ -543,33 +543,33 @@ let identifierKinds:
   ]
 
 public struct FidelityFixture: Codable, Sendable, Hashable {
-  public var optionalValue: String?
-  public var requiredNullable: String?
   public var requiredValue: String
+  public var requiredNullable: String?
+  public var optionalValue: String?
   public var rest: [String: JSONValue]
   public init(
-    optionalValue: String? = nil, requiredNullable: String?, requiredValue: String,
+    requiredValue: String, requiredNullable: String?, optionalValue: String? = nil,
     rest: [String: JSONValue] = [:]
   ) {
-    self.optionalValue = optionalValue
-    self.requiredNullable = requiredNullable
     self.requiredValue = requiredValue
+    self.requiredNullable = requiredNullable
+    self.optionalValue = optionalValue
     self.rest = rest
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    self.optionalValue = try c.ifPresent("optionalValue")
-    self.requiredNullable = try c.value("requiredNullable")
     self.requiredValue = try c.value("requiredValue")
-    rest = try c.rest(excluding: ["optionalValue", "requiredNullable", "requiredValue"])
+    self.requiredNullable = try c.value("requiredNullable")
+    self.optionalValue = try c.ifPresent("optionalValue")
+    rest = try c.rest(excluding: ["requiredValue", "requiredNullable", "optionalValue"])
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(
-      rest: rest, excluding: ["optionalValue", "requiredNullable", "requiredValue"],
+      rest: rest, excluding: ["requiredValue", "requiredNullable", "optionalValue"],
       of: "FidelityFixture")
-    try c.encodeIfPresent(self.optionalValue, as: "optionalValue")
-    try c.encode(self.requiredNullable, as: "requiredNullable")
     try c.encode(self.requiredValue, as: "requiredValue")
+    try c.encode(self.requiredNullable, as: "requiredNullable")
+    try c.encodeIfPresent(self.optionalValue, as: "optionalValue")
   }
 }

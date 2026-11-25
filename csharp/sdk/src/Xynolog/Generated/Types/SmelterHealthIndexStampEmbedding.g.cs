@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SmelterHealthIndexStampEmbedding
 {
-    [global::Xynolog.Serialization.Wire("model")] public required string Model { get; init; }
     [global::Xynolog.Serialization.Wire("type")] public required string Type { get; init; }
+    [global::Xynolog.Serialization.Wire("model")] public required string Model { get; init; }
 }

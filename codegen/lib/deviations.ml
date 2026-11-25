@@ -48,17 +48,13 @@ let closed_empty_named (form : T.form) =
    holds an enumeration in place of integers, numbers or booleans, as a
    const of one is, as its scalar, dropping its values. *)
 
-(* Swift holds an object's members in the order of their names, where
-   [Typing] has the schema's order, and so takes them in that order to make
-   one. It holds an [allOf] of one schema as that schema, reading past what
-   is stated beside it (a const of the schema's values), where [Typing] has
+(* Swift holds an [allOf] of one schema as that schema, reading past what is
+   stated beside it (a const of the schema's values), where [Typing] has
    what they merge to. It holds a union every member of which is text as a
    [String] ([text_union]), and an enumeration in place of numbers as a
    [Double], dropping its values. *)
 
-(* C# holds an object's members in the order of their names, where [Typing]
-   has the schema's order, and so takes them in that order to make one. It
-   holds a member that is required, not null and of one string as a
+(* C# holds a member that is required, not null and of one string as a
    constant of [string], no type of its own. It holds a union every member
    of which is text as a [string] ([text_union]). It holds an enumeration
    in place of integers, numbers or booleans as its scalar, dropping its

@@ -249,11 +249,6 @@ and declaration t ~modifiers n (form : T.form) composition =
   | T.Json, None -> refuse "%s: schema without a type" n
 
 and object_ t ~modifiers n (members : T.member list) ~rest ~closed =
-  let members =
-    List.sort
-      (fun (a : T.member) (b : T.member) -> String.compare a.wire b.wire)
-      members
-  in
   let open_ =
     match rest with
     | T.Open -> true

@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record NewKnowledgeBase
 {
-    [global::Xynolog.Serialization.Wire("did")] public required string Did { get; init; }
-    [global::Xynolog.Serialization.Wire("endpoint")] public required global::Xynolog.Types.KbEndpoint Endpoint { get; init; }
     [global::Xynolog.Serialization.Wire("label")] public required string Label { get; init; }
+    [global::Xynolog.Serialization.Wire("endpoint")] public required global::Xynolog.Types.KbEndpoint Endpoint { get; init; }
+    [global::Xynolog.Serialization.Wire("did")] public required string Did { get; init; }
     [global::Xynolog.Serialization.Wire("lastRead")] public global::Xynolog.Types.KbRead? LastRead { get; init; }
 }

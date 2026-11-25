@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ExtractedText
 {
+    [global::Xynolog.Serialization.Wire("text")] public required string Text { get; init; }
     [global::Xynolog.Serialization.Wire("items")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.PdfTextItem> Items { get; init; }
     public const string KindValue = "extracted";
     [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
     [global::Xynolog.Serialization.Wire("method")] public required global::Xynolog.Types.ExtractionMethod Method { get; init; }
-    [global::Xynolog.Serialization.Wire("ocrConfidence")] public global::Xynolog.Types.OcrConfidence? OcrConfidence { get; init; }
     [global::Xynolog.Serialization.Wire("pdfClass")] public global::Xynolog.Types.PdfClass? PdfClass { get; init; }
-    [global::Xynolog.Serialization.Wire("text")] public required string Text { get; init; }
+    [global::Xynolog.Serialization.Wire("ocrConfidence")] public global::Xynolog.Types.OcrConfidence? OcrConfidence { get; init; }
     [global::Xynolog.Serialization.Wire("unreadPages")] public global::System.Collections.Generic.IReadOnlyList<long>? UnreadPages { get; init; }
 }

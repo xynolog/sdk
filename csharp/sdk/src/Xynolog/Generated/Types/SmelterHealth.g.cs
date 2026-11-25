@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SmelterHealth
 {
-    [global::Xynolog.Serialization.Wire("eventsProcessed")] public required long EventsProcessed { get; init; }
-    [global::Xynolog.Serialization.Wire("following")] public required global::Xynolog.Types.FollowerFollowing Following { get; init; }
-    [global::Xynolog.Serialization.Wire("index")] public required global::Xynolog.Types.SmelterHealthIndex Index { get; init; }
-    [global::Xynolog.Serialization.Wire("kb")] public required string Kb { get; init; }
-    [global::Xynolog.Serialization.Wire("reconcile")] public required global::Xynolog.Types.SmelterHealthReconcile Reconcile { get; init; }
     public const string StatusValue = "ok";
     [global::Xynolog.Serialization.Wire("status")] public string Status => StatusValue;
+    [global::Xynolog.Serialization.Wire("kb")] public required string Kb { get; init; }
     [global::Xynolog.Serialization.Wire("stream")] public required global::Xynolog.Types.SmelterHealthStream Stream { get; init; }
+    [global::Xynolog.Serialization.Wire("following")] public required global::Xynolog.Types.FollowerFollowing Following { get; init; }
+    [global::Xynolog.Serialization.Wire("eventsProcessed")] public required long EventsProcessed { get; init; }
+    [global::Xynolog.Serialization.Wire("reconcile")] public required global::Xynolog.Types.SmelterHealthReconcile Reconcile { get; init; }
+    [global::Xynolog.Serialization.Wire("index")] public required global::Xynolog.Types.SmelterHealthIndex Index { get; init; }
 }

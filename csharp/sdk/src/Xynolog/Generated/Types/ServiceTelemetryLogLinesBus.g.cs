@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record ServiceTelemetryLogLinesBus
 {
     [global::Xynolog.Serialization.Wire("line")] public required string Line { get; init; }
-    [global::Xynolog.Serialization.Wire("ops")] public required global::System.Collections.Generic.IReadOnlyList<string> Ops { get; init; }
     [global::Xynolog.Serialization.Wire("parts")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryLogLinesBusPartsItem> Parts { get; init; }
+    [global::Xynolog.Serialization.Wire("ops")] public required global::System.Collections.Generic.IReadOnlyList<string> Ops { get; init; }
 }

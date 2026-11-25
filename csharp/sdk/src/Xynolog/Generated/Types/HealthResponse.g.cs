@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record HealthResponse
 {
-    [global::Xynolog.Serialization.Wire("message")] public required string Message { get; init; }
     [global::Xynolog.Serialization.Wire("status")] public required string Status { get; init; }
-    [global::Xynolog.Serialization.Wire("timestamp")] public required string Timestamp { get; init; }
+    [global::Xynolog.Serialization.Wire("message")] public required string Message { get; init; }
     [global::Xynolog.Serialization.Wire("version")] public required string Version { get; init; }
+    [global::Xynolog.Serialization.Wire("timestamp")] public required string Timestamp { get; init; }
 }

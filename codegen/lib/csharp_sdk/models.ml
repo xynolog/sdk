@@ -307,9 +307,7 @@ and object_ state name ~attribute (members : T.member list) (rest : T.rest) ~key
           nullable;
           constant;
         })
-      (List.sort
-         (fun (a : T.member) (b : T.member) -> String.compare a.wire b.wire)
-         members)
+      members
   in
   (* A constant member's value is also the model's own, so code that reads
      the wire before it is a model names it. *)

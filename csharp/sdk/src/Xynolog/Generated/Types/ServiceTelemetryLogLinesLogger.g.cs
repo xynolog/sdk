@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ServiceTelemetryLogLinesLogger
 {
-    [global::Xynolog.Serialization.Wire("json")] public required global::Xynolog.Types.ServiceTelemetryLogLinesLoggerJson Json { get; init; }
     [global::Xynolog.Serialization.Wire("services")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryLogLinesLoggerServicesItem> Services { get; init; }
+    [global::Xynolog.Serialization.Wire("json")] public required global::Xynolog.Types.ServiceTelemetryLogLinesLoggerJson Json { get; init; }
     [global::Xynolog.Serialization.Wire("simple")] public required string Simple { get; init; }
 }

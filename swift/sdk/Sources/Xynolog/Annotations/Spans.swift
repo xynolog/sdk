@@ -5,19 +5,19 @@ extension TextSpan {
     switch reconciled {
     case .uniqueMatch(let span):
       self.init(
-        end: span.end, exact: span.exact, prefix: span.prefix, start: span.start,
+        start: span.start, end: span.end, exact: span.exact, prefix: span.prefix,
         suffix: span.suffix)
     case .contextRecovered(let span):
       self.init(
-        end: span.end, exact: span.exact, prefix: span.prefix, start: span.start,
+        start: span.start, end: span.end, exact: span.exact, prefix: span.prefix,
         suffix: span.suffix)
     case .firstOfMany(let span):
       self.init(
-        end: span.end, exact: span.exact, prefix: span.prefix, start: span.start,
+        start: span.start, end: span.end, exact: span.exact, prefix: span.prefix,
         suffix: span.suffix)
     case .fuzzyMatch(let span):
       self.init(
-        end: span.end, exact: span.exact, prefix: span.prefix, start: span.start,
+        start: span.start, end: span.end, exact: span.exact, prefix: span.prefix,
         suffix: span.suffix)
     }
   }
@@ -193,15 +193,15 @@ private func own(_ text: ScalarText, _ at: Range<Int>) -> TextSpan {
   let last = min(text.count, ends + 32)
   while ends < last, !isBoundary(text.points[ends]) { ends += 1 }
   return TextSpan(
-    end: at.upperBound, exact: text.text(at.lowerBound, at.upperBound),
-    prefix: at.lowerBound == 0 ? nil : text.text(begins, at.lowerBound), start: at.lowerBound,
+    start: at.lowerBound, end: at.upperBound, exact: text.text(at.lowerBound, at.upperBound),
+    prefix: at.lowerBound == 0 ? nil : text.text(begins, at.lowerBound),
     suffix: at.upperBound == text.count ? nil : text.text(at.upperBound, ends))
 }
 private func fuzzy(_ span: TextSpan, _ quality: MatchQuality) -> ReconciledSpan {
   .fuzzyMatch(
     ReconciledSpanFuzzyMatch(
-      end: span.end, exact: span.exact, matchQuality: quality, prefix: span.prefix,
-      start: span.start, suffix: span.suffix))
+      start: span.start, end: span.end, exact: span.exact, prefix: span.prefix,
+      suffix: span.suffix, matchQuality: quality))
 }
 public func reconcile(text: String, quoted: QuotedText) -> ReconciledSpan? {
   guard !trimmed(quoted.exact).isEmpty else { return nil }
@@ -212,7 +212,7 @@ public func reconcile(text: String, quoted: QuotedText) -> ReconciledSpan? {
     let span = own(whole, first)
     return .uniqueMatch(
       ReconciledSpanUniqueMatch(
-        end: span.end, exact: span.exact, prefix: span.prefix, start: span.start,
+        start: span.start, end: span.end, exact: span.exact, prefix: span.prefix,
         suffix: span.suffix))
   }
   if let first = found.first {
@@ -220,13 +220,13 @@ public func reconcile(text: String, quoted: QuotedText) -> ReconciledSpan? {
       let span = own(whole, chosen)
       return .contextRecovered(
         ReconciledSpanContextRecovered(
-          end: span.end, exact: span.exact, prefix: span.prefix, start: span.start,
+          start: span.start, end: span.end, exact: span.exact, prefix: span.prefix,
           suffix: span.suffix))
     }
     let span = own(whole, first)
     return .firstOfMany(
       ReconciledSpanFirstOfMany(
-        end: span.end, exact: span.exact, prefix: span.prefix, start: span.start,
+        start: span.start, end: span.end, exact: span.exact, prefix: span.prefix,
         suffix: span.suffix))
   }
   let searches: [(Changed, ScalarText, MatchQuality)] = [

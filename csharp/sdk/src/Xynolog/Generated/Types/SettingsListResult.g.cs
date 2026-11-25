@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record SettingsListResult
 {
     [global::Xynolog.Serialization.Wire("root")] public string? Root { get; init; }
-    [global::Xynolog.Serialization.Wire("settings")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Setting> Settings { get; init; }
     [global::Xynolog.Serialization.Wire("unresolved")] public string? Unresolved { get; init; }
+    [global::Xynolog.Serialization.Wire("settings")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Setting> Settings { get; init; }
 }

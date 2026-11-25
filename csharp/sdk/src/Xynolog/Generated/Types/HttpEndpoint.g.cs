@@ -7,9 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record HttpEndpoint
 {
-    [global::Xynolog.Serialization.Wire("host")] public required string Host { get; init; }
     public const string KindValue = "http";
     [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
+    [global::Xynolog.Serialization.Wire("host")] public required string Host { get; init; }
     [global::Xynolog.Serialization.Wire("port")] public required long Port { get; init; }
     [global::Xynolog.Serialization.Wire("protocol")] public required global::Xynolog.Types.HttpEndpointProtocol Protocol { get; init; }
 }

@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ResourceUpdatedPayload
 {
-    [global::Xynolog.Serialization.Wire("contentByteSize")] public long? ContentByteSize { get; init; }
     [global::Xynolog.Serialization.Wire("contentChecksum")] public required string ContentChecksum { get; init; }
+    [global::Xynolog.Serialization.Wire("contentByteSize")] public long? ContentByteSize { get; init; }
 }

@@ -7,12 +7,12 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record AgentSoftware
 {
-    [global::Xynolog.Serialization.Wire("@id")] public string? Id { get; init; }
     public const string TypeValue = "Software";
     [global::Xynolog.Serialization.Wire("@type")] public string Type => TypeValue;
-    [global::Xynolog.Serialization.Wire("model")] public string? Model { get; init; }
+    [global::Xynolog.Serialization.Wire("@id")] public string? Id { get; init; }
     [global::Xynolog.Serialization.Wire("name")] public string? Name { get; init; }
-    [global::Xynolog.Serialization.Wire("parameters")] public global::System.Text.Json.JsonElement? Parameters { get; init; }
     [global::Xynolog.Serialization.Wire("provider")] public string? Provider { get; init; }
+    [global::Xynolog.Serialization.Wire("model")] public string? Model { get; init; }
+    [global::Xynolog.Serialization.Wire("parameters")] public global::System.Text.Json.JsonElement? Parameters { get; init; }
     [global::Xynolog.Serialization.WireRest] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement> AdditionalProperties { get; init; } = new global::System.Collections.Generic.Dictionary<string, global::System.Text.Json.JsonElement>();
 }

@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ResourceAnnotations
 {
-    [global::Xynolog.Serialization.Wire("annotations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Annotation> Annotations { get; init; }
     [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
-    [global::Xynolog.Serialization.Wire("updatedAt")] public required string UpdatedAt { get; init; }
+    [global::Xynolog.Serialization.Wire("annotations")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Annotation> Annotations { get; init; }
     [global::Xynolog.Serialization.Wire("version")] public required long Version { get; init; }
+    [global::Xynolog.Serialization.Wire("updatedAt")] public required string UpdatedAt { get; init; }
 }

@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceStepObserve
 {
-    [global::Xynolog.Serialization.Wire("as")] public required string As { get; init; }
     [global::Xynolog.Serialization.Wire("observe")] public required global::Xynolog.Types.ConformanceStepObserveObserve Observe { get; init; }
+    [global::Xynolog.Serialization.Wire("as")] public required string As { get; init; }
 }

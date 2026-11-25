@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record EmbeddingRequests
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("busy")] public required global::Xynolog.Types.EmbeddingRequestsBusy Busy { get; init; }
     [global::Xynolog.Serialization.Wire("providers")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.EmbeddingRequestsProvidersValue> Providers { get; init; }
     [global::Xynolog.Serialization.Wire("requestSeconds")] public required long RequestSeconds { get; init; }
+    [global::Xynolog.Serialization.Wire("busy")] public required global::Xynolog.Types.EmbeddingRequestsBusy Busy { get; init; }
     [global::Xynolog.Serialization.Wire("startAgain")] public required long StartAgain { get; init; }
 }

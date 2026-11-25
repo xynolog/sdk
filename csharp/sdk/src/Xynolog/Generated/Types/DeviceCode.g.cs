@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DeviceCode
 {
-    [global::Xynolog.Serialization.Wire("expiresIn")] public required long ExpiresIn { get; init; }
     [global::Xynolog.Serialization.Wire("userCode")] public required string UserCode { get; init; }
     [global::Xynolog.Serialization.Wire("verificationUri")] public required string VerificationUri { get; init; }
     [global::Xynolog.Serialization.Wire("verificationUriComplete")] public string? VerificationUriComplete { get; init; }
+    [global::Xynolog.Serialization.Wire("expiresIn")] public required long ExpiresIn { get; init; }
 }

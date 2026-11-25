@@ -8,8 +8,9 @@ func statusFixture(
   error: String? = nil
 ) throws -> JobStatusResponse {
   JobStatusResponse(
-    created: "2026-11-03T00:00:00Z", error: error, jobId: try JobId(job), status: status,
-    type: kind, userId: try UserId("did:web:kb.test:users:person"))
+    jobId: try JobId(job), type: kind, status: status,
+    userId: try UserId("did:web:kb.test:users:person"), created: "2026-11-03T00:00:00Z",
+    error: error)
 }
 func contextFixture() throws -> GatheredContext {
   let table = try Spec.read("client/surface.json").object
@@ -23,10 +24,10 @@ func jobClaimedFixture(_ job: String = "job-1") throws -> [String: JSONValue] {
     JobClaimedResult(
       response: JobRunning(
         metadata: JobMetadata(
-          created: "2026-11-04T00:00:00Z", id: JobId(job), maxRetries: 1, retryCount: 0,
-          type: .mark, userId: UserId("did:web:kb.test:users:person")),
+          id: JobId(job), type: .mark, userId: UserId("did:web:kb.test:users:person"),
+          created: "2026-11-04T00:00:00Z", retryCount: 0, maxRetries: 1),
         params: JobParams(resourceId: ResourceId("res-1")),
-        progress: .empty(JobStoredProgressEmpty()), startedAt: "2026-11-04T00:00:00Z")))
+        startedAt: "2026-11-04T00:00:00Z", progress: .empty(JobStoredProgressEmpty()))))
 }
 func completionFixture(_ create: JobCreateCommand, job: String = "job-1") throws
   -> JobCompleteCommand
@@ -35,20 +36,20 @@ func completionFixture(_ create: JobCreateCommand, job: String = "job-1") throws
   switch create {
   case .markJobCreateCommand(let command):
     return .markJobCompleteCommand(
-      MarkJobCompleteCommand(jobId: job, resourceId: command.resourceId))
+      MarkJobCompleteCommand(resourceId: command.resourceId, jobId: job))
   case .yieldJobCreateCommand(let command):
     let resource: ResourceId
     switch command.params.context.focus {
     case .resource(let focus): resource = focus.resource.id
     case .annotation(let focus): resource = focus.sourceResource.id
     }
-    return .yieldJobCompleteCommand(YieldJobCompleteCommand(jobId: job, resourceId: resource))
+    return .yieldJobCompleteCommand(YieldJobCompleteCommand(resourceId: resource, jobId: job))
   }
 }
 func annotationReply(_ annotation: Annotation) throws -> [String: JSONValue] {
   try wirePayload(
     BrowseAnnotationResult(
-      response: GetAnnotationResponse(annotation: annotation, resolvedResource: nil, resource: nil))
+      response: GetAnnotationResponse(annotation: annotation, resource: nil, resolvedResource: nil))
   )
 }
 
@@ -65,12 +66,12 @@ func surfaceReplies(_ probe: ProbeTransport, cloneAnswer: JSONValue?) {
     case Operations.browseResourcesRequested.request.name:
       return try wirePayload(
         BrowseResourcesResult(
-          response: ListResourcesResponse(limit: 100, offset: 0, resources: [], total: 0)))
+          response: ListResourcesResponse(resources: [], total: 0, offset: 0, limit: 100)))
     case Operations.matchResourcesRequested.request.name:
       return try wirePayload(
         MatchResourcesResult(
           response: MatchResourcesResponse(
-            limit: 100, matchKind: .lexical, offset: 0, resources: [], total: 0)))
+            resources: [], total: 0, offset: 0, limit: 100, matchKind: .lexical)))
     case Operations.browseEnginesRequested.request.name:
       return try wirePayload(
         BrowseEnginesResult(response: BrowseEnginesResultResponse(engines: [])))
@@ -83,7 +84,7 @@ func surfaceReplies(_ probe: ProbeTransport, cloneAnswer: JSONValue?) {
       }
       return try wirePayload(
         BrowseResourceResult(
-          response: BrowseResourceResultResponse(lastSequence: 1, resource: focus.resource)))
+          response: BrowseResourceResultResponse(resource: focus.resource, lastSequence: 1)))
     case Operations.gatherReferencedByRequested.request.name:
       return try wirePayload(
         GatherReferencedByResult(
@@ -93,29 +94,29 @@ func surfaceReplies(_ probe: ProbeTransport, cloneAnswer: JSONValue?) {
       return try wirePayload(
         BrowseEventsResult(
           response: GetEventsResponse(
-            events: [], resourceId: request.resourceId, total: 0)))
+            events: [], total: 0, resourceId: request.resourceId)))
     case Operations.browseAnnotationRequested.request.name:
       let request = try decoded(BrowseAnnotationRequest.self, .object(payload))
       return try annotationReply(
         Annotation(
-          created: "2026-11-03T00:00:00Z", id: request.annotationId, motivation: .commenting,
-          target: .resourceId(request.resourceId)))
+          id: request.annotationId, motivation: .commenting,
+          target: .resourceId(request.resourceId), created: "2026-11-03T00:00:00Z"))
     case Operations.browseAnnotationHistoryRequested.request.name:
       let request = try decoded(BrowseAnnotationHistoryRequest.self, .object(payload))
       return try wirePayload(
         BrowseAnnotationHistoryResult(
           response: GetAnnotationHistoryResponse(
-            annotationId: request.annotationId, events: [], resourceId: request.resourceId, total: 0
+            events: [], total: 0, annotationId: request.annotationId, resourceId: request.resourceId
           )))
     case Operations.browseDirectoryRequested.request.name:
       let request = try decoded(BrowseDirectoryRequest.self, .object(payload))
       return try wirePayload(
         BrowseDirectoryResult(
           response: BrowseDirectoryResultResponse(
-            entries: [], path: request.path)))
+            path: request.path, entries: [])))
     case Operations.browseKbRequested.request.name:
       return try wirePayload(
-        BrowseKbResult(response: KbDescription(domain: "kb.test", name: "Test")))
+        BrowseKbResult(response: KbDescription(name: "Test", domain: "kb.test")))
     case Operations.jobCreate.request.name:
       let completion = try completionFixture(decoded(JobCreateCommand.self, .object(payload)))
       probe?.deliver(
@@ -155,7 +156,7 @@ func surfaceReplies(_ probe: ProbeTransport, cloneAnswer: JSONValue?) {
         return try wirePayload(
           ResponseEnvelope(
             response: CloneResourceWithTokenResponse(
-              expiresAt: "2030-01-01T00:00:00Z", resource: focus.resource, token: "token")))
+              token: "token", expiresAt: "2030-01-01T00:00:00Z", resource: focus.resource)))
       }
       if let cloneAnswer {
         return try wirePayload(
@@ -164,7 +165,7 @@ func surfaceReplies(_ probe: ProbeTransport, cloneAnswer: JSONValue?) {
       return try wirePayload(
         ResponseEnvelope(
           response: GetResourceByTokenResponse(
-            expiresAt: "2030-01-01T00:00:00Z", sourceResource: focus.resource)))
+            sourceResource: focus.resource, expiresAt: "2030-01-01T00:00:00Z")))
     case Operations.frameAddEntityType.request.name, Operations.frameAddTagSchema.request.name,
       Operations.markArchive.request.name, Operations.markUnarchive.request.name,
       Operations.markUpdateEntityTypes.request.name:

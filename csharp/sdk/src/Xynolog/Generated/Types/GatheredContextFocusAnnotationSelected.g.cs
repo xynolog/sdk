@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatheredContextFocusAnnotationSelected
 {
-    [global::Xynolog.Serialization.Wire("after")] public string? After { get; init; }
     [global::Xynolog.Serialization.Wire("before")] public string? Before { get; init; }
     [global::Xynolog.Serialization.Wire("text")] public required string Text { get; init; }
+    [global::Xynolog.Serialization.Wire("after")] public string? After { get; init; }
 }

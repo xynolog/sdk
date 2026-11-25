@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BrowsePanelOpenEvent
 {
-    [global::Xynolog.Serialization.Wire("motivation")] public global::Xynolog.Types.Motivation? Motivation { get; init; }
     [global::Xynolog.Serialization.Wire("panel")] public required string Panel { get; init; }
     [global::Xynolog.Serialization.Wire("scrollToAnnotationId")] public global::Xynolog.Identifiers.AnnotationId? ScrollToAnnotationId { get; init; }
+    [global::Xynolog.Serialization.Wire("motivation")] public global::Xynolog.Types.Motivation? Motivation { get; init; }
 }

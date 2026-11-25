@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceDriverLineFailed
 {
-    [global::Xynolog.Serialization.Wire("error")] public required global::Xynolog.Types.ConformanceFailure Error { get; init; }
     [global::Xynolog.Serialization.Wire("id")] public required long Id { get; init; }
+    [global::Xynolog.Serialization.Wire("error")] public required global::Xynolog.Types.ConformanceFailure Error { get; init; }
 }

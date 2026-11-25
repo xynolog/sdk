@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record LimitRefusal
 {
-    [global::Xynolog.Serialization.Wire("code")] public required global::Xynolog.Types.LimitRefusalCode Code { get; init; }
-    [global::Xynolog.Serialization.Wire("details")] public global::System.Text.Json.JsonElement? Details { get; init; }
     [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
+    [global::Xynolog.Serialization.Wire("code")] public required global::Xynolog.Types.LimitRefusalCode Code { get; init; }
     [global::Xynolog.Serialization.Wire("hint")] public string? Hint { get; init; }
+    [global::Xynolog.Serialization.Wire("details")] public global::System.Text.Json.JsonElement? Details { get; init; }
 }

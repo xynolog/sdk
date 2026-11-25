@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record TextPositionSelector
 {
-    [global::Xynolog.Serialization.Wire("end")] public required long End { get; init; }
-    [global::Xynolog.Serialization.Wire("start")] public required long Start { get; init; }
     public const string TypeValue = "TextPositionSelector";
     [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
+    [global::Xynolog.Serialization.Wire("start")] public required long Start { get; init; }
+    [global::Xynolog.Serialization.Wire("end")] public required long End { get; init; }
 }

@@ -7,15 +7,15 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record JobStatusResponse
 {
-    [global::Xynolog.Serialization.Wire("completedAt")] public string? CompletedAt { get; init; }
+    [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
+    [global::Xynolog.Serialization.Wire("type")] public required global::Xynolog.Types.JobType Type { get; init; }
+    [global::Xynolog.Serialization.Wire("status")] public required global::Xynolog.Types.JobStatusResponseStatus Status { get; init; }
+    [global::Xynolog.Serialization.Wire("userId")] public required global::Xynolog.Identifiers.UserId UserId { get; init; }
     [global::Xynolog.Serialization.Wire("created")] public required string Created { get; init; }
+    [global::Xynolog.Serialization.Wire("startedAt")] public string? StartedAt { get; init; }
+    [global::Xynolog.Serialization.Wire("completedAt")] public string? CompletedAt { get; init; }
     [global::Xynolog.Serialization.Wire("error")] public string? Error { get; init; }
     [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
-    [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
     [global::Xynolog.Serialization.Wire("progress")] public global::Xynolog.Types.JobStoredProgress? Progress { get; init; }
     [global::Xynolog.Serialization.Wire("result")] public global::Xynolog.Types.JobStoredResult? Result { get; init; }
-    [global::Xynolog.Serialization.Wire("startedAt")] public string? StartedAt { get; init; }
-    [global::Xynolog.Serialization.Wire("status")] public required global::Xynolog.Types.JobStatusResponseStatus Status { get; init; }
-    [global::Xynolog.Serialization.Wire("type")] public required global::Xynolog.Types.JobType Type { get; init; }
-    [global::Xynolog.Serialization.Wire("userId")] public required global::Xynolog.Identifiers.UserId UserId { get; init; }
 }

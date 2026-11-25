@@ -8,15 +8,15 @@ namespace Xynolog.Types;
 public sealed record JobFailCommand
 {
     [global::Xynolog.Serialization.Wire("_userId")] public global::Xynolog.Identifiers.UserId? UserId { get; init; }
-    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
-    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
-    [global::Xynolog.Serialization.Wire("completedUnits")] public global::System.Collections.Generic.IReadOnlyList<string>? CompletedUnits { get; init; }
-    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
-    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
-    [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
+    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
     [global::Xynolog.Serialization.Wire("jobId")] public required global::Xynolog.Identifiers.JobId JobId { get; init; }
     [global::Xynolog.Serialization.Wire("jobType")] public required global::Xynolog.Types.JobType JobType { get; init; }
-    [global::Xynolog.Serialization.Wire("resourceId")] public required global::Xynolog.Identifiers.ResourceId ResourceId { get; init; }
+    [global::Xynolog.Serialization.Wire("attempt")] public long? Attempt { get; init; }
+    [global::Xynolog.Serialization.Wire("annotationId")] public global::Xynolog.Identifiers.AnnotationId? AnnotationId { get; init; }
+    [global::Xynolog.Serialization.Wire("error")] public required string Error { get; init; }
+    [global::Xynolog.Serialization.Wire("completedUnits")] public global::System.Collections.Generic.IReadOnlyList<string>? CompletedUnits { get; init; }
     [global::Xynolog.Serialization.Wire("unitCursors")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.UnitCursor>? UnitCursors { get; init; }
+    [global::Xynolog.Serialization.Wire("failureClass")] public global::Xynolog.Types.FailureClass? FailureClass { get; init; }
     [global::Xynolog.Serialization.Wire("willRetry")] public bool? WillRetry { get; init; }
+    [global::Xynolog.Serialization.Wire("durability")] public global::Xynolog.Types.DurabilityEvidence? Durability { get; init; }
 }

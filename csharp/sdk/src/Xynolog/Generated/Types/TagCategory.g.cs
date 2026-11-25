@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record TagCategory
 {
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("description")] public required string Description { get; init; }
     [global::Xynolog.Serialization.Wire("examples")] public required global::System.Collections.Generic.IReadOnlyList<string> Examples { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
 }

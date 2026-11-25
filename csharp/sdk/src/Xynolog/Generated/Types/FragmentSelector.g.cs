@@ -7,8 +7,8 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record FragmentSelector
 {
-    [global::Xynolog.Serialization.Wire("conformsTo")] public string? ConformsTo { get; init; }
     public const string TypeValue = "FragmentSelector";
     [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
     [global::Xynolog.Serialization.Wire("value")] public required string Value { get; init; }
+    [global::Xynolog.Serialization.Wire("conformsTo")] public string? ConformsTo { get; init; }
 }

@@ -62,7 +62,7 @@ public struct BrowseNamespace: Sendable {
   {
     try await wire.request(
       Operations.browseAnnotationHistoryRequested,
-      BrowseAnnotationHistoryRequest(annotationId: annotationId, resourceId: resourceId)
+      BrowseAnnotationHistoryRequest(resourceId: resourceId, annotationId: annotationId)
     ).response
   }
   public func files(_ dirPath: String = ".", sort: BrowseDirectoryRequestSort = .name)
@@ -79,7 +79,7 @@ public struct BrowseNamespace: Sendable {
   /// known.
   public func click(_ annotationId: AnnotationId, anchorRect: AnchorRect? = nil) throws {
     try bus.emit(
-      Channels.browseClick, BrowseClickEvent(anchorRect: anchorRect, annotationId: annotationId))
+      Channels.browseClick, BrowseClickEvent(annotationId: annotationId, anchorRect: anchorRect))
   }
   public func openResource(_ resourceId: ResourceId) throws {
     try bus.emit(Channels.browseResourceOpen, BrowseResourceOpenEvent(resourceId: resourceId))

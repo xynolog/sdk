@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record GatheredContextFocusResource
 {
-    [global::Xynolog.Serialization.Wire("content")] public global::Xynolog.Types.GatheredContextFocusResourceContent? Content { get; init; }
     public const string KindValue = "resource";
     [global::Xynolog.Serialization.Wire("kind")] public string Kind => KindValue;
     [global::Xynolog.Serialization.Wire("resource")] public required global::Xynolog.Types.ResourceDescriptor Resource { get; init; }
-    [global::Xynolog.Serialization.Wire("suggestedReferences")] public global::System.Collections.Generic.IReadOnlyList<string>? SuggestedReferences { get; init; }
     [global::Xynolog.Serialization.Wire("summary")] public string? Summary { get; init; }
+    [global::Xynolog.Serialization.Wire("suggestedReferences")] public global::System.Collections.Generic.IReadOnlyList<string>? SuggestedReferences { get; init; }
+    [global::Xynolog.Serialization.Wire("content")] public global::Xynolog.Types.GatheredContextFocusResourceContent? Content { get; init; }
 }

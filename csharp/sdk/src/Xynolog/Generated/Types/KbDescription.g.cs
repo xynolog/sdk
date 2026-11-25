@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KbDescription
 {
+    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("domain")] public required string Domain { get; init; }
     [global::Xynolog.Serialization.Wire("gitBranch")] public string? GitBranch { get; init; }
-    [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
 }

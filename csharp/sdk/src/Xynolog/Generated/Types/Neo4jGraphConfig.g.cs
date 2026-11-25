@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Neo4jGraphConfig
 {
-    [global::Xynolog.Serialization.Wire("database")] public required string Database { get; init; }
-    [global::Xynolog.Serialization.Wire("passwordEnv")] public required string PasswordEnv { get; init; }
     public const string TypeValue = "neo4j";
     [global::Xynolog.Serialization.Wire("type")] public string Type => TypeValue;
     [global::Xynolog.Serialization.Wire("uri")] public required string Uri { get; init; }
     [global::Xynolog.Serialization.Wire("username")] public required string Username { get; init; }
+    [global::Xynolog.Serialization.Wire("passwordEnv")] public required string PasswordEnv { get; init; }
+    [global::Xynolog.Serialization.Wire("database")] public required string Database { get; init; }
 }

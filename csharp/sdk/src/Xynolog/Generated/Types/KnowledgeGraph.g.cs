@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record KnowledgeGraph
 {
-    [global::Xynolog.Serialization.Wire("edges")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.KnowledgeGraphEdgesItem> Edges { get; init; }
     [global::Xynolog.Serialization.Wire("nodes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.KnowledgeGraphNodesItem> Nodes { get; init; }
+    [global::Xynolog.Serialization.Wire("edges")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.KnowledgeGraphEdgesItem> Edges { get; init; }
     [global::Xynolog.Serialization.Wire("truncated")] public bool? Truncated { get; init; }
 }

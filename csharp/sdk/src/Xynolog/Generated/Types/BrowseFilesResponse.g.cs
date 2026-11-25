@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record BrowseFilesResponse
 {
-    [global::Xynolog.Serialization.Wire("entries")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DirectoryEntry> Entries { get; init; }
     [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
+    [global::Xynolog.Serialization.Wire("entries")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DirectoryEntry> Entries { get; init; }
 }

@@ -7,10 +7,10 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record SignedIn
 {
-    [global::Xynolog.Serialization.Wire("description")] public required global::Xynolog.Types.KbDescription Description { get; init; }
     [global::Xynolog.Serialization.Wire("endpoint")] public required global::Xynolog.Types.KbEndpoint Endpoint { get; init; }
+    [global::Xynolog.Serialization.Wire("description")] public required global::Xynolog.Types.KbDescription Description { get; init; }
+    [global::Xynolog.Serialization.Wire("session")] public required global::Xynolog.Types.StoredSession Session { get; init; }
+    [global::Xynolog.Serialization.Wire("kbId")] public string? KbId { get; init; }
     [global::Xynolog.Serialization.Wire("expectedDid")] public string? ExpectedDid { get; init; }
     [global::Xynolog.Serialization.Wire("expectedName")] public string? ExpectedName { get; init; }
-    [global::Xynolog.Serialization.Wire("kbId")] public string? KbId { get; init; }
-    [global::Xynolog.Serialization.Wire("session")] public required global::Xynolog.Types.StoredSession Session { get; init; }
 }
