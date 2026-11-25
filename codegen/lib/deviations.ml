@@ -55,6 +55,4 @@ let closed_empty_named (form : T.form) =
 
 (* C# holds a union every member of which is text as a [string]
    ([text_union]). It holds an enumeration in place of numbers as a
-   [double], dropping its values, and declares a map as a record that
-   keeps its members ([AdditionalProperties]), where [Typing] has an
-   alias. *)
+   [double], dropping its values. *)

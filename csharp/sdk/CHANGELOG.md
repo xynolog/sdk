@@ -43,6 +43,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema that is a map of its own is that map, as the other SDKs alias
+  it: `LastEventIds` is an `IReadOnlyDictionary<ResourceId, string>`, where
+  it was a record that held the map as its `AdditionalProperties`.
 - A member of one value is a type of its own, as the other SDKs hold it:
   one of text is an enumeration of one constant
   (`ExtractionDeclined.Kind` is an `ExtractionDeclinedKind`, always

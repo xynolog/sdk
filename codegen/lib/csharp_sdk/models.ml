@@ -132,6 +132,13 @@ let rec named state name =
   let d = state.find name in
   match d.form with
   | T.Identifier _ -> C.T ("global::Xynolog.Identifiers." ^ name)
+  (* C# has no alias a library exports: a map of its own is the map. *)
+  | T.Map { key; value } ->
+      generic "IReadOnlyDictionary"
+        [
+          (match key with Some key -> named state key | None -> C.T "string");
+          type_of state name "Value" (value, values_of (validated state name));
+        ]
   | form -> (
       match plain state form with
       | Some type_ -> type_
@@ -212,14 +219,10 @@ and declare state name (form : T.form) composition validated =
   | T.Union u -> union state name u validated
   | T.Record { members; rest } ->
       object_ state name ~attribute:(read_as "WireObject") members rest
-        ~key:None validated
+        validated
   | T.Empty { rest; _ } ->
-      object_ state name ~attribute:(read_as "WireObject") [] rest ~key:None
-        validated
-  | T.Map { key; value } ->
-      object_ state name ~attribute:(read_as "WireObject") [] (T.Of value) ~key
-        validated
-  | T.Alias _ | T.Identifier _ | T.Json ->
+      object_ state name ~attribute:(read_as "WireObject") [] rest validated
+  | T.Map _ | T.Alias _ | T.Identifier _ | T.Json ->
       refuse "%s is not an object schema." name
 
 (* [name]'s validated [schema] with its allOf merged ([Normalize]). *)
@@ -306,18 +309,16 @@ and enum name ~attribute values =
       };
   ]
 
-and object_ state name ~attribute (members : T.member list) (rest : T.rest) ~key
+and object_ state name ~attribute (members : T.member list) (rest : T.rest)
     validated =
   (* An object whose other members are anything keeps them as JSON; one whose
-     other members are of a schema keeps them as that schema's type, keyed as
-     its member names' schema is, where that is a schema of its own. *)
+     other members are of a schema keeps them as that schema's type. *)
   let rest =
     match rest with
     | T.Open -> Some (C.T "string", element)
     | T.Of value ->
         Some
-          ( (match key with Some key -> named state key | None -> C.T "string"),
-            type_of state name "Value" (value, values_of validated) )
+          (C.T "string", type_of state name "Value" (value, values_of validated))
     | T.Closed | T.Unstated -> None
   in
   (* A property another schema states is that schema's, and so are the
