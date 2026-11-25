@@ -162,6 +162,9 @@ describe('startAgentSession', () => {
   });
 
   it('a gateway that cannot be reached fails the sign-in at once, and is asked nothing more', async () => {
+    grant.mockReturnValueOnce(
+      granted(tokenExpiringIn(5 * 60 * 1000, 'first'), 5 * 60 * 1000),
+    );
     gateway.mockRejectedValueOnce(
       Object.assign(new TypeError('fetch failed'), {
         cause: { code: 'ECONNREFUSED' },
