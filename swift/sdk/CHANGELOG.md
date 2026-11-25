@@ -65,6 +65,9 @@ the coming release's, and gathers its changes as they land.
   that read every value as the first.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- `GetAnnotationsResponse.motivation` is a `Motivation?`, where it was a
+  `Stated<Motivation>`. Protocol no longer allows it to be null: a null for it
+  is refused as malformed.
 - The smelter's and the weaver's health name how far they have followed the
   record as `FollowerFollowing`, the type Protocol states, in place of
   `SmelterHealthFollowing`, `WeaverHealthFollowing` and their `…Sweep` types.
@@ -99,6 +102,8 @@ the coming release's, and gathers its changes as they land.
 
 - `ResourceFilters` and `WorkerTiming`: `BrowseResourcesRequest`,
   `ResourceSearchFilters` and `ClaimOptions` say what they said.
+- `Stated` is removed. No member of Protocol is both optional and nullable, so
+  a model's optional property is an optional, absent when `nil`.
 
 ## 0.8.1
 

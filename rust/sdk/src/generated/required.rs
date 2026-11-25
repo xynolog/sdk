@@ -5123,14 +5123,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "motivation",
-                    Shape {
-                        kinds: Some(&[Kind::String, Kind::Null]),
-                        one_of: &[of(&[Kind::Null]), reference("Motivation")],
-                        ..NONE
-                    },
-                ),
+                ("motivation", reference("Motivation")),
                 ("total", of(&[Kind::Number])),
             ],
             ..NONE

@@ -201,7 +201,7 @@ Every maker that waits takes the `context: CoroutineContext` its work runs on (`
 Every component schema of the spec is a type of `xynolog.types`, and each kind of id a value class of `xynolog.identifiers`. The repository's generator (`codegen/`, `make generate`) writes them from `protocol/specs/src` into `src/generated/kotlin`, with the code of the spec's tables, and `make check-generated` fails when a committed one differs from what it writes.
 
 - An id is made only through its kind's check: `ResourceId("res-1")` throws `InvalidIdentifier` for text the rule refuses, and `ResourceId.parse(text)` gives `null` instead. Decoding goes through the same check.
-- A model is immutable, and written back as it was read: a property left out stays left out, and text the spec gives a format (a time, a URI) stays the text it was. A property that is optional and may be null is a `Stated`: `Absent`, `Null` or `Value`.
+- A model is immutable, and written back as it was read: a property left out stays left out, and text the spec gives a format (a time, a URI) stays the text it was.
 - A union is a sealed interface its members implement; a member that is text, a list or a bare object is a variant of the union's own (`Text`, `List`, `Object`).
 - Kotlin makes a model by naming its arguments. Java makes one through its builder, which takes what must be stated, then a setter for each thing that may be:
 

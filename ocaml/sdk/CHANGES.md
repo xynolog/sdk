@@ -54,6 +54,9 @@ the coming release's, and gathers its changes as they land.
   generated vocabulary, in place of a variant of its own.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- `Records.Get_annotations_response.t`'s `motivation` is an
+  `Enums.Motivation.t option`, where it was a `Types.presence`. Protocol no
+  longer allows it to be null: a null for it is refused as malformed.
 - `Bus.frame_refusal_reason` is `Enums.Frame_refusal_reason.t`
   (`Lacks | Malformed`), as is every fault's reason, in place of
   `` [ `Lacks | `Malformed ] ``.

@@ -2173,7 +2173,7 @@ export interface components {
       /** Total number of annotations */
       total: number;
       /** Motivation filter applied (if any) */
-      motivation?: components['schemas']['Motivation'] | null;
+      motivation?: components['schemas']['Motivation'];
     };
     GetEntityTypesResponse: {
       entityTypes: string[];

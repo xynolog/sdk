@@ -5,8 +5,8 @@
    boolean, an integer, a number, a string component, a string enum
    component ([Enums]) or a list of one of those is read as its OCaml type,
    and every other kept as its raw JSON, an allOf among them. One that may
-   be absent or null is an option, and one that may be both a
-   [Types.presence], as is a raw one that may be absent. A union's every branch is one of the records. Each
+   be absent or null is an option, and a raw one that may be absent a
+   [Types.presence]. A union's every branch is one of the records. Each
    is read from the value a [Models] descriptor accepted, through
    ocaml/sdk/lib/record_reader.ml, and written back with the members no
    read named, the descriptor holding what is written to the schema. The
@@ -678,8 +678,8 @@ let stated = function
   | _ -> []
 
 (* How a component's member is held: always present, an option when it may
-   be absent, or a [Types.presence] when it may be absent and may be null
-   (a raw one may always be null). *)
+   be absent, or a [Types.presence] when it is raw and may be absent, since
+   a raw one may always be null. *)
 type presence = Always | Maybe | Presence
 
 (* A component's member: how it is held, its type, its reader and its
@@ -707,7 +707,7 @@ let component_member ~optional member =
             O.call "nullable" [ read ],
             O.call "json_nullable" [ write ] )
         else (Always, type_, read, write)
-      else ((if nullable then Presence else Maybe), type_, read, write)
+      else (Maybe, type_, read, write)
 
 let rec base_type = function
   | Text_base -> O.type_ "string"

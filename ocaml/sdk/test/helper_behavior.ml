@@ -197,13 +197,11 @@ let annotation (row : Readers.cases_item) =
   Alcotest.(check string)
     "annotationExactText" reads.annotation_exact_text
     (A.annotation_exact_text annotation);
-  Option.iter
-    (fun expected ->
-      check "textQuoteSelector" (nullable Fun.id expected)
-        (nullable
-           (fun s -> Selector.to_json (TextQuoteSelector s))
-           (Option.bind selection A.text_quote_selector)))
-    reads.text_quote_selector;
+  check "textQuoteSelector"
+    (nullable Fun.id reads.text_quote_selector)
+    (nullable
+       (fun s -> Selector.to_json (TextQuoteSelector s))
+       (Option.bind selection A.text_quote_selector));
   Alcotest.(check strings)
     "entityTypes" reads.entity_types
     (A.entity_types annotation);

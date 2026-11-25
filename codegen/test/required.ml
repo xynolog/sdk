@@ -88,6 +88,16 @@ let kinds =
          {|{"kinds":["string","boolean"],"oneOf":[{"kinds":["string"]},{"kinds":["boolean"]}]}|});
   ]
 
+(* The pointers of the members of [text] that the spec's reading refuses as
+   optional and nullable. *)
+let optional_nullable text expected () =
+  let _, file, schema = component ("S", text) in
+  Alcotest.(check (list string))
+    "refused" expected
+    (List.map
+       (fun (error : Decode.error) -> error.pointer)
+       (Spec_shapes.optional_nullable file schema))
+
 let nullable =
   [
     case "null beside a type allows null"
@@ -123,6 +133,21 @@ let nullable =
          (s
         ^ ": /: states an enum beside a type that allows null, and an enum \
            states no null"));
+    case "a member that is optional and may be null is refused, wherever it is"
+      (optional_nullable
+         {|{"type":"object","properties":{
+             "a":{"type":["string","null"]},
+             "b":{"type":"object","properties":{"c":{"oneOf":[{"type":"string"},{"type":"integer"},{"type":"null"}]}}},
+             "d":{"type":"array","items":{"type":"object","properties":{"e":{"type":["integer","null"]}}}}}}|}
+         [
+           "/properties/a";
+           "/properties/b/properties/c";
+           "/properties/d/items/properties/e";
+         ]);
+    case "a member that is required, or that may not be null, is read"
+      (optional_nullable
+         {|{"type":"object","required":["a"],"properties":{"a":{"type":["string","null"]},"b":{"type":"string"}}}|}
+         []);
   ]
 
 let values =

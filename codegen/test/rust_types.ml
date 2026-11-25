@@ -109,7 +109,7 @@ let cases =
             [
               ("ThingId", {|{"type": "string", "pattern": "^[a-z]+$"}|});
               ( "Holder",
-                {|{"type": "object", "required": ["thing"], "properties": {
+                {|{"type": "object", "required": ["thing", "maybe"], "properties": {
                     "thing": {"$ref": "ThingId.json"},
                     "others": {"type": "array", "items": {"$ref": "ThingId.json"}},
                     "maybe": {"anyOf": [{"$ref": "ThingId.json"}, {"type": "null"}]}}}|}
@@ -119,7 +119,7 @@ let cases =
         in
         has code "    pub thing: ThingId,";
         has code "    pub others: Option<Vec<ThingId>>,";
-        has code "    pub maybe: Option<Option<ThingId>>,");
+        has code "    pub maybe: Option<ThingId>,");
     case "a map named by its keys' schema is keyed by that type" (fun () ->
         let code =
           generated ~identifiers:[ "ThingId" ]
@@ -214,18 +214,6 @@ let cases =
              ]
              "MediaType")
           "/// A MIME type.\npub type MediaType = String;");
-    case "an optional nullable property keeps absent and null apart" (fun () ->
-        let code =
-          generated
-            [
-              ( "Page",
-                {|{"type": "object", "properties": {"cursor": {"type": ["string", "null"]}}}|}
-              );
-            ]
-            "Page"
-        in
-        has code "deserialize_with = \"stated\"";
-        has code "pub cursor: Option<Option<String>>,");
     case "a nullable reference is the referenced type and not a copy of it"
       (fun () ->
         let code =

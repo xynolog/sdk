@@ -502,7 +502,7 @@ the maximum, and never shorter than the wait the failure stated. Its optional
 identifier structs. A schema keyword the models do not read fails generation.
 
 Use `Xynolog.Types` for models and `Xynolog.Identifiers` for identifier kinds. Optional
-nullable members use `Stated<T>` to distinguish absence from explicit null. Open objects
+members are nullable and absent when null. Open objects
 retain unknown members as `JsonElement`; dates and URIs retain their wire spelling.
 Tests round-trip resolved payloads from the shared wire, live, and worker corpora.
 

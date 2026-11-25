@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Xynolog.Identifiers;
-using Xynolog.Types;
 using Xunit;
 
 namespace Xynolog.Tests;
@@ -48,21 +47,6 @@ public sealed class SerializationTests
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ResourceId>("42"));
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ResourceId>("null"));
         Assert.DoesNotContain(typeof(ResourceId).GetConstructors(), constructor => constructor.GetParameters().Length > 0);
-    }
-
-    [Fact]
-    public void StatedMembersDistinguishAbsenceFromNull()
-    {
-        Assert.False(default(Stated<string>).IsPresent);
-        Assert.Throws<InvalidOperationException>(() => default(Stated<string>).Value);
-        Assert.Throws<JsonException>(() => JsonSerializer.Serialize(default(Stated<string>)));
-        var stated = JsonSerializer.Deserialize<Stated<string>>("null");
-        Assert.True(stated.IsPresent);
-        Assert.Null(stated.Value);
-        Assert.Equal("null", JsonSerializer.Serialize(stated));
-        var text = JsonSerializer.Deserialize<Stated<string>>("\"hello\"");
-        Assert.Equal("hello", text.Value);
-        Assert.Equal("\"hello\"", JsonSerializer.Serialize(text));
     }
 
     private static Type Model(string name) => Assembly.Load("Xynolog").GetType("Xynolog.Types." + name)
