@@ -1,8 +1,6 @@
 /**
- * retryWithBackoff exists so a long-running peer whose first fetch to the
- * KS fails (gateway restart, container-network warm-up) waits out the
- * blip instead of dying — orchestration runs these processes with `--rm`
- * and no restart policy, so exit-on-first-failure is permanent death.
+ * retryWithBackoff makes a request again inside a budget client timing
+ * states: an emit inside `emitRetry`, a renewal inside `refreshRetry`.
  */
 import { describe, it, expect, vi } from 'vitest';
 import {
@@ -10,11 +8,21 @@ import {
   isTransientFetchError,
   isRetryableRequestError,
   retryAfterMs,
-  type RetryAttemptInfo,
   type HttpStatusError,
 } from '../retry';
 
 const FAST = { attempts: 4, initialDelayMs: 1, maxDelayMs: 4 };
+
+/** The wait of each `setTimeout` `run` makes: the waits between its attempts. */
+async function waitsOf(run: () => Promise<unknown>): Promise<number[]> {
+  const spy = vi.spyOn(globalThis, 'setTimeout');
+  try {
+    await run().catch(() => undefined);
+    return spy.mock.calls.map(([, ms]) => ms ?? 0);
+  } finally {
+    spy.mockRestore();
+  }
+}
 
 function fetchFailed(): TypeError {
   return Object.assign(new TypeError('fetch failed'), {
@@ -70,33 +78,26 @@ describe('retryWithBackoff', () => {
     expect(calls).toBe(FAST.attempts);
   });
 
-  it('doubles the delay ceiling each retry and caps at maxDelayMs, reporting via onRetry', async () => {
-    const seen: RetryAttemptInfo[] = [];
-    await expect(
+  it('doubles the delay ceiling each retry and caps at maxDelayMs', async () => {
+    const waits = await waitsOf(() =>
       retryWithBackoff(
         async () => {
           throw fetchFailed();
         },
         isTransientFetchError,
         { attempts: 5, initialDelayMs: 8, maxDelayMs: 32 },
-        (info) => seen.push(info),
       ),
-    ).rejects.toThrow();
+    );
     // Equal jitter: each wait is in [cap/2, cap), so the exact sequence is
-    // not assertable — but the SCHEDULE is: the ceilings double and cap, and
-    // the reported delay is the actual wait rather than the ceiling.
+    // not assertable — but the SCHEDULE is: the ceilings double and cap.
     // Asserting per-attempt bounds keeps both the doubling and the cap under
     // test without pinning the random draw.
     const caps = [8, 16, 32, 32];
-    expect(seen).toHaveLength(caps.length);
-    seen.forEach((info, i) => {
-      expect(info.delayMs, `attempt ${i + 1}`).toBeGreaterThanOrEqual(
-        caps[i]! / 2,
-      );
-      expect(info.delayMs, `attempt ${i + 1}`).toBeLessThan(caps[i]!);
+    expect(waits).toHaveLength(caps.length);
+    waits.forEach((ms, i) => {
+      expect(ms, `attempt ${i + 1}`).toBeGreaterThanOrEqual(caps[i]! / 2);
+      expect(ms, `attempt ${i + 1}`).toBeLessThan(caps[i]!);
     });
-    expect(seen.map((s) => s.attempt)).toEqual([1, 2, 3, 4]);
-    expect(seen.every((s) => s.attempts === 5)).toBe(true);
   });
 
   it('jitters: repeated runs of the same policy do not produce identical delays', async () => {
@@ -106,17 +107,19 @@ describe('retryWithBackoff', () => {
     // equal; over 12 runs the chance of a false failure is negligible.
     const firstDelays: number[] = [];
     for (let run = 0; run < 12; run++) {
-      await expect(
-        retryWithBackoff(
-          async () => {
-            throw fetchFailed();
-          },
-          isTransientFetchError,
-          { attempts: 2, initialDelayMs: 8, maxDelayMs: 8 },
-          (info) => firstDelays.push(info.delayMs),
-        ),
-      ).rejects.toThrow();
+      firstDelays.push(
+        ...(await waitsOf(() =>
+          retryWithBackoff(
+            async () => {
+              throw fetchFailed();
+            },
+            isTransientFetchError,
+            { attempts: 2, initialDelayMs: 8, maxDelayMs: 8 },
+          ),
+        )),
+      );
     }
+    expect(firstDelays).toHaveLength(12);
     expect(new Set(firstDelays).size).toBeGreaterThan(1);
   });
 
@@ -249,7 +252,6 @@ describe("a caller's deadline outranks the budget", () => {
         },
         isTransientFetchError,
         { attempts: 10, initialDelayMs: 1, maxDelayMs: 1 },
-        undefined,
         controller.signal,
       ),
     ).rejects.toThrow('fetch failed');
@@ -270,7 +272,6 @@ describe("a caller's deadline outranks the budget", () => {
         },
         isTransientFetchError,
         { attempts: 3, initialDelayMs: 1, maxDelayMs: 1 },
-        undefined,
         controller.signal,
       ),
     ).rejects.toThrow();

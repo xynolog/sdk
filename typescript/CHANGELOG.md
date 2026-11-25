@@ -105,6 +105,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Removed
 
+- `STARTUP_FETCH_RETRY`. An agent's sign-in (`agentToken`, and so
+  `startAgentSession`) is made once, as every SDK makes it: a failure is
+  thrown as it came, and starting the sign-in again is the service's, on its
+  own backoff (Protocol's WORKER-SERVICE R3). `agentToken` takes no
+  `onRetry`.
+- `retryWithBackoff`'s `onRetry`, and `RetryAttemptInfo`, which nothing
+  else used. Its `signal` is its fourth argument.
 - `IssuerEndpoints`, for `PendingAuthorization['issuer']`.
 - `Brand`, and `EventSignature` with `StoredEvent`'s `signature`, which
   nothing wrote or read.
