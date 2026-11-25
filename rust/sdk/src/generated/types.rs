@@ -2257,7 +2257,7 @@ impl BeginAuthorizationOptions {
 schema!(BeginAuthorizationOptions);
 
 /// Bytes held whole. They can be read more than once, and sent again when an upload is retried.
-pub type Binary = String;
+pub type Binary = bytes::Bytes;
 
 /// One edit to a linking annotation's body list: add or remove a body item, or replace an existing one.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]

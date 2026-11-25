@@ -639,7 +639,7 @@ export interface components {
      * Bytes held whole. They can be read more than once, and sent again when an
      * upload is retried.
      */
-    Binary: string;
+    Binary: Blob;
     /**
      * One edit to a linking annotation's body list: add or remove a body item,
      * or replace an existing one.

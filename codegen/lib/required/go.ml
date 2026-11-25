@@ -30,11 +30,12 @@ let kind_of_go named : Shape.kind option =
   else if String.starts_with ~prefix:"map[" named then Some Object
   else None
 
-(* What package required reads a value of the Go type [named] as: a slice as
-   an array of what it reads each item as, a type of package api that is a
-   schema of [shapes] as that schema, and any other by its kind. *)
+(* What package required reads a value of the Go type [named] as: bytes as
+   the string encoding/json writes of them, any other slice as an array of
+   what it reads each item as, a type of package api that is a schema of
+   [shapes] as that schema, and any other by its kind. *)
 let rec read_of_go shapes named : Shape.shape =
-  match String.starts_with ~prefix:"[]" named with
+  match named <> "[]byte" && String.starts_with ~prefix:"[]" named with
   | true ->
       let item = String.sub named 2 (String.length named - 2) in
       Shape
