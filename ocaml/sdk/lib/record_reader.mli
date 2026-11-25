@@ -1,7 +1,7 @@
 (** How a record of {!Records} reads an object's members, the gateway having
     decoded the object as the record's schema, and writes them back: each read
-    names the member it reads, and the members no read named are the record's
-    [extra]. *)
+    names the member it reads, and the members no read named are the [extra] of
+    a record Protocol states holds other members. *)
 
 type t
 
@@ -85,9 +85,12 @@ val member : signature list list -> Yojson.Raw.t -> int
 (** The one member of a union, by the signatures of each, that admits a value of
     the union: no two admit one value. *)
 
-val write :
+val write : (string * Yojson.Raw.t option) list -> Yojson.Raw.t
+(** The members stated, each but the absent. *)
+
+val write_open :
   (string * Yojson.Raw.t option) list ->
   (string * Yojson.Raw.t) list ->
   Yojson.Raw.t
 (** The members stated, each but the absent, and then those of the extra that no
-    stated one names. *)
+    stated one names: a record Protocol states holds other members. *)

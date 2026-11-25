@@ -76,7 +76,6 @@ let deliver t ?id ?correlation_id ?scope channel payload =
           (Yojson.Raw.from_string (Yojson.Safe.to_string payload));
       correlation_id;
       scope;
-      extra = [];
     }
   in
   let data = Yojson.Raw.to_string (Records.Bus_frame.to_json frame) in

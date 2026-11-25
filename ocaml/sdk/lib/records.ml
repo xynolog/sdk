@@ -1012,7 +1012,7 @@ module Agent_organization = struct
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
+    write_open
       [
         ("@type", Some ((json_enum Field_type.to_string) value.field_type));
         ("@id", Option.map json_string value.field_id);
@@ -1065,7 +1065,7 @@ module Agent_person = struct
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
+    write_open
       [
         ("@type", Some ((json_enum Field_type.to_string) value.field_type));
         ("@id", Option.map json_string value.field_id);
@@ -1118,7 +1118,7 @@ module Agent_software = struct
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
+    write_open
       [
         ("@type", Some ((json_enum Field_type.to_string) value.field_type));
         ("@id", Option.map json_string value.field_id);
@@ -1134,22 +1134,17 @@ module Agent_software = struct
 end
 
 module Annotation_removed_payload = struct
-  type t = { annotation_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { annotation_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { annotation_id = required reader string "annotationId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { annotation_id = required reader string "annotationId" }
 
   let of_model (model : [ `AnnotationRemovedPayload ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("annotationId", Some (json_string value.annotation_id)) ]
-      value.extra
+    write [ ("annotationId", Some (json_string value.annotation_id)) ]
 
   let to_model value =
     Models.decode Models.annotation_removed_payload
@@ -1157,22 +1152,14 @@ module Annotation_removed_payload = struct
 end
 
 module Beckon_focus_event = struct
-  type t = {
-    annotation_id : string option;
-    resource_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { annotation_id : string option; resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation_id = maybe reader string "annotationId";
-        resource_id = required reader string "resourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation_id = maybe reader string "annotationId";
+      resource_id = required reader string "resourceId";
+    }
 
   let of_model (model : [ `BeckonFocusEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -1183,7 +1170,6 @@ module Beckon_focus_event = struct
         ("annotationId", Option.map json_string value.annotation_id);
         ("resourceId", Some (json_string value.resource_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.beckon_focus_event
@@ -1191,20 +1177,11 @@ module Beckon_focus_event = struct
 end
 
 module Beckon_hover_event = struct
-  type t = {
-    annotation_id : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { annotation_id : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation_id = required reader (nullable string) "annotationId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { annotation_id = required reader (nullable string) "annotationId" }
 
   let of_model (model : [ `BeckonHoverEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -1214,7 +1191,6 @@ module Beckon_hover_event = struct
       [
         ("annotationId", Some ((json_nullable json_string) value.annotation_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.beckon_hover_event
@@ -1222,22 +1198,17 @@ module Beckon_hover_event = struct
 end
 
 module Beckon_sparkle_event = struct
-  type t = { annotation_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { annotation_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { annotation_id = required reader string "annotationId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { annotation_id = required reader string "annotationId" }
 
   let of_model (model : [ `BeckonSparkleEvent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("annotationId", Some (json_string value.annotation_id)) ]
-      value.extra
+    write [ ("annotationId", Some (json_string value.annotation_id)) ]
 
   let to_model value =
     Models.decode Models.beckon_sparkle_event
@@ -1250,21 +1221,16 @@ module Bind_initiate_command = struct
     resource_id : string;
     default_title : string;
     entity_types : string list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation_id = required reader string "annotationId";
-        resource_id = required reader string "resourceId";
-        default_title = required reader string "defaultTitle";
-        entity_types = required reader (list string) "entityTypes";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation_id = required reader string "annotationId";
+      resource_id = required reader string "resourceId";
+      default_title = required reader string "defaultTitle";
+      entity_types = required reader (list string) "entityTypes";
+    }
 
   let of_model (model : [ `BindInitiateCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -1277,7 +1243,6 @@ module Bind_initiate_command = struct
         ("defaultTitle", Some (json_string value.default_title));
         ("entityTypes", Some ((json_list json_string) value.entity_types));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bind_initiate_command
@@ -1285,18 +1250,17 @@ module Bind_initiate_command = struct
 end
 
 module Browse_profiles_request = struct
-  type t = { dids : string list; extra : (string * Yojson.Raw.t) list }
+  type t = { dids : string list }
 
   let project fields =
     let reader = start fields in
-    let record = { dids = required reader (list string) "dids"; extra = [] } in
-    { record with extra = rest reader }
+    { dids = required reader (list string) "dids" }
 
   let of_model (model : [ `BrowseProfilesRequest ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("dids", Some ((json_list json_string) value.dids)) ] value.extra
+    write [ ("dids", Some ((json_list json_string) value.dids)) ]
 
   let to_model value =
     Models.decode Models.browse_profiles_request
@@ -1304,22 +1268,14 @@ module Browse_profiles_request = struct
 end
 
 module Browse_annotation_history_request = struct
-  type t = {
-    resource_id : string;
-    annotation_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; annotation_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        annotation_id = required reader string "annotationId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      annotation_id = required reader string "annotationId";
+    }
 
   let of_model (model : [ `BrowseAnnotationHistoryRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -1330,7 +1286,6 @@ module Browse_annotation_history_request = struct
         ("resourceId", Some (json_string value.resource_id));
         ("annotationId", Some (json_string value.annotation_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_annotation_history_request
@@ -1338,22 +1293,14 @@ module Browse_annotation_history_request = struct
 end
 
 module Browse_annotation_request = struct
-  type t = {
-    resource_id : string;
-    annotation_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; annotation_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        annotation_id = required reader string "annotationId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      annotation_id = required reader string "annotationId";
+    }
 
   let of_model (model : [ `BrowseAnnotationRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -1364,7 +1311,6 @@ module Browse_annotation_request = struct
         ("resourceId", Some (json_string value.resource_id));
         ("annotationId", Some (json_string value.annotation_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_annotation_request
@@ -1381,25 +1327,20 @@ module Anchor_rect = struct
     right : float;
     bottom : float;
     left : float;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        x = required reader float "x";
-        y = required reader float "y";
-        width = required reader float "width";
-        height = required reader float "height";
-        top = required reader float "top";
-        right = required reader float "right";
-        bottom = required reader float "bottom";
-        left = required reader float "left";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      x = required reader float "x";
+      y = required reader float "y";
+      width = required reader float "width";
+      height = required reader float "height";
+      top = required reader float "top";
+      right = required reader float "right";
+      bottom = required reader float "bottom";
+      left = required reader float "left";
+    }
 
   let of_model (model : [ `AnchorRect ] Models.t) =
     project (fields_of (Models.json model))
@@ -1416,7 +1357,6 @@ module Anchor_rect = struct
         ("bottom", Some (json_float value.bottom));
         ("left", Some (json_float value.left));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.anchor_rect (Yojson.Raw.to_string (to_json value))
@@ -1438,22 +1378,14 @@ module Browse_directory_request = struct
       | _ -> None
   end
 
-  type t = {
-    path : string;
-    sort : Sort.t option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { path : string; sort : Sort.t option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        path = required reader string "path";
-        sort = maybe reader (enum Sort.of_string) "sort";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      path = required reader string "path";
+      sort = maybe reader (enum Sort.of_string) "sort";
+    }
 
   let of_model (model : [ `BrowseDirectoryRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -1464,7 +1396,6 @@ module Browse_directory_request = struct
         ("path", Some (json_string value.path));
         ("sort", Option.map (json_enum Sort.to_string) value.sort);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_directory_request
@@ -1472,20 +1403,17 @@ module Browse_directory_request = struct
 end
 
 module Browse_entity_type_clicked_event = struct
-  type t = { entity_type : string; extra : (string * Yojson.Raw.t) list }
+  type t = { entity_type : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { entity_type = required reader string "entityType"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { entity_type = required reader string "entityType" }
 
   let of_model (model : [ `BrowseEntityTypeClickedEvent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("entityType", Some (json_string value.entity_type)) ] value.extra
+    write [ ("entityType", Some (json_string value.entity_type)) ]
 
   let to_model value =
     Models.decode Models.browse_entity_type_clicked_event
@@ -1498,21 +1426,16 @@ module Browse_events_request = struct
     type_ : string option;
     user_id : string option;
     limit : int option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        type_ = maybe reader string "type";
-        user_id = maybe reader string "userId";
-        limit = maybe reader int "limit";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      type_ = maybe reader string "type";
+      user_id = maybe reader string "userId";
+      limit = maybe reader int "limit";
+    }
 
   let of_model (model : [ `BrowseEventsRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -1525,7 +1448,6 @@ module Browse_events_request = struct
         ("userId", Option.map json_string value.user_id);
         ("limit", Option.map json_int value.limit);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_events_request
@@ -1533,22 +1455,14 @@ module Browse_events_request = struct
 end
 
 module Browse_external_navigate_event = struct
-  type t = {
-    url : string;
-    resource_id : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { url : string; resource_id : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        url = required reader string "url";
-        resource_id = maybe reader string "resourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      url = required reader string "url";
+      resource_id = maybe reader string "resourceId";
+    }
 
   let of_model (model : [ `BrowseExternalNavigateEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -1559,7 +1473,6 @@ module Browse_external_navigate_event = struct
         ("url", Some (json_string value.url));
         ("resourceId", Option.map json_string value.resource_id);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_external_navigate_event
@@ -1567,22 +1480,14 @@ module Browse_external_navigate_event = struct
 end
 
 module Browse_link_clicked_event = struct
-  type t = {
-    href : string;
-    label : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { href : string; label : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        href = required reader string "href";
-        label = maybe reader string "label";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      href = required reader string "href";
+      label = maybe reader string "label";
+    }
 
   let of_model (model : [ `BrowseLinkClickedEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -1593,7 +1498,6 @@ module Browse_link_clicked_event = struct
         ("href", Some (json_string value.href));
         ("label", Option.map json_string value.label);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_link_clicked_event
@@ -1605,20 +1509,15 @@ module Browse_panel_open_event = struct
     panel : string;
     scroll_to_annotation_id : string option;
     motivation : Enums.Motivation.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        panel = required reader string "panel";
-        scroll_to_annotation_id = maybe reader string "scrollToAnnotationId";
-        motivation = maybe reader (enum Enums.Motivation.of_string) "motivation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      panel = required reader string "panel";
+      scroll_to_annotation_id = maybe reader string "scrollToAnnotationId";
+      motivation = maybe reader (enum Enums.Motivation.of_string) "motivation";
+    }
 
   let of_model (model : [ `BrowsePanelOpenEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -1632,7 +1531,6 @@ module Browse_panel_open_event = struct
         ( "motivation",
           Option.map (json_enum Enums.Motivation.to_string) value.motivation );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_panel_open_event
@@ -1640,18 +1538,16 @@ module Browse_panel_open_event = struct
 end
 
 module Browse_panel_toggle_event = struct
-  type t = { panel : string; extra : (string * Yojson.Raw.t) list }
+  type t = { panel : string }
 
   let project fields =
     let reader = start fields in
-    let record = { panel = required reader string "panel"; extra = [] } in
-    { record with extra = rest reader }
+    { panel = required reader string "panel" }
 
   let of_model (model : [ `BrowsePanelToggleEvent ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("panel", Some (json_string value.panel)) ] value.extra
+  let to_json (value : t) = write [ ("panel", Some (json_string value.panel)) ]
 
   let to_model value =
     Models.decode Models.browse_panel_toggle_event
@@ -1659,20 +1555,17 @@ module Browse_panel_toggle_event = struct
 end
 
 module Browse_resource_open_event = struct
-  type t = { resource_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { resource_id = required reader string "resourceId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { resource_id = required reader string "resourceId" }
 
   let of_model (model : [ `BrowseResourceOpenEvent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("resourceId", Some (json_string value.resource_id)) ] value.extra
+    write [ ("resourceId", Some (json_string value.resource_id)) ]
 
   let to_model value =
     Models.decode Models.browse_resource_open_event
@@ -1680,20 +1573,17 @@ module Browse_resource_open_event = struct
 end
 
 module Browse_resource_viewed_event = struct
-  type t = { resource_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { resource_id = required reader string "resourceId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { resource_id = required reader string "resourceId" }
 
   let of_model (model : [ `BrowseResourceViewedEvent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("resourceId", Some (json_string value.resource_id)) ] value.extra
+    write [ ("resourceId", Some (json_string value.resource_id)) ]
 
   let to_model value =
     Models.decode Models.browse_resource_viewed_event
@@ -1701,20 +1591,17 @@ module Browse_resource_viewed_event = struct
 end
 
 module Browse_resource_close_event = struct
-  type t = { resource_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { resource_id = required reader string "resourceId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { resource_id = required reader string "resourceId" }
 
   let of_model (model : [ `BrowseResourceCloseEvent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("resourceId", Some (json_string value.resource_id)) ] value.extra
+    write [ ("resourceId", Some (json_string value.resource_id)) ]
 
   let to_model value =
     Models.decode Models.browse_resource_close_event
@@ -1722,22 +1609,14 @@ module Browse_resource_close_event = struct
 end
 
 module Browse_resource_reorder_event = struct
-  type t = {
-    old_index : int;
-    new_index : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { old_index : int; new_index : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        old_index = required reader int "oldIndex";
-        new_index = required reader int "newIndex";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      old_index = required reader int "oldIndex";
+      new_index = required reader int "newIndex";
+    }
 
   let of_model (model : [ `BrowseResourceReorderEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -1748,7 +1627,6 @@ module Browse_resource_reorder_event = struct
         ("oldIndex", Some (json_int value.old_index));
         ("newIndex", Some (json_int value.new_index));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_resource_reorder_event
@@ -1764,24 +1642,19 @@ module Pdf_text_item = struct
     y : float;
     width : float;
     height : float;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        start = required reader int "start";
-        end_ = required reader int "end";
-        page = required reader int "page";
-        x = required reader float "x";
-        y = required reader float "y";
-        width = required reader float "width";
-        height = required reader float "height";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      start = required reader int "start";
+      end_ = required reader int "end";
+      page = required reader int "page";
+      x = required reader float "x";
+      y = required reader float "y";
+      width = required reader float "width";
+      height = required reader float "height";
+    }
 
   let of_model (model : [ `PdfTextItem ] Models.t) =
     project (fields_of (Models.json model))
@@ -1797,7 +1670,6 @@ module Pdf_text_item = struct
         ("width", Some (json_float value.width));
         ("height", Some (json_float value.height));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.pdf_text_item (Yojson.Raw.to_string (to_json value))
@@ -1819,20 +1691,17 @@ module Anchored_text_absent = struct
       | _ -> None
   end
 
-  type t = { kind : Kind.t; extra : (string * Yojson.Raw.t) list }
+  type t = { kind : Kind.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { kind = required reader (enum Kind.of_string) "kind"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { kind = required reader (enum Kind.of_string) "kind" }
 
   let of_model (model : [ `AnchoredTextAbsent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("kind", Some ((json_enum Kind.to_string) value.kind)) ] value.extra
+    write [ ("kind", Some ((json_enum Kind.to_string) value.kind)) ]
 
   let to_model value =
     Models.decode Models.anchored_text_absent
@@ -1840,20 +1709,17 @@ module Anchored_text_absent = struct
 end
 
 module Browse_resource_request = struct
-  type t = { resource_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { resource_id = required reader string "resourceId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { resource_id = required reader string "resourceId" }
 
   let of_model (model : [ `BrowseResourceRequest ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("resourceId", Some (json_string value.resource_id)) ] value.extra
+    write [ ("resourceId", Some (json_string value.resource_id)) ]
 
   let to_model value =
     Models.decode Models.browse_resource_request
@@ -1866,21 +1732,16 @@ module Browse_resources_request = struct
     entity_type : string option;
     offset : int option;
     limit : int option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        archived = maybe reader bool "archived";
-        entity_type = maybe reader string "entityType";
-        offset = maybe reader int "offset";
-        limit = maybe reader int "limit";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      archived = maybe reader bool "archived";
+      entity_type = maybe reader string "entityType";
+      offset = maybe reader int "offset";
+      limit = maybe reader int "limit";
+    }
 
   let of_model (model : [ `BrowseResourcesRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -1893,7 +1754,6 @@ module Browse_resources_request = struct
         ("offset", Option.map json_int value.offset);
         ("limit", Option.map json_int value.limit);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_resources_request
@@ -1901,22 +1761,14 @@ module Browse_resources_request = struct
 end
 
 module Browse_router_push_event = struct
-  type t = {
-    path : string;
-    reason : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { path : string; reason : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        path = required reader string "path";
-        reason = maybe reader string "reason";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      path = required reader string "path";
+      reason = maybe reader string "reason";
+    }
 
   let of_model (model : [ `BrowseRouterPushEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -1927,7 +1779,6 @@ module Browse_router_push_event = struct
         ("path", Some (json_string value.path));
         ("reason", Option.map json_string value.reason);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_router_push_event
@@ -1935,18 +1786,17 @@ module Browse_router_push_event = struct
 end
 
 module Bus_emit_accepted = struct
-  type t = { subscribers : int option; extra : (string * Yojson.Raw.t) list }
+  type t = { subscribers : int option }
 
   let project fields =
     let reader = start fields in
-    let record = { subscribers = maybe reader int "subscribers"; extra = [] } in
-    { record with extra = rest reader }
+    { subscribers = maybe reader int "subscribers" }
 
   let of_model (model : [ `BusEmitAccepted ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("subscribers", Option.map json_int value.subscribers) ] value.extra
+    write [ ("subscribers", Option.map json_int value.subscribers) ]
 
   let to_model value =
     Models.decode Models.bus_emit_accepted
@@ -1960,22 +1810,17 @@ module Bus_emit_request = struct
     scope : string option;
     client_id : string option;
     correlation_id : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        channel = required reader string "channel";
-        payload = required reader (map raw) "payload";
-        scope = maybe reader string "scope";
-        client_id = maybe reader string "clientId";
-        correlation_id = maybe reader string "correlationId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      channel = required reader string "channel";
+      payload = required reader (map raw) "payload";
+      scope = maybe reader string "scope";
+      client_id = maybe reader string "clientId";
+      correlation_id = maybe reader string "correlationId";
+    }
 
   let of_model (model : [ `BusEmitRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -1989,7 +1834,6 @@ module Bus_emit_request = struct
         ("clientId", Option.map json_string value.client_id);
         ("correlationId", Option.map json_string value.correlation_id);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bus_emit_request (Yojson.Raw.to_string (to_json value))
@@ -2013,24 +1857,15 @@ module Command_error = struct
       | _ -> None
   end
 
-  type t = {
-    code : Code.t option;
-    message : string;
-    details : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { code : Code.t option; message : string; details : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = maybe reader (enum Code.of_string) "code";
-        message = required reader string "message";
-        details = maybe reader string "details";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = maybe reader (enum Code.of_string) "code";
+      message = required reader string "message";
+      details = maybe reader string "details";
+    }
 
   let of_model (model : [ `CommandError ] Models.t) =
     project (fields_of (Models.json model))
@@ -2042,27 +1877,23 @@ module Command_error = struct
         ("message", Some (json_string value.message));
         ("details", Option.map json_string value.details);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.command_error (Yojson.Raw.to_string (to_json value))
 end
 
 module Create_resource_response = struct
-  type t = { resource_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { resource_id = required reader string "resourceId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { resource_id = required reader string "resourceId" }
 
   let of_model (model : [ `CreateResourceResponse ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("resourceId", Some (json_string value.resource_id)) ] value.extra
+    write [ ("resourceId", Some (json_string value.resource_id)) ]
 
   let to_model value =
     Models.decode Models.create_resource_response
@@ -2077,26 +1908,16 @@ module Dir_entry = struct
     let of_string = function "dir" -> Some Dir | _ -> None
   end
 
-  type t = {
-    type_ : Type_.t;
-    name : string;
-    path : string;
-    mtime : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : Type_.t; name : string; path : string; mtime : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        name = required reader string "name";
-        path = required reader string "path";
-        mtime = required reader string "mtime";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      name = required reader string "name";
+      path = required reader string "path";
+      mtime = required reader string "mtime";
+    }
 
   let of_model (model : [ `DirEntry ] Models.t) =
     project (fields_of (Models.json model))
@@ -2109,7 +1930,6 @@ module Dir_entry = struct
         ("path", Some (json_string value.path));
         ("mtime", Some (json_string value.mtime));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.dir_entry (Yojson.Raw.to_string (to_json value))
@@ -2135,24 +1955,19 @@ module Discovered_kb = struct
     did : string;
     site_name : string option;
     managed_by : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        host = required reader string "host";
-        port = required reader int "port";
-        placement = required reader (enum Placement.of_string) "placement";
-        repo = maybe reader string "repo";
-        did = required reader string "did";
-        site_name = maybe reader string "siteName";
-        managed_by = required reader string "managedBy";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      host = required reader string "host";
+      port = required reader int "port";
+      placement = required reader (enum Placement.of_string) "placement";
+      repo = maybe reader string "repo";
+      did = required reader string "did";
+      site_name = maybe reader string "siteName";
+      managed_by = required reader string "managedBy";
+    }
 
   let of_model (model : [ `DiscoveredKB ] Models.t) =
     project (fields_of (Models.json model))
@@ -2168,27 +1983,23 @@ module Discovered_kb = struct
         ("siteName", Option.map json_string value.site_name);
         ("managedBy", Some (json_string value.managed_by));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.discovered_kb (Yojson.Raw.to_string (to_json value))
 end
 
 module Entity_tag_changed_payload = struct
-  type t = { entity_type : string; extra : (string * Yojson.Raw.t) list }
+  type t = { entity_type : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { entity_type = required reader string "entityType"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { entity_type = required reader string "entityType" }
 
   let of_model (model : [ `EntityTagChangedPayload ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("entityType", Some (json_string value.entity_type)) ] value.extra
+    write [ ("entityType", Some (json_string value.entity_type)) ]
 
   let to_model value =
     Models.decode Models.entity_tag_changed_payload
@@ -2196,20 +2007,17 @@ module Entity_tag_changed_payload = struct
 end
 
 module Entity_type_added_payload = struct
-  type t = { entity_type : string; extra : (string * Yojson.Raw.t) list }
+  type t = { entity_type : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { entity_type = required reader string "entityType"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { entity_type = required reader string "entityType" }
 
   let of_model (model : [ `EntityTypeAddedPayload ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("entityType", Some (json_string value.entity_type)) ] value.extra
+    write [ ("entityType", Some (json_string value.entity_type)) ]
 
   let to_model value =
     Models.decode Models.entity_type_added_payload
@@ -2222,21 +2030,16 @@ module Error_response = struct
     code : string option;
     hint : string option;
     details : Yojson.Raw.t Types.presence;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        error = required reader string "error";
-        code = maybe reader string "code";
-        hint = maybe reader string "hint";
-        details = optional reader raw "details";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      error = required reader string "error";
+      code = maybe reader string "code";
+      hint = maybe reader string "hint";
+      details = optional reader raw "details";
+    }
 
   let of_model (model : [ `ErrorResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -2249,53 +2052,38 @@ module Error_response = struct
         ("hint", Option.map json_string value.hint);
         ("details", present json_raw value.details);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.error_response (Yojson.Raw.to_string (to_json value))
 end
 
 module Event_metadata = struct
-  type t = { sequence_number : int; extra : (string * Yojson.Raw.t) list }
+  type t = { sequence_number : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { sequence_number = required reader int "sequenceNumber"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { sequence_number = required reader int "sequenceNumber" }
 
   let of_model (model : [ `EventMetadata ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("sequenceNumber", Some (json_int value.sequence_number)) ]
-      value.extra
+    write [ ("sequenceNumber", Some (json_int value.sequence_number)) ]
 
   let to_model value =
     Models.decode Models.event_metadata (Yojson.Raw.to_string (to_json value))
 end
 
 module Ocr_confidence = struct
-  type t = {
-    mean : float;
-    low_confidence_words : int;
-    total_words : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { mean : float; low_confidence_words : int; total_words : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        mean = required reader float "mean";
-        low_confidence_words = required reader int "lowConfidenceWords";
-        total_words = required reader int "totalWords";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      mean = required reader float "mean";
+      low_confidence_words = required reader int "lowConfidenceWords";
+      total_words = required reader int "totalWords";
+    }
 
   let of_model (model : [ `OcrConfidence ] Models.t) =
     project (fields_of (Models.json model))
@@ -2307,7 +2095,6 @@ module Ocr_confidence = struct
         ("lowConfidenceWords", Some (json_int value.low_confidence_words));
         ("totalWords", Some (json_int value.total_words));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.ocr_confidence (Yojson.Raw.to_string (to_json value))
@@ -2321,25 +2108,17 @@ module Extraction_declined = struct
     let of_string = function "declined" -> Some Declined | _ -> None
   end
 
-  type t = {
-    kind : Kind.t;
-    declined : Enums.Extraction_declined_reason.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { kind : Kind.t; declined : Enums.Extraction_declined_reason.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kind = required reader (enum Kind.of_string) "kind";
-        declined =
-          required reader
-            (enum Enums.Extraction_declined_reason.of_string)
-            "declined";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kind = required reader (enum Kind.of_string) "kind";
+      declined =
+        required reader
+          (enum Enums.Extraction_declined_reason.of_string)
+          "declined";
+    }
 
   let of_model (model : [ `ExtractionDeclined ] Models.t) =
     project (fields_of (Models.json model))
@@ -2353,7 +2132,6 @@ module Extraction_declined = struct
             ((json_enum Enums.Extraction_declined_reason.to_string)
                value.declined) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.extraction_declined
@@ -2379,27 +2157,22 @@ module File_entry = struct
     entity_types : string list option;
     annotation_count : int option;
     creator : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        name = required reader string "name";
-        path = required reader string "path";
-        size = required reader int "size";
-        mtime = required reader string "mtime";
-        tracked = required reader bool "tracked";
-        resource_id = maybe reader string "resourceId";
-        entity_types = maybe reader (list string) "entityTypes";
-        annotation_count = maybe reader int "annotationCount";
-        creator = maybe reader string "creator";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      name = required reader string "name";
+      path = required reader string "path";
+      size = required reader int "size";
+      mtime = required reader string "mtime";
+      tracked = required reader bool "tracked";
+      resource_id = maybe reader string "resourceId";
+      entity_types = maybe reader (list string) "entityTypes";
+      annotation_count = maybe reader int "annotationCount";
+      creator = maybe reader string "creator";
+    }
 
   let of_model (model : [ `FileEntry ] Models.t) =
     project (fields_of (Models.json model))
@@ -2418,7 +2191,6 @@ module File_entry = struct
         ("annotationCount", Option.map json_int value.annotation_count);
         ("creator", Option.map json_string value.creator);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.file_entry (Yojson.Raw.to_string (to_json value))
@@ -2435,24 +2207,15 @@ module Fragment_selector = struct
       | _ -> None
   end
 
-  type t = {
-    type_ : Type_.t;
-    value : string;
-    conforms_to : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : Type_.t; value : string; conforms_to : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        value = required reader string "value";
-        conforms_to = maybe reader string "conformsTo";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      value = required reader string "value";
+      conforms_to = maybe reader string "conformsTo";
+    }
 
   let of_model (model : [ `FragmentSelector ] Models.t) =
     project (fields_of (Models.json model))
@@ -2464,7 +2227,6 @@ module Fragment_selector = struct
         ("value", Some (json_string value.value));
         ("conformsTo", Option.map json_string value.conforms_to);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.fragment_selector
@@ -2472,22 +2234,14 @@ module Fragment_selector = struct
 end
 
 module Frame_add_entity_type_command = struct
-  type t = {
-    tag : string;
-    field_user_id : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { tag : string; field_user_id : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        tag = required reader string "tag";
-        field_user_id = maybe reader string "_userId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      tag = required reader string "tag";
+      field_user_id = maybe reader string "_userId";
+    }
 
   let of_model (model : [ `FrameAddEntityTypeCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -2498,7 +2252,6 @@ module Frame_add_entity_type_command = struct
         ("tag", Some (json_string value.tag));
         ("_userId", Option.map json_string value.field_user_id);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.frame_add_entity_type_command
@@ -2510,20 +2263,15 @@ module Gather_annotation_options = struct
     include_source_context : bool option;
     include_target_context : bool option;
     context_window : int option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        include_source_context = maybe reader bool "includeSourceContext";
-        include_target_context = maybe reader bool "includeTargetContext";
-        context_window = maybe reader int "contextWindow";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      include_source_context = maybe reader bool "includeSourceContext";
+      include_target_context = maybe reader bool "includeTargetContext";
+      context_window = maybe reader int "contextWindow";
+    }
 
   let of_model (model : [ `GatherAnnotationOptions ] Models.t) =
     project (fields_of (Models.json model))
@@ -2537,7 +2285,6 @@ module Gather_annotation_options = struct
           Option.map json_bool value.include_target_context );
         ("contextWindow", Option.map json_int value.context_window);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_annotation_options
@@ -2551,22 +2298,17 @@ module Gather_resource_request_options = struct
     include_content : bool;
     include_summary : bool;
     exclude_entity_types : string list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        depth = required reader int "depth";
-        max_resources = required reader int "maxResources";
-        include_content = required reader bool "includeContent";
-        include_summary = required reader bool "includeSummary";
-        exclude_entity_types = maybe reader (list string) "excludeEntityTypes";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      depth = required reader int "depth";
+      max_resources = required reader int "maxResources";
+      include_content = required reader bool "includeContent";
+      include_summary = required reader bool "includeSummary";
+      exclude_entity_types = maybe reader (list string) "excludeEntityTypes";
+    }
 
   let of_model (model : [ `GatherResourceRequestOptions ] Models.t) =
     project (fields_of (Models.json model))
@@ -2581,7 +2323,6 @@ module Gather_resource_request_options = struct
         ( "excludeEntityTypes",
           Option.map (json_list json_string) value.exclude_entity_types );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_resource_request_options
@@ -2589,22 +2330,14 @@ module Gather_resource_request_options = struct
 end
 
 module Gather_summary_request = struct
-  type t = {
-    annotation_id : string;
-    resource_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { annotation_id : string; resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation_id = required reader string "annotationId";
-        resource_id = required reader string "resourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation_id = required reader string "annotationId";
+      resource_id = required reader string "resourceId";
+    }
 
   let of_model (model : [ `GatherSummaryRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -2615,7 +2348,6 @@ module Gather_summary_request = struct
         ("annotationId", Some (json_string value.annotation_id));
         ("resourceId", Some (json_string value.resource_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_summary_request
@@ -2623,22 +2355,14 @@ module Gather_summary_request = struct
 end
 
 module Gather_referenced_by_request = struct
-  type t = {
-    resource_id : string;
-    motivation : Enums.Motivation.t option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; motivation : Enums.Motivation.t option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        motivation = maybe reader (enum Enums.Motivation.of_string) "motivation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      motivation = maybe reader (enum Enums.Motivation.of_string) "motivation";
+    }
 
   let of_model (model : [ `GatherReferencedByRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -2650,7 +2374,6 @@ module Gather_referenced_by_request = struct
         ( "motivation",
           Option.map (json_enum Enums.Motivation.to_string) value.motivation );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_referenced_by_request
@@ -2658,22 +2381,17 @@ module Gather_referenced_by_request = struct
 end
 
 module Get_entity_types_response = struct
-  type t = { entity_types : string list; extra : (string * Yojson.Raw.t) list }
+  type t = { entity_types : string list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { entity_types = required reader (list string) "entityTypes"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { entity_types = required reader (list string) "entityTypes" }
 
   let of_model (model : [ `GetEntityTypesResponse ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("entityTypes", Some ((json_list json_string) value.entity_types)) ]
-      value.extra
+    write [ ("entityTypes", Some ((json_list json_string) value.entity_types)) ]
 
   let to_model value =
     Models.decode Models.get_entity_types_response
@@ -2686,21 +2404,16 @@ module Health_response = struct
     message : string;
     version : string;
     timestamp : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader string "status";
-        message = required reader string "message";
-        version = required reader string "version";
-        timestamp = required reader string "timestamp";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader string "status";
+      message = required reader string "message";
+      version = required reader string "version";
+      timestamp = required reader string "timestamp";
+    }
 
   let of_model (model : [ `HealthResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -2713,7 +2426,6 @@ module Health_response = struct
         ("version", Some (json_string value.version));
         ("timestamp", Some (json_string value.timestamp));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.health_response (Yojson.Raw.to_string (to_json value))
@@ -2724,20 +2436,15 @@ module Inference_limits = struct
     context_tokens : float;
     max_output_tokens : float;
     accepts_temperature : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        context_tokens = required reader float "contextTokens";
-        max_output_tokens = required reader float "maxOutputTokens";
-        accepts_temperature = maybe reader bool "acceptsTemperature";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      context_tokens = required reader float "contextTokens";
+      max_output_tokens = required reader float "maxOutputTokens";
+      accepts_temperature = maybe reader bool "acceptsTemperature";
+    }
 
   let of_model (model : [ `InferenceLimits ] Models.t) =
     project (fields_of (Models.json model))
@@ -2749,7 +2456,6 @@ module Inference_limits = struct
         ("maxOutputTokens", Some (json_float value.max_output_tokens));
         ("acceptsTemperature", Option.map json_bool value.accepts_temperature);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.inference_limits (Yojson.Raw.to_string (to_json value))
@@ -2769,22 +2475,17 @@ module Graph_resource_node = struct
     label : string;
     entity_types : string list option;
     metadata : (string * Yojson.Raw.t) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        type_ = required reader (enum Type_.of_string) "type";
-        label = required reader string "label";
-        entity_types = maybe reader (list string) "entityTypes";
-        metadata = maybe reader (map raw) "metadata";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      type_ = required reader (enum Type_.of_string) "type";
+      label = required reader string "label";
+      entity_types = maybe reader (list string) "entityTypes";
+      metadata = maybe reader (map raw) "metadata";
+    }
 
   let of_model (model : [ `GraphResourceNode ] Models.t) =
     project (fields_of (Models.json model))
@@ -2798,7 +2499,6 @@ module Graph_resource_node = struct
         ("entityTypes", Option.map (json_list json_string) value.entity_types);
         ("metadata", Option.map (json_map json_raw) value.metadata);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.graph_resource_node
@@ -2806,18 +2506,16 @@ module Graph_resource_node = struct
 end
 
 module Job_cancel_request = struct
-  type t = { job_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { job_id : string }
 
   let project fields =
     let reader = start fields in
-    let record = { job_id = required reader string "jobId"; extra = [] } in
-    { record with extra = rest reader }
+    { job_id = required reader string "jobId" }
 
   let of_model (model : [ `JobCancelRequest ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("jobId", Some (json_string value.job_id)) ] value.extra
+  let to_json (value : t) = write [ ("jobId", Some (json_string value.job_id)) ]
 
   let to_model value =
     Models.decode Models.job_cancel_request
@@ -2836,28 +2534,23 @@ module Job_completed_payload = struct
     annotation_uri : string option;
     result : (string * Yojson.Raw.t) list option;
     durability : Enums.Durability_evidence.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        attempt = maybe reader int "attempt";
-        annotation_id = maybe reader string "annotationId";
-        total_steps = maybe reader int "totalSteps";
-        found_count = maybe reader int "foundCount";
-        result_resource_id = maybe reader string "resultResourceId";
-        annotation_uri = maybe reader string "annotationUri";
-        result = maybe reader (map raw) "result";
-        durability =
-          maybe reader (enum Enums.Durability_evidence.of_string) "durability";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      attempt = maybe reader int "attempt";
+      annotation_id = maybe reader string "annotationId";
+      total_steps = maybe reader int "totalSteps";
+      found_count = maybe reader int "foundCount";
+      result_resource_id = maybe reader string "resultResourceId";
+      annotation_uri = maybe reader string "annotationUri";
+      result = maybe reader (map raw) "result";
+      durability =
+        maybe reader (enum Enums.Durability_evidence.of_string) "durability";
+    }
 
   let of_model (model : [ `JobCompletedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -2879,7 +2572,6 @@ module Job_completed_payload = struct
             (json_enum Enums.Durability_evidence.to_string)
             value.durability );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_completed_payload
@@ -2887,18 +2579,16 @@ module Job_completed_payload = struct
 end
 
 module Job_created_result_response = struct
-  type t = { job_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { job_id : string }
 
   let project fields =
     let reader = start fields in
-    let record = { job_id = required reader string "jobId"; extra = [] } in
-    { record with extra = rest reader }
+    { job_id = required reader string "jobId" }
 
   let of_model (model : [ `JobCreatedResultResponse ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("jobId", Some (json_string value.job_id)) ] value.extra
+  let to_json (value : t) = write [ ("jobId", Some (json_string value.job_id)) ]
 
   let to_model value =
     Models.decode Models.job_created_result_response
@@ -2906,28 +2596,17 @@ module Job_created_result_response = struct
 end
 
 module Unit_cursor = struct
-  type t = {
-    next : int;
-    size : int;
-    found : int;
-    emitted : int;
-    errors : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { next : int; size : int; found : int; emitted : int; errors : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        next = required reader int "next";
-        size = required reader int "size";
-        found = required reader int "found";
-        emitted = required reader int "emitted";
-        errors = required reader int "errors";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      next = required reader int "next";
+      size = required reader int "size";
+      found = required reader int "found";
+      emitted = required reader int "emitted";
+      errors = required reader int "errors";
+    }
 
   let of_model (model : [ `UnitCursor ] Models.t) =
     project (fields_of (Models.json model))
@@ -2941,7 +2620,6 @@ module Unit_cursor = struct
         ("emitted", Some (json_int value.emitted));
         ("errors", Some (json_int value.errors));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.unit_cursor (Yojson.Raw.to_string (to_json value))
@@ -2967,22 +2645,14 @@ module Job_declined = struct
       | _ -> None
   end
 
-  type t = {
-    declined : bool;
-    reason : Reason.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { declined : bool; reason : Reason.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        declined = required reader bool "declined";
-        reason = required reader (enum Reason.of_string) "reason";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      declined = required reader bool "declined";
+      reason = required reader (enum Reason.of_string) "reason";
+    }
 
   let of_model (model : [ `JobDeclined ] Models.t) =
     project (fields_of (Models.json model))
@@ -2993,7 +2663,6 @@ module Job_declined = struct
         ("declined", Some (json_bool value.declined));
         ("reason", Some ((json_enum Reason.to_string) value.reason));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_declined (Yojson.Raw.to_string (to_json value))
@@ -3009,27 +2678,22 @@ module Job_failed_payload = struct
     failure_class : Enums.Failure_class.t option;
     will_retry : bool option;
     durability : Enums.Durability_evidence.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        attempt = maybe reader int "attempt";
-        annotation_id = maybe reader string "annotationId";
-        error = required reader string "error";
-        failure_class =
-          maybe reader (enum Enums.Failure_class.of_string) "failureClass";
-        will_retry = maybe reader bool "willRetry";
-        durability =
-          maybe reader (enum Enums.Durability_evidence.of_string) "durability";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      attempt = maybe reader int "attempt";
+      annotation_id = maybe reader string "annotationId";
+      error = required reader string "error";
+      failure_class =
+        maybe reader (enum Enums.Failure_class.of_string) "failureClass";
+      will_retry = maybe reader bool "willRetry";
+      durability =
+        maybe reader (enum Enums.Durability_evidence.of_string) "durability";
+    }
 
   let of_model (model : [ `JobFailedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -3052,7 +2716,6 @@ module Job_failed_payload = struct
             (json_enum Enums.Durability_evidence.to_string)
             value.durability );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_failed_payload
@@ -3060,24 +2723,15 @@ module Job_failed_payload = struct
 end
 
 module Yield_job_done = struct
-  type t = {
-    resource_id : string;
-    resource_name : string;
-    truncated : bool;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; resource_name : string; truncated : bool }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        resource_name = required reader string "resourceName";
-        truncated = required reader bool "truncated";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      resource_name = required reader string "resourceName";
+      truncated = required reader bool "truncated";
+    }
 
   let of_model (model : [ `YieldJobDone ] Models.t) =
     project (fields_of (Models.json model))
@@ -3089,7 +2743,6 @@ module Yield_job_done = struct
         ("resourceName", Some (json_string value.resource_name));
         ("truncated", Some (json_bool value.truncated));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.yield_job_done (Yojson.Raw.to_string (to_json value))
@@ -3103,20 +2756,17 @@ module Job_progress_analyzing = struct
     let of_string = function "analyzing" -> Some Analyzing | _ -> None
   end
 
-  type t = { code : Code.t; extra : (string * Yojson.Raw.t) list }
+  type t = { code : Code.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { code = required reader (enum Code.of_string) "code"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { code = required reader (enum Code.of_string) "code" }
 
   let of_model (model : [ `JobProgressAnalyzing ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("code", Some ((json_enum Code.to_string) value.code)) ] value.extra
+    write [ ("code", Some ((json_enum Code.to_string) value.code)) ]
 
   let to_model value =
     Models.decode Models.job_progress_analyzing
@@ -3134,20 +2784,17 @@ module Job_progress_analyzing_tags = struct
       | _ -> None
   end
 
-  type t = { code : Code.t; extra : (string * Yojson.Raw.t) list }
+  type t = { code : Code.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { code = required reader (enum Code.of_string) "code"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { code = required reader (enum Code.of_string) "code" }
 
   let of_model (model : [ `JobProgressAnalyzingTags ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("code", Some ((json_enum Code.to_string) value.code)) ] value.extra
+    write [ ("code", Some ((json_enum Code.to_string) value.code)) ]
 
   let to_model value =
     Models.decode Models.job_progress_analyzing_tags
@@ -3165,25 +2812,16 @@ module Job_progress_complete_created = struct
       | _ -> None
   end
 
-  type t = {
-    code : Code.t;
-    count : int;
-    motivation : Enums.Motivation.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { code : Code.t; count : int; motivation : Enums.Motivation.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = required reader (enum Code.of_string) "code";
-        count = required reader int "count";
-        motivation =
-          required reader (enum Enums.Motivation.of_string) "motivation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = required reader (enum Code.of_string) "code";
+      count = required reader int "count";
+      motivation =
+        required reader (enum Enums.Motivation.of_string) "motivation";
+    }
 
   let of_model (model : [ `JobProgressCompleteCreated ] Models.t) =
     project (fields_of (Models.json model))
@@ -3196,7 +2834,6 @@ module Job_progress_complete_created = struct
         ( "motivation",
           Some ((json_enum Enums.Motivation.to_string) value.motivation) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_progress_complete_created
@@ -3214,22 +2851,14 @@ module Job_progress_complete_generated = struct
       | _ -> None
   end
 
-  type t = {
-    code : Code.t;
-    truncated : bool;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { code : Code.t; truncated : bool }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = required reader (enum Code.of_string) "code";
-        truncated = required reader bool "truncated";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = required reader (enum Code.of_string) "code";
+      truncated = required reader bool "truncated";
+    }
 
   let of_model (model : [ `JobProgressCompleteGenerated ] Models.t) =
     project (fields_of (Models.json model))
@@ -3240,7 +2869,6 @@ module Job_progress_complete_generated = struct
         ("code", Some ((json_enum Code.to_string) value.code));
         ("truncated", Some (json_bool value.truncated));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_progress_complete_generated
@@ -3258,18 +2886,14 @@ module Job_progress_creating_annotations = struct
       | _ -> None
   end
 
-  type t = { code : Code.t; count : int; extra : (string * Yojson.Raw.t) list }
+  type t = { code : Code.t; count : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = required reader (enum Code.of_string) "code";
-        count = required reader int "count";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = required reader (enum Code.of_string) "code";
+      count = required reader int "count";
+    }
 
   let of_model (model : [ `JobProgressCreatingAnnotations ] Models.t) =
     project (fields_of (Models.json model))
@@ -3280,7 +2904,6 @@ module Job_progress_creating_annotations = struct
         ("code", Some ((json_enum Code.to_string) value.code));
         ("count", Some (json_int value.count));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_progress_creating_annotations
@@ -3298,20 +2921,17 @@ module Job_progress_creating_resource = struct
       | _ -> None
   end
 
-  type t = { code : Code.t; extra : (string * Yojson.Raw.t) list }
+  type t = { code : Code.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { code = required reader (enum Code.of_string) "code"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { code = required reader (enum Code.of_string) "code" }
 
   let of_model (model : [ `JobProgressCreatingResource ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("code", Some ((json_enum Code.to_string) value.code)) ] value.extra
+    write [ ("code", Some ((json_enum Code.to_string) value.code)) ]
 
   let to_model value =
     Models.decode Models.job_progress_creating_resource
@@ -3330,18 +2950,14 @@ module Job_progress_creating_tag_annotations = struct
       | _ -> None
   end
 
-  type t = { code : Code.t; count : int; extra : (string * Yojson.Raw.t) list }
+  type t = { code : Code.t; count : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = required reader (enum Code.of_string) "code";
-        count = required reader int "count";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = required reader (enum Code.of_string) "code";
+      count = required reader int "count";
+    }
 
   let of_model (model : [ `JobProgressCreatingTagAnnotations ] Models.t) =
     project (fields_of (Models.json model))
@@ -3352,7 +2968,6 @@ module Job_progress_creating_tag_annotations = struct
         ("code", Some ((json_enum Code.to_string) value.code));
         ("count", Some (json_int value.count));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_progress_creating_tag_annotations
@@ -3370,22 +2985,14 @@ module Job_progress_detecting_entities = struct
       | _ -> None
   end
 
-  type t = {
-    code : Code.t;
-    entity_type : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { code : Code.t; entity_type : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = required reader (enum Code.of_string) "code";
-        entity_type = required reader string "entityType";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = required reader (enum Code.of_string) "code";
+      entity_type = required reader string "entityType";
+    }
 
   let of_model (model : [ `JobProgressDetectingEntities ] Models.t) =
     project (fields_of (Models.json model))
@@ -3396,7 +3003,6 @@ module Job_progress_detecting_entities = struct
         ("code", Some ((json_enum Code.to_string) value.code));
         ("entityType", Some (json_string value.entity_type));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_progress_detecting_entities
@@ -3414,20 +3020,17 @@ module Job_progress_generating_resource = struct
       | _ -> None
   end
 
-  type t = { code : Code.t; extra : (string * Yojson.Raw.t) list }
+  type t = { code : Code.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { code = required reader (enum Code.of_string) "code"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { code = required reader (enum Code.of_string) "code" }
 
   let of_model (model : [ `JobProgressGeneratingResource ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("code", Some ((json_enum Code.to_string) value.code)) ] value.extra
+    write [ ("code", Some ((json_enum Code.to_string) value.code)) ]
 
   let to_model value =
     Models.decode Models.job_progress_generating_resource
@@ -3442,20 +3045,17 @@ module Job_progress_loading = struct
     let of_string = function "loading" -> Some Loading | _ -> None
   end
 
-  type t = { code : Code.t; extra : (string * Yojson.Raw.t) list }
+  type t = { code : Code.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { code = required reader (enum Code.of_string) "code"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { code = required reader (enum Code.of_string) "code" }
 
   let of_model (model : [ `JobProgressLoading ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("code", Some ((json_enum Code.to_string) value.code)) ] value.extra
+    write [ ("code", Some ((json_enum Code.to_string) value.code)) ]
 
   let to_model value =
     Models.decode Models.job_progress_loading
@@ -3470,23 +3070,18 @@ module Mark_job_done = struct
     by_category : (string * int) list option;
     under_reported_pieces : int option;
     unchecked_pieces : int option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        found = required reader int "found";
-        persisted = required reader int "persisted";
-        errors = maybe reader int "errors";
-        by_category = maybe reader (map int) "byCategory";
-        under_reported_pieces = maybe reader int "underReportedPieces";
-        unchecked_pieces = maybe reader int "uncheckedPieces";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      found = required reader int "found";
+      persisted = required reader int "persisted";
+      errors = maybe reader int "errors";
+      by_category = maybe reader (map int) "byCategory";
+      under_reported_pieces = maybe reader int "underReportedPieces";
+      unchecked_pieces = maybe reader int "uncheckedPieces";
+    }
 
   let of_model (model : [ `MarkJobDone ] Models.t) =
     project (fields_of (Models.json model))
@@ -3501,7 +3096,6 @@ module Mark_job_done = struct
         ("underReportedPieces", Option.map json_int value.under_reported_pieces);
         ("uncheckedPieces", Option.map json_int value.unchecked_pieces);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_job_done (Yojson.Raw.to_string (to_json value))
@@ -3515,23 +3109,18 @@ module Job_start_command = struct
     job_type : Enums.Job_type.t;
     annotation_id : string option;
     attempt : int option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        annotation_id = maybe reader string "annotationId";
-        attempt = maybe reader int "attempt";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      annotation_id = maybe reader string "annotationId";
+      attempt = maybe reader int "attempt";
+    }
 
   let of_model (model : [ `JobStartCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -3546,7 +3135,6 @@ module Job_start_command = struct
         ("annotationId", Option.map json_string value.annotation_id);
         ("attempt", Option.map json_int value.attempt);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_start_command
@@ -3561,23 +3149,18 @@ module Job_assign_command = struct
     resource_id : string;
     holder : string;
     requester : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        resource_id = required reader string "resourceId";
-        holder = required reader string "holder";
-        requester = required reader string "requester";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      resource_id = required reader string "resourceId";
+      holder = required reader string "holder";
+      requester = required reader string "requester";
+    }
 
   let of_model (model : [ `JobAssignCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -3592,7 +3175,6 @@ module Job_assign_command = struct
         ("holder", Some (json_string value.holder));
         ("requester", Some (json_string value.requester));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_assign_command
@@ -3605,21 +3187,16 @@ module Job_started_payload = struct
     job_type : Enums.Job_type.t;
     annotation_id : string option;
     total_steps : int option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        annotation_id = maybe reader string "annotationId";
-        total_steps = maybe reader int "totalSteps";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      annotation_id = maybe reader string "annotationId";
+      total_steps = maybe reader int "totalSteps";
+    }
 
   let of_model (model : [ `JobStartedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -3632,7 +3209,6 @@ module Job_started_payload = struct
         ("annotationId", Option.map json_string value.annotation_id);
         ("totalSteps", Option.map json_int value.total_steps);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_started_payload
@@ -3646,22 +3222,17 @@ module Job_assigned_payload = struct
     resource_id : string;
     holder : string;
     requester : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        resource_id = required reader string "resourceId";
-        holder = required reader string "holder";
-        requester = required reader string "requester";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      resource_id = required reader string "resourceId";
+      holder = required reader string "holder";
+      requester = required reader string "requester";
+    }
 
   let of_model (model : [ `JobAssignedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -3675,7 +3246,6 @@ module Job_assigned_payload = struct
         ("holder", Some (json_string value.holder));
         ("requester", Some (json_string value.requester));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_assigned_payload
@@ -3683,22 +3253,14 @@ module Job_assigned_payload = struct
 end
 
 module Principal_profile_command = struct
-  type t = {
-    field_user_id : string option;
-    name : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { field_user_id : string option; name : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        name = required reader string "name";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      name = required reader string "name";
+    }
 
   let of_model (model : [ `PrincipalProfileCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -3709,7 +3271,6 @@ module Principal_profile_command = struct
         ("_userId", Option.map json_string value.field_user_id);
         ("name", Some (json_string value.name));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.principal_profile_command
@@ -3717,18 +3278,16 @@ module Principal_profile_command = struct
 end
 
 module Principal_profiled_payload = struct
-  type t = { name : string; extra : (string * Yojson.Raw.t) list }
+  type t = { name : string }
 
   let project fields =
     let reader = start fields in
-    let record = { name = required reader string "name"; extra = [] } in
-    { record with extra = rest reader }
+    { name = required reader string "name" }
 
   let of_model (model : [ `PrincipalProfiledPayload ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("name", Some (json_string value.name)) ] value.extra
+  let to_json (value : t) = write [ ("name", Some (json_string value.name)) ]
 
   let to_model value =
     Models.decode Models.principal_profiled_payload
@@ -3736,18 +3295,16 @@ module Principal_profiled_payload = struct
 end
 
 module Job_status_request = struct
-  type t = { job_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { job_id : string }
 
   let project fields =
     let reader = start fields in
-    let record = { job_id = required reader string "jobId"; extra = [] } in
-    { record with extra = rest reader }
+    { job_id = required reader string "jobId" }
 
   let of_model (model : [ `JobStatusRequest ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("jobId", Some (json_string value.job_id)) ] value.extra
+  let to_json (value : t) = write [ ("jobId", Some (json_string value.job_id)) ]
 
   let to_model value =
     Models.decode Models.job_status_request
@@ -3755,24 +3312,15 @@ module Job_status_request = struct
 end
 
 module Kb_description = struct
-  type t = {
-    name : string;
-    domain : string;
-    git_branch : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { name : string; domain : string; git_branch : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        domain = required reader string "domain";
-        git_branch = maybe reader string "gitBranch";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      domain = required reader string "domain";
+      git_branch = maybe reader string "gitBranch";
+    }
 
   let of_model (model : [ `KbDescription ] Models.t) =
     project (fields_of (Models.json model))
@@ -3784,7 +3332,6 @@ module Kb_description = struct
         ("domain", Some (json_string value.domain));
         ("gitBranch", Option.map json_string value.git_branch);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.kb_description (Yojson.Raw.to_string (to_json value))
@@ -3809,26 +3356,16 @@ module Http_endpoint = struct
       | _ -> None
   end
 
-  type t = {
-    kind : Kind.t;
-    host : string;
-    port : int;
-    protocol : Protocol.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { kind : Kind.t; host : string; port : int; protocol : Protocol.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kind = required reader (enum Kind.of_string) "kind";
-        host = required reader string "host";
-        port = required reader int "port";
-        protocol = required reader (enum Protocol.of_string) "protocol";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kind = required reader (enum Kind.of_string) "kind";
+      host = required reader string "host";
+      port = required reader int "port";
+      protocol = required reader (enum Protocol.of_string) "protocol";
+    }
 
   let of_model (model : [ `HttpEndpoint ] Models.t) =
     project (fields_of (Models.json model))
@@ -3841,29 +3378,20 @@ module Http_endpoint = struct
         ("port", Some (json_int value.port));
         ("protocol", Some ((json_enum Protocol.to_string) value.protocol));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.http_endpoint (Yojson.Raw.to_string (to_json value))
 end
 
 module Kb_read = struct
-  type t = {
-    at : string;
-    git_branch : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { at : string; git_branch : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        at = required reader string "at";
-        git_branch = maybe reader string "gitBranch";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      at = required reader string "at";
+      git_branch = maybe reader string "gitBranch";
+    }
 
   let of_model (model : [ `KbRead ] Models.t) =
     project (fields_of (Models.json model))
@@ -3874,7 +3402,6 @@ module Kb_read = struct
         ("at", Some (json_string value.at));
         ("gitBranch", Option.map json_string value.git_branch);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.kb_read (Yojson.Raw.to_string (to_json value))
@@ -3888,22 +3415,14 @@ module Local_endpoint = struct
     let of_string = function "local" -> Some Local | _ -> None
   end
 
-  type t = {
-    kind : Kind.t;
-    kb_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { kind : Kind.t; kb_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kind = required reader (enum Kind.of_string) "kind";
-        kb_id = required reader string "kbId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kind = required reader (enum Kind.of_string) "kind";
+      kb_id = required reader string "kbId";
+    }
 
   let of_model (model : [ `LocalEndpoint ] Models.t) =
     project (fields_of (Models.json model))
@@ -3914,7 +3433,6 @@ module Local_endpoint = struct
         ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("kbId", Some (json_string value.kb_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.local_endpoint (Yojson.Raw.to_string (to_json value))
@@ -3926,21 +3444,16 @@ module Mark_archive_command = struct
     resource_id : string;
     storage_uri : string option;
     keep_file : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        storage_uri = maybe reader string "storageUri";
-        keep_file = maybe reader bool "keepFile";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      storage_uri = maybe reader string "storageUri";
+      keep_file = maybe reader bool "keepFile";
+    }
 
   let of_model (model : [ `MarkArchiveCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -3953,7 +3466,6 @@ module Mark_archive_command = struct
         ("storageUri", Option.map json_string value.storage_uri);
         ("keepFile", Option.map json_bool value.keep_file);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_archive_command
@@ -3961,22 +3473,17 @@ module Mark_archive_command = struct
 end
 
 module Mark_create_ok_response = struct
-  type t = { annotation_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { annotation_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { annotation_id = required reader string "annotationId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { annotation_id = required reader string "annotationId" }
 
   let of_model (model : [ `MarkCreateOkResponse ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("annotationId", Some (json_string value.annotation_id)) ]
-      value.extra
+    write [ ("annotationId", Some (json_string value.annotation_id)) ]
 
   let to_model value =
     Models.decode Models.mark_create_ok_response
@@ -3988,20 +3495,15 @@ module Mark_delete_command = struct
     field_user_id : string option;
     annotation_id : string;
     resource_id : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        annotation_id = required reader string "annotationId";
-        resource_id = maybe reader string "resourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      annotation_id = required reader string "annotationId";
+      resource_id = maybe reader string "resourceId";
+    }
 
   let of_model (model : [ `MarkDeleteCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -4013,7 +3515,6 @@ module Mark_delete_command = struct
         ("annotationId", Some (json_string value.annotation_id));
         ("resourceId", Option.map json_string value.resource_id);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_delete_command
@@ -4025,20 +3526,15 @@ module Mark_unarchive_command = struct
     field_user_id : string option;
     resource_id : string;
     storage_uri : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        storage_uri = maybe reader string "storageUri";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      storage_uri = maybe reader string "storageUri";
+    }
 
   let of_model (model : [ `MarkUnarchiveCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -4050,7 +3546,6 @@ module Mark_unarchive_command = struct
         ("resourceId", Some (json_string value.resource_id));
         ("storageUri", Option.map json_string value.storage_uri);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_unarchive_command
@@ -4063,23 +3558,16 @@ module Mark_update_entity_types_command = struct
     field_user_id : string option;
     current_entity_types : string list;
     updated_entity_types : string list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        field_user_id = maybe reader string "_userId";
-        current_entity_types =
-          required reader (list string) "currentEntityTypes";
-        updated_entity_types =
-          required reader (list string) "updatedEntityTypes";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      field_user_id = maybe reader string "_userId";
+      current_entity_types = required reader (list string) "currentEntityTypes";
+      updated_entity_types = required reader (list string) "updatedEntityTypes";
+    }
 
   let of_model (model : [ `MarkUpdateEntityTypesCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -4094,7 +3582,6 @@ module Mark_update_entity_types_command = struct
         ( "updatedEntityTypes",
           Some ((json_list json_string) value.updated_entity_types) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_update_entity_types_command
@@ -4124,21 +3611,16 @@ module Match_search_failed = struct
     message : string;
     details : string option;
     reference_id : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = maybe reader (enum Code.of_string) "code";
-        message = required reader string "message";
-        details = maybe reader string "details";
-        reference_id = required reader string "referenceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = maybe reader (enum Code.of_string) "code";
+      message = required reader string "message";
+      details = maybe reader string "details";
+      reference_id = required reader string "referenceId";
+    }
 
   let of_model (model : [ `MatchSearchFailed ] Models.t) =
     project (fields_of (Models.json model))
@@ -4151,7 +3633,6 @@ module Match_search_failed = struct
         ("details", Option.map json_string value.details);
         ("referenceId", Some (json_string value.reference_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.match_search_failed
@@ -4165,22 +3646,17 @@ module Match_resources_request = struct
     entity_type : string option;
     offset : int option;
     limit : int option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        search = required reader string "search";
-        archived = maybe reader bool "archived";
-        entity_type = maybe reader string "entityType";
-        offset = maybe reader int "offset";
-        limit = maybe reader int "limit";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      search = required reader string "search";
+      archived = maybe reader bool "archived";
+      entity_type = maybe reader string "entityType";
+      offset = maybe reader int "offset";
+      limit = maybe reader int "limit";
+    }
 
   let of_model (model : [ `MatchResourcesRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -4194,7 +3670,6 @@ module Match_resources_request = struct
         ("offset", Option.map json_int value.offset);
         ("limit", Option.map json_int value.limit);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.match_resources_request
@@ -4202,20 +3677,17 @@ module Match_resources_request = struct
 end
 
 module Media_token_request = struct
-  type t = { resource_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { resource_id = required reader string "resourceId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { resource_id = required reader string "resourceId" }
 
   let of_model (model : [ `MediaTokenRequest ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("resourceId", Some (json_string value.resource_id)) ] value.extra
+    write [ ("resourceId", Some (json_string value.resource_id)) ]
 
   let to_model value =
     Models.decode Models.media_token_request
@@ -4223,18 +3695,16 @@ module Media_token_request = struct
 end
 
 module Media_token_response = struct
-  type t = { token : string; extra : (string * Yojson.Raw.t) list }
+  type t = { token : string }
 
   let project fields =
     let reader = start fields in
-    let record = { token = required reader string "token"; extra = [] } in
-    { record with extra = rest reader }
+    { token = required reader string "token" }
 
   let of_model (model : [ `MediaTokenResponse ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("token", Some (json_string value.token)) ] value.extra
+  let to_json (value : t) = write [ ("token", Some (json_string value.token)) ]
 
   let to_model value =
     Models.decode Models.media_token_response
@@ -4254,25 +3724,20 @@ module Protected_resource_metadata = struct
     authorization_servers : string list;
     bearer_methods_supported : Bearer_methods_supported.t list;
     resource_name : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource = required reader string "resource";
-        authorization_servers =
-          required reader (list string) "authorization_servers";
-        bearer_methods_supported =
-          required reader
-            (list (enum Bearer_methods_supported.of_string))
-            "bearer_methods_supported";
-        resource_name = maybe reader string "resource_name";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource = required reader string "resource";
+      authorization_servers =
+        required reader (list string) "authorization_servers";
+      bearer_methods_supported =
+        required reader
+          (list (enum Bearer_methods_supported.of_string))
+          "bearer_methods_supported";
+      resource_name = maybe reader string "resource_name";
+    }
 
   let of_model (model : [ `ProtectedResourceMetadata ] Models.t) =
     project (fields_of (Models.json model))
@@ -4289,7 +3754,6 @@ module Protected_resource_metadata = struct
                value.bearer_methods_supported) );
         ("resource_name", Option.map json_string value.resource_name);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.protected_resource_metadata
@@ -4297,18 +3761,17 @@ module Protected_resource_metadata = struct
 end
 
 module Representation_removed_payload = struct
-  type t = { checksum : string; extra : (string * Yojson.Raw.t) list }
+  type t = { checksum : string }
 
   let project fields =
     let reader = start fields in
-    let record = { checksum = required reader string "checksum"; extra = [] } in
-    { record with extra = rest reader }
+    { checksum = required reader string "checksum" }
 
   let of_model (model : [ `RepresentationRemovedPayload ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("checksum", Some (json_string value.checksum)) ] value.extra
+    write [ ("checksum", Some (json_string value.checksum)) ]
 
   let to_model value =
     Models.decode Models.representation_removed_payload
@@ -4316,18 +3779,17 @@ module Representation_removed_payload = struct
 end
 
 module Resource_archived_payload = struct
-  type t = { reason : string option; extra : (string * Yojson.Raw.t) list }
+  type t = { reason : string option }
 
   let project fields =
     let reader = start fields in
-    let record = { reason = maybe reader string "reason"; extra = [] } in
-    { record with extra = rest reader }
+    { reason = maybe reader string "reason" }
 
   let of_model (model : [ `ResourceArchivedPayload ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("reason", Option.map json_string value.reason) ] value.extra
+    write [ ("reason", Option.map json_string value.reason) ]
 
   let to_model value =
     Models.decode Models.resource_archived_payload
@@ -4335,22 +3797,14 @@ module Resource_archived_payload = struct
 end
 
 module Resource_moved_payload = struct
-  type t = {
-    from_uri : string;
-    to_uri : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { from_uri : string; to_uri : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        from_uri = required reader string "fromUri";
-        to_uri = required reader string "toUri";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      from_uri = required reader string "fromUri";
+      to_uri = required reader string "toUri";
+    }
 
   let of_model (model : [ `ResourceMovedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -4361,7 +3815,6 @@ module Resource_moved_payload = struct
         ("fromUri", Some (json_string value.from_uri));
         ("toUri", Some (json_string value.to_uri));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.resource_moved_payload
@@ -4369,22 +3822,14 @@ module Resource_moved_payload = struct
 end
 
 module Resource_updated_payload = struct
-  type t = {
-    content_checksum : string;
-    content_byte_size : int option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { content_checksum : string; content_byte_size : int option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        content_checksum = required reader string "contentChecksum";
-        content_byte_size = maybe reader int "contentByteSize";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      content_checksum = required reader string "contentChecksum";
+      content_byte_size = maybe reader int "contentByteSize";
+    }
 
   let of_model (model : [ `ResourceUpdatedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -4395,7 +3840,6 @@ module Resource_updated_payload = struct
         ("contentChecksum", Some (json_string value.content_checksum));
         ("contentByteSize", Option.map json_int value.content_byte_size);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.resource_updated_payload
@@ -4411,24 +3855,19 @@ module Semantic_match = struct
     score : float;
     entity_types : string list option;
     machine_read : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        text = required reader string "text";
-        resource_id = required reader string "resourceId";
-        resource_name = required reader string "resourceName";
-        annotation_id = maybe reader string "annotationId";
-        score = required reader float "score";
-        entity_types = maybe reader (list string) "entityTypes";
-        machine_read = maybe reader bool "machineRead";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      text = required reader string "text";
+      resource_id = required reader string "resourceId";
+      resource_name = required reader string "resourceName";
+      annotation_id = maybe reader string "annotationId";
+      score = required reader float "score";
+      entity_types = maybe reader (list string) "entityTypes";
+      machine_read = maybe reader bool "machineRead";
+    }
 
   let of_model (model : [ `SemanticMatch ] Models.t) =
     project (fields_of (Models.json model))
@@ -4444,29 +3883,20 @@ module Semantic_match = struct
         ("entityTypes", Option.map (json_list json_string) value.entity_types);
         ("machineRead", Option.map json_bool value.machine_read);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.semantic_match (Yojson.Raw.to_string (to_json value))
 end
 
 module Session_joined_event = struct
-  type t = {
-    participant : string;
-    connection_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { participant : string; connection_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        participant = required reader string "participant";
-        connection_id = required reader string "connectionId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      participant = required reader string "participant";
+      connection_id = required reader string "connectionId";
+    }
 
   let of_model (model : [ `SessionJoinedEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -4477,7 +3907,6 @@ module Session_joined_event = struct
         ("participant", Some (json_string value.participant));
         ("connectionId", Some (json_string value.connection_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.session_joined_event
@@ -4485,22 +3914,14 @@ module Session_joined_event = struct
 end
 
 module Session_left_event = struct
-  type t = {
-    participant : string;
-    connection_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { participant : string; connection_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        participant = required reader string "participant";
-        connection_id = required reader string "connectionId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      participant = required reader string "participant";
+      connection_id = required reader string "connectionId";
+    }
 
   let of_model (model : [ `SessionLeftEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -4511,7 +3932,6 @@ module Session_left_event = struct
         ("participant", Some (json_string value.participant));
         ("connectionId", Some (json_string value.connection_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.session_left_event
@@ -4519,20 +3939,17 @@ module Session_left_event = struct
 end
 
 module Settings_hover_delay_changed_event = struct
-  type t = { hover_delay_ms : int; extra : (string * Yojson.Raw.t) list }
+  type t = { hover_delay_ms : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { hover_delay_ms = required reader int "hoverDelayMs"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { hover_delay_ms = required reader int "hoverDelayMs" }
 
   let of_model (model : [ `SettingsHoverDelayChangedEvent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("hoverDelayMs", Some (json_int value.hover_delay_ms)) ] value.extra
+    write [ ("hoverDelayMs", Some (json_int value.hover_delay_ms)) ]
 
   let to_model value =
     Models.decode Models.settings_hover_delay_changed_event
@@ -4540,18 +3957,17 @@ module Settings_hover_delay_changed_event = struct
 end
 
 module Settings_locale_changed_event = struct
-  type t = { locale : string; extra : (string * Yojson.Raw.t) list }
+  type t = { locale : string }
 
   let project fields =
     let reader = start fields in
-    let record = { locale = required reader string "locale"; extra = [] } in
-    { record with extra = rest reader }
+    { locale = required reader string "locale" }
 
   let of_model (model : [ `SettingsLocaleChangedEvent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("locale", Some (json_string value.locale)) ] value.extra
+    write [ ("locale", Some (json_string value.locale)) ]
 
   let to_model value =
     Models.decode Models.settings_locale_changed_event
@@ -4574,22 +3990,17 @@ module Settings_theme_changed_event = struct
       | _ -> None
   end
 
-  type t = { theme : Theme.t; extra : (string * Yojson.Raw.t) list }
+  type t = { theme : Theme.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { theme = required reader (enum Theme.of_string) "theme"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { theme = required reader (enum Theme.of_string) "theme" }
 
   let of_model (model : [ `SettingsThemeChangedEvent ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("theme", Some ((json_enum Theme.to_string) value.theme)) ]
-      value.extra
+    write [ ("theme", Some ((json_enum Theme.to_string) value.theme)) ]
 
   let to_model value =
     Models.decode Models.settings_theme_changed_event
@@ -4611,20 +4022,15 @@ module Specific_resource = struct
     type_ : Type_.t;
     source : string;
     purpose : Enums.Body_purpose.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        source = required reader string "source";
-        purpose = maybe reader (enum Enums.Body_purpose.of_string) "purpose";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      source = required reader string "source";
+      purpose = maybe reader (enum Enums.Body_purpose.of_string) "purpose";
+    }
 
   let of_model (model : [ `SpecificResource ] Models.t) =
     project (fields_of (Models.json model))
@@ -4637,7 +4043,6 @@ module Specific_resource = struct
         ( "purpose",
           Option.map (json_enum Enums.Body_purpose.to_string) value.purpose );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.specific_resource
@@ -4652,22 +4057,14 @@ module Svg_selector = struct
     let of_string = function "SvgSelector" -> Some SvgSelector | _ -> None
   end
 
-  type t = {
-    type_ : Type_.t;
-    value : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : Type_.t; value : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        value = required reader string "value";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      value = required reader string "value";
+    }
 
   let of_model (model : [ `SvgSelector ] Models.t) =
     project (fields_of (Models.json model))
@@ -4678,31 +4075,21 @@ module Svg_selector = struct
         ("type", Some ((json_enum Type_.to_string) value.type_));
         ("value", Some (json_string value.value));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.svg_selector (Yojson.Raw.to_string (to_json value))
 end
 
 module Tag_category = struct
-  type t = {
-    name : string;
-    description : string;
-    examples : string list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { name : string; description : string; examples : string list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        description = required reader string "description";
-        examples = required reader (list string) "examples";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      description = required reader string "description";
+      examples = required reader (list string) "examples";
+    }
 
   let of_model (model : [ `TagCategory ] Models.t) =
     project (fields_of (Models.json model))
@@ -4714,7 +4101,6 @@ module Tag_category = struct
         ("description", Some (json_string value.description));
         ("examples", Some ((json_list json_string) value.examples));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.tag_category (Yojson.Raw.to_string (to_json value))
@@ -4731,24 +4117,15 @@ module Text_position_selector = struct
       | _ -> None
   end
 
-  type t = {
-    type_ : Type_.t;
-    start : int;
-    end_ : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : Type_.t; start : int; end_ : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        start = required reader int "start";
-        end_ = required reader int "end";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      start = required reader int "start";
+      end_ = required reader int "end";
+    }
 
   let of_model (model : [ `TextPositionSelector ] Models.t) =
     project (fields_of (Models.json model))
@@ -4760,7 +4137,6 @@ module Text_position_selector = struct
         ("start", Some (json_int value.start));
         ("end", Some (json_int value.end_));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.text_position_selector
@@ -4783,21 +4159,16 @@ module Text_quote_selector = struct
     exact : string;
     prefix : string option;
     suffix : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        exact = required reader string "exact";
-        prefix = maybe reader string "prefix";
-        suffix = maybe reader string "suffix";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      exact = required reader string "exact";
+      prefix = maybe reader string "prefix";
+      suffix = maybe reader string "suffix";
+    }
 
   let of_model (model : [ `TextQuoteSelector ] Models.t) =
     project (fields_of (Models.json model))
@@ -4810,7 +4181,6 @@ module Text_quote_selector = struct
         ("prefix", Option.map json_string value.prefix);
         ("suffix", Option.map json_string value.suffix);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.text_quote_selector
@@ -4831,22 +4201,17 @@ module Textual_body = struct
     purpose : Enums.Body_purpose.t option;
     format : string option;
     language : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        value = required reader string "value";
-        purpose = maybe reader (enum Enums.Body_purpose.of_string) "purpose";
-        format = maybe reader string "format";
-        language = maybe reader string "language";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      value = required reader string "value";
+      purpose = maybe reader (enum Enums.Body_purpose.of_string) "purpose";
+      format = maybe reader string "format";
+      language = maybe reader string "language";
+    }
 
   let of_model (model : [ `TextualBody ] Models.t) =
     project (fields_of (Models.json model))
@@ -4861,7 +4226,6 @@ module Textual_body = struct
         ("format", Option.map json_string value.format);
         ("language", Option.map json_string value.language);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.textual_body (Yojson.Raw.to_string (to_json value))
@@ -4874,22 +4238,17 @@ module User_response = struct
     name : string option;
     image : string option;
     domain : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        did = required reader string "did";
-        email = required reader (nullable string) "email";
-        name = required reader (nullable string) "name";
-        image = required reader (nullable string) "image";
-        domain = required reader string "domain";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      did = required reader string "did";
+      email = required reader (nullable string) "email";
+      name = required reader (nullable string) "name";
+      image = required reader (nullable string) "image";
+      domain = required reader string "domain";
+    }
 
   let of_model (model : [ `UserResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -4903,29 +4262,20 @@ module User_response = struct
         ("image", Some ((json_nullable json_string) value.image));
         ("domain", Some (json_string value.domain));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.user_response (Yojson.Raw.to_string (to_json value))
 end
 
 module Smelt_rebuild_anchors_command = struct
-  type t = {
-    resource_id : string option;
-    field_user_id : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string option; field_user_id : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = maybe reader string "resourceId";
-        field_user_id = maybe reader string "_userId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = maybe reader string "resourceId";
+      field_user_id = maybe reader string "_userId";
+    }
 
   let of_model (model : [ `SmeltRebuildAnchorsCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -4936,7 +4286,6 @@ module Smelt_rebuild_anchors_command = struct
         ("resourceId", Option.map json_string value.resource_id);
         ("_userId", Option.map json_string value.field_user_id);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.smelt_rebuild_anchors_command
@@ -4944,22 +4293,14 @@ module Smelt_rebuild_anchors_command = struct
 end
 
 module Weave_rebuild_command = struct
-  type t = {
-    resource_id : string option;
-    field_user_id : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string option; field_user_id : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = maybe reader string "resourceId";
-        field_user_id = maybe reader string "_userId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = maybe reader string "resourceId";
+      field_user_id = maybe reader string "_userId";
+    }
 
   let of_model (model : [ `WeaveRebuildCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -4970,7 +4311,6 @@ module Weave_rebuild_command = struct
         ("resourceId", Option.map json_string value.resource_id);
         ("_userId", Option.map json_string value.field_user_id);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.weave_rebuild_command
@@ -4987,25 +4327,20 @@ module Yield_clone_create_command = struct
     byte_size : int;
     format : string;
     archive_original : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        token = required reader string "token";
-        name = required reader string "name";
-        storage_uri = required reader string "storageUri";
-        content_checksum = required reader string "contentChecksum";
-        byte_size = required reader int "byteSize";
-        format = required reader string "format";
-        archive_original = maybe reader bool "archiveOriginal";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      token = required reader string "token";
+      name = required reader string "name";
+      storage_uri = required reader string "storageUri";
+      content_checksum = required reader string "contentChecksum";
+      byte_size = required reader int "byteSize";
+      format = required reader string "format";
+      archive_original = maybe reader bool "archiveOriginal";
+    }
 
   let of_model (model : [ `YieldCloneCreateCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -5022,7 +4357,6 @@ module Yield_clone_create_command = struct
         ("format", Some (json_string value.format));
         ("archiveOriginal", Option.map json_bool value.archive_original);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.yield_clone_create_command
@@ -5030,18 +4364,16 @@ module Yield_clone_create_command = struct
 end
 
 module Yield_clone_resource_request = struct
-  type t = { token : string; extra : (string * Yojson.Raw.t) list }
+  type t = { token : string }
 
   let project fields =
     let reader = start fields in
-    let record = { token = required reader string "token"; extra = [] } in
-    { record with extra = rest reader }
+    { token = required reader string "token" }
 
   let of_model (model : [ `YieldCloneResourceRequest ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("token", Some (json_string value.token)) ] value.extra
+  let to_json (value : t) = write [ ("token", Some (json_string value.token)) ]
 
   let to_model value =
     Models.decode Models.yield_clone_resource_request
@@ -5049,20 +4381,17 @@ module Yield_clone_resource_request = struct
 end
 
 module Yield_clone_token_request = struct
-  type t = { resource_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { resource_id = required reader string "resourceId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { resource_id = required reader string "resourceId" }
 
   let of_model (model : [ `YieldCloneTokenRequest ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("resourceId", Some (json_string value.resource_id)) ] value.extra
+    write [ ("resourceId", Some (json_string value.resource_id)) ]
 
   let to_model value =
     Models.decode Models.yield_clone_token_request
@@ -5080,26 +4409,21 @@ module Yield_clone_persist_command = struct
     language : string option;
     entity_types : string list option;
     parent_resource_id : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        name = required reader string "name";
-        storage_uri = required reader string "storageUri";
-        content_checksum = required reader string "contentChecksum";
-        byte_size = required reader int "byteSize";
-        format = required reader string "format";
-        language = maybe reader string "language";
-        entity_types = maybe reader (list string) "entityTypes";
-        parent_resource_id = required reader string "parentResourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      name = required reader string "name";
+      storage_uri = required reader string "storageUri";
+      content_checksum = required reader string "contentChecksum";
+      byte_size = required reader int "byteSize";
+      format = required reader string "format";
+      language = maybe reader string "language";
+      entity_types = maybe reader (list string) "entityTypes";
+      parent_resource_id = required reader string "parentResourceId";
+    }
 
   let of_model (model : [ `YieldClonePersistCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -5117,7 +4441,6 @@ module Yield_clone_persist_command = struct
         ("entityTypes", Option.map (json_list json_string) value.entity_types);
         ("parentResourceId", Some (json_string value.parent_resource_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.yield_clone_persist_command
@@ -5131,22 +4454,17 @@ module Yield_update_command = struct
     storage_uri : string;
     content_checksum : string;
     byte_size : int;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        storage_uri = required reader string "storageUri";
-        content_checksum = required reader string "contentChecksum";
-        byte_size = required reader int "byteSize";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      storage_uri = required reader string "storageUri";
+      content_checksum = required reader string "contentChecksum";
+      byte_size = required reader int "byteSize";
+    }
 
   let of_model (model : [ `YieldUpdateCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -5160,7 +4478,6 @@ module Yield_update_command = struct
         ("contentChecksum", Some (json_string value.content_checksum));
         ("byteSize", Some (json_int value.byte_size));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.yield_update_command
@@ -5168,20 +4485,17 @@ module Yield_update_command = struct
 end
 
 module Yielded_resource = struct
-  type t = { resource_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { resource_id = required reader string "resourceId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { resource_id = required reader string "resourceId" }
 
   let of_model (model : [ `YieldedResource ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("resourceId", Some (json_string value.resource_id)) ] value.extra
+    write [ ("resourceId", Some (json_string value.resource_id)) ]
 
   let to_model value =
     Models.decode Models.yielded_resource (Yojson.Raw.to_string (to_json value))
@@ -5193,21 +4507,16 @@ module Bus_frame = struct
     correlation_id : string option;
     payload : (string * Yojson.Raw.t) list;
     scope : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        channel = required reader string "channel";
-        correlation_id = maybe reader string "correlationId";
-        payload = required reader (map raw) "payload";
-        scope = maybe reader string "scope";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      channel = required reader string "channel";
+      correlation_id = maybe reader string "correlationId";
+      payload = required reader (map raw) "payload";
+      scope = maybe reader string "scope";
+    }
 
   let of_model (model : [ `BusFrame ] Models.t) =
     project (fields_of (Models.json model))
@@ -5220,7 +4529,6 @@ module Bus_frame = struct
         ("payload", Some ((json_map json_raw) value.payload));
         ("scope", Option.map json_string value.scope);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bus_frame (Yojson.Raw.to_string (to_json value))
@@ -5234,22 +4542,14 @@ module Bus_ping_message = struct
     let of_string = function "ping" -> Some Ping | _ -> None
   end
 
-  type t = {
-    event : Event.t;
-    data : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { event : Event.t; data : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        event = required reader (enum Event.of_string) "event";
-        data = required reader string "data";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      event = required reader (enum Event.of_string) "event";
+      data = required reader string "data";
+    }
 
   let of_model (model : [ `BusPingMessage ] Models.t) =
     project (fields_of (Models.json model))
@@ -5260,7 +4560,6 @@ module Bus_ping_message = struct
         ("event", Some ((json_enum Event.to_string) value.event));
         ("data", Some (json_string value.data));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bus_ping_message (Yojson.Raw.to_string (to_json value))
@@ -5288,24 +4587,15 @@ module Bus_resume_gap = struct
       | _ -> None
   end
 
-  type t = {
-    scope : string;
-    last_seen_id : string;
-    reason : Reason.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { scope : string; last_seen_id : string; reason : Reason.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        scope = required reader string "scope";
-        last_seen_id = required reader string "lastSeenId";
-        reason = required reader (enum Reason.of_string) "reason";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      scope = required reader string "scope";
+      last_seen_id = required reader string "lastSeenId";
+      reason = required reader (enum Reason.of_string) "reason";
+    }
 
   let of_model (model : [ `BusResumeGap ] Models.t) =
     project (fields_of (Models.json model))
@@ -5317,29 +4607,20 @@ module Bus_resume_gap = struct
         ("lastSeenId", Some (json_string value.last_seen_id));
         ("reason", Some ((json_enum Reason.to_string) value.reason));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bus_resume_gap (Yojson.Raw.to_string (to_json value))
 end
 
 module Kb_identity = struct
-  type t = {
-    name : string;
-    domain : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { name : string; domain : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        domain = required reader string "domain";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      domain = required reader string "domain";
+    }
 
   let of_model (model : [ `KbIdentity ] Models.t) =
     project (fields_of (Models.json model))
@@ -5350,7 +4631,6 @@ module Kb_identity = struct
         ("name", Some (json_string value.name));
         ("domain", Some (json_string value.domain));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.kb_identity (Yojson.Raw.to_string (to_json value))
@@ -5372,31 +4652,26 @@ module Resource_upload = struct
     is_draft : string option;
     clone_token : string option;
     archive_original : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        file = required reader string "file";
-        format = required reader string "format";
-        storage_uri = required reader string "storageUri";
-        language = maybe reader string "language";
-        entity_types = maybe reader string "entityTypes";
-        source_annotation_id = maybe reader string "sourceAnnotationId";
-        source_resource_id = maybe reader string "sourceResourceId";
-        generation_prompt = maybe reader string "generationPrompt";
-        generator = maybe reader string "generator";
-        job_id = maybe reader string "jobId";
-        is_draft = maybe reader string "isDraft";
-        clone_token = maybe reader string "cloneToken";
-        archive_original = maybe reader string "archiveOriginal";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      file = required reader string "file";
+      format = required reader string "format";
+      storage_uri = required reader string "storageUri";
+      language = maybe reader string "language";
+      entity_types = maybe reader string "entityTypes";
+      source_annotation_id = maybe reader string "sourceAnnotationId";
+      source_resource_id = maybe reader string "sourceResourceId";
+      generation_prompt = maybe reader string "generationPrompt";
+      generator = maybe reader string "generator";
+      job_id = maybe reader string "jobId";
+      is_draft = maybe reader string "isDraft";
+      clone_token = maybe reader string "cloneToken";
+      archive_original = maybe reader string "archiveOriginal";
+    }
 
   let of_model (model : [ `ResourceUpload ] Models.t) =
     project (fields_of (Models.json model))
@@ -5419,7 +4694,6 @@ module Resource_upload = struct
         ("cloneToken", Option.map json_string value.clone_token);
         ("archiveOriginal", Option.map json_string value.archive_original);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.resource_upload (Yojson.Raw.to_string (to_json value))
@@ -5455,21 +4729,16 @@ module Limit_refusal = struct
     code : Code.t;
     hint : string option;
     details : Yojson.Raw.t Types.presence;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        error = required reader string "error";
-        code = required reader (enum Code.of_string) "code";
-        hint = maybe reader string "hint";
-        details = optional reader raw "details";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      error = required reader string "error";
+      code = required reader (enum Code.of_string) "code";
+      hint = maybe reader string "hint";
+      details = optional reader raw "details";
+    }
 
   let of_model (model : [ `LimitRefusal ] Models.t) =
     project (fields_of (Models.json model))
@@ -5482,7 +4751,6 @@ module Limit_refusal = struct
         ("hint", Option.map json_string value.hint);
         ("details", present json_raw value.details);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.limit_refusal (Yojson.Raw.to_string (to_json value))
@@ -5501,21 +4769,16 @@ module Highlighting_job_params = struct
     instructions : string option;
     density : float option;
     source_language : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        motivation = required reader (enum Motivation.of_string) "motivation";
-        instructions = maybe reader string "instructions";
-        density = maybe reader float "density";
-        source_language = maybe reader string "sourceLanguage";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      motivation = required reader (enum Motivation.of_string) "motivation";
+      instructions = maybe reader string "instructions";
+      density = maybe reader float "density";
+      source_language = maybe reader string "sourceLanguage";
+    }
 
   let of_model (model : [ `HighlightingJobParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -5528,7 +4791,6 @@ module Highlighting_job_params = struct
         ("density", Option.map json_float value.density);
         ("sourceLanguage", Option.map json_string value.source_language);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.highlighting_job_params
@@ -5567,23 +4829,18 @@ module Commenting_job_params = struct
     density : float option;
     language : string option;
     source_language : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        motivation = required reader (enum Motivation.of_string) "motivation";
-        instructions = maybe reader string "instructions";
-        tone = maybe reader (enum Tone.of_string) "tone";
-        density = maybe reader float "density";
-        language = maybe reader string "language";
-        source_language = maybe reader string "sourceLanguage";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      motivation = required reader (enum Motivation.of_string) "motivation";
+      instructions = maybe reader string "instructions";
+      tone = maybe reader (enum Tone.of_string) "tone";
+      density = maybe reader float "density";
+      language = maybe reader string "language";
+      source_language = maybe reader string "sourceLanguage";
+    }
 
   let of_model (model : [ `CommentingJobParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -5598,7 +4855,6 @@ module Commenting_job_params = struct
         ("language", Option.map json_string value.language);
         ("sourceLanguage", Option.map json_string value.source_language);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.commenting_job_params
@@ -5637,23 +4893,18 @@ module Assessing_job_params = struct
     density : float option;
     language : string option;
     source_language : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        motivation = required reader (enum Motivation.of_string) "motivation";
-        instructions = maybe reader string "instructions";
-        tone = maybe reader (enum Tone.of_string) "tone";
-        density = maybe reader float "density";
-        language = maybe reader string "language";
-        source_language = maybe reader string "sourceLanguage";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      motivation = required reader (enum Motivation.of_string) "motivation";
+      instructions = maybe reader string "instructions";
+      tone = maybe reader (enum Tone.of_string) "tone";
+      density = maybe reader float "density";
+      language = maybe reader string "language";
+      source_language = maybe reader string "sourceLanguage";
+    }
 
   let of_model (model : [ `AssessingJobParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -5668,7 +4919,6 @@ module Assessing_job_params = struct
         ("language", Option.map json_string value.language);
         ("sourceLanguage", Option.map json_string value.source_language);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.assessing_job_params
@@ -5689,23 +4939,18 @@ module Linking_job_params = struct
     include_descriptive_references : bool option;
     language : string option;
     source_language : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        motivation = required reader (enum Motivation.of_string) "motivation";
-        entity_types = required reader (list string) "entityTypes";
-        include_descriptive_references =
-          maybe reader bool "includeDescriptiveReferences";
-        language = maybe reader string "language";
-        source_language = maybe reader string "sourceLanguage";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      motivation = required reader (enum Motivation.of_string) "motivation";
+      entity_types = required reader (list string) "entityTypes";
+      include_descriptive_references =
+        maybe reader bool "includeDescriptiveReferences";
+      language = maybe reader string "language";
+      source_language = maybe reader string "sourceLanguage";
+    }
 
   let of_model (model : [ `LinkingJobParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -5720,7 +4965,6 @@ module Linking_job_params = struct
         ("language", Option.map json_string value.language);
         ("sourceLanguage", Option.map json_string value.source_language);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.linking_job_params
@@ -5741,22 +4985,17 @@ module Tagging_job_params = struct
     categories : string list;
     language : string option;
     source_language : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        motivation = required reader (enum Motivation.of_string) "motivation";
-        schema_id = required reader string "schemaId";
-        categories = required reader (list string) "categories";
-        language = maybe reader string "language";
-        source_language = maybe reader string "sourceLanguage";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      motivation = required reader (enum Motivation.of_string) "motivation";
+      schema_id = required reader string "schemaId";
+      categories = required reader (list string) "categories";
+      language = maybe reader string "language";
+      source_language = maybe reader string "sourceLanguage";
+    }
 
   let of_model (model : [ `TaggingJobParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -5770,7 +5009,6 @@ module Tagging_job_params = struct
         ("language", Option.map json_string value.language);
         ("sourceLanguage", Option.map json_string value.source_language);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.tagging_job_params
@@ -5791,32 +5029,27 @@ module Generation_job_request = struct
     task : string option;
     structure : string option;
     cite : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        title = required reader string "title";
-        storage_uri = required reader string "storageUri";
-        prompt = maybe reader string "prompt";
-        entity_types = maybe reader (list string) "entityTypes";
-        language = maybe reader string "language";
-        source_language = maybe reader string "sourceLanguage";
-        temperature = maybe reader float "temperature";
-        max_tokens = maybe reader float "maxTokens";
-        output_media_type =
-          maybe reader
-            (enum Enums.Supported_media_type.of_string)
-            "outputMediaType";
-        task = maybe reader string "task";
-        structure = maybe reader string "structure";
-        cite = maybe reader bool "cite";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      title = required reader string "title";
+      storage_uri = required reader string "storageUri";
+      prompt = maybe reader string "prompt";
+      entity_types = maybe reader (list string) "entityTypes";
+      language = maybe reader string "language";
+      source_language = maybe reader string "sourceLanguage";
+      temperature = maybe reader float "temperature";
+      max_tokens = maybe reader float "maxTokens";
+      output_media_type =
+        maybe reader
+          (enum Enums.Supported_media_type.of_string)
+          "outputMediaType";
+      task = maybe reader string "task";
+      structure = maybe reader string "structure";
+      cite = maybe reader bool "cite";
+    }
 
   let of_model (model : [ `GenerationJobRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -5840,7 +5073,6 @@ module Generation_job_request = struct
         ("structure", Option.map json_string value.structure);
         ("cite", Option.map json_bool value.cite);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.generation_job_request
@@ -5855,61 +5087,45 @@ module Yield_job_filter = struct
     let of_string = function "yield" -> Some Yield | _ -> None
   end
 
-  type t = { job_type : Job_type.t; extra : (string * Yojson.Raw.t) list }
+  type t = { job_type : Job_type.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_type = required reader (enum Job_type.of_string) "jobType";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { job_type = required reader (enum Job_type.of_string) "jobType" }
 
   let of_model (model : [ `YieldJobFilter ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("jobType", Some ((json_enum Job_type.to_string) value.job_type)) ]
-      value.extra
+    write [ ("jobType", Some ((json_enum Job_type.to_string) value.job_type)) ]
 
   let to_model value =
     Models.decode Models.yield_job_filter (Yojson.Raw.to_string (to_json value))
 end
 
 module Service_identity = struct
-  type t = { issuer : string; extra : (string * Yojson.Raw.t) list }
+  type t = { issuer : string }
 
   let project fields =
     let reader = start fields in
-    let record = { issuer = required reader string "issuer"; extra = [] } in
-    { record with extra = rest reader }
+    { issuer = required reader string "issuer" }
 
   let of_model (model : [ `ServiceIdentity ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("issuer", Some (json_string value.issuer)) ] value.extra
+    write [ ("issuer", Some (json_string value.issuer)) ]
 
   let to_model value =
     Models.decode Models.service_identity (Yojson.Raw.to_string (to_json value))
 end
 
 module Service_address = struct
-  type t = { host : string; port : int; extra : (string * Yojson.Raw.t) list }
+  type t = { host : string; port : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        host = required reader string "host";
-        port = required reader int "port";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { host = required reader string "host"; port = required reader int "port" }
 
   let of_model (model : [ `ServiceAddress ] Models.t) =
     project (fields_of (Models.json model))
@@ -5920,29 +5136,23 @@ module Service_address = struct
         ("host", Some (json_string value.host));
         ("port", Some (json_int value.port));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_address (Yojson.Raw.to_string (to_json value))
 end
 
 module Entity_types_projection = struct
-  type t = { entity_types : string list; extra : (string * Yojson.Raw.t) list }
+  type t = { entity_types : string list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { entity_types = required reader (list string) "entityTypes"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { entity_types = required reader (list string) "entityTypes" }
 
   let of_model (model : [ `EntityTypesProjection ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("entityTypes", Some ((json_list json_string) value.entity_types)) ]
-      value.extra
+    write [ ("entityTypes", Some ((json_list json_string) value.entity_types)) ]
 
   let to_model value =
     Models.decode Models.entity_types_projection
@@ -5950,22 +5160,14 @@ module Entity_types_projection = struct
 end
 
 module Profile = struct
-  type t = {
-    name : string;
-    since : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { name : string; since : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        since = required reader string "since";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      since = required reader string "since";
+    }
 
   let of_model (model : [ `Profile ] Models.t) =
     project (fields_of (Models.json model))
@@ -5976,29 +5178,20 @@ module Profile = struct
         ("name", Some (json_string value.name));
         ("since", Some (json_string value.since));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.profile (Yojson.Raw.to_string (to_json value))
 end
 
 module Storage_uri_entry = struct
-  type t = {
-    uri : string;
-    resource_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { uri : string; resource_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        uri = required reader string "uri";
-        resource_id = required reader string "resourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      uri = required reader string "uri";
+      resource_id = required reader string "resourceId";
+    }
 
   let of_model (model : [ `StorageUriEntry ] Models.t) =
     project (fields_of (Models.json model))
@@ -6009,7 +5202,6 @@ module Storage_uri_entry = struct
         ("uri", Some (json_string value.uri));
         ("resourceId", Some (json_string value.resource_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.storage_uri_entry
@@ -6040,22 +5232,14 @@ module Engine = struct
       | _ -> None
   end
 
-  type t = {
-    provider : Provider.t;
-    model : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { provider : Provider.t; model : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        provider = required reader (enum Provider.of_string) "provider";
-        model = required reader string "model";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      provider = required reader (enum Provider.of_string) "provider";
+      model = required reader string "model";
+    }
 
   let of_model (model : [ `Engine ] Models.t) =
     project (fields_of (Models.json model))
@@ -6066,7 +5250,6 @@ module Engine = struct
         ("provider", Some ((json_enum Provider.to_string) value.provider));
         ("model", Some (json_string value.model));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.engine (Yojson.Raw.to_string (to_json value))
@@ -6095,21 +5278,16 @@ module Gather_failed = struct
     message : string;
     details : string option;
     annotation_id : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = maybe reader (enum Code.of_string) "code";
-        message = required reader string "message";
-        details = maybe reader string "details";
-        annotation_id = required reader string "annotationId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = maybe reader (enum Code.of_string) "code";
+      message = required reader string "message";
+      details = maybe reader string "details";
+      annotation_id = required reader string "annotationId";
+    }
 
   let of_model (model : [ `GatherFailed ] Models.t) =
     project (fields_of (Models.json model))
@@ -6122,7 +5300,6 @@ module Gather_failed = struct
         ("details", Option.map json_string value.details);
         ("annotationId", Some (json_string value.annotation_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_failed (Yojson.Raw.to_string (to_json value))
@@ -6151,21 +5328,16 @@ module Gather_resource_failed = struct
     message : string;
     details : string option;
     resource_id : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = maybe reader (enum Code.of_string) "code";
-        message = required reader string "message";
-        details = maybe reader string "details";
-        resource_id = required reader string "resourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = maybe reader (enum Code.of_string) "code";
+      message = required reader string "message";
+      details = maybe reader string "details";
+      resource_id = required reader string "resourceId";
+    }
 
   let of_model (model : [ `GatherResourceFailed ] Models.t) =
     project (fields_of (Models.json model))
@@ -6178,7 +5350,6 @@ module Gather_resource_failed = struct
         ("details", Option.map json_string value.details);
         ("resourceId", Some (json_string value.resource_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_resource_failed
@@ -6208,21 +5379,16 @@ module Browse_directory_failed = struct
     message : string;
     details : string option;
     path : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = maybe reader (enum Code.of_string) "code";
-        message = required reader string "message";
-        details = maybe reader string "details";
-        path = required reader string "path";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = maybe reader (enum Code.of_string) "code";
+      message = required reader string "message";
+      details = maybe reader string "details";
+      path = required reader string "path";
+    }
 
   let of_model (model : [ `BrowseDirectoryFailed ] Models.t) =
     project (fields_of (Models.json model))
@@ -6235,7 +5401,6 @@ module Browse_directory_failed = struct
         ("details", Option.map json_string value.details);
         ("path", Some (json_string value.path));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_directory_failed
@@ -6243,23 +5408,15 @@ module Browse_directory_failed = struct
 end
 
 module Mark_delegate_timeout_event = struct
-  type t = {
-    resource_id : string;
-    motivation : Enums.Motivation.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; motivation : Enums.Motivation.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        motivation =
-          required reader (enum Enums.Motivation.of_string) "motivation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      motivation =
+        required reader (enum Enums.Motivation.of_string) "motivation";
+    }
 
   let of_model (model : [ `MarkDelegateTimeoutEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -6271,7 +5428,6 @@ module Mark_delegate_timeout_event = struct
         ( "motivation",
           Some ((json_enum Enums.Motivation.to_string) value.motivation) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_delegate_timeout_event
@@ -6279,22 +5435,14 @@ module Mark_delegate_timeout_event = struct
 end
 
 module Resource_error_event = struct
-  type t = {
-    resource_id : string;
-    message : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; message : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        message = required reader string "message";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      message = required reader string "message";
+    }
 
   let of_model (model : [ `ResourceErrorEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -6305,7 +5453,6 @@ module Resource_error_event = struct
         ("resourceId", Some (json_string value.resource_id));
         ("message", Some (json_string value.message));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.resource_error_event
@@ -6313,18 +5460,17 @@ module Resource_error_event = struct
 end
 
 module Job_cancel_result = struct
-  type t = { cancelled : bool; extra : (string * Yojson.Raw.t) list }
+  type t = { cancelled : bool }
 
   let project fields =
     let reader = start fields in
-    let record = { cancelled = required reader bool "cancelled"; extra = [] } in
-    { record with extra = rest reader }
+    { cancelled = required reader bool "cancelled" }
 
   let of_model (model : [ `JobCancelResult ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("cancelled", Some (json_bool value.cancelled)) ] value.extra
+    write [ ("cancelled", Some (json_bool value.cancelled)) ]
 
   let to_model value =
     Models.decode Models.job_cancel_result
@@ -6332,22 +5478,14 @@ module Job_cancel_result = struct
 end
 
 module Weave_applied = struct
-  type t = {
-    resource_id : string;
-    sequence_number : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; sequence_number : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        sequence_number = required reader int "sequenceNumber";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      sequence_number = required reader int "sequenceNumber";
+    }
 
   let of_model (model : [ `WeaveApplied ] Models.t) =
     project (fields_of (Models.json model))
@@ -6358,7 +5496,6 @@ module Weave_applied = struct
         ("resourceId", Some (json_string value.resource_id));
         ("sequenceNumber", Some (json_int value.sequence_number));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.weave_applied (Yojson.Raw.to_string (to_json value))
@@ -6408,21 +5545,16 @@ module Smelt_settled = struct
     content_checksum : string;
     outcome : Outcome.t;
     reason : Reason.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        content_checksum = required reader string "contentChecksum";
-        outcome = required reader (enum Outcome.of_string) "outcome";
-        reason = maybe reader (enum Reason.of_string) "reason";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      content_checksum = required reader string "contentChecksum";
+      outcome = required reader (enum Outcome.of_string) "outcome";
+      reason = maybe reader (enum Reason.of_string) "reason";
+    }
 
   let of_model (model : [ `SmeltSettled ] Models.t) =
     project (fields_of (Models.json model))
@@ -6435,7 +5567,6 @@ module Smelt_settled = struct
         ("outcome", Some ((json_enum Outcome.to_string) value.outcome));
         ("reason", Option.map (json_enum Reason.to_string) value.reason);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.smelt_settled (Yojson.Raw.to_string (to_json value))
@@ -6446,23 +5577,18 @@ module Anchored_text_declined_entry = struct
     v : int;
     stamp : string;
     declined : Enums.Extraction_declined_reason.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        v = required reader int "v";
-        stamp = required reader string "stamp";
-        declined =
-          required reader
-            (enum Enums.Extraction_declined_reason.of_string)
-            "declined";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      v = required reader int "v";
+      stamp = required reader string "stamp";
+      declined =
+        required reader
+          (enum Enums.Extraction_declined_reason.of_string)
+          "declined";
+    }
 
   let of_model (model : [ `AnchoredTextDeclinedEntry ] Models.t) =
     project (fields_of (Models.json model))
@@ -6477,7 +5603,6 @@ module Anchored_text_declined_entry = struct
             ((json_enum Enums.Extraction_declined_reason.to_string)
                value.declined) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.anchored_text_declined_entry
@@ -6485,22 +5610,17 @@ module Anchored_text_declined_entry = struct
 end
 
 module Anchored_text_entries = struct
-  type t = { checksums : string list; extra : (string * Yojson.Raw.t) list }
+  type t = { checksums : string list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { checksums = required reader (list string) "checksums"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { checksums = required reader (list string) "checksums" }
 
   let of_model (model : [ `AnchoredTextEntries ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("checksums", Some ((json_list json_string) value.checksums)) ]
-      value.extra
+    write [ ("checksums", Some ((json_list json_string) value.checksums)) ]
 
   let to_model value =
     Models.decode Models.anchored_text_entries
@@ -6508,18 +5628,16 @@ module Anchored_text_entries = struct
 end
 
 module Anchored_text_stamp = struct
-  type t = { stamp : string; extra : (string * Yojson.Raw.t) list }
+  type t = { stamp : string }
 
   let project fields =
     let reader = start fields in
-    let record = { stamp = required reader string "stamp"; extra = [] } in
-    { record with extra = rest reader }
+    { stamp = required reader string "stamp" }
 
   let of_model (model : [ `AnchoredTextStamp ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("stamp", Some (json_string value.stamp)) ] value.extra
+  let to_json (value : t) = write [ ("stamp", Some (json_string value.stamp)) ]
 
   let to_model value =
     Models.decode Models.anchored_text_stamp
@@ -6549,22 +5667,14 @@ module Archivist_health = struct
       | _ -> None
   end
 
-  type t = {
-    status : Status.t;
-    actors : Actors.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { status : Status.t; actors : Actors.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        actors = required reader (list (enum Actors.of_string)) "actors";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      actors = required reader (list (enum Actors.of_string)) "actors";
+    }
 
   let of_model (model : [ `ArchivistHealth ] Models.t) =
     project (fields_of (Models.json model))
@@ -6575,29 +5685,20 @@ module Archivist_health = struct
         ("status", Some ((json_enum Status.to_string) value.status));
         ("actors", Some ((json_list (json_enum Actors.to_string)) value.actors));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.archivist_health (Yojson.Raw.to_string (to_json value))
 end
 
 module Archivist_stream = struct
-  type t = {
-    resource_id : string;
-    last_sequence : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; last_sequence : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        last_sequence = required reader int "lastSequence";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      last_sequence = required reader int "lastSequence";
+    }
 
   let of_model (model : [ `ArchivistStream ] Models.t) =
     project (fields_of (Models.json model))
@@ -6608,7 +5709,6 @@ module Archivist_stream = struct
         ("resourceId", Some (json_string value.resource_id));
         ("lastSequence", Some (json_int value.last_sequence));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.archivist_stream (Yojson.Raw.to_string (to_json value))
@@ -6633,21 +5733,16 @@ module Representation_not_found = struct
     code : Code.t;
     hint : string option;
     details : Yojson.Raw.t Types.presence;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        error = required reader string "error";
-        code = required reader (enum Code.of_string) "code";
-        hint = maybe reader string "hint";
-        details = optional reader raw "details";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      error = required reader string "error";
+      code = required reader (enum Code.of_string) "code";
+      hint = maybe reader string "hint";
+      details = optional reader raw "details";
+    }
 
   let of_model (model : [ `RepresentationNotFound ] Models.t) =
     project (fields_of (Models.json model))
@@ -6660,7 +5755,6 @@ module Representation_not_found = struct
         ("hint", Option.map json_string value.hint);
         ("details", present json_raw value.details);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.representation_not_found
@@ -6672,20 +5766,15 @@ module Conformance_bus_fetch = struct
     fetch : string;
     payload : Yojson.Raw.t Types.presence;
     as_ : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        fetch = required reader string "fetch";
-        payload = optional reader raw "payload";
-        as_ = required reader string "as";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      fetch = required reader string "fetch";
+      payload = optional reader raw "payload";
+      as_ = required reader string "as";
+    }
 
   let of_model (model : [ `ConformanceBusFetch ] Models.t) =
     project (fields_of (Models.json model))
@@ -6697,7 +5786,6 @@ module Conformance_bus_fetch = struct
         ("payload", present json_raw value.payload);
         ("as", Some (json_string value.as_));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.conformance_bus_fetch
@@ -6710,22 +5798,17 @@ module Conformance_failure = struct
     status : int option;
     failure_class : Enums.Failure_class.t option;
     detail : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = maybe reader string "code";
-        status = maybe reader int "status";
-        failure_class =
-          maybe reader (enum Enums.Failure_class.of_string) "failureClass";
-        detail = required reader string "detail";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = maybe reader string "code";
+      status = maybe reader int "status";
+      failure_class =
+        maybe reader (enum Enums.Failure_class.of_string) "failureClass";
+      detail = required reader string "detail";
+    }
 
   let of_model (model : [ `ConformanceFailure ] Models.t) =
     project (fields_of (Models.json model))
@@ -6741,7 +5824,6 @@ module Conformance_failure = struct
             value.failure_class );
         ("detail", Some (json_string value.detail));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.conformance_failure
@@ -6749,22 +5831,14 @@ module Conformance_failure = struct
 end
 
 module Conformance_http_fetch = struct
-  type t = {
-    fetch : string;
-    params : Yojson.Raw.t Types.presence;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { fetch : string; params : Yojson.Raw.t Types.presence }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        fetch = required reader string "fetch";
-        params = optional reader raw "params";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      fetch = required reader string "fetch";
+      params = optional reader raw "params";
+    }
 
   let of_model (model : [ `ConformanceHttpFetch ] Models.t) =
     project (fields_of (Models.json model))
@@ -6775,7 +5849,6 @@ module Conformance_http_fetch = struct
         ("fetch", Some (json_string value.fetch));
         ("params", present json_raw value.params);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.conformance_http_fetch
@@ -6783,44 +5856,32 @@ module Conformance_http_fetch = struct
 end
 
 module About_params = struct
-  type t = { api_version : string; extra : (string * Yojson.Raw.t) list }
+  type t = { api_version : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { api_version = required reader string "apiVersion"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { api_version = required reader string "apiVersion" }
 
   let of_model (model : [ `AboutParams ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("apiVersion", Some (json_string value.api_version)) ] value.extra
+    write [ ("apiVersion", Some (json_string value.api_version)) ]
 
   let to_model value =
     Models.decode Models.about_params (Yojson.Raw.to_string (to_json value))
 end
 
 module Auth_login_result = struct
-  type t = {
-    key : string;
-    who : string;
-    issuer : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { key : string; who : string; issuer : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        key = required reader string "key";
-        who = required reader string "who";
-        issuer = required reader string "issuer";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      key = required reader string "key";
+      who = required reader string "who";
+      issuer = required reader string "issuer";
+    }
 
   let of_model (model : [ `AuthLoginResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -6832,7 +5893,6 @@ module Auth_login_result = struct
         ("who", Some (json_string value.who));
         ("issuer", Some (json_string value.issuer));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.auth_login_result
@@ -6840,24 +5900,15 @@ module Auth_login_result = struct
 end
 
 module Auth_logout_result = struct
-  type t = {
-    key : string option;
-    was_signed_in : bool;
-    revoked : bool;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { key : string option; was_signed_in : bool; revoked : bool }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        key = maybe reader string "key";
-        was_signed_in = required reader bool "wasSignedIn";
-        revoked = required reader bool "revoked";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      key = maybe reader string "key";
+      was_signed_in = required reader bool "wasSignedIn";
+      revoked = required reader bool "revoked";
+    }
 
   let of_model (model : [ `AuthLogoutResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -6869,7 +5920,6 @@ module Auth_logout_result = struct
         ("wasSignedIn", Some (json_bool value.was_signed_in));
         ("revoked", Some (json_bool value.revoked));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.auth_logout_result
@@ -6877,22 +5927,14 @@ module Auth_logout_result = struct
 end
 
 module Field_fault = struct
-  type t = {
-    field : string;
-    message : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { field : string; message : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field = required reader string "field";
-        message = required reader string "message";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field = required reader string "field";
+      message = required reader string "message";
+    }
 
   let of_model (model : [ `FieldFault ] Models.t) =
     project (fields_of (Models.json model))
@@ -6903,31 +5945,21 @@ module Field_fault = struct
         ("field", Some (json_string value.field));
         ("message", Some (json_string value.message));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.field_fault (Yojson.Raw.to_string (to_json value))
 end
 
 module Identity_user = struct
-  type t = {
-    email : string;
-    identity : string;
-    enabled : bool;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { email : string; identity : string; enabled : bool }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        email = required reader string "email";
-        identity = required reader string "identity";
-        enabled = required reader bool "enabled";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      email = required reader string "email";
+      identity = required reader string "identity";
+      enabled = required reader bool "enabled";
+    }
 
   let of_model (model : [ `IdentityUser ] Models.t) =
     project (fields_of (Models.json model))
@@ -6939,7 +5971,6 @@ module Identity_user = struct
         ("identity", Some (json_string value.identity));
         ("enabled", Some (json_bool value.enabled));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.identity_user (Yojson.Raw.to_string (to_json value))
@@ -6951,21 +5982,16 @@ module Identity_useradd_result = struct
     identity : string;
     created : bool;
     generated_password : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        email = required reader string "email";
-        identity = required reader string "identity";
-        created = required reader bool "created";
-        generated_password = maybe reader string "generatedPassword";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      email = required reader string "email";
+      identity = required reader string "identity";
+      created = required reader bool "created";
+      generated_password = maybe reader string "generatedPassword";
+    }
 
   let of_model (model : [ `IdentityUseraddResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -6978,7 +6004,6 @@ module Identity_useradd_result = struct
         ("created", Some (json_bool value.created));
         ("generatedPassword", Option.map json_string value.generated_password);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.identity_useradd_result
@@ -6986,22 +6011,14 @@ module Identity_useradd_result = struct
 end
 
 module Local_target = struct
-  type t = {
-    kind : string;
-    root : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { kind : string; root : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kind = required reader string "kind";
-        root = required reader string "root";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kind = required reader string "kind";
+      root = required reader string "root";
+    }
 
   let of_model (model : [ `LocalTarget ] Models.t) =
     project (fields_of (Models.json model))
@@ -7012,29 +6029,23 @@ module Local_target = struct
         ("kind", Some (json_string value.kind));
         ("root", Some (json_string value.root));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.local_target (Yojson.Raw.to_string (to_json value))
 end
 
 module Logs_follow_result = struct
-  type t = { services : string list; extra : (string * Yojson.Raw.t) list }
+  type t = { services : string list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { services = required reader (list string) "services"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { services = required reader (list string) "services" }
 
   let of_model (model : [ `LogsFollowResult ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("services", Some ((json_list json_string) value.services)) ]
-      value.extra
+    write [ ("services", Some ((json_list json_string) value.services)) ]
 
   let to_model value =
     Models.decode Models.logs_follow_result
@@ -7083,35 +6094,30 @@ module Root = struct
     forward_port : int option;
     forwarded : bool option;
     reachable : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        placement = required reader (enum Placement.of_string) "placement";
-        path = maybe reader string "path";
-        present = maybe reader bool "present";
-        current = maybe reader (enum Current.of_string) "current";
-        registered = required reader bool "registered";
-        running = required reader bool "running";
-        last_used = maybe reader string "lastUsed";
-        did = maybe reader string "did";
-        site_name = maybe reader string "siteName";
-        identity_error = maybe reader string "identityError";
-        config = maybe reader string "config";
-        configs = maybe reader (list string) "configs";
-        repo = maybe reader string "repo";
-        codespace = maybe reader string "codespace";
-        codespace_state = maybe reader string "codespaceState";
-        forward_port = maybe reader int "forwardPort";
-        forwarded = maybe reader bool "forwarded";
-        reachable = maybe reader bool "reachable";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      placement = required reader (enum Placement.of_string) "placement";
+      path = maybe reader string "path";
+      present = maybe reader bool "present";
+      current = maybe reader (enum Current.of_string) "current";
+      registered = required reader bool "registered";
+      running = required reader bool "running";
+      last_used = maybe reader string "lastUsed";
+      did = maybe reader string "did";
+      site_name = maybe reader string "siteName";
+      identity_error = maybe reader string "identityError";
+      config = maybe reader string "config";
+      configs = maybe reader (list string) "configs";
+      repo = maybe reader string "repo";
+      codespace = maybe reader string "codespace";
+      codespace_state = maybe reader string "codespaceState";
+      forward_port = maybe reader int "forwardPort";
+      forwarded = maybe reader bool "forwarded";
+      reachable = maybe reader bool "reachable";
+    }
 
   let of_model (model : [ `Root ] Models.t) =
     project (fields_of (Models.json model))
@@ -7138,29 +6144,20 @@ module Root = struct
         ("forwarded", Option.map json_bool value.forwarded);
         ("reachable", Option.map json_bool value.reachable);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.root (Yojson.Raw.to_string (to_json value))
 end
 
 module Roots_forget_params = struct
-  type t = {
-    api_version : string;
-    root : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { api_version : string; root : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        root = required reader string "root";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      root = required reader string "root";
+    }
 
   let of_model (model : [ `RootsForgetParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -7171,7 +6168,6 @@ module Roots_forget_params = struct
         ("apiVersion", Some (json_string value.api_version));
         ("root", Some (json_string value.root));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.roots_forget_params
@@ -7183,20 +6179,15 @@ module Roots_forget_result = struct
     path : string;
     directory_missing : bool;
     persistent_state : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        path = required reader string "path";
-        directory_missing = required reader bool "directoryMissing";
-        persistent_state = maybe reader string "persistentState";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      path = required reader string "path";
+      directory_missing = required reader bool "directoryMissing";
+      persistent_state = maybe reader string "persistentState";
+    }
 
   let of_model (model : [ `RootsForgetResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -7208,7 +6199,6 @@ module Roots_forget_result = struct
         ("directoryMissing", Some (json_bool value.directory_missing));
         ("persistentState", Option.map json_string value.persistent_state);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.roots_forget_result
@@ -7241,30 +6231,25 @@ module Roots_init_params = struct
     anthropic_endpoint : string option;
     ollama_base : string option;
     ollama_registry : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        path = required reader string "path";
-        domain = required reader string "domain";
-        name = maybe reader string "name";
-        site_name = maybe reader string "siteName";
-        inference = maybe reader (enum Inference.of_string) "inference";
-        model = maybe reader string "model";
-        model_light = maybe reader string "modelLight";
-        embedding = maybe reader string "embedding";
-        config_name = maybe reader string "configName";
-        anthropic_endpoint = maybe reader string "anthropicEndpoint";
-        ollama_base = maybe reader string "ollamaBase";
-        ollama_registry = maybe reader string "ollamaRegistry";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      path = required reader string "path";
+      domain = required reader string "domain";
+      name = maybe reader string "name";
+      site_name = maybe reader string "siteName";
+      inference = maybe reader (enum Inference.of_string) "inference";
+      model = maybe reader string "model";
+      model_light = maybe reader string "modelLight";
+      embedding = maybe reader string "embedding";
+      config_name = maybe reader string "configName";
+      anthropic_endpoint = maybe reader string "anthropicEndpoint";
+      ollama_base = maybe reader string "ollamaBase";
+      ollama_registry = maybe reader string "ollamaRegistry";
+    }
 
   let of_model (model : [ `RootsInitParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -7286,7 +6271,6 @@ module Roots_init_params = struct
         ("ollamaBase", Option.map json_string value.ollama_base);
         ("ollamaRegistry", Option.map json_string value.ollama_registry);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.roots_init_params
@@ -7294,18 +6278,16 @@ module Roots_init_params = struct
 end
 
 module Roots_init_result = struct
-  type t = { path : string; extra : (string * Yojson.Raw.t) list }
+  type t = { path : string }
 
   let project fields =
     let reader = start fields in
-    let record = { path = required reader string "path"; extra = [] } in
-    { record with extra = rest reader }
+    { path = required reader string "path" }
 
   let of_model (model : [ `RootsInitResult ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("path", Some (json_string value.path)) ] value.extra
+  let to_json (value : t) = write [ ("path", Some (json_string value.path)) ]
 
   let to_model value =
     Models.decode Models.roots_init_result
@@ -7313,20 +6295,17 @@ module Roots_init_result = struct
 end
 
 module Roots_list_params = struct
-  type t = { api_version : string; extra : (string * Yojson.Raw.t) list }
+  type t = { api_version : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { api_version = required reader string "apiVersion"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { api_version = required reader string "apiVersion" }
 
   let of_model (model : [ `RootsListParams ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("apiVersion", Some (json_string value.api_version)) ] value.extra
+    write [ ("apiVersion", Some (json_string value.api_version)) ]
 
   let to_model value =
     Models.decode Models.roots_list_params
@@ -7334,22 +6313,14 @@ module Roots_list_params = struct
 end
 
 module Runtime_state = struct
-  type t = {
-    name : Enums.Runtime.t;
-    found : bool;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { name : Enums.Runtime.t; found : bool }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader (enum Enums.Runtime.of_string) "name";
-        found = required reader bool "found";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader (enum Enums.Runtime.of_string) "name";
+      found = required reader bool "found";
+    }
 
   let of_model (model : [ `RuntimeState ] Models.t) =
     project (fields_of (Models.json model))
@@ -7360,29 +6331,20 @@ module Runtime_state = struct
         ("name", Some ((json_enum Enums.Runtime.to_string) value.name));
         ("found", Some (json_bool value.found));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.runtime_state (Yojson.Raw.to_string (to_json value))
 end
 
 module Service_host_params = struct
-  type t = {
-    api_version : string;
-    runtime : Enums.Runtime.t option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { api_version : string; runtime : Enums.Runtime.t option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+    }
 
   let of_model (model : [ `ServiceHostParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -7393,7 +6355,6 @@ module Service_host_params = struct
         ("apiVersion", Some (json_string value.api_version));
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_host_params
@@ -7401,22 +6362,14 @@ module Service_host_params = struct
 end
 
 module Service_host_result = struct
-  type t = {
-    runtime : Enums.Runtime.t;
-    address : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { runtime : Enums.Runtime.t; address : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        runtime = required reader (enum Enums.Runtime.of_string) "runtime";
-        address = required reader string "address";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      runtime = required reader (enum Enums.Runtime.of_string) "runtime";
+      address = required reader string "address";
+    }
 
   let of_model (model : [ `ServiceHostResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -7427,7 +6380,6 @@ module Service_host_result = struct
         ("runtime", Some ((json_enum Enums.Runtime.to_string) value.runtime));
         ("address", Some (json_string value.address));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_host_result
@@ -7435,24 +6387,15 @@ module Service_host_result = struct
 end
 
 module Service_run_result = struct
-  type t = {
-    instance : string;
-    exit_code : int;
-    ran_ms : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { instance : string; exit_code : int; ran_ms : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        instance = required reader string "instance";
-        exit_code = required reader int "exitCode";
-        ran_ms = required reader int "ranMs";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      instance = required reader string "instance";
+      exit_code = required reader int "exitCode";
+      ran_ms = required reader int "ranMs";
+    }
 
   let of_model (model : [ `ServiceRunResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -7464,7 +6407,6 @@ module Service_run_result = struct
         ("exitCode", Some (json_int value.exit_code));
         ("ranMs", Some (json_int value.ran_ms));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_run_result
@@ -7472,18 +6414,17 @@ module Service_run_result = struct
 end
 
 module Service_signal_result = struct
-  type t = { delivered : bool; extra : (string * Yojson.Raw.t) list }
+  type t = { delivered : bool }
 
   let project fields =
     let reader = start fields in
-    let record = { delivered = required reader bool "delivered"; extra = [] } in
-    { record with extra = rest reader }
+    { delivered = required reader bool "delivered" }
 
   let of_model (model : [ `ServiceSignalResult ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("delivered", Some (json_bool value.delivered)) ] value.extra
+    write [ ("delivered", Some (json_bool value.delivered)) ]
 
   let to_model value =
     Models.decode Models.service_signal_result
@@ -7531,29 +6472,24 @@ module Service_status = struct
     page : string option;
     realm : string option;
     serves : string list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        role = required reader string "role";
-        group = required reader (enum Enums.Service_group.of_string) "group";
-        product = maybe reader string "product";
-        runs_on = maybe reader string "runsOn";
-        state = required reader (enum State.of_string) "state";
-        container_state = maybe reader string "containerState";
-        healthy = required reader bool "healthy";
-        counted = required reader bool "counted";
-        probe = maybe reader string "probe";
-        page = maybe reader string "page";
-        realm = maybe reader string "realm";
-        serves = maybe reader (list string) "serves";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      role = required reader string "role";
+      group = required reader (enum Enums.Service_group.of_string) "group";
+      product = maybe reader string "product";
+      runs_on = maybe reader string "runsOn";
+      state = required reader (enum State.of_string) "state";
+      container_state = maybe reader string "containerState";
+      healthy = required reader bool "healthy";
+      counted = required reader bool "counted";
+      probe = maybe reader string "probe";
+      page = maybe reader string "page";
+      realm = maybe reader string "realm";
+      serves = maybe reader (list string) "serves";
+    }
 
   let of_model (model : [ `ServiceStatus ] Models.t) =
     project (fields_of (Models.json model))
@@ -7574,7 +6510,6 @@ module Service_status = struct
         ("realm", Option.map json_string value.realm);
         ("serves", Option.map (json_list json_string) value.serves);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_status (Yojson.Raw.to_string (to_json value))
@@ -7598,22 +6533,14 @@ module Session = struct
       | _ -> None
   end
 
-  type t = {
-    state : State.t;
-    email : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { state : State.t; email : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        state = required reader (enum State.of_string) "state";
-        email = maybe reader string "email";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      state = required reader (enum State.of_string) "state";
+      email = maybe reader string "email";
+    }
 
   let of_model (model : [ `Session ] Models.t) =
     project (fields_of (Models.json model))
@@ -7624,29 +6551,20 @@ module Session = struct
         ("state", Some ((json_enum State.to_string) value.state));
         ("email", Option.map json_string value.email);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.session (Yojson.Raw.to_string (to_json value))
 end
 
 module Setting_line = struct
-  type t = {
-    value : string;
-    source : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { value : string; source : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        value = required reader string "value";
-        source = required reader string "source";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      value = required reader string "value";
+      source = required reader string "source";
+    }
 
   let of_model (model : [ `SettingLine ] Models.t) =
     project (fields_of (Models.json model))
@@ -7657,7 +6575,6 @@ module Setting_line = struct
         ("value", Some (json_string value.value));
         ("source", Some (json_string value.source));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.setting_line (Yojson.Raw.to_string (to_json value))
@@ -7669,21 +6586,16 @@ module Settings_get_params = struct
     name : string;
     default : bool option;
     root : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        name = required reader string "name";
-        default = maybe reader bool "default";
-        root = maybe reader string "root";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      name = required reader string "name";
+      default = maybe reader bool "default";
+      root = maybe reader string "root";
+    }
 
   let of_model (model : [ `SettingsGetParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -7696,7 +6608,6 @@ module Settings_get_params = struct
         ("default", Option.map json_bool value.default);
         ("root", Option.map json_string value.root);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.settings_get_params
@@ -7704,22 +6615,14 @@ module Settings_get_params = struct
 end
 
 module Settings_list_params = struct
-  type t = {
-    api_version : string;
-    root : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { api_version : string; root : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        root = maybe reader string "root";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      root = maybe reader string "root";
+    }
 
   let of_model (model : [ `SettingsListParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -7730,7 +6633,6 @@ module Settings_list_params = struct
         ("apiVersion", Some (json_string value.api_version));
         ("root", Option.map json_string value.root);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.settings_list_params
@@ -7755,22 +6657,14 @@ module Settings_path_params = struct
       | _ -> None
   end
 
-  type t = {
-    api_version : string;
-    document : Document.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { api_version : string; document : Document.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        document = required reader (enum Document.of_string) "document";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      document = required reader (enum Document.of_string) "document";
+    }
 
   let of_model (model : [ `SettingsPathParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -7781,7 +6675,6 @@ module Settings_path_params = struct
         ("apiVersion", Some (json_string value.api_version));
         ("document", Some ((json_enum Document.to_string) value.document));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.settings_path_params
@@ -7789,18 +6682,16 @@ module Settings_path_params = struct
 end
 
 module Settings_path_result = struct
-  type t = { path : string; extra : (string * Yojson.Raw.t) list }
+  type t = { path : string }
 
   let project fields =
     let reader = start fields in
-    let record = { path = required reader string "path"; extra = [] } in
-    { record with extra = rest reader }
+    { path = required reader string "path" }
 
   let of_model (model : [ `SettingsPathResult ] Models.t) =
     project (fields_of (Models.json model))
 
-  let to_json (value : t) =
-    write [ ("path", Some (json_string value.path)) ] value.extra
+  let to_json (value : t) = write [ ("path", Some (json_string value.path)) ]
 
   let to_model value =
     Models.decode Models.settings_path_result
@@ -7814,22 +6705,17 @@ module Settings_set_params = struct
     default : bool option;
     root : string option;
     value : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        name = required reader string "name";
-        default = maybe reader bool "default";
-        root = maybe reader string "root";
-        value = required reader string "value";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      name = required reader string "name";
+      default = maybe reader bool "default";
+      root = maybe reader string "root";
+      value = required reader string "value";
+    }
 
   let of_model (model : [ `SettingsSetParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -7843,7 +6729,6 @@ module Settings_set_params = struct
         ("root", Option.map json_string value.root);
         ("value", Some (json_string value.value));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.settings_set_params
@@ -7856,21 +6741,16 @@ module Settings_unset_params = struct
     name : string;
     default : bool option;
     root : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        name = required reader string "name";
-        default = maybe reader bool "default";
-        root = maybe reader string "root";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      name = required reader string "name";
+      default = maybe reader bool "default";
+      root = maybe reader string "root";
+    }
 
   let of_model (model : [ `SettingsUnsetParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -7883,7 +6763,6 @@ module Settings_unset_params = struct
         ("default", Option.map json_bool value.default);
         ("root", Option.map json_string value.root);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.settings_unset_params
@@ -7902,24 +6781,15 @@ module Target = struct
       | _ -> None
   end
 
-  type t = {
-    kind : Kind.t;
-    root : string option;
-    repo : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { kind : Kind.t; root : string option; repo : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kind = required reader (enum Kind.of_string) "kind";
-        root = maybe reader string "root";
-        repo = maybe reader string "repo";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kind = required reader (enum Kind.of_string) "kind";
+      root = maybe reader string "root";
+      repo = maybe reader string "repo";
+    }
 
   let of_model (model : [ `Target ] Models.t) =
     project (fields_of (Models.json model))
@@ -7931,7 +6801,6 @@ module Target = struct
         ("root", Option.map json_string value.root);
         ("repo", Option.map json_string value.repo);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.target (Yojson.Raw.to_string (to_json value))
@@ -7952,22 +6821,14 @@ module Dispatcher_health = struct
     let of_string = function "jetstream" -> Some Jetstream | _ -> None
   end
 
-  type t = {
-    status : Status.t;
-    queue : Queue.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { status : Status.t; queue : Queue.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        queue = required reader (enum Queue.of_string) "queue";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      queue = required reader (enum Queue.of_string) "queue";
+    }
 
   let of_model (model : [ `DispatcherHealth ] Models.t) =
     project (fields_of (Models.json model))
@@ -7978,7 +6839,6 @@ module Dispatcher_health = struct
         ("status", Some ((json_enum Status.to_string) value.status));
         ("queue", Some ((json_enum Queue.to_string) value.queue));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.dispatcher_health
@@ -7993,24 +6853,15 @@ module Ollama_embedding_config = struct
     let of_string = function "ollama" -> Some Ollama | _ -> None
   end
 
-  type t = {
-    type_ : Type_.t;
-    model : string;
-    base_url : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : Type_.t; model : string; base_url : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        model = required reader string "model";
-        base_url = required reader string "baseUrl";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      model = required reader string "model";
+      base_url = required reader string "baseUrl";
+    }
 
   let of_model (model : [ `OllamaEmbeddingConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -8022,7 +6873,6 @@ module Ollama_embedding_config = struct
         ("model", Some (json_string value.model));
         ("baseUrl", Some (json_string value.base_url));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.ollama_embedding_config
@@ -8042,21 +6892,16 @@ module Voyage_embedding_config = struct
     model : string;
     endpoint : string;
     api_key_env : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        model = required reader string "model";
-        endpoint = required reader string "endpoint";
-        api_key_env = required reader string "apiKeyEnv";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      model = required reader string "model";
+      endpoint = required reader string "endpoint";
+      api_key_env = required reader string "apiKeyEnv";
+    }
 
   let of_model (model : [ `VoyageEmbeddingConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -8069,7 +6914,6 @@ module Voyage_embedding_config = struct
         ("endpoint", Some (json_string value.endpoint));
         ("apiKeyEnv", Some (json_string value.api_key_env));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.voyage_embedding_config
@@ -8094,26 +6938,16 @@ module Follower_following = struct
       | _ -> None
   end
 
-  type t = {
-    sweep : Sweep.t;
-    stopped : int;
-    refused : int;
-    stream_drops : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { sweep : Sweep.t; stopped : int; refused : int; stream_drops : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        sweep = required reader (enum Sweep.of_string) "sweep";
-        stopped = required reader int "stopped";
-        refused = required reader int "refused";
-        stream_drops = required reader int "streamDrops";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      sweep = required reader (enum Sweep.of_string) "sweep";
+      stopped = required reader int "stopped";
+      refused = required reader int "refused";
+      stream_drops = required reader int "streamDrops";
+    }
 
   let of_model (model : [ `FollowerFollowing ] Models.t) =
     project (fields_of (Models.json model))
@@ -8126,7 +6960,6 @@ module Follower_following = struct
         ("refused", Some (json_int value.refused));
         ("streamDrops", Some (json_int value.stream_drops));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.follower_following
@@ -8141,24 +6974,15 @@ module Janus_graph_config = struct
     let of_string = function "janusgraph" -> Some Janusgraph | _ -> None
   end
 
-  type t = {
-    type_ : Type_.t;
-    host : string;
-    port : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : Type_.t; host : string; port : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        host = required reader string "host";
-        port = required reader int "port";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      host = required reader string "host";
+      port = required reader int "port";
+    }
 
   let of_model (model : [ `JanusGraphConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -8170,7 +6994,6 @@ module Janus_graph_config = struct
         ("host", Some (json_string value.host));
         ("port", Some (json_int value.port));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.janus_graph_config
@@ -8185,22 +7008,17 @@ module Memory_graph_config = struct
     let of_string = function "memory" -> Some Memory | _ -> None
   end
 
-  type t = { type_ : Type_.t; extra : (string * Yojson.Raw.t) list }
+  type t = { type_ : Type_.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { type_ = required reader (enum Type_.of_string) "type"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { type_ = required reader (enum Type_.of_string) "type" }
 
   let of_model (model : [ `MemoryGraphConfig ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("type", Some ((json_enum Type_.to_string) value.type_)) ]
-      value.extra
+    write [ ("type", Some ((json_enum Type_.to_string) value.type_)) ]
 
   let to_model value =
     Models.decode Models.memory_graph_config
@@ -8221,22 +7039,17 @@ module Neo4j_graph_config = struct
     username : string;
     password_env : string;
     database : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        uri = required reader string "uri";
-        username = required reader string "username";
-        password_env = required reader string "passwordEnv";
-        database = required reader string "database";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      uri = required reader string "uri";
+      username = required reader string "username";
+      password_env = required reader string "passwordEnv";
+      database = required reader string "database";
+    }
 
   let of_model (model : [ `Neo4jGraphConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -8250,7 +7063,6 @@ module Neo4j_graph_config = struct
         ("passwordEnv", Some (json_string value.password_env));
         ("database", Some (json_string value.database));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.neo4j_graph_config
@@ -8265,24 +7077,15 @@ module Neptune_graph_config = struct
     let of_string = function "neptune" -> Some Neptune | _ -> None
   end
 
-  type t = {
-    type_ : Type_.t;
-    endpoint : string;
-    port : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : Type_.t; endpoint : string; port : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        endpoint = required reader string "endpoint";
-        port = required reader int "port";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      endpoint = required reader string "endpoint";
+      port = required reader int "port";
+    }
 
   let of_model (model : [ `NeptuneGraphConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -8294,7 +7097,6 @@ module Neptune_graph_config = struct
         ("endpoint", Some (json_string value.endpoint));
         ("port", Some (json_int value.port));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.neptune_graph_config
@@ -8320,24 +7122,15 @@ module Librarian_health = struct
       | _ -> None
   end
 
-  type t = {
-    status : Status.t;
-    kb : string;
-    actors : Actors.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { status : Status.t; kb : string; actors : Actors.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        kb = required reader string "kb";
-        actors = required reader (list (enum Actors.of_string)) "actors";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      kb = required reader string "kb";
+      actors = required reader (list (enum Actors.of_string)) "actors";
+    }
 
   let of_model (model : [ `LibrarianHealth ] Models.t) =
     project (fields_of (Models.json model))
@@ -8349,29 +7142,20 @@ module Librarian_health = struct
         ("kb", Some (json_string value.kb));
         ("actors", Some ((json_list (json_enum Actors.to_string)) value.actors));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.librarian_health (Yojson.Raw.to_string (to_json value))
 end
 
 module Librarian_prompt_score = struct
-  type t = {
-    candidate : float;
-    score : float;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { candidate : float; score : float }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        candidate = required reader float "candidate";
-        score = required reader float "score";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      candidate = required reader float "candidate";
+      score = required reader float "score";
+    }
 
   let of_model (model : [ `LibrarianPromptScore ] Models.t) =
     project (fields_of (Models.json model))
@@ -8382,7 +7166,6 @@ module Librarian_prompt_score = struct
         ("candidate", Some (json_float value.candidate));
         ("score", Some (json_float value.score));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.librarian_prompt_score
@@ -8390,24 +7173,15 @@ module Librarian_prompt_score = struct
 end
 
 module Client_secret_form = struct
-  type t = {
-    grant_type : string;
-    client_id : string;
-    client_secret : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { grant_type : string; client_id : string; client_secret : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        grant_type = required reader string "grant_type";
-        client_id = required reader string "client_id";
-        client_secret = required reader string "client_secret";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      grant_type = required reader string "grant_type";
+      client_id = required reader string "client_id";
+      client_secret = required reader string "client_secret";
+    }
 
   let of_model (model : [ `ClientSecretForm ] Models.t) =
     project (fields_of (Models.json model))
@@ -8419,7 +7193,6 @@ module Client_secret_form = struct
         ("client_id", Some (json_string value.client_id));
         ("client_secret", Some (json_string value.client_secret));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.client_secret_form
@@ -8434,23 +7207,18 @@ module Open_resource = struct
     order : int;
     media_type : string option;
     storage_uri : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        name = required reader string "name";
-        opened_at = required reader int "openedAt";
-        order = required reader int "order";
-        media_type = maybe reader string "mediaType";
-        storage_uri = maybe reader string "storageUri";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      name = required reader string "name";
+      opened_at = required reader int "openedAt";
+      order = required reader int "order";
+      media_type = maybe reader string "mediaType";
+      storage_uri = maybe reader string "storageUri";
+    }
 
   let of_model (model : [ `OpenResource ] Models.t) =
     project (fields_of (Models.json model))
@@ -8465,29 +7233,20 @@ module Open_resource = struct
         ("mediaType", Option.map json_string value.media_type);
         ("storageUri", Option.map json_string value.storage_uri);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.open_resource (Yojson.Raw.to_string (to_json value))
 end
 
 module Smelter_chunking = struct
-  type t = {
-    chunk_size : int;
-    overlap : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { chunk_size : int; overlap : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        chunk_size = required reader int "chunkSize";
-        overlap = required reader int "overlap";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      chunk_size = required reader int "chunkSize";
+      overlap = required reader int "overlap";
+    }
 
   let of_model (model : [ `SmelterChunking ] Models.t) =
     project (fields_of (Models.json model))
@@ -8498,7 +7257,6 @@ module Smelter_chunking = struct
         ("chunkSize", Some (json_int value.chunk_size));
         ("overlap", Some (json_int value.overlap));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.smelter_chunking (Yojson.Raw.to_string (to_json value))
@@ -8518,30 +7276,25 @@ module Smelter_reconcile_summary = struct
     annotation_vectors_deleted : int;
     resources_eligible : int;
     resources_indexed : int;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resources_embedded = required reader int "resourcesEmbedded";
-        resources_skipped = required reader (map int) "resourcesSkipped";
-        resources_unavailable = required reader int "resourcesUnavailable";
-        resources_failed = required reader int "resourcesFailed";
-        resources_restamped = required reader int "resourcesRestamped";
-        resources_reanchored = required reader int "resourcesReanchored";
-        resource_vectors_deleted = required reader int "resourceVectorsDeleted";
-        annotations_embedded = required reader int "annotationsEmbedded";
-        annotations_restamped = required reader int "annotationsRestamped";
-        annotation_vectors_deleted =
-          required reader int "annotationVectorsDeleted";
-        resources_eligible = required reader int "resourcesEligible";
-        resources_indexed = required reader int "resourcesIndexed";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resources_embedded = required reader int "resourcesEmbedded";
+      resources_skipped = required reader (map int) "resourcesSkipped";
+      resources_unavailable = required reader int "resourcesUnavailable";
+      resources_failed = required reader int "resourcesFailed";
+      resources_restamped = required reader int "resourcesRestamped";
+      resources_reanchored = required reader int "resourcesReanchored";
+      resource_vectors_deleted = required reader int "resourceVectorsDeleted";
+      annotations_embedded = required reader int "annotationsEmbedded";
+      annotations_restamped = required reader int "annotationsRestamped";
+      annotation_vectors_deleted =
+        required reader int "annotationVectorsDeleted";
+      resources_eligible = required reader int "resourcesEligible";
+      resources_indexed = required reader int "resourcesIndexed";
+    }
 
   let of_model (model : [ `SmelterReconcileSummary ] Models.t) =
     project (fields_of (Models.json model))
@@ -8564,7 +7317,6 @@ module Smelter_reconcile_summary = struct
         ("resourcesEligible", Some (json_int value.resources_eligible));
         ("resourcesIndexed", Some (json_int value.resources_indexed));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.smelter_reconcile_summary
@@ -8572,18 +7324,11 @@ module Smelter_reconcile_summary = struct
 end
 
 module Host_port = struct
-  type t = { host : string; port : int; extra : (string * Yojson.Raw.t) list }
+  type t = { host : string; port : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        host = required reader string "host";
-        port = required reader int "port";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { host = required reader string "host"; port = required reader int "port" }
 
   let of_model (model : [ `HostPort ] Models.t) =
     project (fields_of (Models.json model))
@@ -8594,7 +7339,6 @@ module Host_port = struct
         ("host", Some (json_string value.host));
         ("port", Some (json_int value.port));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.host_port (Yojson.Raw.to_string (to_json value))
@@ -8606,21 +7350,16 @@ module Metadata = struct
     namespace : string option;
     labels : (string * string) list option;
     annotations : (string * string) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        namespace = maybe reader string "namespace";
-        labels = maybe reader (map string) "labels";
-        annotations = maybe reader (map string) "annotations";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      namespace = maybe reader string "namespace";
+      labels = maybe reader (map string) "labels";
+      annotations = maybe reader (map string) "annotations";
+    }
 
   let of_model (model : [ `Metadata ] Models.t) =
     project (fields_of (Models.json model))
@@ -8633,25 +7372,23 @@ module Metadata = struct
         ("labels", Option.map (json_map json_string) value.labels);
         ("annotations", Option.map (json_map json_string) value.annotations);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.metadata (Yojson.Raw.to_string (to_json value))
 end
 
 module Secret_ref = struct
-  type t = { from_env : string; extra : (string * Yojson.Raw.t) list }
+  type t = { from_env : string }
 
   let project fields =
     let reader = start fields in
-    let record = { from_env = required reader string "fromEnv"; extra = [] } in
-    { record with extra = rest reader }
+    { from_env = required reader string "fromEnv" }
 
   let of_model (model : [ `SecretRef ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("fromEnv", Some (json_string value.from_env)) ] value.extra
+    write [ ("fromEnv", Some (json_string value.from_env)) ]
 
   let to_model value =
     Models.decode Models.secret_ref (Yojson.Raw.to_string (to_json value))
@@ -8665,22 +7402,17 @@ module Memory_vectors_config = struct
     let of_string = function "memory" -> Some Memory | _ -> None
   end
 
-  type t = { type_ : Type_.t; extra : (string * Yojson.Raw.t) list }
+  type t = { type_ : Type_.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { type_ = required reader (enum Type_.of_string) "type"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { type_ = required reader (enum Type_.of_string) "type" }
 
   let of_model (model : [ `MemoryVectorsConfig ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("type", Some ((json_enum Type_.to_string) value.type_)) ]
-      value.extra
+    write [ ("type", Some ((json_enum Type_.to_string) value.type_)) ]
 
   let to_model value =
     Models.decode Models.memory_vectors_config
@@ -8695,26 +7427,16 @@ module Qdrant_vectors_config = struct
     let of_string = function "qdrant" -> Some Qdrant | _ -> None
   end
 
-  type t = {
-    type_ : Type_.t;
-    host : string;
-    port : int;
-    token_env : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : Type_.t; host : string; port : int; token_env : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        host = required reader string "host";
-        port = required reader int "port";
-        token_env = required reader string "tokenEnv";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      host = required reader string "host";
+      port = required reader int "port";
+      token_env = required reader string "tokenEnv";
+    }
 
   let of_model (model : [ `QdrantVectorsConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -8727,7 +7449,6 @@ module Qdrant_vectors_config = struct
         ("port", Some (json_int value.port));
         ("tokenEnv", Some (json_string value.token_env));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.qdrant_vectors_config
@@ -8735,21 +7456,14 @@ module Qdrant_vectors_config = struct
 end
 
 module Mark_job_filter_params = struct
-  type t = {
-    motivation : Enums.Motivation.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { motivation : Enums.Motivation.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        motivation =
-          required reader (enum Enums.Motivation.of_string) "motivation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      motivation =
+        required reader (enum Enums.Motivation.of_string) "motivation";
+    }
 
   let to_json (value : t) =
     write
@@ -8757,7 +7471,6 @@ module Mark_job_filter_params = struct
         ( "motivation",
           Some ((json_enum Enums.Motivation.to_string) value.motivation) );
       ]
-      value.extra
 end
 
 module Resource_descriptor_context_item = struct
@@ -8860,7 +7573,7 @@ module Resource_descriptor_identifier_object = struct
     { record with extra = rest reader }
 
   let to_json (value : t) =
-    write
+    write_open
       [
         ("@id", Option.map json_string value.field_id);
         ("value", Option.map json_string value.value);
@@ -8951,20 +7664,15 @@ module Bus_subscribe_request_scoped_item = struct
     scope : string;
     channels : string list;
     last_event_id : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        scope = required reader string "scope";
-        channels = required reader (list string) "channels";
-        last_event_id = maybe reader string "lastEventId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      scope = required reader string "scope";
+      channels = required reader (list string) "channels";
+      last_event_id = maybe reader string "lastEventId";
+    }
 
   let to_json (value : t) =
     write
@@ -8973,7 +7681,6 @@ module Bus_subscribe_request_scoped_item = struct
         ("channels", Some ((json_list json_string) value.channels));
         ("lastEventId", Option.map json_string value.last_event_id);
       ]
-      value.extra
 end
 
 module Contextual_summary_response_relevant_fields = struct
@@ -8981,20 +7688,15 @@ module Contextual_summary_response_relevant_fields = struct
     resource_id : string;
     resource_name : string;
     entity_types : string list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        resource_name = required reader string "resourceName";
-        entity_types = required reader (list string) "entityTypes";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      resource_name = required reader string "resourceName";
+      entity_types = required reader (list string) "entityTypes";
+    }
 
   let to_json (value : t) =
     write
@@ -9003,28 +7705,18 @@ module Contextual_summary_response_relevant_fields = struct
         ("resourceName", Some (json_string value.resource_name));
         ("entityTypes", Some ((json_list json_string) value.entity_types));
       ]
-      value.extra
 end
 
 module Contextual_summary_response_context = struct
-  type t = {
-    before : string option;
-    selected : string;
-    after : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { before : string option; selected : string; after : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        before = maybe reader string "before";
-        selected = required reader string "selected";
-        after = maybe reader string "after";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      before = maybe reader string "before";
+      selected = required reader string "selected";
+      after = maybe reader string "after";
+    }
 
   let to_json (value : t) =
     write
@@ -9033,28 +7725,18 @@ module Contextual_summary_response_context = struct
         ("selected", Some (json_string value.selected));
         ("after", Option.map json_string value.after);
       ]
-      value.extra
 end
 
 module Gathered_context_focus_annotation_selected = struct
-  type t = {
-    before : string option;
-    text : string;
-    after : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { before : string option; text : string; after : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        before = maybe reader string "before";
-        text = required reader string "text";
-        after = maybe reader string "after";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      before = maybe reader string "before";
+      text = required reader string "text";
+      after = maybe reader string "after";
+    }
 
   let to_json (value : t) =
     write
@@ -9063,26 +7745,17 @@ module Gathered_context_focus_annotation_selected = struct
         ("text", Some (json_string value.text));
         ("after", Option.map json_string value.after);
       ]
-      value.extra
 end
 
 module Gathered_context_focus_annotation_target_context = struct
-  type t = {
-    content : string;
-    summary : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { content : string; summary : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        content = required reader string "content";
-        summary = maybe reader string "summary";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      content = required reader string "content";
+      summary = maybe reader string "summary";
+    }
 
   let to_json (value : t) =
     write
@@ -9090,26 +7763,17 @@ module Gathered_context_focus_annotation_target_context = struct
         ("content", Some (json_string value.content));
         ("summary", Option.map json_string value.summary);
       ]
-      value.extra
 end
 
 module Gathered_context_focus_resource_content = struct
-  type t = {
-    main : string option;
-    related : (string * string) list option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { main : string option; related : (string * string) list option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        main = maybe reader string "main";
-        related = maybe reader (map string) "related";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      main = maybe reader string "main";
+      related = maybe reader (map string) "related";
+    }
 
   let to_json (value : t) =
     write
@@ -9117,7 +7781,6 @@ module Gathered_context_focus_resource_content = struct
         ("main", Option.map json_string value.main);
         ("related", Option.map (json_map json_string) value.related);
       ]
-      value.extra
 end
 
 module Knowledge_graph_edges_item = struct
@@ -9127,22 +7790,17 @@ module Knowledge_graph_edges_item = struct
     type_ : string;
     bidirectional : bool option;
     metadata : (string * Yojson.Raw.t) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        source = required reader string "source";
-        target = required reader string "target";
-        type_ = required reader string "type";
-        bidirectional = maybe reader bool "bidirectional";
-        metadata = maybe reader (map raw) "metadata";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      source = required reader string "source";
+      target = required reader string "target";
+      type_ = required reader string "type";
+      bidirectional = maybe reader bool "bidirectional";
+      metadata = maybe reader (map raw) "metadata";
+    }
 
   let to_json (value : t) =
     write
@@ -9153,7 +7811,6 @@ module Knowledge_graph_edges_item = struct
         ("bidirectional", Option.map json_bool value.bidirectional);
         ("metadata", Option.map (json_map json_raw) value.metadata);
       ]
-      value.extra
 end
 
 module Gathered_context_metadata = struct
@@ -9162,21 +7819,16 @@ module Gathered_context_metadata = struct
     language : string option;
     entity_types : string list option;
     entity_type_frequencies : (string * int) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_type = maybe reader string "resourceType";
-        language = maybe reader string "language";
-        entity_types = maybe reader (list string) "entityTypes";
-        entity_type_frequencies = maybe reader (map int) "entityTypeFrequencies";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_type = maybe reader string "resourceType";
+      language = maybe reader string "language";
+      entity_types = maybe reader (list string) "entityTypes";
+      entity_type_frequencies = maybe reader (map int) "entityTypeFrequencies";
+    }
 
   let to_json (value : t) =
     write
@@ -9187,19 +7839,16 @@ module Gathered_context_metadata = struct
         ( "entityTypeFrequencies",
           Option.map (json_map json_int) value.entity_type_frequencies );
       ]
-      value.extra
 end
 
 module Get_referenced_by_response_referenced_by_item_target_selector = struct
-  type t = { exact : string; extra : (string * Yojson.Raw.t) list }
+  type t = { exact : string }
 
   let project fields =
     let reader = start fields in
-    let record = { exact = required reader string "exact"; extra = [] } in
-    { record with extra = rest reader }
+    { exact = required reader string "exact" }
 
-  let to_json (value : t) =
-    write [ ("exact", Some (json_string value.exact)) ] value.extra
+  let to_json (value : t) = write [ ("exact", Some (json_string value.exact)) ]
 end
 
 module Job_progress_current = struct
@@ -9216,22 +7865,14 @@ module Job_progress_current = struct
       | _ -> None
   end
 
-  type t = {
-    kind : Kind.t;
-    value : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { kind : Kind.t; value : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kind = required reader (enum Kind.of_string) "kind";
-        value = required reader string "value";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kind = required reader (enum Kind.of_string) "kind";
+      value = required reader string "value";
+    }
 
   let to_json (value : t) =
     write
@@ -9239,28 +7880,18 @@ module Job_progress_current = struct
         ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("value", Some (json_string value.value));
       ]
-      value.extra
 end
 
 module Job_progress_completed_items_item_under_reported = struct
-  type t = {
-    pieces : int;
-    found : int;
-    counted : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { pieces : int; found : int; counted : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        pieces = required reader int "pieces";
-        found = required reader int "found";
-        counted = required reader int "counted";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      pieces = required reader int "pieces";
+      found = required reader int "found";
+      counted = required reader int "counted";
+    }
 
   let to_json (value : t) =
     write
@@ -9269,7 +7900,6 @@ module Job_progress_completed_items_item_under_reported = struct
         ("found", Some (json_int value.found));
         ("counted", Some (json_int value.counted));
       ]
-      value.extra
 end
 
 module Job_progress_request_params_item = struct
@@ -9290,22 +7920,14 @@ module Job_progress_request_params_item = struct
       | _ -> None
   end
 
-  type t = {
-    label : Label.t;
-    value : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { label : Label.t; value : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        label = required reader (enum Label.of_string) "label";
-        value = required reader string "value";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      label = required reader (enum Label.of_string) "label";
+      value = required reader string "value";
+    }
 
   let to_json (value : t) =
     write
@@ -9313,26 +7935,17 @@ module Job_progress_request_params_item = struct
         ("label", Some ((json_enum Label.to_string) value.label));
         ("value", Some (json_string value.value));
       ]
-      value.extra
 end
 
 module Mark_commit_ok_response = struct
-  type t = {
-    persisted : int;
-    annotation_ids : string list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { persisted : int; annotation_ids : string list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        persisted = required reader int "persisted";
-        annotation_ids = required reader (list string) "annotationIds";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      persisted = required reader int "persisted";
+      annotation_ids = required reader (list string) "annotationIds";
+    }
 
   let to_json (value : t) =
     write
@@ -9340,42 +7953,28 @@ module Mark_commit_ok_response = struct
         ("persisted", Some (json_int value.persisted));
         ("annotationIds", Some ((json_list json_string) value.annotation_ids));
       ]
-      value.extra
 end
 
 module Mark_delete_ok_response = struct
-  type t = { annotation_id : string; extra : (string * Yojson.Raw.t) list }
+  type t = { annotation_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { annotation_id = required reader string "annotationId"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { annotation_id = required reader string "annotationId" }
 
   let to_json (value : t) =
-    write
-      [ ("annotationId", Some (json_string value.annotation_id)) ]
-      value.extra
+    write [ ("annotationId", Some (json_string value.annotation_id)) ]
 end
 
 module Resource_created_payload_generated_from = struct
-  type t = {
-    resource_id : string;
-    annotation_id : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; annotation_id : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        annotation_id = maybe reader string "annotationId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      annotation_id = maybe reader string "annotationId";
+    }
 
   let to_json (value : t) =
     write
@@ -9383,26 +7982,17 @@ module Resource_created_payload_generated_from = struct
         ("resourceId", Some (json_string value.resource_id));
         ("annotationId", Option.map json_string value.annotation_id);
       ]
-      value.extra
 end
 
 module Status_response_features = struct
-  type t = {
-    semantic_content : string;
-    collaboration : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { semantic_content : string; collaboration : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        semantic_content = required reader string "semanticContent";
-        collaboration = required reader string "collaboration";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      semantic_content = required reader string "semanticContent";
+      collaboration = required reader string "collaboration";
+    }
 
   let to_json (value : t) =
     write
@@ -9410,26 +8000,17 @@ module Status_response_features = struct
         ("semanticContent", Some (json_string value.semantic_content));
         ("collaboration", Some (json_string value.collaboration));
       ]
-      value.extra
 end
 
 module Yield_create_command_generated_from = struct
-  type t = {
-    resource_id : string option;
-    annotation_id : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string option; annotation_id : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = maybe reader string "resourceId";
-        annotation_id = maybe reader string "annotationId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = maybe reader string "resourceId";
+      annotation_id = maybe reader string "annotationId";
+    }
 
   let to_json (value : t) =
     write
@@ -9437,30 +8018,19 @@ module Yield_create_command_generated_from = struct
         ("resourceId", Option.map json_string value.resource_id);
         ("annotationId", Option.map json_string value.annotation_id);
       ]
-      value.extra
 end
 
 module Anchored_text_extracted_entry_lines_item = struct
-  type t = {
-    p : int;
-    y : float;
-    h : float;
-    words : float list list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { p : int; y : float; h : float; words : float list list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        p = required reader int "p";
-        y = required reader float "y";
-        h = required reader float "h";
-        words = required reader (list (list float)) "words";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      p = required reader int "p";
+      y = required reader float "y";
+      h = required reader float "h";
+      words = required reader (list (list float)) "words";
+    }
 
   let to_json (value : t) =
     write
@@ -9470,26 +8040,17 @@ module Anchored_text_extracted_entry_lines_item = struct
         ("h", Some (json_float value.h));
         ("words", Some ((json_list (json_list json_float)) value.words));
       ]
-      value.extra
 end
 
 module Archivist_config_staging = struct
-  type t = {
-    flush_ms : int;
-    max_wait_ms : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { flush_ms : int; max_wait_ms : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        flush_ms = required reader int "flushMs";
-        max_wait_ms = required reader int "maxWaitMs";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      flush_ms = required reader int "flushMs";
+      max_wait_ms = required reader int "maxWaitMs";
+    }
 
   let to_json (value : t) =
     write
@@ -9497,22 +8058,17 @@ module Archivist_config_staging = struct
         ("flushMs", Some (json_int value.flush_ms));
         ("maxWaitMs", Some (json_int value.max_wait_ms));
       ]
-      value.extra
 end
 
 module Conformance_step_let = struct
-  type t = {
-    let_ : (string * Yojson.Raw.t) list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { let_ : (string * Yojson.Raw.t) list }
 
   let project fields =
     let reader = start fields in
-    let record = { let_ = required reader (map raw) "let"; extra = [] } in
-    { record with extra = rest reader }
+    { let_ = required reader (map raw) "let" }
 
   let to_json (value : t) =
-    write [ ("let", Some ((json_map json_raw) value.let_)) ] value.extra
+    write [ ("let", Some ((json_map json_raw) value.let_)) ]
 end
 
 module Conformance_step_driver = struct
@@ -9522,22 +8078,17 @@ module Conformance_step_driver = struct
     returns : Yojson.Raw.t Types.presence;
     fails : Yojson.Raw.t Types.presence;
     as_ : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        driver = required reader string "driver";
-        with_ = maybe reader (map raw) "with";
-        returns = optional reader raw "returns";
-        fails = optional reader raw "fails";
-        as_ = maybe reader string "as";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      driver = required reader string "driver";
+      with_ = maybe reader (map raw) "with";
+      returns = optional reader raw "returns";
+      fails = optional reader raw "fails";
+      as_ = maybe reader string "as";
+    }
 
   let to_json (value : t) =
     write
@@ -9548,19 +8099,17 @@ module Conformance_step_driver = struct
         ("fails", present json_raw value.fails);
         ("as", Option.map json_string value.as_);
       ]
-      value.extra
 end
 
 module Conformance_step_abandon = struct
-  type t = { abandon : string; extra : (string * Yojson.Raw.t) list }
+  type t = { abandon : string }
 
   let project fields =
     let reader = start fields in
-    let record = { abandon = required reader string "abandon"; extra = [] } in
-    { record with extra = rest reader }
+    { abandon = required reader string "abandon" }
 
   let to_json (value : t) =
-    write [ ("abandon", Some (json_string value.abandon)) ] value.extra
+    write [ ("abandon", Some (json_string value.abandon)) ]
 end
 
 module Conformance_step_settles = struct
@@ -9569,21 +8118,16 @@ module Conformance_step_settles = struct
     returns : Yojson.Raw.t Types.presence;
     fails : Yojson.Raw.t Types.presence;
     abandoned : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        settles = required reader string "settles";
-        returns = optional reader raw "returns";
-        fails = optional reader raw "fails";
-        abandoned = maybe reader bool "abandoned";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      settles = required reader string "settles";
+      returns = optional reader raw "returns";
+      fails = optional reader raw "fails";
+      abandoned = maybe reader bool "abandoned";
+    }
 
   let to_json (value : t) =
     write
@@ -9593,7 +8137,6 @@ module Conformance_step_settles = struct
         ("fails", present json_raw value.fails);
         ("abandoned", Option.map json_bool value.abandoned);
       ]
-      value.extra
 end
 
 module Conformance_step_wire = struct
@@ -9624,28 +8167,23 @@ module Conformance_step_wire = struct
     as_ : string option;
     follows : string option;
     waited : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        wire = required reader string "wire";
-        at = maybe reader (enum At.of_string) "at";
-        status = maybe reader int "status";
-        params = optional reader raw "params";
-        body = optional reader raw "body";
-        token = optional reader raw "token";
-        headers = maybe reader (map raw) "headers";
-        answer = optional reader raw "answer";
-        as_ = maybe reader string "as";
-        follows = maybe reader string "follows";
-        waited = maybe reader string "waited";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      wire = required reader string "wire";
+      at = maybe reader (enum At.of_string) "at";
+      status = maybe reader int "status";
+      params = optional reader raw "params";
+      body = optional reader raw "body";
+      token = optional reader raw "token";
+      headers = maybe reader (map raw) "headers";
+      answer = optional reader raw "answer";
+      as_ = maybe reader string "as";
+      follows = maybe reader string "follows";
+      waited = maybe reader string "waited";
+    }
 
   let to_json (value : t) =
     write
@@ -9662,26 +8200,17 @@ module Conformance_step_wire = struct
         ("follows", Option.map json_string value.follows);
         ("waited", Option.map json_string value.waited);
       ]
-      value.extra
 end
 
 module Conformance_step_carried = struct
-  type t = {
-    carried : string;
-    is : Yojson.Raw.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { carried : string; is : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        carried = required reader string "carried";
-        is = required reader raw "is";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      carried = required reader string "carried";
+      is = required reader raw "is";
+    }
 
   let to_json (value : t) =
     write
@@ -9689,31 +8218,28 @@ module Conformance_step_carried = struct
         ("carried", Some (json_string value.carried));
         ("is", Some (json_raw value.is));
       ]
-      value.extra
 end
 
 module Conformance_step_closed = struct
-  type t = { closed : string; extra : (string * Yojson.Raw.t) list }
+  type t = { closed : string }
 
   let project fields =
     let reader = start fields in
-    let record = { closed = required reader string "closed"; extra = [] } in
-    { record with extra = rest reader }
+    { closed = required reader string "closed" }
 
   let to_json (value : t) =
-    write [ ("closed", Some (json_string value.closed)) ] value.extra
+    write [ ("closed", Some (json_string value.closed)) ]
 end
 
 module Conformance_step_progress = struct
-  type t = { progress : string; extra : (string * Yojson.Raw.t) list }
+  type t = { progress : string }
 
   let project fields =
     let reader = start fields in
-    let record = { progress = required reader string "progress"; extra = [] } in
-    { record with extra = rest reader }
+    { progress = required reader string "progress" }
 
   let to_json (value : t) =
-    write [ ("progress", Some (json_string value.progress)) ] value.extra
+    write [ ("progress", Some (json_string value.progress)) ]
 end
 
 module Conformance_step_state = struct
@@ -9747,19 +8273,14 @@ module Conformance_step_state = struct
       | _ -> None
   end
 
-  type t = { state : State.t; extra : (string * Yojson.Raw.t) list }
+  type t = { state : State.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { state = required reader (enum State.of_string) "state"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { state = required reader (enum State.of_string) "state" }
 
   let to_json (value : t) =
-    write
-      [ ("state", Some ((json_enum State.to_string) value.state)) ]
-      value.extra
+    write [ ("state", Some ((json_enum State.to_string) value.state)) ]
 end
 
 module Conformance_step_stays = struct
@@ -9793,38 +8314,22 @@ module Conformance_step_stays = struct
       | _ -> None
   end
 
-  type t = { stays : Stays.t; extra : (string * Yojson.Raw.t) list }
+  type t = { stays : Stays.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { stays = required reader (enum Stays.of_string) "stays"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { stays = required reader (enum Stays.of_string) "stays" }
 
   let to_json (value : t) =
-    write
-      [ ("stays", Some ((json_enum Stays.to_string) value.stays)) ]
-      value.extra
+    write [ ("stays", Some ((json_enum Stays.to_string) value.stays)) ]
 end
 
 module Conformance_step_frame = struct
-  type t = {
-    frame : string;
-    is : Yojson.Raw.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { frame : string; is : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        frame = required reader string "frame";
-        is = required reader raw "is";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { frame = required reader string "frame"; is = required reader raw "is" }
 
   let to_json (value : t) =
     write
@@ -9832,26 +8337,17 @@ module Conformance_step_frame = struct
         ("frame", Some (json_string value.frame));
         ("is", Some (json_raw value.is));
       ]
-      value.extra
 end
 
 module Conformance_step_frames = struct
-  type t = {
-    frames : string;
-    count : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { frames : string; count : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        frames = required reader string "frames";
-        count = required reader int "count";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      frames = required reader string "frames";
+      count = required reader int "count";
+    }
 
   let to_json (value : t) =
     write
@@ -9859,19 +8355,16 @@ module Conformance_step_frames = struct
         ("frames", Some (json_string value.frames));
         ("count", Some (json_int value.count));
       ]
-      value.extra
 end
 
 module Conformance_step_error = struct
-  type t = { error : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+  type t = { error : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record = { error = required reader raw "error"; extra = [] } in
-    { record with extra = rest reader }
+    { error = required reader raw "error" }
 
-  let to_json (value : t) =
-    write [ ("error", Some (json_raw value.error)) ] value.extra
+  let to_json (value : t) = write [ ("error", Some (json_raw value.error)) ]
 end
 
 module Conformance_step_backend = struct
@@ -9941,22 +8434,14 @@ module Conformance_step_backend = struct
       | _ -> None
   end
 
-  type t = {
-    backend : Backend.t;
-    with_ : (string * Yojson.Raw.t) list option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { backend : Backend.t; with_ : (string * Yojson.Raw.t) list option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        backend = required reader (enum Backend.of_string) "backend";
-        with_ = maybe reader (map raw) "with";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      backend = required reader (enum Backend.of_string) "backend";
+      with_ = maybe reader (map raw) "with";
+    }
 
   let to_json (value : t) =
     write
@@ -9964,19 +8449,16 @@ module Conformance_step_backend = struct
         ("backend", Some ((json_enum Backend.to_string) value.backend));
         ("with", Option.map (json_map json_raw) value.with_);
       ]
-      value.extra
 end
 
 module Conformance_step_quiet = struct
-  type t = { quiet : int; extra : (string * Yojson.Raw.t) list }
+  type t = { quiet : int }
 
   let project fields =
     let reader = start fields in
-    let record = { quiet = required reader int "quiet"; extra = [] } in
-    { record with extra = rest reader }
+    { quiet = required reader int "quiet" }
 
-  let to_json (value : t) =
-    write [ ("quiet", Some (json_int value.quiet)) ] value.extra
+  let to_json (value : t) = write [ ("quiet", Some (json_int value.quiet)) ]
 end
 
 module Conformance_step_observe_observe = struct
@@ -9986,22 +8468,17 @@ module Conformance_step_observe_observe = struct
     annotation : Yojson.Raw.t Types.presence;
     search : Yojson.Raw.t Types.presence;
     filters : Yojson.Raw.t Types.presence;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        query = required reader string "query";
-        resource = optional reader raw "resource";
-        annotation = optional reader raw "annotation";
-        search = optional reader raw "search";
-        filters = optional reader raw "filters";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      query = required reader string "query";
+      resource = optional reader raw "resource";
+      annotation = optional reader raw "annotation";
+      search = optional reader raw "search";
+      filters = optional reader raw "filters";
+    }
 
   let to_json (value : t) =
     write
@@ -10012,38 +8489,27 @@ module Conformance_step_observe_observe = struct
         ("search", present json_raw value.search);
         ("filters", present json_raw value.filters);
       ]
-      value.extra
 end
 
 module Conformance_step_leave = struct
-  type t = { leave : string; extra : (string * Yojson.Raw.t) list }
+  type t = { leave : string }
 
   let project fields =
     let reader = start fields in
-    let record = { leave = required reader string "leave"; extra = [] } in
-    { record with extra = rest reader }
+    { leave = required reader string "leave" }
 
-  let to_json (value : t) =
-    write [ ("leave", Some (json_string value.leave)) ] value.extra
+  let to_json (value : t) = write [ ("leave", Some (json_string value.leave)) ]
 end
 
 module Conformance_step_reaches = struct
-  type t = {
-    reaches : string;
-    state : Yojson.Raw.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { reaches : string; state : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        reaches = required reader string "reaches";
-        state = required reader raw "state";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      reaches = required reader string "reaches";
+      state = required reader raw "state";
+    }
 
   let to_json (value : t) =
     write
@@ -10051,26 +8517,17 @@ module Conformance_step_reaches = struct
         ("reaches", Some (json_string value.reaches));
         ("state", Some (json_raw value.state));
       ]
-      value.extra
 end
 
 module Conformance_step_holds = struct
-  type t = {
-    holds : string;
-    state : Yojson.Raw.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { holds : string; state : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        holds = required reader string "holds";
-        state = required reader raw "state";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      holds = required reader string "holds";
+      state = required reader raw "state";
+    }
 
   let to_json (value : t) =
     write
@@ -10078,81 +8535,69 @@ module Conformance_step_holds = struct
         ("holds", Some (json_string value.holds));
         ("state", Some (json_raw value.state));
       ]
-      value.extra
 end
 
 module Conformance_step_completes = struct
-  type t = { completes : string; extra : (string * Yojson.Raw.t) list }
+  type t = { completes : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { completes = required reader string "completes"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { completes = required reader string "completes" }
 
   let to_json (value : t) =
-    write [ ("completes", Some (json_string value.completes)) ] value.extra
+    write [ ("completes", Some (json_string value.completes)) ]
 end
 
 module Conformance_step_scopes = struct
-  type t = { scopes : Yojson.Raw.t list; extra : (string * Yojson.Raw.t) list }
+  type t = { scopes : Yojson.Raw.t list }
 
   let project fields =
     let reader = start fields in
-    let record = { scopes = required reader (list raw) "scopes"; extra = [] } in
-    { record with extra = rest reader }
+    { scopes = required reader (list raw) "scopes" }
 
   let to_json (value : t) =
-    write [ ("scopes", Some ((json_list json_raw) value.scopes)) ] value.extra
+    write [ ("scopes", Some ((json_list json_raw) value.scopes)) ]
 end
 
 module Conformance_step_claimed = struct
-  type t = { claimed : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+  type t = { claimed : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record = { claimed = required reader raw "claimed"; extra = [] } in
-    { record with extra = rest reader }
+    { claimed = required reader raw "claimed" }
 
-  let to_json (value : t) =
-    write [ ("claimed", Some (json_raw value.claimed)) ] value.extra
+  let to_json (value : t) = write [ ("claimed", Some (json_raw value.claimed)) ]
 end
 
 module Conformance_step_refused = struct
-  type t = { refused : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+  type t = { refused : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record = { refused = required reader raw "refused"; extra = [] } in
-    { record with extra = rest reader }
+    { refused = required reader raw "refused" }
 
-  let to_json (value : t) =
-    write [ ("refused", Some (json_raw value.refused)) ] value.extra
+  let to_json (value : t) = write [ ("refused", Some (json_raw value.refused)) ]
 end
 
 module Conformance_step_signalled = struct
-  type t = { signalled : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+  type t = { signalled : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record = { signalled = required reader raw "signalled"; extra = [] } in
-    { record with extra = rest reader }
+    { signalled = required reader raw "signalled" }
 
   let to_json (value : t) =
-    write [ ("signalled", Some (json_raw value.signalled)) ] value.extra
+    write [ ("signalled", Some (json_raw value.signalled)) ]
 end
 
 module Conformance_step_stalled = struct
-  type t = { stalled : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+  type t = { stalled : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record = { stalled = required reader raw "stalled"; extra = [] } in
-    { record with extra = rest reader }
+    { stalled = required reader raw "stalled" }
 
-  let to_json (value : t) =
-    write [ ("stalled", Some (json_raw value.stalled)) ] value.extra
+  let to_json (value : t) = write [ ("stalled", Some (json_raw value.stalled)) ]
 end
 
 module Conformance_implementations_sdks_value_live = struct
@@ -10167,22 +8612,14 @@ module Conformance_implementations_sdks_value_live = struct
       | _ -> None
   end
 
-  type t = {
-    command : string list;
-    tier : Tier.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { command : string list; tier : Tier.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        command = required reader (list string) "command";
-        tier = required reader (enum Tier.of_string) "tier";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      command = required reader (list string) "command";
+      tier = required reader (enum Tier.of_string) "tier";
+    }
 
   let to_json (value : t) =
     write
@@ -10190,7 +8627,6 @@ module Conformance_implementations_sdks_value_live = struct
         ("command", Some ((json_list json_string) value.command));
         ("tier", Some ((json_enum Tier.to_string) value.tier));
       ]
-      value.extra
 end
 
 module Request_id = struct
@@ -10235,22 +8671,14 @@ module Request_id = struct
 end
 
 module Workload_status_ledger = struct
-  type t = {
-    claims : int;
-    capacity : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { claims : int; capacity : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        claims = required reader int "claims";
-        capacity = required reader int "capacity";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      claims = required reader int "claims";
+      capacity = required reader int "capacity";
+    }
 
   let to_json (value : t) =
     write
@@ -10258,7 +8686,6 @@ module Workload_status_ledger = struct
         ("claims", Some (json_int value.claims));
         ("capacity", Some (json_int value.capacity));
       ]
-      value.extra
 end
 
 module Workload_status_queue = struct
@@ -10267,21 +8694,16 @@ module Workload_status_queue = struct
     running : int;
     completed : int option;
     failed : int option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        pending = required reader int "pending";
-        running = required reader int "running";
-        completed = maybe reader int "completed";
-        failed = maybe reader int "failed";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      pending = required reader int "pending";
+      running = required reader int "running";
+      completed = maybe reader int "completed";
+      failed = maybe reader int "failed";
+    }
 
   let to_json (value : t) =
     write
@@ -10291,7 +8713,6 @@ module Workload_status_queue = struct
         ("completed", Option.map json_int value.completed);
         ("failed", Option.map json_int value.failed);
       ]
-      value.extra
 end
 
 module Dispatcher_config_queue = struct
@@ -10299,20 +8720,15 @@ module Dispatcher_config_queue = struct
     servers : string;
     user_env : string option;
     password_env : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        servers = required reader string "servers";
-        user_env = maybe reader string "userEnv";
-        password_env = maybe reader string "passwordEnv";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      servers = required reader string "servers";
+      user_env = maybe reader string "userEnv";
+      password_env = maybe reader string "passwordEnv";
+    }
 
   let to_json (value : t) =
     write
@@ -10321,7 +8737,6 @@ module Dispatcher_config_queue = struct
         ("userEnv", Option.map json_string value.user_env);
         ("passwordEnv", Option.map json_string value.password_env);
       ]
-      value.extra
 end
 
 module Dispatcher_config_timing = struct
@@ -10333,25 +8748,19 @@ module Dispatcher_config_timing = struct
     retention_sweep_ms : int;
     progress_write_interval_ms : int;
     boot_deadline_ms : int;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        tick_ms = required reader int "tickMs";
-        stale_running_ms = required reader int "staleRunningMs";
-        ack_wait_ms = required reader int "ackWaitMs";
-        retention_ms = required reader int "retentionMs";
-        retention_sweep_ms = required reader int "retentionSweepMs";
-        progress_write_interval_ms =
-          required reader int "progressWriteIntervalMs";
-        boot_deadline_ms = required reader int "bootDeadlineMs";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      tick_ms = required reader int "tickMs";
+      stale_running_ms = required reader int "staleRunningMs";
+      ack_wait_ms = required reader int "ackWaitMs";
+      retention_ms = required reader int "retentionMs";
+      retention_sweep_ms = required reader int "retentionSweepMs";
+      progress_write_interval_ms = required reader int "progressWriteIntervalMs";
+      boot_deadline_ms = required reader int "bootDeadlineMs";
+    }
 
   let to_json (value : t) =
     write
@@ -10365,26 +8774,17 @@ module Dispatcher_config_timing = struct
           Some (json_int value.progress_write_interval_ms) );
         ("bootDeadlineMs", Some (json_int value.boot_deadline_ms));
       ]
-      value.extra
 end
 
 module Gateway_config_identity = struct
-  type t = {
-    issuer : string;
-    subject_claim : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { issuer : string; subject_claim : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        issuer = required reader string "issuer";
-        subject_claim = required reader string "subjectClaim";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      issuer = required reader string "issuer";
+      subject_claim = required reader string "subjectClaim";
+    }
 
   let to_json (value : t) =
     write
@@ -10392,7 +8792,6 @@ module Gateway_config_identity = struct
         ("issuer", Some (json_string value.issuer));
         ("subjectClaim", Some (json_string value.subject_claim));
       ]
-      value.extra
 end
 
 module Gateway_config_signal = struct
@@ -10412,21 +8811,16 @@ module Gateway_config_signal = struct
     servers : string option;
     user_env : string option;
     password_env : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader (enum Type_.of_string) "type";
-        servers = maybe reader string "servers";
-        user_env = maybe reader string "userEnv";
-        password_env = maybe reader string "passwordEnv";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      servers = maybe reader string "servers";
+      user_env = maybe reader string "userEnv";
+      password_env = maybe reader string "passwordEnv";
+    }
 
   let to_json (value : t) =
     write
@@ -10436,26 +8830,17 @@ module Gateway_config_signal = struct
         ("userEnv", Option.map json_string value.user_env);
         ("passwordEnv", Option.map json_string value.password_env);
       ]
-      value.extra
 end
 
 module Gateway_config_capacity = struct
-  type t = {
-    queued_bytes : int;
-    connections : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { queued_bytes : int; connections : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        queued_bytes = required reader int "queuedBytes";
-        connections = required reader int "connections";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      queued_bytes = required reader int "queuedBytes";
+      connections = required reader int "connections";
+    }
 
   let to_json (value : t) =
     write
@@ -10463,26 +8848,17 @@ module Gateway_config_capacity = struct
         ("queuedBytes", Some (json_int value.queued_bytes));
         ("connections", Some (json_int value.connections));
       ]
-      value.extra
 end
 
 module Project_config_project = struct
-  type t = {
-    name : string;
-    version : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { name : string; version : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        version = maybe reader string "version";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      version = maybe reader string "version";
+    }
 
   let to_json (value : t) =
     write
@@ -10490,38 +8866,27 @@ module Project_config_project = struct
         ("name", Some (json_string value.name));
         ("version", Option.map json_string value.version);
       ]
-      value.extra
 end
 
 module Project_config_git = struct
-  type t = { sync : bool; extra : (string * Yojson.Raw.t) list }
+  type t = { sync : bool }
 
   let project fields =
     let reader = start fields in
-    let record = { sync = required reader bool "sync"; extra = [] } in
-    { record with extra = rest reader }
+    { sync = required reader bool "sync" }
 
-  let to_json (value : t) =
-    write [ ("sync", Some (json_bool value.sync)) ] value.extra
+  let to_json (value : t) = write [ ("sync", Some (json_bool value.sync)) ]
 end
 
 module Project_config_site = struct
-  type t = {
-    domain : string;
-    site_name : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { domain : string; site_name : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        domain = required reader string "domain";
-        site_name = required reader string "siteName";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      domain = required reader string "domain";
+      site_name = required reader string "siteName";
+    }
 
   let to_json (value : t) =
     write
@@ -10529,58 +8894,39 @@ module Project_config_site = struct
         ("domain", Some (json_string value.domain));
         ("siteName", Some (json_string value.site_name));
       ]
-      value.extra
 end
 
 module Librarian_config_gather = struct
-  type t = { settle_timeout_ms : int; extra : (string * Yojson.Raw.t) list }
+  type t = { settle_timeout_ms : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { settle_timeout_ms = required reader int "settleTimeoutMs"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { settle_timeout_ms = required reader int "settleTimeoutMs" }
 
   let to_json (value : t) =
-    write
-      [ ("settleTimeoutMs", Some (json_int value.settle_timeout_ms)) ]
-      value.extra
+    write [ ("settleTimeoutMs", Some (json_int value.settle_timeout_ms)) ]
 end
 
 module Librarian_config_search = struct
-  type t = { semantic_floor : float; extra : (string * Yojson.Raw.t) list }
+  type t = { semantic_floor : float }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { semantic_floor = required reader float "semanticFloor"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { semantic_floor = required reader float "semanticFloor" }
 
   let to_json (value : t) =
-    write
-      [ ("semanticFloor", Some (json_float value.semantic_floor)) ]
-      value.extra
+    write [ ("semanticFloor", Some (json_float value.semantic_floor)) ]
 end
 
 module Smelter_health_index_stamp_embedding = struct
-  type t = {
-    type_ : string;
-    model : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : string; model : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader string "type";
-        model = required reader string "model";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader string "type";
+      model = required reader string "model";
+    }
 
   let to_json (value : t) =
     write
@@ -10588,38 +8934,28 @@ module Smelter_health_index_stamp_embedding = struct
         ("type", Some (json_string value.type_));
         ("model", Some (json_string value.model));
       ]
-      value.extra
 end
 
 module Resources_limits = struct
-  type t = { memory : string; extra : (string * Yojson.Raw.t) list }
+  type t = { memory : string }
 
   let project fields =
     let reader = start fields in
-    let record = { memory = required reader string "memory"; extra = [] } in
-    { record with extra = rest reader }
+    { memory = required reader string "memory" }
 
   let to_json (value : t) =
-    write [ ("memory", Some (json_string value.memory)) ] value.extra
+    write [ ("memory", Some (json_string value.memory)) ]
 end
 
 module Knowledge_index_spec_embedding_chunking = struct
-  type t = {
-    chunk_size : int;
-    overlap : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { chunk_size : int; overlap : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        chunk_size = required reader int "chunkSize";
-        overlap = required reader int "overlap";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      chunk_size = required reader int "chunkSize";
+      overlap = required reader int "overlap";
+    }
 
   let to_json (value : t) =
     write
@@ -10627,101 +8963,71 @@ module Knowledge_index_spec_embedding_chunking = struct
         ("chunkSize", Some (json_int value.chunk_size));
         ("overlap", Some (json_int value.overlap));
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_librarian_gather = struct
-  type t = { settle_timeout_ms : int; extra : (string * Yojson.Raw.t) list }
+  type t = { settle_timeout_ms : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { settle_timeout_ms = required reader int "settleTimeoutMs"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { settle_timeout_ms = required reader int "settleTimeoutMs" }
 
   let to_json (value : t) =
-    write
-      [ ("settleTimeoutMs", Some (json_int value.settle_timeout_ms)) ]
-      value.extra
+    write [ ("settleTimeoutMs", Some (json_int value.settle_timeout_ms)) ]
 end
 
 module Knowledge_index_spec_librarian_search = struct
-  type t = { semantic_floor : float; extra : (string * Yojson.Raw.t) list }
+  type t = { semantic_floor : float }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { semantic_floor = required reader float "semanticFloor"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { semantic_floor = required reader float "semanticFloor" }
 
   let to_json (value : t) =
-    write
-      [ ("semanticFloor", Some (json_float value.semantic_floor)) ]
-      value.extra
+    write [ ("semanticFloor", Some (json_float value.semantic_floor)) ]
 end
 
 module Stack_knowledge_base_spec_messaging_jobs = struct
-  type t = { type_ : string; extra : (string * Yojson.Raw.t) list }
+  type t = { type_ : string }
 
   let project fields =
     let reader = start fields in
-    let record = { type_ = required reader string "type"; extra = [] } in
-    { record with extra = rest reader }
+    { type_ = required reader string "type" }
 
-  let to_json (value : t) =
-    write [ ("type", Some (json_string value.type_)) ] value.extra
+  let to_json (value : t) = write [ ("type", Some (json_string value.type_)) ]
 end
 
 module Stack_knowledge_base_spec_messaging_signal = struct
-  type t = { type_ : string; extra : (string * Yojson.Raw.t) list }
+  type t = { type_ : string }
 
   let project fields =
     let reader = start fields in
-    let record = { type_ = required reader string "type"; extra = [] } in
-    { record with extra = rest reader }
+    { type_ = required reader string "type" }
 
-  let to_json (value : t) =
-    write [ ("type", Some (json_string value.type_)) ] value.extra
+  let to_json (value : t) = write [ ("type", Some (json_string value.type_)) ]
 end
 
 module Stack_knowledge_base_spec_issuer_shared = struct
-  type t = { access_token_lifespan : int; extra : (string * Yojson.Raw.t) list }
+  type t = { access_token_lifespan : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        access_token_lifespan = required reader int "accessTokenLifespan";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { access_token_lifespan = required reader int "accessTokenLifespan" }
 
   let to_json (value : t) =
     write
       [ ("accessTokenLifespan", Some (json_int value.access_token_lifespan)) ]
-      value.extra
 end
 
 module Stack_knowledge_base_spec_issuer_external = struct
-  type t = {
-    type_ : string;
-    url : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { type_ : string; url : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader string "type";
-        url = required reader string "url";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader string "type";
+      url = required reader string "url";
+    }
 
   let to_json (value : t) =
     write
@@ -10729,7 +9035,6 @@ module Stack_knowledge_base_spec_issuer_external = struct
         ("type", Some (json_string value.type_));
         ("url", Some (json_string value.url));
       ]
-      value.extra
 end
 
 module Weaver_health_reconcile_summary = struct
@@ -10739,22 +9044,17 @@ module Weaver_health_reconcile_summary = struct
     healed : int;
     heal_failures : int;
     orphaned : int;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resources_checked = required reader int "resourcesChecked";
-        divergent = required reader int "divergent";
-        healed = required reader int "healed";
-        heal_failures = required reader int "healFailures";
-        orphaned = required reader int "orphaned";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resources_checked = required reader int "resourcesChecked";
+      divergent = required reader int "divergent";
+      healed = required reader int "healed";
+      heal_failures = required reader int "healFailures";
+      orphaned = required reader int "orphaned";
+    }
 
   let to_json (value : t) =
     write
@@ -10765,26 +9065,17 @@ module Weaver_health_reconcile_summary = struct
         ("healFailures", Some (json_int value.heal_failures));
         ("orphaned", Some (json_int value.orphaned));
       ]
-      value.extra
 end
 
 module Worker_knowledge_base_config_identity = struct
-  type t = {
-    issuer : string;
-    client_id : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { issuer : string; client_id : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        issuer = required reader string "issuer";
-        client_id = required reader string "clientId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      issuer = required reader string "issuer";
+      client_id = required reader string "clientId";
+    }
 
   let to_json (value : t) =
     write
@@ -10792,28 +9083,18 @@ module Worker_knowledge_base_config_identity = struct
         ("issuer", Some (json_string value.issuer));
         ("clientId", Some (json_string value.client_id));
       ]
-      value.extra
 end
 
 module Worker_engine_health_active_job = struct
-  type t = {
-    job_id : string;
-    type_ : Enums.Job_type.t;
-    since : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { job_id : string; type_ : Enums.Job_type.t; since : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_id = required reader string "jobId";
-        type_ = required reader (enum Enums.Job_type.of_string) "type";
-        since = required reader string "since";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_id = required reader string "jobId";
+      type_ = required reader (enum Enums.Job_type.of_string) "type";
+      since = required reader string "since";
+    }
 
   let to_json (value : t) =
     write
@@ -10822,54 +9103,38 @@ module Worker_engine_health_active_job = struct
         ("type", Some ((json_enum Enums.Job_type.to_string) value.type_));
         ("since", Some (json_string value.since));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_ready = struct
-  type t = { ready : bool; extra : (string * Yojson.Raw.t) list }
+  type t = { ready : bool }
 
   let project fields =
     let reader = start fields in
-    let record = { ready = required reader bool "ready"; extra = [] } in
-    { record with extra = rest reader }
+    { ready = required reader bool "ready" }
 
-  let to_json (value : t) =
-    write [ ("ready", Some (json_bool value.ready)) ] value.extra
+  let to_json (value : t) = write [ ("ready", Some (json_bool value.ready)) ]
 end
 
 module Conformance_driver_line_ok = struct
-  type t = { id : int; ok : Yojson.Raw.t; extra : (string * Yojson.Raw.t) list }
+  type t = { id : int; ok : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader int "id";
-        ok = required reader raw "ok";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { id = required reader int "id"; ok = required reader raw "ok" }
 
   let to_json (value : t) =
-    write
-      [ ("id", Some (json_int value.id)); ("ok", Some (json_raw value.ok)) ]
-      value.extra
+    write [ ("id", Some (json_int value.id)); ("ok", Some (json_raw value.ok)) ]
 end
 
 module Conformance_driver_line_abandoned = struct
-  type t = { id : int; abandoned : bool; extra : (string * Yojson.Raw.t) list }
+  type t = { id : int; abandoned : bool }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader int "id";
-        abandoned = required reader bool "abandoned";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader int "id";
+      abandoned = required reader bool "abandoned";
+    }
 
   let to_json (value : t) =
     write
@@ -10877,26 +9142,17 @@ module Conformance_driver_line_abandoned = struct
         ("id", Some (json_int value.id));
         ("abandoned", Some (json_bool value.abandoned));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_unsupported = struct
-  type t = {
-    id : int;
-    unsupported : bool;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { id : int; unsupported : bool }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader int "id";
-        unsupported = required reader bool "unsupported";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader int "id";
+      unsupported = required reader bool "unsupported";
+    }
 
   let to_json (value : t) =
     write
@@ -10904,22 +9160,14 @@ module Conformance_driver_line_unsupported = struct
         ("id", Some (json_int value.id));
         ("unsupported", Some (json_bool value.unsupported));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_misuse = struct
-  type t = { id : int; misuse : string; extra : (string * Yojson.Raw.t) list }
+  type t = { id : int; misuse : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader int "id";
-        misuse = required reader string "misuse";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { id = required reader int "id"; misuse = required reader string "misuse" }
 
   let to_json (value : t) =
     write
@@ -10927,19 +9175,16 @@ module Conformance_driver_line_misuse = struct
         ("id", Some (json_int value.id));
         ("misuse", Some (json_string value.misuse));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_state = struct
-  type t = { state : string; extra : (string * Yojson.Raw.t) list }
+  type t = { state : string }
 
   let project fields =
     let reader = start fields in
-    let record = { state = required reader string "state"; extra = [] } in
-    { record with extra = rest reader }
+    { state = required reader string "state" }
 
-  let to_json (value : t) =
-    write [ ("state", Some (json_string value.state)) ] value.extra
+  let to_json (value : t) = write [ ("state", Some (json_string value.state)) ]
 end
 
 module Conformance_driver_line_frame_frame = struct
@@ -10948,21 +9193,16 @@ module Conformance_driver_line_frame_frame = struct
     payload : Yojson.Raw.t Types.presence;
     correlation_id : string option;
     scope : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        channel = required reader string "channel";
-        payload = optional reader raw "payload";
-        correlation_id = maybe reader string "correlationId";
-        scope = maybe reader string "scope";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      channel = required reader string "channel";
+      payload = optional reader raw "payload";
+      correlation_id = maybe reader string "correlationId";
+      scope = maybe reader string "scope";
+    }
 
   let to_json (value : t) =
     write
@@ -10972,28 +9212,18 @@ module Conformance_driver_line_frame_frame = struct
         ("correlationId", Option.map json_string value.correlation_id);
         ("scope", Option.map json_string value.scope);
       ]
-      value.extra
 end
 
 module Conformance_driver_line_progress_progress = struct
-  type t = {
-    upload : int;
-    bytes_uploaded : int;
-    total_bytes : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { upload : int; bytes_uploaded : int; total_bytes : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        upload = required reader int "upload";
-        bytes_uploaded = required reader int "bytesUploaded";
-        total_bytes = required reader int "totalBytes";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      upload = required reader int "upload";
+      bytes_uploaded = required reader int "bytesUploaded";
+      total_bytes = required reader int "totalBytes";
+    }
 
   let to_json (value : t) =
     write
@@ -11002,7 +9232,6 @@ module Conformance_driver_line_progress_progress = struct
         ("bytesUploaded", Some (json_int value.bytes_uploaded));
         ("totalBytes", Some (json_int value.total_bytes));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_emission_emission_state_pending = struct
@@ -11013,19 +9242,14 @@ module Conformance_driver_line_emission_emission_state_pending = struct
     let of_string = function "pending" -> Some Pending | _ -> None
   end
 
-  type t = { status : Status.t; extra : (string * Yojson.Raw.t) list }
+  type t = { status : Status.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { status = required reader (enum Status.of_string) "status"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { status = required reader (enum Status.of_string) "status" }
 
   let to_json (value : t) =
-    write
-      [ ("status", Some ((json_enum Status.to_string) value.status)) ]
-      value.extra
+    write [ ("status", Some ((json_enum Status.to_string) value.status)) ]
 end
 
 module Conformance_driver_line_emission_emission_state_ready = struct
@@ -11036,22 +9260,14 @@ module Conformance_driver_line_emission_emission_state_ready = struct
     let of_string = function "ready" -> Some Ready | _ -> None
   end
 
-  type t = {
-    status : Status.t;
-    value : Yojson.Raw.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { status : Status.t; value : Yojson.Raw.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        value = required reader raw "value";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      value = required reader raw "value";
+    }
 
   let to_json (value : t) =
     write
@@ -11059,83 +9275,61 @@ module Conformance_driver_line_emission_emission_state_ready = struct
         ("status", Some ((json_enum Status.to_string) value.status));
         ("value", Some (json_raw value.value));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_completed = struct
-  type t = { completed : string; extra : (string * Yojson.Raw.t) list }
+  type t = { completed : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { completed = required reader string "completed"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { completed = required reader string "completed" }
 
   let to_json (value : t) =
-    write [ ("completed", Some (json_string value.completed)) ] value.extra
+    write [ ("completed", Some (json_string value.completed)) ]
 end
 
 module Conformance_driver_line_claimed = struct
-  type t = {
-    claimed : (string * Yojson.Raw.t) list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { claimed : (string * Yojson.Raw.t) list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { claimed = required reader (map raw) "claimed"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { claimed = required reader (map raw) "claimed" }
 
   let to_json (value : t) =
-    write [ ("claimed", Some ((json_map json_raw) value.claimed)) ] value.extra
+    write [ ("claimed", Some ((json_map json_raw) value.claimed)) ]
 end
 
 module Conformance_driver_line_signalled = struct
-  type t = { signalled : string; extra : (string * Yojson.Raw.t) list }
+  type t = { signalled : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      { signalled = required reader string "signalled"; extra = [] }
-    in
-    { record with extra = rest reader }
+    { signalled = required reader string "signalled" }
 
   let to_json (value : t) =
-    write [ ("signalled", Some (json_string value.signalled)) ] value.extra
+    write [ ("signalled", Some (json_string value.signalled)) ]
 end
 
 module Conformance_driver_line_stalled = struct
-  type t = { stalled : string; extra : (string * Yojson.Raw.t) list }
+  type t = { stalled : string }
 
   let project fields =
     let reader = start fields in
-    let record = { stalled = required reader string "stalled"; extra = [] } in
-    { record with extra = rest reader }
+    { stalled = required reader string "stalled" }
 
   let to_json (value : t) =
-    write [ ("stalled", Some (json_string value.stalled)) ] value.extra
+    write [ ("stalled", Some (json_string value.stalled)) ]
 end
 
 module Browse_click_event = struct
-  type t = {
-    annotation_id : string;
-    anchor_rect : Anchor_rect.t option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { annotation_id : string; anchor_rect : Anchor_rect.t option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation_id = required reader string "annotationId";
-        anchor_rect = maybe reader (record Anchor_rect.project) "anchorRect";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation_id = required reader string "annotationId";
+      anchor_rect = maybe reader (record Anchor_rect.project) "anchorRect";
+    }
 
   let of_model (model : [ `BrowseClickEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -11146,7 +9340,6 @@ module Browse_click_event = struct
         ("annotationId", Some (json_string value.annotation_id));
         ("anchorRect", Option.map Anchor_rect.to_json value.anchor_rect);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_click_event
@@ -11154,21 +9347,14 @@ module Browse_click_event = struct
 end
 
 module Browse_entity_types_result = struct
-  type t = {
-    response : Get_entity_types_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Get_entity_types_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Get_entity_types_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Get_entity_types_response.project) "response";
+    }
 
   let of_model (model : [ `BrowseEntityTypesResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -11176,7 +9362,6 @@ module Browse_entity_types_result = struct
   let to_json (value : t) =
     write
       [ ("response", Some (Get_entity_types_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_entity_types_result
@@ -11184,47 +9369,31 @@ module Browse_entity_types_result = struct
 end
 
 module Browse_kb_result = struct
-  type t = { response : Kb_description.t; extra : (string * Yojson.Raw.t) list }
+  type t = { response : Kb_description.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response = required reader (record Kb_description.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { response = required reader (record Kb_description.project) "response" }
 
   let of_model (model : [ `BrowseKbResult ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("response", Some (Kb_description.to_json value.response)) ]
-      value.extra
+    write [ ("response", Some (Kb_description.to_json value.response)) ]
 
   let to_model value =
     Models.decode Models.browse_kb_result (Yojson.Raw.to_string (to_json value))
 end
 
 module Anchored_text = struct
-  type t = {
-    text : string;
-    items : Pdf_text_item.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { text : string; items : Pdf_text_item.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        text = required reader string "text";
-        items = required reader (list (record Pdf_text_item.project)) "items";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      text = required reader string "text";
+      items = required reader (list (record Pdf_text_item.project)) "items";
+    }
 
   let of_model (model : [ `AnchoredText ] Models.t) =
     project (fields_of (Models.json model))
@@ -11235,7 +9404,6 @@ module Anchored_text = struct
         ("text", Some (json_string value.text));
         ("items", Some ((json_list Pdf_text_item.to_json) value.items));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.anchored_text (Yojson.Raw.to_string (to_json value))
@@ -11247,24 +9415,19 @@ module Bus_subscribe_request = struct
     pending_replies : string list option;
     scoped : Bus_subscribe_request_scoped_item.t list option;
     client_id : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        global = maybe reader (list string) "global";
-        pending_replies = maybe reader (list string) "pendingReplies";
-        scoped =
-          maybe reader
-            (list (record Bus_subscribe_request_scoped_item.project))
-            "scoped";
-        client_id = required reader string "clientId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      global = maybe reader (list string) "global";
+      pending_replies = maybe reader (list string) "pendingReplies";
+      scoped =
+        maybe reader
+          (list (record Bus_subscribe_request_scoped_item.project))
+          "scoped";
+      client_id = required reader string "clientId";
+    }
 
   let of_model (model : [ `BusSubscribeRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -11281,7 +9444,6 @@ module Bus_subscribe_request = struct
             value.scoped );
         ("clientId", Some (json_string value.client_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bus_subscribe_request
@@ -11293,26 +9455,21 @@ module Contextual_summary_response = struct
     summary : string;
     relevant_fields : Contextual_summary_response_relevant_fields.t;
     context : Contextual_summary_response_context.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        summary = required reader string "summary";
-        relevant_fields =
-          required reader
-            (record Contextual_summary_response_relevant_fields.project)
-            "relevantFields";
-        context =
-          required reader
-            (record Contextual_summary_response_context.project)
-            "context";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      summary = required reader string "summary";
+      relevant_fields =
+        required reader
+          (record Contextual_summary_response_relevant_fields.project)
+          "relevantFields";
+      context =
+        required reader
+          (record Contextual_summary_response_context.project)
+          "context";
+    }
 
   let of_model (model : [ `ContextualSummaryResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -11328,7 +9485,6 @@ module Contextual_summary_response = struct
         ( "context",
           Some (Contextual_summary_response_context.to_json value.context) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.contextual_summary_response
@@ -11336,22 +9492,14 @@ module Contextual_summary_response = struct
 end
 
 module Discovery_document = struct
-  type t = {
-    version : int;
-    kbs : Discovered_kb.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { version : int; kbs : Discovered_kb.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        version = required reader int "version";
-        kbs = required reader (list (record Discovered_kb.project)) "kbs";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      version = required reader int "version";
+      kbs = required reader (list (record Discovered_kb.project)) "kbs";
+    }
 
   let of_model (model : [ `DiscoveryDocument ] Models.t) =
     project (fields_of (Models.json model))
@@ -11362,7 +9510,6 @@ module Discovery_document = struct
         ("version", Some (json_int value.version));
         ("kbs", Some ((json_list Discovered_kb.to_json) value.kbs));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.discovery_document
@@ -11385,26 +9532,21 @@ module Extracted_text = struct
     pdf_class : Enums.Pdf_class.t option;
     ocr_confidence : Ocr_confidence.t option;
     unread_pages : int list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        text = required reader string "text";
-        items = required reader (list (record Pdf_text_item.project)) "items";
-        kind = required reader (enum Kind.of_string) "kind";
-        method_ =
-          required reader (enum Enums.Extraction_method.of_string) "method";
-        pdf_class = maybe reader (enum Enums.Pdf_class.of_string) "pdfClass";
-        ocr_confidence =
-          maybe reader (record Ocr_confidence.project) "ocrConfidence";
-        unread_pages = maybe reader (list int) "unreadPages";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      text = required reader string "text";
+      items = required reader (list (record Pdf_text_item.project)) "items";
+      kind = required reader (enum Kind.of_string) "kind";
+      method_ =
+        required reader (enum Enums.Extraction_method.of_string) "method";
+      pdf_class = maybe reader (enum Enums.Pdf_class.of_string) "pdfClass";
+      ocr_confidence =
+        maybe reader (record Ocr_confidence.project) "ocrConfidence";
+      unread_pages = maybe reader (list int) "unreadPages";
+    }
 
   let of_model (model : [ `ExtractedText ] Models.t) =
     project (fields_of (Models.json model))
@@ -11422,7 +9564,6 @@ module Extracted_text = struct
         ("ocrConfidence", Option.map Ocr_confidence.to_json value.ocr_confidence);
         ("unreadPages", Option.map (json_list json_int) value.unread_pages);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.extracted_text (Yojson.Raw.to_string (to_json value))
@@ -11433,21 +9574,16 @@ module Gather_annotation_request = struct
     annotation_id : string;
     resource_id : string;
     options : Gather_annotation_options.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation_id = required reader string "annotationId";
-        resource_id = required reader string "resourceId";
-        options =
-          maybe reader (record Gather_annotation_options.project) "options";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation_id = required reader string "annotationId";
+      resource_id = required reader string "resourceId";
+      options =
+        maybe reader (record Gather_annotation_options.project) "options";
+    }
 
   let of_model (model : [ `GatherAnnotationRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -11459,7 +9595,6 @@ module Gather_annotation_request = struct
         ("resourceId", Some (json_string value.resource_id));
         ("options", Option.map Gather_annotation_options.to_json value.options);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_annotation_request
@@ -11467,25 +9602,17 @@ module Gather_annotation_request = struct
 end
 
 module Gather_resource_request = struct
-  type t = {
-    resource_id : string;
-    options : Gather_resource_request_options.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; options : Gather_resource_request_options.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        options =
-          required reader
-            (record Gather_resource_request_options.project)
-            "options";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      options =
+        required reader
+          (record Gather_resource_request_options.project)
+          "options";
+    }
 
   let of_model (model : [ `GatherResourceRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -11496,7 +9623,6 @@ module Gather_resource_request = struct
         ("resourceId", Some (json_string value.resource_id));
         ("options", Some (Gather_resource_request_options.to_json value.options));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_resource_request
@@ -11504,22 +9630,14 @@ module Gather_resource_request = struct
 end
 
 module Engine_limits = struct
-  type t = {
-    engine : Engine.t;
-    limits : Inference_limits.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { engine : Engine.t; limits : Inference_limits.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        engine = required reader (record Engine.project) "engine";
-        limits = required reader (record Inference_limits.project) "limits";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      engine = required reader (record Engine.project) "engine";
+      limits = required reader (record Inference_limits.project) "limits";
+    }
 
   let of_model (model : [ `EngineLimits ] Models.t) =
     project (fields_of (Models.json model))
@@ -11530,7 +9648,6 @@ module Engine_limits = struct
         ("engine", Some (Engine.to_json value.engine));
         ("limits", Some (Inference_limits.to_json value.limits));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.engine_limits (Yojson.Raw.to_string (to_json value))
@@ -11545,25 +9662,20 @@ module Job_cancel_command = struct
     annotation_id : string option;
     completed_units : string list option;
     unit_cursors : (string * Unit_cursor.t) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        annotation_id = maybe reader string "annotationId";
-        completed_units = maybe reader (list string) "completedUnits";
-        unit_cursors =
-          maybe reader (map (record Unit_cursor.project)) "unitCursors";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      annotation_id = maybe reader string "annotationId";
+      completed_units = maybe reader (list string) "completedUnits";
+      unit_cursors =
+        maybe reader (map (record Unit_cursor.project)) "unitCursors";
+    }
 
   let of_model (model : [ `JobCancelCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -11581,7 +9693,6 @@ module Job_cancel_command = struct
         ( "unitCursors",
           Option.map (json_map Unit_cursor.to_json) value.unit_cursors );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_cancel_command
@@ -11589,23 +9700,14 @@ module Job_cancel_command = struct
 end
 
 module Job_created_result = struct
-  type t = {
-    response : Job_created_result_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Job_created_result_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader
-            (record Job_created_result_response.project)
-            "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Job_created_result_response.project) "response";
+    }
 
   let of_model (model : [ `JobCreatedResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -11615,7 +9717,6 @@ module Job_created_result = struct
       [
         ("response", Some (Job_created_result_response.to_json value.response));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_created_result
@@ -11636,32 +9737,27 @@ module Job_fail_command = struct
     failure_class : Enums.Failure_class.t option;
     will_retry : bool option;
     durability : Enums.Durability_evidence.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        attempt = maybe reader int "attempt";
-        annotation_id = maybe reader string "annotationId";
-        error = required reader string "error";
-        completed_units = maybe reader (list string) "completedUnits";
-        unit_cursors =
-          maybe reader (map (record Unit_cursor.project)) "unitCursors";
-        failure_class =
-          maybe reader (enum Enums.Failure_class.of_string) "failureClass";
-        will_retry = maybe reader bool "willRetry";
-        durability =
-          maybe reader (enum Enums.Durability_evidence.of_string) "durability";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      attempt = maybe reader int "attempt";
+      annotation_id = maybe reader string "annotationId";
+      error = required reader string "error";
+      completed_units = maybe reader (list string) "completedUnits";
+      unit_cursors =
+        maybe reader (map (record Unit_cursor.project)) "unitCursors";
+      failure_class =
+        maybe reader (enum Enums.Failure_class.of_string) "failureClass";
+      will_retry = maybe reader bool "willRetry";
+      durability =
+        maybe reader (enum Enums.Durability_evidence.of_string) "durability";
+    }
 
   let of_model (model : [ `JobFailCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -11690,7 +9786,6 @@ module Job_fail_command = struct
             (json_enum Enums.Durability_evidence.to_string)
             value.durability );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_fail_command (Yojson.Raw.to_string (to_json value))
@@ -11702,22 +9797,17 @@ module Job_checkpoint_command = struct
     job_id : string;
     completed_units : string list;
     unit_cursors : (string * Unit_cursor.t) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        job_id = required reader string "jobId";
-        completed_units = required reader (list string) "completedUnits";
-        unit_cursors =
-          maybe reader (map (record Unit_cursor.project)) "unitCursors";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      job_id = required reader string "jobId";
+      completed_units = required reader (list string) "completedUnits";
+      unit_cursors =
+        maybe reader (map (record Unit_cursor.project)) "unitCursors";
+    }
 
   let of_model (model : [ `JobCheckpointCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -11731,7 +9821,6 @@ module Job_checkpoint_command = struct
         ( "unitCursors",
           Option.map (json_map Unit_cursor.to_json) value.unit_cursors );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_checkpoint_command
@@ -11739,21 +9828,14 @@ module Job_checkpoint_command = struct
 end
 
 module Mark_create_ok = struct
-  type t = {
-    response : Mark_create_ok_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Mark_create_ok_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Mark_create_ok_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Mark_create_ok_response.project) "response";
+    }
 
   let of_model (model : [ `MarkCreateOk ] Models.t) =
     project (fields_of (Models.json model))
@@ -11761,28 +9843,20 @@ module Mark_create_ok = struct
   let to_json (value : t) =
     write
       [ ("response", Some (Mark_create_ok_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_create_ok (Yojson.Raw.to_string (to_json value))
 end
 
 module Mark_commit_ok = struct
-  type t = {
-    response : Mark_commit_ok_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Mark_commit_ok_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Mark_commit_ok_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Mark_commit_ok_response.project) "response";
+    }
 
   let of_model (model : [ `MarkCommitOk ] Models.t) =
     project (fields_of (Models.json model))
@@ -11790,28 +9864,20 @@ module Mark_commit_ok = struct
   let to_json (value : t) =
     write
       [ ("response", Some (Mark_commit_ok_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_commit_ok (Yojson.Raw.to_string (to_json value))
 end
 
 module Mark_delete_ok = struct
-  type t = {
-    response : Mark_delete_ok_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Mark_delete_ok_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Mark_delete_ok_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Mark_delete_ok_response.project) "response";
+    }
 
   let of_model (model : [ `MarkDeleteOk ] Models.t) =
     project (fields_of (Models.json model))
@@ -11819,7 +9885,6 @@ module Mark_delete_ok = struct
   let to_json (value : t) =
     write
       [ ("response", Some (Mark_delete_ok_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_delete_ok (Yojson.Raw.to_string (to_json value))
@@ -11898,7 +9963,7 @@ module Representation = struct
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
+    write_open
       [
         ("@id", Option.map json_string value.field_id);
         ("@type", Option.map One_or_more_strings.to_json value.field_type);
@@ -11931,23 +9996,18 @@ module Status_response = struct
     features : Status_response_features.t;
     message : string;
     authenticated_as : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader string "status";
-        version = required reader string "version";
-        features =
-          required reader (record Status_response_features.project) "features";
-        message = required reader string "message";
-        authenticated_as = maybe reader string "authenticatedAs";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader string "status";
+      version = required reader string "version";
+      features =
+        required reader (record Status_response_features.project) "features";
+      message = required reader string "message";
+      authenticated_as = maybe reader string "authenticatedAs";
+    }
 
   let of_model (model : [ `StatusResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -11961,7 +10021,6 @@ module Status_response = struct
         ("message", Some (json_string value.message));
         ("authenticatedAs", Option.map json_string value.authenticated_as);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.status_response (Yojson.Raw.to_string (to_json value))
@@ -11977,25 +10036,20 @@ module Stored_event_response = struct
     version : int;
     payload : (string * Yojson.Raw.t) list;
     metadata : Event_metadata.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        type_ = required reader string "type";
-        timestamp = required reader string "timestamp";
-        user_id = required reader string "userId";
-        resource_id = maybe reader string "resourceId";
-        version = required reader int "version";
-        payload = required reader (map raw) "payload";
-        metadata = required reader (record Event_metadata.project) "metadata";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      type_ = required reader string "type";
+      timestamp = required reader string "timestamp";
+      user_id = required reader string "userId";
+      resource_id = maybe reader string "resourceId";
+      version = required reader int "version";
+      payload = required reader (map raw) "payload";
+      metadata = required reader (record Event_metadata.project) "metadata";
+    }
 
   let of_model (model : [ `StoredEventResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -12012,7 +10066,6 @@ module Stored_event_response = struct
         ("payload", Some ((json_map json_raw) value.payload));
         ("metadata", Some (Event_metadata.to_json value.metadata));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.stored_event_response
@@ -12026,22 +10079,17 @@ module Tag_schema = struct
     description : string;
     domain : string;
     tags : Tag_category.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        name = required reader string "name";
-        description = required reader string "description";
-        domain = required reader string "domain";
-        tags = required reader (list (record Tag_category.project)) "tags";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      name = required reader string "name";
+      description = required reader string "description";
+      domain = required reader string "domain";
+      tags = required reader (list (record Tag_category.project)) "tags";
+    }
 
   let of_model (model : [ `TagSchema ] Models.t) =
     project (fields_of (Models.json model))
@@ -12055,35 +10103,23 @@ module Tag_schema = struct
         ("domain", Some (json_string value.domain));
         ("tags", Some ((json_list Tag_category.to_json) value.tags));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.tag_schema (Yojson.Raw.to_string (to_json value))
 end
 
 module Yield_clone_created = struct
-  type t = {
-    response : Yielded_resource.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Yielded_resource.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response = required reader (record Yielded_resource.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { response = required reader (record Yielded_resource.project) "response" }
 
   let of_model (model : [ `YieldCloneCreated ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("response", Some (Yielded_resource.to_json value.response)) ]
-      value.extra
+    write [ ("response", Some (Yielded_resource.to_json value.response)) ]
 
   let to_model value =
     Models.decode Models.yield_clone_created
@@ -12091,56 +10127,34 @@ module Yield_clone_created = struct
 end
 
 module Yield_create_ok = struct
-  type t = {
-    response : Yielded_resource.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Yielded_resource.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response = required reader (record Yielded_resource.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { response = required reader (record Yielded_resource.project) "response" }
 
   let of_model (model : [ `YieldCreateOk ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("response", Some (Yielded_resource.to_json value.response)) ]
-      value.extra
+    write [ ("response", Some (Yielded_resource.to_json value.response)) ]
 
   let to_model value =
     Models.decode Models.yield_create_ok (Yojson.Raw.to_string (to_json value))
 end
 
 module Yield_clone_persist_ok = struct
-  type t = {
-    response : Yielded_resource.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Yielded_resource.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response = required reader (record Yielded_resource.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { response = required reader (record Yielded_resource.project) "response" }
 
   let of_model (model : [ `YieldClonePersistOk ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("response", Some (Yielded_resource.to_json value.response)) ]
-      value.extra
+    write [ ("response", Some (Yielded_resource.to_json value.response)) ]
 
   let to_model value =
     Models.decode Models.yield_clone_persist_ok
@@ -12148,28 +10162,17 @@ module Yield_clone_persist_ok = struct
 end
 
 module Yield_update_ok = struct
-  type t = {
-    response : Yielded_resource.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Yielded_resource.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response = required reader (record Yielded_resource.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { response = required reader (record Yielded_resource.project) "response" }
 
   let of_model (model : [ `YieldUpdateOk ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("response", Some (Yielded_resource.to_json value.response)) ]
-      value.extra
+    write [ ("response", Some (Yielded_resource.to_json value.response)) ]
 
   let to_model value =
     Models.decode Models.yield_update_ok (Yojson.Raw.to_string (to_json value))
@@ -12183,24 +10186,15 @@ module Bus_event_message = struct
     let of_string = function "bus-event" -> Some Bus_event | _ -> None
   end
 
-  type t = {
-    event : Event.t;
-    id : string;
-    data : Bus_frame.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { event : Event.t; id : string; data : Bus_frame.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        event = required reader (enum Event.of_string) "event";
-        id = required reader string "id";
-        data = required reader (record Bus_frame.project) "data";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      event = required reader (enum Event.of_string) "event";
+      id = required reader string "id";
+      data = required reader (record Bus_frame.project) "data";
+    }
 
   let of_model (model : [ `BusEventMessage ] Models.t) =
     project (fields_of (Models.json model))
@@ -12212,7 +10206,6 @@ module Bus_event_message = struct
         ("id", Some (json_string value.id));
         ("data", Some (Bus_frame.to_json value.data));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bus_event_message
@@ -12229,26 +10222,21 @@ module Job_metadata = struct
     max_retries : int;
     completed_units : string list option;
     unit_cursors : (string * Unit_cursor.t) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        type_ = required reader (enum Enums.Job_type.of_string) "type";
-        user_id = required reader string "userId";
-        created = required reader string "created";
-        retry_count = required reader int "retryCount";
-        max_retries = required reader int "maxRetries";
-        completed_units = maybe reader (list string) "completedUnits";
-        unit_cursors =
-          maybe reader (map (record Unit_cursor.project)) "unitCursors";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      type_ = required reader (enum Enums.Job_type.of_string) "type";
+      user_id = required reader string "userId";
+      created = required reader string "created";
+      retry_count = required reader int "retryCount";
+      max_retries = required reader int "maxRetries";
+      completed_units = maybe reader (list string) "completedUnits";
+      unit_cursors =
+        maybe reader (map (record Unit_cursor.project)) "unitCursors";
+    }
 
   let of_model (model : [ `JobMetadata ] Models.t) =
     project (fields_of (Models.json model))
@@ -12267,7 +10255,6 @@ module Job_metadata = struct
         ( "unitCursors",
           Option.map (json_map Unit_cursor.to_json) value.unit_cursors );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_metadata (Yojson.Raw.to_string (to_json value))
@@ -12287,23 +10274,17 @@ module Yield_job_queued_event = struct
     resource_id : string;
     user_id : string;
     params : Generation_job_request.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Job_type.of_string) "jobType";
-        resource_id = required reader string "resourceId";
-        user_id = required reader string "userId";
-        params =
-          required reader (record Generation_job_request.project) "params";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Job_type.of_string) "jobType";
+      resource_id = required reader string "resourceId";
+      user_id = required reader string "userId";
+      params = required reader (record Generation_job_request.project) "params";
+    }
 
   let of_model (model : [ `YieldJobQueuedEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -12317,7 +10298,6 @@ module Yield_job_queued_event = struct
         ("userId", Some (json_string value.user_id));
         ("params", Some (Generation_job_request.to_json value.params));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.yield_job_queued_event
@@ -12332,23 +10312,14 @@ module Mark_job_filter = struct
     let of_string = function "mark" -> Some Mark | _ -> None
   end
 
-  type t = {
-    job_type : Job_type.t;
-    params : Mark_job_filter_params.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { job_type : Job_type.t; params : Mark_job_filter_params.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_type = required reader (enum Job_type.of_string) "jobType";
-        params =
-          required reader (record Mark_job_filter_params.project) "params";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_type = required reader (enum Job_type.of_string) "jobType";
+      params = required reader (record Mark_job_filter_params.project) "params";
+    }
 
   let of_model (model : [ `MarkJobFilter ] Models.t) =
     project (fields_of (Models.json model))
@@ -12359,35 +10330,23 @@ module Mark_job_filter = struct
         ("jobType", Some ((json_enum Job_type.to_string) value.job_type));
         ("params", Some (Mark_job_filter_params.to_json value.params));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_job_filter (Yojson.Raw.to_string (to_json value))
 end
 
 module Profiles_projection = struct
-  type t = {
-    profiles : (string * Profile.t) list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { profiles : (string * Profile.t) list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        profiles = required reader (map (record Profile.project)) "profiles";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { profiles = required reader (map (record Profile.project)) "profiles" }
 
   let of_model (model : [ `ProfilesProjection ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("profiles", Some ((json_map Profile.to_json) value.profiles)) ]
-      value.extra
+    write [ ("profiles", Some ((json_map Profile.to_json) value.profiles)) ]
 
   let to_model value =
     Models.decode Models.profiles_projection
@@ -12404,30 +10363,25 @@ module Anchored_text_extracted_entry = struct
     pdf_class : Enums.Pdf_class.t option;
     ocr_confidence : Ocr_confidence.t option;
     unread_pages : int list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        v = required reader int "v";
-        stamp = required reader string "stamp";
-        text = required reader string "text";
-        lines =
-          required reader
-            (list (record Anchored_text_extracted_entry_lines_item.project))
-            "lines";
-        method_ =
-          required reader (enum Enums.Extraction_method.of_string) "method";
-        pdf_class = maybe reader (enum Enums.Pdf_class.of_string) "pdfClass";
-        ocr_confidence =
-          maybe reader (record Ocr_confidence.project) "ocrConfidence";
-        unread_pages = maybe reader (list int) "unreadPages";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      v = required reader int "v";
+      stamp = required reader string "stamp";
+      text = required reader string "text";
+      lines =
+        required reader
+          (list (record Anchored_text_extracted_entry_lines_item.project))
+          "lines";
+      method_ =
+        required reader (enum Enums.Extraction_method.of_string) "method";
+      pdf_class = maybe reader (enum Enums.Pdf_class.of_string) "pdfClass";
+      ocr_confidence =
+        maybe reader (record Ocr_confidence.project) "ocrConfidence";
+      unread_pages = maybe reader (list int) "unreadPages";
+    }
 
   let of_model (model : [ `AnchoredTextExtractedEntry ] Models.t) =
     project (fields_of (Models.json model))
@@ -12449,7 +10403,6 @@ module Anchored_text_extracted_entry = struct
         ("ocrConfidence", Option.map Ocr_confidence.to_json value.ocr_confidence);
         ("unreadPages", Option.map (json_list json_int) value.unread_pages);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.anchored_text_extracted_entry
@@ -12457,21 +10410,14 @@ module Anchored_text_extracted_entry = struct
 end
 
 module Archivist_streams_response = struct
-  type t = {
-    streams : Archivist_stream.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { streams : Archivist_stream.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        streams =
-          required reader (list (record Archivist_stream.project)) "streams";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      streams =
+        required reader (list (record Archivist_stream.project)) "streams";
+    }
 
   let of_model (model : [ `ArchivistStreamsResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -12479,7 +10425,6 @@ module Archivist_streams_response = struct
   let to_json (value : t) =
     write
       [ ("streams", Some ((json_list Archivist_stream.to_json) value.streams)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.archivist_streams_response
@@ -12495,25 +10440,20 @@ module About_result = struct
     api_versions : string list;
     image_registry : string;
     runtimes : Runtime_state.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        version = maybe reader string "version";
-        development = required reader bool "development";
-        commit = maybe reader string "commit";
-        built = maybe reader string "built";
-        api_versions = required reader (list string) "apiVersions";
-        image_registry = required reader string "imageRegistry";
-        runtimes =
-          required reader (list (record Runtime_state.project)) "runtimes";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      version = maybe reader string "version";
+      development = required reader bool "development";
+      commit = maybe reader string "commit";
+      built = maybe reader string "built";
+      api_versions = required reader (list string) "apiVersions";
+      image_registry = required reader string "imageRegistry";
+      runtimes =
+        required reader (list (record Runtime_state.project)) "runtimes";
+    }
 
   let of_model (model : [ `AboutResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -12529,7 +10469,6 @@ module About_result = struct
         ("imageRegistry", Some (json_string value.image_registry));
         ("runtimes", Some ((json_list Runtime_state.to_json) value.runtimes));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.about_result (Yojson.Raw.to_string (to_json value))
@@ -12540,20 +10479,15 @@ module Auth_login_params = struct
     api_version : string;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = maybe reader (record Target.project) "target";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = maybe reader (record Target.project) "target";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+    }
 
   let of_model (model : [ `AuthLoginParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -12565,7 +10499,6 @@ module Auth_login_params = struct
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.auth_login_params
@@ -12577,20 +10510,15 @@ module Auth_logout_params = struct
     api_version : string;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = maybe reader (record Target.project) "target";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = maybe reader (record Target.project) "target";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+    }
 
   let of_model (model : [ `AuthLogoutParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -12602,7 +10530,6 @@ module Auth_logout_params = struct
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.auth_logout_params
@@ -12610,22 +10537,14 @@ module Auth_logout_params = struct
 end
 
 module Cancelled = struct
-  type t = {
-    request_id : Request_id.t;
-    reason : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { request_id : Request_id.t; reason : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        request_id = required reader Request_id.read "requestId";
-        reason = maybe reader string "reason";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      request_id = required reader Request_id.read "requestId";
+      reason = maybe reader string "reason";
+    }
 
   let of_model (model : [ `Cancelled ] Models.t) =
     project (fields_of (Models.json model))
@@ -12636,7 +10555,6 @@ module Cancelled = struct
         ("requestId", Some (Request_id.to_json value.request_id));
         ("reason", Option.map json_string value.reason);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.cancelled (Yojson.Raw.to_string (to_json value))
@@ -12650,23 +10568,18 @@ module Error_data = struct
     choices : Target.t list option;
     supported : string list option;
     may_still_run : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        code = required reader string "code";
-        retryable = required reader bool "retryable";
-        fields = maybe reader (list (record Field_fault.project)) "fields";
-        choices = maybe reader (list (record Target.project)) "choices";
-        supported = maybe reader (list string) "supported";
-        may_still_run = maybe reader bool "mayStillRun";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      code = required reader string "code";
+      retryable = required reader bool "retryable";
+      fields = maybe reader (list (record Field_fault.project)) "fields";
+      choices = maybe reader (list (record Target.project)) "choices";
+      supported = maybe reader (list string) "supported";
+      may_still_run = maybe reader bool "mayStillRun";
+    }
 
   let of_model (model : [ `ErrorData ] Models.t) =
     project (fields_of (Models.json model))
@@ -12681,7 +10594,6 @@ module Error_data = struct
         ("supported", Option.map (json_list json_string) value.supported);
         ("mayStillRun", Option.map json_bool value.may_still_run);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.error_data (Yojson.Raw.to_string (to_json value))
@@ -12694,22 +10606,17 @@ module Identity_useradd_params = struct
     email : string;
     password : string option;
     generate_password : bool;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = required reader (record Local_target.project) "target";
-        email = required reader string "email";
-        password = maybe reader string "password";
-        generate_password = required reader bool "generatePassword";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = required reader (record Local_target.project) "target";
+      email = required reader string "email";
+      password = maybe reader string "password";
+      generate_password = required reader bool "generatePassword";
+    }
 
   let of_model (model : [ `IdentityUseraddParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -12723,7 +10630,6 @@ module Identity_useradd_params = struct
         ("password", Option.map json_string value.password);
         ("generatePassword", Some (json_bool value.generate_password));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.identity_useradd_params
@@ -12731,22 +10637,14 @@ module Identity_useradd_params = struct
 end
 
 module Identity_users_list_params = struct
-  type t = {
-    api_version : string;
-    target : Local_target.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { api_version : string; target : Local_target.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = required reader (record Local_target.project) "target";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = required reader (record Local_target.project) "target";
+    }
 
   let of_model (model : [ `IdentityUsersListParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -12757,7 +10655,6 @@ module Identity_users_list_params = struct
         ("apiVersion", Some (json_string value.api_version));
         ("target", Some (Local_target.to_json value.target));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.identity_users_list_params
@@ -12765,28 +10662,17 @@ module Identity_users_list_params = struct
 end
 
 module Identity_users_list_result = struct
-  type t = {
-    users : Identity_user.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { users : Identity_user.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        users = required reader (list (record Identity_user.project)) "users";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { users = required reader (list (record Identity_user.project)) "users" }
 
   let of_model (model : [ `IdentityUsersListResult ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("users", Some ((json_list Identity_user.to_json) value.users)) ]
-      value.extra
+    write [ ("users", Some ((json_list Identity_user.to_json) value.users)) ]
 
   let to_model value =
     Models.decode Models.identity_users_list_result
@@ -12800,22 +10686,17 @@ module Log_record = struct
     stream : Enums.Output_stream.t;
     line : string;
     received_at : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        request_id = required reader Request_id.read "requestId";
-        service = required reader string "service";
-        stream = required reader (enum Enums.Output_stream.of_string) "stream";
-        line = required reader string "line";
-        received_at = required reader string "receivedAt";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      request_id = required reader Request_id.read "requestId";
+      service = required reader string "service";
+      stream = required reader (enum Enums.Output_stream.of_string) "stream";
+      line = required reader string "line";
+      received_at = required reader string "receivedAt";
+    }
 
   let of_model (model : [ `LogRecord ] Models.t) =
     project (fields_of (Models.json model))
@@ -12829,7 +10710,6 @@ module Log_record = struct
         ("line", Some (json_string value.line));
         ("receivedAt", Some (json_string value.received_at));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.log_record (Yojson.Raw.to_string (to_json value))
@@ -12841,21 +10721,16 @@ module Logs_follow_params = struct
     target : Target.t option;
     runtime : Enums.Runtime.t option;
     service : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = maybe reader (record Target.project) "target";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        service = maybe reader string "service";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = maybe reader (record Target.project) "target";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+      service = maybe reader string "service";
+    }
 
   let of_model (model : [ `LogsFollowParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -12868,7 +10743,6 @@ module Logs_follow_params = struct
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
         ("service", Option.map json_string value.service);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.logs_follow_params
@@ -12915,24 +10789,15 @@ module Progress = struct
       | _ -> None
   end
 
-  type t = {
-    request_id : Request_id.t;
-    kind : Kind.t;
-    text : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { request_id : Request_id.t; kind : Kind.t; text : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        request_id = required reader Request_id.read "requestId";
-        kind = required reader (enum Kind.of_string) "kind";
-        text = required reader string "text";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      request_id = required reader Request_id.read "requestId";
+      kind = required reader (enum Kind.of_string) "kind";
+      text = required reader string "text";
+    }
 
   let of_model (model : [ `Progress ] Models.t) =
     project (fields_of (Models.json model))
@@ -12944,29 +10809,20 @@ module Progress = struct
         ("kind", Some ((json_enum Kind.to_string) value.kind));
         ("text", Some (json_string value.text));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.progress (Yojson.Raw.to_string (to_json value))
 end
 
 module Roots_list_result = struct
-  type t = {
-    roots : Root.t list;
-    warnings : string list option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { roots : Root.t list; warnings : string list option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        roots = required reader (list (record Root.project)) "roots";
-        warnings = maybe reader (list string) "warnings";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      roots = required reader (list (record Root.project)) "roots";
+      warnings = maybe reader (list string) "warnings";
+    }
 
   let of_model (model : [ `RootsListResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -12977,7 +10833,6 @@ module Roots_list_result = struct
         ("roots", Some ((json_list Root.to_json) value.roots));
         ("warnings", Option.map (json_list json_string) value.warnings);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.roots_list_result
@@ -12990,21 +10845,16 @@ module Service_output = struct
     instance : string;
     stream : Enums.Output_stream.t;
     line : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        request_id = required reader Request_id.read "requestId";
-        instance = required reader string "instance";
-        stream = required reader (enum Enums.Output_stream.of_string) "stream";
-        line = required reader string "line";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      request_id = required reader Request_id.read "requestId";
+      instance = required reader string "instance";
+      stream = required reader (enum Enums.Output_stream.of_string) "stream";
+      line = required reader string "line";
+    }
 
   let of_model (model : [ `ServiceOutput ] Models.t) =
     project (fields_of (Models.json model))
@@ -13017,7 +10867,6 @@ module Service_output = struct
         ("stream", Some ((json_enum Enums.Output_stream.to_string) value.stream));
         ("line", Some (json_string value.line));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_output (Yojson.Raw.to_string (to_json value))
@@ -13036,28 +10885,23 @@ module Service_run_params = struct
     mounts : string list;
     path_first : string list;
     ports : int list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = required reader (record Local_target.project) "target";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        service = required reader (enum Enums.Run_service.of_string) "service";
-        instance = required reader string "instance";
-        document = maybe reader string "document";
-        args = maybe reader (list string) "args";
-        environment = required reader (map string) "environment";
-        mounts = required reader (list string) "mounts";
-        path_first = required reader (list string) "pathFirst";
-        ports = required reader (list int) "ports";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = required reader (record Local_target.project) "target";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+      service = required reader (enum Enums.Run_service.of_string) "service";
+      instance = required reader string "instance";
+      document = maybe reader string "document";
+      args = maybe reader (list string) "args";
+      environment = required reader (map string) "environment";
+      mounts = required reader (list string) "mounts";
+      path_first = required reader (list string) "pathFirst";
+      ports = required reader (list int) "ports";
+    }
 
   let of_model (model : [ `ServiceRunParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -13077,7 +10921,6 @@ module Service_run_params = struct
         ("pathFirst", Some ((json_list json_string) value.path_first));
         ("ports", Some ((json_list json_int) value.ports));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_run_params
@@ -13102,22 +10945,17 @@ module Service_signal_params = struct
     runtime : Enums.Runtime.t option;
     instance : string;
     signal : Signal.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = required reader (record Local_target.project) "target";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        instance = required reader string "instance";
-        signal = required reader (enum Signal.of_string) "signal";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = required reader (record Local_target.project) "target";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+      instance = required reader string "instance";
+      signal = required reader (enum Signal.of_string) "signal";
+    }
 
   let of_model (model : [ `ServiceSignalParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -13131,7 +10969,6 @@ module Service_signal_params = struct
         ("instance", Some (json_string value.instance));
         ("signal", Some ((json_enum Signal.to_string) value.signal));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_signal_params
@@ -13145,22 +10982,17 @@ module Service_started = struct
     container : string;
     document_path : string option;
     address : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        request_id = required reader Request_id.read "requestId";
-        instance = required reader string "instance";
-        container = required reader string "container";
-        document_path = maybe reader string "documentPath";
-        address = required reader string "address";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      request_id = required reader Request_id.read "requestId";
+      instance = required reader string "instance";
+      container = required reader string "container";
+      document_path = maybe reader string "documentPath";
+      address = required reader string "address";
+    }
 
   let of_model (model : [ `ServiceStarted ] Models.t) =
     project (fields_of (Models.json model))
@@ -13174,7 +11006,6 @@ module Service_started = struct
         ("documentPath", Option.map json_string value.document_path);
         ("address", Some (json_string value.address));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.service_started (Yojson.Raw.to_string (to_json value))
@@ -13201,23 +11032,18 @@ module Setting = struct
     values : Setting_line.t list;
     settable : bool;
     changed_by : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        default = required reader bool "default";
-        applies_to = required reader (enum Applies_to.of_string) "appliesTo";
-        values = required reader (list (record Setting_line.project)) "values";
-        settable = required reader bool "settable";
-        changed_by = maybe reader string "changedBy";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      default = required reader bool "default";
+      applies_to = required reader (enum Applies_to.of_string) "appliesTo";
+      values = required reader (list (record Setting_line.project)) "values";
+      settable = required reader bool "settable";
+      changed_by = maybe reader string "changedBy";
+    }
 
   let of_model (model : [ `Setting ] Models.t) =
     project (fields_of (Models.json model))
@@ -13232,7 +11058,6 @@ module Setting = struct
         ("settable", Some (json_bool value.settable));
         ("changedBy", Option.map json_string value.changed_by);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.setting (Yojson.Raw.to_string (to_json value))
@@ -13264,30 +11089,25 @@ module Stack_start_params = struct
     observe : bool option;
     ollama_cache : Ollama_cache.t option;
     dry_run : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = maybe reader (record Target.project) "target";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        config = maybe reader string "config";
-        service = maybe reader string "service";
-        group = maybe reader (enum Enums.Service_group.of_string) "group";
-        codespace_name = maybe reader string "codespaceName";
-        machine = maybe reader string "machine";
-        idle_timeout = maybe reader string "idleTimeout";
-        retention_period = maybe reader string "retentionPeriod";
-        observe = maybe reader bool "observe";
-        ollama_cache = maybe reader (enum Ollama_cache.of_string) "ollamaCache";
-        dry_run = maybe reader bool "dryRun";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = maybe reader (record Target.project) "target";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+      config = maybe reader string "config";
+      service = maybe reader string "service";
+      group = maybe reader (enum Enums.Service_group.of_string) "group";
+      codespace_name = maybe reader string "codespaceName";
+      machine = maybe reader string "machine";
+      idle_timeout = maybe reader string "idleTimeout";
+      retention_period = maybe reader string "retentionPeriod";
+      observe = maybe reader bool "observe";
+      ollama_cache = maybe reader (enum Ollama_cache.of_string) "ollamaCache";
+      dry_run = maybe reader bool "dryRun";
+    }
 
   let of_model (model : [ `StackStartParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -13311,7 +11131,6 @@ module Stack_start_params = struct
           Option.map (json_enum Ollama_cache.to_string) value.ollama_cache );
         ("dryRun", Option.map json_bool value.dry_run);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.stack_start_params
@@ -13328,25 +11147,20 @@ module Stack_stop_params = struct
     delete : bool option;
     delete_confirmed : bool option;
     dry_run : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = maybe reader (record Target.project) "target";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        service = maybe reader string "service";
-        group = maybe reader (enum Enums.Service_group.of_string) "group";
-        delete = maybe reader bool "delete";
-        delete_confirmed = maybe reader bool "deleteConfirmed";
-        dry_run = maybe reader bool "dryRun";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = maybe reader (record Target.project) "target";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+      service = maybe reader string "service";
+      group = maybe reader (enum Enums.Service_group.of_string) "group";
+      delete = maybe reader bool "delete";
+      delete_confirmed = maybe reader bool "deleteConfirmed";
+      dry_run = maybe reader bool "dryRun";
+    }
 
   let of_model (model : [ `StackStopParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -13364,7 +11178,6 @@ module Stack_stop_params = struct
         ("deleteConfirmed", Option.map json_bool value.delete_confirmed);
         ("dryRun", Option.map json_bool value.dry_run);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.stack_stop_params
@@ -13376,20 +11189,15 @@ module Status_snapshot_params = struct
     api_version : string;
     target : Target.t option;
     runtime : Enums.Runtime.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        target = maybe reader (record Target.project) "target";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      target = maybe reader (record Target.project) "target";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+    }
 
   let of_model (model : [ `StatusSnapshotParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -13401,7 +11209,6 @@ module Status_snapshot_params = struct
         ("target", Option.map Target.to_json value.target);
         ("runtime", Option.map (json_enum Enums.Runtime.to_string) value.runtime);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.status_snapshot_params
@@ -13415,23 +11222,17 @@ module User_action = struct
     verification_uri_complete : string option;
     user_code : string;
     expires_in_seconds : int;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        request_id = required reader Request_id.read "requestId";
-        verification_uri = required reader string "verificationUri";
-        verification_uri_complete =
-          maybe reader string "verificationUriComplete";
-        user_code = required reader string "userCode";
-        expires_in_seconds = required reader int "expiresInSeconds";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      request_id = required reader Request_id.read "requestId";
+      verification_uri = required reader string "verificationUri";
+      verification_uri_complete = maybe reader string "verificationUriComplete";
+      user_code = required reader string "userCode";
+      expires_in_seconds = required reader int "expiresInSeconds";
+    }
 
   let of_model (model : [ `UserAction ] Models.t) =
     project (fields_of (Models.json model))
@@ -13446,7 +11247,6 @@ module User_action = struct
         ("userCode", Some (json_string value.user_code));
         ("expiresInSeconds", Some (json_int value.expires_in_seconds));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.user_action (Yojson.Raw.to_string (to_json value))
@@ -13456,19 +11256,14 @@ module Workload_status = struct
   type t = {
     ledger : Workload_status_ledger.t option;
     queue : Workload_status_queue.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        ledger = maybe reader (record Workload_status_ledger.project) "ledger";
-        queue = maybe reader (record Workload_status_queue.project) "queue";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      ledger = maybe reader (record Workload_status_ledger.project) "ledger";
+      queue = maybe reader (record Workload_status_queue.project) "queue";
+    }
 
   let of_model (model : [ `WorkloadStatus ] Models.t) =
     project (fields_of (Models.json model))
@@ -13479,7 +11274,6 @@ module Workload_status = struct
         ("ledger", Option.map Workload_status_ledger.to_json value.ledger);
         ("queue", Option.map Workload_status_queue.to_json value.queue);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.workload_status (Yojson.Raw.to_string (to_json value))
@@ -13495,27 +11289,21 @@ module Dispatcher_config = struct
     timing : Dispatcher_config_timing.t;
     log_level : Enums.Log_level.t;
     log_format : Enums.Log_format.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kb = required reader (record Kb_identity.project) "kb";
-        gateway_url = required reader string "gatewayUrl";
-        identity = required reader (record Service_identity.project) "identity";
-        queue = required reader (record Dispatcher_config_queue.project) "queue";
-        port = required reader int "port";
-        timing =
-          required reader (record Dispatcher_config_timing.project) "timing";
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        log_format =
-          required reader (enum Enums.Log_format.of_string) "logFormat";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kb = required reader (record Kb_identity.project) "kb";
+      gateway_url = required reader string "gatewayUrl";
+      identity = required reader (record Service_identity.project) "identity";
+      queue = required reader (record Dispatcher_config_queue.project) "queue";
+      port = required reader int "port";
+      timing =
+        required reader (record Dispatcher_config_timing.project) "timing";
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      log_format = required reader (enum Enums.Log_format.of_string) "logFormat";
+    }
 
   let of_model (model : [ `DispatcherConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -13534,7 +11322,6 @@ module Dispatcher_config = struct
         ( "logFormat",
           Some ((json_enum Enums.Log_format.to_string) value.log_format) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.dispatcher_config
@@ -13552,29 +11339,23 @@ module Gateway_config = struct
     log_level : Enums.Log_level.t;
     log_format : Enums.Log_format.t;
     capacity : Gateway_config_capacity.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kb = required reader (record Kb_identity.project) "kb";
-        port = required reader int "port";
-        public_url = required reader string "publicUrl";
-        identity =
-          required reader (record Gateway_config_identity.project) "identity";
-        archivist = required reader (record Service_address.project) "archivist";
-        signal = required reader (record Gateway_config_signal.project) "signal";
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        log_format =
-          required reader (enum Enums.Log_format.of_string) "logFormat";
-        capacity =
-          required reader (record Gateway_config_capacity.project) "capacity";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kb = required reader (record Kb_identity.project) "kb";
+      port = required reader int "port";
+      public_url = required reader string "publicUrl";
+      identity =
+        required reader (record Gateway_config_identity.project) "identity";
+      archivist = required reader (record Service_address.project) "archivist";
+      signal = required reader (record Gateway_config_signal.project) "signal";
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      log_format = required reader (enum Enums.Log_format.of_string) "logFormat";
+      capacity =
+        required reader (record Gateway_config_capacity.project) "capacity";
+    }
 
   let of_model (model : [ `GatewayConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -13594,7 +11375,6 @@ module Gateway_config = struct
           Some ((json_enum Enums.Log_format.to_string) value.log_format) );
         ("capacity", Some (Gateway_config_capacity.to_json value.capacity));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gateway_config (Yojson.Raw.to_string (to_json value))
@@ -13605,21 +11385,16 @@ module Project_config = struct
     project : Project_config_project.t;
     git : Project_config_git.t;
     site : Project_config_site.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        project =
-          required reader (record Project_config_project.project) "project";
-        git = required reader (record Project_config_git.project) "git";
-        site = required reader (record Project_config_site.project) "site";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      project =
+        required reader (record Project_config_project.project) "project";
+      git = required reader (record Project_config_git.project) "git";
+      site = required reader (record Project_config_site.project) "site";
+    }
 
   let of_model (model : [ `ProjectConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -13631,31 +11406,21 @@ module Project_config = struct
         ("git", Some (Project_config_git.to_json value.git));
         ("site", Some (Project_config_site.to_json value.site));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.project_config (Yojson.Raw.to_string (to_json value))
 end
 
 module Librarian_engine_config = struct
-  type t = {
-    engine : Engine.t;
-    base_url : string;
-    api_key_env : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { engine : Engine.t; base_url : string; api_key_env : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        engine = required reader (record Engine.project) "engine";
-        base_url = required reader string "baseUrl";
-        api_key_env = maybe reader string "apiKeyEnv";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      engine = required reader (record Engine.project) "engine";
+      base_url = required reader string "baseUrl";
+      api_key_env = maybe reader string "apiKeyEnv";
+    }
 
   let of_model (model : [ `LibrarianEngineConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -13667,7 +11432,6 @@ module Librarian_engine_config = struct
         ("baseUrl", Some (json_string value.base_url));
         ("apiKeyEnv", Option.map json_string value.api_key_env);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.librarian_engine_config
@@ -13675,22 +11439,14 @@ module Librarian_engine_config = struct
 end
 
 module Provider = struct
-  type t = {
-    base_url : string option;
-    api_key : Secret_ref.t option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { base_url : string option; api_key : Secret_ref.t option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        base_url = maybe reader string "baseURL";
-        api_key = maybe reader (record Secret_ref.project) "apiKey";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      base_url = maybe reader string "baseURL";
+      api_key = maybe reader (record Secret_ref.project) "apiKey";
+    }
 
   let of_model (model : [ `Provider ] Models.t) =
     project (fields_of (Models.json model))
@@ -13701,32 +11457,23 @@ module Provider = struct
         ("baseURL", Option.map json_string value.base_url);
         ("apiKey", Option.map Secret_ref.to_json value.api_key);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.provider (Yojson.Raw.to_string (to_json value))
 end
 
 module Resources = struct
-  type t = { limits : Resources_limits.t; extra : (string * Yojson.Raw.t) list }
+  type t = { limits : Resources_limits.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        limits = required reader (record Resources_limits.project) "limits";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { limits = required reader (record Resources_limits.project) "limits" }
 
   let of_model (model : [ `Resources ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("limits", Some (Resources_limits.to_json value.limits)) ]
-      value.extra
+    write [ ("limits", Some (Resources_limits.to_json value.limits)) ]
 
   let to_model value =
     Models.decode Models.resources (Yojson.Raw.to_string (to_json value))
@@ -13936,25 +11683,14 @@ module Agent = struct
 end
 
 module Browse_profiles_result_response = struct
-  type t = {
-    profiles : (string * Profile.t) list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { profiles : (string * Profile.t) list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        profiles = required reader (map (record Profile.project)) "profiles";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { profiles = required reader (map (record Profile.project)) "profiles" }
 
   let to_json (value : t) =
-    write
-      [ ("profiles", Some ((json_map Profile.to_json) value.profiles)) ]
-      value.extra
+    write [ ("profiles", Some ((json_map Profile.to_json) value.profiles)) ]
 end
 
 module Resource_descriptor_context = struct
@@ -14115,20 +11851,14 @@ module Gathered_context_semantic_context = struct
   type t = {
     similar : Semantic_match.t list;
     excluded_entity_types : string list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        similar =
-          required reader (list (record Semantic_match.project)) "similar";
-        excluded_entity_types = maybe reader (list string) "excludedEntityTypes";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      similar = required reader (list (record Semantic_match.project)) "similar";
+      excluded_entity_types = maybe reader (list string) "excludedEntityTypes";
+    }
 
   let to_json (value : t) =
     write
@@ -14137,31 +11867,25 @@ module Gathered_context_semantic_context = struct
         ( "excludedEntityTypes",
           Option.map (json_list json_string) value.excluded_entity_types );
       ]
-      value.extra
 end
 
 module Get_referenced_by_response_referenced_by_item_target = struct
   type t = {
     source : string;
     selector : Get_referenced_by_response_referenced_by_item_target_selector.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        source = required reader string "source";
-        selector =
-          required reader
-            (record
-               Get_referenced_by_response_referenced_by_item_target_selector
-               .project)
-            "selector";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      source = required reader string "source";
+      selector =
+        required reader
+          (record
+             Get_referenced_by_response_referenced_by_item_target_selector
+             .project)
+          "selector";
+    }
 
   let to_json (value : t) =
     write
@@ -14172,7 +11896,6 @@ module Get_referenced_by_response_referenced_by_item_target = struct
             (Get_referenced_by_response_referenced_by_item_target_selector
              .to_json value.selector) );
       ]
-      value.extra
 end
 
 module Job_progress_message = struct
@@ -14358,24 +12081,19 @@ module Job_progress_completed_items_item = struct
     found_count : int;
     persisted_count : int option;
     under_reported : Job_progress_completed_items_item_under_reported.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        value = required reader string "value";
-        found_count = required reader int "foundCount";
-        persisted_count = maybe reader int "persistedCount";
-        under_reported =
-          maybe reader
-            (record Job_progress_completed_items_item_under_reported.project)
-            "underReported";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      value = required reader string "value";
+      found_count = required reader int "foundCount";
+      persisted_count = maybe reader int "persistedCount";
+      under_reported =
+        maybe reader
+          (record Job_progress_completed_items_item_under_reported.project)
+          "underReported";
+    }
 
   let to_json (value : t) =
     write
@@ -14387,7 +12105,6 @@ module Job_progress_completed_items_item = struct
           Option.map Job_progress_completed_items_item_under_reported.to_json
             value.under_reported );
       ]
-      value.extra
 end
 
 module Job_result = struct
@@ -14765,22 +12482,17 @@ module Archivist_engines_jobs_mark = struct
     assessing : Engine.t option;
     linking : Engine.t option;
     tagging : Engine.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        highlighting = maybe reader (record Engine.project) "highlighting";
-        commenting = maybe reader (record Engine.project) "commenting";
-        assessing = maybe reader (record Engine.project) "assessing";
-        linking = maybe reader (record Engine.project) "linking";
-        tagging = maybe reader (record Engine.project) "tagging";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      highlighting = maybe reader (record Engine.project) "highlighting";
+      commenting = maybe reader (record Engine.project) "commenting";
+      assessing = maybe reader (record Engine.project) "assessing";
+      linking = maybe reader (record Engine.project) "linking";
+      tagging = maybe reader (record Engine.project) "tagging";
+    }
 
   let to_json (value : t) =
     write
@@ -14791,26 +12503,17 @@ module Archivist_engines_jobs_mark = struct
         ("linking", Option.map Engine.to_json value.linking);
         ("tagging", Option.map Engine.to_json value.tagging);
       ]
-      value.extra
 end
 
 module Archivist_engines_actors = struct
-  type t = {
-    gatherer : Engine.t option;
-    matcher : Engine.t option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { gatherer : Engine.t option; matcher : Engine.t option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        gatherer = maybe reader (record Engine.project) "gatherer";
-        matcher = maybe reader (record Engine.project) "matcher";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      gatherer = maybe reader (record Engine.project) "gatherer";
+      matcher = maybe reader (record Engine.project) "matcher";
+    }
 
   let to_json (value : t) =
     write
@@ -14818,29 +12521,20 @@ module Archivist_engines_actors = struct
         ("gatherer", Option.map Engine.to_json value.gatherer);
         ("matcher", Option.map Engine.to_json value.matcher);
       ]
-      value.extra
 end
 
 module Conformance_step_observe = struct
-  type t = {
-    observe : Conformance_step_observe_observe.t;
-    as_ : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { observe : Conformance_step_observe_observe.t; as_ : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        observe =
-          required reader
-            (record Conformance_step_observe_observe.project)
-            "observe";
-        as_ = required reader string "as";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      observe =
+        required reader
+          (record Conformance_step_observe_observe.project)
+          "observe";
+      as_ = required reader string "as";
+    }
 
   let to_json (value : t) =
     write
@@ -14849,7 +12543,6 @@ module Conformance_step_observe = struct
           Some (Conformance_step_observe_observe.to_json value.observe) );
         ("as", Some (json_string value.as_));
       ]
-      value.extra
 end
 
 module Conformance_step_fetches_fetches_item = struct
@@ -14896,24 +12589,19 @@ module Conformance_implementations_sdks_value = struct
     live : Conformance_implementations_sdks_value_live.t option;
     worker : string list option;
     exempt : (string * string) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        wire = maybe reader (list string) "wire";
-        live =
-          maybe reader
-            (record Conformance_implementations_sdks_value_live.project)
-            "live";
-        worker = maybe reader (list string) "worker";
-        exempt = maybe reader (map string) "exempt";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      wire = maybe reader (list string) "wire";
+      live =
+        maybe reader
+          (record Conformance_implementations_sdks_value_live.project)
+          "live";
+      worker = maybe reader (list string) "worker";
+      exempt = maybe reader (map string) "exempt";
+    }
 
   let to_json (value : t) =
     write
@@ -14925,7 +12613,6 @@ module Conformance_implementations_sdks_value = struct
         ("worker", Option.map (json_list json_string) value.worker);
         ("exempt", Option.map (json_map json_string) value.exempt);
       ]
-      value.extra
 end
 
 module Graph_config = struct
@@ -15107,21 +12794,16 @@ module Smelter_health_reconcile = struct
     phase : Phase.t;
     summary : Smelter_reconcile_summary.t option;
     error : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        phase = required reader (enum Phase.of_string) "phase";
-        summary =
-          maybe reader (record Smelter_reconcile_summary.project) "summary";
-        error = maybe reader string "error";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      phase = required reader (enum Phase.of_string) "phase";
+      summary =
+        maybe reader (record Smelter_reconcile_summary.project) "summary";
+      error = maybe reader string "error";
+    }
 
   let to_json (value : t) =
     write
@@ -15130,29 +12812,23 @@ module Smelter_health_reconcile = struct
         ("summary", Option.map Smelter_reconcile_summary.to_json value.summary);
         ("error", Option.map json_string value.error);
       ]
-      value.extra
 end
 
 module Smelter_health_index_stamp = struct
   type t = {
     embedding : Smelter_health_index_stamp_embedding.t;
     chunking : Smelter_chunking.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        embedding =
-          required reader
-            (record Smelter_health_index_stamp_embedding.project)
-            "embedding";
-        chunking = required reader (record Smelter_chunking.project) "chunking";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      embedding =
+        required reader
+          (record Smelter_health_index_stamp_embedding.project)
+          "embedding";
+      chunking = required reader (record Smelter_chunking.project) "chunking";
+    }
 
   let to_json (value : t) =
     write
@@ -15161,28 +12837,18 @@ module Smelter_health_index_stamp = struct
           Some (Smelter_health_index_stamp_embedding.to_json value.embedding) );
         ("chunking", Some (Smelter_chunking.to_json value.chunking));
       ]
-      value.extra
 end
 
 module Issuer_spec_database_external = struct
-  type t = {
-    host : string;
-    port : int;
-    password : Secret_ref.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { host : string; port : int; password : Secret_ref.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        host = required reader string "host";
-        port = required reader int "port";
-        password = required reader (record Secret_ref.project) "password";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      host = required reader string "host";
+      port = required reader int "port";
+      password = required reader (record Secret_ref.project) "password";
+    }
 
   let to_json (value : t) =
     write
@@ -15191,26 +12857,17 @@ module Issuer_spec_database_external = struct
         ("port", Some (json_int value.port));
         ("password", Some (Secret_ref.to_json value.password));
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_graph_external = struct
-  type t = {
-    uri : string;
-    password : Secret_ref.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { uri : string; password : Secret_ref.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        uri = required reader string "uri";
-        password = required reader (record Secret_ref.project) "password";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      uri = required reader string "uri";
+      password = required reader (record Secret_ref.project) "password";
+    }
 
   let to_json (value : t) =
     write
@@ -15218,7 +12875,6 @@ module Knowledge_index_spec_graph_external = struct
         ("uri", Some (json_string value.uri));
         ("password", Some (Secret_ref.to_json value.password));
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_vectors_external = struct
@@ -15227,23 +12883,17 @@ module Knowledge_index_spec_vectors_external = struct
     port : int;
     smelter_token : Secret_ref.t;
     librarian_token : Secret_ref.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        host = required reader string "host";
-        port = required reader int "port";
-        smelter_token =
-          required reader (record Secret_ref.project) "smelterToken";
-        librarian_token =
-          required reader (record Secret_ref.project) "librarianToken";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      host = required reader string "host";
+      port = required reader int "port";
+      smelter_token = required reader (record Secret_ref.project) "smelterToken";
+      librarian_token =
+        required reader (record Secret_ref.project) "librarianToken";
+    }
 
   let to_json (value : t) =
     write
@@ -15253,7 +12903,6 @@ module Knowledge_index_spec_vectors_external = struct
         ("smelterToken", Some (Secret_ref.to_json value.smelter_token));
         ("librarianToken", Some (Secret_ref.to_json value.librarian_token));
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_embedding = struct
@@ -15263,25 +12912,20 @@ module Knowledge_index_spec_embedding = struct
     chunking : Knowledge_index_spec_embedding_chunking.t;
     endpoint : string option;
     api_key : Secret_ref.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader string "type";
-        model = required reader string "model";
-        chunking =
-          required reader
-            (record Knowledge_index_spec_embedding_chunking.project)
-            "chunking";
-        endpoint = maybe reader string "endpoint";
-        api_key = maybe reader (record Secret_ref.project) "apiKey";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader string "type";
+      model = required reader string "model";
+      chunking =
+        required reader
+          (record Knowledge_index_spec_embedding_chunking.project)
+          "chunking";
+      endpoint = maybe reader string "endpoint";
+      api_key = maybe reader (record Secret_ref.project) "apiKey";
+    }
 
   let to_json (value : t) =
     write
@@ -15294,28 +12938,18 @@ module Knowledge_index_spec_embedding = struct
         ("endpoint", Option.map json_string value.endpoint);
         ("apiKey", Option.map Secret_ref.to_json value.api_key);
       ]
-      value.extra
 end
 
 module Stack_knowledge_base_spec_messaging_external = struct
-  type t = {
-    servers : string;
-    user : Secret_ref.t;
-    password : Secret_ref.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { servers : string; user : Secret_ref.t; password : Secret_ref.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        servers = required reader string "servers";
-        user = required reader (record Secret_ref.project) "user";
-        password = required reader (record Secret_ref.project) "password";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      servers = required reader string "servers";
+      user = required reader (record Secret_ref.project) "user";
+      password = required reader (record Secret_ref.project) "password";
+    }
 
   let to_json (value : t) =
     write
@@ -15324,7 +12958,6 @@ module Stack_knowledge_base_spec_messaging_external = struct
         ("user", Some (Secret_ref.to_json value.user));
         ("password", Some (Secret_ref.to_json value.password));
       ]
-      value.extra
 end
 
 module Stack_knowledge_base_spec_issuer = struct
@@ -15332,26 +12965,21 @@ module Stack_knowledge_base_spec_issuer = struct
     shared : Stack_knowledge_base_spec_issuer_shared.t option;
     external_ : Stack_knowledge_base_spec_issuer_external.t option;
     subject_claim : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        shared =
-          maybe reader
-            (record Stack_knowledge_base_spec_issuer_shared.project)
-            "shared";
-        external_ =
-          maybe reader
-            (record Stack_knowledge_base_spec_issuer_external.project)
-            "external";
-        subject_claim = required reader string "subjectClaim";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      shared =
+        maybe reader
+          (record Stack_knowledge_base_spec_issuer_shared.project)
+          "shared";
+      external_ =
+        maybe reader
+          (record Stack_knowledge_base_spec_issuer_external.project)
+          "external";
+      subject_claim = required reader string "subjectClaim";
+    }
 
   let to_json (value : t) =
     write
@@ -15364,7 +12992,6 @@ module Stack_knowledge_base_spec_issuer = struct
             value.external_ );
         ("subjectClaim", Some (json_string value.subject_claim));
       ]
-      value.extra
 end
 
 module Weaver_health_reconcile = struct
@@ -15389,23 +13016,16 @@ module Weaver_health_reconcile = struct
     phase : Phase.t;
     summary : Weaver_health_reconcile_summary.t option;
     error : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        phase = required reader (enum Phase.of_string) "phase";
-        summary =
-          maybe reader
-            (record Weaver_health_reconcile_summary.project)
-            "summary";
-        error = maybe reader string "error";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      phase = required reader (enum Phase.of_string) "phase";
+      summary =
+        maybe reader (record Weaver_health_reconcile_summary.project) "summary";
+      error = maybe reader string "error";
+    }
 
   let to_json (value : t) =
     write
@@ -15415,26 +13035,17 @@ module Weaver_health_reconcile = struct
           Option.map Weaver_health_reconcile_summary.to_json value.summary );
         ("error", Option.map json_string value.error);
       ]
-      value.extra
 end
 
 module Conformance_driver_line_failed = struct
-  type t = {
-    id : int;
-    error : Conformance_failure.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { id : int; error : Conformance_failure.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader int "id";
-        error = required reader (record Conformance_failure.project) "error";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader int "id";
+      error = required reader (record Conformance_failure.project) "error";
+    }
 
   let to_json (value : t) =
     write
@@ -15442,76 +13053,49 @@ module Conformance_driver_line_failed = struct
         ("id", Some (json_int value.id));
         ("error", Some (Conformance_failure.to_json value.error));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_frame = struct
-  type t = {
-    frame : Conformance_driver_line_frame_frame.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { frame : Conformance_driver_line_frame_frame.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        frame =
-          required reader
-            (record Conformance_driver_line_frame_frame.project)
-            "frame";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      frame =
+        required reader
+          (record Conformance_driver_line_frame_frame.project)
+          "frame";
+    }
 
   let to_json (value : t) =
     write
       [
         ("frame", Some (Conformance_driver_line_frame_frame.to_json value.frame));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_error_stream = struct
-  type t = {
-    error : Conformance_failure.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { error : Conformance_failure.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        error = required reader (record Conformance_failure.project) "error";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { error = required reader (record Conformance_failure.project) "error" }
 
   let to_json (value : t) =
-    write
-      [ ("error", Some (Conformance_failure.to_json value.error)) ]
-      value.extra
+    write [ ("error", Some (Conformance_failure.to_json value.error)) ]
 end
 
 module Conformance_driver_line_progress = struct
-  type t = {
-    progress : Conformance_driver_line_progress_progress.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { progress : Conformance_driver_line_progress_progress.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        progress =
-          required reader
-            (record Conformance_driver_line_progress_progress.project)
-            "progress";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      progress =
+        required reader
+          (record Conformance_driver_line_progress_progress.project)
+          "progress";
+    }
 
   let to_json (value : t) =
     write
@@ -15521,7 +13105,6 @@ module Conformance_driver_line_progress = struct
             (Conformance_driver_line_progress_progress.to_json value.progress)
         );
       ]
-      value.extra
 end
 
 module Conformance_driver_line_emission_emission_state_failed = struct
@@ -15532,22 +13115,14 @@ module Conformance_driver_line_emission_emission_state_failed = struct
     let of_string = function "failed" -> Some Failed | _ -> None
   end
 
-  type t = {
-    status : Status.t;
-    error : Conformance_failure.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { status : Status.t; error : Conformance_failure.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        error = required reader (record Conformance_failure.project) "error";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      error = required reader (record Conformance_failure.project) "error";
+    }
 
   let to_json (value : t) =
     write
@@ -15555,29 +13130,17 @@ module Conformance_driver_line_emission_emission_state_failed = struct
         ("status", Some ((json_enum Status.to_string) value.status));
         ("error", Some (Conformance_failure.to_json value.error));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_refused = struct
-  type t = {
-    refused : Conformance_failure.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { refused : Conformance_failure.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        refused = required reader (record Conformance_failure.project) "refused";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { refused = required reader (record Conformance_failure.project) "refused" }
 
   let to_json (value : t) =
-    write
-      [ ("refused", Some (Conformance_failure.to_json value.refused)) ]
-      value.extra
+    write [ ("refused", Some (Conformance_failure.to_json value.refused)) ]
 end
 
 module Attributed_event = struct
@@ -15591,26 +13154,21 @@ module Attributed_event = struct
     payload : (string * Yojson.Raw.t) list;
     metadata : Event_metadata.t;
     agent : Agent.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        type_ = required reader string "type";
-        timestamp = required reader string "timestamp";
-        user_id = required reader string "userId";
-        resource_id = maybe reader string "resourceId";
-        version = required reader int "version";
-        payload = required reader (map raw) "payload";
-        metadata = required reader (record Event_metadata.project) "metadata";
-        agent = required reader Agent.read "agent";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      type_ = required reader string "type";
+      timestamp = required reader string "timestamp";
+      user_id = required reader string "userId";
+      resource_id = maybe reader string "resourceId";
+      version = required reader int "version";
+      payload = required reader (map raw) "payload";
+      metadata = required reader (record Event_metadata.project) "metadata";
+      agent = required reader Agent.read "agent";
+    }
 
   let of_model (model : [ `AttributedEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -15628,7 +13186,6 @@ module Attributed_event = struct
         ("metadata", Some (Event_metadata.to_json value.metadata));
         ("agent", Some (Agent.to_json value.agent));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.attributed_event (Yojson.Raw.to_string (to_json value))
@@ -15655,21 +13212,16 @@ module Bind_body_operation = struct
     item : Annotation_body.t option;
     old_item : Annotation_body.t option;
     new_item : Annotation_body.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        op = required reader (enum Op.of_string) "op";
-        item = maybe reader Annotation_body.read "item";
-        old_item = maybe reader Annotation_body.read "oldItem";
-        new_item = maybe reader Annotation_body.read "newItem";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      op = required reader (enum Op.of_string) "op";
+      item = maybe reader Annotation_body.read "item";
+      old_item = maybe reader Annotation_body.read "oldItem";
+      new_item = maybe reader Annotation_body.read "newItem";
+    }
 
   let of_model (model : [ `BindBodyOperation ] Models.t) =
     project (fields_of (Models.json model))
@@ -15682,7 +13234,6 @@ module Bind_body_operation = struct
         ("oldItem", Option.map Annotation_body.to_json value.old_item);
         ("newItem", Option.map Annotation_body.to_json value.new_item);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bind_body_operation
@@ -15697,22 +13248,14 @@ module Body_operation_add = struct
     let of_string = function "add" -> Some Add | _ -> None
   end
 
-  type t = {
-    op : Op.t;
-    item : Annotation_body.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { op : Op.t; item : Annotation_body.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        op = required reader (enum Op.of_string) "op";
-        item = required reader Annotation_body.read "item";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      op = required reader (enum Op.of_string) "op";
+      item = required reader Annotation_body.read "item";
+    }
 
   let of_model (model : [ `BodyOperationAdd ] Models.t) =
     project (fields_of (Models.json model))
@@ -15723,7 +13266,6 @@ module Body_operation_add = struct
         ("op", Some ((json_enum Op.to_string) value.op));
         ("item", Some (Annotation_body.to_json value.item));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.body_operation_add
@@ -15738,22 +13280,14 @@ module Body_operation_remove = struct
     let of_string = function "remove" -> Some Remove | _ -> None
   end
 
-  type t = {
-    op : Op.t;
-    item : Annotation_body.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { op : Op.t; item : Annotation_body.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        op = required reader (enum Op.of_string) "op";
-        item = required reader Annotation_body.read "item";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      op = required reader (enum Op.of_string) "op";
+      item = required reader Annotation_body.read "item";
+    }
 
   let of_model (model : [ `BodyOperationRemove ] Models.t) =
     project (fields_of (Models.json model))
@@ -15764,7 +13298,6 @@ module Body_operation_remove = struct
         ("op", Some ((json_enum Op.to_string) value.op));
         ("item", Some (Annotation_body.to_json value.item));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.body_operation_remove
@@ -15783,20 +13316,15 @@ module Body_operation_replace = struct
     op : Op.t;
     old_item : Annotation_body.t;
     new_item : Annotation_body.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        op = required reader (enum Op.of_string) "op";
-        old_item = required reader Annotation_body.read "oldItem";
-        new_item = required reader Annotation_body.read "newItem";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      op = required reader (enum Op.of_string) "op";
+      old_item = required reader Annotation_body.read "oldItem";
+      new_item = required reader Annotation_body.read "newItem";
+    }
 
   let of_model (model : [ `BodyOperationReplace ] Models.t) =
     project (fields_of (Models.json model))
@@ -15808,7 +13336,6 @@ module Body_operation_replace = struct
         ("oldItem", Some (Annotation_body.to_json value.old_item));
         ("newItem", Some (Annotation_body.to_json value.new_item));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.body_operation_replace
@@ -15816,23 +13343,16 @@ module Body_operation_replace = struct
 end
 
 module Browse_profiles_result = struct
-  type t = {
-    response : Browse_profiles_result_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Browse_profiles_result_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader
-            (record Browse_profiles_result_response.project)
-            "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader
+          (record Browse_profiles_result_response.project)
+          "response";
+    }
 
   let of_model (model : [ `BrowseProfilesResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -15843,7 +13363,6 @@ module Browse_profiles_result = struct
         ( "response",
           Some (Browse_profiles_result_response.to_json value.response) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_profiles_result
@@ -15851,22 +13370,14 @@ module Browse_profiles_result = struct
 end
 
 module Browse_directory_result_response = struct
-  type t = {
-    path : string;
-    entries : Directory_entry.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { path : string; entries : Directory_entry.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        path = required reader string "path";
-        entries = required reader (list Directory_entry.read) "entries";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      path = required reader string "path";
+      entries = required reader (list Directory_entry.read) "entries";
+    }
 
   let of_model (model : [ `BrowseDirectoryResultResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -15877,7 +13388,6 @@ module Browse_directory_result_response = struct
         ("path", Some (json_string value.path));
         ("entries", Some ((json_list Directory_entry.to_json) value.entries));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_directory_result_response
@@ -15885,22 +13395,14 @@ module Browse_directory_result_response = struct
 end
 
 module Browse_files_response = struct
-  type t = {
-    path : string;
-    entries : Directory_entry.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { path : string; entries : Directory_entry.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        path = required reader string "path";
-        entries = required reader (list Directory_entry.read) "entries";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      path = required reader string "path";
+      entries = required reader (list Directory_entry.read) "entries";
+    }
 
   let of_model (model : [ `BrowseFilesResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -15911,7 +13413,6 @@ module Browse_files_response = struct
         ("path", Some (json_string value.path));
         ("entries", Some ((json_list Directory_entry.to_json) value.entries));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_files_response
@@ -15919,22 +13420,14 @@ module Browse_files_response = struct
 end
 
 module Frame_add_tag_schema_command = struct
-  type t = {
-    schema : Tag_schema.t;
-    field_user_id : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { schema : Tag_schema.t; field_user_id : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        schema = required reader (record Tag_schema.project) "schema";
-        field_user_id = maybe reader string "_userId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      schema = required reader (record Tag_schema.project) "schema";
+      field_user_id = maybe reader string "_userId";
+    }
 
   let of_model (model : [ `FrameAddTagSchemaCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -15945,7 +13438,6 @@ module Frame_add_tag_schema_command = struct
         ("schema", Some (Tag_schema.to_json value.schema));
         ("_userId", Option.map json_string value.field_user_id);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.frame_add_tag_schema_command
@@ -15957,23 +13449,18 @@ module Get_referenced_by_response_referenced_by_item = struct
     id : string;
     resource_name : string option;
     target : Get_referenced_by_response_referenced_by_item_target.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        resource_name = maybe reader string "resourceName";
-        target =
-          required reader
-            (record Get_referenced_by_response_referenced_by_item_target.project)
-            "target";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      resource_name = maybe reader string "resourceName";
+      target =
+        required reader
+          (record Get_referenced_by_response_referenced_by_item_target.project)
+          "target";
+    }
 
   let of_model (model : [ `GetReferencedByResponseReferencedByItem ] Models.t) =
     project (fields_of (Models.json model))
@@ -15988,7 +13475,6 @@ module Get_referenced_by_response_referenced_by_item = struct
             (Get_referenced_by_response_referenced_by_item_target.to_json
                value.target) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_referenced_by_response_referenced_by_item
@@ -15996,21 +13482,14 @@ module Get_referenced_by_response_referenced_by_item = struct
 end
 
 module Get_tag_schemas_response = struct
-  type t = {
-    tag_schemas : Tag_schema.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { tag_schemas : Tag_schema.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        tag_schemas =
-          required reader (list (record Tag_schema.project)) "tagSchemas";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      tag_schemas =
+        required reader (list (record Tag_schema.project)) "tagSchemas";
+    }
 
   let of_model (model : [ `GetTagSchemasResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -16020,7 +13499,6 @@ module Get_tag_schemas_response = struct
       [
         ("tagSchemas", Some ((json_list Tag_schema.to_json) value.tag_schemas));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_tag_schemas_response
@@ -16040,34 +13518,29 @@ module Job_progress = struct
     entities_emitted : int option;
     completed_items : Job_progress_completed_items_item.t list option;
     request_params : Job_progress_request_params_item.t list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        percentage = required reader float "percentage";
-        message = maybe reader Job_progress_message.read "message";
-        annotation_id = maybe reader string "annotationId";
-        current = maybe reader (record Job_progress_current.project) "current";
-        processed = maybe reader int "processed";
-        total = maybe reader int "total";
-        entities_found = maybe reader int "entitiesFound";
-        entities_expected = maybe reader int "entitiesExpected";
-        entities_emitted = maybe reader int "entitiesEmitted";
-        completed_items =
-          maybe reader
-            (list (record Job_progress_completed_items_item.project))
-            "completedItems";
-        request_params =
-          maybe reader
-            (list (record Job_progress_request_params_item.project))
-            "requestParams";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      percentage = required reader float "percentage";
+      message = maybe reader Job_progress_message.read "message";
+      annotation_id = maybe reader string "annotationId";
+      current = maybe reader (record Job_progress_current.project) "current";
+      processed = maybe reader int "processed";
+      total = maybe reader int "total";
+      entities_found = maybe reader int "entitiesFound";
+      entities_expected = maybe reader int "entitiesExpected";
+      entities_emitted = maybe reader int "entitiesEmitted";
+      completed_items =
+        maybe reader
+          (list (record Job_progress_completed_items_item.project))
+          "completedItems";
+      request_params =
+        maybe reader
+          (list (record Job_progress_request_params_item.project))
+          "requestParams";
+    }
 
   let of_model (model : [ `JobProgress ] Models.t) =
     project (fields_of (Models.json model))
@@ -16093,31 +13566,21 @@ module Job_progress = struct
             (json_list Job_progress_request_params_item.to_json)
             value.request_params );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_progress (Yojson.Raw.to_string (to_json value))
 end
 
 module Kb_target = struct
-  type t = {
-    id : string;
-    label : string;
-    endpoint : Kb_endpoint.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { id : string; label : string; endpoint : Kb_endpoint.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        label = required reader string "label";
-        endpoint = required reader Kb_endpoint.read "endpoint";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      label = required reader string "label";
+      endpoint = required reader Kb_endpoint.read "endpoint";
+    }
 
   let of_model (model : [ `KbTarget ] Models.t) =
     project (fields_of (Models.json model))
@@ -16129,7 +13592,6 @@ module Kb_target = struct
         ("label", Some (json_string value.label));
         ("endpoint", Some (Kb_endpoint.to_json value.endpoint));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.kb_target (Yojson.Raw.to_string (to_json value))
@@ -16142,22 +13604,17 @@ module Knowledge_base = struct
     endpoint : Kb_endpoint.t;
     did : string;
     last_read : Kb_read.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        label = required reader string "label";
-        endpoint = required reader Kb_endpoint.read "endpoint";
-        did = required reader string "did";
-        last_read = maybe reader (record Kb_read.project) "lastRead";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      label = required reader string "label";
+      endpoint = required reader Kb_endpoint.read "endpoint";
+      did = required reader string "did";
+      last_read = maybe reader (record Kb_read.project) "lastRead";
+    }
 
   let of_model (model : [ `KnowledgeBase ] Models.t) =
     project (fields_of (Models.json model))
@@ -16171,7 +13628,6 @@ module Knowledge_base = struct
         ("did", Some (json_string value.did));
         ("lastRead", Option.map Kb_read.to_json value.last_read);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.knowledge_base (Yojson.Raw.to_string (to_json value))
@@ -16183,21 +13639,16 @@ module New_knowledge_base = struct
     endpoint : Kb_endpoint.t;
     did : string;
     last_read : Kb_read.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        label = required reader string "label";
-        endpoint = required reader Kb_endpoint.read "endpoint";
-        did = required reader string "did";
-        last_read = maybe reader (record Kb_read.project) "lastRead";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      label = required reader string "label";
+      endpoint = required reader Kb_endpoint.read "endpoint";
+      did = required reader string "did";
+      last_read = maybe reader (record Kb_read.project) "lastRead";
+    }
 
   let of_model (model : [ `NewKnowledgeBase ] Models.t) =
     project (fields_of (Models.json model))
@@ -16210,7 +13661,6 @@ module New_knowledge_base = struct
         ("did", Some (json_string value.did));
         ("lastRead", Option.map Kb_read.to_json value.last_read);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.new_knowledge_base
@@ -16218,21 +13668,14 @@ module New_knowledge_base = struct
 end
 
 module Representation_added_payload = struct
-  type t = {
-    representation : Representation.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { representation : Representation.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        representation =
-          required reader (record Representation.project) "representation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      representation =
+        required reader (record Representation.project) "representation";
+    }
 
   let of_model (model : [ `RepresentationAddedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -16240,7 +13683,6 @@ module Representation_added_payload = struct
   let to_json (value : t) =
     write
       [ ("representation", Some (Representation.to_json value.representation)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.representation_added_payload
@@ -16248,23 +13690,17 @@ module Representation_added_payload = struct
 end
 
 module Tag_schema_added_payload = struct
-  type t = { schema : Tag_schema.t; extra : (string * Yojson.Raw.t) list }
+  type t = { schema : Tag_schema.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        schema = required reader (record Tag_schema.project) "schema";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { schema = required reader (record Tag_schema.project) "schema" }
 
   let of_model (model : [ `TagSchemaAddedPayload ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write [ ("schema", Some (Tag_schema.to_json value.schema)) ] value.extra
+    write [ ("schema", Some (Tag_schema.to_json value.schema)) ]
 
   let to_model value =
     Models.decode Models.tag_schema_added_payload
@@ -16293,7 +13729,7 @@ module Job_params = struct
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
+    write_open
       [
         ("resourceId", Some (json_string value.resource_id));
         ("schema", Option.map Tag_schema.to_json value.schema);
@@ -16318,22 +13754,17 @@ module Mark_job_create_command = struct
     job_type : Job_type.t;
     resource_id : string;
     params : Mark_job_params.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        field_roles = maybe reader (list string) "_roles";
-        job_type = required reader (enum Job_type.of_string) "jobType";
-        resource_id = required reader string "resourceId";
-        params = required reader Mark_job_params.read "params";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      field_roles = maybe reader (list string) "_roles";
+      job_type = required reader (enum Job_type.of_string) "jobType";
+      resource_id = required reader string "resourceId";
+      params = required reader Mark_job_params.read "params";
+    }
 
   let of_model (model : [ `MarkJobCreateCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -16347,7 +13778,6 @@ module Mark_job_create_command = struct
         ("resourceId", Some (json_string value.resource_id));
         ("params", Some (Mark_job_params.to_json value.params));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_job_create_command
@@ -16368,22 +13798,17 @@ module Mark_job_queued_event = struct
     resource_id : string;
     user_id : string;
     params : Mark_job_params.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Job_type.of_string) "jobType";
-        resource_id = required reader string "resourceId";
-        user_id = required reader string "userId";
-        params = required reader Mark_job_params.read "params";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Job_type.of_string) "jobType";
+      resource_id = required reader string "resourceId";
+      user_id = required reader string "userId";
+      params = required reader Mark_job_params.read "params";
+    }
 
   let of_model (model : [ `MarkJobQueuedEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -16397,7 +13822,6 @@ module Mark_job_queued_event = struct
         ("userId", Some (json_string value.user_id));
         ("params", Some (Mark_job_params.to_json value.params));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_job_queued_event
@@ -16420,25 +13844,20 @@ module Mark_job_complete_command = struct
     attempt : int option;
     result : Mark_job_result.t option;
     durability : Enums.Durability_evidence.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Job_type.of_string) "jobType";
-        attempt = maybe reader int "attempt";
-        result = maybe reader Mark_job_result.read "result";
-        durability =
-          maybe reader (enum Enums.Durability_evidence.of_string) "durability";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Job_type.of_string) "jobType";
+      attempt = maybe reader int "attempt";
+      result = maybe reader Mark_job_result.read "result";
+      durability =
+        maybe reader (enum Enums.Durability_evidence.of_string) "durability";
+    }
 
   let of_model (model : [ `MarkJobCompleteCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -16457,7 +13876,6 @@ module Mark_job_complete_command = struct
             (json_enum Enums.Durability_evidence.to_string)
             value.durability );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_job_complete_command
@@ -16481,26 +13899,21 @@ module Yield_job_complete_command = struct
     annotation_id : string option;
     result : Yield_job_result.t option;
     durability : Enums.Durability_evidence.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Job_type.of_string) "jobType";
-        attempt = maybe reader int "attempt";
-        annotation_id = maybe reader string "annotationId";
-        result = maybe reader Yield_job_result.read "result";
-        durability =
-          maybe reader (enum Enums.Durability_evidence.of_string) "durability";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Job_type.of_string) "jobType";
+      attempt = maybe reader int "attempt";
+      annotation_id = maybe reader string "annotationId";
+      result = maybe reader Yield_job_result.read "result";
+      durability =
+        maybe reader (enum Enums.Durability_evidence.of_string) "durability";
+    }
 
   let of_model (model : [ `YieldJobCompleteCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -16520,7 +13933,6 @@ module Yield_job_complete_command = struct
             (json_enum Enums.Durability_evidence.to_string)
             value.durability );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.yield_job_complete_command
@@ -16528,21 +13940,14 @@ module Yield_job_complete_command = struct
 end
 
 module Tag_schemas_projection = struct
-  type t = {
-    tag_schemas : Tag_schema.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { tag_schemas : Tag_schema.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        tag_schemas =
-          required reader (list (record Tag_schema.project)) "tagSchemas";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      tag_schemas =
+        required reader (list (record Tag_schema.project)) "tagSchemas";
+    }
 
   let of_model (model : [ `TagSchemasProjection ] Models.t) =
     project (fields_of (Models.json model))
@@ -16552,7 +13957,6 @@ module Tag_schemas_projection = struct
       [
         ("tagSchemas", Some ((json_list Tag_schema.to_json) value.tag_schemas));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.tag_schemas_projection
@@ -16560,23 +13964,15 @@ module Tag_schemas_projection = struct
 end
 
 module Archivist_events_response = struct
-  type t = {
-    events : Stored_event_response.t list;
-    last_sequence : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { events : Stored_event_response.t list; last_sequence : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        events =
-          required reader (list (record Stored_event_response.project)) "events";
-        last_sequence = required reader int "lastSequence";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      events =
+        required reader (list (record Stored_event_response.project)) "events";
+      last_sequence = required reader int "lastSequence";
+    }
 
   let of_model (model : [ `ArchivistEventsResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -16587,7 +13983,6 @@ module Archivist_events_response = struct
         ("events", Some ((json_list Stored_event_response.to_json) value.events));
         ("lastSequence", Some (json_int value.last_sequence));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.archivist_events_response
@@ -16600,24 +13995,19 @@ module Conformance_implementations = struct
     target : Local_target.t;
     sdks : (string * Conformance_implementations_sdks_value.t) list;
     model_catalogue : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        launcher = required reader (list string) "launcher";
-        target = required reader (record Local_target.project) "target";
-        sdks =
-          required reader
-            (map (record Conformance_implementations_sdks_value.project))
-            "sdks";
-        model_catalogue = maybe reader string "modelCatalogue";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      launcher = required reader (list string) "launcher";
+      target = required reader (record Local_target.project) "target";
+      sdks =
+        required reader
+          (map (record Conformance_implementations_sdks_value.project))
+          "sdks";
+      model_catalogue = maybe reader string "modelCatalogue";
+    }
 
   let of_model (model : [ `ConformanceImplementations ] Models.t) =
     project (fields_of (Models.json model))
@@ -16633,7 +14023,6 @@ module Conformance_implementations = struct
                value.sdks) );
         ("modelCatalogue", Option.map json_string value.model_catalogue);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.conformance_implementations
@@ -16672,37 +14061,32 @@ module Knowledge_base_status = struct
     healthy : bool;
     services : Service_status.t list;
     workload : Workload_status.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        key = required reader string "key";
-        recorded = required reader bool "recorded";
-        placement = required reader (enum Placement.of_string) "placement";
-        root = maybe reader string "root";
-        repo = maybe reader string "repo";
-        did = maybe reader string "did";
-        site_name = maybe reader string "siteName";
-        identity_error = maybe reader string "identityError";
-        kb = maybe reader (record Discovered_kb.project) "kb";
-        runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
-        gateway = maybe reader string "gateway";
-        secret_store = maybe reader string "secretStore";
-        lan = maybe reader string "lan";
-        starting = required reader bool "starting";
-        session = maybe reader (record Session.project) "session";
-        healthy = required reader bool "healthy";
-        services =
-          required reader (list (record Service_status.project)) "services";
-        workload = maybe reader (record Workload_status.project) "workload";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      key = required reader string "key";
+      recorded = required reader bool "recorded";
+      placement = required reader (enum Placement.of_string) "placement";
+      root = maybe reader string "root";
+      repo = maybe reader string "repo";
+      did = maybe reader string "did";
+      site_name = maybe reader string "siteName";
+      identity_error = maybe reader string "identityError";
+      kb = maybe reader (record Discovered_kb.project) "kb";
+      runtime = maybe reader (enum Enums.Runtime.of_string) "runtime";
+      gateway = maybe reader string "gateway";
+      secret_store = maybe reader string "secretStore";
+      lan = maybe reader string "lan";
+      starting = required reader bool "starting";
+      session = maybe reader (record Session.project) "session";
+      healthy = required reader bool "healthy";
+      services =
+        required reader (list (record Service_status.project)) "services";
+      workload = maybe reader (record Workload_status.project) "workload";
+    }
 
   let of_model (model : [ `KnowledgeBaseStatus ] Models.t) =
     project (fields_of (Models.json model))
@@ -16730,7 +14114,6 @@ module Knowledge_base_status = struct
         ("services", Some ((json_list Service_status.to_json) value.services));
         ("workload", Option.map Workload_status.to_json value.workload);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.knowledge_base_status
@@ -16742,20 +14125,15 @@ module Settings_list_result = struct
     root : string option;
     unresolved : string option;
     settings : Setting.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        root = maybe reader string "root";
-        unresolved = maybe reader string "unresolved";
-        settings = required reader (list (record Setting.project)) "settings";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      root = maybe reader string "root";
+      unresolved = maybe reader string "unresolved";
+      settings = required reader (list (record Setting.project)) "settings";
+    }
 
   let of_model (model : [ `SettingsListResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -16767,7 +14145,6 @@ module Settings_list_result = struct
         ("unresolved", Option.map json_string value.unresolved);
         ("settings", Some ((json_list Setting.to_json) value.settings));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.settings_list_result
@@ -16791,37 +14168,29 @@ module Librarian_config = struct
     port : int;
     log_level : Enums.Log_level.t;
     log_format : Enums.Log_format.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kb = required reader (record Kb_identity.project) "kb";
-        gateway_url = required reader string "gatewayUrl";
-        identity = required reader (record Service_identity.project) "identity";
-        archivist = required reader (record Service_address.project) "archivist";
-        graph = required reader Graph_config.read "graph";
-        vectors = required reader Vectors_config.read "vectors";
-        embedding = required reader Embedding_config.read "embedding";
-        matcher =
-          required reader (record Librarian_engine_config.project) "matcher";
-        gatherer =
-          required reader (record Librarian_engine_config.project) "gatherer";
-        model_catalogue = required reader string "modelCatalogue";
-        gather =
-          required reader (record Librarian_config_gather.project) "gather";
-        search =
-          required reader (record Librarian_config_search.project) "search";
-        port = required reader int "port";
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        log_format =
-          required reader (enum Enums.Log_format.of_string) "logFormat";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kb = required reader (record Kb_identity.project) "kb";
+      gateway_url = required reader string "gatewayUrl";
+      identity = required reader (record Service_identity.project) "identity";
+      archivist = required reader (record Service_address.project) "archivist";
+      graph = required reader Graph_config.read "graph";
+      vectors = required reader Vectors_config.read "vectors";
+      embedding = required reader Embedding_config.read "embedding";
+      matcher =
+        required reader (record Librarian_engine_config.project) "matcher";
+      gatherer =
+        required reader (record Librarian_engine_config.project) "gatherer";
+      model_catalogue = required reader string "modelCatalogue";
+      gather = required reader (record Librarian_config_gather.project) "gather";
+      search = required reader (record Librarian_config_search.project) "search";
+      port = required reader int "port";
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      log_format = required reader (enum Enums.Log_format.of_string) "logFormat";
+    }
 
   let of_model (model : [ `LibrarianConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -16847,7 +14216,6 @@ module Librarian_config = struct
         ( "logFormat",
           Some ((json_enum Enums.Log_format.to_string) value.log_format) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.librarian_config (Yojson.Raw.to_string (to_json value))
@@ -16867,30 +14235,24 @@ module Smelter_config = struct
     port : int;
     log_level : Enums.Log_level.t;
     log_format : Enums.Log_format.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kb = required reader (record Kb_identity.project) "kb";
-        gateway_url = required reader string "gatewayUrl";
-        identity = required reader (record Service_identity.project) "identity";
-        archivist = required reader (record Service_address.project) "archivist";
-        embedding = required reader Embedding_config.read "embedding";
-        vectors = required reader Vectors_config.read "vectors";
-        chunking = required reader (record Smelter_chunking.project) "chunking";
-        pdfs_at_once = required reader int "pdfsAtOnce";
-        cursors_path = required reader string "cursorsPath";
-        port = required reader int "port";
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        log_format =
-          required reader (enum Enums.Log_format.of_string) "logFormat";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kb = required reader (record Kb_identity.project) "kb";
+      gateway_url = required reader string "gatewayUrl";
+      identity = required reader (record Service_identity.project) "identity";
+      archivist = required reader (record Service_address.project) "archivist";
+      embedding = required reader Embedding_config.read "embedding";
+      vectors = required reader Vectors_config.read "vectors";
+      chunking = required reader (record Smelter_chunking.project) "chunking";
+      pdfs_at_once = required reader int "pdfsAtOnce";
+      cursors_path = required reader string "cursorsPath";
+      port = required reader int "port";
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      log_format = required reader (enum Enums.Log_format.of_string) "logFormat";
+    }
 
   let of_model (model : [ `SmelterConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -16913,7 +14275,6 @@ module Smelter_config = struct
         ( "logFormat",
           Some ((json_enum Enums.Log_format.to_string) value.log_format) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.smelter_config (Yojson.Raw.to_string (to_json value))
@@ -16930,27 +14291,21 @@ module Weaver_config = struct
     port : int;
     log_level : Enums.Log_level.t;
     log_format : Enums.Log_format.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kb = required reader (record Kb_identity.project) "kb";
-        gateway_url = required reader string "gatewayUrl";
-        identity = required reader (record Service_identity.project) "identity";
-        archivist = required reader (record Service_address.project) "archivist";
-        graph = required reader Graph_config.read "graph";
-        cursors_path = required reader string "cursorsPath";
-        port = required reader int "port";
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        log_format =
-          required reader (enum Enums.Log_format.of_string) "logFormat";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kb = required reader (record Kb_identity.project) "kb";
+      gateway_url = required reader string "gatewayUrl";
+      identity = required reader (record Service_identity.project) "identity";
+      archivist = required reader (record Service_address.project) "archivist";
+      graph = required reader Graph_config.read "graph";
+      cursors_path = required reader string "cursorsPath";
+      port = required reader int "port";
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      log_format = required reader (enum Enums.Log_format.of_string) "logFormat";
+    }
 
   let of_model (model : [ `WeaverConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -16970,7 +14325,6 @@ module Weaver_config = struct
         ( "logFormat",
           Some ((json_enum Enums.Log_format.to_string) value.log_format) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.weaver_config (Yojson.Raw.to_string (to_json value))
@@ -16989,23 +14343,18 @@ module Weaver_health = struct
     kb : string;
     following : Follower_following.t;
     reconcile : Weaver_health_reconcile.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        kb = required reader string "kb";
-        following =
-          required reader (record Follower_following.project) "following";
-        reconcile =
-          required reader (record Weaver_health_reconcile.project) "reconcile";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      kb = required reader string "kb";
+      following =
+        required reader (record Follower_following.project) "following";
+      reconcile =
+        required reader (record Weaver_health_reconcile.project) "reconcile";
+    }
 
   let of_model (model : [ `WeaverHealth ] Models.t) =
     project (fields_of (Models.json model))
@@ -17018,7 +14367,6 @@ module Weaver_health = struct
         ("following", Some (Follower_following.to_json value.following));
         ("reconcile", Some (Weaver_health_reconcile.to_json value.reconcile));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.weaver_health (Yojson.Raw.to_string (to_json value))
@@ -17326,25 +14674,14 @@ module Resource_descriptor_representations = struct
 end
 
 module Inference_limits_result_response = struct
-  type t = {
-    limits : Engine_limits.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { limits : Engine_limits.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        limits = required reader (list (record Engine_limits.project)) "limits";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { limits = required reader (list (record Engine_limits.project)) "limits" }
 
   let to_json (value : t) =
-    write
-      [ ("limits", Some ((json_list Engine_limits.to_json) value.limits)) ]
-      value.extra
+    write [ ("limits", Some ((json_list Engine_limits.to_json) value.limits)) ]
 end
 
 module Job_stored_result = struct
@@ -17428,19 +14765,14 @@ module Archivist_engines_jobs = struct
   type t = {
     mark : Archivist_engines_jobs_mark.t option;
     yield : Engine.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        mark = maybe reader (record Archivist_engines_jobs_mark.project) "mark";
-        yield = maybe reader (record Engine.project) "yield";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      mark = maybe reader (record Archivist_engines_jobs_mark.project) "mark";
+      yield = maybe reader (record Engine.project) "yield";
+    }
 
   let to_json (value : t) =
     write
@@ -17448,7 +14780,6 @@ module Archivist_engines_jobs = struct
         ("mark", Option.map Archivist_engines_jobs_mark.to_json value.mark);
         ("yield", Option.map Engine.to_json value.yield);
       ]
-      value.extra
 end
 
 module Anchored_text_entry = struct
@@ -17545,23 +14876,16 @@ module Anchored_text_entry = struct
 end
 
 module Conformance_step_fetches = struct
-  type t = {
-    fetches : Conformance_step_fetches_fetches_item.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { fetches : Conformance_step_fetches_fetches_item.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        fetches =
-          required reader
-            (list Conformance_step_fetches_fetches_item.read)
-            "fetches";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      fetches =
+        required reader
+          (list Conformance_step_fetches_fetches_item.read)
+          "fetches";
+    }
 
   let to_json (value : t) =
     write
@@ -17571,27 +14895,18 @@ module Conformance_step_fetches = struct
             ((json_list Conformance_step_fetches_fetches_item.to_json)
                value.fetches) );
       ]
-      value.extra
 end
 
 module Smelter_health_index = struct
-  type t = {
-    stamp : Smelter_health_index_stamp.t;
-    made_anew : bool;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { stamp : Smelter_health_index_stamp.t; made_anew : bool }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        stamp =
-          required reader (record Smelter_health_index_stamp.project) "stamp";
-        made_anew = required reader bool "madeAnew";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      stamp =
+        required reader (record Smelter_health_index_stamp.project) "stamp";
+      made_anew = required reader bool "madeAnew";
+    }
 
   let to_json (value : t) =
     write
@@ -17599,28 +14914,18 @@ module Smelter_health_index = struct
         ("stamp", Some (Smelter_health_index_stamp.to_json value.stamp));
         ("madeAnew", Some (json_bool value.made_anew));
       ]
-      value.extra
 end
 
 module Browser_spec = struct
-  type t = {
-    image : string;
-    resources : Resources.t;
-    port : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { image : string; resources : Resources.t; port : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        port = required reader int "port";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+      port = required reader int "port";
+    }
 
   let to_json (value : t) =
     write
@@ -17629,7 +14934,6 @@ module Browser_spec = struct
         ("resources", Some (Resources.to_json value.resources));
         ("port", Some (json_int value.port));
       ]
-      value.extra
 end
 
 module Issuer_spec_database = struct
@@ -17641,25 +14945,20 @@ module Issuer_spec_database = struct
     resources : Resources.t option;
     port : int option;
     external_ : Issuer_spec_database_external.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader string "type";
-        name = required reader string "name";
-        user = required reader string "user";
-        image = maybe reader string "image";
-        resources = maybe reader (record Resources.project) "resources";
-        port = maybe reader int "port";
-        external_ =
-          maybe reader (record Issuer_spec_database_external.project) "external";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader string "type";
+      name = required reader string "name";
+      user = required reader string "user";
+      image = maybe reader string "image";
+      resources = maybe reader (record Resources.project) "resources";
+      port = maybe reader int "port";
+      external_ =
+        maybe reader (record Issuer_spec_database_external.project) "external";
+    }
 
   let to_json (value : t) =
     write
@@ -17673,7 +14972,6 @@ module Issuer_spec_database = struct
         ( "external",
           Option.map Issuer_spec_database_external.to_json value.external_ );
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_graph = struct
@@ -17683,25 +14981,20 @@ module Knowledge_index_spec_graph = struct
     image : string option;
     resources : Resources.t option;
     external_ : Knowledge_index_spec_graph_external.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader string "type";
-        username = required reader string "username";
-        image = maybe reader string "image";
-        resources = maybe reader (record Resources.project) "resources";
-        external_ =
-          maybe reader
-            (record Knowledge_index_spec_graph_external.project)
-            "external";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader string "type";
+      username = required reader string "username";
+      image = maybe reader string "image";
+      resources = maybe reader (record Resources.project) "resources";
+      external_ =
+        maybe reader
+          (record Knowledge_index_spec_graph_external.project)
+          "external";
+    }
 
   let to_json (value : t) =
     write
@@ -17714,7 +15007,6 @@ module Knowledge_index_spec_graph = struct
           Option.map Knowledge_index_spec_graph_external.to_json value.external_
         );
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_vectors = struct
@@ -17724,25 +15016,20 @@ module Knowledge_index_spec_vectors = struct
     image : string option;
     resources : Resources.t option;
     external_ : Knowledge_index_spec_vectors_external.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader string "type";
-        shared = maybe reader (map raw) "shared";
-        image = maybe reader string "image";
-        resources = maybe reader (record Resources.project) "resources";
-        external_ =
-          maybe reader
-            (record Knowledge_index_spec_vectors_external.project)
-            "external";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader string "type";
+      shared = maybe reader (map raw) "shared";
+      image = maybe reader string "image";
+      resources = maybe reader (record Resources.project) "resources";
+      external_ =
+        maybe reader
+          (record Knowledge_index_spec_vectors_external.project)
+          "external";
+    }
 
   let to_json (value : t) =
     write
@@ -17755,7 +15042,6 @@ module Knowledge_index_spec_vectors = struct
           Option.map Knowledge_index_spec_vectors_external.to_json
             value.external_ );
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_librarian = struct
@@ -17764,27 +15050,22 @@ module Knowledge_index_spec_librarian = struct
     resources : Resources.t;
     gather : Knowledge_index_spec_librarian_gather.t;
     search : Knowledge_index_spec_librarian_search.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        gather =
-          required reader
-            (record Knowledge_index_spec_librarian_gather.project)
-            "gather";
-        search =
-          required reader
-            (record Knowledge_index_spec_librarian_search.project)
-            "search";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+      gather =
+        required reader
+          (record Knowledge_index_spec_librarian_gather.project)
+          "gather";
+      search =
+        required reader
+          (record Knowledge_index_spec_librarian_search.project)
+          "search";
+    }
 
   let to_json (value : t) =
     write
@@ -17796,28 +15077,18 @@ module Knowledge_index_spec_librarian = struct
         ( "search",
           Some (Knowledge_index_spec_librarian_search.to_json value.search) );
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_smelter = struct
-  type t = {
-    image : string;
-    resources : Resources.t;
-    pdfs_at_once : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { image : string; resources : Resources.t; pdfs_at_once : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        pdfs_at_once = required reader int "pdfsAtOnce";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+      pdfs_at_once = required reader int "pdfsAtOnce";
+    }
 
   let to_json (value : t) =
     write
@@ -17826,26 +15097,17 @@ module Knowledge_index_spec_smelter = struct
         ("resources", Some (Resources.to_json value.resources));
         ("pdfsAtOnce", Some (json_int value.pdfs_at_once));
       ]
-      value.extra
 end
 
 module Knowledge_index_spec_weaver = struct
-  type t = {
-    image : string;
-    resources : Resources.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { image : string; resources : Resources.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+    }
 
   let to_json (value : t) =
     write
@@ -17853,7 +15115,6 @@ module Knowledge_index_spec_weaver = struct
         ("image", Some (json_string value.image));
         ("resources", Some (Resources.to_json value.resources));
       ]
-      value.extra
 end
 
 module Stack_knowledge_base_spec_gateway = struct
@@ -17862,21 +15123,16 @@ module Stack_knowledge_base_spec_gateway = struct
     resources : Resources.t;
     port : int;
     public_url : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        port = required reader int "port";
-        public_url = required reader string "publicURL";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+      port = required reader int "port";
+      public_url = required reader string "publicURL";
+    }
 
   let to_json (value : t) =
     write
@@ -17886,26 +15142,17 @@ module Stack_knowledge_base_spec_gateway = struct
         ("port", Some (json_int value.port));
         ("publicURL", Some (json_string value.public_url));
       ]
-      value.extra
 end
 
 module Stack_knowledge_base_spec_dispatcher = struct
-  type t = {
-    image : string;
-    resources : Resources.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { image : string; resources : Resources.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+    }
 
   let to_json (value : t) =
     write
@@ -17913,7 +15160,6 @@ module Stack_knowledge_base_spec_dispatcher = struct
         ("image", Some (json_string value.image));
         ("resources", Some (Resources.to_json value.resources));
       ]
-      value.extra
 end
 
 module Stack_knowledge_base_spec_archivist = struct
@@ -17921,20 +15167,15 @@ module Stack_knowledge_base_spec_archivist = struct
     image : string;
     resources : Resources.t;
     address : Host_port.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        address = maybe reader (record Host_port.project) "address";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+      address = maybe reader (record Host_port.project) "address";
+    }
 
   let to_json (value : t) =
     write
@@ -17943,7 +15184,6 @@ module Stack_knowledge_base_spec_archivist = struct
         ("resources", Some (Resources.to_json value.resources));
         ("address", Option.map Host_port.to_json value.address);
       ]
-      value.extra
 end
 
 module Stack_knowledge_base_spec_messaging = struct
@@ -17953,31 +15193,26 @@ module Stack_knowledge_base_spec_messaging = struct
     image : string option;
     resources : Resources.t option;
     external_ : Stack_knowledge_base_spec_messaging_external.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        jobs =
-          required reader
-            (record Stack_knowledge_base_spec_messaging_jobs.project)
-            "jobs";
-        signal =
-          required reader
-            (record Stack_knowledge_base_spec_messaging_signal.project)
-            "signal";
-        image = maybe reader string "image";
-        resources = maybe reader (record Resources.project) "resources";
-        external_ =
-          maybe reader
-            (record Stack_knowledge_base_spec_messaging_external.project)
-            "external";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      jobs =
+        required reader
+          (record Stack_knowledge_base_spec_messaging_jobs.project)
+          "jobs";
+      signal =
+        required reader
+          (record Stack_knowledge_base_spec_messaging_signal.project)
+          "signal";
+      image = maybe reader string "image";
+      resources = maybe reader (record Resources.project) "resources";
+      external_ =
+        maybe reader
+          (record Stack_knowledge_base_spec_messaging_external.project)
+          "external";
+    }
 
   let to_json (value : t) =
     write
@@ -17993,7 +15228,6 @@ module Stack_knowledge_base_spec_messaging = struct
           Option.map Stack_knowledge_base_spec_messaging_external.to_json
             value.external_ );
       ]
-      value.extra
 end
 
 module Vector_store_spec = struct
@@ -18002,21 +15236,16 @@ module Vector_store_spec = struct
     image : string;
     resources : Resources.t;
     port : int;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader string "type";
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        port = required reader int "port";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader string "type";
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+      port = required reader int "port";
+    }
 
   let to_json (value : t) =
     write
@@ -18026,26 +15255,17 @@ module Vector_store_spec = struct
         ("resources", Some (Resources.to_json value.resources));
         ("port", Some (json_int value.port));
       ]
-      value.extra
 end
 
 module Worker_pool_spec_worker = struct
-  type t = {
-    image : string;
-    resources : Resources.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { image : string; resources : Resources.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+    }
 
   let to_json (value : t) =
     write
@@ -18053,7 +15273,6 @@ module Worker_pool_spec_worker = struct
         ("image", Some (json_string value.image));
         ("resources", Some (Resources.to_json value.resources));
       ]
-      value.extra
 end
 
 module Anchored_text_answer = struct
@@ -18352,20 +15571,15 @@ module Annotation_target = struct
     type_ : Type_.t option;
     source : string;
     selector : Annotation_selector.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = maybe reader (enum Type_.of_string) "type";
-        source = required reader string "source";
-        selector = maybe reader Annotation_selector.read "selector";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = maybe reader (enum Type_.of_string) "type";
+      source = required reader string "source";
+      selector = maybe reader Annotation_selector.read "selector";
+    }
 
   let of_model (model : [ `AnnotationTarget ] Models.t) =
     project (fields_of (Models.json model))
@@ -18377,7 +15591,6 @@ module Annotation_target = struct
         ("source", Some (json_string value.source));
         ("selector", Option.map Annotation_selector.to_json value.selector);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.annotation_target
@@ -18390,24 +15603,17 @@ module Bind_update_body_command = struct
     annotation_id : string;
     resource_id : string;
     operations : Bind_body_operation.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        annotation_id = required reader string "annotationId";
-        resource_id = required reader string "resourceId";
-        operations =
-          required reader
-            (list (record Bind_body_operation.project))
-            "operations";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      annotation_id = required reader string "annotationId";
+      resource_id = required reader string "resourceId";
+      operations =
+        required reader (list (record Bind_body_operation.project)) "operations";
+    }
 
   let of_model (model : [ `BindUpdateBodyCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -18421,7 +15627,6 @@ module Bind_update_body_command = struct
         ( "operations",
           Some ((json_list Bind_body_operation.to_json) value.operations) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.bind_update_body_command
@@ -18429,23 +15634,16 @@ module Bind_update_body_command = struct
 end
 
 module Browse_directory_result = struct
-  type t = {
-    response : Browse_directory_result_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Browse_directory_result_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader
-            (record Browse_directory_result_response.project)
-            "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader
+          (record Browse_directory_result_response.project)
+          "response";
+    }
 
   let of_model (model : [ `BrowseDirectoryResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -18456,7 +15654,6 @@ module Browse_directory_result = struct
         ( "response",
           Some (Browse_directory_result_response.to_json value.response) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_directory_result
@@ -18464,21 +15661,14 @@ module Browse_directory_result = struct
 end
 
 module Browse_tag_schemas_result = struct
-  type t = {
-    response : Get_tag_schemas_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Get_tag_schemas_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Get_tag_schemas_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Get_tag_schemas_response.project) "response";
+    }
 
   let of_model (model : [ `BrowseTagSchemasResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -18486,7 +15676,6 @@ module Browse_tag_schemas_result = struct
   let to_json (value : t) =
     write
       [ ("response", Some (Get_tag_schemas_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_tag_schemas_result
@@ -18494,22 +15683,14 @@ module Browse_tag_schemas_result = struct
 end
 
 module Engine_entry = struct
-  type t = {
-    engine : Engine.t;
-    jobs : Job_filter.t list option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { engine : Engine.t; jobs : Job_filter.t list option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        engine = required reader (record Engine.project) "engine";
-        jobs = maybe reader (list Job_filter.read) "jobs";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      engine = required reader (record Engine.project) "engine";
+      jobs = maybe reader (list Job_filter.read) "jobs";
+    }
 
   let of_model (model : [ `EngineEntry ] Models.t) =
     project (fields_of (Models.json model))
@@ -18520,7 +15701,6 @@ module Engine_entry = struct
         ("engine", Some (Engine.to_json value.engine));
         ("jobs", Option.map (json_list Job_filter.to_json) value.jobs);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.engine_entry (Yojson.Raw.to_string (to_json value))
@@ -18532,22 +15712,16 @@ module Get_annotation_history_response = struct
     total : float;
     annotation_id : string;
     resource_id : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        events =
-          required reader (list (record Attributed_event.project)) "events";
-        total = required reader float "total";
-        annotation_id = required reader string "annotationId";
-        resource_id = required reader string "resourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      events = required reader (list (record Attributed_event.project)) "events";
+      total = required reader float "total";
+      annotation_id = required reader string "annotationId";
+      resource_id = required reader string "resourceId";
+    }
 
   let of_model (model : [ `GetAnnotationHistoryResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -18560,7 +15734,6 @@ module Get_annotation_history_response = struct
         ("annotationId", Some (json_string value.annotation_id));
         ("resourceId", Some (json_string value.resource_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_annotation_history_response
@@ -18572,21 +15745,15 @@ module Get_events_response = struct
     events : Attributed_event.t list;
     total : float;
     resource_id : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        events =
-          required reader (list (record Attributed_event.project)) "events";
-        total = required reader float "total";
-        resource_id = required reader string "resourceId";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      events = required reader (list (record Attributed_event.project)) "events";
+      total = required reader float "total";
+      resource_id = required reader string "resourceId";
+    }
 
   let of_model (model : [ `GetEventsResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -18598,7 +15765,6 @@ module Get_events_response = struct
         ("total", Some (json_float value.total));
         ("resourceId", Some (json_string value.resource_id));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_events_response
@@ -18608,22 +15774,16 @@ end
 module Get_referenced_by_response = struct
   type t = {
     referenced_by : Get_referenced_by_response_referenced_by_item.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        referenced_by =
-          required reader
-            (list
-               (record Get_referenced_by_response_referenced_by_item.project))
-            "referencedBy";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      referenced_by =
+        required reader
+          (list (record Get_referenced_by_response_referenced_by_item.project))
+          "referencedBy";
+    }
 
   let of_model (model : [ `GetReferencedByResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -18636,7 +15796,6 @@ module Get_referenced_by_response = struct
             ((json_list Get_referenced_by_response_referenced_by_item.to_json)
                value.referenced_by) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_referenced_by_response
@@ -18644,23 +15803,16 @@ module Get_referenced_by_response = struct
 end
 
 module Inference_limits_result = struct
-  type t = {
-    response : Inference_limits_result_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Inference_limits_result_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader
-            (record Inference_limits_result_response.project)
-            "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader
+          (record Inference_limits_result_response.project)
+          "response";
+    }
 
   let of_model (model : [ `InferenceLimitsResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -18671,7 +15823,6 @@ module Inference_limits_result = struct
         ( "response",
           Some (Inference_limits_result_response.to_json value.response) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.inference_limits_result
@@ -18683,20 +15834,15 @@ module Job_claim_command = struct
     accepts : Job_filter.t list;
     field_user_id : string option;
     field_roles : string list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        accepts = required reader (list Job_filter.read) "accepts";
-        field_user_id = maybe reader string "_userId";
-        field_roles = maybe reader (list string) "_roles";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      accepts = required reader (list Job_filter.read) "accepts";
+      field_user_id = maybe reader string "_userId";
+      field_roles = maybe reader (list string) "_roles";
+    }
 
   let of_model (model : [ `JobClaimCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -18708,7 +15854,6 @@ module Job_claim_command = struct
         ("_userId", Option.map json_string value.field_user_id);
         ("_roles", Option.map (json_list json_string) value.field_roles);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_claim_command
@@ -18725,25 +15870,20 @@ module Job_report_progress_command = struct
     annotation_id : string option;
     percentage : float;
     progress : Job_progress.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        resource_id = required reader string "resourceId";
-        job_id = required reader string "jobId";
-        job_type = required reader (enum Enums.Job_type.of_string) "jobType";
-        attempt = maybe reader int "attempt";
-        annotation_id = maybe reader string "annotationId";
-        percentage = required reader float "percentage";
-        progress = maybe reader (record Job_progress.project) "progress";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      resource_id = required reader string "resourceId";
+      job_id = required reader string "jobId";
+      job_type = required reader (enum Enums.Job_type.of_string) "jobType";
+      attempt = maybe reader int "attempt";
+      annotation_id = maybe reader string "annotationId";
+      percentage = required reader float "percentage";
+      progress = maybe reader (record Job_progress.project) "progress";
+    }
 
   let of_model (model : [ `JobReportProgressCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -18760,7 +15900,6 @@ module Job_report_progress_command = struct
         ("percentage", Some (json_float value.percentage));
         ("progress", Option.map Job_progress.to_json value.progress);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_report_progress_command
@@ -18772,21 +15911,16 @@ module Mark_requested_event = struct
     source : string;
     selector : Annotation_selector.t;
     motivation : Enums.Motivation.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        source = required reader string "source";
-        selector = required reader Annotation_selector.read "selector";
-        motivation =
-          required reader (enum Enums.Motivation.of_string) "motivation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      source = required reader string "source";
+      selector = required reader Annotation_selector.read "selector";
+      motivation =
+        required reader (enum Enums.Motivation.of_string) "motivation";
+    }
 
   let of_model (model : [ `MarkRequestedEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -18799,7 +15933,6 @@ module Mark_requested_event = struct
         ( "motivation",
           Some ((json_enum Enums.Motivation.to_string) value.motivation) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_requested_event
@@ -18812,22 +15945,17 @@ module Mark_submit_event = struct
     motivation : Enums.Motivation.t;
     selector : Annotation_selector.t;
     body : Annotation_bodies.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        source = required reader string "source";
-        motivation =
-          required reader (enum Enums.Motivation.of_string) "motivation";
-        selector = required reader Annotation_selector.read "selector";
-        body = maybe reader Annotation_bodies.read "body";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      source = required reader string "source";
+      motivation =
+        required reader (enum Enums.Motivation.of_string) "motivation";
+      selector = required reader Annotation_selector.read "selector";
+      body = maybe reader Annotation_bodies.read "body";
+    }
 
   let of_model (model : [ `MarkSubmitEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -18841,7 +15969,6 @@ module Mark_submit_event = struct
         ("selector", Some (Annotation_selector.to_json value.selector));
         ("body", Option.map Annotation_bodies.to_json value.body);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_submit_event
@@ -18860,28 +15987,22 @@ module Resource_cloned_payload = struct
     language : string option;
     creator : Agent.t option;
     was_attributed_to : One_or_more_agents.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        format = required reader string "format";
-        content_checksum = required reader string "contentChecksum";
-        content_byte_size = maybe reader int "contentByteSize";
-        storage_uri = maybe reader string "storageUri";
-        parent_resource_id = required reader string "parentResourceId";
-        entity_types = maybe reader (list string) "entityTypes";
-        language = maybe reader string "language";
-        creator = maybe reader Agent.read "creator";
-        was_attributed_to =
-          maybe reader One_or_more_agents.read "wasAttributedTo";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      format = required reader string "format";
+      content_checksum = required reader string "contentChecksum";
+      content_byte_size = maybe reader int "contentByteSize";
+      storage_uri = maybe reader string "storageUri";
+      parent_resource_id = required reader string "parentResourceId";
+      entity_types = maybe reader (list string) "entityTypes";
+      language = maybe reader string "language";
+      creator = maybe reader Agent.read "creator";
+      was_attributed_to = maybe reader One_or_more_agents.read "wasAttributedTo";
+    }
 
   let of_model (model : [ `ResourceClonedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -18901,7 +16022,6 @@ module Resource_cloned_payload = struct
         ( "wasAttributedTo",
           Option.map One_or_more_agents.to_json value.was_attributed_to );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.resource_cloned_payload
@@ -18924,35 +16044,29 @@ module Resource_created_payload = struct
     generator : One_or_more_agents.t option;
     creator : Agent.t option;
     was_attributed_to : One_or_more_agents.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        name = required reader string "name";
-        format = required reader string "format";
-        content_checksum = required reader string "contentChecksum";
-        content_byte_size = maybe reader int "contentByteSize";
-        entity_types = maybe reader (list string) "entityTypes";
-        storage_uri = maybe reader string "storageUri";
-        language = maybe reader string "language";
-        is_draft = maybe reader bool "isDraft";
-        job_id = maybe reader string "jobId";
-        generated_from =
-          maybe reader
-            (record Resource_created_payload_generated_from.project)
-            "generatedFrom";
-        generation_prompt = maybe reader string "generationPrompt";
-        generator = maybe reader One_or_more_agents.read "generator";
-        creator = maybe reader Agent.read "creator";
-        was_attributed_to =
-          maybe reader One_or_more_agents.read "wasAttributedTo";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      name = required reader string "name";
+      format = required reader string "format";
+      content_checksum = required reader string "contentChecksum";
+      content_byte_size = maybe reader int "contentByteSize";
+      entity_types = maybe reader (list string) "entityTypes";
+      storage_uri = maybe reader string "storageUri";
+      language = maybe reader string "language";
+      is_draft = maybe reader bool "isDraft";
+      job_id = maybe reader string "jobId";
+      generated_from =
+        maybe reader
+          (record Resource_created_payload_generated_from.project)
+          "generatedFrom";
+      generation_prompt = maybe reader string "generationPrompt";
+      generator = maybe reader One_or_more_agents.read "generator";
+      creator = maybe reader Agent.read "creator";
+      was_attributed_to = maybe reader One_or_more_agents.read "wasAttributedTo";
+    }
 
   let of_model (model : [ `ResourceCreatedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -18978,7 +16092,6 @@ module Resource_created_payload = struct
         ( "wasAttributedTo",
           Option.map One_or_more_agents.to_json value.was_attributed_to );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.resource_created_payload
@@ -19062,7 +16175,7 @@ module Resource_descriptor = struct
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
+    write_open
       [
         ( "@context",
           Some (Resource_descriptor_context.to_json value.field_context) );
@@ -19188,7 +16301,7 @@ module Scored_resource = struct
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
+    write_open
       [
         ( "@context",
           Some (Resource_descriptor_context.to_json value.field_context) );
@@ -19250,34 +16363,29 @@ module Yield_create_command = struct
     generated_from : Yield_create_command_generated_from.t option;
     generation_prompt : string option;
     generator : One_or_more_agents.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        field_roles = maybe reader (list string) "_roles";
-        job_id = maybe reader string "jobId";
-        name = required reader string "name";
-        storage_uri = required reader string "storageUri";
-        content_checksum = required reader string "contentChecksum";
-        byte_size = required reader int "byteSize";
-        format = required reader string "format";
-        language = maybe reader string "language";
-        entity_types = maybe reader (list string) "entityTypes";
-        is_draft = maybe reader bool "isDraft";
-        generated_from =
-          maybe reader
-            (record Yield_create_command_generated_from.project)
-            "generatedFrom";
-        generation_prompt = maybe reader string "generationPrompt";
-        generator = maybe reader One_or_more_agents.read "generator";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      field_roles = maybe reader (list string) "_roles";
+      job_id = maybe reader string "jobId";
+      name = required reader string "name";
+      storage_uri = required reader string "storageUri";
+      content_checksum = required reader string "contentChecksum";
+      byte_size = required reader int "byteSize";
+      format = required reader string "format";
+      language = maybe reader string "language";
+      entity_types = maybe reader (list string) "entityTypes";
+      is_draft = maybe reader bool "isDraft";
+      generated_from =
+        maybe reader
+          (record Yield_create_command_generated_from.project)
+          "generatedFrom";
+      generation_prompt = maybe reader string "generationPrompt";
+      generator = maybe reader One_or_more_agents.read "generator";
+    }
 
   let of_model (model : [ `YieldCreateCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -19302,7 +16410,6 @@ module Yield_create_command = struct
         ("generationPrompt", Option.map json_string value.generation_prompt);
         ("generator", Option.map One_or_more_agents.to_json value.generator);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.yield_create_command
@@ -19321,20 +16428,15 @@ module Job_pending = struct
     status : Status.t;
     metadata : Job_metadata.t;
     params : Job_params.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        metadata = required reader (record Job_metadata.project) "metadata";
-        params = required reader (record Job_params.project) "params";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      metadata = required reader (record Job_metadata.project) "metadata";
+      params = required reader (record Job_params.project) "params";
+    }
 
   let of_model (model : [ `JobPending ] Models.t) =
     project (fields_of (Models.json model))
@@ -19346,7 +16448,6 @@ module Job_pending = struct
         ("metadata", Some (Job_metadata.to_json value.metadata));
         ("params", Some (Job_params.to_json value.params));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_pending (Yojson.Raw.to_string (to_json value))
@@ -19367,23 +16468,18 @@ module Job_complete = struct
     started_at : string;
     completed_at : string;
     result : Job_stored_result.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        metadata = required reader (record Job_metadata.project) "metadata";
-        params = required reader (record Job_params.project) "params";
-        started_at = required reader string "startedAt";
-        completed_at = required reader string "completedAt";
-        result = required reader Job_stored_result.read "result";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      metadata = required reader (record Job_metadata.project) "metadata";
+      params = required reader (record Job_params.project) "params";
+      started_at = required reader string "startedAt";
+      completed_at = required reader string "completedAt";
+      result = required reader Job_stored_result.read "result";
+    }
 
   let of_model (model : [ `JobComplete ] Models.t) =
     project (fields_of (Models.json model))
@@ -19398,7 +16494,6 @@ module Job_complete = struct
         ("completedAt", Some (json_string value.completed_at));
         ("result", Some (Job_stored_result.to_json value.result));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_complete (Yojson.Raw.to_string (to_json value))
@@ -19420,25 +16515,20 @@ module Job_failed = struct
     completed_at : string;
     error : string;
     failure_class : Enums.Failure_class.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        metadata = required reader (record Job_metadata.project) "metadata";
-        params = required reader (record Job_params.project) "params";
-        started_at = maybe reader string "startedAt";
-        completed_at = required reader string "completedAt";
-        error = required reader string "error";
-        failure_class =
-          maybe reader (enum Enums.Failure_class.of_string) "failureClass";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      metadata = required reader (record Job_metadata.project) "metadata";
+      params = required reader (record Job_params.project) "params";
+      started_at = maybe reader string "startedAt";
+      completed_at = required reader string "completedAt";
+      error = required reader string "error";
+      failure_class =
+        maybe reader (enum Enums.Failure_class.of_string) "failureClass";
+    }
 
   let of_model (model : [ `JobFailed ] Models.t) =
     project (fields_of (Models.json model))
@@ -19457,7 +16547,6 @@ module Job_failed = struct
             (json_enum Enums.Failure_class.to_string)
             value.failure_class );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_failed (Yojson.Raw.to_string (to_json value))
@@ -19477,22 +16566,17 @@ module Job_cancelled = struct
     params : Job_params.t;
     started_at : string option;
     completed_at : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        metadata = required reader (record Job_metadata.project) "metadata";
-        params = required reader (record Job_params.project) "params";
-        started_at = maybe reader string "startedAt";
-        completed_at = required reader string "completedAt";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      metadata = required reader (record Job_metadata.project) "metadata";
+      params = required reader (record Job_params.project) "params";
+      started_at = maybe reader string "startedAt";
+      completed_at = required reader string "completedAt";
+    }
 
   let of_model (model : [ `JobCancelled ] Models.t) =
     project (fields_of (Models.json model))
@@ -19506,7 +16590,6 @@ module Job_cancelled = struct
         ("startedAt", Option.map json_string value.started_at);
         ("completedAt", Some (json_string value.completed_at));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_cancelled (Yojson.Raw.to_string (to_json value))
@@ -19516,20 +16599,15 @@ module Archivist_engines = struct
   type t = {
     jobs : Archivist_engines_jobs.t;
     actors : Archivist_engines_actors.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        jobs = required reader (record Archivist_engines_jobs.project) "jobs";
-        actors =
-          required reader (record Archivist_engines_actors.project) "actors";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      jobs = required reader (record Archivist_engines_jobs.project) "jobs";
+      actors =
+        required reader (record Archivist_engines_actors.project) "actors";
+    }
 
   let of_model (model : [ `ArchivistEngines ] Models.t) =
     project (fields_of (Models.json model))
@@ -19540,7 +16618,6 @@ module Archivist_engines = struct
         ("jobs", Some (Archivist_engines_jobs.to_json value.jobs));
         ("actors", Some (Archivist_engines_actors.to_json value.actors));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.archivist_engines
@@ -19548,22 +16625,14 @@ module Archivist_engines = struct
 end
 
 module Anchored_text_write = struct
-  type t = {
-    content_checksum : string;
-    entry : Anchored_text_entry.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { content_checksum : string; entry : Anchored_text_entry.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        content_checksum = required reader string "contentChecksum";
-        entry = required reader Anchored_text_entry.read "entry";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      content_checksum = required reader string "contentChecksum";
+      entry = required reader Anchored_text_entry.read "entry";
+    }
 
   let of_model (model : [ `AnchoredTextWrite ] Models.t) =
     project (fields_of (Models.json model))
@@ -19574,7 +16643,6 @@ module Anchored_text_write = struct
         ("contentChecksum", Some (json_string value.content_checksum));
         ("entry", Some (Anchored_text_entry.to_json value.entry));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.anchored_text_write
@@ -19586,21 +16654,16 @@ module Stack_start_result = struct
     dry_run : bool;
     knowledge_base : Knowledge_base_status.t option;
     shared : Service_status.t list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        dry_run = required reader bool "dryRun";
-        knowledge_base =
-          maybe reader (record Knowledge_base_status.project) "knowledgeBase";
-        shared = maybe reader (list (record Service_status.project)) "shared";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      dry_run = required reader bool "dryRun";
+      knowledge_base =
+        maybe reader (record Knowledge_base_status.project) "knowledgeBase";
+      shared = maybe reader (list (record Service_status.project)) "shared";
+    }
 
   let of_model (model : [ `StackStartResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -19613,7 +16676,6 @@ module Stack_start_result = struct
           Option.map Knowledge_base_status.to_json value.knowledge_base );
         ("shared", Option.map (json_list Service_status.to_json) value.shared);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.stack_start_result
@@ -19625,23 +16687,18 @@ module Stack_stop_result = struct
     dry_run : bool;
     knowledge_bases : Knowledge_base_status.t list option;
     shared : Service_status.t list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        dry_run = required reader bool "dryRun";
-        knowledge_bases =
-          maybe reader
-            (list (record Knowledge_base_status.project))
-            "knowledgeBases";
-        shared = maybe reader (list (record Service_status.project)) "shared";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      dry_run = required reader bool "dryRun";
+      knowledge_bases =
+        maybe reader
+          (list (record Knowledge_base_status.project))
+          "knowledgeBases";
+      shared = maybe reader (list (record Service_status.project)) "shared";
+    }
 
   let of_model (model : [ `StackStopResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -19656,7 +16713,6 @@ module Stack_stop_result = struct
             value.knowledge_bases );
         ("shared", Option.map (json_list Service_status.to_json) value.shared);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.stack_stop_result
@@ -19667,22 +16723,17 @@ module Status_snapshot_result = struct
   type t = {
     knowledge_bases : Knowledge_base_status.t list;
     shared : Service_status.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        knowledge_bases =
-          required reader
-            (list (record Knowledge_base_status.project))
-            "knowledgeBases";
-        shared = required reader (list (record Service_status.project)) "shared";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      knowledge_bases =
+        required reader
+          (list (record Knowledge_base_status.project))
+          "knowledgeBases";
+      shared = required reader (list (record Service_status.project)) "shared";
+    }
 
   let of_model (model : [ `StatusSnapshotResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -19695,7 +16746,6 @@ module Status_snapshot_result = struct
         );
         ("shared", Some ((json_list Service_status.to_json) value.shared));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.status_snapshot_result
@@ -19748,26 +16798,21 @@ module Smelter_health = struct
     events_processed : int;
     reconcile : Smelter_health_reconcile.t;
     index : Smelter_health_index.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        kb = required reader string "kb";
-        stream = required reader (enum Stream.of_string) "stream";
-        following =
-          required reader (record Follower_following.project) "following";
-        events_processed = required reader int "eventsProcessed";
-        reconcile =
-          required reader (record Smelter_health_reconcile.project) "reconcile";
-        index = required reader (record Smelter_health_index.project) "index";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      kb = required reader string "kb";
+      stream = required reader (enum Stream.of_string) "stream";
+      following =
+        required reader (record Follower_following.project) "following";
+      events_processed = required reader int "eventsProcessed";
+      reconcile =
+        required reader (record Smelter_health_reconcile.project) "reconcile";
+      index = required reader (record Smelter_health_index.project) "index";
+    }
 
   let of_model (model : [ `SmelterHealth ] Models.t) =
     project (fields_of (Models.json model))
@@ -19783,7 +16828,6 @@ module Smelter_health = struct
         ("reconcile", Some (Smelter_health_reconcile.to_json value.reconcile));
         ("index", Some (Smelter_health_index.to_json value.index));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.smelter_health (Yojson.Raw.to_string (to_json value))
@@ -19795,21 +16839,16 @@ module Browser = struct
     kind : string;
     metadata : Metadata.t;
     spec : Browser_spec.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        kind = required reader string "kind";
-        metadata = required reader (record Metadata.project) "metadata";
-        spec = required reader (record Browser_spec.project) "spec";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      kind = required reader string "kind";
+      metadata = required reader (record Metadata.project) "metadata";
+      spec = required reader (record Browser_spec.project) "spec";
+    }
 
   let of_model (model : [ `Browser ] Models.t) =
     project (fields_of (Models.json model))
@@ -19822,7 +16861,6 @@ module Browser = struct
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Browser_spec.to_json value.spec));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browser (Yojson.Raw.to_string (to_json value))
@@ -19834,21 +16872,16 @@ module Vector_store = struct
     kind : string;
     metadata : Metadata.t;
     spec : Vector_store_spec.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        kind = required reader string "kind";
-        metadata = required reader (record Metadata.project) "metadata";
-        spec = required reader (record Vector_store_spec.project) "spec";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      kind = required reader string "kind";
+      metadata = required reader (record Metadata.project) "metadata";
+      spec = required reader (record Vector_store_spec.project) "spec";
+    }
 
   let of_model (model : [ `VectorStore ] Models.t) =
     project (fields_of (Models.json model))
@@ -19861,7 +16894,6 @@ module Vector_store = struct
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Vector_store_spec.to_json value.spec));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.vector_store (Yojson.Raw.to_string (to_json value))
@@ -19873,21 +16905,16 @@ module Worker_engine_config = struct
     jobs : Job_filter.t list;
     base_url : string;
     api_key_env : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        engine = required reader (record Engine.project) "engine";
-        jobs = required reader (list Job_filter.read) "jobs";
-        base_url = required reader string "baseUrl";
-        api_key_env = maybe reader string "apiKeyEnv";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      engine = required reader (record Engine.project) "engine";
+      jobs = required reader (list Job_filter.read) "jobs";
+      base_url = required reader string "baseUrl";
+      api_key_env = maybe reader string "apiKeyEnv";
+    }
 
   let of_model (model : [ `WorkerEngineConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -19900,7 +16927,6 @@ module Worker_engine_config = struct
         ("baseUrl", Some (json_string value.base_url));
         ("apiKeyEnv", Option.map json_string value.api_key_env);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.worker_engine_config
@@ -19917,29 +16943,24 @@ module Worker_engine_health = struct
     last_activity_at : string option;
     active_job : Worker_engine_health_active_job.t option;
     jobs_completed : int;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        engine = required reader (record Engine.project) "engine";
-        jobs = required reader (list Job_filter.read) "jobs";
-        last_queued_event_at =
-          required reader (nullable string) "lastQueuedEventAt";
-        last_claim_at = required reader (nullable string) "lastClaimAt";
-        last_finished_at = required reader (nullable string) "lastFinishedAt";
-        last_activity_at = required reader (nullable string) "lastActivityAt";
-        active_job =
-          required reader
-            (nullable (record Worker_engine_health_active_job.project))
-            "activeJob";
-        jobs_completed = required reader int "jobsCompleted";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      engine = required reader (record Engine.project) "engine";
+      jobs = required reader (list Job_filter.read) "jobs";
+      last_queued_event_at =
+        required reader (nullable string) "lastQueuedEventAt";
+      last_claim_at = required reader (nullable string) "lastClaimAt";
+      last_finished_at = required reader (nullable string) "lastFinishedAt";
+      last_activity_at = required reader (nullable string) "lastActivityAt";
+      active_job =
+        required reader
+          (nullable (record Worker_engine_health_active_job.project))
+          "activeJob";
+      jobs_completed = required reader int "jobsCompleted";
+    }
 
   let of_model (model : [ `WorkerEngineHealth ] Models.t) =
     project (fields_of (Models.json model))
@@ -19962,7 +16983,6 @@ module Worker_engine_health = struct
                value.active_job) );
         ("jobsCompleted", Some (json_int value.jobs_completed));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.worker_engine_health
@@ -20499,23 +17519,18 @@ module Issuer_spec = struct
     resources : Resources.t;
     port : int;
     database : Issuer_spec_database.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        type_ = required reader string "type";
-        image = required reader string "image";
-        resources = required reader (record Resources.project) "resources";
-        port = required reader int "port";
-        database =
-          required reader (record Issuer_spec_database.project) "database";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      type_ = required reader string "type";
+      image = required reader string "image";
+      resources = required reader (record Resources.project) "resources";
+      port = required reader int "port";
+      database =
+        required reader (record Issuer_spec_database.project) "database";
+    }
 
   let to_json (value : t) =
     write
@@ -20526,7 +17541,6 @@ module Issuer_spec = struct
         ("port", Some (json_int value.port));
         ("database", Some (Issuer_spec_database.to_json value.database));
       ]
-      value.extra
 end
 
 module Knowledge_index_spec = struct
@@ -20539,39 +17553,30 @@ module Knowledge_index_spec = struct
     librarian : Knowledge_index_spec_librarian.t;
     smelter : Knowledge_index_spec_smelter.t;
     weaver : Knowledge_index_spec_weaver.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        knowledge_base = required reader string "knowledgeBase";
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        graph =
-          required reader (record Knowledge_index_spec_graph.project) "graph";
-        vectors =
-          required reader
-            (record Knowledge_index_spec_vectors.project)
-            "vectors";
-        embedding =
-          required reader
-            (record Knowledge_index_spec_embedding.project)
-            "embedding";
-        librarian =
-          required reader
-            (record Knowledge_index_spec_librarian.project)
-            "librarian";
-        smelter =
-          required reader
-            (record Knowledge_index_spec_smelter.project)
-            "smelter";
-        weaver =
-          required reader (record Knowledge_index_spec_weaver.project) "weaver";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      knowledge_base = required reader string "knowledgeBase";
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      graph =
+        required reader (record Knowledge_index_spec_graph.project) "graph";
+      vectors =
+        required reader (record Knowledge_index_spec_vectors.project) "vectors";
+      embedding =
+        required reader
+          (record Knowledge_index_spec_embedding.project)
+          "embedding";
+      librarian =
+        required reader
+          (record Knowledge_index_spec_librarian.project)
+          "librarian";
+      smelter =
+        required reader (record Knowledge_index_spec_smelter.project) "smelter";
+      weaver =
+        required reader (record Knowledge_index_spec_weaver.project) "weaver";
+    }
 
   let to_json (value : t) =
     write
@@ -20588,7 +17593,6 @@ module Knowledge_index_spec = struct
         ("smelter", Some (Knowledge_index_spec_smelter.to_json value.smelter));
         ("weaver", Some (Knowledge_index_spec_weaver.to_json value.weaver));
       ]
-      value.extra
 end
 
 module Stack_knowledge_base_spec = struct
@@ -20599,38 +17603,33 @@ module Stack_knowledge_base_spec = struct
     archivist : Stack_knowledge_base_spec_archivist.t;
     messaging : Stack_knowledge_base_spec_messaging.t;
     issuer : Stack_knowledge_base_spec_issuer.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        gateway =
-          required reader
-            (record Stack_knowledge_base_spec_gateway.project)
-            "gateway";
-        dispatcher =
-          required reader
-            (record Stack_knowledge_base_spec_dispatcher.project)
-            "dispatcher";
-        archivist =
-          required reader
-            (record Stack_knowledge_base_spec_archivist.project)
-            "archivist";
-        messaging =
-          required reader
-            (record Stack_knowledge_base_spec_messaging.project)
-            "messaging";
-        issuer =
-          required reader
-            (record Stack_knowledge_base_spec_issuer.project)
-            "issuer";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      gateway =
+        required reader
+          (record Stack_knowledge_base_spec_gateway.project)
+          "gateway";
+      dispatcher =
+        required reader
+          (record Stack_knowledge_base_spec_dispatcher.project)
+          "dispatcher";
+      archivist =
+        required reader
+          (record Stack_knowledge_base_spec_archivist.project)
+          "archivist";
+      messaging =
+        required reader
+          (record Stack_knowledge_base_spec_messaging.project)
+          "messaging";
+      issuer =
+        required reader
+          (record Stack_knowledge_base_spec_issuer.project)
+          "issuer";
+    }
 
   let to_json (value : t) =
     write
@@ -20648,27 +17647,17 @@ module Stack_knowledge_base_spec = struct
           Some (Stack_knowledge_base_spec_messaging.to_json value.messaging) );
         ("issuer", Some (Stack_knowledge_base_spec_issuer.to_json value.issuer));
       ]
-      value.extra
 end
 
 module Worker_pool_spec = struct
-  type t = {
-    log_level : Enums.Log_level.t;
-    worker : Worker_pool_spec_worker.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { log_level : Enums.Log_level.t; worker : Worker_pool_spec_worker.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        worker =
-          required reader (record Worker_pool_spec_worker.project) "worker";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      worker = required reader (record Worker_pool_spec_worker.project) "worker";
+    }
 
   let to_json (value : t) =
     write
@@ -20677,7 +17666,6 @@ module Worker_pool_spec = struct
           Some ((json_enum Enums.Log_level.to_string) value.log_level) );
         ("worker", Some (Worker_pool_spec_worker.to_json value.worker));
       ]
-      value.extra
 end
 
 module Job_complete_command = struct
@@ -20796,21 +17784,16 @@ module Conformance_driver_line_emission_emission = struct
   type t = {
     observer : string;
     state : Conformance_driver_line_emission_emission_state.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        observer = required reader string "observer";
-        state =
-          required reader Conformance_driver_line_emission_emission_state.read
-            "state";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      observer = required reader string "observer";
+      state =
+        required reader Conformance_driver_line_emission_emission_state.read
+          "state";
+    }
 
   let to_json (value : t) =
     write
@@ -20821,26 +17804,17 @@ module Conformance_driver_line_emission_emission = struct
             (Conformance_driver_line_emission_emission_state.to_json value.state)
         );
       ]
-      value.extra
 end
 
 module Annotation_body_updated_payload = struct
-  type t = {
-    annotation_id : string;
-    operations : Body_operation.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { annotation_id : string; operations : Body_operation.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation_id = required reader string "annotationId";
-        operations = required reader (list Body_operation.read) "operations";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation_id = required reader string "annotationId";
+      operations = required reader (list Body_operation.read) "operations";
+    }
 
   let of_model (model : [ `AnnotationBodyUpdatedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -20852,7 +17826,6 @@ module Annotation_body_updated_payload = struct
         ( "operations",
           Some ((json_list Body_operation.to_json) value.operations) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.annotation_body_updated_payload
@@ -20860,23 +17833,16 @@ module Annotation_body_updated_payload = struct
 end
 
 module Browse_annotation_history_result = struct
-  type t = {
-    response : Get_annotation_history_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Get_annotation_history_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader
-            (record Get_annotation_history_response.project)
-            "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader
+          (record Get_annotation_history_response.project)
+          "response";
+    }
 
   let of_model (model : [ `BrowseAnnotationHistoryResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -20887,7 +17853,6 @@ module Browse_annotation_history_result = struct
         ( "response",
           Some (Get_annotation_history_response.to_json value.response) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_annotation_history_result
@@ -20895,29 +17860,19 @@ module Browse_annotation_history_result = struct
 end
 
 module Browse_events_result = struct
-  type t = {
-    response : Get_events_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Get_events_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Get_events_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response = required reader (record Get_events_response.project) "response";
+    }
 
   let of_model (model : [ `BrowseEventsResult ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("response", Some (Get_events_response.to_json value.response)) ]
-      value.extra
+    write [ ("response", Some (Get_events_response.to_json value.response)) ]
 
   let to_model value =
     Models.decode Models.browse_events_result
@@ -20929,21 +17884,15 @@ module Clone_resource_with_token_response = struct
     token : string;
     expires_at : string;
     resource : Resource_descriptor.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        token = required reader string "token";
-        expires_at = required reader string "expiresAt";
-        resource =
-          required reader (record Resource_descriptor.project) "resource";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      token = required reader string "token";
+      expires_at = required reader string "expiresAt";
+      resource = required reader (record Resource_descriptor.project) "resource";
+    }
 
   let of_model (model : [ `CloneResourceWithTokenResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -20955,7 +17904,6 @@ module Clone_resource_with_token_response = struct
         ("expiresAt", Some (json_string value.expires_at));
         ("resource", Some (Resource_descriptor.to_json value.resource));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.clone_resource_with_token_response
@@ -20967,21 +17915,16 @@ module Create_annotation_request = struct
     motivation : Enums.Motivation.t;
     target : Annotation_target.t;
     body : Annotation_bodies.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        motivation =
-          required reader (enum Enums.Motivation.of_string) "motivation";
-        target = required reader (record Annotation_target.project) "target";
-        body = maybe reader Annotation_bodies.read "body";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      motivation =
+        required reader (enum Enums.Motivation.of_string) "motivation";
+      target = required reader (record Annotation_target.project) "target";
+      body = maybe reader Annotation_bodies.read "body";
+    }
 
   let of_model (model : [ `CreateAnnotationRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -20994,7 +17937,6 @@ module Create_annotation_request = struct
         ("target", Some (Annotation_target.to_json value.target));
         ("body", Option.map Annotation_bodies.to_json value.body);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.create_annotation_request
@@ -21002,21 +17944,14 @@ module Create_annotation_request = struct
 end
 
 module Gather_referenced_by_result = struct
-  type t = {
-    response : Get_referenced_by_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Get_referenced_by_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Get_referenced_by_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Get_referenced_by_response.project) "response";
+    }
 
   let of_model (model : [ `GatherReferencedByResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -21024,7 +17959,6 @@ module Gather_referenced_by_result = struct
   let to_json (value : t) =
     write
       [ ("response", Some (Get_referenced_by_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_referenced_by_result
@@ -21032,23 +17966,15 @@ module Gather_referenced_by_result = struct
 end
 
 module Get_resource_by_token_response = struct
-  type t = {
-    source_resource : Resource_descriptor.t;
-    expires_at : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { source_resource : Resource_descriptor.t; expires_at : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        source_resource =
-          required reader (record Resource_descriptor.project) "sourceResource";
-        expires_at = required reader string "expiresAt";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      source_resource =
+        required reader (record Resource_descriptor.project) "sourceResource";
+      expires_at = required reader string "expiresAt";
+    }
 
   let of_model (model : [ `GetResourceByTokenResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -21060,7 +17986,6 @@ module Get_resource_by_token_response = struct
           Some (Resource_descriptor.to_json value.source_resource) );
         ("expiresAt", Some (json_string value.expires_at));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_resource_by_token_response
@@ -21099,29 +18024,24 @@ module Job_status_response = struct
     failure_class : Enums.Failure_class.t option;
     progress : Job_stored_progress.t option;
     result : Job_stored_result.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job_id = required reader string "jobId";
-        type_ = required reader (enum Enums.Job_type.of_string) "type";
-        status = required reader (enum Status.of_string) "status";
-        user_id = required reader string "userId";
-        created = required reader string "created";
-        started_at = maybe reader string "startedAt";
-        completed_at = maybe reader string "completedAt";
-        error = maybe reader string "error";
-        failure_class =
-          maybe reader (enum Enums.Failure_class.of_string) "failureClass";
-        progress = maybe reader Job_stored_progress.read "progress";
-        result = maybe reader Job_stored_result.read "result";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job_id = required reader string "jobId";
+      type_ = required reader (enum Enums.Job_type.of_string) "type";
+      status = required reader (enum Status.of_string) "status";
+      user_id = required reader string "userId";
+      created = required reader string "created";
+      started_at = maybe reader string "startedAt";
+      completed_at = maybe reader string "completedAt";
+      error = maybe reader string "error";
+      failure_class =
+        maybe reader (enum Enums.Failure_class.of_string) "failureClass";
+      progress = maybe reader Job_stored_progress.read "progress";
+      result = maybe reader Job_stored_result.read "result";
+    }
 
   let of_model (model : [ `JobStatusResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -21144,7 +18064,6 @@ module Job_status_response = struct
         ("progress", Option.map Job_stored_progress.to_json value.progress);
         ("result", Option.map Job_stored_result.to_json value.result);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_status_response
@@ -21157,24 +18076,17 @@ module List_resources_response = struct
     total : float;
     offset : float;
     limit : float;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resources =
-          required reader
-            (list (record Resource_descriptor.project))
-            "resources";
-        total = required reader float "total";
-        offset = required reader float "offset";
-        limit = required reader float "limit";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resources =
+        required reader (list (record Resource_descriptor.project)) "resources";
+      total = required reader float "total";
+      offset = required reader float "offset";
+      limit = required reader float "limit";
+    }
 
   let of_model (model : [ `ListResourcesResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -21188,7 +18100,6 @@ module List_resources_response = struct
         ("offset", Some (json_float value.offset));
         ("limit", Some (json_float value.limit));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.list_resources_response
@@ -21201,21 +18112,16 @@ module Mark_update_body_command = struct
     annotation_id : string;
     resource_id : string;
     operations : Body_operation.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        annotation_id = required reader string "annotationId";
-        resource_id = required reader string "resourceId";
-        operations = required reader (list Body_operation.read) "operations";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      annotation_id = required reader string "annotationId";
+      resource_id = required reader string "resourceId";
+      operations = required reader (list Body_operation.read) "operations";
+    }
 
   let of_model (model : [ `MarkUpdateBodyCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -21229,7 +18135,6 @@ module Mark_update_body_command = struct
         ( "operations",
           Some ((json_list Body_operation.to_json) value.operations) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_update_body_command
@@ -21237,23 +18142,15 @@ module Mark_update_body_command = struct
 end
 
 module Match_search_result = struct
-  type t = {
-    reference_id : string;
-    response : Scored_resource.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { reference_id : string; response : Scored_resource.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        reference_id = required reader string "referenceId";
-        response =
-          required reader (list (record Scored_resource.project)) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      reference_id = required reader string "referenceId";
+      response =
+        required reader (list (record Scored_resource.project)) "response";
+    }
 
   let of_model (model : [ `MatchSearchResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -21264,7 +18161,6 @@ module Match_search_result = struct
         ("referenceId", Some (json_string value.reference_id));
         ("response", Some ((json_list Scored_resource.to_json) value.response));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.match_search_result
@@ -21289,25 +18185,18 @@ module Match_resources_response = struct
     offset : int;
     limit : int;
     match_kind : Match_kind.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resources =
-          required reader
-            (list (record Resource_descriptor.project))
-            "resources";
-        total = required reader int "total";
-        offset = required reader int "offset";
-        limit = required reader int "limit";
-        match_kind = required reader (enum Match_kind.of_string) "matchKind";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resources =
+        required reader (list (record Resource_descriptor.project)) "resources";
+      total = required reader int "total";
+      offset = required reader int "offset";
+      limit = required reader int "limit";
+      match_kind = required reader (enum Match_kind.of_string) "matchKind";
+    }
 
   let of_model (model : [ `MatchResourcesResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -21322,7 +18211,6 @@ module Match_resources_response = struct
         ("limit", Some (json_int value.limit));
         ("matchKind", Some ((json_enum Match_kind.to_string) value.match_kind));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.match_resources_response
@@ -21330,22 +18218,14 @@ module Match_resources_response = struct
 end
 
 module Update_annotation_body_request = struct
-  type t = {
-    resource_id : string;
-    operations : Body_operation.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; operations : Body_operation.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        operations = required reader (list Body_operation.read) "operations";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      operations = required reader (list Body_operation.read) "operations";
+    }
 
   let of_model (model : [ `UpdateAnnotationBodyRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -21357,7 +18237,6 @@ module Update_annotation_body_request = struct
         ( "operations",
           Some ((json_list Body_operation.to_json) value.operations) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.update_annotation_body_request
@@ -21378,22 +18257,17 @@ module Job_running = struct
     params : Job_params.t;
     started_at : string;
     progress : Job_stored_progress.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        metadata = required reader (record Job_metadata.project) "metadata";
-        params = required reader (record Job_params.project) "params";
-        started_at = required reader string "startedAt";
-        progress = required reader Job_stored_progress.read "progress";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      metadata = required reader (record Job_metadata.project) "metadata";
+      params = required reader (record Job_params.project) "params";
+      started_at = required reader string "startedAt";
+      progress = required reader Job_stored_progress.read "progress";
+    }
 
   let of_model (model : [ `JobRunning ] Models.t) =
     project (fields_of (Models.json model))
@@ -21407,7 +18281,6 @@ module Job_running = struct
         ("startedAt", Some (json_string value.started_at));
         ("progress", Some (Job_stored_progress.to_json value.progress));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_running (Yojson.Raw.to_string (to_json value))
@@ -21426,30 +18299,24 @@ module Archivist_config = struct
     staging : Archivist_config_staging.t;
     log_level : Enums.Log_level.t;
     log_format : Enums.Log_format.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        gateway_url = required reader string "gatewayUrl";
-        identity = required reader (record Service_identity.project) "identity";
-        root = required reader string "root";
-        state_home = required reader string "stateHome";
-        anchored_text_dir = required reader string "anchoredTextDir";
-        engines = required reader (record Archivist_engines.project) "engines";
-        port = required reader int "port";
-        skip_rebuild = required reader bool "skipRebuild";
-        staging =
-          required reader (record Archivist_config_staging.project) "staging";
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        log_format =
-          required reader (enum Enums.Log_format.of_string) "logFormat";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      gateway_url = required reader string "gatewayUrl";
+      identity = required reader (record Service_identity.project) "identity";
+      root = required reader string "root";
+      state_home = required reader string "stateHome";
+      anchored_text_dir = required reader string "anchoredTextDir";
+      engines = required reader (record Archivist_engines.project) "engines";
+      port = required reader int "port";
+      skip_rebuild = required reader bool "skipRebuild";
+      staging =
+        required reader (record Archivist_config_staging.project) "staging";
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      log_format = required reader (enum Enums.Log_format.of_string) "logFormat";
+    }
 
   let of_model (model : [ `ArchivistConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -21471,7 +18338,6 @@ module Archivist_config = struct
         ( "logFormat",
           Some ((json_enum Enums.Log_format.to_string) value.log_format) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.archivist_config (Yojson.Raw.to_string (to_json value))
@@ -21507,23 +18373,18 @@ module Conformance_case = struct
     tier : Tier.t option;
     telemetry : bool option;
     steps : Conformance_step.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        about = required reader string "about";
-        source = required reader string "source";
-        planes = maybe reader (list (enum Planes.of_string)) "planes";
-        tier = maybe reader (enum Tier.of_string) "tier";
-        telemetry = maybe reader bool "telemetry";
-        steps = required reader (list Conformance_step.read) "steps";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      about = required reader string "about";
+      source = required reader string "source";
+      planes = maybe reader (list (enum Planes.of_string)) "planes";
+      tier = maybe reader (enum Tier.of_string) "tier";
+      telemetry = maybe reader bool "telemetry";
+      steps = required reader (list Conformance_step.read) "steps";
+    }
 
   let of_model (model : [ `ConformanceCase ] Models.t) =
     project (fields_of (Models.json model))
@@ -21539,7 +18400,6 @@ module Conformance_case = struct
         ("telemetry", Option.map json_bool value.telemetry);
         ("steps", Some ((json_list Conformance_step.to_json) value.steps));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.conformance_case (Yojson.Raw.to_string (to_json value))
@@ -21551,21 +18411,16 @@ module Issuer = struct
     kind : string;
     metadata : Metadata.t;
     spec : Issuer_spec.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        kind = required reader string "kind";
-        metadata = required reader (record Metadata.project) "metadata";
-        spec = required reader (record Issuer_spec.project) "spec";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      kind = required reader string "kind";
+      metadata = required reader (record Metadata.project) "metadata";
+      spec = required reader (record Issuer_spec.project) "spec";
+    }
 
   let of_model (model : [ `Issuer ] Models.t) =
     project (fields_of (Models.json model))
@@ -21578,7 +18433,6 @@ module Issuer = struct
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Issuer_spec.to_json value.spec));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.issuer (Yojson.Raw.to_string (to_json value))
@@ -21590,21 +18444,16 @@ module Knowledge_index = struct
     kind : string;
     metadata : Metadata.t;
     spec : Knowledge_index_spec.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        kind = required reader string "kind";
-        metadata = required reader (record Metadata.project) "metadata";
-        spec = required reader (record Knowledge_index_spec.project) "spec";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      kind = required reader string "kind";
+      metadata = required reader (record Metadata.project) "metadata";
+      spec = required reader (record Knowledge_index_spec.project) "spec";
+    }
 
   let of_model (model : [ `KnowledgeIndex ] Models.t) =
     project (fields_of (Models.json model))
@@ -21617,7 +18466,6 @@ module Knowledge_index = struct
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Knowledge_index_spec.to_json value.spec));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.knowledge_index (Yojson.Raw.to_string (to_json value))
@@ -21629,21 +18477,16 @@ module Stack_knowledge_base = struct
     kind : string;
     metadata : Metadata.t;
     spec : Stack_knowledge_base_spec.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        kind = required reader string "kind";
-        metadata = required reader (record Metadata.project) "metadata";
-        spec = required reader (record Stack_knowledge_base_spec.project) "spec";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      kind = required reader string "kind";
+      metadata = required reader (record Metadata.project) "metadata";
+      spec = required reader (record Stack_knowledge_base_spec.project) "spec";
+    }
 
   let of_model (model : [ `StackKnowledgeBase ] Models.t) =
     project (fields_of (Models.json model))
@@ -21656,7 +18499,6 @@ module Stack_knowledge_base = struct
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Stack_knowledge_base_spec.to_json value.spec));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.stack_knowledge_base
@@ -21669,21 +18511,16 @@ module Worker_pool = struct
     kind : string;
     metadata : Metadata.t;
     spec : Worker_pool_spec.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        kind = required reader string "kind";
-        metadata = required reader (record Metadata.project) "metadata";
-        spec = required reader (record Worker_pool_spec.project) "spec";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      kind = required reader string "kind";
+      metadata = required reader (record Metadata.project) "metadata";
+      spec = required reader (record Worker_pool_spec.project) "spec";
+    }
 
   let of_model (model : [ `WorkerPool ] Models.t) =
     project (fields_of (Models.json model))
@@ -21696,7 +18533,6 @@ module Worker_pool = struct
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Worker_pool_spec.to_json value.spec));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.worker_pool (Yojson.Raw.to_string (to_json value))
@@ -21708,25 +18544,20 @@ module Worker_knowledge_base_config = struct
     gateway_url : string;
     identity : Worker_knowledge_base_config_identity.t;
     engines : Worker_engine_config.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        domain = required reader string "domain";
-        gateway_url = required reader string "gatewayUrl";
-        identity =
-          required reader
-            (record Worker_knowledge_base_config_identity.project)
-            "identity";
-        engines =
-          required reader (list (record Worker_engine_config.project)) "engines";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      domain = required reader string "domain";
+      gateway_url = required reader string "gatewayUrl";
+      identity =
+        required reader
+          (record Worker_knowledge_base_config_identity.project)
+          "identity";
+      engines =
+        required reader (list (record Worker_engine_config.project)) "engines";
+    }
 
   let of_model (model : [ `WorkerKnowledgeBaseConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -21741,7 +18572,6 @@ module Worker_knowledge_base_config = struct
         ( "engines",
           Some ((json_list Worker_engine_config.to_json) value.engines) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.worker_knowledge_base_config
@@ -21769,22 +18599,17 @@ module Worker_knowledge_base_health = struct
     state : State.t;
     did : string option;
     engines : Worker_engine_health.t list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        domain = required reader string "domain";
-        state = required reader (enum State.of_string) "state";
-        did = maybe reader string "did";
-        engines =
-          maybe reader (list (record Worker_engine_health.project)) "engines";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      domain = required reader string "domain";
+      state = required reader (enum State.of_string) "state";
+      did = maybe reader string "did";
+      engines =
+        maybe reader (list (record Worker_engine_health.project)) "engines";
+    }
 
   let of_model (model : [ `WorkerKnowledgeBaseHealth ] Models.t) =
     project (fields_of (Models.json model))
@@ -21798,7 +18623,6 @@ module Worker_knowledge_base_health = struct
         ( "engines",
           Option.map (json_list Worker_engine_health.to_json) value.engines );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.worker_knowledge_base_health
@@ -21842,45 +18666,25 @@ module Annotation_target_value = struct
 end
 
 module Browse_engines_result_response = struct
-  type t = {
-    engines : Engine_entry.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { engines : Engine_entry.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        engines = required reader (list (record Engine_entry.project)) "engines";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { engines = required reader (list (record Engine_entry.project)) "engines" }
 
   let to_json (value : t) =
-    write
-      [ ("engines", Some ((json_list Engine_entry.to_json) value.engines)) ]
-      value.extra
+    write [ ("engines", Some ((json_list Engine_entry.to_json) value.engines)) ]
 end
 
 module Browse_resource_result_response = struct
-  type t = {
-    resource : Resource_descriptor.t;
-    last_sequence : int;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource : Resource_descriptor.t; last_sequence : int }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource =
-          required reader (record Resource_descriptor.project) "resource";
-        last_sequence = required reader int "lastSequence";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource = required reader (record Resource_descriptor.project) "resource";
+      last_sequence = required reader int "lastSequence";
+    }
 
   let to_json (value : t) =
     write
@@ -21888,7 +18692,6 @@ module Browse_resource_result_response = struct
         ("resource", Some (Resource_descriptor.to_json value.resource));
         ("lastSequence", Some (json_int value.last_sequence));
       ]
-      value.extra
 end
 
 module Gathered_context_focus_resource = struct
@@ -21905,26 +18708,20 @@ module Gathered_context_focus_resource = struct
     summary : string option;
     suggested_references : string list option;
     content : Gathered_context_focus_resource_content.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kind = required reader (enum Kind.of_string) "kind";
-        resource =
-          required reader (record Resource_descriptor.project) "resource";
-        summary = maybe reader string "summary";
-        suggested_references = maybe reader (list string) "suggestedReferences";
-        content =
-          maybe reader
-            (record Gathered_context_focus_resource_content.project)
-            "content";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kind = required reader (enum Kind.of_string) "kind";
+      resource = required reader (record Resource_descriptor.project) "resource";
+      summary = maybe reader string "summary";
+      suggested_references = maybe reader (list string) "suggestedReferences";
+      content =
+        maybe reader
+          (record Gathered_context_focus_resource_content.project)
+          "content";
+    }
 
   let to_json (value : t) =
     write
@@ -21938,26 +18735,20 @@ module Gathered_context_focus_resource = struct
           Option.map Gathered_context_focus_resource_content.to_json
             value.content );
       ]
-      value.extra
 end
 
 module Inference_spec = struct
   type t = {
     providers : (string * Provider.t) list;
     engines : Archivist_engines.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        providers = required reader (map (record Provider.project)) "providers";
-        engines = required reader (record Archivist_engines.project) "engines";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      providers = required reader (map (record Provider.project)) "providers";
+      engines = required reader (record Archivist_engines.project) "engines";
+    }
 
   let to_json (value : t) =
     write
@@ -21965,27 +18756,19 @@ module Inference_spec = struct
         ("providers", Some ((json_map Provider.to_json) value.providers));
         ("engines", Some (Archivist_engines.to_json value.engines));
       ]
-      value.extra
 end
 
 module Conformance_driver_line_emission = struct
-  type t = {
-    emission : Conformance_driver_line_emission_emission.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { emission : Conformance_driver_line_emission_emission.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        emission =
-          required reader
-            (record Conformance_driver_line_emission_emission.project)
-            "emission";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      emission =
+        required reader
+          (record Conformance_driver_line_emission_emission.project)
+          "emission";
+    }
 
   let to_json (value : t) =
     write
@@ -21995,7 +18778,6 @@ module Conformance_driver_line_emission = struct
             (Conformance_driver_line_emission_emission.to_json value.emission)
         );
       ]
-      value.extra
 end
 
 module Annotation = struct
@@ -22018,30 +18800,24 @@ module Annotation = struct
     modified : string option;
     generator : One_or_more_agents.t option;
     was_attributed_to : One_or_more_agents.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_context = required reader string "@context";
-        type_ = required reader (enum Type_.of_string) "type";
-        id = required reader string "id";
-        motivation =
-          required reader (enum Enums.Motivation.of_string) "motivation";
-        target = required reader Annotation_target_value.read "target";
-        body = maybe reader Annotation_bodies.read "body";
-        creator = maybe reader Agent.read "creator";
-        created = required reader string "created";
-        modified = maybe reader string "modified";
-        generator = maybe reader One_or_more_agents.read "generator";
-        was_attributed_to =
-          maybe reader One_or_more_agents.read "wasAttributedTo";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_context = required reader string "@context";
+      type_ = required reader (enum Type_.of_string) "type";
+      id = required reader string "id";
+      motivation =
+        required reader (enum Enums.Motivation.of_string) "motivation";
+      target = required reader Annotation_target_value.read "target";
+      body = maybe reader Annotation_bodies.read "body";
+      creator = maybe reader Agent.read "creator";
+      created = required reader string "created";
+      modified = maybe reader string "modified";
+      generator = maybe reader One_or_more_agents.read "generator";
+      was_attributed_to = maybe reader One_or_more_agents.read "wasAttributedTo";
+    }
 
   let of_model (model : [ `Annotation ] Models.t) =
     project (fields_of (Models.json model))
@@ -22063,30 +18839,22 @@ module Annotation = struct
         ( "wasAttributedTo",
           Option.map One_or_more_agents.to_json value.was_attributed_to );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.annotation (Yojson.Raw.to_string (to_json value))
 end
 
 module Browse_engines_result = struct
-  type t = {
-    response : Browse_engines_result_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Browse_engines_result_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader
-            (record Browse_engines_result_response.project)
-            "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader
+          (record Browse_engines_result_response.project)
+          "response";
+    }
 
   let of_model (model : [ `BrowseEnginesResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -22097,7 +18865,6 @@ module Browse_engines_result = struct
         ( "response",
           Some (Browse_engines_result_response.to_json value.response) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_engines_result
@@ -22105,23 +18872,16 @@ module Browse_engines_result = struct
 end
 
 module Browse_resource_result = struct
-  type t = {
-    response : Browse_resource_result_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Browse_resource_result_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader
-            (record Browse_resource_result_response.project)
-            "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader
+          (record Browse_resource_result_response.project)
+          "response";
+    }
 
   let of_model (model : [ `BrowseResourceResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -22132,7 +18892,6 @@ module Browse_resource_result = struct
         ( "response",
           Some (Browse_resource_result_response.to_json value.response) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_resource_result
@@ -22140,21 +18899,14 @@ module Browse_resource_result = struct
 end
 
 module Browse_resources_result = struct
-  type t = {
-    response : List_resources_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : List_resources_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record List_resources_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record List_resources_response.project) "response";
+    }
 
   let of_model (model : [ `BrowseResourcesResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -22162,7 +18914,6 @@ module Browse_resources_result = struct
   let to_json (value : t) =
     write
       [ ("response", Some (List_resources_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_resources_result
@@ -22170,29 +18921,19 @@ module Browse_resources_result = struct
 end
 
 module Job_status_result = struct
-  type t = {
-    response : Job_status_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Job_status_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Job_status_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response = required reader (record Job_status_response.project) "response";
+    }
 
   let of_model (model : [ `JobStatusResult ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("response", Some (Job_status_response.to_json value.response)) ]
-      value.extra
+    write [ ("response", Some (Job_status_response.to_json value.response)) ]
 
   let to_model value =
     Models.decode Models.job_status_result
@@ -22200,23 +18941,15 @@ module Job_status_result = struct
 end
 
 module Mark_create_request = struct
-  type t = {
-    resource_id : string;
-    request : Create_annotation_request.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; request : Create_annotation_request.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        request =
-          required reader (record Create_annotation_request.project) "request";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      request =
+        required reader (record Create_annotation_request.project) "request";
+    }
 
   let of_model (model : [ `MarkCreateRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -22227,7 +18960,6 @@ module Mark_create_request = struct
         ("resourceId", Some (json_string value.resource_id));
         ("request", Some (Create_annotation_request.to_json value.request));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_create_request
@@ -22235,21 +18967,14 @@ module Mark_create_request = struct
 end
 
 module Match_resources_result = struct
-  type t = {
-    response : Match_resources_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Match_resources_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Match_resources_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Match_resources_response.project) "response";
+    }
 
   let of_model (model : [ `MatchResourcesResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -22257,7 +18982,6 @@ module Match_resources_result = struct
   let to_json (value : t) =
     write
       [ ("response", Some (Match_resources_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.match_resources_result
@@ -22265,25 +18989,17 @@ module Match_resources_result = struct
 end
 
 module Job_claimed_result = struct
-  type t = { response : Job_running.t; extra : (string * Yojson.Raw.t) list }
+  type t = { response : Job_running.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response = required reader (record Job_running.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    { response = required reader (record Job_running.project) "response" }
 
   let of_model (model : [ `JobClaimedResult ] Models.t) =
     project (fields_of (Models.json model))
 
   let to_json (value : t) =
-    write
-      [ ("response", Some (Job_running.to_json value.response)) ]
-      value.extra
+    write [ ("response", Some (Job_running.to_json value.response)) ]
 
   let to_model value =
     Models.decode Models.job_claimed_result
@@ -22296,21 +19012,16 @@ module Inference = struct
     kind : string;
     metadata : Metadata.t;
     spec : Inference_spec.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        api_version = required reader string "apiVersion";
-        kind = required reader string "kind";
-        metadata = required reader (record Metadata.project) "metadata";
-        spec = required reader (record Inference_spec.project) "spec";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      api_version = required reader string "apiVersion";
+      kind = required reader string "kind";
+      metadata = required reader (record Metadata.project) "metadata";
+      spec = required reader (record Inference_spec.project) "spec";
+    }
 
   let of_model (model : [ `Inference ] Models.t) =
     project (fields_of (Models.json model))
@@ -22323,7 +19034,6 @@ module Inference = struct
         ("metadata", Some (Metadata.to_json value.metadata));
         ("spec", Some (Inference_spec.to_json value.spec));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.inference (Yojson.Raw.to_string (to_json value))
@@ -22336,26 +19046,20 @@ module Worker_config = struct
     port : int;
     log_level : Enums.Log_level.t;
     log_format : Enums.Log_format.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        knowledge_bases =
-          required reader
-            (list (record Worker_knowledge_base_config.project))
-            "knowledgeBases";
-        model_catalogue = required reader string "modelCatalogue";
-        port = required reader int "port";
-        log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
-        log_format =
-          required reader (enum Enums.Log_format.of_string) "logFormat";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      knowledge_bases =
+        required reader
+          (list (record Worker_knowledge_base_config.project))
+          "knowledgeBases";
+      model_catalogue = required reader string "modelCatalogue";
+      port = required reader int "port";
+      log_level = required reader (enum Enums.Log_level.of_string) "logLevel";
+      log_format = required reader (enum Enums.Log_format.of_string) "logFormat";
+    }
 
   let of_model (model : [ `WorkerConfig ] Models.t) =
     project (fields_of (Models.json model))
@@ -22374,7 +19078,6 @@ module Worker_config = struct
         ( "logFormat",
           Some ((json_enum Enums.Log_format.to_string) value.log_format) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.worker_config (Yojson.Raw.to_string (to_json value))
@@ -22391,22 +19094,17 @@ module Worker_health = struct
   type t = {
     status : Status.t;
     knowledge_bases : Worker_knowledge_base_health.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        status = required reader (enum Status.of_string) "status";
-        knowledge_bases =
-          required reader
-            (list (record Worker_knowledge_base_health.project))
-            "knowledgeBases";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      status = required reader (enum Status.of_string) "status";
+      knowledge_bases =
+        required reader
+          (list (record Worker_knowledge_base_health.project))
+          "knowledgeBases";
+    }
 
   let of_model (model : [ `WorkerHealth ] Models.t) =
     project (fields_of (Models.json model))
@@ -22420,7 +19118,6 @@ module Worker_health = struct
             ((json_list Worker_knowledge_base_health.to_json)
                value.knowledge_bases) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.worker_health (Yojson.Raw.to_string (to_json value))
@@ -22760,22 +19457,14 @@ module Conformance_driver_line = struct
 end
 
 module Annotation_added_payload = struct
-  type t = {
-    annotation : Annotation.t;
-    content_checksum : string option;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { annotation : Annotation.t; content_checksum : string option }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation = required reader (record Annotation.project) "annotation";
-        content_checksum = maybe reader string "contentChecksum";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation = required reader (record Annotation.project) "annotation";
+      content_checksum = maybe reader string "contentChecksum";
+    }
 
   let of_model (model : [ `AnnotationAddedPayload ] Models.t) =
     project (fields_of (Models.json model))
@@ -22786,7 +19475,6 @@ module Annotation_added_payload = struct
         ("annotation", Some (Annotation.to_json value.annotation));
         ("contentChecksum", Option.map json_string value.content_checksum);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.annotation_added_payload
@@ -22804,26 +19492,21 @@ module Enriched_resource_event = struct
     payload : (string * Yojson.Raw.t) list;
     metadata : Event_metadata.t;
     annotation : Annotation.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        type_ = required reader string "type";
-        timestamp = required reader string "timestamp";
-        user_id = required reader string "userId";
-        resource_id = maybe reader string "resourceId";
-        version = required reader int "version";
-        payload = required reader (map raw) "payload";
-        metadata = required reader (record Event_metadata.project) "metadata";
-        annotation = maybe reader (record Annotation.project) "annotation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      type_ = required reader string "type";
+      timestamp = required reader string "timestamp";
+      user_id = required reader string "userId";
+      resource_id = maybe reader string "resourceId";
+      version = required reader int "version";
+      payload = required reader (map raw) "payload";
+      metadata = required reader (record Event_metadata.project) "metadata";
+      annotation = maybe reader (record Annotation.project) "annotation";
+    }
 
   let of_model (model : [ `EnrichedResourceEvent ] Models.t) =
     project (fields_of (Models.json model))
@@ -22841,7 +19524,6 @@ module Enriched_resource_event = struct
         ("metadata", Some (Event_metadata.to_json value.metadata));
         ("annotation", Option.map Annotation.to_json value.annotation);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.enriched_resource_event
@@ -22853,26 +19535,21 @@ module Get_annotation_response = struct
     annotation : Annotation.t;
     resource : Resource_descriptor.t option;
     resolved_resource : Resource_descriptor.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation = required reader (record Annotation.project) "annotation";
-        resource =
-          required reader
-            (nullable (record Resource_descriptor.project))
-            "resource";
-        resolved_resource =
-          required reader
-            (nullable (record Resource_descriptor.project))
-            "resolvedResource";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation = required reader (record Annotation.project) "annotation";
+      resource =
+        required reader
+          (nullable (record Resource_descriptor.project))
+          "resource";
+      resolved_resource =
+        required reader
+          (nullable (record Resource_descriptor.project))
+          "resolvedResource";
+    }
 
   let of_model (model : [ `GetAnnotationResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -22888,7 +19565,6 @@ module Get_annotation_response = struct
             ((json_nullable Resource_descriptor.to_json)
                value.resolved_resource) );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_annotation_response
@@ -22900,21 +19576,16 @@ module Get_annotations_response = struct
     annotations : Annotation.t list;
     total : float;
     motivation : Enums.Motivation.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotations =
-          required reader (list (record Annotation.project)) "annotations";
-        total = required reader float "total";
-        motivation = maybe reader (enum Enums.Motivation.of_string) "motivation";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotations =
+        required reader (list (record Annotation.project)) "annotations";
+      total = required reader float "total";
+      motivation = maybe reader (enum Enums.Motivation.of_string) "motivation";
+    }
 
   let of_model (model : [ `GetAnnotationsResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -22927,7 +19598,6 @@ module Get_annotations_response = struct
         ( "motivation",
           Option.map (json_enum Enums.Motivation.to_string) value.motivation );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_annotations_response
@@ -22935,24 +19605,15 @@ module Get_annotations_response = struct
 end
 
 module Get_resource_response = struct
-  type t = {
-    resource : Resource_descriptor.t;
-    annotations : Annotation.t list;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource : Resource_descriptor.t; annotations : Annotation.t list }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource =
-          required reader (record Resource_descriptor.project) "resource";
-        annotations =
-          required reader (list (record Annotation.project)) "annotations";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource = required reader (record Resource_descriptor.project) "resource";
+      annotations =
+        required reader (list (record Annotation.project)) "annotations";
+    }
 
   let of_model (model : [ `GetResourceResponse ] Models.t) =
     project (fields_of (Models.json model))
@@ -22963,7 +19624,6 @@ module Get_resource_response = struct
         ("resource", Some (Resource_descriptor.to_json value.resource));
         ("annotations", Some ((json_list Annotation.to_json) value.annotations));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.get_resource_response
@@ -22985,23 +19645,18 @@ module Graph_annotation_node = struct
     entity_types : string list option;
     annotation : Annotation.t;
     metadata : (string * Yojson.Raw.t) list option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        id = required reader string "id";
-        type_ = required reader (enum Type_.of_string) "type";
-        label = required reader string "label";
-        entity_types = maybe reader (list string) "entityTypes";
-        annotation = required reader (record Annotation.project) "annotation";
-        metadata = maybe reader (map raw) "metadata";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      id = required reader string "id";
+      type_ = required reader (enum Type_.of_string) "type";
+      label = required reader string "label";
+      entity_types = maybe reader (list string) "entityTypes";
+      annotation = required reader (record Annotation.project) "annotation";
+      metadata = maybe reader (map raw) "metadata";
+    }
 
   let of_model (model : [ `GraphAnnotationNode ] Models.t) =
     project (fields_of (Models.json model))
@@ -23016,7 +19671,6 @@ module Graph_annotation_node = struct
         ("annotation", Some (Annotation.to_json value.annotation));
         ("metadata", Option.map (json_map json_raw) value.metadata);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.graph_annotation_node
@@ -23030,23 +19684,18 @@ module Mark_commit_command = struct
     job_id : string option;
     resource_id : string;
     annotations : Annotation.t list;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        field_roles = maybe reader (list string) "_roles";
-        job_id = maybe reader string "jobId";
-        resource_id = required reader string "resourceId";
-        annotations =
-          required reader (list (record Annotation.project)) "annotations";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      field_roles = maybe reader (list string) "_roles";
+      job_id = maybe reader string "jobId";
+      resource_id = required reader string "resourceId";
+      annotations =
+        required reader (list (record Annotation.project)) "annotations";
+    }
 
   let of_model (model : [ `MarkCommitCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -23060,7 +19709,6 @@ module Mark_commit_command = struct
         ("resourceId", Some (json_string value.resource_id));
         ("annotations", Some ((json_list Annotation.to_json) value.annotations));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.mark_commit_command
@@ -23068,22 +19716,14 @@ module Mark_commit_command = struct
 end
 
 module Job_record = struct
-  type t = {
-    job : Job.t;
-    last_progress_at : string;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { job : Job.t; last_progress_at : string }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        job = required reader Job.read "job";
-        last_progress_at = required reader string "lastProgressAt";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      job = required reader Job.read "job";
+      last_progress_at = required reader string "lastProgressAt";
+    }
 
   let of_model (model : [ `JobRecord ] Models.t) =
     project (fields_of (Models.json model))
@@ -23094,7 +19734,6 @@ module Job_record = struct
         ("job", Some (Job.to_json value.job));
         ("lastProgressAt", Some (json_string value.last_progress_at));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.job_record (Yojson.Raw.to_string (to_json value))
@@ -23106,22 +19745,17 @@ module Resource_annotations = struct
     annotations : Annotation.t list;
     version : int;
     updated_at : string;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        annotations =
-          required reader (list (record Annotation.project)) "annotations";
-        version = required reader int "version";
-        updated_at = required reader string "updatedAt";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      annotations =
+        required reader (list (record Annotation.project)) "annotations";
+      version = required reader int "version";
+      updated_at = required reader string "updatedAt";
+    }
 
   let of_model (model : [ `ResourceAnnotations ] Models.t) =
     project (fields_of (Models.json model))
@@ -23134,7 +19768,6 @@ module Resource_annotations = struct
         ("version", Some (json_int value.version));
         ("updatedAt", Some (json_string value.updated_at));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.resource_annotations
@@ -23157,32 +19790,27 @@ module Gathered_context_focus_annotation = struct
     user_hint : string option;
     target_resource : Resource_descriptor.t option;
     target_context : Gathered_context_focus_annotation_target_context.t option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        kind = required reader (enum Kind.of_string) "kind";
-        annotation = required reader (record Annotation.project) "annotation";
-        source_resource =
-          required reader (record Resource_descriptor.project) "sourceResource";
-        selected =
-          maybe reader
-            (record Gathered_context_focus_annotation_selected.project)
-            "selected";
-        user_hint = maybe reader string "userHint";
-        target_resource =
-          maybe reader (record Resource_descriptor.project) "targetResource";
-        target_context =
-          maybe reader
-            (record Gathered_context_focus_annotation_target_context.project)
-            "targetContext";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      kind = required reader (enum Kind.of_string) "kind";
+      annotation = required reader (record Annotation.project) "annotation";
+      source_resource =
+        required reader (record Resource_descriptor.project) "sourceResource";
+      selected =
+        maybe reader
+          (record Gathered_context_focus_annotation_selected.project)
+          "selected";
+      user_hint = maybe reader string "userHint";
+      target_resource =
+        maybe reader (record Resource_descriptor.project) "targetResource";
+      target_context =
+        maybe reader
+          (record Gathered_context_focus_annotation_target_context.project)
+          "targetContext";
+    }
 
   let to_json (value : t) =
     write
@@ -23201,25 +19829,17 @@ module Gathered_context_focus_annotation = struct
           Option.map Gathered_context_focus_annotation_target_context.to_json
             value.target_context );
       ]
-      value.extra
 end
 
 module Browse_annotation_result = struct
-  type t = {
-    response : Get_annotation_response.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { response : Get_annotation_response.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        response =
-          required reader (record Get_annotation_response.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      response =
+        required reader (record Get_annotation_response.project) "response";
+    }
 
   let of_model (model : [ `BrowseAnnotationResult ] Models.t) =
     project (fields_of (Models.json model))
@@ -23227,7 +19847,6 @@ module Browse_annotation_result = struct
   let to_json (value : t) =
     write
       [ ("response", Some (Get_annotation_response.to_json value.response)) ]
-      value.extra
 
   let to_model value =
     Models.decode Models.browse_annotation_result
@@ -23239,22 +19858,16 @@ module Resource_view = struct
     resource : Resource_descriptor.t;
     annotations : Resource_annotations.t;
     last_sequence : int;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource =
-          required reader (record Resource_descriptor.project) "resource";
-        annotations =
-          required reader (record Resource_annotations.project) "annotations";
-        last_sequence = required reader int "lastSequence";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource = required reader (record Resource_descriptor.project) "resource";
+      annotations =
+        required reader (record Resource_annotations.project) "annotations";
+      last_sequence = required reader int "lastSequence";
+    }
 
   let of_model (model : [ `ResourceView ] Models.t) =
     project (fields_of (Models.json model))
@@ -23266,7 +19879,6 @@ module Resource_view = struct
         ("annotations", Some (Resource_annotations.to_json value.annotations));
         ("lastSequence", Some (json_int value.last_sequence));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.resource_view (Yojson.Raw.to_string (to_json value))
@@ -23353,23 +19965,18 @@ module Knowledge_graph = struct
     nodes : Knowledge_graph_nodes_item.t list;
     edges : Knowledge_graph_edges_item.t list;
     truncated : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        nodes = required reader (list Knowledge_graph_nodes_item.read) "nodes";
-        edges =
-          required reader
-            (list (record Knowledge_graph_edges_item.project))
-            "edges";
-        truncated = maybe reader bool "truncated";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      nodes = required reader (list Knowledge_graph_nodes_item.read) "nodes";
+      edges =
+        required reader
+          (list (record Knowledge_graph_edges_item.project))
+          "edges";
+      truncated = maybe reader bool "truncated";
+    }
 
   let of_model (model : [ `KnowledgeGraph ] Models.t) =
     project (fields_of (Models.json model))
@@ -23383,7 +19990,6 @@ module Knowledge_graph = struct
           Some ((json_list Knowledge_graph_edges_item.to_json) value.edges) );
         ("truncated", Option.map json_bool value.truncated);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.knowledge_graph (Yojson.Raw.to_string (to_json value))
@@ -23396,27 +20002,22 @@ module Gathered_context = struct
     semantic_context : Gathered_context_semantic_context.t option;
     metadata : Gathered_context_metadata.t;
     inferred_relationship_summary : string option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        focus = required reader Gathered_context_focus.read "focus";
-        graph = required reader (record Knowledge_graph.project) "graph";
-        semantic_context =
-          maybe reader
-            (record Gathered_context_semantic_context.project)
-            "semanticContext";
-        metadata =
-          required reader (record Gathered_context_metadata.project) "metadata";
-        inferred_relationship_summary =
-          maybe reader string "inferredRelationshipSummary";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      focus = required reader Gathered_context_focus.read "focus";
+      graph = required reader (record Knowledge_graph.project) "graph";
+      semantic_context =
+        maybe reader
+          (record Gathered_context_semantic_context.project)
+          "semanticContext";
+      metadata =
+        required reader (record Gathered_context_metadata.project) "metadata";
+      inferred_relationship_summary =
+        maybe reader string "inferredRelationshipSummary";
+    }
 
   let of_model (model : [ `GatheredContext ] Models.t) =
     project (fields_of (Models.json model))
@@ -23433,29 +20034,20 @@ module Gathered_context = struct
         ( "inferredRelationshipSummary",
           Option.map json_string value.inferred_relationship_summary );
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gathered_context (Yojson.Raw.to_string (to_json value))
 end
 
 module Gather_annotation_complete = struct
-  type t = {
-    annotation_id : string;
-    response : Gathered_context.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { annotation_id : string; response : Gathered_context.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        annotation_id = required reader string "annotationId";
-        response = required reader (record Gathered_context.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      annotation_id = required reader string "annotationId";
+      response = required reader (record Gathered_context.project) "response";
+    }
 
   let of_model (model : [ `GatherAnnotationComplete ] Models.t) =
     project (fields_of (Models.json model))
@@ -23466,7 +20058,6 @@ module Gather_annotation_complete = struct
         ("annotationId", Some (json_string value.annotation_id));
         ("response", Some (Gathered_context.to_json value.response));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_annotation_complete
@@ -23474,22 +20065,14 @@ module Gather_annotation_complete = struct
 end
 
 module Gather_resource_complete = struct
-  type t = {
-    resource_id : string;
-    response : Gathered_context.t;
-    extra : (string * Yojson.Raw.t) list;
-  }
+  type t = { resource_id : string; response : Gathered_context.t }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        response = required reader (record Gathered_context.project) "response";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      response = required reader (record Gathered_context.project) "response";
+    }
 
   let of_model (model : [ `GatherResourceComplete ] Models.t) =
     project (fields_of (Models.json model))
@@ -23500,7 +20083,6 @@ module Gather_resource_complete = struct
         ("resourceId", Some (json_string value.resource_id));
         ("response", Some (Gathered_context.to_json value.response));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.gather_resource_complete
@@ -23522,33 +20104,28 @@ module Generation_job_params = struct
     structure : string option;
     cite : bool option;
     context : Gathered_context.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        title = required reader string "title";
-        storage_uri = required reader string "storageUri";
-        prompt = maybe reader string "prompt";
-        entity_types = maybe reader (list string) "entityTypes";
-        language = maybe reader string "language";
-        source_language = maybe reader string "sourceLanguage";
-        temperature = maybe reader float "temperature";
-        max_tokens = maybe reader float "maxTokens";
-        output_media_type =
-          maybe reader
-            (enum Enums.Supported_media_type.of_string)
-            "outputMediaType";
-        task = maybe reader string "task";
-        structure = maybe reader string "structure";
-        cite = maybe reader bool "cite";
-        context = required reader (record Gathered_context.project) "context";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      title = required reader string "title";
+      storage_uri = required reader string "storageUri";
+      prompt = maybe reader string "prompt";
+      entity_types = maybe reader (list string) "entityTypes";
+      language = maybe reader string "language";
+      source_language = maybe reader string "sourceLanguage";
+      temperature = maybe reader float "temperature";
+      max_tokens = maybe reader float "maxTokens";
+      output_media_type =
+        maybe reader
+          (enum Enums.Supported_media_type.of_string)
+          "outputMediaType";
+      task = maybe reader string "task";
+      structure = maybe reader string "structure";
+      cite = maybe reader bool "cite";
+      context = required reader (record Gathered_context.project) "context";
+    }
 
   let of_model (model : [ `GenerationJobParams ] Models.t) =
     project (fields_of (Models.json model))
@@ -23573,7 +20150,6 @@ module Generation_job_params = struct
         ("cite", Option.map json_bool value.cite);
         ("context", Some (Gathered_context.to_json value.context));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.generation_job_params
@@ -23587,22 +20163,17 @@ module Match_search_request = struct
     context : Gathered_context.t;
     limit : int option;
     use_semantic_scoring : bool option;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        resource_id = required reader string "resourceId";
-        reference_id = required reader string "referenceId";
-        context = required reader (record Gathered_context.project) "context";
-        limit = maybe reader int "limit";
-        use_semantic_scoring = maybe reader bool "useSemanticScoring";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      resource_id = required reader string "resourceId";
+      reference_id = required reader string "referenceId";
+      context = required reader (record Gathered_context.project) "context";
+      limit = maybe reader int "limit";
+      use_semantic_scoring = maybe reader bool "useSemanticScoring";
+    }
 
   let of_model (model : [ `MatchSearchRequest ] Models.t) =
     project (fields_of (Models.json model))
@@ -23616,7 +20187,6 @@ module Match_search_request = struct
         ("limit", Option.map json_int value.limit);
         ("useSemanticScoring", Option.map json_bool value.use_semantic_scoring);
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.match_search_request
@@ -23636,21 +20206,16 @@ module Yield_job_create_command = struct
     field_roles : string list option;
     job_type : Job_type.t;
     params : Generation_job_params.t;
-    extra : (string * Yojson.Raw.t) list;
   }
 
   let project fields =
     let reader = start fields in
-    let record =
-      {
-        field_user_id = maybe reader string "_userId";
-        field_roles = maybe reader (list string) "_roles";
-        job_type = required reader (enum Job_type.of_string) "jobType";
-        params = required reader (record Generation_job_params.project) "params";
-        extra = [];
-      }
-    in
-    { record with extra = rest reader }
+    {
+      field_user_id = maybe reader string "_userId";
+      field_roles = maybe reader (list string) "_roles";
+      job_type = required reader (enum Job_type.of_string) "jobType";
+      params = required reader (record Generation_job_params.project) "params";
+    }
 
   let of_model (model : [ `YieldJobCreateCommand ] Models.t) =
     project (fields_of (Models.json model))
@@ -23663,7 +20228,6 @@ module Yield_job_create_command = struct
         ("jobType", Some ((json_enum Job_type.to_string) value.job_type));
         ("params", Some (Generation_job_params.to_json value.params));
       ]
-      value.extra
 
   let to_model value =
     Models.decode Models.yield_job_create_command

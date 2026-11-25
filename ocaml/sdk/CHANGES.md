@@ -96,6 +96,12 @@ the coming release's, and gathers its changes as they land.
   `HttpEndpoint | LocalEndpoint`. Each union's `of_model` is the union, not
   an option. Every union Protocol roots is a module of `Records`, among them
   `Bus_stream_message` and `Conformance_driver_line`.
+- A record drops the members its schema does not name, where it kept them
+  in `extra` and wrote them back: only the records Protocol states hold
+  other members keep `extra` (`Agent_organization`, `Agent_person`,
+  `Agent_software`, `Job_params`, `Representation`, `Resource_descriptor`,
+  `Resource_descriptor_identifier_object` and `Scored_resource`). A
+  `Selector` branch has no `extra` either.
 
 - `Retry.retry_with_backoff` takes its `budget` as a `Client_timing.retry`,
   the type Protocol's client timing states, in place of `Retry.budget`.

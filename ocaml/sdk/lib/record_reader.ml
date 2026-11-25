@@ -156,9 +156,14 @@ let member members value =
 
 (* The members [stated], each but the absent, and then those of [extra] that
    no stated one names. *)
-let write stated extra =
+let written stated =
+  List.filter_map
+    (fun (name, value) -> Option.map (fun value -> (name, value)) value)
+    stated
+
+let write stated = `Assoc (written stated)
+
+let write_open stated extra =
   `Assoc
-    (List.filter_map
-       (fun (name, value) -> Option.map (fun value -> (name, value)) value)
-       stated
+    (written stated
     @ List.filter (fun (name, _) -> not (List.mem_assoc name stated)) extra)

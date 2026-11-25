@@ -89,7 +89,7 @@ let () =
   List.iter
     (fun (e : R.entry) ->
       match e.shape with
-      | Object fields ->
+      | Object { members = fields; _ } ->
           List.iter
             (fun (f : R.held_member) ->
               let ty =

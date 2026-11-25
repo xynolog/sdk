@@ -141,7 +141,6 @@ let encode_emit ?scope ?client_id ?correlation_id channel source =
               scope = Option.map Identifiers.Resource_id.to_string scope;
               client_id;
               correlation_id;
-              extra = [];
             }
         with
         | Ok model -> Ok (Models.encode model)

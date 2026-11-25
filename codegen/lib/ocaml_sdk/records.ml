@@ -6,13 +6,15 @@
    module of the record's own), the record or union it names, the table
    record it names, a list or a map of one of those, and its raw JSON only
    where Typing gives it no type. One that may be absent or null is an
-   option, and a raw one that may be absent a [Types.presence]. A union is a
-   constructor per member, named as Typing names it, read as the first
-   member whose signature admits the value. Each is read from the value a [Models] descriptor accepted,
-   through ocaml/sdk/lib/record_reader.ml, and written back with the members
-   no read named, the descriptor holding what is written to the schema. The
-   module has no interface, so each record's type is stated once. Where it
-   reads a member otherwise than [Typing] does, it is [Deviations].
+   option, and a raw one that may be absent a [Types.presence]. A record
+   Protocol states holds other members keeps them ([extra]); any other drops
+   them. A union is a constructor per member, named as Typing names it, read
+   as the first member whose signature admits the value. Each is read from
+   the value a [Models] descriptor accepted, through
+   ocaml/sdk/lib/record_reader.ml, and written back, the descriptor holding
+   what is written to the schema. The module has no interface, so each
+   record's type is stated once. Where it reads a member otherwise than
+   [Typing] does, it is [Deviations].
 
    And every record Protocol states in a table ([Table_records]) and every
    client type the SDK generates ([Definitions.generated_client_types]), but a
@@ -80,7 +82,11 @@ type entry = {
   shape : shape;
 }
 
-and shape = Object of held_member list | Members of held_branch list
+and shape =
+  | Object of { members : held_member list; open_ : bool }
+      (** [open_] when Protocol states that it holds other members, which it
+          keeps. *)
+  | Members of held_branch list
 
 exception Refused of Decode.error
 
@@ -146,8 +152,8 @@ let rec stated_of = function
 
 let depends (e : entry) =
   match e.shape with
-  | Object fields ->
-      List.concat_map (fun (f : held_member) -> modules_of f.held) fields
+  | Object { members; _ } ->
+      List.concat_map (fun (f : held_member) -> modules_of f.held) members
   | Members branches ->
       List.concat_map (fun (b : held_branch) -> modules_of b.held) branches
 
@@ -189,7 +195,7 @@ let components spec (typing : T.t) ~tabled ~enum_of =
   let discovered = ref [] in
   let record_form name =
     match (typing.find name).form with
-    | T.Record { members = _ :: _ as members; _ } -> Some members
+    | T.Record { members = _ :: _ as members; rest } -> Some (members, rest)
     | _ -> None
   in
   let rec held_of ~stated_in ~const (ty : T.ty) =
@@ -207,8 +213,8 @@ let components spec (typing : T.t) ~tabled ~enum_of =
     match (tabled name, enum_of name, (typing.find name).form) with
     | Some m, _, _ -> Tabled m
     | None, Some m, _ -> Enum m
-    | None, None, T.Record { members = _ :: _ as members; _ } ->
-        record ~module_ ~name ~file members;
+    | None, None, T.Record { members = _ :: _ as members; rest } ->
+        record ~module_ ~name ~file ~rest members;
         Record module_
     | None, None, T.Union u when Deviations.text_union u -> Text
     | None, None, T.Union u ->
@@ -227,8 +233,8 @@ let components spec (typing : T.t) ~tabled ~enum_of =
   and inline ~stated_in ~const (i : T.inline) =
     let module_ = Enums.module_name i.name in
     match i.form with
-    | T.Record { members = _ :: _ as members; _ } ->
-        record ~module_ ~name:i.name ~file:i.place.owner members;
+    | T.Record { members = _ :: _ as members; rest } ->
+        record ~module_ ~name:i.name ~file:i.place.owner ~rest members;
         Record module_
     | T.Union u when Deviations.text_union u -> Text
     | T.Union u ->
@@ -252,7 +258,7 @@ let components spec (typing : T.t) ~tabled ~enum_of =
       let e = build () in
       Hashtbl.replace found module_ (Some e);
       discovered := e :: !discovered)
-  and record ~module_ ~name ~file members =
+  and record ~module_ ~name ~file ~(rest : T.rest) members =
     declare module_ (fun () ->
         let fields =
           List.map
@@ -274,7 +280,15 @@ let components spec (typing : T.t) ~tabled ~enum_of =
           module_;
           name = (if rooted name then Some name else None);
           file;
-          shape = Object fields;
+          shape =
+            Object
+              {
+                members = fields;
+                open_ =
+                  (match rest with
+                  | Open | Of _ -> true
+                  | Closed | Unstated -> false);
+              };
         })
   and union ~module_ ~name ~file (u : T.union) =
     declare module_ (fun () ->
@@ -318,8 +332,8 @@ let components spec (typing : T.t) ~tabled ~enum_of =
   List.iter
     (fun (name, file) ->
       match record_form name with
-      | Some members ->
-          record ~module_:(Enums.module_name name) ~name ~file members
+      | Some (members, rest) ->
+          record ~module_:(Enums.module_name name) ~name ~file ~rest members
       | None -> ())
     roots;
   List.iter
@@ -700,8 +714,8 @@ let signature (s : T.signature) =
 let entry (e : entry) =
   let rooted items = match e.name with Some name -> items name | None -> [] in
   match e.shape with
-  | Object fields ->
-      let fields =
+  | Object { members; open_ } ->
+      let typed =
         List.map
           (fun (f : held_member) ->
             let held, type_, read, write = record_member f in
@@ -714,23 +728,29 @@ let entry (e : entry) =
               | Always -> type_
               | Maybe -> O.type_ "option" ~args:[ type_ ]
               | Presence -> O.type_ "Types.presence" ~args:[ type_ ] ))
-          fields
-        |> fun typed -> (typed, fields)
+          members
       in
-      let typed, members = fields in
+      let extra =
+        O.type_ "list"
+          ~args:[ O.type_tuple [ O.type_ "string"; O.type_ "Yojson.Raw.t" ] ]
+      in
       let t =
         O.type_declaration "t"
           (Record
              (List.map (fun (_, label, _, _, _, t) -> (label, t)) typed
-             @ [
-                 ( "extra",
-                   O.type_ "list"
-                     ~args:
-                       [
-                         O.type_tuple
-                           [ O.type_ "string"; O.type_ "Yojson.Raw.t" ];
-                       ] );
-               ]))
+             @ if open_ then [ ("extra", extra) ] else []))
+      in
+      let read =
+        List.map
+          (fun (name, label, read, _, held, _) ->
+            ( label,
+              O.call
+                (match held with
+                | Always -> "required"
+                | Maybe -> "maybe"
+                | Presence -> "optional")
+                [ O.ident "reader"; read; O.string name ] ))
+          typed
       in
       (* A record's fields are evaluated in no stated order, so the members no
          read named are taken once the record is built. *)
@@ -738,44 +758,36 @@ let entry (e : entry) =
         O.define "project" [ "fields" ]
           (O.let_in "reader"
              (O.call "start" [ O.ident "fields" ])
-             (O.let_in "record"
-                (O.record
-                   (List.map
-                      (fun (name, label, read, _, held, _) ->
-                        ( label,
-                          O.call
-                            (match held with
-                            | Always -> "required"
-                            | Maybe -> "maybe"
-                            | Presence -> "optional")
-                            [ O.ident "reader"; read; O.string name ] ))
-                      typed
-                   @ [ ("extra", O.list []) ]))
-                (O.record ~with_:(O.ident "record")
-                   [ ("extra", O.call "rest" [ O.ident "reader" ]) ])))
+             (if open_ then
+                O.let_in "record"
+                  (O.record (read @ [ ("extra", O.list []) ]))
+                  (O.record ~with_:(O.ident "record")
+                     [ ("extra", O.call "rest" [ O.ident "reader" ]) ])
+              else O.record read))
       in
       let value = O.ident "value" in
+      let stated =
+        O.list
+          (List.map
+             (fun (name, label, _, write, held, _) ->
+               let member = O.field value label in
+               O.tuple
+                 [
+                   O.string name;
+                   (match held with
+                   | Always -> O.some (O.apply write [ member ])
+                   | Maybe -> O.call "Option.map" [ write; member ]
+                   | Presence -> O.call "present" [ write; member ]);
+                 ])
+             typed)
+      in
       let to_json =
         O.let_ "to_json"
           (O.fun_
              [ O.Pattern.constraint_ (O.Pattern.var "value") (O.type_ "t") ]
-             (O.call "write"
-                [
-                  O.list
-                    (List.map
-                       (fun (name, label, _, write, held, _) ->
-                         let member = O.field value label in
-                         O.tuple
-                           [
-                             O.string name;
-                             (match held with
-                             | Always -> O.some (O.apply write [ member ])
-                             | Maybe -> O.call "Option.map" [ write; member ]
-                             | Presence -> O.call "present" [ write; member ]);
-                           ])
-                       typed);
-                  O.field value "extra";
-                ]))
+             (if open_ then
+                O.call "write_open" [ stated; O.field value "extra" ]
+              else O.call "write" [ stated ]))
       in
       O.module_ e.module_
         (List.map Enums.impl
