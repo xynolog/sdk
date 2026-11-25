@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(ResourceDescriptorRepresentations.RepresentationCase), typeof(ResourceDescriptorRepresentations.ArrayCase))]
 public closed record ResourceDescriptorRepresentations
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["mediaType"], null, [new("rel", [new global::Xynolog.Serialization.Literal.Text("original"), new global::Xynolog.Serialization.Literal.Text("thumbnail"), new global::Xynolog.Serialization.Literal.Text("preview"), new global::Xynolog.Serialization.Literal.Text("optimized"), new global::Xynolog.Serialization.Literal.Text("derived"), new global::Xynolog.Serialization.Literal.Text("other")])], null)], [new(global::Xynolog.Serialization.Kind.List, [], null, [], null)]];
     public sealed record RepresentationCase(global::Xynolog.Types.Representation Value) : ResourceDescriptorRepresentations;
     public sealed record ArrayCase(global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Representation> Value) : ResourceDescriptorRepresentations;
 }

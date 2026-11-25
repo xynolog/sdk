@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(ResourceDescriptorWasDerivedFrom.ResourceIdCase), typeof(ResourceDescriptorWasDerivedFrom.ArrayCase))]
 public closed record ResourceDescriptorWasDerivedFrom
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.List, [], null, [], null)]];
     public sealed record ResourceIdCase(global::Xynolog.Identifiers.ResourceId Value) : ResourceDescriptorWasDerivedFrom;
     public sealed record ArrayCase(global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Identifiers.ResourceId> Value) : ResourceDescriptorWasDerivedFrom;
 }

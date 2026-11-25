@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(UploadProgress.StartedCase), typeof(UploadProgress.ProgressCase), typeof(UploadProgress.FinishedCase))]
 public closed record UploadProgress
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["phase", "totalBytes"], ["phase", "totalBytes"], [new("phase", [new global::Xynolog.Serialization.Literal.Text("started")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["phase", "bytesUploaded", "totalBytes"], ["phase", "bytesUploaded", "totalBytes"], [new("phase", [new global::Xynolog.Serialization.Literal.Text("progress")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["phase", "resourceId"], ["phase", "resourceId"], [new("phase", [new global::Xynolog.Serialization.Literal.Text("finished")])], null)]];
     public sealed record StartedCase(global::Xynolog.Types.UploadProgressStarted Value) : UploadProgress;
     public sealed record ProgressCase(global::Xynolog.Types.UploadProgressProgress Value) : UploadProgress;
     public sealed record FinishedCase(global::Xynolog.Types.UploadProgressFinished Value) : UploadProgress;

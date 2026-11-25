@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(JobCreateCommand.MarkJobCreateCommandCase), typeof(JobCreateCommand.YieldJobCreateCommandCase))]
 public closed record JobCreateCommand
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["jobType", "resourceId", "params"], ["_userId", "_roles", "jobType", "resourceId", "params"], [new("jobType", [new global::Xynolog.Serialization.Literal.Text("mark")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["jobType", "params"], ["_userId", "_roles", "jobType", "params"], [new("jobType", [new global::Xynolog.Serialization.Literal.Text("yield")])], null)]];
     public sealed record MarkJobCreateCommandCase(global::Xynolog.Types.MarkJobCreateCommand Value) : JobCreateCommand;
     public sealed record YieldJobCreateCommandCase(global::Xynolog.Types.YieldJobCreateCommand Value) : JobCreateCommand;
 }

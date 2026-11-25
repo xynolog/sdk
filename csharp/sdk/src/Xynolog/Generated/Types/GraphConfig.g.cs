@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(GraphConfig.Neo4jGraphConfigCase), typeof(GraphConfig.JanusGraphConfigCase), typeof(GraphConfig.NeptuneGraphConfigCase), typeof(GraphConfig.MemoryGraphConfigCase))]
 public closed record GraphConfig
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["type", "uri", "username", "passwordEnv", "database"], ["type", "uri", "username", "passwordEnv", "database"], [new("type", [new global::Xynolog.Serialization.Literal.Text("neo4j")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "host", "port"], ["type", "host", "port"], [new("type", [new global::Xynolog.Serialization.Literal.Text("janusgraph")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "endpoint", "port"], ["type", "endpoint", "port"], [new("type", [new global::Xynolog.Serialization.Literal.Text("neptune")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type"], ["type"], [new("type", [new global::Xynolog.Serialization.Literal.Text("memory")])], null)]];
     public sealed record Neo4jGraphConfigCase(global::Xynolog.Types.Neo4jGraphConfig Value) : GraphConfig;
     public sealed record JanusGraphConfigCase(global::Xynolog.Types.JanusGraphConfig Value) : GraphConfig;
     public sealed record NeptuneGraphConfigCase(global::Xynolog.Types.NeptuneGraphConfig Value) : GraphConfig;

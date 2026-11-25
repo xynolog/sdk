@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(VectorsConfig.QdrantVectorsConfigCase), typeof(VectorsConfig.MemoryVectorsConfigCase))]
 public closed record VectorsConfig
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["type", "host", "port", "tokenEnv"], ["type", "host", "port", "tokenEnv"], [new("type", [new global::Xynolog.Serialization.Literal.Text("qdrant")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type"], ["type"], [new("type", [new global::Xynolog.Serialization.Literal.Text("memory")])], null)]];
     public sealed record QdrantVectorsConfigCase(global::Xynolog.Types.QdrantVectorsConfig Value) : VectorsConfig;
     public sealed record MemoryVectorsConfigCase(global::Xynolog.Types.MemoryVectorsConfig Value) : VectorsConfig;
 }

@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(KbReadVerdict.RecordedCase), typeof(KbReadVerdict.ConflictCase), typeof(KbReadVerdict.NoVerdictCase))]
 public closed record KbReadVerdict
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["kind"], ["kind"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("recorded")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind", "observedDid", "observedName"], ["kind", "observedDid", "observedName"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("conflict")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind"], ["kind"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("no-verdict")])], null)]];
     public sealed record RecordedCase(global::Xynolog.Types.KbReadVerdictRecorded Value) : KbReadVerdict;
     public sealed record ConflictCase(global::Xynolog.Types.KbReadVerdictConflict Value) : KbReadVerdict;
     public sealed record NoVerdictCase(global::Xynolog.Types.KbReadVerdictNoVerdict Value) : KbReadVerdict;

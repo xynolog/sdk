@@ -14,7 +14,7 @@
    admits one string is that string, and is no property to set; and one
    that is optional is nullable. An object that admits properties it
    does not name keeps them (AdditionalProperties). A union's value is read
-   as the member [WireJson.Variant] says it is. Where C# reads otherwise
+   as the one member whose signature ([Typing]) admits it ([Members]). Where C# reads otherwise
    than [Typing], [Deviations] names it. *)
 
 module C = Csharp_syntax
@@ -116,6 +116,7 @@ let rec plain state (form : T.form) =
   | T.Alias (T.Scalar (T.Integer _)) -> Some (C.T "long")
   | T.Alias (T.Scalar T.Number) -> Some (C.T "double")
   | T.Alias (T.Scalar T.Boolean) -> Some (C.T "bool")
+  | T.Union u when Deviations.text_union u -> Some (C.T "string")
   | _ -> None
 
 type field = {
@@ -173,6 +174,7 @@ and type_of state owner property ((ty : T.ty), validated) =
 and in_place state owner property (i : T.inline) validated =
   let inline () = inline state owner property i validated in
   match (i.form, i.composition) with
+  | T.Union u, None when Deviations.text_union u -> T "string"
   | _, Some _
   | (T.Record _ | T.Union _ | T.Enum { base = Some (T.Text _); _ }), None ->
       inline ()
@@ -407,6 +409,13 @@ and object_ state name ~attribute (members : T.member list) (rest : T.rest) ~key
 (* The case a union's member is: what it refers to, Array, Text, an object's
    variant ([Typing]), else Object. *)
 and union state name (u : T.union) validated =
+  (match T.apart_by_pattern_only u with
+  | Some (a, b) ->
+      refuse
+        "%s: its members %s and %s are told apart only by a pattern, which the \
+         C# SDK does not read"
+        name a b
+  | None -> ());
   let variant (b : T.branch) =
     match b.ty with
     | T.Named _ -> b.variant
@@ -451,6 +460,61 @@ and union state name (u : T.union) validated =
       args = List.map (fun case -> C.Typeof (C.T (name ^ "." ^ case))) names;
     }
   in
+  let serialization = "global::Xynolog.Serialization." in
+  let words ws = C.Collection (List.map (fun w -> C.Str w) ws) in
+  let made type_ args =
+    C.New
+      {
+        type_ = Option.map (fun t -> C.T (serialization ^ t)) type_;
+        args = Some (List.map (fun a -> C.Arg a) args);
+        init = None;
+      }
+  in
+  let literal (l : Schema.literal) =
+    match l with
+    | Schema.String_literal s -> made (Some "Literal.Text") [ C.Str s ]
+    | Schema.Int_literal n -> made (Some "Literal.Integer") [ C.Int n ]
+    | Schema.Bool_literal b -> made (Some "Literal.Boolean") [ C.Bool b ]
+  in
+  let literals ls = C.Collection (List.map literal ls) in
+  let stated f = function Some v -> f v | None -> C.Null in
+  let signature (s : T.signature) =
+    let kind =
+      match s.kind with
+      | T.Text_kind -> "Text"
+      | T.Integer_kind -> "Integer"
+      | T.Number_kind -> "Number"
+      | T.Boolean_kind -> "Boolean"
+      | T.List_kind -> "List"
+      | T.Object_kind -> "Object"
+      | T.Null_kind -> "Null"
+      | T.Any_kind -> "Any"
+    in
+    made None
+      [
+        C.Name (serialization ^ "Kind." ^ kind);
+        words s.required;
+        stated words s.allowed;
+        C.Collection
+          (List.map (fun (p, vs) -> made None [ C.Str p; literals vs ]) s.fixed);
+        stated literals s.values;
+      ]
+  in
+  let members =
+    C.Field
+      {
+        modifiers = [ Internal; Static; Readonly ];
+        type_ = C.Array (C.Array (C.T (serialization ^ "Signature")));
+        name = "Members";
+        value =
+          Some
+            (C.Collection
+               (List.map
+                  (fun (b : T.branch) ->
+                    C.Collection (List.map signature b.signature))
+                  u.branches));
+      }
+  in
   [
     C.Type
       {
@@ -463,21 +527,23 @@ and union state name (u : T.union) validated =
         body =
           Some
             ( Packed,
-              List.map
-                (fun (case, t) ->
-                  C.Nested
-                    (Type
-                       {
-                         attributes = [];
-                         modifiers = [ Public; Sealed ];
-                         kind = Record;
-                         name = case;
-                         params =
-                           Some [ { by = `Value; type_ = t; name = "Value" } ];
-                         base = Some (T name);
-                         body = None;
-                       }))
-                cases );
+              members
+              :: List.map
+                   (fun (case, t) ->
+                     C.Nested
+                       (Type
+                          {
+                            attributes = [];
+                            modifiers = [ Public; Sealed ];
+                            kind = Record;
+                            name = case;
+                            params =
+                              Some
+                                [ { by = `Value; type_ = t; name = "Value" } ];
+                            base = Some (T name);
+                            body = None;
+                          }))
+                   cases );
       };
   ]
 

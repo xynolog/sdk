@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(EmbeddingConfig.OllamaEmbeddingConfigCase), typeof(EmbeddingConfig.VoyageEmbeddingConfigCase))]
 public closed record EmbeddingConfig
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["type", "model", "baseUrl"], ["type", "model", "baseUrl"], [new("type", [new global::Xynolog.Serialization.Literal.Text("ollama")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "model", "endpoint", "apiKeyEnv"], ["type", "model", "endpoint", "apiKeyEnv"], [new("type", [new global::Xynolog.Serialization.Literal.Text("voyage")])], null)]];
     public sealed record OllamaEmbeddingConfigCase(global::Xynolog.Types.OllamaEmbeddingConfig Value) : EmbeddingConfig;
     public sealed record VoyageEmbeddingConfigCase(global::Xynolog.Types.VoyageEmbeddingConfig Value) : EmbeddingConfig;
 }

@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(TabCheck.GoneCase), typeof(TabCheck.ReadyCase), typeof(TabCheck.UnknownCase))]
 public closed record TabCheck
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["verdict"], ["verdict"], [new("verdict", [new global::Xynolog.Serialization.Literal.Text("gone")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["verdict", "name"], ["verdict", "name", "mediaType"], [new("verdict", [new global::Xynolog.Serialization.Literal.Text("ready")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["verdict"], ["verdict"], [new("verdict", [new global::Xynolog.Serialization.Literal.Text("unknown")])], null)]];
     public sealed record GoneCase(global::Xynolog.Types.TabCheckGone Value) : TabCheck;
     public sealed record ReadyCase(global::Xynolog.Types.TabCheckReady Value) : TabCheck;
     public sealed record UnknownCase(global::Xynolog.Types.TabCheckUnknown Value) : TabCheck;

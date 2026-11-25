@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(OneOrMoreStrings.TextCase), typeof(OneOrMoreStrings.ArrayCase))]
 public closed record OneOrMoreStrings
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.List, [], null, [], null)]];
     public sealed record TextCase(string Value) : OneOrMoreStrings;
     public sealed record ArrayCase(global::System.Collections.Generic.IReadOnlyList<string> Value) : OneOrMoreStrings;
 }

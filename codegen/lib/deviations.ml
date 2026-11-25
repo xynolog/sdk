@@ -69,9 +69,8 @@ let closed_empty_named (form : T.form) =
    the items of one that is a list its place and [ArrayItem], where
    [Typing] has [Empty] and [Item]. It holds a member that is required, not
    null and of one string as a constant of [string], no type of its own. It
-   reads a union's value as the one member it validates against, of the
-   schemas it validates each value against (WireSchemas), where [Typing]
-   has each member's signature. It holds an enumeration in place of
+   holds a union every member of which is text as a [string]
+   ([text_union]). It holds an enumeration in place of
    integers, numbers or booleans as its scalar, dropping its values, and
    declares a map as a record that keeps its members
    ([AdditionalProperties]), where [Typing] has an alias. *)

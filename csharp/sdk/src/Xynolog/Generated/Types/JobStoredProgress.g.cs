@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(JobStoredProgress.JobProgressCase), typeof(JobStoredProgress.ObjectCase))]
 public closed record JobStoredProgress
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["percentage"], null, [], null)], [new(global::Xynolog.Serialization.Kind.Object, [], [], [], null)]];
     public sealed record JobProgressCase(global::Xynolog.Types.JobProgress Value) : JobStoredProgress;
     public sealed record ObjectCase(global::Xynolog.Types.JobStoredProgressObject Value) : JobStoredProgress;
 }

@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(OneOrMoreAgents.AgentCase), typeof(OneOrMoreAgents.ArrayCase))]
 public closed record OneOrMoreAgents
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["@type"], null, [new("@type", [new global::Xynolog.Serialization.Literal.Text("Person")])], null), new(global::Xynolog.Serialization.Kind.Object, ["@type", "name"], null, [new("@type", [new global::Xynolog.Serialization.Literal.Text("Organization")])], null), new(global::Xynolog.Serialization.Kind.Object, ["@type"], null, [new("@type", [new global::Xynolog.Serialization.Literal.Text("Software")])], null)], [new(global::Xynolog.Serialization.Kind.List, [], null, [], null)]];
     public sealed record AgentCase(global::Xynolog.Types.Agent Value) : OneOrMoreAgents;
     public sealed record ArrayCase(global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.Agent> Value) : OneOrMoreAgents;
 }

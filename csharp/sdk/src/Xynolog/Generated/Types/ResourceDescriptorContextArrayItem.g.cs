@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(ResourceDescriptorContextArrayItem.TextCase), typeof(ResourceDescriptorContextArrayItem.ObjectCase))]
 public closed record ResourceDescriptorContextArrayItem
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.Object, [], null, [], null)]];
     public sealed record TextCase(string Value) : ResourceDescriptorContextArrayItem;
     public sealed record ObjectCase(global::System.Text.Json.JsonElement Value) : ResourceDescriptorContextArrayItem;
 }

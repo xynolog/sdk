@@ -209,10 +209,11 @@ internal static partial class WireJson
         throw new JsonException(path + ": no matching union variant: " + string.Join("; ", errors));
     }
 
-    internal static int Variant(string name, JsonElement value)
+    /// <summary>Validates <paramref name="value"/> against the <paramref name="at"/>th member of the union <paramref name="name"/>, the one it is read as.</summary>
+    internal static void ValidateMember(string name, int at, JsonElement value)
     {
         var schema = Definition(name);
-        return Select(schema.TryGetProperty("oneOf", out var alternatives) ? alternatives : schema.GetProperty("anyOf"), value, name);
+        Validate((schema.TryGetProperty("oneOf", out var members) ? members : schema.GetProperty("anyOf"))[at], value, name);
     }
 
     internal static object Read(JsonElement value, Type type, JsonSerializerOptions options) =>

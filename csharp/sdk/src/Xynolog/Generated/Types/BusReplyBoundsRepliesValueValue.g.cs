@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(BusReplyBoundsRepliesValueValue.ByCase), typeof(BusReplyBoundsRepliesValueValue.GrowsCase))]
 public closed record BusReplyBoundsRepliesValueValue
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["by"], ["by"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["grows"], ["grows"], [], null)]];
     public sealed record ByCase(global::Xynolog.Types.BusReplyBoundsRepliesValueValueBy Value) : BusReplyBoundsRepliesValueValue;
     public sealed record GrowsCase(global::Xynolog.Types.BusReplyBoundsRepliesValueValueGrows Value) : BusReplyBoundsRepliesValueValue;
 }

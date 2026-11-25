@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(ConformanceStepFetchesFetchesItem.ConformanceBusFetchCase), typeof(ConformanceStepFetchesFetchesItem.ConformanceHttpFetchCase))]
 public closed record ConformanceStepFetchesFetchesItem
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["fetch", "as"], ["fetch", "payload", "as"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["fetch"], ["fetch", "params"], [], null)]];
     public sealed record ConformanceBusFetchCase(global::Xynolog.Types.ConformanceBusFetch Value) : ConformanceStepFetchesFetchesItem;
     public sealed record ConformanceHttpFetchCase(global::Xynolog.Types.ConformanceHttpFetch Value) : ConformanceStepFetchesFetchesItem;
 }

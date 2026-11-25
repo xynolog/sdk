@@ -43,6 +43,15 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A union is read as the one member that admits a value, by what each
+  member's schema states (each union's `Members`), and validated against
+  that member's schema alone, where it was read as the first member whose
+  schema the value matched. A value that no member admits, but that one
+  member names by its kind and the values it states, is refused for what is
+  wrong with it as that member; one that none names is refused.
+- A union every member of which is text is a `string`, as a bus event's
+  `id` (`BusEventMessage.Id`) is, where it was a union (`BusEventMessageId`)
+  that read every value as its first member.
 - The HTTP transports name each span and their count by the SDK telemetry
   table, and the live queries each query by the refresh table, as generated
   constants (`TelemetrySpans`, `TelemetryMetrics`, `CacheQuery`) in place of

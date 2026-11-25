@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(KnowledgeGraphNodesItem.GraphResourceNodeCase), typeof(KnowledgeGraphNodesItem.GraphAnnotationNodeCase))]
 public closed record KnowledgeGraphNodesItem
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["id", "type", "label"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("resource")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["id", "type", "label", "annotation"], null, [new("type", [new global::Xynolog.Serialization.Literal.Text("annotation")])], null)]];
     public sealed record GraphResourceNodeCase(global::Xynolog.Types.GraphResourceNode Value) : KnowledgeGraphNodesItem;
     public sealed record GraphAnnotationNodeCase(global::Xynolog.Types.GraphAnnotationNode Value) : KnowledgeGraphNodesItem;
 }

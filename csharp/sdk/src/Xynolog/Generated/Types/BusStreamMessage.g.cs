@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(BusStreamMessage.BusEventMessageCase), typeof(BusStreamMessage.BusPingMessageCase))]
 public closed record BusStreamMessage
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["event", "id", "data"], ["event", "id", "data"], [new("event", [new global::Xynolog.Serialization.Literal.Text("bus-event")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["event", "data"], ["event", "data"], [new("event", [new global::Xynolog.Serialization.Literal.Text("ping")])], null)]];
     public sealed record BusEventMessageCase(global::Xynolog.Types.BusEventMessage Value) : BusStreamMessage;
     public sealed record BusPingMessageCase(global::Xynolog.Types.BusPingMessage Value) : BusStreamMessage;
 }

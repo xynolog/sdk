@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.TextCase), typeof(ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem.ObjectCase))]
 public closed record ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Text, [], null, [], null)], [new(global::Xynolog.Serialization.Kind.Boolean, [], null, [], null)]];
     public sealed record TextCase(string Value) : ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem;
     public sealed record ObjectCase(bool Value) : ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem;
 }

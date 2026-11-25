@@ -179,13 +179,18 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
 }
 
 /// <summary>
-/// A union read as the member of its schema's oneOf or anyOf the value matches, and written as the member it holds.
-/// Its cases are the records nested in it, one per member, each holding its member as <c>Value</c>, given in the members' order.
+/// A union read as the one member whose signature admits the value (<see cref="Signature.Member"/>), validated against
+/// that member's schema, and written as the member it holds. A value one member names but does not admit is refused as
+/// that member says, and one none names is refused. Its cases are the records nested in it, one per member, each
+/// holding its member as <c>Value</c>, given in the members' order, and its <c>Members</c> each one's signatures.
 /// </summary>
 internal sealed class WireUnionConverter<T> : JsonConverter<T>
     where T : class
 {
     private static readonly string Schema = typeof(T).Name;
+    private static readonly Signature[][] Members =
+        typeof(T).GetField("Members", BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(null) as Signature[][]
+        ?? throw new InvalidOperationException(Schema + " states no Members.");
     private readonly Type[] cases;
 
     public WireUnionConverter(Type[] cases)
@@ -195,6 +200,10 @@ internal sealed class WireUnionConverter<T> : JsonConverter<T>
         {
             throw new InvalidOperationException("The cases of " + Schema + " are not the records nested in it.");
         }
+        if (Members.Length != cases.Length)
+        {
+            throw new InvalidOperationException(Schema + " states a signature of " + Members.Length + " members, and has " + cases.Length + " cases.");
+        }
         this.cases = cases;
     }
 
@@ -202,14 +211,14 @@ internal sealed class WireUnionConverter<T> : JsonConverter<T>
     {
         using var document = JsonDocument.ParseValue(ref reader);
         var root = document.RootElement;
-        WireJson.Validate(Schema, root);
-        var variant = WireJson.Variant(Schema, root);
-        if (variant >= cases.Length)
-        {
-            throw new JsonException("No matching union variant.");
-        }
-        var held = cases[variant];
+        var (at, admitted) = Signature.Member(root, Members) ?? throw new JsonException(Signature.NoneOf(Schema, Members));
+        WireJson.ValidateMember(Schema, at, root);
+        var held = cases[at];
         var value = WireJson.Read(root, ValueOf(held).PropertyType, options);
+        if (!admitted)
+        {
+            throw new JsonException("a " + Schema + " its member " + held.Name + " does not admit");
+        }
         return Activator.CreateInstance(held, value) as T ?? throw new JsonException("Cannot make a " + Schema + ".");
     }
 

@@ -7,6 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(KbEndpoint.HttpEndpointCase), typeof(KbEndpoint.LocalEndpointCase))]
 public closed record KbEndpoint
 {
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["kind", "host", "port", "protocol"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("http")]), new("protocol", [new global::Xynolog.Serialization.Literal.Text("http"), new global::Xynolog.Serialization.Literal.Text("https")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind", "kbId"], null, [new("kind", [new global::Xynolog.Serialization.Literal.Text("local")])], null)]];
     public sealed record HttpEndpointCase(global::Xynolog.Types.HttpEndpoint Value) : KbEndpoint;
     public sealed record LocalEndpointCase(global::Xynolog.Types.LocalEndpoint Value) : KbEndpoint;
 }
