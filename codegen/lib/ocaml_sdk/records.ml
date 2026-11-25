@@ -112,7 +112,7 @@ let variant_name tag =
 
 let scalar_of (s : T.scalar) =
   match s with
-  | Text _ -> Text
+  | Text _ | Code _ -> Text
   | Boolean -> Bool
   | Integer _ -> Int
   | Number -> Float
@@ -358,6 +358,7 @@ type base =
   | Int_base
   | Float_base
   | Enum_base of string  (** its module *)
+  | Code_base of string  (** its module of Error_codes *)
   | Record_base of string  (** its module *)
   | Model_base of string  (** its component *)
   | List_base of base
@@ -413,6 +414,8 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
         | None, None ->
             refuse key at "names no schema the OCaml SDK has a type for")
     | T.Scalar (T.Text _) -> (Text_base, None)
+    | T.Scalar (T.Code vocabulary) ->
+        (Code_base (Error_codes.Ocaml.module_of vocabulary), None)
     | T.Scalar T.Boolean -> (Bool_base, None)
     | T.Scalar (T.Integer _) -> (Int_base, None)
     | T.Scalar T.Number -> (Float_base, None)
@@ -851,6 +854,7 @@ let rec base_type = function
   | Int_base -> O.type_ "int"
   | Float_base -> O.type_ "float"
   | Enum_base m -> O.type_ ("Enums." ^ m ^ ".t")
+  | Code_base m -> O.type_ ("Error_codes." ^ m ^ ".t")
   | Record_base m -> O.type_ (m ^ ".t")
   | Model_base c -> O.type_ "Models.t" ~args:[ O.tags [ c ] ]
   | List_base b -> O.type_ "list" ~args:[ base_type b ]
@@ -861,6 +865,7 @@ let rec base_reader = function
   | Int_base -> O.ident "int"
   | Float_base -> O.ident "float"
   | Enum_base m -> O.call "enum" [ O.ident ("Enums." ^ m ^ ".of_string") ]
+  | Code_base m -> O.call "enum" [ O.ident ("Error_codes." ^ m ^ ".of_code") ]
   | Record_base m -> O.call "record" [ O.ident (m ^ ".of_json") ]
   | Model_base c -> O.call "model" [ descriptor c ]
   | List_base b -> O.call "list" [ base_reader b ]
@@ -871,6 +876,7 @@ let rec base_writer = function
   | Int_base -> O.ident "json_int"
   | Float_base -> O.ident "json_float"
   | Enum_base m -> O.call "json_enum" [ O.ident ("Enums." ^ m ^ ".to_string") ]
+  | Code_base m -> O.call "json_enum" [ O.ident ("Error_codes." ^ m ^ ".code") ]
   | Record_base m -> O.ident (m ^ ".to_json")
   | Model_base _ -> O.ident "json_model"
   | List_base b -> O.call "json_list" [ base_writer b ]

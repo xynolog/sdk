@@ -7,8 +7,11 @@
    (ocaml/sdk/test/error_codes_cases.ml) holds each constructor to the code
    Protocol states for it. *)
 
-let module_name (v : Table.vocabulary) =
-  String.capitalize_ascii (Text.snake v.member)
+(* The module of the vocabulary [member] names, as a schema's
+   [x-xynolog-codes] names it. *)
+let module_of member = String.capitalize_ascii (Text.snake member)
+
+let module_name (v : Table.vocabulary) = module_of v.member
 
 let value_name code =
   let last = List.hd (List.rev (String.split_on_char '.' code)) in
@@ -88,6 +91,19 @@ let files (t : Table.t) =
                          (Ocaml_syntax.Pattern.construct (constructor n))
                          (Ocaml_syntax.string code))
                      values))
+          :: Ocaml_syntax.let_ "of_code"
+               (Ocaml_syntax.function_
+                  (List.map
+                     (fun (n, code) ->
+                       Ocaml_syntax.case
+                         (Ocaml_syntax.Pattern.string code)
+                         (Ocaml_syntax.some
+                            (Ocaml_syntax.construct (constructor n))))
+                     values
+                  @ [
+                      Ocaml_syntax.case Ocaml_syntax.Pattern.any
+                        (Ocaml_syntax.construct "None");
+                    ]))
           :: List.map
                (fun (n, code) -> Ocaml_syntax.let_ n (Ocaml_syntax.string code))
                values))

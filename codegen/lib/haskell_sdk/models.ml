@@ -369,6 +369,7 @@ let object_decls name ~constructor ~open_ ~names ~extra_type members =
 
 let scalar_of : T.scalar -> H.type_ = function
   | Text _ -> T_name "Text"
+  | Code vocabulary -> T_name (Error_codes.Haskell.type_of vocabulary)
   | Integer _ -> T_name "Integer"
   | Number -> T_name "Scientific"
   | Boolean -> T_name "Bool"
@@ -691,6 +692,18 @@ let imports body dependencies =
       (List.exists value
          [ "checked"; "optional"; "optionalPair"; "withoutFields" ])
       (H.import "Xynolog.Internal.Codec")
+  @ (match
+       List.filter type_
+         (List.map
+            (fun (member, _) -> Error_codes.Haskell.type_of member)
+            Error_codes.Table.names)
+     with
+    | [] -> []
+    | codes ->
+        [
+          H.import "Xynolog.ErrorCodes"
+            ~items:(List.map (fun code -> H.All code) codes);
+        ])
   @ List.map (fun m -> H.import m) dependencies
 
 (* What [Typing] makes of [definitions]: each schema under its name's file
