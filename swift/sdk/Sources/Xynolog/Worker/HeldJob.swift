@@ -277,7 +277,8 @@ actor HeldWork<Result: Sendable>: WorkerLease {
         resourceId: resourceId, jobId: jobId, jobType: jobType,
         attempt: attempt, annotationId: annotationId, error: message,
         completedUnits: completedUnits,
-        unitCursors: unitCursors, failureClass: failureClass, willRetry: willRetryAfter(
+        unitCursors: unitCursors, failureClass: failureClass,
+        willRetry: willRetryAfter(
           retryCount: retryCount, maxRetries: maxRetries, failureClass: failureClass),
         durability: notEstablished))
   }
