@@ -71,7 +71,9 @@ let deliver t ?id ?correlation_id ?scope channel payload =
   let frame : Records.Bus_frame.t =
     {
       channel;
-      payload = Yojson.Raw.from_string (Yojson.Safe.to_string payload);
+      payload =
+        Record_reader.fields_of
+          (Yojson.Raw.from_string (Yojson.Safe.to_string payload));
       correlation_id;
       scope;
       extra = [];
@@ -128,23 +130,14 @@ let call
         | Error _ ->
             invalid_arg "a subscribe request that is no BusSubscribeRequest"
       in
-      let open Yojson.Safe.Util in
-      let texts value = List.map to_string (to_list value) in
-      let scoped =
-        match request.scoped with
-        | Types.Present entries ->
-            to_list (Yojson.Safe.from_string (Yojson.Raw.to_string entries))
-        | Types.Absent | Types.Null -> []
-      in
       let heard =
         {
           global = Option.value request.global ~default:[];
           scoped =
             List.map
-              (fun entry ->
-                ( to_string (member "scope" entry),
-                  texts (member "channels" entry) ))
-              scoped;
+              (fun (entry : Records.Bus_subscribe_request_scoped_item.t) ->
+                (entry.scope, entry.channels))
+              (Option.value request.scoped ~default:[]);
         }
       in
       let stream = Eio.Stream.create max_int in
@@ -163,7 +156,7 @@ let call
       in
       let channel = frame.channel in
       let payload =
-        Yojson.Safe.from_string (Yojson.Raw.to_string frame.payload)
+        Yojson.Safe.from_string (Yojson.Raw.to_string (`Assoc frame.payload))
       in
       let correlation_id = frame.correlation_id in
       let retry_key =

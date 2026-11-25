@@ -13,8 +13,9 @@ module T = Typing
    says of itself, or beside null what the schema beside it says. Python
    does so of an [allOf] in place it writes as what it merges to. *)
 
-(* Rust and Go hold a union every member of which is text as a string, where
-   [Typing] has the union, its members told apart by their patterns. *)
+(* Rust, Go and OCaml hold a union every member of which is text as a
+   string, where [Typing] has the union, its members told apart by their
+   patterns. *)
 let text_union (u : T.union) = List.for_all T.admits_only_text u.branches
 
 (* Rust decodes a union whose [discriminator] names one value per member by
@@ -61,16 +62,10 @@ let closed_empty_named (form : T.form) =
    union in place but one a list holds, naming none of what [Typing]
    invents. *)
 
-(* OCaml reads a member of a component's record as the schema of the
-   component's file states it, its [allOf] merged ([Normalize]), where
-   [Typing] reads it as it means: a member that a pointer into another
-   file's member states, or that states no type (as an [allOf] child that
-   restates its parent's member does), is kept raw, where [Typing] writes
-   that member in its place, or as what it means; and a [const], or a schema whose file states one, is read as
-   its scalar, where [Typing] has the enumeration of its one value. *)
-type ocaml_member = As_typed | Raw | Const
-
-let ocaml_member (spec : Spec.t) ~file (wire : string) =
+(* OCaml reads a [const] member of a component's record, or one whose
+   schema's file states a [const], as its scalar, where [Typing] has the
+   enumeration of its one value. *)
+let ocaml_const (spec : Spec.t) ~file (wire : string) =
   let find (r : Decode.reference) =
     match List.assoc_opt (fst (Decode.resolve spec.ids r)) spec.schemas with
     | Some s -> Ok s
@@ -86,12 +81,10 @@ let ocaml_member (spec : Spec.t) ~file (wire : string) =
   in
   let rec read (l : Schema.t Schema.layer) =
     match l with
-    | { ref_ = Some r; _ } when snd (Decode.resolve spec.ids r) <> "" -> Raw
-    | { ref_ = Some r; _ } when const_file r -> Const
-    | { ref_ = None; type_ = None; _ } -> Raw
-    | { const = Some _; _ } -> Const
+    | { ref_ = Some r; _ } -> const_file r
+    | { const = Some _; _ } -> true
     | { type_ = Some [ Array ]; items = Some (Schema.Schema i); _ } -> read i
-    | _ -> As_typed
+    | _ -> false
   in
   match Normalize.normalize spec.ids ~find (List.assoc file spec.schemas) with
   | Ok { properties = Some properties; _ } -> (
@@ -100,6 +93,6 @@ let ocaml_member (spec : Spec.t) ~file (wire : string) =
           match Null_form.without_null Fun.id l with
           | Ok (Some beside) -> read beside
           | Ok None -> read l
-          | Error _ -> Raw)
-      | _ -> As_typed)
-  | _ -> As_typed
+          | Error _ -> false)
+      | _ -> false)
+  | _ -> false

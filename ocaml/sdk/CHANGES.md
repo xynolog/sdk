@@ -75,6 +75,16 @@ the coming release's, and gathers its changes as they land.
   go: the issuer's members are read directly.
 - An optional member that may not be null is an `option`; `Types.presence`
   is left to a member that may be absent and may be null.
+- A record's member that names a union, a record stated in place, a map, a
+  list of records or unions, or a schema of another file is typed as its
+  schema states it, where it was its raw JSON: a union is a module of
+  `Records` with a constructor per member (`Records.Kb_endpoint.t`,
+  `Records.Resource_descriptor_representations.t`), and a map is an
+  association list (`Records.Bus_frame.t`'s `payload`). Only a value whose
+  schema constrains nothing, or an object that names no member, is still
+  `Yojson.Raw.t`. `Resources.primary_representation` hands a
+  `Records.Representation.t`, and `Testing.deliver`'s payload is an object,
+  as a bus frame's is.
 
 - `Retry.retry_with_backoff` takes its `budget` as a `Client_timing.retry`,
   the type Protocol's client timing states, in place of `Retry.budget`.

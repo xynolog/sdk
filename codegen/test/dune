@@ -228,3 +228,8 @@
  (name typing)
  (modules typing)
  (libraries xynolog_codegen xynolog-protocol xynolog-protocol.schema fixture yojson alcotest))
+
+(executable
+ (name ocaml_raw_census)
+ (modules ocaml_raw_census)
+ (libraries xynolog_codegen))

@@ -208,8 +208,8 @@ let id kb = (Records.Knowledge_base.of_model kb).id
 let did kb = (Records.Knowledge_base.of_model kb).did
 
 let endpoint kb =
-  let value = (Records.Knowledge_base.of_model kb).endpoint in
-  Result.get_ok (Models.decode Models.kb_endpoint (Yojson.Raw.to_string value))
+  Result.get_ok
+    (Records.Kb_endpoint.to_model (Records.Knowledge_base.of_model kb).endpoint)
 
 let describe_connection client =
   match Bus_registry.decode Bus_registry.Channels.browse_kb_requested "{}" with

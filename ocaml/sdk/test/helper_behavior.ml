@@ -238,7 +238,8 @@ let resource (row : Resource_cases.cases_item) =
             (nullable Fun.id primary_representation)
             (nullable
                (fun value ->
-                 Yojson.Safe.from_string (Yojson.Raw.to_string value))
+                 Yojson.Safe.from_string
+                   (Yojson.Raw.to_string (Records.Representation.to_json value)))
                (Resources.primary_representation model));
           Alcotest.(check (option string))
             "primary media type" primary_media_type

@@ -1,5 +1,5 @@
 val primary_representation :
-  [ `ResourceDescriptor ] Models.t -> Yojson.Raw.t option
+  [ `ResourceDescriptor ] Models.t -> Records.Representation.t option
 
 val primary_media_type : [ `ResourceDescriptor ] Models.t -> string option
 val entity_types : [ `ResourceDescriptor ] Models.t -> string list
