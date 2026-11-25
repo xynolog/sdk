@@ -110,8 +110,8 @@ newRig samples clock = do
           (atomically $ do modifyTVar' ids (+ 1); Text.pack . show <$> readTVar ids)
   (carrier, source) <- Transport.newTransport (Transport.TransportOptions "local://follower" (Set.fromList Channel.channelNames) send (pure ()))
   atomically (putTMVar sourceCell source)
-  Transport.setState source Transport.Connecting
-  Transport.setState source Transport.Open
+  Transport.setState source Transport.ConnectionStateConnecting
+  Transport.setState source Transport.ConnectionStateOpen
   owned <- Client.newClient carrier content Nothing options Timing.protocolSettings Nothing
   pure (Rig owned source clock calls createHeld statusHeld current identity resource samples count)
 

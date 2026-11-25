@@ -31,7 +31,6 @@ import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 import Xynolog.Worker qualified as Worker
-import Xynolog.Worker.Types
 
 require :: String -> Bool -> IO ()
 require label value = unless value (ioError (userError label))
@@ -72,8 +71,8 @@ rig fixtures action = do
     (Transport.newTransport (Transport.TransportOptions "local://worker" (Set.fromList channelNames) send (pure ())))
     (Transport.dispose . fst)
     $ \(carrier, input) -> do
-      Transport.setState input Transport.Connecting
-      Transport.setState input Transport.Open
+      Transport.setState input Transport.ConnectionStateConnecting
+      Transport.setState input Transport.ConnectionStateOpen
       bracket (Worker.newClaims carrier clockOptions timing (ClaimOptions {claimOptionsAccepts = [filterValue], claimOptionsHeldJobStallCheckMs = Nothing, claimOptionsHeldJobStallMs = Nothing, claimOptionsJobClaimTimeoutMs = Nothing, claimOptionsMarkCommitTimeoutMs = Nothing})) Worker.stop $ \worker -> action (Rig worker input sent clock failEmission)
 
 outgoing :: Rig -> Text -> IO BusFrame
@@ -228,9 +227,9 @@ idleAndStalled fixtures = rig fixtures $ \rigValue@(Rig worker input _ clock _) 
   reply rigValue secondClaim JobClaimFailed (CommandError {commandErrorCode = (Just CommandErrorCodeUnauthorized), commandErrorDetails = Nothing, commandErrorMessage = "refused"})
   refusal <- wait refusalReader
   require "none-pending was reported or refusal lost its code" (fmap claimRefusalCode refusal == Just (Just Code.BusRequestUnauthorized))
-  Transport.setState input Transport.Reconnecting
-  Transport.setState input Transport.Connecting
-  Transport.setState input Transport.Open
+  Transport.setState input Transport.ConnectionStateReconnecting
+  Transport.setState input Transport.ConnectionStateConnecting
+  Transport.setState input Transport.ConnectionStateOpen
   reopened <- outgoing rigValue (channelName JobClaim)
   running <- record fixtures
   reply rigValue reopened JobClaimed (JobClaimedResult running)
@@ -345,8 +344,8 @@ heldClockCases root fixtures = clockCasesFor root ["heldJobStall"] $ \clock _ ->
           (atomically (modifyTVar' ids (+ 1) >> T.pack . show <$> readTVar ids))
       send frame = atomically (writeTQueue sent frame) >> pure Nothing
   (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://clock-worker" (Set.fromList channelNames) send (pure ()))
-  Transport.setState input Transport.Connecting
-  Transport.setState input Transport.Open
+  Transport.setState input Transport.ConnectionStateConnecting
+  Transport.setState input Transport.ConnectionStateOpen
   worker <- Worker.newClaims carrier options Timing.protocolSettings (ClaimOptions {claimOptionsAccepts = [accepts], claimOptionsHeldJobStallCheckMs = Nothing, claimOptionsHeldJobStallMs = Nothing, claimOptionsJobClaimTimeoutMs = Nothing, claimOptionsMarkCommitTimeoutMs = Nothing})
   observer <- async (Worker.stalled worker (Stream.mapM_ (\_ -> atomically (modifyTVar' stalls (+ 1)))))
   reader <- async (Worker.next worker)

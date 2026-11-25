@@ -39,7 +39,6 @@ import Xynolog.SessionStorage qualified as Storage
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
-import Xynolog.Transport.Facts (connectionStateName)
 import Xynolog.Types
   ( ConformanceDriverLine (..),
     ConformanceDriverLineCompleted (..),
@@ -145,7 +144,7 @@ open driver args = do
     $ State.watch
       (Client.state client)
       ( Stream.mapM_ $ \state -> do
-          let name = connectionStateName state
+          let name = connectionStateText state
           changed <- atomically $ do before <- readTVar (reported driver); writeTVar (reported driver) (Just name); pure (before /= Just name)
           when changed (say driver (ConformanceDriverLineState (MkConformanceDriverLineState name)))
       )

@@ -114,7 +114,7 @@ let files ~root (spec : Spec.t) =
   let within file result = Result.map_error (refused file) result in
   let* user_field = User_stamp.field spec.tables.identifiers_kinds in
   let* transport =
-    within Transport.contract (Transport.derive ~root ~user_field spec)
+    within Transport.carrier (Transport.derive ~user_field spec)
   in
   let* http =
     within "openapi.json"
@@ -133,7 +133,6 @@ let files ~root (spec : Spec.t) =
   let* definitions, validated_roots =
     within "openapi.json"
       (Definitions.derive ~root spec ~adapters
-         ~carrier:(Transport.carrier_schema transport)
          ~http:(http.schemas @ archivist.schemas)
          ~envelopes:bus.envelopes)
   in
@@ -213,7 +212,6 @@ let files ~root (spec : Spec.t) =
          ~root)
       (Carried_tables.modules spec)
   in
-  let* worker = Worker.modules ~root in
   let* manifest =
     within "haskell/sdk/xynolog.cabal.in" (manifest ~root models.module_names)
   in
@@ -277,7 +275,7 @@ let files ~root (spec : Spec.t) =
           (Transport.file
              ~banner:
                (banner
-                  "TRANSPORT-HTTP.md, bus/registry.json and \
+                  "client/connection-states.json, bus/registry.json and \
                    identifiers/kinds.json")
              transport);
         file ~under:"src"
@@ -298,7 +296,7 @@ let files ~root (spec : Spec.t) =
       ]
     @ List.map (file ~under:"src") (control :: tables)
     @ List.map (file ~under:"generated") constants
-    @ List.map (file ~under:"generated") worker
+    @ [ file ~under:"generated" (Worker.file spec) ]
     @ manifest
     @ Error_codes.Haskell.modules
         ~from_:"protocol/specs/src/client/discovery-absent.json"

@@ -275,7 +275,7 @@ issuerCases fixtures = do
       "the client did not read the session's rotated token cell"
       (any (\request -> route request == gatewayPath GetCurrentUser && "Authorization: Bearer fresh" `Bytes.isInfixOf` request) requests)
     startup <- Session.errors session (\given -> Session.closeOpenedSession opened >> Stream.toList_ given)
-    require "opened session closer left the client open" . (== Transport.Closed)
+    require "opened session closer left the client open" . (== Transport.ConnectionStateClosed)
       =<< atomically (State.current (Client.state (Session.client session)))
     require "factory said a startup failure" (null (lefts startup))
   let agentKb = targetKb {kbTargetId = "agent-factory"}

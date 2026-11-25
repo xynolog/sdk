@@ -219,8 +219,8 @@ makeRig time config = do
         pure (Just 1)
   (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://state-unit-cases" (Set.fromList Channel.channelNames) send (Tasks.dispose tasks))
   atomically (putTMVar inputCell input)
-  Transport.setState input Transport.Connecting
-  Transport.setState input Transport.Open
+  Transport.setState input Transport.ConnectionStateConnecting
+  Transport.setState input Transport.ConnectionStateOpen
   client <- Client.newClient carrier content Nothing clock Timing.protocolSettings Nothing
   pure (Rig client input sent replies tasks)
   where

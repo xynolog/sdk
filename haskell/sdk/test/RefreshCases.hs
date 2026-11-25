@@ -50,8 +50,8 @@ withCarrier action = bracket
   (Transport.dispose . fst)
   $ \(carrier, input) -> bracket Internal.newEventBus Internal.closeEventBus $ \local ->
     bracket (Transport.bridgeInto carrier local) id $ \_ -> do
-      Transport.setState input Transport.Connecting
-      Transport.setState input Transport.Open
+      Transport.setState input Transport.ConnectionStateConnecting
+      Transport.setState input Transport.ConnectionStateOpen
       action carrier input local
 
 options :: Time.ControlledTime -> Cache.CacheOptions key value
@@ -246,9 +246,9 @@ reopenCases _ = withCarrier $ \carrier input local -> do
     bracket (Refresh.newRefresher local carrier (clock time) Timing.protocolSettings [(Fact.Resources, control)]) Refresh.dispose $ \_ -> do
       Time.settle
       readTVarIO requests >>= require "initial open refreshed cached values" . (== 0)
-      Transport.setState input Transport.Reconnecting
-      Transport.setState input Transport.Connecting
-      Transport.setState input Transport.Open
+      Transport.setState input Transport.ConnectionStateReconnecting
+      Transport.setState input Transport.ConnectionStateConnecting
+      Transport.setState input Transport.ConnectionStateOpen
       Time.settle
       readTVarIO requests >>= require "reopening did not refresh held passing-event queries" . (== 1)
 

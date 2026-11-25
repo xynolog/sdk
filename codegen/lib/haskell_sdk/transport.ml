@@ -1,124 +1,46 @@
-(* The Haskell SDK's transport facts: the connection states and the moves
-   between them, as protocol/contract/TRANSPORT-HTTP.md draws them; the
-   member a frame's trace context is lifted from; the members a trace carrier
-   holds, as typescript/core's TraceCarrier states them, which the models
-   type; and the member a user's identifier is stamped under. *)
+(* The Haskell SDK's transport facts: where each connection state can move
+   (protocol/specs/src/client/connection-states.json), over the generated
+   ConnectionState; the member a frame's trace context is lifted from, and
+   the members a trace carrier holds (client/types/TraceCarrier.json); and the
+   member a user's identifier is stamped under. *)
 
 module H = Haskell_syntax
 
 let ( let* ) = Result.bind
 
+module States = Tables.Client_connection_states
+
 type t = {
-  carrier : (string * bool) list;
-      (** Each member, and whether it's optional. *)
   states : (string * string list) list;  (** Each state, and where it moves. *)
+  carrier : string list;  (** The members a trace carrier holds. *)
   trace_field : string;
   user_field : string;
 }
 
-let event_bus = "typescript/core/src/event-bus.ts"
-let contract = "protocol/contract/TRANSPORT-HTTP.md"
-let trim = String.trim
+let carrier = Roots.client_types ^ "TraceCarrier.json"
 
-let each f xs =
-  Result.map List.rev
-    (List.fold_left
-       (fun found x ->
-         let* found = found in
-         let* y = f x in
-         Ok (y :: found))
-       (Ok []) xs)
-
-let derive ~root ~user_field (spec : Spec.t) =
+let derive ~user_field (spec : Spec.t) =
   let* carrier =
-    Marker.between "export interface TraceCarrier {\n" "\n}"
-      (Marker.read ~root event_bus)
-  in
-  let* carrier =
-    each
-      (fun line ->
-        match String.split_on_char ':' line with
-        | key :: rest when String.starts_with ~prefix:"readonly " key ->
-            let key = Marker.drop (String.length "readonly ") key in
-            let optional = String.ends_with ~suffix:"?" key in
-            let named =
-              if optional then String.sub key 0 (String.length key - 1) else key
-            in
-            if trim (":" ^ String.concat ":" rest) = ": string;" then
-              Ok (named, optional)
-            else Error "unsupported TraceCarrier property type"
-        | _ -> Error "unsupported TraceCarrier member")
-      (List.filter
-         (fun line ->
-           line <> ""
-           && not
-                (List.exists
-                   (fun p -> String.starts_with ~prefix:p line)
-                   [ "/*"; "*"; "//" ]))
-         (List.map trim (String.split_on_char '\n' carrier)))
-  in
-  let* () =
-    if carrier = [] then Error "empty TraceCarrier interface" else Ok ()
-  in
-  let* section =
-    Marker.between "### Connection lifecycle\n" "### Reconnect discipline"
-      (Marker.read ~root contract)
-  in
-  let* graph = Marker.between "```\n" "\n```" section in
-  let* states =
-    each
-      (fun line ->
-        match Marker.find "→" line with
-        | None -> Error "invalid connection-state graph row"
-        | Some i ->
-            let targets = trim (Marker.drop (i + String.length "→") line) in
-            Ok
-              ( trim (String.sub line 0 i),
-                if targets = "(terminal)" then []
-                else List.map trim (String.split_on_char '|' targets) ))
-      (List.filter (( <> ) "")
-         (List.map trim (String.split_on_char '\n' graph)))
-  in
-  let names = List.map fst states in
-  let* () =
-    if
-      names = []
-      || List.length (List.sort_uniq String.compare names) <> List.length names
-    then Error "duplicate or missing connection states"
-    else if
-      not
-        (List.for_all (fun t -> List.mem t names) (List.concat_map snd states))
-    then Error "connection graph names an unknown state"
-    else Ok ()
+    match List.assoc_opt carrier spec.schemas with
+    | Some (Schema.Schema { properties = Some properties; _ }) ->
+        Ok (List.map fst properties)
+    | _ -> Error (carrier ^ " states no properties")
   in
   Ok
-    {
-      carrier;
-      states;
-      trace_field = spec.tables.bus_registry.trace.field;
-      user_field;
-    }
+  {
+    states =
+      List.map
+        (fun (row : States.states_item) ->
+          ( States.connection_state_value row.state,
+            List.map States.connection_state_value row.moves ))
+        spec.tables.client_connection_states.states;
+    carrier;
+    trace_field = spec.tables.bus_registry.trace.field;
+    user_field;
+  }
 
-(* The trace carrier as a schema: an object of strings, each required unless
-   TraceCarrier makes it optional, and no other member. *)
-let carrier_schema t =
-  Schema.Schema
-    {
-      Schema.empty with
-      type_ = Some [ Object ];
-      additional_properties = Some (Boolean_schema false);
-      properties =
-        Some
-          (List.map
-             (fun (key, _) ->
-               (key, Schema.Schema { Schema.empty with type_ = Some [ String ] }))
-             t.carrier);
-      required =
-        Some
-          (List.filter_map (fun (k, o) -> if o then None else Some k) t.carrier);
-    }
-
-let constructor = String.capitalize_ascii
+(* The generated ConnectionState's constructor for [state]. *)
+let constructor state = "ConnectionState" ^ Text.pascal state
 
 let file ~banner t =
   let state = H.T_name "ConnectionState" in
@@ -127,26 +49,13 @@ let file ~banner t =
     H.banner;
     extensions = [ "OverloadedStrings" ];
     name = "Xynolog.Transport.Facts";
-    imports = [ H.import "Data.Text" ~items:[ Plain "Text" ] ];
+    imports =
+      [
+        H.import "Data.Text" ~items:[ Plain "Text" ];
+        H.import "Xynolog.Types" ~items:[ All "ConnectionState" ];
+      ];
     body =
       [
-        H.data "ConnectionState"
-          ~deriving:[ "Eq"; "Ord"; "Show"; "Enum"; "Bounded" ]
-          (List.map (fun (s, _) -> H.constructor (constructor s)) t.states);
-        Value
-          {
-            about = [];
-            name = "connectionStateName";
-            type_ = T_fun (state, text);
-            clauses =
-              List.map
-                (fun (s, _) ->
-                  {
-                    H.patterns = [ Constructor (constructor s, []) ];
-                    body = Str s;
-                  })
-                t.states;
-          };
         Value
           {
             about = [];
@@ -164,7 +73,7 @@ let file ~banner t =
           };
         H.value "traceField" text (Str t.trace_field);
         H.value "traceCarrierFields" (T_list text)
-          (List (List.map (fun (k, _) -> H.Str k) t.carrier));
+          (List (List.map (fun k -> H.Str k) t.carrier));
         H.value "userField" text (Str t.user_field);
       ];
   }

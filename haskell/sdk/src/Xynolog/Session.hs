@@ -744,7 +744,7 @@ halt session =
 -- stream.
 closeTold :: Session -> IO ()
 closeTold session = do
-  closed <- atomically ((== Transport.Closed) <$> State.current (streamState session))
+  closed <- atomically ((== Transport.ConnectionStateClosed) <$> State.current (streamState session))
   when closed (Transport.errors (Client.transport (client session)) Stream.effects)
 
 -- | Says nothing more: the transport's failures are relayed no more, and the

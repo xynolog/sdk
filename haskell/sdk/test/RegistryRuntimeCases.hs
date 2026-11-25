@@ -115,8 +115,8 @@ rig time fixtures = do
               pure (Just 1)
         (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://registry-runtime" (Set.fromList Channels.channelNames) send (pure ()))
         atomically (putTMVar inputCell input)
-        Transport.setState input Transport.Connecting
-        Transport.setState input Transport.Open
+        Transport.setState input Transport.ConnectionStateConnecting
+        Transport.setState input Transport.ConnectionStateOpen
         client <- Client.newClient carrier contents Nothing options Timing.protocolSettings Nothing
         kept <- SignIn.newMemorySignIn
         let target = KbTarget {kbTargetEndpoint = (knowledgeBaseEndpoint kb), kbTargetId = (knowledgeBaseId kb), kbTargetLabel = (knowledgeBaseLabel kb)}

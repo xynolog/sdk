@@ -74,7 +74,7 @@ import Xynolog.Internal.Required (Fault (..), faultSaid)
 import Xynolog.Internal.Schema (validateProperty)
 import Xynolog.Internal.StateValue qualified as State
 import Xynolog.Transport.Facts
-import Xynolog.Types (BusFrame (..), BusFramePayload (..), ResourceId, TraceCarrier)
+import Xynolog.Types (BusFrame (..), BusFramePayload (..), ConnectionState (..), ResourceId, TraceCarrier)
 
 data Frame = Frame {wireFrame :: BusFrame, frameTrace :: Maybe TraceCarrier} deriving (Eq, Show)
 
@@ -141,7 +141,7 @@ newTransport configuration = atomically $ do
     TransportRuntime configuration
       <$> Delivery.newHub carriedChannel
       <*> Delivery.newReplies carriedChannel carriedCorrelationId
-      <*> State.newStateValue Initial
+      <*> State.newStateValue ConnectionStateInitial
       <*> Broadcast.newKeptEvents
       <*> newTVar Map.empty
       <*> newTVar Map.empty
@@ -388,7 +388,7 @@ receiveRefusal (TransportInput runtime) refusal = do
 
 setState :: TransportInput -> ConnectionState -> IO ()
 setState (TransportInput runtime) next = do
-  if next == Closed
+  if next == ConnectionStateClosed
     then dispose (Transport runtime)
     else atomically $ do
       before <- State.current (connection runtime)
@@ -415,7 +415,7 @@ dispose (Transport runtime) = mask $ \restore -> do
     owner <- readTVar (closer runtime)
     unless already $ do
       writeTVar (closing runtime) True
-      State.update (connection runtime) Closed
+      State.update (connection runtime) ConnectionStateClosed
       State.complete (connection runtime)
       Delivery.closeHub (received runtime)
       Delivery.closeReplies (replies runtime)

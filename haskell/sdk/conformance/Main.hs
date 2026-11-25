@@ -51,10 +51,8 @@ import Xynolog.Retry qualified as Retry
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
-import Xynolog.Transport.Facts (connectionStateName)
 import Xynolog.Types
 import Xynolog.Worker qualified as Worker
-import Xynolog.Worker.Types
 
 data ActiveJob = ActiveJob Worker.SomeHeldJob Context.Context
 
@@ -87,7 +85,7 @@ reportState driver state = withMVar (output driver) $ \() -> do
     before <- readTVar (reported driver)
     writeTVar (reported driver) (Just state)
     pure (before /= Just state)
-  when changed (writeLine (ConformanceDriverLineState (MkConformanceDriverLineState (connectionStateName state))))
+  when changed (writeLine (ConformanceDriverLineState (MkConformanceDriverLineState (connectionStateText state))))
 
 -- Registration completes inside each public scoped subscription, before its
 -- operation is acknowledged and the harness can publish the first event.

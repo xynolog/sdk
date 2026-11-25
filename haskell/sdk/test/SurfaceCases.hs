@@ -143,8 +143,8 @@ withAnswers fixtures answerOverride action = do
     (Transport.dispose . fst)
     $ \(carrier, input) -> do
       atomically (putTMVar inputCell input)
-      Transport.setState input Transport.Connecting
-      Transport.setState input Transport.Open
+      Transport.setState input Transport.ConnectionStateConnecting
+      Transport.setState input Transport.ConnectionStateOpen
       bracket (Client.newClient carrier contents (Just gateway) clock Timing.protocolSettings Nothing) Client.dispose $ \client ->
         action (Rig client input clock calls)
 
@@ -427,8 +427,8 @@ searchFailureCase fixtures = do
     (Transport.dispose . fst)
     $ \(carrier, source) -> do
       atomically (putTMVar inputCell source)
-      Transport.setState source Transport.Connecting
-      Transport.setState source Transport.Open
+      Transport.setState source Transport.ConnectionStateConnecting
+      Transport.setState source Transport.ConnectionStateOpen
       outcome <- try (Bus.request (Bus.newBus options carrier) MatchSearchRequestedOperation input (Timing.busRequestTimeoutMs Timing.protocolSettings))
       case outcome of
         Left problem -> require "search failure lost its channel's words" (busRequestErrorMessage problem == "the search was refused")

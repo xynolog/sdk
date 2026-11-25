@@ -255,7 +255,7 @@ concurrentCases target person = do
       Session.dispose session
       Time.advance time (2 * 60 * 60 * 1000000000)
       require "disposed session renewed" . (== 1) =<< readTVarIO calls
-      require "session disposal disposed its client's transport" . (/= Transport.Closed) =<< atomically (State.current (Client.state owned))
+      require "session disposal disposed its client's transport" . (/= Transport.ConnectionStateClosed) =<< atomically (State.current (Client.state owned))
 
 -- | A session's own errors and its transport's failures are said in the
 -- order they were met: an own error, a transport failure, an own error and a

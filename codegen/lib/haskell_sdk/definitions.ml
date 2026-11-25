@@ -1,8 +1,7 @@
 (* Every schema the Haskell SDK's models type, by name: the gateway's
    component schemas, each carried table's own ([Carried_tables]), and the
    schemas the SDK derives beside them. A component is named by its file. Beside them are the form a resource's
-   upload states its metadata in (ResourceUpload without its file), the trace
-   carrier, the records of the client registry, of the state units' notices
+   upload states its metadata in (ResourceUpload without its file), the records of the client registry, of the state units' notices
    and of how a session ends, the stored sign-in, session and resources, an
    engine with its limits, what an HTTP operation states in place, and each bus
    envelope. None may take a component's name. *)
@@ -138,7 +137,7 @@ let titled ids records (r : Decode.reference) =
     | None ->
         raise (Unresolved ("reference into a table not read: " ^ r.target))
 
-let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
+let derive ~root (spec : Spec.t) ~adapters ~http ~envelopes =
   let* roots = components spec in
   let components = List.map (fun (name, (typed, _)) -> (name, typed)) roots in
   (* What is derived from a root's shape is validated as that shape: a root
@@ -233,7 +232,7 @@ let derive ~root (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
     @ [ ("SignIn", sign_in) ]
   in
   let derived =
-    [ ("ResourceUploadMetadata", metadata); ("TraceCarrier", carrier) ]
+    [ ("ResourceUploadMetadata", metadata) ]
     @ stored @ options @ http @ envelopes
   in
   let* () =

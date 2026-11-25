@@ -30,10 +30,11 @@ module Xynolog.Transport
     subscriptions,
     reportError,
     ConnectionState (..),
-    connectionStateName,
+    connectionStateText,
     connectionTransitions,
   )
 where
 
 import Xynolog.Internal.Transport
 import Xynolog.Transport.Facts
+import Xynolog.Types (ConnectionState (..), connectionStateText)

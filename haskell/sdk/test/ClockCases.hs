@@ -210,7 +210,7 @@ httpClockCases root = clockCasesFor
             (Transport.state (Http.transport http))
             ( Stream.mapM_
                 ( \state ->
-                    when (state == Transport.Degraded) (atomically (modifyTVar' degraded (+ 1)))
+                    when (state == Transport.ConnectionStateDegraded) (atomically (modifyTVar' degraded (+ 1)))
                 )
             )
         )
@@ -339,8 +339,8 @@ inProcessClient time answer = do
         pure Nothing
   (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://clock" (Set.fromList Channel.channelNames) send (pure ()))
   atomically (putTMVar inputCell input)
-  Transport.setState input Transport.Connecting
-  Transport.setState input Transport.Open
+  Transport.setState input Transport.ConnectionStateConnecting
+  Transport.setState input Transport.ConnectionStateOpen
   client <- Client.newClient carrier contents Nothing options Timing.protocolSettings Nothing
   pure (client, input)
 

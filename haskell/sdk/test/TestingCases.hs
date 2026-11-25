@@ -185,6 +185,6 @@ sessionCases fixtures = do
               (pure 1800000000)
       bracket (Testing.createTestSession (Testing.TestSessionOptions (Session.client (Session.openedSession opened)) options clock Timing.protocolSettings)) Testing.closeTestSession $ \made ->
         Session.ready (Testing.testSessionSession made)
-      require "test session disposed its borrowed client" . (/= Transport.Closed) =<< atomically (State.current (Client.state (Session.client (Session.openedSession opened))))
+      require "test session disposed its borrowed client" . (/= Transport.ConnectionStateClosed) =<< atomically (State.current (Client.state (Session.client (Session.openedSession opened))))
     Factory.revokeSession (Sessions.factory scripted) grant
     require "scripted revocation was not recorded" . (== [grant]) =<< Sessions.revoked scripted

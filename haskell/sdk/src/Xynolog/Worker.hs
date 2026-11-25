@@ -69,7 +69,6 @@ import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types hiding (JobComplete, annotationId)
 import Xynolog.Types qualified as Types
-import Xynolog.Worker.Types
 import Prelude hiding (fail)
 
 data WorkerError = ClaimsAlreadyReading | JobAlreadySettled | StartAlreadySaid | InvalidClaimOptions deriving (Eq, Show)
@@ -289,7 +288,7 @@ begin claims = modifyMVar_ (workers claims) $ \existing -> mask $ \restore -> do
               case item of
                 Left () -> pure ()
                 Right (value, rest) -> do
-                  let isOpen = value == Transport.Open
+                  let isOpen = value == Transport.ConnectionStateOpen
                   when (isOpen && not wasOpen) (atomically (wakeIdle claims))
                   loop isOpen rest
         loop False states
@@ -344,7 +343,7 @@ claimLoop claims = forever $ mask $ \restore -> do
     current <- readTVar (runtime claims)
     check (phase current == Claiming && maybe True (const False) (held current))
     connection <- State.current (Transport.state (transport claims))
-    check (connection == Transport.Open)
+    check (connection == Transport.ConnectionStateOpen)
     takeTMVar (wake claims)
   let command = JobClaimCommand {jobClaimCommandRoles = Nothing, jobClaimCommandUserId = Nothing, jobClaimCommandAccepts = (accepts claims)}
       rooted action = bracket (attachContext Context.empty) detachContext (const action)
@@ -424,7 +423,7 @@ vitals :: Claims -> IO WorkerVitals
 vitals claims = atomically $ do
   current <- readTVar (runtime claims)
   let active = case (held current, heldAt current) of
-        (Just job, Just (_, since)) -> Just (withSome job $ \value -> WorkerVitalsActiveJob (jobId value) (jobType value) since)
+        (Just job, Just (_, since)) -> Just (withSome job $ \value -> WorkerActiveJob (jobId value) (jobType value) since)
         _ -> Nothing
   pure (WorkerVitals (lastQueued current) (lastClaim current) (lastFinished current) (snd <$> lastActive current) active (fromInteger (completedCount current)))
 

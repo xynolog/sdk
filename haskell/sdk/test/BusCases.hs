@@ -36,7 +36,7 @@ body (Object fields) = BusFramePayload fields
 body _ = error "test payload is not an object"
 
 ready :: Transport.TransportInput -> IO ()
-ready input = Transport.setState input Transport.Connecting >> Transport.setState input Transport.Open
+ready input = Transport.setState input Transport.ConnectionStateConnecting >> Transport.setState input Transport.ConnectionStateOpen
 
 -- The failure report's first observation is a marker reported after a request settled, so the
 -- request's refusal was never published to it.
@@ -354,13 +354,13 @@ lifecycle = do
     observations <- State.watch (Transport.state transport) $ \values -> do
       ready input
       Stream.toList_ (Stream.take 3 values)
-    require "state watcher lost its initial value or ordering" (observations == [Transport.Initial, Transport.Connecting, Transport.Open])
+    require "state watcher lost its initial value or ordering" (observations == [Transport.ConnectionStateInitial, Transport.ConnectionStateConnecting, Transport.ConnectionStateOpen])
     handover <- State.watch (Transport.state transport) $ \values -> do
-      Transport.setState input Transport.Open
-      Transport.setState input Transport.Reconnecting
+      Transport.setState input Transport.ConnectionStateOpen
+      Transport.setState input Transport.ConnectionStateReconnecting
       Stream.toList_ (Stream.take 2 values)
-    require "an unchanged stream advertised a false reopen" (handover == [Transport.Open, Transport.Reconnecting])
-    Transport.setState input Transport.Connecting >> Transport.setState input Transport.Open
+    require "an unchanged stream advertised a false reopen" (handover == [Transport.ConnectionStateOpen, Transport.ConnectionStateReconnecting])
+    Transport.setState input Transport.ConnectionStateConnecting >> Transport.setState input Transport.ConnectionStateOpen
     ended <- newEmptyTMVarIO
     release <- Transport.on transport (channelName BeckonFocus) (\_ -> atomically (putTMVar ended ()) >> Transport.dispose transport)
     Transport.receive input (BusFrame (channelName BeckonFocus) Nothing (BusFramePayload KM.empty) Nothing)
@@ -370,9 +370,9 @@ lifecycle = do
     count <- readTVarIO closed
     require "owned callback disposal deadlocked or closed more than once" (count == 1)
     final <- atomically (State.current (Transport.state transport))
-    require "closed state was not retained" (final == Transport.Closed)
+    require "closed state was not retained" (final == Transport.ConnectionStateClosed)
     replay <- State.watch (Transport.state transport) Stream.toList_
-    require "closed state observation did not complete" (replay == [Transport.Closed])
+    require "closed state observation did not complete" (replay == [Transport.ConnectionStateClosed])
   -- Cancelling one close waiter does not abandon the transport's teardown.
   entered <- newEmptyTMVarIO
   finish <- newEmptyTMVarIO

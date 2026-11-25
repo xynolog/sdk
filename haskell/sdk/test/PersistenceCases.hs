@@ -195,8 +195,8 @@ clientCases fixtures = do
               pure (Just 1)
         (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://persisted" (Set.fromList Channel.channelNames) send (pure ()))
         atomically (putTMVar inputCell input)
-        Transport.setState input Transport.Connecting
-        Transport.setState input Transport.Open
+        Transport.setState input Transport.ConnectionStateConnecting
+        Transport.setState input Transport.ConnectionStateOpen
         Client.newClient carrier contents Nothing options Timing.protocolSettings persistence
       load namespace = do
         _ <- Cache.fresh (Browse.resource namespace resource)
