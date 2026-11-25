@@ -13,7 +13,9 @@ the coming release's, and gathers its changes as they land.
   `STORAGE_KEY`, `ACTIVE_KEY`, `OPEN_RESOURCES_BY_KB_KEY`,
   `LAST_VIEWED_RESOURCE_BY_KB_KEY`, `PENDING_AUTHORIZATION_KEY`, the
   prefixes `SESSION_KEY_PREFIX`, `LAST_EVENT_ID_KEY_PREFIX` and
-  `CACHE_KEY_PREFIX`, and `WHOLE_KEY`. The SDK makes its keys of them.
+  `CACHE_KEY_PREFIX`, `WHOLE_KEY`, and a kept query's document's version,
+  `CACHE_DOCUMENT_VERSION`. The SDK makes its keys and documents of them;
+  `@xynolog/sdk`'s `cache-persister` module no longer states the version.
 - `ServiceEnvironmentVariable`: every environment variable a Xynolog service
   reads, beside its configuration document, by its name
   (`ServiceEnvironmentVariable.XYNOLOG_BUS_LOG`). The bus log reads its

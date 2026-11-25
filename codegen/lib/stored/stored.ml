@@ -438,15 +438,17 @@ let haskell_keys t =
 
 (* Go keeps the registry's keys, and the prefix of a session's, in package
    registry (go/registry/stored_gen.go); a pending sign-in's key, the other
-   prefixes and the whole key in package xynolog (go/stored_gen.go), beside
-   what makes their keys. A key is exported, a prefix and the whole key not. *)
+   prefixes, the whole key and a cache document's version in package xynolog
+   (go/stored_gen.go), beside what makes and keeps under their keys. A key is
+   exported, the rest not. *)
 let go t =
   let module G = Go_syntax in
   let table = t.table in
   let constant name docs value =
-    G.Const (G.spec ~doc:(G.prose (name ^ ": " ^ docs)) name (G.Quoted value))
+    G.Const (G.spec ~doc:(G.prose (name ^ ": " ^ docs)) name value)
   in
-  let key k = constant (go_name k) k.row.docs k.row.key in
+  let text name docs value = constant name docs (G.Quoted value) in
+  let key k = text (go_name k) k.row.docs k.row.key in
   let written path package decls =
     {
       Output.path;
@@ -468,27 +470,30 @@ let go t =
     written "go/registry/stored_gen.go" "registry"
       (List.map key (kept_by Registry t)
       @ [
-          constant "sessionKeyPrefix" table.session_key_prefix.docs
+          text "sessionKeyPrefix" table.session_key_prefix.docs
             table.session_key_prefix.prefix;
         ]);
     written "go/stored_gen.go" "xynolog"
       (List.map key (kept_by Redirect_sign_in t)
       @ [
-          constant "lastEventIdKeyPrefix" table.last_event_id_key_prefix.docs
+          text "lastEventIdKeyPrefix" table.last_event_id_key_prefix.docs
             table.last_event_id_key_prefix.prefix;
-          constant "cacheKeyPrefix" table.cache_key_prefix.docs
+          text "cacheKeyPrefix" table.cache_key_prefix.docs
             table.cache_key_prefix.prefix;
-          constant "wholeKey" table.whole_key.docs table.whole_key.key;
+          text "wholeKey" table.whole_key.docs table.whole_key.key;
+          constant "cacheDocumentVersion" t.version_description
+            (G.Int t.version);
         ]);
   ]
 
-(* TypeScript keeps every key, the prefixes and the whole key in
-   @xynolog/core (typescript/core/src/stored.ts), for the SDK to make its
-   keys of. *)
+(* TypeScript keeps every key, the prefixes, the whole key and a cache
+   document's version in @xynolog/core (typescript/core/src/stored.ts), for
+   the SDK to make its keys and documents of. *)
 let typescript t =
   let module S = Typescript_syntax in
   let table = t.table in
-  let constant name docs value = S.const name ~about:[ Doc docs ] (Str value) in
+  let constant name docs value = S.const name ~about:[ Doc docs ] value in
+  let text name docs value = constant name docs (Str value) in
   {
     Output.path = "typescript/core/src/stored.ts";
     text =
@@ -500,36 +505,36 @@ let typescript t =
               __FILE__;
           body =
             List.map
-              (fun k -> constant (typescript_name k) k.row.docs k.row.key)
+              (fun k -> text (typescript_name k) k.row.docs k.row.key)
               t.keys
             @ List.map
                 (fun (member, prefix, docs) ->
-                  constant (Text.upper_snake member) docs prefix)
+                  text (Text.upper_snake member) docs prefix)
                 (prefixes table)
-            @ [ constant "WHOLE_KEY" table.whole_key.docs table.whole_key.key ];
+            @ [
+                text "WHOLE_KEY" table.whole_key.docs table.whole_key.key;
+                constant "CACHE_DOCUMENT_VERSION" t.version_description
+                  (Int t.version);
+              ];
         };
   }
 
 (* Rust keeps the registry's keys in the session module of the SDK's crate
    (rust/sdk/src/generated/stored.rs), with the prefixes, which only the
-   session module reads, and the whole key, which the crate's browse
-   namespace writes; a pending sign-in's key in the HTTP transport's oauth
+   session module reads, the whole key, which the crate's browse namespace
+   writes, and a cache document's version, which its cache module writes; a
+   pending sign-in's key in the HTTP transport's oauth
    module (rust/http-transport/src/generated/stored.rs). *)
 let rust t =
   let module R = Rust_syntax in
   let table = t.table in
-  let constant ~vis name docs value =
-    R.Const
-      {
-        doc = [ docs ];
-        attrs = [];
-        vis;
-        name;
-        ty = R.str_ty;
-        value = R.Str value;
-      }
+  let constant ~vis ~ty name docs value =
+    R.Const { doc = [ docs ]; attrs = []; vis; name; ty; value }
   in
-  let key k = constant ~vis:Pub (rust_name k) k.row.docs k.row.key in
+  let text ~vis name docs value =
+    constant ~vis ~ty:R.str_ty name docs (R.Str value)
+  in
+  let key k = text ~vis:Pub (rust_name k) k.row.docs k.row.key in
   let written path items =
     {
       Output.path;
@@ -544,40 +549,46 @@ let rust t =
       (List.map key (kept_by Registry t)
       @ List.map
           (fun (member, prefix, docs) ->
-            constant ~vis:Private (Text.upper_snake member) docs prefix)
+            text ~vis:Private (Text.upper_snake member) docs prefix)
           (prefixes table)
       @ [
-          constant ~vis:Pub_crate "WHOLE_KEY" table.whole_key.docs
+          text ~vis:Pub_crate "WHOLE_KEY" table.whole_key.docs
             table.whole_key.key;
+          constant ~vis:Pub_crate ~ty:(R.named "u64") "CACHE_DOCUMENT_VERSION"
+            t.version_description (R.Int t.version);
         ]);
     written "rust/http-transport/src/generated/stored.rs"
       (List.map key (kept_by Redirect_sign_in t));
   ]
 
-(* Kotlin keeps every key, the prefixes and the whole key in package
-   xynolog.registry; a key is public, a prefix and the whole key internal. *)
+(* Kotlin keeps every key, the prefixes, the whole key and a cache document's
+   version in package xynolog.registry; a key is public, the rest internal. *)
 let kotlin t =
   let module K = Kotlin_syntax in
   let table = t.table in
-  let constant ~visibility name docs value =
+  let constant ~visibility ~type_ name docs value =
     K.property ~about:(K.Block docs)
       ~annotations:[ K.annotation "Generated" ]
-      ~visibility ~const:true ~type_:(K.Type "String")
-      ~value:(K.Same_line (K.Str value)) name
+      ~visibility ~const:true ~type_:(K.Type type_) ~value:(K.Same_line value)
+      name
+  in
+  let text ~visibility name docs value =
+    constant ~visibility ~type_:"String" name docs (K.Str value)
   in
   Kotlin_sdk.table ~from_:file __FILE__ ~package:"xynolog.registry"
     ~name:"StoredKeys" ~imports:[ "xynolog.Generated" ]
     (List.map
-       (fun k ->
-         constant ~visibility:K.Public (kotlin_name k) k.row.docs k.row.key)
+       (fun k -> text ~visibility:K.Public (kotlin_name k) k.row.docs k.row.key)
        t.keys
     @ List.map
         (fun (member, prefix, docs) ->
-          constant ~visibility:K.Internal (Text.upper_snake member) docs prefix)
+          text ~visibility:K.Internal (Text.upper_snake member) docs prefix)
         (prefixes table)
     @ [
-        constant ~visibility:K.Internal "WHOLE_KEY" table.whole_key.docs
+        text ~visibility:K.Internal "WHOLE_KEY" table.whole_key.docs
           table.whole_key.key;
+        constant ~visibility:K.Internal ~type_:"Long" "CACHE_DOCUMENT_VERSION"
+          t.version_description (K.Int t.version);
       ])
 
 (* Swift keeps every key and the prefixes in the module Xynolog; a key is
@@ -618,25 +629,28 @@ let swift t =
         };
   }
 
-(* C# keeps the registry's keys, the prefixes and the whole key in
-   RegistryStorage (Generated/StoredKeys.g.cs), and a pending sign-in's key in
-   RedirectSignIn (Generated/RedirectSignInKeys.g.cs), of each of which the
-   file is part. A key is public, a prefix private and the whole key
-   internal. *)
+(* C# keeps the registry's keys, the prefixes, the whole key and a cache
+   document's version in RegistryStorage (Generated/StoredKeys.g.cs), and a
+   pending sign-in's key in RedirectSignIn (Generated/RedirectSignInKeys.g.cs),
+   of each of which the file is part. A key is public, a prefix private, and
+   the whole key and the version internal. *)
 let csharp t =
   let module C = Csharp_syntax in
   let table = t.table in
-  let constant modifiers name value =
+  let constant modifiers type_ name value =
     C.Field
       {
         modifiers = modifiers @ [ C.Const ];
-        type_ = C.T "string";
+        type_ = C.T type_;
         name;
-        value = Some (C.Str value);
+        value = Some value;
       }
   in
+  let text modifiers name value =
+    constant modifiers "string" name (C.Str value)
+  in
   let key k =
-    C.Documented (k.row.docs, constant [ C.Public ] (csharp_name k) k.row.key)
+    C.Documented (k.row.docs, text [ C.Public ] (csharp_name k) k.row.key)
   in
   let written path namespace class_ members =
     {
@@ -669,9 +683,13 @@ let csharp t =
       (List.map key (kept_by Registry t)
       @ List.map
           (fun (member, prefix, _) ->
-            constant [ C.Private ] (String.capitalize_ascii member) prefix)
+            text [ C.Private ] (String.capitalize_ascii member) prefix)
           (prefixes table)
-      @ [ constant [ C.Internal ] "WholeKey" table.whole_key.key ]);
+      @ [
+          text [ C.Internal ] "WholeKey" table.whole_key.key;
+          constant [ C.Internal ] "long" "CacheDocumentVersion"
+            (C.Int t.version);
+        ]);
     written "RedirectSignInKeys.g.cs" "Xynolog.Authorization" "RedirectSignIn"
       (List.map key (kept_by Redirect_sign_in t));
   ]

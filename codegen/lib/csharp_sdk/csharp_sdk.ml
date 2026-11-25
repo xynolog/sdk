@@ -242,7 +242,6 @@ let tables =
     ("MediaTypes", "media-types/registry.json");
     ("Encodings", "text/encoding-cases.json");
     ("CacheRefresh", "client/refresh.json");
-    ("Stored", "session/stored.json");
     ("Discovery", "discovery/DiscoveryDocument.json");
   ]
 

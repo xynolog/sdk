@@ -20,6 +20,7 @@
  */
 
 import {
+  CACHE_DOCUMENT_VERSION,
   CACHE_VALUES,
   MAX_STORED_BYTES_COUNT,
   WHOLE_KEY,
@@ -126,9 +127,6 @@ export function whileSignedIn(
     subscribe: (handler) => storage.subscribe(handler),
   };
 }
-
-/** The form of a kept query's document: `cacheDocument`'s `version`. */
-export const CACHE_DOCUMENT_VERSION = 1;
 
 /** The key a query per nothing keeps its one entry under: `wholeKey`. */
 export type WholeKey = typeof WHOLE_KEY;
