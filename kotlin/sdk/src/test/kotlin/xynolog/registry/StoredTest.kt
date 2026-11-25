@@ -140,6 +140,7 @@ class StoredTest {
 
     @Test
     fun aKeptQuerysDocumentIsWrittenWithTheTablesMembersAndNoOthers() {
+        val version = cacheDocument.getValue("properties").jsonObject.getValue("version").jsonObject.getValue("const").jsonPrimitive.content.toLong()
         val storage = MemoryStorage()
         saveOne(
             PERSISTED_QUERIES.single { it.query == CacheQuery.Resource },

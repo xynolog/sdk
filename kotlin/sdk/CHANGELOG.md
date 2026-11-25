@@ -41,6 +41,8 @@ the coming release's, and gathers its changes as they land.
   `PENDING_AUTHORIZATION_KEY`) are generated from Protocol's
   `session/stored.json`, and Java reads them from `StoredKeysKt`, where it
   read them from `StoredKt`.
+- The version of a kept query's document is generated from
+  `session/stored.json` too, where `Stored.kt` stated it.
 - A member of one integer or boolean is a type of its own, as a member of
   one string already was: an object, read and written as that value, and
   the member's default (`ConformanceDriverLineReady.ready` is
