@@ -482,8 +482,7 @@ let stored_keys t (spec : Spec.t) =
       | Typescript ->
           declares
             (t.generated "typescript/core/src/stored.ts")
-            ("export const ", " =")
-            (Stored.typescript_name k)
+            ("export const ", " =") (Stored.typescript_name k)
       | Python ->
           declares
             (t.generated "python/sdk/src/xynolog/stored.py")

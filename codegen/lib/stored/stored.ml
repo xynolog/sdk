@@ -67,7 +67,9 @@ let prefixes (table : T.t) =
     ( "lastEventIdKeyPrefix",
       table.last_event_id_key_prefix.prefix,
       table.last_event_id_key_prefix.docs );
-    ("cacheKeyPrefix", table.cache_key_prefix.prefix, table.cache_key_prefix.docs);
+    ( "cacheKeyPrefix",
+      table.cache_key_prefix.prefix,
+      table.cache_key_prefix.docs );
   ]
 
 let derive (spec : Spec.t) ~(refresh : Cache_refresh.Table.t) =
@@ -123,8 +125,7 @@ let derive (spec : Spec.t) ~(refresh : Cache_refresh.Table.t) =
                (fun (m : S.modules_item) ->
                  List.filter_map
                    (function
-                     | S.Constant { member; named; _ } when member = k.member
-                       ->
+                     | S.Constant { member; named; _ } when member = k.member ->
                          Some (m.module_, named)
                      | S.Constant _ | S.Type _ | S.Function _ | S.Reader _ ->
                          None)
@@ -132,7 +133,13 @@ let derive (spec : Spec.t) ~(refresh : Cache_refresh.Table.t) =
                spec.tables.client_surface.modules
            with
            | [ ("registry", named) ] ->
-               [ { row = k; kept_by = Registry; named = Option.value named ~default:[] } ]
+               [
+                 {
+                   row = k;
+                   kept_by = Registry;
+                   named = Option.value named ~default:[];
+                 };
+               ]
            | [ ("redirectSignIn", named) ] ->
                [
                  {
@@ -144,14 +151,15 @@ let derive (spec : Spec.t) ~(refresh : Cache_refresh.Table.t) =
            | [ (module_, _) ] ->
                refuse at
                  (Printf.sprintf
-                    "is %s, a constant of client/surface.json's %s module, \
-                     not of its registry module or its redirectSignIn module"
+                    "is %s, a constant of client/surface.json's %s module, not \
+                     of its registry module or its redirectSignIn module"
                     k.member module_);
                []
            | [] ->
                refuse at
-                 (Printf.sprintf "is %s, which client/surface.json lists no \
-                                  constant of" k.member);
+                 (Printf.sprintf
+                    "is %s, which client/surface.json lists no constant of"
+                    k.member);
                []
            | _ :: _ :: _ ->
                refuse at
@@ -256,10 +264,7 @@ let python t =
     P.assign ~about:[ Prose about ] name ~annotation:(P.Name "Final") ~value
   in
   let constants =
-    List.map
-      (fun k ->
-        (python_name k, k.row.key, k.row.docs))
-      t.keys
+    List.map (fun k -> (python_name k, k.row.key, k.row.docs)) t.keys
   in
   let exported =
     List.sort compare
@@ -422,9 +427,7 @@ let haskell_keys t =
           body =
             List.map
               (fun k ->
-                H.value
-                  (haskell_name k)
-                  (T_name "Text") (Str k.row.key))
+                H.value (haskell_name k) (T_name "Text") (Str k.row.key))
               t.keys
             @ List.map
                 (fun (member, prefix, _) ->
@@ -443,11 +446,7 @@ let go t =
   let constant name docs value =
     G.Const (G.spec ~doc:(G.prose (name ^ ": " ^ docs)) name (G.Quoted value))
   in
-  let key k =
-    constant
-      (go_name k)
-      k.row.docs k.row.key
-  in
+  let key k = constant (go_name k) k.row.docs k.row.key in
   let written path package decls =
     {
       Output.path;
@@ -458,7 +457,7 @@ let go t =
               G.verbatim
                 ("Code generated from protocol/specs/src/" ^ file
                ^ "; DO NOT EDIT.\n\nRegenerate: make generate ("
-                ^ Banner.writer __FILE__ ^ ")");
+               ^ Banner.writer __FILE__ ^ ")");
             package;
             imports = [];
             decls;
@@ -501,10 +500,7 @@ let typescript t =
               __FILE__;
           body =
             List.map
-              (fun k ->
-                constant
-                  (typescript_name k)
-                  k.row.docs k.row.key)
+              (fun k -> constant (typescript_name k) k.row.docs k.row.key)
               t.keys
             @ List.map
                 (fun (member, prefix, docs) ->
@@ -523,13 +519,17 @@ let rust t =
   let module R = Rust_syntax in
   let table = t.table in
   let constant ~vis name docs value =
-    R.Const { doc = [ docs ]; attrs = []; vis; name; ty = R.str_ty; value = R.Str value }
+    R.Const
+      {
+        doc = [ docs ];
+        attrs = [];
+        vis;
+        name;
+        ty = R.str_ty;
+        value = R.Str value;
+      }
   in
-  let key k =
-    constant ~vis:Pub
-      (rust_name k)
-      k.row.docs k.row.key
-  in
+  let key k = constant ~vis:Pub (rust_name k) k.row.docs k.row.key in
   let written path items =
     {
       Output.path;
@@ -569,9 +569,7 @@ let kotlin t =
     ~name:"StoredKeys" ~imports:[ "xynolog.Generated" ]
     (List.map
        (fun k ->
-         constant ~visibility:K.Public
-           (kotlin_name k)
-           k.row.docs k.row.key)
+         constant ~visibility:K.Public (kotlin_name k) k.row.docs k.row.key)
        t.keys
     @ List.map
         (fun (member, prefix, docs) ->
@@ -614,7 +612,8 @@ let swift t =
           imports = [ { W.module_ = "Foundation"; testable = false } ];
           decls =
             List.mapi
-              (fun i (modifiers, constant_) -> constant modifiers (i, constant_))
+              (fun i (modifiers, constant_) ->
+                constant modifiers (i, constant_))
               keys;
         };
   }
@@ -637,11 +636,7 @@ let csharp t =
       }
   in
   let key k =
-    C.Documented
-      ( k.row.docs,
-        constant [ C.Public ]
-          (csharp_name k)
-          k.row.key )
+    C.Documented (k.row.docs, constant [ C.Public ] (csharp_name k) k.row.key)
   in
   let written path namespace class_ members =
     {
