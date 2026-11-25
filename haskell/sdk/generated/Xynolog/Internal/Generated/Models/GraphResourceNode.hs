@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.GraphResourceNode (GraphResourceNode (..), GraphResourceNodeMetadata (..), GraphResourceNodeType (..), graphResourceNodeTypeText) where
+module Xynolog.Internal.Generated.Models.GraphResourceNode (GraphResourceNode (..), GraphResourceNodeType (..), graphResourceNodeTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -15,22 +15,13 @@ data GraphResourceNode = GraphResourceNode
     graphResourceNodeType :: GraphResourceNodeType,
     graphResourceNodeLabel :: Text,
     graphResourceNodeEntityTypes :: Maybe [Text],
-    graphResourceNodeMetadata :: Maybe GraphResourceNodeMetadata
+    graphResourceNodeMetadata :: Maybe (KM.KeyMap Value)
   }
   deriving (Eq, Show)
 
 instance FromJSON GraphResourceNode where parseJSON = checked "GraphResourceNode" $ withObject "GraphResourceNode" (\fields -> GraphResourceNode <$> (fields .: "id") <*> (fields .: "type") <*> (fields .: "label") <*> optional fields "entityTypes" <*> optional fields "metadata")
 
 instance ToJSON GraphResourceNode where toJSON value = Object (KM.fromList (concat [[("id", toJSON (graphResourceNodeId value))], [("type", toJSON (graphResourceNodeType value))], [("label", toJSON (graphResourceNodeLabel value))], optionalPair "entityTypes" (graphResourceNodeEntityTypes value), optionalPair "metadata" (graphResourceNodeMetadata value)]))
-
-data GraphResourceNodeMetadata = GraphResourceNodeMetadata
-  { graphResourceNodeMetadataAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON GraphResourceNodeMetadata where parseJSON = checked "GraphResourceNodeMetadata" $ withObject "GraphResourceNodeMetadata" (\fields -> GraphResourceNodeMetadata <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON GraphResourceNodeMetadata where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (graphResourceNodeMetadataAdditionalProperties value)))
 
 data GraphResourceNodeType = GraphResourceNodeTypeResource deriving (Eq, Show)
 

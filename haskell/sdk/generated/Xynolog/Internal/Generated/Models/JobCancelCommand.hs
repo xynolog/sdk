@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobCancelCommand (JobCancelCommand (..), JobCancelCommandUnitCursors (..)) where
+module Xynolog.Internal.Generated.Models.JobCancelCommand (JobCancelCommand (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -22,19 +22,10 @@ data JobCancelCommand = JobCancelCommand
     jobCancelCommandJobType :: JobType,
     jobCancelCommandAnnotationId :: Maybe AnnotationId,
     jobCancelCommandCompletedUnits :: Maybe [Text],
-    jobCancelCommandUnitCursors :: Maybe JobCancelCommandUnitCursors
+    jobCancelCommandUnitCursors :: Maybe (KM.KeyMap UnitCursor)
   }
   deriving (Eq, Show)
 
 instance FromJSON JobCancelCommand where parseJSON = checked "JobCancelCommand" $ withObject "JobCancelCommand" (\fields -> JobCancelCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "annotationId" <*> optional fields "completedUnits" <*> optional fields "unitCursors")
 
 instance ToJSON JobCancelCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobCancelCommandUserId value), [("resourceId", toJSON (jobCancelCommandResourceId value))], [("jobId", toJSON (jobCancelCommandJobId value))], [("jobType", toJSON (jobCancelCommandJobType value))], optionalPair "annotationId" (jobCancelCommandAnnotationId value), optionalPair "completedUnits" (jobCancelCommandCompletedUnits value), optionalPair "unitCursors" (jobCancelCommandUnitCursors value)]))
-
-data JobCancelCommandUnitCursors = JobCancelCommandUnitCursors
-  { jobCancelCommandUnitCursorsAdditionalProperties :: KM.KeyMap UnitCursor
-  }
-  deriving (Eq, Show)
-
-instance FromJSON JobCancelCommandUnitCursors where parseJSON = checked "JobCancelCommandUnitCursors" $ withObject "JobCancelCommandUnitCursors" (\fields -> JobCancelCommandUnitCursors <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON JobCancelCommandUnitCursors where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (jobCancelCommandUnitCursorsAdditionalProperties value)))

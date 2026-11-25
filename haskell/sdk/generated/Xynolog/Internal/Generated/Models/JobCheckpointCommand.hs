@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.JobCheckpointCommand (JobCheckpointCommand (..), JobCheckpointCommandUnitCursors (..)) where
+module Xynolog.Internal.Generated.Models.JobCheckpointCommand (JobCheckpointCommand (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -16,19 +16,10 @@ data JobCheckpointCommand = JobCheckpointCommand
   { jobCheckpointCommandUserId :: Maybe UserId,
     jobCheckpointCommandJobId :: JobId,
     jobCheckpointCommandCompletedUnits :: [Text],
-    jobCheckpointCommandUnitCursors :: Maybe JobCheckpointCommandUnitCursors
+    jobCheckpointCommandUnitCursors :: Maybe (KM.KeyMap UnitCursor)
   }
   deriving (Eq, Show)
 
 instance FromJSON JobCheckpointCommand where parseJSON = checked "JobCheckpointCommand" $ withObject "JobCheckpointCommand" (\fields -> JobCheckpointCommand <$> optional fields "_userId" <*> (fields .: "jobId") <*> (fields .: "completedUnits") <*> optional fields "unitCursors")
 
 instance ToJSON JobCheckpointCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobCheckpointCommandUserId value), [("jobId", toJSON (jobCheckpointCommandJobId value))], [("completedUnits", toJSON (jobCheckpointCommandCompletedUnits value))], optionalPair "unitCursors" (jobCheckpointCommandUnitCursors value)]))
-
-data JobCheckpointCommandUnitCursors = JobCheckpointCommandUnitCursors
-  { jobCheckpointCommandUnitCursorsAdditionalProperties :: KM.KeyMap UnitCursor
-  }
-  deriving (Eq, Show)
-
-instance FromJSON JobCheckpointCommandUnitCursors where parseJSON = checked "JobCheckpointCommandUnitCursors" $ withObject "JobCheckpointCommandUnitCursors" (\fields -> JobCheckpointCommandUnitCursors <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON JobCheckpointCommandUnitCursors where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (jobCheckpointCommandUnitCursorsAdditionalProperties value)))

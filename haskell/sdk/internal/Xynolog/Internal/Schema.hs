@@ -3,6 +3,7 @@
 module Xynolog.Internal.Schema
   ( Schemas,
     checkSchema,
+    matchesPattern,
     validate,
     validateNamed,
     validateProperty,
@@ -78,6 +79,10 @@ compilePattern value = do
     (Left ("unsupported regular expression: " ++ T.unpack value))
     Right
     (makeRegexOptsM defaultCompOpt {multiline = False} defaultExecOpt expression :: Maybe Regex)
+
+-- | Whether @text@ matches the pattern @expression@ as Protocol states it.
+matchesPattern :: Text -> Text -> Either String Bool
+matchesPattern expression text = (`matchTest` T.unpack text) <$> compilePattern expression
 
 -- Check every schema node the SDK validates against; annotation values are not schemas.
 -- The generator writes each with its allOf merged, so a schema that states one is unsupported.
@@ -229,8 +234,8 @@ validate schemas original value = do
           lengthBounds schema "minLength" "maxLength" (T.length text)
           case KM.lookup "pattern" schema of
             Just (String expression) -> do
-              patternValue <- compilePattern expression
-              ensure (matchTest patternValue (T.unpack text)) "string does not match pattern"
+              matched <- matchesPattern expression text
+              ensure matched "string does not match pattern"
             _ -> pure ()
         Number number -> numberBounds schema number
         Array items -> do

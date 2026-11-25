@@ -2,9 +2,8 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.KnowledgeGraph (KnowledgeGraph (..), KnowledgeGraphEdgesItem (..), KnowledgeGraphEdgesItemMetadata (..), KnowledgeGraphNodesItem (..)) where
+module Xynolog.Internal.Generated.Models.KnowledgeGraph (KnowledgeGraph (..), KnowledgeGraphEdgesItem (..), KnowledgeGraphNodesItem (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -28,7 +27,7 @@ data KnowledgeGraphEdgesItem = KnowledgeGraphEdgesItem
     knowledgeGraphEdgesItemTarget :: Text,
     knowledgeGraphEdgesItemType :: Text,
     knowledgeGraphEdgesItemBidirectional :: Maybe Bool,
-    knowledgeGraphEdgesItemMetadata :: Maybe KnowledgeGraphEdgesItemMetadata
+    knowledgeGraphEdgesItemMetadata :: Maybe (KM.KeyMap Value)
   }
   deriving (Eq, Show)
 
@@ -36,18 +35,9 @@ instance FromJSON KnowledgeGraphEdgesItem where parseJSON = checked "KnowledgeGr
 
 instance ToJSON KnowledgeGraphEdgesItem where toJSON value = Object (KM.fromList (concat [[("source", toJSON (knowledgeGraphEdgesItemSource value))], [("target", toJSON (knowledgeGraphEdgesItemTarget value))], [("type", toJSON (knowledgeGraphEdgesItemType value))], optionalPair "bidirectional" (knowledgeGraphEdgesItemBidirectional value), optionalPair "metadata" (knowledgeGraphEdgesItemMetadata value)]))
 
-data KnowledgeGraphEdgesItemMetadata = KnowledgeGraphEdgesItemMetadata
-  { knowledgeGraphEdgesItemMetadataAdditionalProperties :: KM.KeyMap Value
-  }
-  deriving (Eq, Show)
-
-instance FromJSON KnowledgeGraphEdgesItemMetadata where parseJSON = checked "KnowledgeGraphEdgesItemMetadata" $ withObject "KnowledgeGraphEdgesItemMetadata" (\fields -> KnowledgeGraphEdgesItemMetadata <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON KnowledgeGraphEdgesItemMetadata where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (knowledgeGraphEdgesItemMetadataAdditionalProperties value)))
-
 data KnowledgeGraphNodesItem = KnowledgeGraphNodesItemGraphResourceNode GraphResourceNode | KnowledgeGraphNodesItemGraphAnnotationNode GraphAnnotationNode deriving (Eq, Show)
 
-instance FromJSON KnowledgeGraphNodesItem where parseJSON = checked "KnowledgeGraphNodesItem" $ \value -> (KnowledgeGraphNodesItemGraphResourceNode <$> parseJSON value) <|> (KnowledgeGraphNodesItemGraphAnnotationNode <$> parseJSON value)
+instance FromJSON KnowledgeGraphNodesItem where parseJSON = checked "KnowledgeGraphNodesItem" $ \value -> readMember "KnowledgeGraphNodesItem" [([Signature {signatureKind = ObjectKind, signatureRequired = ["id", "type", "label"], signatureAllowed = Nothing, signatureFixed = [("type", [String "resource"])], signaturePattern = Nothing, signatureValues = Nothing}], KnowledgeGraphNodesItemGraphResourceNode <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["id", "type", "label", "annotation"], signatureAllowed = Nothing, signatureFixed = [("type", [String "annotation"])], signaturePattern = Nothing, signatureValues = Nothing}], KnowledgeGraphNodesItemGraphAnnotationNode <$> parseJSON value)] value
 
 instance ToJSON KnowledgeGraphNodesItem where
   toJSON (KnowledgeGraphNodesItemGraphResourceNode value) = toJSON value

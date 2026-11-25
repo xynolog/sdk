@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ArchivistMessages (ArchivistMessages (..), ArchivistMessagesBootItem (..), ArchivistMessagesHttpItem (..), ArchivistMessagesHttpItemMethod (..), archivistMessagesHttpItemMethodText, ArchivistMessagesLoggedItem (..), ArchivistMessagesLoggedItemFields (..), ArchivistMessagesRefusalsItem (..), ArchivistMessagesRefusalsItemCode (..), archivistMessagesRefusalsItemCodeText, ArchivistMessagesUnauthorized (..), ArchivistMessagesUnsentItem (..)) where
+module Xynolog.Internal.Generated.Models.ArchivistMessages (ArchivistMessages (..), ArchivistMessagesBootItem (..), ArchivistMessagesHttpItem (..), ArchivistMessagesHttpItemMethod (..), archivistMessagesHttpItemMethodText, ArchivistMessagesLoggedItem (..), ArchivistMessagesRefusalsItem (..), ArchivistMessagesRefusalsItemCode (..), archivistMessagesRefusalsItemCodeText, ArchivistMessagesUnauthorized (..), ArchivistMessagesUnsentItem (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -71,22 +71,13 @@ data ArchivistMessagesLoggedItem = ArchivistMessagesLoggedItem
     archivistMessagesLoggedItemLevel :: LogLevel,
     archivistMessagesLoggedItemSituation :: Text,
     archivistMessagesLoggedItemMessage :: Text,
-    archivistMessagesLoggedItemFields :: ArchivistMessagesLoggedItemFields
+    archivistMessagesLoggedItemFields :: KM.KeyMap Text
   }
   deriving (Eq, Show)
 
 instance FromJSON ArchivistMessagesLoggedItem where parseJSON = checked "ArchivistMessagesLoggedItem" $ withObject "ArchivistMessagesLoggedItem" (\fields -> ArchivistMessagesLoggedItem <$> (fields .: "name") <*> (fields .: "level") <*> (fields .: "situation") <*> (fields .: "message") <*> (fields .: "fields"))
 
 instance ToJSON ArchivistMessagesLoggedItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (archivistMessagesLoggedItemName value))], [("level", toJSON (archivistMessagesLoggedItemLevel value))], [("situation", toJSON (archivistMessagesLoggedItemSituation value))], [("message", toJSON (archivistMessagesLoggedItemMessage value))], [("fields", toJSON (archivistMessagesLoggedItemFields value))]]))
-
-data ArchivistMessagesLoggedItemFields = ArchivistMessagesLoggedItemFields
-  { archivistMessagesLoggedItemFieldsAdditionalProperties :: KM.KeyMap Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ArchivistMessagesLoggedItemFields where parseJSON = checked "ArchivistMessagesLoggedItemFields" $ withObject "ArchivistMessagesLoggedItemFields" (\fields -> ArchivistMessagesLoggedItemFields <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ArchivistMessagesLoggedItemFields where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (archivistMessagesLoggedItemFieldsAdditionalProperties value)))
 
 data ArchivistMessagesRefusalsItem = ArchivistMessagesRefusalsItem
   { archivistMessagesRefusalsItemName :: Text,

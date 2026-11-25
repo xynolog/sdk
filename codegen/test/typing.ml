@@ -112,6 +112,13 @@ let cases =
         check "refused" true (Text_patterns.refuses "^t-[0-9]+$" "t-x");
         check "admitted" false (Text_patterns.refuses "^t-[0-9]+$" "t-12");
         check "past ASCII" true (Text_patterns.refuses "^[a-z]+$" "é"));
+    case "a pattern admits a shortest text of ASCII" (fun () ->
+        Alcotest.(check (option string))
+          "letters, then digits" (Some "p-a-0")
+          (Text_patterns.admitted "^p-.+-[0-9]+$");
+        Alcotest.(check (option string))
+          "none past ASCII alone" None
+          (Text_patterns.admitted "^[^\x00-\x7f]$"));
     case "a pattern of a form it does not read proves nothing" (fun () ->
         check "lookahead" false (Text_patterns.disjoint "^(?=a)" "^b$"));
   ]

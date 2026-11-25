@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceImplementations (ConformanceImplementations (..), ConformanceImplementationsSdks (..), ConformanceImplementationsSdksValue (..), ConformanceImplementationsSdksValueExempt (..), ConformanceImplementationsSdksValueLive (..), ConformanceImplementationsSdksValueLiveTier (..), conformanceImplementationsSdksValueLiveTierText) where
+module Xynolog.Internal.Generated.Models.ConformanceImplementations (ConformanceImplementations (..), ConformanceImplementationsSdksValue (..), ConformanceImplementationsSdksValueLive (..), ConformanceImplementationsSdksValueLiveTier (..), conformanceImplementationsSdksValueLiveTierText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -13,7 +13,7 @@ import Xynolog.Internal.Generated.Models.LocalTarget
 data ConformanceImplementations = ConformanceImplementations
   { conformanceImplementationsLauncher :: [Text],
     conformanceImplementationsTarget :: LocalTarget,
-    conformanceImplementationsSdks :: ConformanceImplementationsSdks,
+    conformanceImplementationsSdks :: KM.KeyMap ConformanceImplementationsSdksValue,
     conformanceImplementationsModelCatalogue :: Maybe Text
   }
   deriving (Eq, Show)
@@ -22,35 +22,17 @@ instance FromJSON ConformanceImplementations where parseJSON = checked "Conforma
 
 instance ToJSON ConformanceImplementations where toJSON value = Object (KM.fromList (concat [[("launcher", toJSON (conformanceImplementationsLauncher value))], [("target", toJSON (conformanceImplementationsTarget value))], [("sdks", toJSON (conformanceImplementationsSdks value))], optionalPair "modelCatalogue" (conformanceImplementationsModelCatalogue value)]))
 
-data ConformanceImplementationsSdks = ConformanceImplementationsSdks
-  { conformanceImplementationsSdksAdditionalProperties :: KM.KeyMap ConformanceImplementationsSdksValue
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceImplementationsSdks where parseJSON = checked "ConformanceImplementationsSdks" $ withObject "ConformanceImplementationsSdks" (\fields -> ConformanceImplementationsSdks <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceImplementationsSdks where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceImplementationsSdksAdditionalProperties value)))
-
 data ConformanceImplementationsSdksValue = ConformanceImplementationsSdksValue
   { conformanceImplementationsSdksValueWire :: Maybe [Text],
     conformanceImplementationsSdksValueLive :: Maybe ConformanceImplementationsSdksValueLive,
     conformanceImplementationsSdksValueWorker :: Maybe [Text],
-    conformanceImplementationsSdksValueExempt :: Maybe ConformanceImplementationsSdksValueExempt
+    conformanceImplementationsSdksValueExempt :: Maybe (KM.KeyMap Text)
   }
   deriving (Eq, Show)
 
 instance FromJSON ConformanceImplementationsSdksValue where parseJSON = checked "ConformanceImplementationsSdksValue" $ withObject "ConformanceImplementationsSdksValue" (\fields -> ConformanceImplementationsSdksValue <$> optional fields "wire" <*> optional fields "live" <*> optional fields "worker" <*> optional fields "exempt")
 
 instance ToJSON ConformanceImplementationsSdksValue where toJSON value = Object (KM.fromList (concat [optionalPair "wire" (conformanceImplementationsSdksValueWire value), optionalPair "live" (conformanceImplementationsSdksValueLive value), optionalPair "worker" (conformanceImplementationsSdksValueWorker value), optionalPair "exempt" (conformanceImplementationsSdksValueExempt value)]))
-
-data ConformanceImplementationsSdksValueExempt = ConformanceImplementationsSdksValueExempt
-  { conformanceImplementationsSdksValueExemptAdditionalProperties :: KM.KeyMap Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ConformanceImplementationsSdksValueExempt where parseJSON = checked "ConformanceImplementationsSdksValueExempt" $ withObject "ConformanceImplementationsSdksValueExempt" (\fields -> ConformanceImplementationsSdksValueExempt <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ConformanceImplementationsSdksValueExempt where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (conformanceImplementationsSdksValueExemptAdditionalProperties value)))
 
 data ConformanceImplementationsSdksValueLive = ConformanceImplementationsSdksValueLive
   { conformanceImplementationsSdksValueLiveCommand :: [Text],

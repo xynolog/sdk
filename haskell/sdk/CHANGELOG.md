@@ -120,6 +120,21 @@ the coming release's, and gathers its changes as they land.
   or matched positionally binds its arguments in that order, and where two
   fields share a type a positional use still compiles: build and match a
   record by naming its fields.
+- A map or a scalar whose schema states nothing its type cannot carry is
+  that type, in place of a type that wraps it. `LastEventIds` is a
+  `Map ResourceId PersistedEventId`, and `ResourceId` reads and writes as a
+  map's key; `ContentFormat` is `Text`. A map written in place is a
+  `KM.KeyMap` of its values where it is held (`metadataLabels ::
+  Maybe (KM.KeyMap Text)`, `jobMetadataUnitCursors`), in place of a record of
+  one `…AdditionalProperties` field (`MetadataLabels`,
+  `JobMetadataUnitCursors`). A scalar that states a pattern, a length or a
+  range stays a type of its own.
+- A union's value is read as the member that admits it, by what each
+  member's schema states (its kind, the members an object of it requires and
+  allows, the values it and its members may take, and the pattern its text
+  matches), in place of trying each member until one parses. Only that
+  member is read, and a value it refuses is refused as that member refuses
+  it, where it was refused as the last member tried refused it.
 
 ### Removed
 
