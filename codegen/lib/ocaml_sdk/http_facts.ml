@@ -7,6 +7,14 @@
 module O = Ocaml_syntax
 
 let file (codes : Error_codes.Table.t) =
+  let in_ (v : Error_codes.Table.vocabulary) (c : Error_codes.Table.code) =
+    O.construct
+      ("Error_codes."
+      ^ Error_codes.Ocaml.module_name v
+      ^ "."
+      ^ Error_codes.Ocaml.constructor c.code)
+  in
+  let transport = in_ codes.transport and bus = in_ codes.bus in
   let refusals = ref [] in
   let refuse file pointer message =
     refusals := { Decode.file; pointer; message } :: !refusals
@@ -14,7 +22,7 @@ let file (codes : Error_codes.Table.t) =
   let status_code =
     List.map
       (fun (status, (c : Error_codes.Table.code)) ->
-        O.case (O.Pattern.int status) (O.string c.code))
+        O.case (O.Pattern.int status) (transport c))
       codes.exact
     @ (match codes.from with
       | None -> []
@@ -22,28 +30,18 @@ let file (codes : Error_codes.Table.t) =
           [
             O.case (O.Pattern.var "status")
               ~guard:(O.infix ">=" (O.ident "status") (O.int status))
-              (O.string c.code);
+              (transport c);
           ])
-    @ [ O.case O.Pattern.any (O.string codes.unclassified.code) ]
+    @ [ O.case O.Pattern.any (transport codes.unclassified) ]
   in
   let failures =
     List.map
       (fun (wire, (c : Error_codes.Table.code)) ->
-        let constructor =
-          String.capitalize_ascii
-            (String.map (function '-' -> '_' | x -> x) wire)
-        in
-        if
-          (match constructor.[0] with 'A' .. 'Z' -> false | _ -> true)
-          || not
-               (String.for_all
-                  (function
-                    | 'a' .. 'z' | '0' .. '9' | '_' -> true | _ -> false)
-                  (String.sub constructor 1 (String.length constructor - 1)))
-        then
+        let constructor = Error_codes.Ocaml.constructor wire in
+        if not (Error_codes.Ocaml.is_constructor constructor) then
           refuse "components/schemas/CommandError.json" "/properties/code/enum"
             (Printf.sprintf "states %s, which names no OCaml constructor" wire);
-        (wire, c.code, constructor))
+        (wire, c, constructor))
       codes.wire
   in
   let failure_code =
@@ -74,13 +72,13 @@ let file (codes : Error_codes.Table.t) =
   let bus_failure =
     O.let_ "bus_failure"
       (O.function_
-         (O.case (O.Pattern.construct "None") (O.string codes.unrecognized.code)
+         (O.case (O.Pattern.construct "None") (bus codes.unrecognized)
          :: List.map
               (fun (_, code, c) ->
                 O.case
                   (O.Pattern.construct "Some"
                      ~arg:(O.Pattern.construct ("Failure_code." ^ c)))
-                  (O.string code))
+                  (bus code))
               failures))
   in
   let items =

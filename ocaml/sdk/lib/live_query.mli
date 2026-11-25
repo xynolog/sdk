@@ -1,13 +1,17 @@
 (** Domain-affine observed queries with one in-flight read per key. *)
 
 type ('key, 'value) t
-type 'value state = Pending | Ready of 'value | Failed of string
+
+type 'value state =
+  | Pending
+  | Ready of 'value
+  | Failed of Http_wire.request_code
 
 val make :
   ?window_ms:int ->
   sw:Eio.Switch.t ->
   clock:Clock.t ->
-  load:('key -> ('value, string) result) ->
+  load:('key -> ('value, Http_wire.request_code) result) ->
   ?restore:('key -> 'value option) ->
   ?save:('key -> 'value option -> unit) ->
   hold:('key -> unit -> unit) ->
@@ -22,7 +26,7 @@ val observe :
   unit ->
   unit
 
-val fresh : ('key, 'value) t -> 'key -> ('value, string) result
+val fresh : ('key, 'value) t -> 'key -> ('value, Http_wire.request_code) result
 val invalidate : ('key, 'value) t -> 'key -> unit
 
 type key = string * string option * string option
@@ -39,7 +43,7 @@ val keys : ('key, 'value) t -> 'key list
 val in_flight : ('key, 'value) t -> bool
 val invalidate_all : ('key, 'value) t -> unit
 val set : ('key, 'value) t -> 'key -> 'value -> unit
-val remove : ('key, 'value) t -> 'key -> string -> unit
+val remove : ('key, 'value) t -> 'key -> Http_wire.request_code -> unit
 val patch : ('key, 'value) t -> 'key -> ('value -> 'value) -> unit
 
 val ready_for_replay :

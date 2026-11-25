@@ -22,7 +22,11 @@ let make client =
           in
           let body =
             Yojson.Safe.to_string
-              (`Assoc [ ("referenceId", reference); ("message", `String code) ])
+              (`Assoc
+                 [
+                   ("referenceId", reference);
+                   ("message", `String (Http_wire.request_code code));
+                 ])
           in
           match B.decode B.Channels.match_search_failed body with
           | Ok payload ->
@@ -42,9 +46,11 @@ let make client =
                       Client.publish client ?correlation_id
                         B.Channels.match_search_failed payload
                   | Error Subscription.Timeout ->
-                      rejected Error_codes.Bus_request.timeout
-                  | Error _ -> rejected Error_codes.Bus_request.closed
-                with Http_wire.Failed failure -> rejected failure.code)
+                      rejected (Http_wire.Bus Error_codes.Bus_request.Timeout)
+                  | Error _ ->
+                      rejected (Http_wire.Bus Error_codes.Bus_request.Closed)
+                with Http_wire.Failed failure ->
+                  rejected (Http_wire.Transport failure.code))
               (fun () -> Promise.await closed);
             `Stop_daemon)
     | _ -> ()

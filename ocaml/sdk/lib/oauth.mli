@@ -4,10 +4,10 @@
 type request = { meth : string; url : string; form : (string * string) list }
 type http = request -> int * string
 
-type error = { code : string; status : int option }
-(** Why an exchange gave nothing: [code] is a member of {!Error_codes.Sign_in},
-    and [status] the HTTP status the issuer answered with, [None] when there was
-    no answer to read. *)
+type error = { code : Error_codes.Sign_in.t; status : int option }
+(** Why an exchange gave nothing: [code], its sign-in code, and [status] the
+    HTTP status the issuer answered with, [None] when there was no answer to
+    read. *)
 
 type script
 type browser

@@ -1,7 +1,7 @@
 (** A claimed job and its serialized lifecycle over the typed wire. *)
 
 type held
-type claim = Held of held | Empty | Refused of string option
+type claim = Held of held | Empty | Refused of Http_wire.request_code option
 
 val channels : Bus_registry.packed_channel list
 val commit_channels : Bus_registry.packed_channel list
@@ -37,7 +37,7 @@ val commit :
   resource:Identifiers.Resource_id.t ->
   annotations:Yojson.Safe.t list ->
   unit ->
-  (unit, string) result
+  (unit, Error_codes.Bus_request.t) result
 
 val complete : held -> Yojson.Safe.t -> unit
 val cancel : held -> completed:Yojson.Safe.t option -> unit

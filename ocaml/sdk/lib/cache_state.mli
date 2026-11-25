@@ -3,7 +3,7 @@ type t
 val make :
   sw:Eio.Switch.t ->
   clock:Clock.t ->
-  load:(string -> (Yojson.Safe.t, string) result) ->
+  load:(string -> (Yojson.Safe.t, Http_wire.request_code) result) ->
   ?restore:(string -> Yojson.Safe.t option) ->
   ?save:((string * Yojson.Safe.t option) list -> unit) ->
   unit ->
@@ -17,13 +17,13 @@ val observe :
   unit ->
   unit
 
-val fetch : t -> string -> (Yojson.Safe.t, string) result
+val fetch : t -> string -> (Yojson.Safe.t, Http_wire.request_code) result
 val get : t -> string -> Yojson.Safe.t option
 val known : t -> string -> bool
 val keys : t -> string list
 val invalidate : t -> string -> unit
 val invalidate_all : t -> unit
-val remove : t -> string -> string -> unit
+val remove : t -> string -> Http_wire.request_code -> unit
 val set : t -> string -> Yojson.Safe.t -> unit
 val patch : t -> string -> (Yojson.Safe.t -> Yojson.Safe.t) -> unit
 val persistence_pending : t -> bool

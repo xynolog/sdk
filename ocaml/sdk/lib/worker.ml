@@ -23,7 +23,7 @@ type held = {
   mutable durability : (int * Enums.Durability_evidence.t) option;
 }
 
-type claim = Held of held | Empty | Refused of string option
+type claim = Held of held | Empty | Refused of Http_wire.request_code option
 
 let channels =
   let open B.Channels in
@@ -92,12 +92,13 @@ let claim subscription http ~client_id ~correlation_id ?trace
     Subscription.request subscription ~timeout_ms ~correlation_id operation
       ~send
   with
-  | Error Subscription.Timeout -> Refused (Some Error_codes.Bus_request.timeout)
+  | Error Subscription.Timeout ->
+      Refused (Some (Http_wire.Bus Error_codes.Bus_request.Timeout))
   | Error _ -> Refused None
   | Ok (Subscription.Failure payload) ->
       let code = Http_wire.bus_failure payload in
-      if code = Error_codes.Bus_request.none_pending then Empty
-      else Refused (Some code)
+      if code = Error_codes.Bus_request.None_pending then Empty
+      else Refused (Some (Http_wire.Bus code))
   | Ok (Subscription.Result payload) -> (
       try
         let response =
@@ -219,7 +220,7 @@ let commit job subscription ~correlation_id
     | _ -> job.durability <- Some (rank, evidence)
   in
   locked job (fun () ->
-      if job.phase = Settled then Error Error_codes.Bus_request.closed
+      if job.phase = Settled then Error Error_codes.Bus_request.Closed
       else
         match List.rev annotations with
         | [] -> Ok ()
@@ -258,8 +259,8 @@ let commit job subscription ~correlation_id
                 let rank, label = evidence in
                 record rank label;
                 if rank = 0 then Ok ()
-                else Error Error_codes.Bus_request.timeout
-            | Error _ -> Error Error_codes.Bus_request.closed))
+                else Error Error_codes.Bus_request.Timeout
+            | Error _ -> Error Error_codes.Bus_request.Closed))
 
 let durability job =
   Option.to_list

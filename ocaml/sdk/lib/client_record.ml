@@ -1,6 +1,6 @@
 (* A client's representation, apart from Client_core so that Testing can say on
    a client's errors with no public member. *)
-type session_error = { code : string; message : string }
+type session_error = { code : Error_codes.Session.t; message : string }
 type said = Own of session_error | Transport_failure of Http_wire.failure
 
 type t = {
