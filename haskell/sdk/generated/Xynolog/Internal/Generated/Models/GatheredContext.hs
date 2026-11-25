@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.GatheredContext (GatheredContext (..), GatheredContextFocus (..), GatheredContextFocusAnnotationValue (..), GatheredContextFocusAnnotationValueKind (..), gatheredContextFocusAnnotationValueKindText, GatheredContextFocusAnnotationValueSelected (..), GatheredContextFocusAnnotationValueTargetContext (..), GatheredContextFocusResourceValue (..), GatheredContextFocusResourceValueContent (..), GatheredContextFocusResourceValueContentRelated (..), GatheredContextFocusResourceValueKind (..), gatheredContextFocusResourceValueKindText, GatheredContextMetadata (..), GatheredContextMetadataEntityTypeFrequencies (..), GatheredContextSemanticContext (..)) where
+module Xynolog.Internal.Generated.Models.GatheredContext (GatheredContext (..), GatheredContextFocus (..), GatheredContextFocusAnnotation (..), GatheredContextFocusAnnotationKind (..), gatheredContextFocusAnnotationKindText, GatheredContextFocusAnnotationSelected (..), GatheredContextFocusAnnotationTargetContext (..), GatheredContextFocusResource (..), GatheredContextFocusResourceContent (..), GatheredContextFocusResourceContentRelated (..), GatheredContextFocusResourceKind (..), gatheredContextFocusResourceKindText, GatheredContextMetadata (..), GatheredContextMetadataEntityTypeFrequencies (..), GatheredContextSemanticContext (..)) where
 
 import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
@@ -17,18 +17,17 @@ import Xynolog.Internal.Generated.Models.SemanticMatch
 data GatheredContext = GatheredContext
   { gatheredContextFocus :: GatheredContextFocus,
     gatheredContextGraph :: KnowledgeGraph,
-    gatheredContextInferredRelationshipSummary :: Maybe Text,
-    gatheredContextMetadata :: GatheredContextMetadata,
     gatheredContextSemanticContext :: Maybe GatheredContextSemanticContext,
-    gatheredContextAdditionalProperties :: KM.KeyMap Value
+    gatheredContextMetadata :: GatheredContextMetadata,
+    gatheredContextInferredRelationshipSummary :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContext where parseJSON = checked "GatheredContext" $ withObject "GatheredContext" (\fields -> GatheredContext <$> (fields .: "focus") <*> (fields .: "graph") <*> optional fields "inferredRelationshipSummary" <*> (fields .: "metadata") <*> optional fields "semanticContext" <*> traverse parseJSON (withoutFields ["focus", "graph", "inferredRelationshipSummary", "metadata", "semanticContext"] fields))
+instance FromJSON GatheredContext where parseJSON = checked "GatheredContext" $ withObject "GatheredContext" (\fields -> GatheredContext <$> (fields .: "focus") <*> (fields .: "graph") <*> optional fields "semanticContext" <*> (fields .: "metadata") <*> optional fields "inferredRelationshipSummary")
 
-instance ToJSON GatheredContext where toJSON value = Object (KM.fromList (concat [[("focus", toJSON (gatheredContextFocus value))], [("graph", toJSON (gatheredContextGraph value))], optionalPair "inferredRelationshipSummary" (gatheredContextInferredRelationshipSummary value), [("metadata", toJSON (gatheredContextMetadata value))], optionalPair "semanticContext" (gatheredContextSemanticContext value)]) <> fmap toJSON (withoutFields ["focus", "graph", "inferredRelationshipSummary", "metadata", "semanticContext"] (gatheredContextAdditionalProperties value)))
+instance ToJSON GatheredContext where toJSON value = Object (KM.fromList (concat [[("focus", toJSON (gatheredContextFocus value))], [("graph", toJSON (gatheredContextGraph value))], optionalPair "semanticContext" (gatheredContextSemanticContext value), [("metadata", toJSON (gatheredContextMetadata value))], optionalPair "inferredRelationshipSummary" (gatheredContextInferredRelationshipSummary value)]))
 
-data GatheredContextFocus = GatheredContextFocusAnnotation GatheredContextFocusAnnotationValue | GatheredContextFocusResource GatheredContextFocusResourceValue deriving (Eq, Show)
+data GatheredContextFocus = GatheredContextFocusAnnotation GatheredContextFocusAnnotation | GatheredContextFocusResource GatheredContextFocusResource deriving (Eq, Show)
 
 instance FromJSON GatheredContextFocus where parseJSON = checked "GatheredContextFocus" $ \value -> (GatheredContextFocusAnnotation <$> parseJSON value) <|> (GatheredContextFocusResource <$> parseJSON value)
 
@@ -36,109 +35,103 @@ instance ToJSON GatheredContextFocus where
   toJSON (GatheredContextFocusAnnotation value) = toJSON value
   toJSON (GatheredContextFocusResource value) = toJSON value
 
-data GatheredContextFocusAnnotationValue = GatheredContextFocusAnnotationValue
-  { gatheredContextFocusAnnotationValueAnnotation :: Annotation,
-    gatheredContextFocusAnnotationValueKind :: GatheredContextFocusAnnotationValueKind,
-    gatheredContextFocusAnnotationValueSelected :: Maybe GatheredContextFocusAnnotationValueSelected,
-    gatheredContextFocusAnnotationValueSourceResource :: ResourceDescriptor,
-    gatheredContextFocusAnnotationValueTargetContext :: Maybe GatheredContextFocusAnnotationValueTargetContext,
-    gatheredContextFocusAnnotationValueTargetResource :: Maybe ResourceDescriptor,
-    gatheredContextFocusAnnotationValueUserHint :: Maybe Text,
-    gatheredContextFocusAnnotationValueAdditionalProperties :: KM.KeyMap Value
+data GatheredContextFocusAnnotation = MkGatheredContextFocusAnnotation
+  { gatheredContextFocusAnnotationKind :: GatheredContextFocusAnnotationKind,
+    gatheredContextFocusAnnotationAnnotation :: Annotation,
+    gatheredContextFocusAnnotationSourceResource :: ResourceDescriptor,
+    gatheredContextFocusAnnotationSelected :: Maybe GatheredContextFocusAnnotationSelected,
+    gatheredContextFocusAnnotationUserHint :: Maybe Text,
+    gatheredContextFocusAnnotationTargetResource :: Maybe ResourceDescriptor,
+    gatheredContextFocusAnnotationTargetContext :: Maybe GatheredContextFocusAnnotationTargetContext
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocusAnnotationValue where parseJSON = checked "GatheredContextFocusAnnotationValue" $ withObject "GatheredContextFocusAnnotationValue" (\fields -> GatheredContextFocusAnnotationValue <$> (fields .: "annotation") <*> (fields .: "kind") <*> optional fields "selected" <*> (fields .: "sourceResource") <*> optional fields "targetContext" <*> optional fields "targetResource" <*> optional fields "userHint" <*> traverse parseJSON (withoutFields ["annotation", "kind", "selected", "sourceResource", "targetContext", "targetResource", "userHint"] fields))
+instance FromJSON GatheredContextFocusAnnotation where parseJSON = checked "GatheredContextFocusAnnotation" $ withObject "GatheredContextFocusAnnotation" (\fields -> MkGatheredContextFocusAnnotation <$> (fields .: "kind") <*> (fields .: "annotation") <*> (fields .: "sourceResource") <*> optional fields "selected" <*> optional fields "userHint" <*> optional fields "targetResource" <*> optional fields "targetContext")
 
-instance ToJSON GatheredContextFocusAnnotationValue where toJSON value = Object (KM.fromList (concat [[("annotation", toJSON (gatheredContextFocusAnnotationValueAnnotation value))], [("kind", toJSON (gatheredContextFocusAnnotationValueKind value))], optionalPair "selected" (gatheredContextFocusAnnotationValueSelected value), [("sourceResource", toJSON (gatheredContextFocusAnnotationValueSourceResource value))], optionalPair "targetContext" (gatheredContextFocusAnnotationValueTargetContext value), optionalPair "targetResource" (gatheredContextFocusAnnotationValueTargetResource value), optionalPair "userHint" (gatheredContextFocusAnnotationValueUserHint value)]) <> fmap toJSON (withoutFields ["annotation", "kind", "selected", "sourceResource", "targetContext", "targetResource", "userHint"] (gatheredContextFocusAnnotationValueAdditionalProperties value)))
+instance ToJSON GatheredContextFocusAnnotation where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (gatheredContextFocusAnnotationKind value))], [("annotation", toJSON (gatheredContextFocusAnnotationAnnotation value))], [("sourceResource", toJSON (gatheredContextFocusAnnotationSourceResource value))], optionalPair "selected" (gatheredContextFocusAnnotationSelected value), optionalPair "userHint" (gatheredContextFocusAnnotationUserHint value), optionalPair "targetResource" (gatheredContextFocusAnnotationTargetResource value), optionalPair "targetContext" (gatheredContextFocusAnnotationTargetContext value)]))
 
-data GatheredContextFocusAnnotationValueKind = GatheredContextFocusAnnotationValueKindAnnotation deriving (Eq, Show)
+data GatheredContextFocusAnnotationKind = GatheredContextFocusAnnotationKindAnnotation deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocusAnnotationValueKind where parseJSON = checked "GatheredContextFocusAnnotationValueKind" $ \value -> if value == String "annotation" then pure GatheredContextFocusAnnotationValueKindAnnotation else fail "unknown enumeration member"
+instance FromJSON GatheredContextFocusAnnotationKind where parseJSON = checked "GatheredContextFocusAnnotationKind" $ \value -> if value == String "annotation" then pure GatheredContextFocusAnnotationKindAnnotation else fail "unknown enumeration member"
 
-instance ToJSON GatheredContextFocusAnnotationValueKind where toJSON GatheredContextFocusAnnotationValueKindAnnotation = String "annotation"
+instance ToJSON GatheredContextFocusAnnotationKind where toJSON GatheredContextFocusAnnotationKindAnnotation = String "annotation"
 
-gatheredContextFocusAnnotationValueKindText :: GatheredContextFocusAnnotationValueKind -> Text
-gatheredContextFocusAnnotationValueKindText GatheredContextFocusAnnotationValueKindAnnotation = "annotation"
+gatheredContextFocusAnnotationKindText :: GatheredContextFocusAnnotationKind -> Text
+gatheredContextFocusAnnotationKindText GatheredContextFocusAnnotationKindAnnotation = "annotation"
 
-data GatheredContextFocusAnnotationValueSelected = GatheredContextFocusAnnotationValueSelected
-  { gatheredContextFocusAnnotationValueSelectedAfter :: Maybe Text,
-    gatheredContextFocusAnnotationValueSelectedBefore :: Maybe Text,
-    gatheredContextFocusAnnotationValueSelectedText :: Text,
-    gatheredContextFocusAnnotationValueSelectedAdditionalProperties :: KM.KeyMap Value
+data GatheredContextFocusAnnotationSelected = GatheredContextFocusAnnotationSelected
+  { gatheredContextFocusAnnotationSelectedBefore :: Maybe Text,
+    gatheredContextFocusAnnotationSelectedText :: Text,
+    gatheredContextFocusAnnotationSelectedAfter :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocusAnnotationValueSelected where parseJSON = checked "GatheredContextFocusAnnotationValueSelected" $ withObject "GatheredContextFocusAnnotationValueSelected" (\fields -> GatheredContextFocusAnnotationValueSelected <$> optional fields "after" <*> optional fields "before" <*> (fields .: "text") <*> traverse parseJSON (withoutFields ["after", "before", "text"] fields))
+instance FromJSON GatheredContextFocusAnnotationSelected where parseJSON = checked "GatheredContextFocusAnnotationSelected" $ withObject "GatheredContextFocusAnnotationSelected" (\fields -> GatheredContextFocusAnnotationSelected <$> optional fields "before" <*> (fields .: "text") <*> optional fields "after")
 
-instance ToJSON GatheredContextFocusAnnotationValueSelected where toJSON value = Object (KM.fromList (concat [optionalPair "after" (gatheredContextFocusAnnotationValueSelectedAfter value), optionalPair "before" (gatheredContextFocusAnnotationValueSelectedBefore value), [("text", toJSON (gatheredContextFocusAnnotationValueSelectedText value))]]) <> fmap toJSON (withoutFields ["after", "before", "text"] (gatheredContextFocusAnnotationValueSelectedAdditionalProperties value)))
+instance ToJSON GatheredContextFocusAnnotationSelected where toJSON value = Object (KM.fromList (concat [optionalPair "before" (gatheredContextFocusAnnotationSelectedBefore value), [("text", toJSON (gatheredContextFocusAnnotationSelectedText value))], optionalPair "after" (gatheredContextFocusAnnotationSelectedAfter value)]))
 
-data GatheredContextFocusAnnotationValueTargetContext = GatheredContextFocusAnnotationValueTargetContext
-  { gatheredContextFocusAnnotationValueTargetContextContent :: Text,
-    gatheredContextFocusAnnotationValueTargetContextSummary :: Maybe Text,
-    gatheredContextFocusAnnotationValueTargetContextAdditionalProperties :: KM.KeyMap Value
+data GatheredContextFocusAnnotationTargetContext = GatheredContextFocusAnnotationTargetContext
+  { gatheredContextFocusAnnotationTargetContextContent :: Text,
+    gatheredContextFocusAnnotationTargetContextSummary :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocusAnnotationValueTargetContext where parseJSON = checked "GatheredContextFocusAnnotationValueTargetContext" $ withObject "GatheredContextFocusAnnotationValueTargetContext" (\fields -> GatheredContextFocusAnnotationValueTargetContext <$> (fields .: "content") <*> optional fields "summary" <*> traverse parseJSON (withoutFields ["content", "summary"] fields))
+instance FromJSON GatheredContextFocusAnnotationTargetContext where parseJSON = checked "GatheredContextFocusAnnotationTargetContext" $ withObject "GatheredContextFocusAnnotationTargetContext" (\fields -> GatheredContextFocusAnnotationTargetContext <$> (fields .: "content") <*> optional fields "summary")
 
-instance ToJSON GatheredContextFocusAnnotationValueTargetContext where toJSON value = Object (KM.fromList (concat [[("content", toJSON (gatheredContextFocusAnnotationValueTargetContextContent value))], optionalPair "summary" (gatheredContextFocusAnnotationValueTargetContextSummary value)]) <> fmap toJSON (withoutFields ["content", "summary"] (gatheredContextFocusAnnotationValueTargetContextAdditionalProperties value)))
+instance ToJSON GatheredContextFocusAnnotationTargetContext where toJSON value = Object (KM.fromList (concat [[("content", toJSON (gatheredContextFocusAnnotationTargetContextContent value))], optionalPair "summary" (gatheredContextFocusAnnotationTargetContextSummary value)]))
 
-data GatheredContextFocusResourceValue = GatheredContextFocusResourceValue
-  { gatheredContextFocusResourceValueContent :: Maybe GatheredContextFocusResourceValueContent,
-    gatheredContextFocusResourceValueKind :: GatheredContextFocusResourceValueKind,
-    gatheredContextFocusResourceValueResource :: ResourceDescriptor,
-    gatheredContextFocusResourceValueSuggestedReferences :: Maybe [Text],
-    gatheredContextFocusResourceValueSummary :: Maybe Text,
-    gatheredContextFocusResourceValueAdditionalProperties :: KM.KeyMap Value
+data GatheredContextFocusResource = MkGatheredContextFocusResource
+  { gatheredContextFocusResourceKind :: GatheredContextFocusResourceKind,
+    gatheredContextFocusResourceResource :: ResourceDescriptor,
+    gatheredContextFocusResourceSummary :: Maybe Text,
+    gatheredContextFocusResourceSuggestedReferences :: Maybe [Text],
+    gatheredContextFocusResourceContent :: Maybe GatheredContextFocusResourceContent
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocusResourceValue where parseJSON = checked "GatheredContextFocusResourceValue" $ withObject "GatheredContextFocusResourceValue" (\fields -> GatheredContextFocusResourceValue <$> optional fields "content" <*> (fields .: "kind") <*> (fields .: "resource") <*> optional fields "suggestedReferences" <*> optional fields "summary" <*> traverse parseJSON (withoutFields ["content", "kind", "resource", "suggestedReferences", "summary"] fields))
+instance FromJSON GatheredContextFocusResource where parseJSON = checked "GatheredContextFocusResource" $ withObject "GatheredContextFocusResource" (\fields -> MkGatheredContextFocusResource <$> (fields .: "kind") <*> (fields .: "resource") <*> optional fields "summary" <*> optional fields "suggestedReferences" <*> optional fields "content")
 
-instance ToJSON GatheredContextFocusResourceValue where toJSON value = Object (KM.fromList (concat [optionalPair "content" (gatheredContextFocusResourceValueContent value), [("kind", toJSON (gatheredContextFocusResourceValueKind value))], [("resource", toJSON (gatheredContextFocusResourceValueResource value))], optionalPair "suggestedReferences" (gatheredContextFocusResourceValueSuggestedReferences value), optionalPair "summary" (gatheredContextFocusResourceValueSummary value)]) <> fmap toJSON (withoutFields ["content", "kind", "resource", "suggestedReferences", "summary"] (gatheredContextFocusResourceValueAdditionalProperties value)))
+instance ToJSON GatheredContextFocusResource where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (gatheredContextFocusResourceKind value))], [("resource", toJSON (gatheredContextFocusResourceResource value))], optionalPair "summary" (gatheredContextFocusResourceSummary value), optionalPair "suggestedReferences" (gatheredContextFocusResourceSuggestedReferences value), optionalPair "content" (gatheredContextFocusResourceContent value)]))
 
-data GatheredContextFocusResourceValueContent = GatheredContextFocusResourceValueContent
-  { gatheredContextFocusResourceValueContentMain :: Maybe Text,
-    gatheredContextFocusResourceValueContentRelated :: Maybe GatheredContextFocusResourceValueContentRelated,
-    gatheredContextFocusResourceValueContentAdditionalProperties :: KM.KeyMap Value
+data GatheredContextFocusResourceContent = GatheredContextFocusResourceContent
+  { gatheredContextFocusResourceContentMain :: Maybe Text,
+    gatheredContextFocusResourceContentRelated :: Maybe GatheredContextFocusResourceContentRelated
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocusResourceValueContent where parseJSON = checked "GatheredContextFocusResourceValueContent" $ withObject "GatheredContextFocusResourceValueContent" (\fields -> GatheredContextFocusResourceValueContent <$> optional fields "main" <*> optional fields "related" <*> traverse parseJSON (withoutFields ["main", "related"] fields))
+instance FromJSON GatheredContextFocusResourceContent where parseJSON = checked "GatheredContextFocusResourceContent" $ withObject "GatheredContextFocusResourceContent" (\fields -> GatheredContextFocusResourceContent <$> optional fields "main" <*> optional fields "related")
 
-instance ToJSON GatheredContextFocusResourceValueContent where toJSON value = Object (KM.fromList (concat [optionalPair "main" (gatheredContextFocusResourceValueContentMain value), optionalPair "related" (gatheredContextFocusResourceValueContentRelated value)]) <> fmap toJSON (withoutFields ["main", "related"] (gatheredContextFocusResourceValueContentAdditionalProperties value)))
+instance ToJSON GatheredContextFocusResourceContent where toJSON value = Object (KM.fromList (concat [optionalPair "main" (gatheredContextFocusResourceContentMain value), optionalPair "related" (gatheredContextFocusResourceContentRelated value)]))
 
-data GatheredContextFocusResourceValueContentRelated = GatheredContextFocusResourceValueContentRelated
-  { gatheredContextFocusResourceValueContentRelatedAdditionalProperties :: KM.KeyMap Text
+data GatheredContextFocusResourceContentRelated = GatheredContextFocusResourceContentRelated
+  { gatheredContextFocusResourceContentRelatedAdditionalProperties :: KM.KeyMap Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocusResourceValueContentRelated where parseJSON = checked "GatheredContextFocusResourceValueContentRelated" $ withObject "GatheredContextFocusResourceValueContentRelated" (\fields -> GatheredContextFocusResourceValueContentRelated <$> traverse parseJSON (withoutFields [] fields))
+instance FromJSON GatheredContextFocusResourceContentRelated where parseJSON = checked "GatheredContextFocusResourceContentRelated" $ withObject "GatheredContextFocusResourceContentRelated" (\fields -> GatheredContextFocusResourceContentRelated <$> traverse parseJSON (withoutFields [] fields))
 
-instance ToJSON GatheredContextFocusResourceValueContentRelated where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (gatheredContextFocusResourceValueContentRelatedAdditionalProperties value)))
+instance ToJSON GatheredContextFocusResourceContentRelated where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (gatheredContextFocusResourceContentRelatedAdditionalProperties value)))
 
-data GatheredContextFocusResourceValueKind = GatheredContextFocusResourceValueKindResource deriving (Eq, Show)
+data GatheredContextFocusResourceKind = GatheredContextFocusResourceKindResource deriving (Eq, Show)
 
-instance FromJSON GatheredContextFocusResourceValueKind where parseJSON = checked "GatheredContextFocusResourceValueKind" $ \value -> if value == String "resource" then pure GatheredContextFocusResourceValueKindResource else fail "unknown enumeration member"
+instance FromJSON GatheredContextFocusResourceKind where parseJSON = checked "GatheredContextFocusResourceKind" $ \value -> if value == String "resource" then pure GatheredContextFocusResourceKindResource else fail "unknown enumeration member"
 
-instance ToJSON GatheredContextFocusResourceValueKind where toJSON GatheredContextFocusResourceValueKindResource = String "resource"
+instance ToJSON GatheredContextFocusResourceKind where toJSON GatheredContextFocusResourceKindResource = String "resource"
 
-gatheredContextFocusResourceValueKindText :: GatheredContextFocusResourceValueKind -> Text
-gatheredContextFocusResourceValueKindText GatheredContextFocusResourceValueKindResource = "resource"
+gatheredContextFocusResourceKindText :: GatheredContextFocusResourceKind -> Text
+gatheredContextFocusResourceKindText GatheredContextFocusResourceKindResource = "resource"
 
 data GatheredContextMetadata = GatheredContextMetadata
-  { gatheredContextMetadataEntityTypeFrequencies :: Maybe GatheredContextMetadataEntityTypeFrequencies,
-    gatheredContextMetadataEntityTypes :: Maybe [Text],
+  { gatheredContextMetadataResourceType :: Maybe Text,
     gatheredContextMetadataLanguage :: Maybe Text,
-    gatheredContextMetadataResourceType :: Maybe Text,
-    gatheredContextMetadataAdditionalProperties :: KM.KeyMap Value
+    gatheredContextMetadataEntityTypes :: Maybe [Text],
+    gatheredContextMetadataEntityTypeFrequencies :: Maybe GatheredContextMetadataEntityTypeFrequencies
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContextMetadata where parseJSON = checked "GatheredContextMetadata" $ withObject "GatheredContextMetadata" (\fields -> GatheredContextMetadata <$> optional fields "entityTypeFrequencies" <*> optional fields "entityTypes" <*> optional fields "language" <*> optional fields "resourceType" <*> traverse parseJSON (withoutFields ["entityTypeFrequencies", "entityTypes", "language", "resourceType"] fields))
+instance FromJSON GatheredContextMetadata where parseJSON = checked "GatheredContextMetadata" $ withObject "GatheredContextMetadata" (\fields -> GatheredContextMetadata <$> optional fields "resourceType" <*> optional fields "language" <*> optional fields "entityTypes" <*> optional fields "entityTypeFrequencies")
 
-instance ToJSON GatheredContextMetadata where toJSON value = Object (KM.fromList (concat [optionalPair "entityTypeFrequencies" (gatheredContextMetadataEntityTypeFrequencies value), optionalPair "entityTypes" (gatheredContextMetadataEntityTypes value), optionalPair "language" (gatheredContextMetadataLanguage value), optionalPair "resourceType" (gatheredContextMetadataResourceType value)]) <> fmap toJSON (withoutFields ["entityTypeFrequencies", "entityTypes", "language", "resourceType"] (gatheredContextMetadataAdditionalProperties value)))
+instance ToJSON GatheredContextMetadata where toJSON value = Object (KM.fromList (concat [optionalPair "resourceType" (gatheredContextMetadataResourceType value), optionalPair "language" (gatheredContextMetadataLanguage value), optionalPair "entityTypes" (gatheredContextMetadataEntityTypes value), optionalPair "entityTypeFrequencies" (gatheredContextMetadataEntityTypeFrequencies value)]))
 
 data GatheredContextMetadataEntityTypeFrequencies = GatheredContextMetadataEntityTypeFrequencies
   { gatheredContextMetadataEntityTypeFrequenciesAdditionalProperties :: KM.KeyMap Integer
@@ -150,12 +143,11 @@ instance FromJSON GatheredContextMetadataEntityTypeFrequencies where parseJSON =
 instance ToJSON GatheredContextMetadataEntityTypeFrequencies where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (gatheredContextMetadataEntityTypeFrequenciesAdditionalProperties value)))
 
 data GatheredContextSemanticContext = GatheredContextSemanticContext
-  { gatheredContextSemanticContextExcludedEntityTypes :: Maybe [Text],
-    gatheredContextSemanticContextSimilar :: [SemanticMatch],
-    gatheredContextSemanticContextAdditionalProperties :: KM.KeyMap Value
+  { gatheredContextSemanticContextSimilar :: [SemanticMatch],
+    gatheredContextSemanticContextExcludedEntityTypes :: Maybe [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON GatheredContextSemanticContext where parseJSON = checked "GatheredContextSemanticContext" $ withObject "GatheredContextSemanticContext" (\fields -> GatheredContextSemanticContext <$> optional fields "excludedEntityTypes" <*> (fields .: "similar") <*> traverse parseJSON (withoutFields ["excludedEntityTypes", "similar"] fields))
+instance FromJSON GatheredContextSemanticContext where parseJSON = checked "GatheredContextSemanticContext" $ withObject "GatheredContextSemanticContext" (\fields -> GatheredContextSemanticContext <$> (fields .: "similar") <*> optional fields "excludedEntityTypes")
 
-instance ToJSON GatheredContextSemanticContext where toJSON value = Object (KM.fromList (concat [optionalPair "excludedEntityTypes" (gatheredContextSemanticContextExcludedEntityTypes value), [("similar", toJSON (gatheredContextSemanticContextSimilar value))]]) <> fmap toJSON (withoutFields ["excludedEntityTypes", "similar"] (gatheredContextSemanticContextAdditionalProperties value)))
+instance ToJSON GatheredContextSemanticContext where toJSON value = Object (KM.fromList (concat [[("similar", toJSON (gatheredContextSemanticContextSimilar value))], optionalPair "excludedEntityTypes" (gatheredContextSemanticContextExcludedEntityTypes value)]))

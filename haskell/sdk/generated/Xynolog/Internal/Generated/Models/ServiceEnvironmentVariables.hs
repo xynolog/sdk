@@ -10,28 +10,28 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceEnvironmentVariables = ServiceEnvironmentVariables
-  { serviceEnvironmentVariablesU24_comment :: Text,
+  { serviceEnvironmentVariablesComment :: Text,
     serviceEnvironmentVariablesVariables :: [ServiceEnvironmentVariablesVariablesItem]
   }
   deriving (Eq, Show)
 
 instance FromJSON ServiceEnvironmentVariables where parseJSON = checked "ServiceEnvironmentVariables" $ withObject "ServiceEnvironmentVariables" (\fields -> ServiceEnvironmentVariables <$> (fields .: "$comment") <*> (fields .: "variables"))
 
-instance ToJSON ServiceEnvironmentVariables where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceEnvironmentVariablesU24_comment value))], [("variables", toJSON (serviceEnvironmentVariablesVariables value))]]))
+instance ToJSON ServiceEnvironmentVariables where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceEnvironmentVariablesComment value))], [("variables", toJSON (serviceEnvironmentVariablesVariables value))]]))
 
 data ServiceEnvironmentVariablesVariablesItem = ServiceEnvironmentVariablesVariablesItem
-  { serviceEnvironmentVariablesVariablesItemEffect :: Text,
-    serviceEnvironmentVariablesVariablesItemName :: Text,
-    serviceEnvironmentVariablesVariablesItemProvidedBy :: ServiceEnvironmentVariablesVariablesItemProvidedBy,
+  { serviceEnvironmentVariablesVariablesItemName :: Text,
+    serviceEnvironmentVariablesVariablesItemServices :: [ServiceEnvironmentVariablesVariablesItemServicesItem],
     serviceEnvironmentVariablesVariablesItemReadBy :: ServiceEnvironmentVariablesVariablesItemReadBy,
+    serviceEnvironmentVariablesVariablesItemProvidedBy :: ServiceEnvironmentVariablesVariablesItemProvidedBy,
     serviceEnvironmentVariablesVariablesItemRequired :: Bool,
-    serviceEnvironmentVariablesVariablesItemServices :: [ServiceEnvironmentVariablesVariablesItemServicesItem]
+    serviceEnvironmentVariablesVariablesItemEffect :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceEnvironmentVariablesVariablesItem where parseJSON = checked "ServiceEnvironmentVariablesVariablesItem" $ withObject "ServiceEnvironmentVariablesVariablesItem" (\fields -> ServiceEnvironmentVariablesVariablesItem <$> (fields .: "effect") <*> (fields .: "name") <*> (fields .: "providedBy") <*> (fields .: "readBy") <*> (fields .: "required") <*> (fields .: "services"))
+instance FromJSON ServiceEnvironmentVariablesVariablesItem where parseJSON = checked "ServiceEnvironmentVariablesVariablesItem" $ withObject "ServiceEnvironmentVariablesVariablesItem" (\fields -> ServiceEnvironmentVariablesVariablesItem <$> (fields .: "name") <*> (fields .: "services") <*> (fields .: "readBy") <*> (fields .: "providedBy") <*> (fields .: "required") <*> (fields .: "effect"))
 
-instance ToJSON ServiceEnvironmentVariablesVariablesItem where toJSON value = Object (KM.fromList (concat [[("effect", toJSON (serviceEnvironmentVariablesVariablesItemEffect value))], [("name", toJSON (serviceEnvironmentVariablesVariablesItemName value))], [("providedBy", toJSON (serviceEnvironmentVariablesVariablesItemProvidedBy value))], [("readBy", toJSON (serviceEnvironmentVariablesVariablesItemReadBy value))], [("required", toJSON (serviceEnvironmentVariablesVariablesItemRequired value))], [("services", toJSON (serviceEnvironmentVariablesVariablesItemServices value))]]))
+instance ToJSON ServiceEnvironmentVariablesVariablesItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (serviceEnvironmentVariablesVariablesItemName value))], [("services", toJSON (serviceEnvironmentVariablesVariablesItemServices value))], [("readBy", toJSON (serviceEnvironmentVariablesVariablesItemReadBy value))], [("providedBy", toJSON (serviceEnvironmentVariablesVariablesItemProvidedBy value))], [("required", toJSON (serviceEnvironmentVariablesVariablesItemRequired value))], [("effect", toJSON (serviceEnvironmentVariablesVariablesItemEffect value))]]))
 
 data ServiceEnvironmentVariablesVariablesItemProvidedBy = ServiceEnvironmentVariablesVariablesItemProvidedByLauncher | ServiceEnvironmentVariablesVariablesItemProvidedByImage | ServiceEnvironmentVariablesVariablesItemProvidedByOperator deriving (Eq, Show)
 

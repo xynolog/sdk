@@ -10,14 +10,13 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.Profile
 
 data BrowseProfilesResult = BrowseProfilesResult
-  { browseProfilesResultResponse :: BrowseProfilesResultResponse,
-    browseProfilesResultAdditionalProperties :: KM.KeyMap Value
+  { browseProfilesResultResponse :: BrowseProfilesResultResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseProfilesResult where parseJSON = checked "BrowseProfilesResult" $ withObject "BrowseProfilesResult" (\fields -> BrowseProfilesResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON BrowseProfilesResult where parseJSON = checked "BrowseProfilesResult" $ withObject "BrowseProfilesResult" (\fields -> BrowseProfilesResult <$> (fields .: "response"))
 
-instance ToJSON BrowseProfilesResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseProfilesResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (browseProfilesResultAdditionalProperties value)))
+instance ToJSON BrowseProfilesResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseProfilesResultResponse value))]]))
 
 data BrowseProfilesResultResponse = BrowseProfilesResultResponse
   { browseProfilesResultResponseProfiles :: BrowseProfilesResultResponseProfiles

@@ -10,18 +10,17 @@ import Data.Scientific (Scientific)
 import Xynolog.Internal.Codec
 
 data AnchorRect = AnchorRect
-  { anchorRectBottom :: Scientific,
-    anchorRectHeight :: Scientific,
-    anchorRectLeft :: Scientific,
-    anchorRectRight :: Scientific,
-    anchorRectTop :: Scientific,
-    anchorRectWidth :: Scientific,
-    anchorRectX :: Scientific,
+  { anchorRectX :: Scientific,
     anchorRectY :: Scientific,
-    anchorRectAdditionalProperties :: KM.KeyMap Value
+    anchorRectWidth :: Scientific,
+    anchorRectHeight :: Scientific,
+    anchorRectTop :: Scientific,
+    anchorRectRight :: Scientific,
+    anchorRectBottom :: Scientific,
+    anchorRectLeft :: Scientific
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchorRect where parseJSON = checked "AnchorRect" $ withObject "AnchorRect" (\fields -> AnchorRect <$> (fields .: "bottom") <*> (fields .: "height") <*> (fields .: "left") <*> (fields .: "right") <*> (fields .: "top") <*> (fields .: "width") <*> (fields .: "x") <*> (fields .: "y") <*> traverse parseJSON (withoutFields ["bottom", "height", "left", "right", "top", "width", "x", "y"] fields))
+instance FromJSON AnchorRect where parseJSON = checked "AnchorRect" $ withObject "AnchorRect" (\fields -> AnchorRect <$> (fields .: "x") <*> (fields .: "y") <*> (fields .: "width") <*> (fields .: "height") <*> (fields .: "top") <*> (fields .: "right") <*> (fields .: "bottom") <*> (fields .: "left"))
 
-instance ToJSON AnchorRect where toJSON value = Object (KM.fromList (concat [[("bottom", toJSON (anchorRectBottom value))], [("height", toJSON (anchorRectHeight value))], [("left", toJSON (anchorRectLeft value))], [("right", toJSON (anchorRectRight value))], [("top", toJSON (anchorRectTop value))], [("width", toJSON (anchorRectWidth value))], [("x", toJSON (anchorRectX value))], [("y", toJSON (anchorRectY value))]]) <> fmap toJSON (withoutFields ["bottom", "height", "left", "right", "top", "width", "x", "y"] (anchorRectAdditionalProperties value)))
+instance ToJSON AnchorRect where toJSON value = Object (KM.fromList (concat [[("x", toJSON (anchorRectX value))], [("y", toJSON (anchorRectY value))], [("width", toJSON (anchorRectWidth value))], [("height", toJSON (anchorRectHeight value))], [("top", toJSON (anchorRectTop value))], [("right", toJSON (anchorRectRight value))], [("bottom", toJSON (anchorRectBottom value))], [("left", toJSON (anchorRectLeft value))]]))

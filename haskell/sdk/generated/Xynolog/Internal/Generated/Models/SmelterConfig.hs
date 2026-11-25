@@ -19,21 +19,21 @@ import Xynolog.Internal.Generated.Models.SmelterChunking
 import Xynolog.Internal.Generated.Models.VectorsConfig
 
 data SmelterConfig = SmelterConfig
-  { smelterConfigArchivist :: ServiceAddress,
-    smelterConfigChunking :: SmelterChunking,
-    smelterConfigCursorsPath :: CursorsPath,
-    smelterConfigEmbedding :: EmbeddingConfig,
+  { smelterConfigKb :: KbIdentity,
     smelterConfigGatewayUrl :: Text,
     smelterConfigIdentity :: ServiceIdentity,
-    smelterConfigKb :: KbIdentity,
-    smelterConfigLogFormat :: LogFormat,
-    smelterConfigLogLevel :: LogLevel,
+    smelterConfigArchivist :: ServiceAddress,
+    smelterConfigEmbedding :: EmbeddingConfig,
+    smelterConfigVectors :: VectorsConfig,
+    smelterConfigChunking :: SmelterChunking,
     smelterConfigPdfsAtOnce :: Integer,
+    smelterConfigCursorsPath :: CursorsPath,
     smelterConfigPort :: Integer,
-    smelterConfigVectors :: VectorsConfig
+    smelterConfigLogLevel :: LogLevel,
+    smelterConfigLogFormat :: LogFormat
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterConfig where parseJSON = checked "SmelterConfig" $ withObject "SmelterConfig" (\fields -> SmelterConfig <$> (fields .: "archivist") <*> (fields .: "chunking") <*> (fields .: "cursorsPath") <*> (fields .: "embedding") <*> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "kb") <*> (fields .: "logFormat") <*> (fields .: "logLevel") <*> (fields .: "pdfsAtOnce") <*> (fields .: "port") <*> (fields .: "vectors"))
+instance FromJSON SmelterConfig where parseJSON = checked "SmelterConfig" $ withObject "SmelterConfig" (\fields -> SmelterConfig <$> (fields .: "kb") <*> (fields .: "gatewayUrl") <*> (fields .: "identity") <*> (fields .: "archivist") <*> (fields .: "embedding") <*> (fields .: "vectors") <*> (fields .: "chunking") <*> (fields .: "pdfsAtOnce") <*> (fields .: "cursorsPath") <*> (fields .: "port") <*> (fields .: "logLevel") <*> (fields .: "logFormat"))
 
-instance ToJSON SmelterConfig where toJSON value = Object (KM.fromList (concat [[("archivist", toJSON (smelterConfigArchivist value))], [("chunking", toJSON (smelterConfigChunking value))], [("cursorsPath", toJSON (smelterConfigCursorsPath value))], [("embedding", toJSON (smelterConfigEmbedding value))], [("gatewayUrl", toJSON (smelterConfigGatewayUrl value))], [("identity", toJSON (smelterConfigIdentity value))], [("kb", toJSON (smelterConfigKb value))], [("logFormat", toJSON (smelterConfigLogFormat value))], [("logLevel", toJSON (smelterConfigLogLevel value))], [("pdfsAtOnce", toJSON (smelterConfigPdfsAtOnce value))], [("port", toJSON (smelterConfigPort value))], [("vectors", toJSON (smelterConfigVectors value))]]))
+instance ToJSON SmelterConfig where toJSON value = Object (KM.fromList (concat [[("kb", toJSON (smelterConfigKb value))], [("gatewayUrl", toJSON (smelterConfigGatewayUrl value))], [("identity", toJSON (smelterConfigIdentity value))], [("archivist", toJSON (smelterConfigArchivist value))], [("embedding", toJSON (smelterConfigEmbedding value))], [("vectors", toJSON (smelterConfigVectors value))], [("chunking", toJSON (smelterConfigChunking value))], [("pdfsAtOnce", toJSON (smelterConfigPdfsAtOnce value))], [("cursorsPath", toJSON (smelterConfigCursorsPath value))], [("port", toJSON (smelterConfigPort value))], [("logLevel", toJSON (smelterConfigLogLevel value))], [("logFormat", toJSON (smelterConfigLogFormat value))]]))

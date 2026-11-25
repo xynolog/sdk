@@ -13,17 +13,16 @@ import Xynolog.Internal.Generated.Models.AnnotationId
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data SemanticMatch = SemanticMatch
-  { semanticMatchAnnotationId :: Maybe AnnotationId,
-    semanticMatchEntityTypes :: Maybe [Text],
-    semanticMatchMachineRead :: Maybe Bool,
+  { semanticMatchText :: Text,
     semanticMatchResourceId :: ResourceId,
     semanticMatchResourceName :: Text,
+    semanticMatchAnnotationId :: Maybe AnnotationId,
     semanticMatchScore :: Scientific,
-    semanticMatchText :: Text,
-    semanticMatchAdditionalProperties :: KM.KeyMap Value
+    semanticMatchEntityTypes :: Maybe [Text],
+    semanticMatchMachineRead :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON SemanticMatch where parseJSON = checked "SemanticMatch" $ withObject "SemanticMatch" (\fields -> SemanticMatch <$> optional fields "annotationId" <*> optional fields "entityTypes" <*> optional fields "machineRead" <*> (fields .: "resourceId") <*> (fields .: "resourceName") <*> (fields .: "score") <*> (fields .: "text") <*> traverse parseJSON (withoutFields ["annotationId", "entityTypes", "machineRead", "resourceId", "resourceName", "score", "text"] fields))
+instance FromJSON SemanticMatch where parseJSON = checked "SemanticMatch" $ withObject "SemanticMatch" (\fields -> SemanticMatch <$> (fields .: "text") <*> (fields .: "resourceId") <*> (fields .: "resourceName") <*> optional fields "annotationId" <*> (fields .: "score") <*> optional fields "entityTypes" <*> optional fields "machineRead")
 
-instance ToJSON SemanticMatch where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (semanticMatchAnnotationId value), optionalPair "entityTypes" (semanticMatchEntityTypes value), optionalPair "machineRead" (semanticMatchMachineRead value), [("resourceId", toJSON (semanticMatchResourceId value))], [("resourceName", toJSON (semanticMatchResourceName value))], [("score", toJSON (semanticMatchScore value))], [("text", toJSON (semanticMatchText value))]]) <> fmap toJSON (withoutFields ["annotationId", "entityTypes", "machineRead", "resourceId", "resourceName", "score", "text"] (semanticMatchAdditionalProperties value)))
+instance ToJSON SemanticMatch where toJSON value = Object (KM.fromList (concat [[("text", toJSON (semanticMatchText value))], [("resourceId", toJSON (semanticMatchResourceId value))], [("resourceName", toJSON (semanticMatchResourceName value))], optionalPair "annotationId" (semanticMatchAnnotationId value), [("score", toJSON (semanticMatchScore value))], optionalPair "entityTypes" (semanticMatchEntityTypes value), optionalPair "machineRead" (semanticMatchMachineRead value)]))

@@ -11,11 +11,11 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.Runtime
 
 data ServiceHostResult = ServiceHostResult
-  { serviceHostResultAddress :: Text,
-    serviceHostResultRuntime :: Runtime
+  { serviceHostResultRuntime :: Runtime,
+    serviceHostResultAddress :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceHostResult where parseJSON = checked "ServiceHostResult" $ withObject "ServiceHostResult" (\fields -> ServiceHostResult <$> (fields .: "address") <*> (fields .: "runtime"))
+instance FromJSON ServiceHostResult where parseJSON = checked "ServiceHostResult" $ withObject "ServiceHostResult" (\fields -> ServiceHostResult <$> (fields .: "runtime") <*> (fields .: "address"))
 
-instance ToJSON ServiceHostResult where toJSON value = Object (KM.fromList (concat [[("address", toJSON (serviceHostResultAddress value))], [("runtime", toJSON (serviceHostResultRuntime value))]]))
+instance ToJSON ServiceHostResult where toJSON value = Object (KM.fromList (concat [[("runtime", toJSON (serviceHostResultRuntime value))], [("address", toJSON (serviceHostResultAddress value))]]))

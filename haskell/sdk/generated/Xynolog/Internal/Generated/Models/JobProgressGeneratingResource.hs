@@ -10,20 +10,19 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JobProgressGeneratingResource = JobProgressGeneratingResource
-  { jobProgressGeneratingResourceCode :: JobProgressGeneratingResourceCode,
-    jobProgressGeneratingResourceAdditionalProperties :: KM.KeyMap Value
+  { jobProgressGeneratingResourceCode :: JobProgressGeneratingResourceCode
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressGeneratingResource where parseJSON = checked "JobProgressGeneratingResource" $ withObject "JobProgressGeneratingResource" (\fields -> JobProgressGeneratingResource <$> (fields .: "code") <*> traverse parseJSON (withoutFields ["code"] fields))
+instance FromJSON JobProgressGeneratingResource where parseJSON = checked "JobProgressGeneratingResource" $ withObject "JobProgressGeneratingResource" (\fields -> JobProgressGeneratingResource <$> (fields .: "code"))
 
-instance ToJSON JobProgressGeneratingResource where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressGeneratingResourceCode value))]]) <> fmap toJSON (withoutFields ["code"] (jobProgressGeneratingResourceAdditionalProperties value)))
+instance ToJSON JobProgressGeneratingResource where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressGeneratingResourceCode value))]]))
 
-data JobProgressGeneratingResourceCode = JobProgressGeneratingResourceCodeGeneratingU2d_resource deriving (Eq, Show)
+data JobProgressGeneratingResourceCode = JobProgressGeneratingResourceCodeGeneratingResource deriving (Eq, Show)
 
-instance FromJSON JobProgressGeneratingResourceCode where parseJSON = checked "JobProgressGeneratingResourceCode" $ \value -> if value == String "generating-resource" then pure JobProgressGeneratingResourceCodeGeneratingU2d_resource else fail "unknown enumeration member"
+instance FromJSON JobProgressGeneratingResourceCode where parseJSON = checked "JobProgressGeneratingResourceCode" $ \value -> if value == String "generating-resource" then pure JobProgressGeneratingResourceCodeGeneratingResource else fail "unknown enumeration member"
 
-instance ToJSON JobProgressGeneratingResourceCode where toJSON JobProgressGeneratingResourceCodeGeneratingU2d_resource = String "generating-resource"
+instance ToJSON JobProgressGeneratingResourceCode where toJSON JobProgressGeneratingResourceCodeGeneratingResource = String "generating-resource"
 
 jobProgressGeneratingResourceCodeText :: JobProgressGeneratingResourceCode -> Text
-jobProgressGeneratingResourceCodeText JobProgressGeneratingResourceCodeGeneratingU2d_resource = "generating-resource"
+jobProgressGeneratingResourceCodeText JobProgressGeneratingResourceCodeGeneratingResource = "generating-resource"

@@ -10,15 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ArchivistHealth = ArchivistHealth
-  { archivistHealthActors :: [ArchivistHealthActorsItem],
-    archivistHealthStatus :: ArchivistHealthStatus,
-    archivistHealthAdditionalProperties :: KM.KeyMap Value
+  { archivistHealthStatus :: ArchivistHealthStatus,
+    archivistHealthActors :: [ArchivistHealthActorsItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistHealth where parseJSON = checked "ArchivistHealth" $ withObject "ArchivistHealth" (\fields -> ArchivistHealth <$> (fields .: "actors") <*> (fields .: "status") <*> traverse parseJSON (withoutFields ["actors", "status"] fields))
+instance FromJSON ArchivistHealth where parseJSON = checked "ArchivistHealth" $ withObject "ArchivistHealth" (\fields -> ArchivistHealth <$> (fields .: "status") <*> (fields .: "actors"))
 
-instance ToJSON ArchivistHealth where toJSON value = Object (KM.fromList (concat [[("actors", toJSON (archivistHealthActors value))], [("status", toJSON (archivistHealthStatus value))]]) <> fmap toJSON (withoutFields ["actors", "status"] (archivistHealthAdditionalProperties value)))
+instance ToJSON ArchivistHealth where toJSON value = Object (KM.fromList (concat [[("status", toJSON (archivistHealthStatus value))], [("actors", toJSON (archivistHealthActors value))]]))
 
 data ArchivistHealthActorsItem = ArchivistHealthActorsItemStower | ArchivistHealthActorsItemBrowser | ArchivistHealthActorsItemCloneTokenManager deriving (Eq, Show)
 

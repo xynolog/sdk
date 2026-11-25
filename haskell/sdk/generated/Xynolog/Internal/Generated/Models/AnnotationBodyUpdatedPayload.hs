@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.BodyOperation
 
 data AnnotationBodyUpdatedPayload = AnnotationBodyUpdatedPayload
   { annotationBodyUpdatedPayloadAnnotationId :: AnnotationId,
-    annotationBodyUpdatedPayloadOperations :: [BodyOperation],
-    annotationBodyUpdatedPayloadAdditionalProperties :: KM.KeyMap Value
+    annotationBodyUpdatedPayloadOperations :: [BodyOperation]
   }
   deriving (Eq, Show)
 
-instance FromJSON AnnotationBodyUpdatedPayload where parseJSON = checked "AnnotationBodyUpdatedPayload" $ withObject "AnnotationBodyUpdatedPayload" (\fields -> AnnotationBodyUpdatedPayload <$> (fields .: "annotationId") <*> (fields .: "operations") <*> traverse parseJSON (withoutFields ["annotationId", "operations"] fields))
+instance FromJSON AnnotationBodyUpdatedPayload where parseJSON = checked "AnnotationBodyUpdatedPayload" $ withObject "AnnotationBodyUpdatedPayload" (\fields -> AnnotationBodyUpdatedPayload <$> (fields .: "annotationId") <*> (fields .: "operations"))
 
-instance ToJSON AnnotationBodyUpdatedPayload where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (annotationBodyUpdatedPayloadAnnotationId value))], [("operations", toJSON (annotationBodyUpdatedPayloadOperations value))]]) <> fmap toJSON (withoutFields ["annotationId", "operations"] (annotationBodyUpdatedPayloadAdditionalProperties value)))
+instance ToJSON AnnotationBodyUpdatedPayload where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (annotationBodyUpdatedPayloadAnnotationId value))], [("operations", toJSON (annotationBodyUpdatedPayloadOperations value))]]))

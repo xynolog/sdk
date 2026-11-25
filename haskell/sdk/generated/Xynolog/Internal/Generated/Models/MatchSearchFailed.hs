@@ -13,13 +13,12 @@ import Xynolog.Internal.Generated.Models.CommandError
 
 data MatchSearchFailed = MatchSearchFailed
   { matchSearchFailedCode :: Maybe CommandErrorCode,
-    matchSearchFailedDetails :: Maybe Text,
     matchSearchFailedMessage :: Text,
-    matchSearchFailedReferenceId :: AnnotationId,
-    matchSearchFailedAdditionalProperties :: KM.KeyMap Value
+    matchSearchFailedDetails :: Maybe Text,
+    matchSearchFailedReferenceId :: AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON MatchSearchFailed where parseJSON = checked "MatchSearchFailed" $ withObject "MatchSearchFailed" (\fields -> MatchSearchFailed <$> optional fields "code" <*> optional fields "details" <*> (fields .: "message") <*> (fields .: "referenceId") <*> traverse parseJSON (withoutFields ["code", "details", "message", "referenceId"] fields))
+instance FromJSON MatchSearchFailed where parseJSON = checked "MatchSearchFailed" $ withObject "MatchSearchFailed" (\fields -> MatchSearchFailed <$> optional fields "code" <*> (fields .: "message") <*> optional fields "details" <*> (fields .: "referenceId"))
 
-instance ToJSON MatchSearchFailed where toJSON value = Object (KM.fromList (concat [optionalPair "code" (matchSearchFailedCode value), optionalPair "details" (matchSearchFailedDetails value), [("message", toJSON (matchSearchFailedMessage value))], [("referenceId", toJSON (matchSearchFailedReferenceId value))]]) <> fmap toJSON (withoutFields ["code", "details", "message", "referenceId"] (matchSearchFailedAdditionalProperties value)))
+instance ToJSON MatchSearchFailed where toJSON value = Object (KM.fromList (concat [optionalPair "code" (matchSearchFailedCode value), [("message", toJSON (matchSearchFailedMessage value))], optionalPair "details" (matchSearchFailedDetails value), [("referenceId", toJSON (matchSearchFailedReferenceId value))]]))

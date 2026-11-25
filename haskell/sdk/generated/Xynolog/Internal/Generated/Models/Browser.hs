@@ -36,11 +36,11 @@ browserKindText BrowserKindBrowser = "Browser"
 
 data BrowserSpec = BrowserSpec
   { browserSpecImage :: Image,
-    browserSpecPort :: Integer,
-    browserSpecResources :: Resources
+    browserSpecResources :: Resources,
+    browserSpecPort :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowserSpec where parseJSON = checked "BrowserSpec" $ withObject "BrowserSpec" (\fields -> BrowserSpec <$> (fields .: "image") <*> (fields .: "port") <*> (fields .: "resources"))
+instance FromJSON BrowserSpec where parseJSON = checked "BrowserSpec" $ withObject "BrowserSpec" (\fields -> BrowserSpec <$> (fields .: "image") <*> (fields .: "resources") <*> (fields .: "port"))
 
-instance ToJSON BrowserSpec where toJSON value = Object (KM.fromList (concat [[("image", toJSON (browserSpecImage value))], [("port", toJSON (browserSpecPort value))], [("resources", toJSON (browserSpecResources value))]]))
+instance ToJSON BrowserSpec where toJSON value = Object (KM.fromList (concat [[("image", toJSON (browserSpecImage value))], [("resources", toJSON (browserSpecResources value))], [("port", toJSON (browserSpecPort value))]]))

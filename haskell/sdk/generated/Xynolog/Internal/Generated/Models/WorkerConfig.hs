@@ -14,13 +14,13 @@ import Xynolog.Internal.Generated.Models.WorkerKnowledgeBaseConfig
 
 data WorkerConfig = WorkerConfig
   { workerConfigKnowledgeBases :: [WorkerKnowledgeBaseConfig],
-    workerConfigLogFormat :: LogFormat,
-    workerConfigLogLevel :: LogLevel,
     workerConfigModelCatalogue :: Text,
-    workerConfigPort :: Integer
+    workerConfigPort :: Integer,
+    workerConfigLogLevel :: LogLevel,
+    workerConfigLogFormat :: LogFormat
   }
   deriving (Eq, Show)
 
-instance FromJSON WorkerConfig where parseJSON = checked "WorkerConfig" $ withObject "WorkerConfig" (\fields -> WorkerConfig <$> (fields .: "knowledgeBases") <*> (fields .: "logFormat") <*> (fields .: "logLevel") <*> (fields .: "modelCatalogue") <*> (fields .: "port"))
+instance FromJSON WorkerConfig where parseJSON = checked "WorkerConfig" $ withObject "WorkerConfig" (\fields -> WorkerConfig <$> (fields .: "knowledgeBases") <*> (fields .: "modelCatalogue") <*> (fields .: "port") <*> (fields .: "logLevel") <*> (fields .: "logFormat"))
 
-instance ToJSON WorkerConfig where toJSON value = Object (KM.fromList (concat [[("knowledgeBases", toJSON (workerConfigKnowledgeBases value))], [("logFormat", toJSON (workerConfigLogFormat value))], [("logLevel", toJSON (workerConfigLogLevel value))], [("modelCatalogue", toJSON (workerConfigModelCatalogue value))], [("port", toJSON (workerConfigPort value))]]))
+instance ToJSON WorkerConfig where toJSON value = Object (KM.fromList (concat [[("knowledgeBases", toJSON (workerConfigKnowledgeBases value))], [("modelCatalogue", toJSON (workerConfigModelCatalogue value))], [("port", toJSON (workerConfigPort value))], [("logLevel", toJSON (workerConfigLogLevel value))], [("logFormat", toJSON (workerConfigLogFormat value))]]))

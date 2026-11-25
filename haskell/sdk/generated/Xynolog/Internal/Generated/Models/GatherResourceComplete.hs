@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data GatherResourceComplete = GatherResourceComplete
   { gatherResourceCompleteResourceId :: ResourceId,
-    gatherResourceCompleteResponse :: GatheredContext,
-    gatherResourceCompleteAdditionalProperties :: KM.KeyMap Value
+    gatherResourceCompleteResponse :: GatheredContext
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherResourceComplete where parseJSON = checked "GatherResourceComplete" $ withObject "GatherResourceComplete" (\fields -> GatherResourceComplete <$> (fields .: "resourceId") <*> (fields .: "response") <*> traverse parseJSON (withoutFields ["resourceId", "response"] fields))
+instance FromJSON GatherResourceComplete where parseJSON = checked "GatherResourceComplete" $ withObject "GatherResourceComplete" (\fields -> GatherResourceComplete <$> (fields .: "resourceId") <*> (fields .: "response"))
 
-instance ToJSON GatherResourceComplete where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (gatherResourceCompleteResourceId value))], [("response", toJSON (gatherResourceCompleteResponse value))]]) <> fmap toJSON (withoutFields ["resourceId", "response"] (gatherResourceCompleteAdditionalProperties value)))
+instance ToJSON GatherResourceComplete where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (gatherResourceCompleteResourceId value))], [("response", toJSON (gatherResourceCompleteResponse value))]]))

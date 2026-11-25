@@ -70,4 +70,4 @@ describeConnection http target access = do
               "The knowledge base could not establish its identity with the issued credential"
           )
   did <- either (throwIO . IdentityUnverifiableError KbIdentityNotReported . Text.pack) pure (Identity.kbDid (kbDescriptionDomain description))
-  pure (ConnectionIdentity description did)
+  pure (ConnectionIdentity {connectionIdentityDescription = description, connectionIdentityDid = did})

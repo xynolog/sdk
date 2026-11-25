@@ -13,19 +13,19 @@ import Xynolog.Internal.Generated.Models.JobMetadata
 import Xynolog.Internal.Generated.Models.JobParams
 
 data JobFailed = JobFailed
-  { jobFailedCompletedAt :: Text,
-    jobFailedError :: Text,
-    jobFailedFailureClass :: Maybe FailureClass,
+  { jobFailedStatus :: JobFailedStatus,
     jobFailedMetadata :: JobMetadata,
     jobFailedParams :: JobParams,
     jobFailedStartedAt :: Maybe Text,
-    jobFailedStatus :: JobFailedStatus
+    jobFailedCompletedAt :: Text,
+    jobFailedError :: Text,
+    jobFailedFailureClass :: Maybe FailureClass
   }
   deriving (Eq, Show)
 
-instance FromJSON JobFailed where parseJSON = checked "JobFailed" $ withObject "JobFailed" (\fields -> JobFailed <$> (fields .: "completedAt") <*> (fields .: "error") <*> optional fields "failureClass" <*> (fields .: "metadata") <*> (fields .: "params") <*> optional fields "startedAt" <*> (fields .: "status"))
+instance FromJSON JobFailed where parseJSON = checked "JobFailed" $ withObject "JobFailed" (\fields -> JobFailed <$> (fields .: "status") <*> (fields .: "metadata") <*> (fields .: "params") <*> optional fields "startedAt" <*> (fields .: "completedAt") <*> (fields .: "error") <*> optional fields "failureClass")
 
-instance ToJSON JobFailed where toJSON value = Object (KM.fromList (concat [[("completedAt", toJSON (jobFailedCompletedAt value))], [("error", toJSON (jobFailedError value))], optionalPair "failureClass" (jobFailedFailureClass value), [("metadata", toJSON (jobFailedMetadata value))], [("params", toJSON (jobFailedParams value))], optionalPair "startedAt" (jobFailedStartedAt value), [("status", toJSON (jobFailedStatus value))]]))
+instance ToJSON JobFailed where toJSON value = Object (KM.fromList (concat [[("status", toJSON (jobFailedStatus value))], [("metadata", toJSON (jobFailedMetadata value))], [("params", toJSON (jobFailedParams value))], optionalPair "startedAt" (jobFailedStartedAt value), [("completedAt", toJSON (jobFailedCompletedAt value))], [("error", toJSON (jobFailedError value))], optionalPair "failureClass" (jobFailedFailureClass value)]))
 
 data JobFailedStatus = JobFailedStatusFailed deriving (Eq, Show)
 

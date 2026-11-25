@@ -37,13 +37,8 @@ let each f xs =
          Ok (y :: found))
        (Ok []) xs)
 
-(* A channel's constructor: its name's parts between colons and hyphens, each
-   as a Haskell name. *)
-let member name =
-  String.concat ""
-    (List.map Models.identifier
-       (String.split_on_char '\x00'
-          (String.map (function ':' | '-' -> '\x00' | c -> c) name)))
+(* A channel's constructor: its name in Pascal case. *)
+let member = Text.pascal
 
 let reference name =
   Schema.Schema
@@ -459,7 +454,7 @@ type reader = {
 
 (* Each operation's failure: a model that requires its words as a string
    [message] and may state its [code], one of codes.json's wire codes. *)
-let readers t ~normalize ~definition (codes : Tables.Errors_codes.t) =
+let readers t ~normalize ~definition ~typing (codes : Tables.Errors_codes.t) =
   let wires =
     List.filter_map
       (fun (c : Tables.Errors_codes.codes_item) ->
@@ -475,12 +470,7 @@ let readers t ~normalize ~definition (codes : Tables.Errors_codes.t) =
       let failure = o.failure.payload in
       let* schema = definition failure in
       let* s = normalize schema in
-      (* [normalize] has refused a schema any of whose references names none. *)
-      let code_owner =
-        Inherited.of_schemas
-          ~find:(fun n -> Result.get_ok (definition n))
-          ~referenced:Definitions.referenced failure schema "code"
-      in
+      let* code_type = Models.member_type typing failure "code" in
       let properties = Option.value s.Schema.properties ~default:[] in
       let required = Option.value s.required ~default:[] in
       let* () =
@@ -524,9 +514,9 @@ let readers t ~normalize ~definition (codes : Tables.Errors_codes.t) =
       Ok
         {
           operation = o;
-          accessor = Models.lower failure ^ Models.identifier "message";
+          accessor = Models.field failure "message";
           failure;
-          code_type = Models.member_type code_owner "code";
+          code_type;
           codes = mapped;
         })
     t.operations
@@ -589,9 +579,7 @@ let failure_file ~banner ~unrecognized readers =
                      body =
                        Compose
                          ( Name (reader_of r.code_type),
-                           Name
-                             ("Types." ^ Models.lower r.failure
-                            ^ Models.identifier "code") );
+                           Name ("Types." ^ Models.field r.failure "code") );
                    })
                  readers;
            }
@@ -621,8 +609,10 @@ let failure_file ~banner ~unrecognized readers =
                                            ( "Just",
                                              [
                                                Constructor
-                                                 ( "Types." ^ code_type
-                                                   ^ Models.identifier wire,
+                                                 ( "Types."
+                                                   ^ Models.constructor
+                                                       code_type
+                                                       (String_literal wire),
                                                    [] );
                                              ] ),
                                          H.Name code ))

@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data RepresentationRemovedPayload = RepresentationRemovedPayload
-  { representationRemovedPayloadChecksum :: Text,
-    representationRemovedPayloadAdditionalProperties :: KM.KeyMap Value
+  { representationRemovedPayloadChecksum :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON RepresentationRemovedPayload where parseJSON = checked "RepresentationRemovedPayload" $ withObject "RepresentationRemovedPayload" (\fields -> RepresentationRemovedPayload <$> (fields .: "checksum") <*> traverse parseJSON (withoutFields ["checksum"] fields))
+instance FromJSON RepresentationRemovedPayload where parseJSON = checked "RepresentationRemovedPayload" $ withObject "RepresentationRemovedPayload" (\fields -> RepresentationRemovedPayload <$> (fields .: "checksum"))
 
-instance ToJSON RepresentationRemovedPayload where toJSON value = Object (KM.fromList (concat [[("checksum", toJSON (representationRemovedPayloadChecksum value))]]) <> fmap toJSON (withoutFields ["checksum"] (representationRemovedPayloadAdditionalProperties value)))
+instance ToJSON RepresentationRemovedPayload where toJSON value = Object (KM.fromList (concat [[("checksum", toJSON (representationRemovedPayloadChecksum value))]]))

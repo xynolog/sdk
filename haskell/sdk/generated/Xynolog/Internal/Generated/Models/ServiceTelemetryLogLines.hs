@@ -10,61 +10,61 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ServiceTelemetryLogLines = ServiceTelemetryLogLines
-  { serviceTelemetryLogLinesU24_comment :: Text,
-    serviceTelemetryLogLinesBus :: ServiceTelemetryLogLinesBus,
+  { serviceTelemetryLogLinesComment :: Text,
     serviceTelemetryLogLinesLogger :: ServiceTelemetryLogLinesLogger,
+    serviceTelemetryLogLinesBus :: ServiceTelemetryLogLinesBus,
     serviceTelemetryLogLinesSupervisor :: ServiceTelemetryLogLinesSupervisor
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryLogLines where parseJSON = checked "ServiceTelemetryLogLines" $ withObject "ServiceTelemetryLogLines" (\fields -> ServiceTelemetryLogLines <$> (fields .: "$comment") <*> (fields .: "bus") <*> (fields .: "logger") <*> (fields .: "supervisor"))
+instance FromJSON ServiceTelemetryLogLines where parseJSON = checked "ServiceTelemetryLogLines" $ withObject "ServiceTelemetryLogLines" (\fields -> ServiceTelemetryLogLines <$> (fields .: "$comment") <*> (fields .: "logger") <*> (fields .: "bus") <*> (fields .: "supervisor"))
 
-instance ToJSON ServiceTelemetryLogLines where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceTelemetryLogLinesU24_comment value))], [("bus", toJSON (serviceTelemetryLogLinesBus value))], [("logger", toJSON (serviceTelemetryLogLinesLogger value))], [("supervisor", toJSON (serviceTelemetryLogLinesSupervisor value))]]))
+instance ToJSON ServiceTelemetryLogLines where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (serviceTelemetryLogLinesComment value))], [("logger", toJSON (serviceTelemetryLogLinesLogger value))], [("bus", toJSON (serviceTelemetryLogLinesBus value))], [("supervisor", toJSON (serviceTelemetryLogLinesSupervisor value))]]))
 
 data ServiceTelemetryLogLinesBus = ServiceTelemetryLogLinesBus
   { serviceTelemetryLogLinesBusLine :: Text,
-    serviceTelemetryLogLinesBusOps :: [Text],
-    serviceTelemetryLogLinesBusParts :: [ServiceTelemetryLogLinesBusPartsItem]
+    serviceTelemetryLogLinesBusParts :: [ServiceTelemetryLogLinesBusPartsItem],
+    serviceTelemetryLogLinesBusOps :: [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryLogLinesBus where parseJSON = checked "ServiceTelemetryLogLinesBus" $ withObject "ServiceTelemetryLogLinesBus" (\fields -> ServiceTelemetryLogLinesBus <$> (fields .: "line") <*> (fields .: "ops") <*> (fields .: "parts"))
+instance FromJSON ServiceTelemetryLogLinesBus where parseJSON = checked "ServiceTelemetryLogLinesBus" $ withObject "ServiceTelemetryLogLinesBus" (\fields -> ServiceTelemetryLogLinesBus <$> (fields .: "line") <*> (fields .: "parts") <*> (fields .: "ops"))
 
-instance ToJSON ServiceTelemetryLogLinesBus where toJSON value = Object (KM.fromList (concat [[("line", toJSON (serviceTelemetryLogLinesBusLine value))], [("ops", toJSON (serviceTelemetryLogLinesBusOps value))], [("parts", toJSON (serviceTelemetryLogLinesBusParts value))]]))
+instance ToJSON ServiceTelemetryLogLinesBus where toJSON value = Object (KM.fromList (concat [[("line", toJSON (serviceTelemetryLogLinesBusLine value))], [("parts", toJSON (serviceTelemetryLogLinesBusParts value))], [("ops", toJSON (serviceTelemetryLogLinesBusOps value))]]))
 
 data ServiceTelemetryLogLinesBusPartsItem = ServiceTelemetryLogLinesBusPartsItem
-  { serviceTelemetryLogLinesBusPartsItemCharacters :: Maybe Integer,
-    serviceTelemetryLogLinesBusPartsItemPart :: Text,
-    serviceTelemetryLogLinesBusPartsItemText :: Text
+  { serviceTelemetryLogLinesBusPartsItemPart :: Text,
+    serviceTelemetryLogLinesBusPartsItemText :: Text,
+    serviceTelemetryLogLinesBusPartsItemCharacters :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryLogLinesBusPartsItem where parseJSON = checked "ServiceTelemetryLogLinesBusPartsItem" $ withObject "ServiceTelemetryLogLinesBusPartsItem" (\fields -> ServiceTelemetryLogLinesBusPartsItem <$> optional fields "characters" <*> (fields .: "part") <*> (fields .: "text"))
+instance FromJSON ServiceTelemetryLogLinesBusPartsItem where parseJSON = checked "ServiceTelemetryLogLinesBusPartsItem" $ withObject "ServiceTelemetryLogLinesBusPartsItem" (\fields -> ServiceTelemetryLogLinesBusPartsItem <$> (fields .: "part") <*> (fields .: "text") <*> optional fields "characters")
 
-instance ToJSON ServiceTelemetryLogLinesBusPartsItem where toJSON value = Object (KM.fromList (concat [optionalPair "characters" (serviceTelemetryLogLinesBusPartsItemCharacters value), [("part", toJSON (serviceTelemetryLogLinesBusPartsItemPart value))], [("text", toJSON (serviceTelemetryLogLinesBusPartsItemText value))]]))
+instance ToJSON ServiceTelemetryLogLinesBusPartsItem where toJSON value = Object (KM.fromList (concat [[("part", toJSON (serviceTelemetryLogLinesBusPartsItemPart value))], [("text", toJSON (serviceTelemetryLogLinesBusPartsItemText value))], optionalPair "characters" (serviceTelemetryLogLinesBusPartsItemCharacters value)]))
 
 data ServiceTelemetryLogLinesLogger = ServiceTelemetryLogLinesLogger
-  { serviceTelemetryLogLinesLoggerJson :: ServiceTelemetryLogLinesLoggerJson,
-    serviceTelemetryLogLinesLoggerServices :: [ServiceTelemetryLogLinesLoggerServicesItem],
+  { serviceTelemetryLogLinesLoggerServices :: [ServiceTelemetryLogLinesLoggerServicesItem],
+    serviceTelemetryLogLinesLoggerJson :: ServiceTelemetryLogLinesLoggerJson,
     serviceTelemetryLogLinesLoggerSimple :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryLogLinesLogger where parseJSON = checked "ServiceTelemetryLogLinesLogger" $ withObject "ServiceTelemetryLogLinesLogger" (\fields -> ServiceTelemetryLogLinesLogger <$> (fields .: "json") <*> (fields .: "services") <*> (fields .: "simple"))
+instance FromJSON ServiceTelemetryLogLinesLogger where parseJSON = checked "ServiceTelemetryLogLinesLogger" $ withObject "ServiceTelemetryLogLinesLogger" (\fields -> ServiceTelemetryLogLinesLogger <$> (fields .: "services") <*> (fields .: "json") <*> (fields .: "simple"))
 
-instance ToJSON ServiceTelemetryLogLinesLogger where toJSON value = Object (KM.fromList (concat [[("json", toJSON (serviceTelemetryLogLinesLoggerJson value))], [("services", toJSON (serviceTelemetryLogLinesLoggerServices value))], [("simple", toJSON (serviceTelemetryLogLinesLoggerSimple value))]]))
+instance ToJSON ServiceTelemetryLogLinesLogger where toJSON value = Object (KM.fromList (concat [[("services", toJSON (serviceTelemetryLogLinesLoggerServices value))], [("json", toJSON (serviceTelemetryLogLinesLoggerJson value))], [("simple", toJSON (serviceTelemetryLogLinesLoggerSimple value))]]))
 
 data ServiceTelemetryLogLinesLoggerJson = ServiceTelemetryLogLinesLoggerJson
   { serviceTelemetryLogLinesLoggerJsonFirst :: [Text],
-    serviceTelemetryLogLinesLoggerJsonLast :: Text,
     serviceTelemetryLogLinesLoggerJsonRequestId :: Text,
-    serviceTelemetryLogLinesLoggerJsonTrace :: [Text]
+    serviceTelemetryLogLinesLoggerJsonTrace :: [Text],
+    serviceTelemetryLogLinesLoggerJsonLast :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryLogLinesLoggerJson where parseJSON = checked "ServiceTelemetryLogLinesLoggerJson" $ withObject "ServiceTelemetryLogLinesLoggerJson" (\fields -> ServiceTelemetryLogLinesLoggerJson <$> (fields .: "first") <*> (fields .: "last") <*> (fields .: "requestId") <*> (fields .: "trace"))
+instance FromJSON ServiceTelemetryLogLinesLoggerJson where parseJSON = checked "ServiceTelemetryLogLinesLoggerJson" $ withObject "ServiceTelemetryLogLinesLoggerJson" (\fields -> ServiceTelemetryLogLinesLoggerJson <$> (fields .: "first") <*> (fields .: "requestId") <*> (fields .: "trace") <*> (fields .: "last"))
 
-instance ToJSON ServiceTelemetryLogLinesLoggerJson where toJSON value = Object (KM.fromList (concat [[("first", toJSON (serviceTelemetryLogLinesLoggerJsonFirst value))], [("last", toJSON (serviceTelemetryLogLinesLoggerJsonLast value))], [("requestId", toJSON (serviceTelemetryLogLinesLoggerJsonRequestId value))], [("trace", toJSON (serviceTelemetryLogLinesLoggerJsonTrace value))]]))
+instance ToJSON ServiceTelemetryLogLinesLoggerJson where toJSON value = Object (KM.fromList (concat [[("first", toJSON (serviceTelemetryLogLinesLoggerJsonFirst value))], [("requestId", toJSON (serviceTelemetryLogLinesLoggerJsonRequestId value))], [("trace", toJSON (serviceTelemetryLogLinesLoggerJsonTrace value))], [("last", toJSON (serviceTelemetryLogLinesLoggerJsonLast value))]]))
 
 data ServiceTelemetryLogLinesLoggerServicesItem = ServiceTelemetryLogLinesLoggerServicesItemArchivist | ServiceTelemetryLogLinesLoggerServicesItemDispatcher | ServiceTelemetryLogLinesLoggerServicesItemGateway deriving (Eq, Show)
 
@@ -81,11 +81,11 @@ serviceTelemetryLogLinesLoggerServicesItemText ServiceTelemetryLogLinesLoggerSer
 serviceTelemetryLogLinesLoggerServicesItemText ServiceTelemetryLogLinesLoggerServicesItemGateway = "gateway"
 
 data ServiceTelemetryLogLinesSupervisor = ServiceTelemetryLogLinesSupervisor
-  { serviceTelemetryLogLinesSupervisorCounted :: Text,
-    serviceTelemetryLogLinesSupervisorLine :: Text
+  { serviceTelemetryLogLinesSupervisorLine :: Text,
+    serviceTelemetryLogLinesSupervisorCounted :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ServiceTelemetryLogLinesSupervisor where parseJSON = checked "ServiceTelemetryLogLinesSupervisor" $ withObject "ServiceTelemetryLogLinesSupervisor" (\fields -> ServiceTelemetryLogLinesSupervisor <$> (fields .: "counted") <*> (fields .: "line"))
+instance FromJSON ServiceTelemetryLogLinesSupervisor where parseJSON = checked "ServiceTelemetryLogLinesSupervisor" $ withObject "ServiceTelemetryLogLinesSupervisor" (\fields -> ServiceTelemetryLogLinesSupervisor <$> (fields .: "line") <*> (fields .: "counted"))
 
-instance ToJSON ServiceTelemetryLogLinesSupervisor where toJSON value = Object (KM.fromList (concat [[("counted", toJSON (serviceTelemetryLogLinesSupervisorCounted value))], [("line", toJSON (serviceTelemetryLogLinesSupervisorLine value))]]))
+instance ToJSON ServiceTelemetryLogLinesSupervisor where toJSON value = Object (KM.fromList (concat [[("line", toJSON (serviceTelemetryLogLinesSupervisorLine value))], [("counted", toJSON (serviceTelemetryLogLinesSupervisorCounted value))]]))

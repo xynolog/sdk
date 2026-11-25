@@ -10,13 +10,13 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data IdentityUseraddResult = IdentityUseraddResult
-  { identityUseraddResultCreated :: Bool,
-    identityUseraddResultEmail :: Text,
-    identityUseraddResultGeneratedPassword :: Maybe Text,
-    identityUseraddResultIdentity :: Text
+  { identityUseraddResultEmail :: Text,
+    identityUseraddResultIdentity :: Text,
+    identityUseraddResultCreated :: Bool,
+    identityUseraddResultGeneratedPassword :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON IdentityUseraddResult where parseJSON = checked "IdentityUseraddResult" $ withObject "IdentityUseraddResult" (\fields -> IdentityUseraddResult <$> (fields .: "created") <*> (fields .: "email") <*> optional fields "generatedPassword" <*> (fields .: "identity"))
+instance FromJSON IdentityUseraddResult where parseJSON = checked "IdentityUseraddResult" $ withObject "IdentityUseraddResult" (\fields -> IdentityUseraddResult <$> (fields .: "email") <*> (fields .: "identity") <*> (fields .: "created") <*> optional fields "generatedPassword")
 
-instance ToJSON IdentityUseraddResult where toJSON value = Object (KM.fromList (concat [[("created", toJSON (identityUseraddResultCreated value))], [("email", toJSON (identityUseraddResultEmail value))], optionalPair "generatedPassword" (identityUseraddResultGeneratedPassword value), [("identity", toJSON (identityUseraddResultIdentity value))]]))
+instance ToJSON IdentityUseraddResult where toJSON value = Object (KM.fromList (concat [[("email", toJSON (identityUseraddResultEmail value))], [("identity", toJSON (identityUseraddResultIdentity value))], [("created", toJSON (identityUseraddResultCreated value))], optionalPair "generatedPassword" (identityUseraddResultGeneratedPassword value)]))

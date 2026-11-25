@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data MediaTokenResponse = MediaTokenResponse
-  { mediaTokenResponseToken :: Text,
-    mediaTokenResponseAdditionalProperties :: KM.KeyMap Value
+  { mediaTokenResponseToken :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON MediaTokenResponse where parseJSON = checked "MediaTokenResponse" $ withObject "MediaTokenResponse" (\fields -> MediaTokenResponse <$> (fields .: "token") <*> traverse parseJSON (withoutFields ["token"] fields))
+instance FromJSON MediaTokenResponse where parseJSON = checked "MediaTokenResponse" $ withObject "MediaTokenResponse" (\fields -> MediaTokenResponse <$> (fields .: "token"))
 
-instance ToJSON MediaTokenResponse where toJSON value = Object (KM.fromList (concat [[("token", toJSON (mediaTokenResponseToken value))]]) <> fmap toJSON (withoutFields ["token"] (mediaTokenResponseAdditionalProperties value)))
+instance ToJSON MediaTokenResponse where toJSON value = Object (KM.fromList (concat [[("token", toJSON (mediaTokenResponseToken value))]]))

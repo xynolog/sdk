@@ -11,20 +11,19 @@ import Xynolog.Internal.Codec
 
 data JobProgressDetectingEntities = JobProgressDetectingEntities
   { jobProgressDetectingEntitiesCode :: JobProgressDetectingEntitiesCode,
-    jobProgressDetectingEntitiesEntityType :: Text,
-    jobProgressDetectingEntitiesAdditionalProperties :: KM.KeyMap Value
+    jobProgressDetectingEntitiesEntityType :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressDetectingEntities where parseJSON = checked "JobProgressDetectingEntities" $ withObject "JobProgressDetectingEntities" (\fields -> JobProgressDetectingEntities <$> (fields .: "code") <*> (fields .: "entityType") <*> traverse parseJSON (withoutFields ["code", "entityType"] fields))
+instance FromJSON JobProgressDetectingEntities where parseJSON = checked "JobProgressDetectingEntities" $ withObject "JobProgressDetectingEntities" (\fields -> JobProgressDetectingEntities <$> (fields .: "code") <*> (fields .: "entityType"))
 
-instance ToJSON JobProgressDetectingEntities where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressDetectingEntitiesCode value))], [("entityType", toJSON (jobProgressDetectingEntitiesEntityType value))]]) <> fmap toJSON (withoutFields ["code", "entityType"] (jobProgressDetectingEntitiesAdditionalProperties value)))
+instance ToJSON JobProgressDetectingEntities where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressDetectingEntitiesCode value))], [("entityType", toJSON (jobProgressDetectingEntitiesEntityType value))]]))
 
-data JobProgressDetectingEntitiesCode = JobProgressDetectingEntitiesCodeDetectingU2d_entities deriving (Eq, Show)
+data JobProgressDetectingEntitiesCode = JobProgressDetectingEntitiesCodeDetectingEntities deriving (Eq, Show)
 
-instance FromJSON JobProgressDetectingEntitiesCode where parseJSON = checked "JobProgressDetectingEntitiesCode" $ \value -> if value == String "detecting-entities" then pure JobProgressDetectingEntitiesCodeDetectingU2d_entities else fail "unknown enumeration member"
+instance FromJSON JobProgressDetectingEntitiesCode where parseJSON = checked "JobProgressDetectingEntitiesCode" $ \value -> if value == String "detecting-entities" then pure JobProgressDetectingEntitiesCodeDetectingEntities else fail "unknown enumeration member"
 
-instance ToJSON JobProgressDetectingEntitiesCode where toJSON JobProgressDetectingEntitiesCodeDetectingU2d_entities = String "detecting-entities"
+instance ToJSON JobProgressDetectingEntitiesCode where toJSON JobProgressDetectingEntitiesCodeDetectingEntities = String "detecting-entities"
 
 jobProgressDetectingEntitiesCodeText :: JobProgressDetectingEntitiesCode -> Text
-jobProgressDetectingEntitiesCodeText JobProgressDetectingEntitiesCodeDetectingU2d_entities = "detecting-entities"
+jobProgressDetectingEntitiesCodeText JobProgressDetectingEntitiesCodeDetectingEntities = "detecting-entities"

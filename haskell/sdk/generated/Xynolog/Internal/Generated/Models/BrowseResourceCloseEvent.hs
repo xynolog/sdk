@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data BrowseResourceCloseEvent = BrowseResourceCloseEvent
-  { browseResourceCloseEventResourceId :: ResourceId,
-    browseResourceCloseEventAdditionalProperties :: KM.KeyMap Value
+  { browseResourceCloseEventResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseResourceCloseEvent where parseJSON = checked "BrowseResourceCloseEvent" $ withObject "BrowseResourceCloseEvent" (\fields -> BrowseResourceCloseEvent <$> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["resourceId"] fields))
+instance FromJSON BrowseResourceCloseEvent where parseJSON = checked "BrowseResourceCloseEvent" $ withObject "BrowseResourceCloseEvent" (\fields -> BrowseResourceCloseEvent <$> (fields .: "resourceId"))
 
-instance ToJSON BrowseResourceCloseEvent where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (browseResourceCloseEventResourceId value))]]) <> fmap toJSON (withoutFields ["resourceId"] (browseResourceCloseEventAdditionalProperties value)))
+instance ToJSON BrowseResourceCloseEvent where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (browseResourceCloseEventResourceId value))]]))

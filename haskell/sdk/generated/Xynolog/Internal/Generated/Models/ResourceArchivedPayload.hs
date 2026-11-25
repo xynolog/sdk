@@ -10,11 +10,10 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data ResourceArchivedPayload = ResourceArchivedPayload
-  { resourceArchivedPayloadReason :: Maybe Text,
-    resourceArchivedPayloadAdditionalProperties :: KM.KeyMap Value
+  { resourceArchivedPayloadReason :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceArchivedPayload where parseJSON = checked "ResourceArchivedPayload" $ withObject "ResourceArchivedPayload" (\fields -> ResourceArchivedPayload <$> optional fields "reason" <*> traverse parseJSON (withoutFields ["reason"] fields))
+instance FromJSON ResourceArchivedPayload where parseJSON = checked "ResourceArchivedPayload" $ withObject "ResourceArchivedPayload" (\fields -> ResourceArchivedPayload <$> optional fields "reason")
 
-instance ToJSON ResourceArchivedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "reason" (resourceArchivedPayloadReason value)]) <> fmap toJSON (withoutFields ["reason"] (resourceArchivedPayloadAdditionalProperties value)))
+instance ToJSON ResourceArchivedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "reason" (resourceArchivedPayloadReason value)]))

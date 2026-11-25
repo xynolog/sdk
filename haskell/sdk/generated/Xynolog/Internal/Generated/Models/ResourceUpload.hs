@@ -13,24 +13,23 @@ import Xynolog.Internal.Generated.Models.JobId
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ResourceUpload = ResourceUpload
-  { resourceUploadArchiveOriginal :: Maybe Text,
-    resourceUploadCloneToken :: Maybe Text,
-    resourceUploadEntityTypes :: Maybe Text,
+  { resourceUploadName :: Text,
     resourceUploadFile :: Text,
     resourceUploadFormat :: Text,
-    resourceUploadGenerationPrompt :: Maybe Text,
-    resourceUploadGenerator :: Maybe Text,
-    resourceUploadIsDraft :: Maybe Text,
-    resourceUploadJobId :: Maybe JobId,
+    resourceUploadStorageUri :: Text,
     resourceUploadLanguage :: Maybe Text,
-    resourceUploadName :: Text,
+    resourceUploadEntityTypes :: Maybe Text,
     resourceUploadSourceAnnotationId :: Maybe AnnotationId,
     resourceUploadSourceResourceId :: Maybe ResourceId,
-    resourceUploadStorageUri :: Text,
-    resourceUploadAdditionalProperties :: KM.KeyMap Value
+    resourceUploadGenerationPrompt :: Maybe Text,
+    resourceUploadGenerator :: Maybe Text,
+    resourceUploadJobId :: Maybe JobId,
+    resourceUploadIsDraft :: Maybe Text,
+    resourceUploadCloneToken :: Maybe Text,
+    resourceUploadArchiveOriginal :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceUpload where parseJSON = checked "ResourceUpload" $ withObject "ResourceUpload" (\fields -> ResourceUpload <$> optional fields "archiveOriginal" <*> optional fields "cloneToken" <*> optional fields "entityTypes" <*> (fields .: "file") <*> (fields .: "format") <*> optional fields "generationPrompt" <*> optional fields "generator" <*> optional fields "isDraft" <*> optional fields "jobId" <*> optional fields "language" <*> (fields .: "name") <*> optional fields "sourceAnnotationId" <*> optional fields "sourceResourceId" <*> (fields .: "storageUri") <*> traverse parseJSON (withoutFields ["archiveOriginal", "cloneToken", "entityTypes", "file", "format", "generationPrompt", "generator", "isDraft", "jobId", "language", "name", "sourceAnnotationId", "sourceResourceId", "storageUri"] fields))
+instance FromJSON ResourceUpload where parseJSON = checked "ResourceUpload" $ withObject "ResourceUpload" (\fields -> ResourceUpload <$> (fields .: "name") <*> (fields .: "file") <*> (fields .: "format") <*> (fields .: "storageUri") <*> optional fields "language" <*> optional fields "entityTypes" <*> optional fields "sourceAnnotationId" <*> optional fields "sourceResourceId" <*> optional fields "generationPrompt" <*> optional fields "generator" <*> optional fields "jobId" <*> optional fields "isDraft" <*> optional fields "cloneToken" <*> optional fields "archiveOriginal")
 
-instance ToJSON ResourceUpload where toJSON value = Object (KM.fromList (concat [optionalPair "archiveOriginal" (resourceUploadArchiveOriginal value), optionalPair "cloneToken" (resourceUploadCloneToken value), optionalPair "entityTypes" (resourceUploadEntityTypes value), [("file", toJSON (resourceUploadFile value))], [("format", toJSON (resourceUploadFormat value))], optionalPair "generationPrompt" (resourceUploadGenerationPrompt value), optionalPair "generator" (resourceUploadGenerator value), optionalPair "isDraft" (resourceUploadIsDraft value), optionalPair "jobId" (resourceUploadJobId value), optionalPair "language" (resourceUploadLanguage value), [("name", toJSON (resourceUploadName value))], optionalPair "sourceAnnotationId" (resourceUploadSourceAnnotationId value), optionalPair "sourceResourceId" (resourceUploadSourceResourceId value), [("storageUri", toJSON (resourceUploadStorageUri value))]]) <> fmap toJSON (withoutFields ["archiveOriginal", "cloneToken", "entityTypes", "file", "format", "generationPrompt", "generator", "isDraft", "jobId", "language", "name", "sourceAnnotationId", "sourceResourceId", "storageUri"] (resourceUploadAdditionalProperties value)))
+instance ToJSON ResourceUpload where toJSON value = Object (KM.fromList (concat [[("name", toJSON (resourceUploadName value))], [("file", toJSON (resourceUploadFile value))], [("format", toJSON (resourceUploadFormat value))], [("storageUri", toJSON (resourceUploadStorageUri value))], optionalPair "language" (resourceUploadLanguage value), optionalPair "entityTypes" (resourceUploadEntityTypes value), optionalPair "sourceAnnotationId" (resourceUploadSourceAnnotationId value), optionalPair "sourceResourceId" (resourceUploadSourceResourceId value), optionalPair "generationPrompt" (resourceUploadGenerationPrompt value), optionalPair "generator" (resourceUploadGenerator value), optionalPair "jobId" (resourceUploadJobId value), optionalPair "isDraft" (resourceUploadIsDraft value), optionalPair "cloneToken" (resourceUploadCloneToken value), optionalPair "archiveOriginal" (resourceUploadArchiveOriginal value)]))

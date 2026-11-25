@@ -1,17 +1,12 @@
-module J = Yojson.Safe.Util
-
 let primary_representation model =
-  let fields = Records.Resource_descriptor.of_model model in
-  match fields.representations with
-  | `List (first :: _) -> Some first
-  | `Assoc _ as value -> Some value
-  | _ -> None
+  match (Records.Resource_descriptor.of_model model).representations with
+  | Records.Resource_descriptor_representations.Representation one -> Some one
+  | List (first :: _) -> Some first
+  | List [] -> None
 
 let primary_media_type model =
   Option.map
-    (fun value ->
-      Yojson.Safe.from_string (Yojson.Raw.to_string value)
-      |> J.member "mediaType" |> J.to_string)
+    (fun (r : Records.Representation.t) -> r.media_type)
     (primary_representation model)
 
 let entity_types model =

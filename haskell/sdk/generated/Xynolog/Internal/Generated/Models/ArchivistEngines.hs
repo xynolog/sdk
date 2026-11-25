@@ -10,14 +10,14 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.Engine
 
 data ArchivistEngines = ArchivistEngines
-  { archivistEnginesActors :: ArchivistEnginesActors,
-    archivistEnginesJobs :: ArchivistEnginesJobs
+  { archivistEnginesJobs :: ArchivistEnginesJobs,
+    archivistEnginesActors :: ArchivistEnginesActors
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistEngines where parseJSON = checked "ArchivistEngines" $ withObject "ArchivistEngines" (\fields -> ArchivistEngines <$> (fields .: "actors") <*> (fields .: "jobs"))
+instance FromJSON ArchivistEngines where parseJSON = checked "ArchivistEngines" $ withObject "ArchivistEngines" (\fields -> ArchivistEngines <$> (fields .: "jobs") <*> (fields .: "actors"))
 
-instance ToJSON ArchivistEngines where toJSON value = Object (KM.fromList (concat [[("actors", toJSON (archivistEnginesActors value))], [("jobs", toJSON (archivistEnginesJobs value))]]))
+instance ToJSON ArchivistEngines where toJSON value = Object (KM.fromList (concat [[("jobs", toJSON (archivistEnginesJobs value))], [("actors", toJSON (archivistEnginesActors value))]]))
 
 data ArchivistEnginesActors = ArchivistEnginesActors
   { archivistEnginesActorsGatherer :: Maybe Engine,
@@ -40,14 +40,14 @@ instance FromJSON ArchivistEnginesJobs where parseJSON = checked "ArchivistEngin
 instance ToJSON ArchivistEnginesJobs where toJSON value = Object (KM.fromList (concat [optionalPair "mark" (archivistEnginesJobsMark value), optionalPair "yield" (archivistEnginesJobsYield value)]))
 
 data ArchivistEnginesJobsMark = ArchivistEnginesJobsMark
-  { archivistEnginesJobsMarkAssessing :: Maybe Engine,
+  { archivistEnginesJobsMarkHighlighting :: Maybe Engine,
     archivistEnginesJobsMarkCommenting :: Maybe Engine,
-    archivistEnginesJobsMarkHighlighting :: Maybe Engine,
+    archivistEnginesJobsMarkAssessing :: Maybe Engine,
     archivistEnginesJobsMarkLinking :: Maybe Engine,
     archivistEnginesJobsMarkTagging :: Maybe Engine
   }
   deriving (Eq, Show)
 
-instance FromJSON ArchivistEnginesJobsMark where parseJSON = checked "ArchivistEnginesJobsMark" $ withObject "ArchivistEnginesJobsMark" (\fields -> ArchivistEnginesJobsMark <$> optional fields "assessing" <*> optional fields "commenting" <*> optional fields "highlighting" <*> optional fields "linking" <*> optional fields "tagging")
+instance FromJSON ArchivistEnginesJobsMark where parseJSON = checked "ArchivistEnginesJobsMark" $ withObject "ArchivistEnginesJobsMark" (\fields -> ArchivistEnginesJobsMark <$> optional fields "highlighting" <*> optional fields "commenting" <*> optional fields "assessing" <*> optional fields "linking" <*> optional fields "tagging")
 
-instance ToJSON ArchivistEnginesJobsMark where toJSON value = Object (KM.fromList (concat [optionalPair "assessing" (archivistEnginesJobsMarkAssessing value), optionalPair "commenting" (archivistEnginesJobsMarkCommenting value), optionalPair "highlighting" (archivistEnginesJobsMarkHighlighting value), optionalPair "linking" (archivistEnginesJobsMarkLinking value), optionalPair "tagging" (archivistEnginesJobsMarkTagging value)]))
+instance ToJSON ArchivistEnginesJobsMark where toJSON value = Object (KM.fromList (concat [optionalPair "highlighting" (archivistEnginesJobsMarkHighlighting value), optionalPair "commenting" (archivistEnginesJobsMarkCommenting value), optionalPair "assessing" (archivistEnginesJobsMarkAssessing value), optionalPair "linking" (archivistEnginesJobsMarkLinking value), optionalPair "tagging" (archivistEnginesJobsMarkTagging value)]))

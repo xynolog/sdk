@@ -11,29 +11,29 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.LogLevel
 
 data SmelterMessages = SmelterMessages
-  { smelterMessagesU24_comment :: Text,
-    smelterMessagesLogged :: [SmelterMessagesLoggedItem],
-    smelterMessagesRefusals :: [SmelterMessagesRefusalsItem]
+  { smelterMessagesComment :: Text,
+    smelterMessagesRefusals :: [SmelterMessagesRefusalsItem],
+    smelterMessagesLogged :: [SmelterMessagesLoggedItem]
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterMessages where parseJSON = checked "SmelterMessages" $ withObject "SmelterMessages" (\fields -> SmelterMessages <$> (fields .: "$comment") <*> (fields .: "logged") <*> (fields .: "refusals"))
+instance FromJSON SmelterMessages where parseJSON = checked "SmelterMessages" $ withObject "SmelterMessages" (\fields -> SmelterMessages <$> (fields .: "$comment") <*> (fields .: "refusals") <*> (fields .: "logged"))
 
-instance ToJSON SmelterMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (smelterMessagesU24_comment value))], [("logged", toJSON (smelterMessagesLogged value))], [("refusals", toJSON (smelterMessagesRefusals value))]]))
+instance ToJSON SmelterMessages where toJSON value = Object (KM.fromList (concat [[("$comment", toJSON (smelterMessagesComment value))], [("refusals", toJSON (smelterMessagesRefusals value))], [("logged", toJSON (smelterMessagesLogged value))]]))
 
 data SmelterMessagesLoggedItem = SmelterMessagesLoggedItem
-  { smelterMessagesLoggedItemCarries :: [Text],
-    smelterMessagesLoggedItemFields :: SmelterMessagesLoggedItemFields,
+  { smelterMessagesLoggedItemName :: Text,
     smelterMessagesLoggedItemLevel :: LogLevel,
+    smelterMessagesLoggedItemSituation :: Text,
     smelterMessagesLoggedItemMessage :: Text,
-    smelterMessagesLoggedItemName :: Text,
-    smelterMessagesLoggedItemSituation :: Text
+    smelterMessagesLoggedItemFields :: SmelterMessagesLoggedItemFields,
+    smelterMessagesLoggedItemCarries :: [Text]
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterMessagesLoggedItem where parseJSON = checked "SmelterMessagesLoggedItem" $ withObject "SmelterMessagesLoggedItem" (\fields -> SmelterMessagesLoggedItem <$> (fields .: "carries") <*> (fields .: "fields") <*> (fields .: "level") <*> (fields .: "message") <*> (fields .: "name") <*> (fields .: "situation"))
+instance FromJSON SmelterMessagesLoggedItem where parseJSON = checked "SmelterMessagesLoggedItem" $ withObject "SmelterMessagesLoggedItem" (\fields -> SmelterMessagesLoggedItem <$> (fields .: "name") <*> (fields .: "level") <*> (fields .: "situation") <*> (fields .: "message") <*> (fields .: "fields") <*> (fields .: "carries"))
 
-instance ToJSON SmelterMessagesLoggedItem where toJSON value = Object (KM.fromList (concat [[("carries", toJSON (smelterMessagesLoggedItemCarries value))], [("fields", toJSON (smelterMessagesLoggedItemFields value))], [("level", toJSON (smelterMessagesLoggedItemLevel value))], [("message", toJSON (smelterMessagesLoggedItemMessage value))], [("name", toJSON (smelterMessagesLoggedItemName value))], [("situation", toJSON (smelterMessagesLoggedItemSituation value))]]))
+instance ToJSON SmelterMessagesLoggedItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (smelterMessagesLoggedItemName value))], [("level", toJSON (smelterMessagesLoggedItemLevel value))], [("situation", toJSON (smelterMessagesLoggedItemSituation value))], [("message", toJSON (smelterMessagesLoggedItemMessage value))], [("fields", toJSON (smelterMessagesLoggedItemFields value))], [("carries", toJSON (smelterMessagesLoggedItemCarries value))]]))
 
 data SmelterMessagesLoggedItemFields = SmelterMessagesLoggedItemFields
   { smelterMessagesLoggedItemFieldsAdditionalProperties :: KM.KeyMap Text
@@ -45,13 +45,13 @@ instance FromJSON SmelterMessagesLoggedItemFields where parseJSON = checked "Sme
 instance ToJSON SmelterMessagesLoggedItemFields where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (smelterMessagesLoggedItemFieldsAdditionalProperties value)))
 
 data SmelterMessagesRefusalsItem = SmelterMessagesRefusalsItem
-  { smelterMessagesRefusalsItemMessage :: Text,
-    smelterMessagesRefusalsItemName :: Text,
+  { smelterMessagesRefusalsItemName :: Text,
     smelterMessagesRefusalsItemOperation :: Text,
-    smelterMessagesRefusalsItemSituation :: Text
+    smelterMessagesRefusalsItemSituation :: Text,
+    smelterMessagesRefusalsItemMessage :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SmelterMessagesRefusalsItem where parseJSON = checked "SmelterMessagesRefusalsItem" $ withObject "SmelterMessagesRefusalsItem" (\fields -> SmelterMessagesRefusalsItem <$> (fields .: "message") <*> (fields .: "name") <*> (fields .: "operation") <*> (fields .: "situation"))
+instance FromJSON SmelterMessagesRefusalsItem where parseJSON = checked "SmelterMessagesRefusalsItem" $ withObject "SmelterMessagesRefusalsItem" (\fields -> SmelterMessagesRefusalsItem <$> (fields .: "name") <*> (fields .: "operation") <*> (fields .: "situation") <*> (fields .: "message"))
 
-instance ToJSON SmelterMessagesRefusalsItem where toJSON value = Object (KM.fromList (concat [[("message", toJSON (smelterMessagesRefusalsItemMessage value))], [("name", toJSON (smelterMessagesRefusalsItemName value))], [("operation", toJSON (smelterMessagesRefusalsItemOperation value))], [("situation", toJSON (smelterMessagesRefusalsItemSituation value))]]))
+instance ToJSON SmelterMessagesRefusalsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (smelterMessagesRefusalsItemName value))], [("operation", toJSON (smelterMessagesRefusalsItemOperation value))], [("situation", toJSON (smelterMessagesRefusalsItemSituation value))], [("message", toJSON (smelterMessagesRefusalsItemMessage value))]]))

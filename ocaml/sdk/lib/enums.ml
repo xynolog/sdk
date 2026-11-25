@@ -1,6 +1,17 @@
 (* Generated from the string enums among the schemas protocol/specs/src roots, its client types and its tables. Do not edit.
    Regenerate: make generate (codegen/lib/ocaml_sdk/enums.ml) *)
 
+module Api_version = struct
+  type t = Control_xynolog_org_v1alpha1
+
+  let to_string = function
+    | Control_xynolog_org_v1alpha1 -> "control.xynolog.org/v1alpha1"
+
+  let of_string = function
+    | "control.xynolog.org/v1alpha1" -> Some Control_xynolog_org_v1alpha1
+    | _ -> None
+end
+
 module Body_purpose = struct
   type t =
     | Assessing
@@ -274,6 +285,16 @@ module Service_group = struct
     | "knowledge-workers" -> Some Knowledge_workers
     | "providers" -> Some Providers
     | "telemetry" -> Some Telemetry
+    | _ -> None
+end
+
+module Stack_api_version = struct
+  type t = Xynolog_org_v1alpha1
+
+  let to_string = function Xynolog_org_v1alpha1 -> "xynolog.org/v1alpha1"
+
+  let of_string = function
+    | "xynolog.org/v1alpha1" -> Some Xynolog_org_v1alpha1
     | _ -> None
 end
 

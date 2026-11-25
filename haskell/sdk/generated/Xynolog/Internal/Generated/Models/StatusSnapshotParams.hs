@@ -13,11 +13,11 @@ import Xynolog.Internal.Generated.Models.Target
 
 data StatusSnapshotParams = StatusSnapshotParams
   { statusSnapshotParamsApiVersion :: ApiVersion,
-    statusSnapshotParamsRuntime :: Maybe Runtime,
-    statusSnapshotParamsTarget :: Maybe Target
+    statusSnapshotParamsTarget :: Maybe Target,
+    statusSnapshotParamsRuntime :: Maybe Runtime
   }
   deriving (Eq, Show)
 
-instance FromJSON StatusSnapshotParams where parseJSON = checked "StatusSnapshotParams" $ withObject "StatusSnapshotParams" (\fields -> StatusSnapshotParams <$> (fields .: "apiVersion") <*> optional fields "runtime" <*> optional fields "target")
+instance FromJSON StatusSnapshotParams where parseJSON = checked "StatusSnapshotParams" $ withObject "StatusSnapshotParams" (\fields -> StatusSnapshotParams <$> (fields .: "apiVersion") <*> optional fields "target" <*> optional fields "runtime")
 
-instance ToJSON StatusSnapshotParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (statusSnapshotParamsApiVersion value))], optionalPair "runtime" (statusSnapshotParamsRuntime value), optionalPair "target" (statusSnapshotParamsTarget value)]))
+instance ToJSON StatusSnapshotParams where toJSON value = Object (KM.fromList (concat [[("apiVersion", toJSON (statusSnapshotParamsApiVersion value))], optionalPair "target" (statusSnapshotParamsTarget value), optionalPair "runtime" (statusSnapshotParamsRuntime value)]))

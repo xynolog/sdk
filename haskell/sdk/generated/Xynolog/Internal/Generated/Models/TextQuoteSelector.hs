@@ -10,17 +10,16 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data TextQuoteSelector = TextQuoteSelector
-  { textQuoteSelectorExact :: Text,
+  { textQuoteSelectorType :: TextQuoteSelectorType,
+    textQuoteSelectorExact :: Text,
     textQuoteSelectorPrefix :: Maybe Text,
-    textQuoteSelectorSuffix :: Maybe Text,
-    textQuoteSelectorType :: TextQuoteSelectorType,
-    textQuoteSelectorAdditionalProperties :: KM.KeyMap Value
+    textQuoteSelectorSuffix :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON TextQuoteSelector where parseJSON = checked "TextQuoteSelector" $ withObject "TextQuoteSelector" (\fields -> TextQuoteSelector <$> (fields .: "exact") <*> optional fields "prefix" <*> optional fields "suffix" <*> (fields .: "type") <*> traverse parseJSON (withoutFields ["exact", "prefix", "suffix", "type"] fields))
+instance FromJSON TextQuoteSelector where parseJSON = checked "TextQuoteSelector" $ withObject "TextQuoteSelector" (\fields -> TextQuoteSelector <$> (fields .: "type") <*> (fields .: "exact") <*> optional fields "prefix" <*> optional fields "suffix")
 
-instance ToJSON TextQuoteSelector where toJSON value = Object (KM.fromList (concat [[("exact", toJSON (textQuoteSelectorExact value))], optionalPair "prefix" (textQuoteSelectorPrefix value), optionalPair "suffix" (textQuoteSelectorSuffix value), [("type", toJSON (textQuoteSelectorType value))]]) <> fmap toJSON (withoutFields ["exact", "prefix", "suffix", "type"] (textQuoteSelectorAdditionalProperties value)))
+instance ToJSON TextQuoteSelector where toJSON value = Object (KM.fromList (concat [[("type", toJSON (textQuoteSelectorType value))], [("exact", toJSON (textQuoteSelectorExact value))], optionalPair "prefix" (textQuoteSelectorPrefix value), optionalPair "suffix" (textQuoteSelectorSuffix value)]))
 
 data TextQuoteSelectorType = TextQuoteSelectorTypeTextQuoteSelector deriving (Eq, Show)
 

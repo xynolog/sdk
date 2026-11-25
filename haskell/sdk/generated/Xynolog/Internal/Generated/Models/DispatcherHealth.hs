@@ -10,14 +10,14 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data DispatcherHealth = DispatcherHealth
-  { dispatcherHealthQueue :: DispatcherHealthQueue,
-    dispatcherHealthStatus :: DispatcherHealthStatus
+  { dispatcherHealthStatus :: DispatcherHealthStatus,
+    dispatcherHealthQueue :: DispatcherHealthQueue
   }
   deriving (Eq, Show)
 
-instance FromJSON DispatcherHealth where parseJSON = checked "DispatcherHealth" $ withObject "DispatcherHealth" (\fields -> DispatcherHealth <$> (fields .: "queue") <*> (fields .: "status"))
+instance FromJSON DispatcherHealth where parseJSON = checked "DispatcherHealth" $ withObject "DispatcherHealth" (\fields -> DispatcherHealth <$> (fields .: "status") <*> (fields .: "queue"))
 
-instance ToJSON DispatcherHealth where toJSON value = Object (KM.fromList (concat [[("queue", toJSON (dispatcherHealthQueue value))], [("status", toJSON (dispatcherHealthStatus value))]]))
+instance ToJSON DispatcherHealth where toJSON value = Object (KM.fromList (concat [[("status", toJSON (dispatcherHealthStatus value))], [("queue", toJSON (dispatcherHealthQueue value))]]))
 
 data DispatcherHealthQueue = DispatcherHealthQueueJetstream deriving (Eq, Show)
 
