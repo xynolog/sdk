@@ -1097,12 +1097,15 @@ public final class xynolog/registry/SessionFactoryOptions {
 	public final fun getStorage ()Lxynolog/storage/SessionStorage;
 }
 
-public final class xynolog/registry/StoredKt {
+public final class xynolog/registry/StoredKeysKt {
 	public static final field ACTIVE_KEY Ljava/lang/String;
 	public static final field KNOWLEDGE_BASES_KEY Ljava/lang/String;
 	public static final field LAST_VIEWED_RESOURCE_BY_KB_KEY Ljava/lang/String;
 	public static final field OPEN_RESOURCES_BY_KB_KEY Ljava/lang/String;
 	public static final field PENDING_AUTHORIZATION_KEY Ljava/lang/String;
+}
+
+public final class xynolog/registry/StoredKt {
 	public static final fun kbOfSessionKey (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun personKey (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun sessionKey (Ljava/lang/String;)Ljava/lang/String;

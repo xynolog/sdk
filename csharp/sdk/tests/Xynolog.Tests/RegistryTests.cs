@@ -24,18 +24,6 @@ public sealed partial class TransportTests
     public void RegistryStorageKeysAndSessionShapeFollowTheirTable()
     {
         using var table = ReadSpec("session/stored.json");
-        var keys = new Dictionary<string, string>
-        {
-            ["knowledgeBasesKey"] = RegistryStorage.KnowledgeBasesKey,
-            ["activeKey"] = RegistryStorage.ActiveKey,
-            ["openResourcesByKbKey"] = RegistryStorage.OpenResourcesByKbKey,
-            ["lastViewedResourceByKbKey"] = RegistryStorage.LastViewedResourceByKbKey,
-            ["pendingAuthorizationKey"] = RedirectSignIn.PendingAuthorizationKey,
-        };
-        Assert.Equal(keys.Count, table.RootElement.GetProperty("keys").GetArrayLength());
-        foreach (var row in table.RootElement.GetProperty("keys").EnumerateArray())
-            Assert.Equal(Text(row, "key"), keys[Text(row, "member")]);
-
         var key = RegistryStorage.SessionKey("kb-1");
         Assert.Equal(Text(table.RootElement.GetProperty("sessionKeyPrefix"), "prefix") + "kb-1", key);
         Assert.Equal("kb-1", RegistryStorage.KbOfSessionKey(key));
@@ -55,7 +43,6 @@ public sealed partial class TransportTests
         var persisted = refresh.RootElement.GetProperty("queries").EnumerateArray()
             .Where(row => row.TryGetProperty("persisted", out var marked) && marked.GetBoolean()).Select(row => Text(row, "name")).ToArray();
         Assert.Equal(persisted, LiveQueries.PersistedQueries);
-        Assert.Equal(Text(table.RootElement.GetProperty("wholeKey"), "key"), KeptTable.WholeKey);
         var document = table.RootElement.GetProperty("cacheDocument");
         Assert.Equal(document.GetProperty("properties").GetProperty("version").GetProperty("const").GetInt64(), KeptTable.Version);
         Assert.Equal(new[] { "version", "entries" }, document.GetProperty("required").EnumerateArray().Select(member => Assert.IsType<string>(member.GetString())));

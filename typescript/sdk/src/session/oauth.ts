@@ -16,6 +16,7 @@ import {
   DEVICE_SLOW_DOWN_MS,
   REFRESH_RETRY,
   HTTP_REQUEST_TIMEOUT_MS,
+  PENDING_AUTHORIZATION_KEY,
   RETRY_RULES,
   SCRIPT_CLIENT_ID,
   SIGN_IN_SCOPE,
@@ -54,7 +55,6 @@ declare const crypto: {
 
 export { BROWSER_CLIENT_ID, SCRIPT_CLIENT_ID };
 export type { SignInErrorCode };
-export const PENDING_AUTHORIZATION_KEY = 'xynolog.pendingAuthorization';
 const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
 
 /**

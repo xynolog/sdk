@@ -23,11 +23,8 @@ public sealed class IdentityUnverifiableError : XynologError
 
 /// <summary>Signs a person in through the browser: an OAuth authorization-code grant with PKCE, begun on one page and
 /// completed on the page the issuer sends them back to.</summary>
-public static class RedirectSignIn
+public static partial class RedirectSignIn
 {
-    /// <summary>The session storage key the pending sign-in is kept under between its beginning and its
-    /// completion.</summary>
-    public static readonly string PendingAuthorizationKey = RegistryStorage.PendingKey;
     /// <summary>The PKCE S256 code challenge of a verifier: its SHA-256, base64url-encoded without padding.</summary>
     public static string CodeChallenge(string verifier) => Base64Url(SHA256.HashData(Encoding.UTF8.GetBytes(verifier)));
 

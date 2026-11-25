@@ -54,6 +54,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The keys a registry keeps what it keeps under, and the prefixes of the
+  keys made per knowledge base, are generated from Protocol's
+  `session/stored.json`, with the names and values they had
+  (`knowledgeBasesKey`, `pendingAuthorizationKey`, …).
 - A model's members are in its schema's order, as the other SDKs hold them,
   and so are its initializer's arguments and the members it writes: a call
   names them in that order (`JobProgress(percentage: 50, message: …)`),

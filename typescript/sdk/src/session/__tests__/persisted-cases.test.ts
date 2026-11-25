@@ -23,7 +23,12 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { BehaviorSubject, filter, firstValueFrom, map, take } from 'rxjs';
-import { PERSISTED_QUERIES, resourceId } from '@xynolog/core';
+import {
+  ACTIVE_KEY,
+  PERSISTED_QUERIES,
+  STORAGE_KEY,
+  resourceId,
+} from '@xynolog/core';
 import type { AccessToken, KnowledgeBase, components } from '@xynolog/core';
 import { isReady } from '../../cache';
 import { mockAnnotation } from '../../__tests__/fixtures/annotation';
@@ -36,8 +41,6 @@ import type { SessionFactory } from '../session-factory';
 import type { SessionStorage } from '../session-storage';
 import { MemorySignIn, type SignInKept } from '../sign-in-kept';
 import {
-  ACTIVE_KEY,
-  STORAGE_KEY,
   cacheKey,
   getStoredSession,
   keptIn,

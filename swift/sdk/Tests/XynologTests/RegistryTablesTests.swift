@@ -5,20 +5,8 @@ import XynologTesting
 
 @testable import Xynolog
 
-@Test func registryStorageMatchesTheSharedKeysAndSessionShape() async throws {
+@Test func registryStorageMatchesTheSharedSessionKeyAndShape() async throws {
   let table = try Spec.read("session/stored.json").object
-  let keys = [
-    "knowledgeBasesKey": knowledgeBasesKey,
-    "activeKey": activeKey,
-    "openResourcesByKbKey": openResourcesByKbKey,
-    "lastViewedResourceByKbKey": lastViewedResourceByKbKey,
-    "pendingAuthorizationKey": pendingAuthorizationKey,
-  ]
-  let expected = try required(table, "keys").array.map { value in
-    let row = try value.object
-    return (try required(row, "member").text, try required(row, "key").text)
-  }
-  #expect(keys == Dictionary(uniqueKeysWithValues: expected))
   let prefix = try required(required(table, "sessionKeyPrefix").object, "prefix").text
   let id = "one"
   #expect(sessionKey(id) == prefix + id)

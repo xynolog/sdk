@@ -8,6 +8,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `@xynolog/core` exports the keys a registry and its sessions keep what
+  they keep under, generated from Protocol's `session/stored.json`:
+  `STORAGE_KEY`, `ACTIVE_KEY`, `OPEN_RESOURCES_BY_KB_KEY`,
+  `LAST_VIEWED_RESOURCE_BY_KB_KEY`, `PENDING_AUTHORIZATION_KEY`, the
+  prefixes `SESSION_KEY_PREFIX`, `LAST_EVENT_ID_KEY_PREFIX` and
+  `CACHE_KEY_PREFIX`, and `WHOLE_KEY`. The SDK makes its keys of them.
 - `ServiceEnvironmentVariable`: every environment variable a Xynolog service
   reads, beside its configuration document, by its name
   (`ServiceEnvironmentVariable.XYNOLOG_BUS_LOG`). The bus log reads its

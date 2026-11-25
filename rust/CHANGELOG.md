@@ -60,6 +60,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The keys a registry keeps what it keeps under, and the prefixes of the
+  keys made per knowledge base, are generated from Protocol's
+  `session/stored.json`, with the names and values they had
+  (`xynolog::session::KNOWLEDGE_BASES_KEY`,
+  `xynolog_http_transport::oauth::PENDING_AUTHORIZATION_KEY`, …).
 - A union's variant for a schema it names is that schema's own name
   (`Job::JobPending`, `ConformanceStep::ConformanceBusFetch`,
   `Agent::AgentPerson`), as every SDK names it, where the prefix its members'
