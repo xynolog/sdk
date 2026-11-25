@@ -61,9 +61,7 @@ extension HttpTransport {
     }
     let body = data.flatMap { try? JSONDecoder().decode(ErrorResponse.self, from: $0) }
     let status = Int(response.status.code)
-    let code: TransportErrorCode =
-      status == 429 && body?.code == LimitRefusalCode.refusalRate.rawValue
-      ? .unauthorized : transportErrorCode(for: status)
+    let code = transportErrorCode(for: status, limit: body?.code)
     let message = path + " \(status)" + (body.map { ": " + $0.error } ?? "")
     return TransportError(
       code, message, status: status,

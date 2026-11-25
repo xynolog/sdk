@@ -445,6 +445,23 @@ let error_codes models ~shapes ~table (codes : Error_codes.Table.t) =
       constant [ "internal" ] "unrecognizedBusFailure"
         (Some (S.Named codes.bus.name))
         (case codes.unrecognized.code);
+      constant
+        ~doc:
+          [
+            "Each gateway refusal of a limit that is a transport code too: its \
+             status, its LimitRefusal code, and the transport code it is.";
+          ]
+        [ "internal" ] "limitRefusalTransportCodes"
+        (Some
+           (S.Array_of
+              (S.Tuple_of
+                 [ S.Named "Int"; S.Named "String"; S.Named codes.transport.name ])))
+        (S.Array
+           ( S.Lines,
+             List.map
+               (fun (status, limit, (c : Error_codes.Table.code)) ->
+                 S.Tuple [ S.Int status; S.String limit; case c.code ])
+               codes.limit_refusals ));
     ]
 
 (* What each schema requires, as Sources/Xynolog/Bus/Required.swift reads it *)

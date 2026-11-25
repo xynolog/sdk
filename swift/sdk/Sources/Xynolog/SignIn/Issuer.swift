@@ -252,8 +252,7 @@ public func whoAmI(
   guard (200..<300).contains(status) else {
     let body = try? JSONDecoder().decode(ErrorResponse.self, from: data)
     throw TransportError(
-      status == 429 && body?.code == LimitRefusalCode.refusalRate.rawValue
-        ? .unauthorized : transportErrorCode(for: status), "The gateway refused the credential",
+      transportErrorCode(for: status, limit: body?.code), "The gateway refused the credential",
       status: status)
   }
   do { return try JSONDecoder().decode(UserResponse.self, from: data) } catch {

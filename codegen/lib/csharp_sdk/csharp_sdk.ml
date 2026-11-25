@@ -389,13 +389,41 @@ let error_codes (t : Error_codes.Table.t) =
             @ [ returns t.unclassified ]);
       }
   in
+  let of_limit_refusal =
+    C.Documented
+      ( "The transport code a gateway's refusal of a limit is too, by its \
+         status and its LimitRefusal code; none when it is no such refusal.",
+        C.Method
+          {
+            modifiers = [ Internal; Static ];
+            returns = Nullable (T "string");
+            name = "OfLimitRefusal";
+            params =
+              [
+                { by = `Value; type_ = T "int"; name = "status" };
+                { by = `Value; type_ = T "string"; name = "code" };
+              ];
+            body =
+              Block
+                (List.map
+                   (fun (n, limit, c) ->
+                     C.If
+                       ( C.Binary
+                           ( status C.Eq n,
+                             C.And,
+                             C.Binary (C.Name "code", C.Eq, C.Str limit) ),
+                         [ returns c ] ))
+                   t.limit_refusals
+                @ [ C.Return C.Null ]);
+          } )
+  in
   let vocabulary ?(more = []) (v : Error_codes.Table.vocabulary) =
     static_class ~modifiers:[ C.Public; C.Static ] v.go_name (codes v @ more)
   in
   file ~namespace:"Xynolog.Errors"
     ~from_:("protocol/specs/src/" ^ Error_codes.Table.file)
     (generated ^ "ErrorCodes.g.cs")
-    ([ vocabulary t.bus; vocabulary ~more:[ transport_of ] t.transport ]
+    ([ vocabulary t.bus; vocabulary ~more:[ transport_of; of_limit_refusal ] t.transport ]
     @ List.map (fun v -> vocabulary v) t.others
     @ [ vocabulary t.control ])
 

@@ -834,23 +834,25 @@ func (s *stream) read(ctx context.Context, conn uint64, token string, body api.B
 // Any other refusal's status decides its code.
 func refusal(message string, status int, wait time.Duration, hasWait bool, body []byte) *TransportError {
 	refused := transportErrorOfStatus(message, status, wait, hasWait)
-	if refusesCredential(status, body) {
-		refused.Code = api.TransportErrorCodeUnauthorized
+	if code, ok := limitRefusalTransportCode(status, body); ok {
+		refused.Code = code
 	}
 	return refused
 }
 
-// refusesCredential reports whether the gateway refused the request's
-// credential: a 401, or a 429 whose body is a LimitRefusal naming
-// refusal-rate. A 429 whose body is not one is a limit's, as its status says.
-func refusesCredential(status int, body []byte) bool {
-	switch status {
-	case http.StatusUnauthorized:
-		return true
-	case http.StatusTooManyRequests:
-		var limit api.LimitRefusal
-		return json.Unmarshal(body, &limit) == nil && limit.Code == api.LimitRefusalCodeRefusalRate
-	default:
-		return false
+// limitRefusalTransportCode is the transport code a gateway's refusal of a
+// limit is too, when its status and its LimitRefusal code are one of
+// api.LimitRefusalTransportCodes: a refused credential's, whose holder has
+// had its allowance of refusals. Any other refusal is its status's.
+func limitRefusalTransportCode(status int, body []byte) (api.TransportErrorCode, bool) {
+	var limit api.LimitRefusal
+	if json.Unmarshal(body, &limit) != nil {
+		return "", false
 	}
+	for _, known := range api.LimitRefusalTransportCodes {
+		if known.Status == status && known.Code == string(limit.Code) {
+			return known.Transport, true
+		}
+	}
+	return "", false
 }

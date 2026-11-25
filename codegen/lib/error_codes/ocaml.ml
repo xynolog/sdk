@@ -117,7 +117,26 @@ let files (t : Table.t) =
       Ok
         [
           Ocaml_syntax.implementation ~path:"ocaml/sdk/lib/error_codes.ml"
-            ~banner modules;
+            ~banner
+            (modules
+            @ [
+                (* Each gateway refusal of a limit that is a transport code
+                   too: its status, its LimitRefusal code, and the transport
+                   code it is. *)
+                Ocaml_syntax.let_ "limit_refusal_transport_codes"
+                  (Ocaml_syntax.list
+                     (List.map
+                        (fun (status, limit, (c : Table.code)) ->
+                          Ocaml_syntax.tuple
+                            [
+                              Ocaml_syntax.int status;
+                              Ocaml_syntax.string limit;
+                              Ocaml_syntax.construct
+                                (module_name t.transport ^ "."
+                                ^ constructor (value_name c.code));
+                            ])
+                        t.limit_refusals));
+              ]);
           Ocaml_syntax.implementation
             ~path:"ocaml/sdk/test/error_codes_cases.ml" ~banner
             [

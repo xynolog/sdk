@@ -138,4 +138,35 @@ let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
           ~visibility:K.Internal ~type_:(K.Type bus)
           ~value:(K.Same_line (member bus t.unrecognized))
           "UNRECOGNIZED_FAILURE";
+        K.class_
+          ~about:
+            (K.Doc
+               "A gateway refusal of a limit that is a transport code too: its \
+                status, its `LimitRefusal` code, and the transport code it is.")
+          ~annotations:[ K.annotation "Generated" ]
+          ~visibility:K.Public
+          ~constructor:
+            (K.constructor
+               (List.map
+                  (fun (name, type_) ->
+                    K.param
+                      ~binding:(K.Bound { visibility = K.Public; mutable_ = false })
+                      name (K.Type type_))
+                  [ ("status", "Int"); ("code", "String"); ("transport", transport) ]))
+          K.Data_class "LimitRefusalTransportCode";
+        K.property
+          ~about:
+            (K.Doc
+               "Each gateway refusal of a limit that is a transport code too.")
+          ~visibility:K.Public
+          ~type_:(K.Generic ("List", [ K.Type "LimitRefusalTransportCode" ]))
+          ~value:
+            (K.Same_line
+               (K.call (K.Name "listOf")
+                  (List.map
+                     (fun (status, limit, (c : Table.code)) ->
+                       K.call (K.Name "LimitRefusalTransportCode")
+                         [ K.Int status; K.Str limit; member transport c ])
+                     t.limit_refusals)))
+          "LIMIT_REFUSAL_TRANSPORT_CODES";
       ])

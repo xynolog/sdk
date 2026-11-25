@@ -77,8 +77,17 @@ let header name =
         Some value
       else None)
 
+(* Whether a refusal refuses the request's credential: a status read as the
+   transport's unauthorized code, or a gateway's refusal of a limit whose
+   status and LimitRefusal code are one that is unauthorized too. *)
 let credential_refused status body =
-  status = 401 || (status = 429 && json_text "code" body = Some "refusal-rate")
+  Http_facts.status_code status = Error_codes.Transport.unauthorized
+  || List.exists
+       (fun (limited, code, transport) ->
+         transport = Error_codes.Transport.Unauthorized
+         && limited = status
+         && json_text "code" body = Some code)
+       Error_codes.limit_refusal_transport_codes
 
 let bearer token headers =
   match token with

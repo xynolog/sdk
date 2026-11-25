@@ -27,6 +27,7 @@ from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog import telemetry
 from xynolog._kept_for_first_reader import KeptForFirstReader
+from xynolog.error_codes import LIMIT_REFUSAL_TRANSPORT_CODES, TransportErrorCode
 from xynolog.errors import TransportError, XynologError
 from xynolog.http._withheld import why_unanswered
 from xynolog.http.gateway_http import IDEMPOTENCY_KEY, RETRY_AFTER
@@ -54,24 +55,33 @@ refused."""
 def refusal(message: str, status: int, body: bytes | None, stated_wait_ms: int | None) -> TransportError:
     """The gateway's refusal of a request, under the code it fails with. `body` is `None` when it could not be read.
 
-    A refused credential (`protocol/contract/TRANSPORT-CONTRACT.md` § A refused
-    credential) is `unauthorized`, which is how the stream, an emit and a
-    request each know one: a `401`, or a `429` whose body is a `LimitRefusal`
-    naming `refusal-rate`. Its token is renewed, never retried, so the wait it
-    states is not waited out. Any other refusal is as its status says.
+    A gateway's refusal of a limit whose status and `LimitRefusal` code are one
+    of `LIMIT_REFUSAL_TRANSPORT_CODES` is that transport code: a refused
+    credential (`protocol/contract/TRANSPORT-CONTRACT.md` § A refused
+    credential) whose holder has had its allowance of refusals is
+    `unauthorized`, as its `401`s were. Its token is renewed, never retried, so
+    the wait it states is not waited out. Any other refusal is as its status
+    says.
     """
-    if status == 401 or (status == 429 and body is not None and _names_refusal_rate(body)):
-        return TransportError("unauthorized", message, status=status, retry_after_ms=stated_wait_ms)
+    code = _limit_refusal_transport_code(status, body)
+    if code is not None:
+        return TransportError(code, message, status=status, retry_after_ms=stated_wait_ms)
     return TransportError.of_status(message, status, stated_wait_ms)
 
 
-def _names_refusal_rate(body: bytes) -> bool:
-    """Whether a `429`'s body is a `LimitRefusal` naming `refusal-rate`."""
+def _limit_refusal_transport_code(status: int, body: bytes | None) -> TransportErrorCode | None:
+    """The transport code a refusal of a limit is too, when its status and `LimitRefusal` code are one that names one."""
+    if body is None:
+        return None
     try:
-        return LimitRefusal.model_validate_json(body).code == "refusal-rate"
+        limit = LimitRefusal.model_validate_json(body)
     except ValidationError:
         # Not a limit this build can name: a limit all the same, as its status says.
-        return False
+        return None
+    return next(
+        (transport for known, code, transport in LIMIT_REFUSAL_TRANSPORT_CODES if known == status and code == limit.code),
+        None,
+    )
 
 
 @final

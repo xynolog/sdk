@@ -11,6 +11,7 @@ import kotlinx.serialization.SerializationException
 import xynolog.Timings
 import xynolog.bus.UNDECODED
 import xynolog.bus.faultIn
+import xynolog.errors.LIMIT_REFUSAL_TRANSPORT_CODES
 import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
 import xynolog.errors.XynologError
@@ -21,7 +22,6 @@ import xynolog.telemetry.Telemetry
 import xynolog.transport.Broadcast
 import xynolog.types.ErrorResponse
 import xynolog.types.LimitRefusal
-import xynolog.types.LimitRefusalCode
 import xynolog.types.wireJson
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -78,27 +78,30 @@ internal suspend fun readAll(body: Publisher<List<ByteBuffer>>): ByteArray {
 }
 
 /**
- * The gateway's refusal of a request, under the code it fails with. A refused
- * credential (protocol/contract/TRANSPORT-CONTRACT.md, A refused credential) is
- * `unauthorized`: a 401, or a 429 whose body is a `LimitRefusal` naming
- * `refusal-rate`. Its token is renewed, never retried.
+ * The gateway's refusal of a request, under the code it fails with. A refusal
+ * of a limit whose status and `LimitRefusal` code are one of
+ * `LIMIT_REFUSAL_TRANSPORT_CODES` is that transport code: a refused credential
+ * (protocol/contract/TRANSPORT-CONTRACT.md, A refused credential) whose holder
+ * has had its allowance of refusals is `unauthorized`, as its 401s were. Its
+ * token is renewed, never retried. Any other refusal is as its status says.
  */
 internal fun refusal(message: String, status: Int, body: ByteArray?, statedWaitMs: Long?): TransportError =
-    if (status == 401 || (status == 429 && body != null && namesRefusalRate(body))) {
-        TransportError(TransportErrorCode.Unauthorized, message, status, statedWaitMs)
-    } else {
-        TransportError.ofStatus(message, status, statedWaitMs)
-    }
+    limitRefusalTransportCode(status, body)?.let { TransportError(it, message, status, statedWaitMs) }
+        ?: TransportError.ofStatus(message, status, statedWaitMs)
 
-private fun namesRefusalRate(body: ByteArray): Boolean =
-    try {
-        wireJson.decodeFromString(LimitRefusal.serializer(), body.toString(Charsets.UTF_8)).code == LimitRefusalCode.RefusalRate
-    } catch (_: SerializationException) {
-        // Not a limit this build can name: a limit all the same, as its status says.
-        false
-    } catch (_: IllegalArgumentException) {
-        false
-    }
+private fun limitRefusalTransportCode(status: Int, body: ByteArray?): TransportErrorCode? {
+    if (body == null) return null
+    val limit =
+        try {
+            wireJson.decodeFromString(LimitRefusal.serializer(), body.toString(Charsets.UTF_8))
+        } catch (_: SerializationException) {
+            // Not a limit this build can name: a limit all the same, as its status says.
+            return null
+        } catch (_: IllegalArgumentException) {
+            return null
+        }
+    return LIMIT_REFUSAL_TRANSPORT_CODES.firstOrNull { it.status == status && it.code == limit.code.value }?.transport
+}
 
 /** The gateway's words for a refusal, when its body states them; null when it does not. */
 internal fun said(body: ByteArray?): String? =

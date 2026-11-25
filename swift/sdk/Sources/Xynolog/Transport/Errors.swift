@@ -96,3 +96,13 @@ public struct TransportTiming: Sendable {
     self.emitMaxDelayMs = emitMaxDelayMs ?? Timings.emitRetry.maxDelayMs
   }
 }
+
+/// The code a refusal of `status` fails with: a gateway's refusal of a limit
+/// whose status and `LimitRefusal` code are one of
+/// `limitRefusalTransportCodes` is that transport code (a refused credential
+/// whose holder has had its allowance of refusals is `unauthorized`); any
+/// other is its status's.
+func transportErrorCode(for status: Int, limit code: String?) -> TransportErrorCode {
+  limitRefusalTransportCodes.first { $0.0 == status && $0.1 == code }?.2
+    ?? transportErrorCode(for: status)
+}

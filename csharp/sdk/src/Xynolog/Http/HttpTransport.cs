@@ -667,7 +667,7 @@ public sealed partial class HttpTransport : IDisposable
         try
         {
             using var body = JsonDocument.Parse(text);
-            if (status == 429 && body.RootElement.ValueKind == JsonValueKind.Object && body.RootElement.TryGetProperty("code", out var value) && value.ValueKind == JsonValueKind.String && value.Deserialize<LimitRefusalCode>() == LimitRefusalCode.RefusalRate) code = TransportErrorCode.Unauthorized;
+            if (body.RootElement.ValueKind == JsonValueKind.Object && body.RootElement.TryGetProperty("code", out var value) && value.ValueKind == JsonValueKind.String && TransportErrorCode.OfLimitRefusal(status, value.GetString()!) is { } limited) code = limited;
         }
         catch (JsonException) { }
         return new TransportError(code, $"HTTP {status}: {text}", status);

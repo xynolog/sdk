@@ -39,8 +39,11 @@ let text (t : Table.t) =
       (List.concat_map
          (fun (v : Table.vocabulary) -> [ v.name; codes_constant v ])
          vocabularies
-      @ [ "bus_request_code_for_wire_code"; "transport_error_code_for_status" ]
-      )
+      @ [
+          "LIMIT_REFUSAL_TRANSPORT_CODES";
+          "bus_request_code_for_wire_code";
+          "transport_error_code_for_status";
+        ])
   in
   let str (c : Table.code) = P.Str c.code in
   P.text
@@ -145,6 +148,35 @@ let text (t : Table.t) =
                        (Option.to_list t.from)
                   @ [ P.Return (str t.unclassified) ];
               };
+            P.assign "LIMIT_REFUSAL_TRANSPORT_CODES"
+              ~annotation:
+                (P.sub "Final"
+                   [
+                     P.item
+                       (P.sub "tuple"
+                          [
+                            P.item
+                              (P.sub "tuple"
+                                 [
+                                   P.item (P.Name "int");
+                                   P.item (P.Name "str");
+                                   P.item (P.Name t.transport.name);
+                                 ]);
+                            P.item P.Ellipsis;
+                          ]);
+                   ])
+              ~value:
+                (P.tuple ~magic:true
+                   (List.map
+                      (fun (status, limit, c) ->
+                        P.item
+                          (P.tuple [ P.item (P.Int status); P.item (P.Str limit); P.item (str c) ]))
+                      t.limit_refusals))
+              ~doc:
+                (As_is
+                   "Each gateway refusal of a limit that is a transport code \
+                    too: its status, its `LimitRefusal` code, and the \
+                    transport code it is.");
           ]
         @ List.concat_map union (t.others @ [ t.control ]);
     }
