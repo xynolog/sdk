@@ -4,9 +4,7 @@
 // The TypeScript, Python and Rust vocabularies are generated from the same
 // table.
 
-package xynolog
-
-import "github.com/xynolog/sdk/go/api"
+package api
 
 // Why a bus request did not resolve. Some members restate a failure the
 // answering peer declared on the wire (`wire` names its `CommandError.code`);
@@ -48,18 +46,18 @@ const (
 // code the required table does not recognize out of the failure before it
 // decodes it, so a code CommandErrorCode does not name is none a failure is
 // read with: given one, it panics.
-func BusRequestErrorCodeOfWire(code *api.CommandErrorCode) BusRequestErrorCode {
+func BusRequestErrorCodeOfWire(code *CommandErrorCode) BusRequestErrorCode {
 	if code == nil {
 		return BusRequestErrorCodeRejected
 	}
 	switch *code {
-	case api.CommandErrorCodeNotFound:
+	case CommandErrorCodeNotFound:
 		return BusRequestErrorCodeNotFound
-	case api.CommandErrorCodePeerUnavailable:
+	case CommandErrorCodePeerUnavailable:
 		return BusRequestErrorCodePeerUnavailable
-	case api.CommandErrorCodeUnauthorized:
+	case CommandErrorCodeUnauthorized:
 		return BusRequestErrorCodeUnauthorized
-	case api.CommandErrorCodeNonePending:
+	case CommandErrorCodeNonePending:
 		return BusRequestErrorCodeNonePending
 	default:
 		panic("a failure's code \"" + string(*code) + "\" is none of CommandErrorCode's: the required table recognizes a code CommandError does not list")
@@ -69,16 +67,16 @@ func BusRequestErrorCodeOfWire(code *api.CommandErrorCode) BusRequestErrorCode {
 // Wire is the wire code a peer stated, when this code restates one: what a
 // service answers its own caller with. A failure only this side knows states
 // none, and ok is false.
-func (c BusRequestErrorCode) Wire() (code api.CommandErrorCode, ok bool) {
+func (c BusRequestErrorCode) Wire() (code CommandErrorCode, ok bool) {
 	switch c {
 	case BusRequestErrorCodeNotFound:
-		return api.CommandErrorCodeNotFound, true
+		return CommandErrorCodeNotFound, true
 	case BusRequestErrorCodePeerUnavailable:
-		return api.CommandErrorCodePeerUnavailable, true
+		return CommandErrorCodePeerUnavailable, true
 	case BusRequestErrorCodeUnauthorized:
-		return api.CommandErrorCodeUnauthorized, true
+		return CommandErrorCodeUnauthorized, true
 	case BusRequestErrorCodeNonePending:
-		return api.CommandErrorCodeNonePending, true
+		return CommandErrorCodeNonePending, true
 	default:
 		return "", false
 	}

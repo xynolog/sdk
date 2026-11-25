@@ -23,7 +23,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/kept"
 	"github.com/xynolog/sdk/go/internal/required"
@@ -313,7 +312,7 @@ func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting PutBinaryR
 		defer span.End()
 		body, contentType, err := form(putting)
 		if err != nil {
-			return api.CreateResourceResponse{}, c.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an upload that cannot be written: %v", err), TransportErrorCodeError))
+			return api.CreateResourceResponse{}, c.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an upload that cannot be written: %v", err), api.TransportErrorCodeError))
 		}
 		var started api.UploadProgress
 		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: len(body)}); err != nil {
@@ -354,7 +353,7 @@ func contentType(response *http.Response) string {
 
 // interrupted is a read whose bytes stopped coming.
 func interrupted(resource api.ResourceId, err error) *TransportError {
-	return transportErrorWithoutResponse(fmt.Sprintf("%s %s ended before its bytes did: %v", RouteGetResourceRepresentation.Method, resourcePath(RouteGetResourceRepresentation, resource), err), TransportErrorCodeUnavailable)
+	return transportErrorWithoutResponse(fmt.Sprintf("%s %s ended before its bytes did: %v", RouteGetResourceRepresentation.Method, resourcePath(RouteGetResourceRepresentation, resource), err), api.TransportErrorCodeUnavailable)
 }
 
 // GetBinary reads a resource's bytes, whole.
@@ -460,7 +459,7 @@ func (t *HTTPTransport) GetMediaToken(ctx context.Context, resource api.Resource
 	spec := t.operation(RouteCreateMediaToken, true)
 	body, err := jsonBody(api.MediaTokenRequest{ResourceId: resource})
 	if err != nil {
-		return api.MediaTokenResponse{}, t.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("a media token request that does not serialize: %v", err), TransportErrorCodeError))
+		return api.MediaTokenResponse{}, t.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("a media token request that does not serialize: %v", err), api.TransportErrorCodeError))
 	}
 	spec.body, spec.contentType = body, routeCreateMediaTokenSends
 	return answer[api.MediaTokenResponse](ctx, t.shared, spec)

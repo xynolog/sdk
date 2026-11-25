@@ -28,13 +28,26 @@ let vocabulary ~name (v : Table.vocabulary) =
               ( [ "derive" ],
                 List.map
                   (fun w -> R.Word [ w ])
-                  [ "Debug"; "Clone"; "Copy"; "PartialEq"; "Eq"; "Hash" ] );
+                  [
+                    "Debug";
+                    "Clone";
+                    "Copy";
+                    "PartialEq";
+                    "Eq";
+                    "Hash";
+                    "serde::Deserialize";
+                    "serde::Serialize";
+                  ] );
           ];
         vis = Pub;
         name;
         variants =
           List.map
-            (fun (c : Table.code) -> R.variant ~doc:[ c.docs ] (variant c))
+            (fun (c : Table.code) ->
+              R.variant ~doc:[ c.docs ]
+                ~attrs:
+                  [ R.List ([ "serde" ], [ R.Name_value ("rename", R.Str c.code) ]) ]
+                (variant c))
             v.codes;
       };
     R.Blank;

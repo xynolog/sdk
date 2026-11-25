@@ -23,7 +23,7 @@ import (
 func DescribeConnection(ctx context.Context, target api.HttpEndpoint, access string, client *http.Client, timing Timing, random *rand.Rand) (api.ConnectionIdentity, error) {
 	baseURL, err := GatewayURL(target)
 	if err != nil {
-		return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: IdentityUnverifiableReasonUnreachable, Detail: err.Error()}
+		return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: api.IdentityUnverifiableReasonUnreachable, Detail: err.Error()}
 	}
 	// A client of this one operation: it hears its replies and nothing else.
 	transport := NewHTTPTransport(HTTPTransportConfig{
@@ -42,15 +42,15 @@ func DescribeConnection(ctx context.Context, target api.HttpEndpoint, access str
 		// A refusal is the knowledge base answering that it cannot say what
 		// it is. Anything else is not having reached it.
 		var refusal *BusRequestError
-		if errors.As(err, &refusal) && refusal.Code == BusRequestErrorCodeRejected {
-			return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: IdentityUnverifiableReasonNotReported, Detail: refusal.Error()}
+		if errors.As(err, &refusal) && refusal.Code == api.BusRequestErrorCodeRejected {
+			return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: api.IdentityUnverifiableReasonNotReported, Detail: refusal.Error()}
 		}
-		return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: IdentityUnverifiableReasonUnreachable, Detail: err.Error()}
+		return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: api.IdentityUnverifiableReasonUnreachable, Detail: err.Error()}
 	}
 	did, err := KbDid(description.Domain)
 	if err != nil {
 		// A domain no DID can hold says nothing of who this is.
-		return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: IdentityUnverifiableReasonNotReported, Detail: err.Error()}
+		return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: api.IdentityUnverifiableReasonNotReported, Detail: err.Error()}
 	}
 	return api.ConnectionIdentity{Did: did, Description: description}, nil
 }

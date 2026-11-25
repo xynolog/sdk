@@ -160,7 +160,7 @@ func (b *EventBus) Close() {
 func Publish[P any](b *EventBus, c bus.Global[P], payload P, envelope Envelope) error {
 	encoded, err := json.Marshal(payload)
 	if err != nil {
-		return transportErrorWithoutResponse(fmt.Sprintf("a payload on %s that does not encode: %v", c.Channel(), err), TransportErrorCodeError)
+		return transportErrorWithoutResponse(fmt.Sprintf("a payload on %s that does not encode: %v", c.Channel(), err), api.TransportErrorCodeError)
 	}
 	b.Deliver(Frame{Channel: c.Channel(), Envelope: envelope, Payload: encoded})
 	return nil
@@ -181,7 +181,7 @@ func Published[P any](ctx context.Context, b *EventBus, c bus.Global[P]) iter.Se
 // c's, is its *FrameRefusal.
 func Decoded[P any](c bus.Global[P], frame Frame, refused error) (Delivered[P], error) {
 	if frame.Channel != c.Channel() {
-		return Delivered[P]{}, transportErrorWithoutResponse(fmt.Sprintf("a frame on %s read as one on %s", frame.Channel, c.Channel()), TransportErrorCodeError)
+		return Delivered[P]{}, transportErrorWithoutResponse(fmt.Sprintf("a frame on %s read as one on %s", frame.Channel, c.Channel()), api.TransportErrorCodeError)
 	}
 	return heardAs[P](frame, refused)
 }

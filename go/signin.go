@@ -137,18 +137,18 @@ func resumed(config ResumeConfig, baseURL string) SessionConfig {
 func gatewayOf(kb api.KbTarget) (string, error) {
 	kind, err := kb.Endpoint.Discriminator()
 	if err != nil {
-		return "", &SessionError{Code: SessionErrorCodeConstructFailed, Message: fmt.Sprintf("The knowledge base's endpoint cannot be read: %v", err), KbID: kb.Id}
+		return "", &SessionError{Code: api.SessionErrorCodeConstructFailed, Message: fmt.Sprintf("The knowledge base's endpoint cannot be read: %v", err), KbID: kb.Id}
 	}
 	if kind != string(api.HttpEndpointKindHttp) {
-		return "", &SessionError{Code: SessionErrorCodeConstructFailed, Message: fmt.Sprintf("A session over HTTP cannot be built for endpoint kind %q", kind), KbID: kb.Id}
+		return "", &SessionError{Code: api.SessionErrorCodeConstructFailed, Message: fmt.Sprintf("A session over HTTP cannot be built for endpoint kind %q", kind), KbID: kb.Id}
 	}
 	var endpoint api.HttpEndpoint
 	if err := kb.Endpoint.As(&endpoint); err != nil {
-		return "", &SessionError{Code: SessionErrorCodeConstructFailed, Message: fmt.Sprintf("The knowledge base's endpoint cannot be read: %v", err), KbID: kb.Id}
+		return "", &SessionError{Code: api.SessionErrorCodeConstructFailed, Message: fmt.Sprintf("The knowledge base's endpoint cannot be read: %v", err), KbID: kb.Id}
 	}
 	baseURL, err := GatewayURL(endpoint)
 	if err != nil {
-		return "", &SessionError{Code: SessionErrorCodeConstructFailed, Message: err.Error(), KbID: kb.Id}
+		return "", &SessionError{Code: api.SessionErrorCodeConstructFailed, Message: err.Error(), KbID: kb.Id}
 	}
 	return baseURL, nil
 }
@@ -310,7 +310,7 @@ func (k *keptFor) attach(personKey string) {
 // refused says, as session.save-refused, a write of what the client keeps
 // that the storage refused: of a cache, or of the places its write carries.
 func (k *keptFor) refused(err error) {
-	k.failures.Report(&SessionError{Code: SessionErrorCodeSaveRefused, Message: "The storage refused a write of what the client keeps: " + err.Error(), KbID: k.kbID})
+	k.failures.Report(&SessionError{Code: api.SessionErrorCodeSaveRefused, Message: "The storage refused a write of what the client keeps: " + err.Error(), KbID: k.kbID})
 }
 
 // Forget is the session forgetting its sign-in (its expiry, its refusal).
@@ -339,7 +339,7 @@ func (k *keptFor) stopsKeeping(why string) {
 	k.keepFailed = true
 	k.mu.Unlock()
 	if !said {
-		k.failures.Report(&SessionError{Code: SessionErrorCodeKeepFailed, Message: why, KbID: k.kbID})
+		k.failures.Report(&SessionError{Code: api.SessionErrorCodeKeepFailed, Message: why, KbID: k.kbID})
 	}
 }
 

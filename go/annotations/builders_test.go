@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/annotations"
 	"github.com/xynolog/sdk/go/api"
 )
@@ -31,7 +30,7 @@ type builderCase struct {
 	Generator  *api.Agent            `json:"generator"`
 	Body       *api.AnnotationBodies `json:"body"`
 	Annotation json.RawMessage       `json:"annotation"`
-	Refused    xynolog.SpanRefusal   `json:"refused"`
+	Refused    api.SpanRefusal   `json:"refused"`
 }
 
 // builderTable is the table, with a span's offsets as the table writes them.
@@ -128,7 +127,7 @@ func TestAnnotationOfSpanBuildsOrRefusesAsTheTableSays(t *testing.T) {
 		end, endOK := offset(stated.Span.End)
 		if !startOK || !endOK {
 			// A span here holds two ints, so an offset that is no whole number is refused where the span is made.
-			if stated.Refused != xynolog.SpanRefusalSpanOutOfRange {
+			if stated.Refused != api.SpanRefusalSpanOutOfRange {
 				t.Errorf("%s: offsets %s to %s are no ints, and the table says %q", stated.Why, stated.Span.Start, stated.Span.End, stated.Refused)
 			}
 			continue

@@ -115,7 +115,7 @@ let lacking : (item * (Coverage_sdk.t * lack) list) list =
              refused span is." );
         ( Go,
           Absent
-            "Go's is xynolog.SpanRefusal, generated with the other error codes."
+            "Go's is api.SpanRefusal, generated with the other error codes."
         );
         ( Csharp,
           Absent "C# reports the shared refusal code on SpanRefusedError." );

@@ -85,7 +85,7 @@ func answered[T any](g *StubGateway, call GatewayCall, scripted func() *T) (T, e
 	answer := scripted()
 	if answer == nil {
 		var none T
-		return none, &xynolog.TransportError{Code: xynolog.TransportErrorCodeError, Message: fmt.Sprintf("StubGateway: not scripted: %s", call.Operation)}
+		return none, &xynolog.TransportError{Code: api.TransportErrorCodeError, Message: fmt.Sprintf("StubGateway: not scripted: %s", call.Operation)}
 	}
 	return *answer, nil
 }

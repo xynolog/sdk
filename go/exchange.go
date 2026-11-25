@@ -49,7 +49,7 @@ type answered struct {
 
 // unanswered is a request the gateway did not answer by its deadline.
 func unanswered(method, path string, deadline time.Duration) *TransportError {
-	return transportErrorWithoutResponse(fmt.Sprintf("%s %s got no answer within %s", method, path, deadline), TransportErrorCodeUnavailable)
+	return transportErrorWithoutResponse(fmt.Sprintf("%s %s got no answer within %s", method, path, deadline), api.TransportErrorCodeUnavailable)
 }
 
 // exchange is one request and its answer. A request whose credential is
@@ -88,7 +88,7 @@ func (s *transportShared) exchange(ctx context.Context, spec request) (answered,
 		made, err := http.NewRequestWithContext(attempt, spec.method, s.baseURL+spec.path, body)
 		if err != nil {
 			cancel()
-			return answered{}, s.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("%s %s cannot be asked: %v", spec.method, spec.path, err), TransportErrorCodeError))
+			return answered{}, s.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("%s %s cannot be asked: %v", spec.method, spec.path, err), api.TransportErrorCodeError))
 		}
 		if spec.body != nil {
 			made.ContentLength = length
@@ -126,7 +126,7 @@ func (s *transportShared) exchange(ctx context.Context, spec request) (answered,
 				}
 				continue
 			}
-			return answered{}, s.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("%s %s got no answer: %v", spec.method, spec.path, err), TransportErrorCodeUnavailable))
+			return answered{}, s.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("%s %s got no answer: %v", spec.method, spec.path, err), api.TransportErrorCodeUnavailable))
 		}
 		if response.StatusCode >= 200 && response.StatusCode <= 299 {
 			return answered{response: response, done: func() { response.Body.Close(); cancel() }}, nil
@@ -147,7 +147,7 @@ func (s *transportShared) exchange(ctx context.Context, spec request) (answered,
 		cancel()
 		wait, hasWait := RetryAfter(response.Header.Get(HeaderRetryAfter))
 		refused := refusal(refusalMessage(response, said), response.StatusCode, wait, hasWait, said)
-		if refused.Code == TransportErrorCodeUnauthorized {
+		if refused.Code == api.TransportErrorCodeUnauthorized {
 			if !renewed {
 				if fresh, ok := s.renewal(ctx, token); ok {
 					token, renewed = fresh, true
@@ -213,7 +213,7 @@ func answer[T any](ctx context.Context, s *transportShared, spec request) (T, er
 		return out, s.failures.Report(unanswered(spec.method, spec.path, spec.deadline))
 	}
 	notItsBody := func(fault required.Fault) error {
-		failure := &TransportError{Code: TransportErrorCodeError, Message: fmt.Sprintf("%s %s answered what is not its declared body: %s", spec.method, spec.path, fault), status: got.response.StatusCode, hasStatus: true}
+		failure := &TransportError{Code: api.TransportErrorCodeError, Message: fmt.Sprintf("%s %s answered what is not its declared body: %s", spec.method, spec.path, fault), status: got.response.StatusCode, hasStatus: true}
 		return s.failures.Report(failure)
 	}
 	body, fault, faulty := required.Read(raw, reflect.TypeFor[T]())

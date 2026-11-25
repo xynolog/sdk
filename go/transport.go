@@ -70,7 +70,7 @@ type Transport interface {
 // deliver.
 func Unsubscribed(channel bus.Channel) *BusRequestError {
 	return &BusRequestError{
-		Code:    BusRequestErrorCodeUnsubscribed,
+		Code:    api.BusRequestErrorCodeUnsubscribed,
 		Message: fmt.Sprintf("Transport is not subscribed to %s: a frame on it can never arrive on this connection. Add the channel to this client's channels.", channel),
 	}
 }

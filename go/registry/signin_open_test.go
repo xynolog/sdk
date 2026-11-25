@@ -751,7 +751,7 @@ func readAgain(t *testing.T, browser *registry.XynologBrowser) api.KbReadKind {
 
 // ── What the session's transport fails at ───────────────────────────────
 
-func refusal(code xynolog.TransportErrorCode, status int) *xynolog.TransportError {
+func refusal(code api.TransportErrorCode, status int) *xynolog.TransportError {
 	return &xynolog.TransportError{Code: code, Message: fmt.Sprintf("HTTP %d", status)}
 }
 
@@ -852,16 +852,16 @@ func TestAConflictIsNotActedOnAndNoOtherFailureEndsTheSession(t *testing.T) {
 		live(t, browser)
 		transport := w.factory.sessions.Transports(kbA)[0]
 
-		transport.Fail(refusal(xynolog.TransportErrorCodeConflict, 409))
+		transport.Fail(refusal(api.TransportErrorCodeConflict, 409))
 		settle()
 		if denied(browser) != nil || sessionEnded(browser) != nil || w.factory.sessions.Renewed() != 0 {
 			t.Error("a conflict was acted on")
 		}
 
-		transport.Fail(refusal(xynolog.TransportErrorCodeNotFound, 404))
-		transport.Fail(refusal(xynolog.TransportErrorCodeError, 500))
-		transport.Fail(refusal(xynolog.TransportErrorCodeUnavailable, 503))
-		transport.Fail(refusal(xynolog.TransportErrorCodeForbidden, 403))
+		transport.Fail(refusal(api.TransportErrorCodeNotFound, 404))
+		transport.Fail(refusal(api.TransportErrorCodeError, 500))
+		transport.Fail(refusal(api.TransportErrorCodeUnavailable, 503))
+		transport.Fail(refusal(api.TransportErrorCodeForbidden, 403))
 		settle()
 		if denied(browser) == nil {
 			t.Fatal("the failures were not read: the refusal for lack of permission after them is not said")
@@ -881,7 +881,7 @@ func (f forbiddenAtTheStart) Session(ctx context.Context, options registry.Sessi
 	session, end, err := f.ScriptedSessions.Session(ctx, options)
 	if err == nil {
 		transports := f.Transports(options.Kb.Id)
-		transports[len(transports)-1].Fail(refusal(xynolog.TransportErrorCodeForbidden, 403))
+		transports[len(transports)-1].Fail(refusal(api.TransportErrorCodeForbidden, 403))
 	}
 	return session, end, err
 }

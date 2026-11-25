@@ -10,6 +10,8 @@ import (
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
 )
 
 // CacheState is a key's state, the same for every observer of the key:
@@ -54,7 +56,7 @@ type CachePersister[K comparable, V any] interface {
 // closedRead is what a read of a closed client fails as: what a request of
 // a closed bus does.
 func closedRead() error {
-	return &BusRequestError{Code: BusRequestErrorCodeClosed, Message: "The client is closed"}
+	return &BusRequestError{Code: api.BusRequestErrorCodeClosed, Message: "The client is closed"}
 }
 
 // flight is one fetch of a key: what it came to once done is closed. What

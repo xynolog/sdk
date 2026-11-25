@@ -276,10 +276,10 @@ func TestAnUploadThatGotNoAnswerIsSentOnceMore(t *testing.T) {
 func TestARefusedUploadIsNotSentAgain(t *testing.T) {
 	for _, refusal := range []struct {
 		status int
-		code   xynolog.TransportErrorCode
+		code   api.TransportErrorCode
 	}{
-		{http.StatusBadRequest, xynolog.TransportErrorCodeBadRequest},
-		{http.StatusUnprocessableEntity, xynolog.TransportErrorCodeUnprocessable},
+		{http.StatusBadRequest, api.TransportErrorCodeBadRequest},
+		{http.StatusUnprocessableEntity, api.TransportErrorCodeUnprocessable},
 	} {
 		t.Run(http.StatusText(refusal.status), func(t *testing.T) {
 			gateway := newUploadGateway(t, refuse(refusal.status))
@@ -326,7 +326,7 @@ func TestAnUploadIsSentOnceMoreAtMost(t *testing.T) {
 	gateway := newUploadGateway(t, refuse(http.StatusServiceUnavailable), hangUp(t))
 	_, err := waitFor(t, uploader(t, gateway).PutBinary(context.Background(), anUpload()))
 	var unanswered *xynolog.TransportError
-	if !errors.As(err, &unanswered) || unanswered.Code != xynolog.TransportErrorCodeUnavailable {
+	if !errors.As(err, &unanswered) || unanswered.Code != api.TransportErrorCodeUnavailable {
 		t.Errorf("the upload failed with %v, want it unavailable", err)
 	}
 	sentTwiceWithOneKey(t, gateway)

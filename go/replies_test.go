@@ -34,7 +34,7 @@ func refusedAs(t *testing.T, why string, err error, said string) {
 		t.Errorf("%s: read, or failed as %v, and it has a fault", why, err)
 		return
 	}
-	if refused.Code != xynolog.TransportErrorCodeError || refused.Message != said {
+	if refused.Code != api.TransportErrorCodeError || refused.Message != said {
 		t.Errorf("%s: refused as %s %q, not as an error saying %q", why, refused.Code, refused.Message, said)
 	}
 }
@@ -157,7 +157,7 @@ func TestAFailureWhoseCodeTheWireDoesNotListIsRejectedInItsOwnWords(t *testing.T
 	byType, byChannel := failed(t, `{"message":"a code from a later peer","code":"not-a-code-yet"}`)
 	for _, err := range []error{byType, byChannel} {
 		var rejected *xynolog.BusRequestError
-		if !errors.As(err, &rejected) || rejected.Code != xynolog.BusRequestErrorCodeRejected || rejected.Message != "a code from a later peer" {
+		if !errors.As(err, &rejected) || rejected.Code != api.BusRequestErrorCodeRejected || rejected.Message != "a code from a later peer" {
 			t.Errorf("failed with %v, not as a rejection in the failure's words", err)
 		}
 	}

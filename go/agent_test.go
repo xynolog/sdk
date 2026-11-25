@@ -14,6 +14,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
 )
 
 type agentWorld struct {
@@ -270,7 +272,7 @@ func TestARefusedServiceAccountNamesNoSecret(t *testing.T) {
 		t.Fatal("signed in with the wrong secret")
 	}
 	var failed *SignInError
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Errorf("failed as %v", err)
 	}
 	if strings.Contains(err.Error(), "s3cret") || strings.Contains(err.Error(), "wrong") {

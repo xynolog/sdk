@@ -44,6 +44,9 @@ and node = {
   one_of : t list option;
   discriminator : string option;  (** Its property's name. *)
   pattern : string option;
+  codes : string option;
+      (** The vocabulary of errors/codes.json its text is a code of
+          ([x-xynolog-codes]). *)
 }
 
 let node keys =
@@ -67,6 +70,7 @@ let node keys =
     one_of = None;
     discriminator = None;
     pattern = None;
+    codes = None;
   }
 
 (* A schema as what it means: one that states an [allOf], what its parts
@@ -345,6 +349,7 @@ let view ~ids ~named ~schemas =
                   (fun (d : Schema.discriminator) -> d.property_name)
                   s.discriminator;
               pattern = s.pattern;
+              codes = s.codes;
             }
           in
           Node own

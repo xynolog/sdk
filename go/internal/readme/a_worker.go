@@ -45,7 +45,7 @@ func Run(ctx context.Context, client *xynolog.Client) error {
 	// Each job the worker comes to hold, one at a time. The next is claimed when this one settles.
 	for held, err := range claims.All() {
 		var refused *xynolog.ClaimRefusal
-		if errors.As(err, &refused) && refused.Code != nil && *refused.Code == xynolog.BusRequestErrorCodeUnauthorized {
+		if errors.As(err, &refused) && refused.Code != nil && *refused.Code == api.BusRequestErrorCodeUnauthorized {
 			// This credential can never claim. Stop, so that whoever runs the worker sees it.
 			return refused
 		}

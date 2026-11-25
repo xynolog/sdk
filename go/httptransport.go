@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
@@ -281,7 +280,7 @@ type emitted struct {
 func (s *transportShared) emit(ctx context.Context, body api.BusEmitRequest) (int, bool, error) {
 	encoded, err := json.Marshal(body)
 	if err != nil {
-		return 0, false, s.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an emit on %s that does not serialize: %v", body.Channel, err), TransportErrorCodeError))
+		return 0, false, s.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an emit on %s that does not serialize: %v", body.Channel, err), api.TransportErrorCodeError))
 	}
 	key := uuid.NewString()
 	token := s.token.Value()
@@ -292,7 +291,7 @@ func (s *transportShared) emit(ctx context.Context, body api.BusEmitRequest) (in
 			func(ctx context.Context) (emitted, error) { return s.emitOnce(ctx, sent, key, encoded) },
 			func(err error) bool {
 				var refused *TransportError
-				if !errors.As(err, &refused) || refused.Code == TransportErrorCodeUnauthorized {
+				if !errors.As(err, &refused) || refused.Code == api.TransportErrorCodeUnauthorized {
 					return false
 				}
 				status, ok := refused.Status()
@@ -316,7 +315,7 @@ func (s *transportShared) emit(ctx context.Context, body api.BusEmitRequest) (in
 			return 0, false, ctx.Err()
 		}
 		var refused *TransportError
-		if errors.As(err, &refused) && refused.Code == TransportErrorCodeUnauthorized && !renewed {
+		if errors.As(err, &refused) && refused.Code == api.TransportErrorCodeUnauthorized && !renewed {
 			if fresh, ok := s.renewal(ctx, sent); ok {
 				token, renewed = fresh, true
 				continue
@@ -335,7 +334,7 @@ func (s *transportShared) emitOnce(ctx context.Context, token, key string, body 
 	defer cancel()
 	request, err := http.NewRequestWithContext(attempt, RouteEmitOnBus.Method, s.baseURL+RouteEmitOnBus.Path, bytes.NewReader(body))
 	if err != nil {
-		return emitted{}, transportErrorWithoutResponse(fmt.Sprintf("%s cannot be asked: %v", RouteEmitOnBus.Path, err), TransportErrorCodeError)
+		return emitted{}, transportErrorWithoutResponse(fmt.Sprintf("%s cannot be asked: %v", RouteEmitOnBus.Path, err), api.TransportErrorCodeError)
 	}
 	request.Header.Set("Content-Type", routeEmitOnBusSends)
 	request.Header.Set("Authorization", "Bearer "+token)
@@ -346,7 +345,7 @@ func (s *transportShared) emitOnce(ctx context.Context, token, key string, body 
 		if ctx.Err() != nil {
 			return emitted{}, ctx.Err()
 		}
-		return emitted{}, transportErrorWithoutResponse(fmt.Sprintf("%s got no answer: %v", RouteEmitOnBus.Path, err), TransportErrorCodeUnavailable)
+		return emitted{}, transportErrorWithoutResponse(fmt.Sprintf("%s got no answer: %v", RouteEmitOnBus.Path, err), api.TransportErrorCodeUnavailable)
 	}
 	defer response.Body.Close()
 	answered, readErr := io.ReadAll(response.Body)

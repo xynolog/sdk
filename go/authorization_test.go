@@ -172,7 +172,7 @@ func TestCompletingASignInExchangesTheCodeWithItsVerifierOnce(t *testing.T) {
 	}
 	_, _, err = CompleteAuthorization(context.Background(), issuerOf(), callback, storage)
 	var refused *SignInError
-	if !errors.As(err, &refused) || refused.Code != SignInErrorCodeNoPending {
+	if !errors.As(err, &refused) || refused.Code != api.SignInErrorCodeNoPending {
 		t.Errorf("a callback replayed: %v", err)
 	}
 	if got := forms(); len(got) != 1 {
@@ -184,10 +184,10 @@ func TestAResponseThatIsNotThePendingSignInsIsRefusedAndNothingIsExchanged(t *te
 	s := newStack(t)
 	storage := NewMemoryStorage()
 	forms := granting(s, "an-access-token", "a-refresh-token")
-	for response, want := range map[string]SignInErrorCode{
-		"state=another&code=the-code":                              SignInErrorCodeState,
-		"error=access_denied&error_description=The+person+said+no": SignInErrorCodeDenied,
-		"error=server_error":                                       SignInErrorCodeExchange,
+	for response, want := range map[string]api.SignInErrorCode{
+		"state=another&code=the-code":                              api.SignInErrorCodeState,
+		"error=access_denied&error_description=The+person+said+no": api.SignInErrorCodeDenied,
+		"error=server_error":                                       api.SignInErrorCodeExchange,
 	} {
 		begun(t, s, storage)
 		_, _, err := CompleteAuthorization(context.Background(), issuerOf(), redirectURI+"?"+response, storage)
@@ -225,7 +225,7 @@ func TestATokenEndpointThatIssuesNoRefreshTokenIsRefused(t *testing.T) {
 	})
 	_, _, err := CompleteAuthorization(context.Background(), issuerOf(), redirectURI+"?state="+record.State+"&code=the-code", storage)
 	var refused *SignInError
-	if !errors.As(err, &refused) || refused.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &refused) || refused.Code != api.SignInErrorCodeExchange {
 		t.Errorf("a grant with no refresh token: %v", err)
 	}
 }

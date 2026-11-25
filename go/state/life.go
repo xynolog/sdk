@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // life is a unit's: whether it is closed, and the context its work runs
@@ -87,5 +88,5 @@ func (l *life) listen(frames iter.Seq2[xynolog.Frame, error], heard func(xynolog
 // commits stand, and its display stays to say so.
 func cancelled(err error) bool {
 	var ended *xynolog.JobError
-	return errors.As(err, &ended) && ended.Code == xynolog.JobErrorCodeCancelled
+	return errors.As(err, &ended) && ended.Code == api.JobErrorCodeCancelled
 }

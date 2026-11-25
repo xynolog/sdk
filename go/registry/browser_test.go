@@ -792,7 +792,7 @@ func TestASessionThatCannotBeBuiltIsSaidAndThereIsNone(t *testing.T) {
 		}
 		settle()
 
-		if refused == nil || refused.Code != xynolog.SessionErrorCodeConstructFailed || refused.KbID != kbA {
+		if refused == nil || refused.Code != api.SessionErrorCodeConstructFailed || refused.KbID != kbA {
 			t.Fatalf("the failure said is %+v", refused)
 		}
 		if sessionOf(browser) != "" || browser.ActiveSignals().Value() != nil || browser.SessionActivating().Value() {

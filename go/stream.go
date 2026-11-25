@@ -467,7 +467,7 @@ func (s *stream) frame(conn uint64, id string, hasID bool, data string) {
 		refusal, named := refusalOf(data, fault)
 		if !named {
 			// What names no reader is told to the failure report.
-			s.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("the stream carried what is not a frame: %s", fault), TransportErrorCodeError))
+			s.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("the stream carried what is not a frame: %s", fault), api.TransportErrorCodeError))
 			return
 		}
 		s.shared.router.RouteRefusal(refusal)
@@ -504,7 +504,7 @@ func (s *stream) refused(conn uint64, err *TransportError) {
 	// A refused connect is a request the gateway refused, reported as one. A
 	// connect that got no answer is not: it is a state.
 	statedWait, _ := err.RetryAfter()
-	credentialRefused := err.Code == TransportErrorCodeUnauthorized
+	credentialRefused := err.Code == api.TransportErrorCodeUnauthorized
 	s.shared.failures.Report(err)
 	_, superseded := s.superseded[conn]
 	delete(s.superseded, conn)
@@ -835,7 +835,7 @@ func (s *stream) read(ctx context.Context, conn uint64, token string, body api.B
 func refusal(message string, status int, wait time.Duration, hasWait bool, body []byte) *TransportError {
 	refused := transportErrorOfStatus(message, status, wait, hasWait)
 	if refusesCredential(status, body) {
-		refused.Code = TransportErrorCodeUnauthorized
+		refused.Code = api.TransportErrorCodeUnauthorized
 	}
 	return refused
 }

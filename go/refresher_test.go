@@ -150,7 +150,7 @@ func TestEachRowOfTheRefreshTableDoesWhatItStatesToWhatIsHeld(t *testing.T) {
 				}
 				if slices.Contains(row.Removes, xynolog.CacheQueryAnnotation) {
 					failed, ok := one.now(t).(xynolog.Failed)
-					if !ok || codeOf(failed.Err) != string(xynolog.BusRequestErrorCodeNotFound) {
+					if !ok || codeOf(failed.Err) != string(api.BusRequestErrorCodeNotFound) {
 						t.Fatal("the annotation removed is not failed as not found")
 					}
 				}
@@ -487,7 +487,7 @@ func TestB13aAnAnnotationThatIsGoneEndsAsNotFoundAndItsNextWatcherAsksNamingItsR
 	w.transport.Deliver(eventOf(t, xynolog.CacheRefreshMarkDeleteOk, "", "res-1", "ann-2"))
 	w.transport.Deliver(eventOf(t, xynolog.CacheRefreshMarkDeleteOk, "", "res-1", "ann-1"))
 	failed, ok := one.now(t).(xynolog.Failed)
-	if !ok || codeOf(failed.Err) != string(xynolog.BusRequestErrorCodeNotFound) || failed.Err.Error() != "Annotation ann-1 was removed" {
+	if !ok || codeOf(failed.Err) != string(api.BusRequestErrorCodeNotFound) || failed.Err.Error() != "Annotation ann-1 was removed" {
 		t.Fatalf("the annotation removed is %#v", failed)
 	}
 	time.Sleep(settling)
@@ -575,7 +575,7 @@ func TestClosingAClientEndsEveryQuerysWatcherAndFailsEveryReadStillWaitingAsClos
 	for i, read := range reads {
 		select {
 		case err := <-read:
-			if err == nil || codeOf(err) != string(xynolog.BusRequestErrorCodeClosed) {
+			if err == nil || codeOf(err) != string(api.BusRequestErrorCodeClosed) {
 				t.Fatalf("the read of the %s ended with %v, want bus.closed", queries[i].name, err)
 			}
 		case <-time.After(2 * time.Second):
@@ -591,7 +591,7 @@ func TestClosingAClientEndsEveryQuerysWatcherAndFailsEveryReadStillWaitingAsClos
 	m := w.mark()
 	for _, each := range everything(t, w.client) {
 		watch(t, each.query).ended(t)
-		if err := each.read(context.Background()); err == nil || codeOf(err) != string(xynolog.BusRequestErrorCodeClosed) {
+		if err := each.read(context.Background()); err == nil || codeOf(err) != string(api.BusRequestErrorCodeClosed) {
 			t.Fatalf("the read of the %s ended with %v, want bus.closed", each.name, err)
 		}
 	}

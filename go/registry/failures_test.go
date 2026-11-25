@@ -35,7 +35,7 @@ func unread(t *testing.T) *XynologBrowser {
 }
 
 func failure(n int) *xynolog.SessionError {
-	return &xynolog.SessionError{Code: xynolog.SessionErrorCodeConstructFailed, Message: fmt.Sprintf("failure %d", n), KbID: "kb-a"}
+	return &xynolog.SessionError{Code: api.SessionErrorCodeConstructFailed, Message: fmt.Sprintf("failure %d", n), KbID: "kb-a"}
 }
 
 // Of what a registry says before anyone reads its errors, its first reader is

@@ -58,11 +58,20 @@ let text (t : Table.t) =
            codes to iterate.\n";
       imports =
         [
-          [ P.From ("typing", [ "Final"; "Literal"; "assert_never" ]) ];
-          [ P.From ("xynolog.types", [ "CommandErrorCode" ]) ];
+          [ P.From ("__future__", [ "annotations" ]) ];
+          [
+            P.From
+              ("typing", [ "TYPE_CHECKING"; "Final"; "Literal"; "assert_never" ]);
+          ];
         ];
       body =
         [
+          (* xynolog.types names these vocabularies ([Typing.Code]), so this
+             module names its types for the checker alone. *)
+          P.If
+            ( P.Name "TYPE_CHECKING",
+              [ P.Imports [ [ P.From ("xynolog.types", [ "CommandErrorCode" ]) ] ] ]
+            );
           P.assign "__all__"
             ~value:
               (P.List

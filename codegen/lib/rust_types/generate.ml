@@ -347,6 +347,8 @@ and type_of st what (ty_ : T.ty) =
   | T.Nullable inner -> type_of st what inner
   | T.Inline i -> in_place st what i
   | T.Scalar (T.Text _) -> string_ty
+  | T.Scalar (T.Code vocabulary) ->
+      R.named ("crate::errors::" ^ snd (Error_codes.Table.named vocabulary))
   | T.Scalar T.Boolean -> ty "bool"
   | T.Scalar T.Number -> ty "f64"
   | T.Scalar (T.Integer { minimum; maximum }) -> integer_ty ~minimum ~maximum

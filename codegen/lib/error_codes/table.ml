@@ -46,6 +46,29 @@ type t = {
   control : vocabulary;  (** The control plane's codes. *)
 }
 
+(* Each vocabulary by its member of the table: its type's name in Python and
+   TypeScript, and in Go, Rust, Kotlin and Swift. *)
+let names =
+  [
+    ("busRequest", ("BusRequestErrorCode", "BusRequestErrorCode"));
+    ("transport", ("TransportErrorCode", "TransportErrorCode"));
+    ("job", ("JobErrorCode", "JobErrorCode"));
+    ("session", ("XynologSessionErrorCode", "SessionErrorCode"));
+    ("signIn", ("SignInErrorCode", "SignInErrorCode"));
+    ("kbIdentity", ("IdentityUnverifiableReason", "IdentityUnverifiableReason"));
+    ("spanRefusal", ("SpanRefusal", "SpanRefusal"));
+    ("control", ("ControlErrorCode", "ControlErrorCode"));
+  ]
+
+(* The names of the vocabulary [member] names, as a schema's
+   [x-xynolog-codes] names it. *)
+let named member =
+  match List.assoc_opt member names with
+  | Some named -> named
+  | None ->
+      invalid_arg
+        (Printf.sprintf "%s names %s, which is no vocabulary of it" file member)
+
 (* A code's part after its last dot, which names its Go constant: lower-case
    words of letters and digits joined by hyphens. *)
 let segment code =
@@ -77,7 +100,8 @@ let derive (table : Tables.Errors_codes.t) =
   in
   (* Each vocabulary's codes, each stated once and each a distinct Go
      constant. *)
-  let vocabulary ~member ~name ~go_name ~docs codes =
+  let vocabulary ~member ~docs codes =
+    let name, go_name = named member in
     let stated = Hashtbl.create 16 and constants = Hashtbl.create 16 in
     let codes =
       List.mapi
@@ -111,8 +135,7 @@ let derive (table : Tables.Errors_codes.t) =
     { member; name; go_name; docs; codes }
   in
   let bus =
-    vocabulary ~member:"busRequest" ~name:"BusRequestErrorCode"
-      ~go_name:"BusRequestErrorCode" ~docs:table.bus_request.docs
+    vocabulary ~member:"busRequest" ~docs:table.bus_request.docs
       (List.map
          (fun (c : codes_item) -> (c.code, c.docs))
          table.bus_request.codes)
@@ -168,8 +191,7 @@ let derive (table : Tables.Errors_codes.t) =
            (command_error_code_value wire))
   | Some { wire = None; _ } | None -> ());
   let transport =
-    vocabulary ~member:"transport" ~name:"TransportErrorCode"
-      ~go_name:"TransportErrorCode" ~docs:table.transport.docs
+    vocabulary ~member:"transport" ~docs:table.transport.docs
       (List.map transport_code_and_docs table.transport.codes)
   in
   let mapped =
@@ -247,23 +269,19 @@ let derive (table : Tables.Errors_codes.t) =
                code.code)
       | Status _ | Status_from _ | No_status _ -> ())
     mapped;
-  let plain ~member ~name ~go_name (v : Tables.Errors_codes.job) =
-    vocabulary ~member ~name ~go_name ~docs:v.docs
+  let plain ~member (v : Tables.Errors_codes.job) =
+    vocabulary ~member ~docs:v.docs
       (List.map
          (fun (c : Tables.Errors_codes.job_codes_item) -> (c.code, c.docs))
          v.codes)
   in
   let others =
     [
-      plain ~member:"job" ~name:"JobErrorCode" ~go_name:"JobErrorCode" table.job;
-      plain ~member:"session" ~name:"XynologSessionErrorCode"
-        ~go_name:"SessionErrorCode" table.session;
-      plain ~member:"signIn" ~name:"SignInErrorCode" ~go_name:"SignInErrorCode"
-        table.sign_in;
-      plain ~member:"kbIdentity" ~name:"IdentityUnverifiableReason"
-        ~go_name:"IdentityUnverifiableReason" table.kb_identity;
-      plain ~member:"spanRefusal" ~name:"SpanRefusal" ~go_name:"SpanRefusal"
-        table.span_refusal;
+      plain ~member:"job" table.job;
+      plain ~member:"session" table.session;
+      plain ~member:"signIn" table.sign_in;
+      plain ~member:"kbIdentity" table.kb_identity;
+      plain ~member:"spanRefusal" table.span_refusal;
     ]
   in
   match (List.rev !refusals, unrecognized, unclassified) with
@@ -279,7 +297,6 @@ let derive (table : Tables.Errors_codes.t) =
           unclassified;
           others;
           control =
-            plain ~member:"control" ~name:"ControlErrorCode"
-              ~go_name:"ControlErrorCode" table.control;
+            plain ~member:"control" table.control;
         }
   | refusals, _, _ -> Error refusals

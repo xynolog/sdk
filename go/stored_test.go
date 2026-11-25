@@ -222,7 +222,7 @@ func TestAPendingSignInIsReadAsTheTableRequiresIt(t *testing.T) {
 					t.Error("the sign-in is still pending")
 				}
 				var refused *SignInError
-				if required && (!errors.As(err, &refused) || refused.Code != SignInErrorCodeNoPending) {
+				if required && (!errors.As(err, &refused) || refused.Code != api.SignInErrorCodeNoPending) {
 					t.Errorf("a sign-in pending without the %s the table requires: %v; want no-pending", strings.Join(way, "."), err)
 				}
 				if !required && err != nil {

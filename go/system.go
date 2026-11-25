@@ -22,7 +22,7 @@ func (n *SystemNamespace) HealthCheck(ctx context.Context) (api.HealthResponse, 
 		return api.HealthResponse{}, err
 	}
 	if !ok {
-		return api.HealthResponse{}, transportErrorWithoutResponse("the gateway answered its health check with a report this client does not read", TransportErrorCodeError)
+		return api.HealthResponse{}, transportErrorWithoutResponse("the gateway answered its health check with a report this client does not read", api.TransportErrorCodeError)
 	}
 	return report, nil
 }

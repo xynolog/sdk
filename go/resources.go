@@ -31,7 +31,7 @@ import (
 // states no representations, or states one that is neither one representation
 // nor a list of them, is no ResourceDescriptor and is refused, as the Rust and
 // Python SDKs refuse it when they decode it. The refusal is a *TransportError
-// whose code is TransportErrorCodeError.
+// whose code is api.TransportErrorCodeError.
 func PrimaryRepresentation(resource api.ResourceDescriptor) (api.Representation, bool, error) {
 	stated, err := resource.Representations.MarshalJSON()
 	if err != nil {
@@ -71,7 +71,7 @@ func isRepresentation(raw json.RawMessage) bool {
 
 // noDescriptor refuses resource as no ResourceDescriptor, for why.
 func noDescriptor(resource api.ResourceDescriptor, why string) error {
-	return transportErrorWithoutResponse(fmt.Sprintf("The resource %s is no ResourceDescriptor: %s", resource.Id, why), TransportErrorCodeError)
+	return transportErrorWithoutResponse(fmt.Sprintf("The resource %s is no ResourceDescriptor: %s", resource.Id, why), api.TransportErrorCodeError)
 }
 
 // PrimaryMediaType is the media type of a resource's primary representation,
@@ -164,14 +164,14 @@ var marks = []struct {
 // single-byte encoding by its table. The standard's seven legacy multi-byte
 // encodings are refused, as every reader refuses them.
 //
-// Each refusal is a *TransportError whose code is TransportErrorCodeError.
+// Each refusal is a *TransportError whose code is api.TransportErrorCodeError.
 func DecodeRepresentation(data []byte, contentType string) (string, error) {
 	base := mediatypes.BaseMediaType(contentType)
 	if mediatypes.DerivesTextOf(contentType) {
-		return "", transportErrorWithoutResponse(fmt.Sprintf("The resource is %s, whose text is derived from its bytes, not decoded: read its anchored text instead", base), TransportErrorCodeError)
+		return "", transportErrorWithoutResponse(fmt.Sprintf("The resource is %s, whose text is derived from its bytes, not decoded: read its anchored text instead", base), api.TransportErrorCodeError)
 	}
 	if mediatypes.TextSourceOf(contentType) == mediatypes.TextSourceNone {
-		return "", transportErrorWithoutResponse(fmt.Sprintf("The resource is %s, which has no text: read its bytes instead", base), TransportErrorCodeError)
+		return "", transportErrorWithoutResponse(fmt.Sprintf("The resource is %s, which has no text: read its bytes instead", base), api.TransportErrorCodeError)
 	}
 	encoding, label, stated, err := statedEncoding(contentType)
 	if err != nil {
@@ -232,7 +232,7 @@ func statedEncoding(contentType string) (encoding, label string, stated bool, er
 	label = asciiLower(strings.Trim(charset, asciiWhiteSpace))
 	encoding, known := encodingOfLabel[label]
 	if !known || slices.Contains(refusedEncodings, encoding) {
-		return "", "", false, transportErrorWithoutResponse(fmt.Sprintf("The resource's text is %s, which is no charset this reader decodes: read its bytes instead", charset), TransportErrorCodeError)
+		return "", "", false, transportErrorWithoutResponse(fmt.Sprintf("The resource's text is %s, which is no charset this reader decodes: read its bytes instead", charset), api.TransportErrorCodeError)
 	}
 	return encoding, label, true, nil
 }

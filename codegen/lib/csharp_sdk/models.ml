@@ -112,7 +112,8 @@ let referenced state (r : Decode.reference) =
 let rec plain state (form : T.form) =
   match form with
   | T.Alias (T.Named name) -> plain state (state.find name).form
-  | T.Alias (T.Scalar (T.Text _)) | T.Identifier _ -> Some (C.T "string")
+  | T.Alias (T.Scalar (T.Text _ | T.Code _)) | T.Identifier _ ->
+      Some (C.T "string")
   | T.Alias (T.Scalar (T.Integer _)) -> Some (C.T "long")
   | T.Alias (T.Scalar T.Number) -> Some (C.T "double")
   | T.Alias (T.Scalar T.Boolean) -> Some (C.T "bool")
@@ -167,7 +168,7 @@ and type_of state owner property ((ty : T.ty), validated) =
   | T.Named name -> named state name
   | T.Inline i -> in_place state owner property i validated
   | T.Scalar (T.Text { binary = true; _ }) -> C.Array (T "byte")
-  | T.Scalar (T.Text _) -> T "string"
+  | T.Scalar (T.Text _ | T.Code _) -> T "string"
   | T.Scalar (T.Integer _) -> T "long"
   | T.Scalar T.Number -> T "double"
   | T.Scalar T.Boolean -> T "bool"

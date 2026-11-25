@@ -50,11 +50,11 @@ type registryErrorsCase struct {
 	// Said is what the session says on its errors, in order: each one of its
 	// own errors, or a failure of its transport with that message.
 	Said []struct {
-		Own       *xynolog.SessionErrorCode   `json:"own"`
-		Transport *xynolog.TransportErrorCode `json:"transport"`
+		Own       *api.SessionErrorCode   `json:"own"`
+		Transport *api.TransportErrorCode `json:"transport"`
 		Message   *string                     `json:"message"`
 	} `json:"said"`
-	RegistryErrors []xynolog.SessionErrorCode `json:"registryErrors"`
+	RegistryErrors []api.SessionErrorCode `json:"registryErrors"`
 	// PermissionDenied is nil for a case that says no refusal for lack of
 	// permission through the session's signals.
 	PermissionDenied *string `json:"permissionDenied"`
@@ -63,7 +63,7 @@ type registryErrorsCase struct {
 type registryClosingRow struct {
 	Why            string                     `json:"why"`
 	Owed           *bool                      `json:"owed"`
-	RegistryErrors []xynolog.SessionErrorCode `json:"registryErrors"`
+	RegistryErrors []api.SessionErrorCode `json:"registryErrors"`
 }
 
 // readRegistryErrorsCases is the table, read whole: a member it gains that
@@ -186,7 +186,7 @@ func runOwnErrorsCase(t *testing.T, c registryErrorsCase) {
 	switch c.While {
 	case "opening":
 		for _, each := range c.Said {
-			if each.Own == nil || *each.Own != xynolog.SessionErrorCodeKeepFailed {
+			if each.Own == nil || *each.Own != api.SessionErrorCodeKeepFailed {
 				t.Fatalf("this runner cannot have a session over the stage say %s as its factory builds it", marshal(each))
 			}
 		}
@@ -204,11 +204,11 @@ func runOwnErrorsCase(t *testing.T, c registryErrorsCase) {
 	session := liveOver(t, browser)
 	refusals := watchPermissionRefusals(ctx, t, browser)
 
-	codes := []xynolog.SessionErrorCode{}
+	codes := []api.SessionErrorCode{}
 	for n, each := range c.Said {
 		resource := id(fmt.Sprintf("res-%d", n+1))
 		if each.Transport != nil {
-			if *each.Transport != xynolog.TransportErrorCodeForbidden {
+			if *each.Transport != api.TransportErrorCodeForbidden {
 				t.Fatalf("over the stage this runner has the gateway refuse a read for lack of permission only, not %s", *each.Transport)
 			}
 			s.refuseRead(resource, *each.Message)
@@ -222,9 +222,9 @@ func runOwnErrorsCase(t *testing.T, c registryErrorsCase) {
 		}
 		if c.While == "active" {
 			switch *each.Own {
-			case xynolog.SessionErrorCodeSaveRefused:
+			case api.SessionErrorCodeSaveRefused:
 				caches.sets.Store(true)
-			case xynolog.SessionErrorCodeKeepFailed:
+			case api.SessionErrorCodeKeepFailed:
 				readable.unreadable.Store(true)
 			default:
 				t.Fatalf("this runner cannot have an active session say %s", *each.Own)
@@ -281,7 +281,7 @@ func (f failingAsItBuilds) Session(ctx context.Context, options registry.Session
 // registry reads any.
 func runTransportFailuresCase(t *testing.T, c registryErrorsCase) {
 	last := c.Said[len(c.Said)-1]
-	if *last.Transport != xynolog.TransportErrorCodeForbidden {
+	if *last.Transport != api.TransportErrorCodeForbidden {
 		t.Fatalf("a case whose last failure is %s has no effect this runner can wait for", *last.Transport)
 	}
 	failures := make([]*xynolog.TransportError, len(c.Said))
@@ -388,7 +388,7 @@ func detailed(detail string) func(api.PermissionDenied) bool {
 // holdSaid holds what the case says the registry made of what its session
 // said, once the last of it had its effect: codes, said on the registry's
 // errors, and refusals, said through the session's signals.
-func holdSaid(t *testing.T, c registryErrorsCase, codes []xynolog.SessionErrorCode, refusals []api.PermissionDenied) {
+func holdSaid(t *testing.T, c registryErrorsCase, codes []api.SessionErrorCode, refusals []api.PermissionDenied) {
 	t.Helper()
 	if !slices.Equal(codes, c.RegistryErrors) {
 		t.Errorf("the registry said %v on its errors; the case's are %v", codes, c.RegistryErrors)

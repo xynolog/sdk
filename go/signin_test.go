@@ -132,7 +132,7 @@ func TestAKnowledgeBaseThatNamesNoIssuerHasNowhereToSignIn(t *testing.T) {
 	gateway := httptest.NewServer(http.NotFoundHandler())
 	defer gateway.Close()
 	var failed *SignInError
-	if _, err := issuerOf().Discover(context.Background(), gateway.URL); !errors.As(err, &failed) || failed.Code != SignInErrorCodeNoIssuer {
+	if _, err := issuerOf().Discover(context.Background(), gateway.URL); !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeNoIssuer {
 		t.Errorf("got %v, want no-issuer", err)
 	}
 }
@@ -196,7 +196,7 @@ func TestADeviceSignInTheIssuerDeniesIsDenied(t *testing.T) {
 	}
 	var failed *SignInError
 	_, err = issuerOf().SignInWithDeviceGrant(context.Background(), endpoints, func(api.DeviceCode) {})
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeDenied {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeDenied {
 		t.Errorf("got %v, want denied", err)
 	}
 }
@@ -219,7 +219,7 @@ func TestADeviceAuthorizationAnswerWithNoLifetimeIsRefused(t *testing.T) {
 	shown := 0
 	var failed *SignInError
 	_, err = issuerOf().SignInWithDeviceGrant(context.Background(), endpoints, func(api.DeviceCode) { shown++ })
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Fatalf("got %v, want exchange", err)
 	}
 	if status, ok := failed.Status(); !ok || status != http.StatusOK {
@@ -250,7 +250,7 @@ func TestADeviceAuthorizationAnswerWithALifetimeInFractionsOfASecondIsRefused(t 
 	shown := 0
 	var failed *SignInError
 	_, err = issuerOf().SignInWithDeviceGrant(context.Background(), endpoints, func(api.DeviceCode) { shown++ })
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Fatalf("got %v, want exchange", err)
 	}
 	s.mu.Lock()
@@ -304,7 +304,7 @@ func TestARenewalIsTriedAgainOnlyWhenTheIssuerSaysNotNow(t *testing.T) {
 	})
 	var failed *SignInError
 	_, err = issuerOf().RenewKept(context.Background(), entry, signedToken(2))
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Fatalf("got %v, want a refused exchange", err)
 	}
 	if status, ok := failed.Status(); !ok || status != http.StatusBadRequest || s.grantsMade() != 1 {
@@ -511,7 +511,7 @@ func TestARenewalOnTheBackoffIsHandedTheTokenWhoseRenewalGotNoAnswer(t *testing.
 		t.Fatal(err)
 	}
 	errs := session.Errors()
-	var said []SessionErrorCode
+	var said []api.SessionErrorCode
 	heard := make(chan struct{})
 	go func() {
 		defer close(heard)
@@ -554,8 +554,8 @@ func TestARenewalOnTheBackoffIsHandedTheTokenWhoseRenewalGotNoAnswer(t *testing.
 	case <-time.After(10 * time.Second):
 		t.Fatal("the session's errors stream did not end once the session was closed")
 	}
-	if !slices.Equal(said, []SessionErrorCode{SessionErrorCodeRefreshExhausted}) {
-		t.Errorf("the session said %v on its errors stream, want the one %s", said, SessionErrorCodeRefreshExhausted)
+	if !slices.Equal(said, []api.SessionErrorCode{api.SessionErrorCodeRefreshExhausted}) {
+		t.Errorf("the session said %v on its errors stream, want the one %s", said, api.SessionErrorCodeRefreshExhausted)
 	}
 }
 

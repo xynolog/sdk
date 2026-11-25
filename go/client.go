@@ -8,6 +8,7 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 )
 
@@ -186,7 +187,7 @@ func (l *links) within(ctx context.Context) (inner context.Context, stop func())
 // client closed, while its caller still waited, failed as closed.
 func (l *links) closedUnder(caller context.Context, err error) error {
 	if errors.Is(err, context.Canceled) && l.life.Err() != nil && caller.Err() == nil {
-		return &BusRequestError{Code: BusRequestErrorCodeClosed, Message: "The client closed before the operation ended"}
+		return &BusRequestError{Code: api.BusRequestErrorCodeClosed, Message: "The client closed before the operation ended"}
 	}
 	return err
 }

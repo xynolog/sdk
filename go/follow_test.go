@@ -530,7 +530,7 @@ func TestACompletionHeardThatIsAnotherVerbsEndsTheFollowerAndIsNoFailureOfTheJob
 	say(t, c, jobComplete, "job-1", "yield", map[string]any{"result": made})
 	got := waitedWithin(t, waited, time.Second)
 	var ended *xynolog.TransportError
-	if !errors.As(got.err, &ended) || ended.Code != xynolog.TransportErrorCodeError || !strings.Contains(ended.Message, "is a yield job's, and the job delegated is a mark job") {
+	if !errors.As(got.err, &ended) || ended.Code != api.TransportErrorCodeError || !strings.Contains(ended.Message, "is a yield job's, and the job delegated is a mark job") {
 		t.Fatalf("the follower ended with %v", got.err)
 	}
 	var failed *xynolog.JobError
@@ -584,7 +584,7 @@ func TestAStatusWhoseCompletionIsNotTheVerbsIsToldAsWhatItIs(t *testing.T) {
 	fake.QueueReply(jobStatus, statusOf(t, "complete", map[string]any{"result": map[string]any{"resourceId": "res-summary", "resourceName": carried, "truncated": false}}))
 	got := waitedWithin(t, waiting(highlighting(t, c)), 2*time.Second)
 	var ended *xynolog.TransportError
-	if !errors.As(got.err, &ended) || ended.Code != xynolog.TransportErrorCodeError {
+	if !errors.As(got.err, &ended) || ended.Code != api.TransportErrorCodeError {
 		t.Fatalf("the follower ended with %v", got.err)
 	}
 	// It is said by what it lacks, and in none of the words of what the job made.
@@ -627,13 +627,13 @@ func TestAStatusThatIsAnEndAndNoCompletionEndsTheFollowerWithIt(t *testing.T) {
 	for _, c := range []struct {
 		name, of string
 		more     map[string]any
-		code     xynolog.JobErrorCode
+		code     api.JobErrorCode
 		message  string
 	}{
-		{"failed", "failed", map[string]any{"error": "the worker gave up"}, xynolog.JobErrorCodeFailed, "the worker gave up"},
-		{"failed, with no word why", "failed", nil, xynolog.JobErrorCodeFailed, "Job failed"},
+		{"failed", "failed", map[string]any{"error": "the worker gave up"}, api.JobErrorCodeFailed, "the worker gave up"},
+		{"failed, with no word why", "failed", nil, api.JobErrorCodeFailed, "Job failed"},
 		// Nothing announces a cancellation: this is where its follower learns of one.
-		{"cancelled", "cancelled", nil, xynolog.JobErrorCodeCancelled, "The job was cancelled"},
+		{"cancelled", "cancelled", nil, api.JobErrorCodeCancelled, "The job was cancelled"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
@@ -689,7 +689,7 @@ func TestAFailureThatIsFinalEndsTheFollowerAndOneThatDoesNotSayIsFinal(t *testin
 			say(t, c, jobFail, "job-1", "mark", failure)
 			got := waitedWithin(t, waited, time.Second)
 			var ended *xynolog.JobError
-			if !errors.As(got.err, &ended) || ended.Code != xynolog.JobErrorCodeFailed || ended.Message != "the budget is spent" || ended.JobID.String() != "job-1" {
+			if !errors.As(got.err, &ended) || ended.Code != api.JobErrorCodeFailed || ended.Message != "the budget is spent" || ended.JobID.String() != "job-1" {
 				t.Fatalf("the follower ended with %v", got.err)
 			}
 		})
@@ -751,7 +751,7 @@ func TestAJobWhoseCreationIsRefusedIsItsFollowersFailure(t *testing.T) {
 	})
 	got := waitedWithin(t, waiting(highlighting(t, c)), time.Second)
 	var refused *xynolog.BusRequestError
-	if !errors.As(got.err, &refused) || refused.Code != xynolog.BusRequestErrorCodeRejected {
+	if !errors.As(got.err, &refused) || refused.Code != api.BusRequestErrorCodeRejected {
 		t.Fatalf("the follower ended with %v", got.err)
 	}
 }
@@ -764,7 +764,7 @@ func TestACreationThatNamesNoJobIsItsFollowersFailure(t *testing.T) {
 	c, _ := creatingWorld(t, json.RawMessage(`{}`), xynolog.DefaultTiming())
 	got := waitedWithin(t, waiting(highlighting(t, c)), time.Second)
 	var ended *xynolog.TransportError
-	if !errors.As(got.err, &ended) || ended.Code != xynolog.TransportErrorCodeError || !strings.Contains(ended.Message, "response.jobId") {
+	if !errors.As(got.err, &ended) || ended.Code != api.TransportErrorCodeError || !strings.Contains(ended.Message, "response.jobId") {
 		t.Fatalf("the follower ended with %v", got.err)
 	}
 }
@@ -907,7 +907,7 @@ func TestAGenerationThatSaysNothingIsCancelledAndGivenUpOn(t *testing.T) {
 	}
 	got := waitedWithin(t, waited, 2*time.Second)
 	var ended *xynolog.JobError
-	if !errors.As(got.err, &ended) || ended.Code != xynolog.JobErrorCodeStalled || ended.JobID.String() != "job-1" {
+	if !errors.As(got.err, &ended) || ended.Code != api.JobErrorCodeStalled || ended.JobID.String() != "job-1" {
 		t.Fatalf("the follower ended with %v", got.err)
 	}
 	if ended.Message != "The job stalled: nothing was heard of it within 600ms" {
@@ -924,7 +924,7 @@ func TestAGenerationThatStallsBeforeItsJobIsKnownHasNothingToCancel(t *testing.T
 	c, fake := jobWorld(t, false, xynolog.DefaultTiming())
 	got := waitedWithin(t, waiting(generation(t, c, 200*time.Millisecond, nil)), 2*time.Second)
 	var ended *xynolog.JobError
-	if !errors.As(got.err, &ended) || ended.Code != xynolog.JobErrorCodeStalled || !ended.JobID.IsZero() {
+	if !errors.As(got.err, &ended) || ended.Code != api.JobErrorCodeStalled || !ended.JobID.IsZero() {
 		t.Fatalf("the follower ended with %v", got.err)
 	}
 	time.Sleep(50 * time.Millisecond)
@@ -980,7 +980,7 @@ func TestAGenerationWaitsAsLongAsItsLengthAllowsWhenNoDeadlineIsStated(t *testin
 	}
 	got := waitedWithin(t, waited, 2*time.Second)
 	var ended *xynolog.JobError
-	if !errors.As(got.err, &ended) || ended.Code != xynolog.JobErrorCodeStalled || ended.Message != "The job stalled: nothing was heard of it within 400ms" {
+	if !errors.As(got.err, &ended) || ended.Code != api.JobErrorCodeStalled || ended.Message != "The job stalled: nothing was heard of it within 400ms" {
 		t.Fatalf("the follower ended with %v", got.err)
 	}
 }
@@ -1014,7 +1014,7 @@ func TestAClientThatClosesEndsTheJobsItWasFollowing(t *testing.T) {
 	}
 	got := waitedWithin(t, waited, time.Second)
 	var closed *xynolog.BusRequestError
-	if !errors.As(got.err, &closed) || closed.Code != xynolog.BusRequestErrorCodeClosed {
+	if !errors.As(got.err, &closed) || closed.Code != api.BusRequestErrorCodeClosed {
 		t.Fatalf("the wait ended with %v", got.err)
 	}
 }

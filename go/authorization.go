@@ -62,7 +62,7 @@ func query(pairs ...[2]string) string {
 func BeginAuthorization(ctx context.Context, issuer Issuer, options api.BeginAuthorizationOptions, pending SessionStorage) (string, error) {
 	baseURL, err := GatewayURL(options.Target)
 	if err != nil {
-		return "", signInUnanswered(SignInErrorCodeDiscovery, err.Error())
+		return "", signInUnanswered(api.SignInErrorCodeDiscovery, err.Error())
 	}
 	endpoints, err := issuer.Discover(ctx, baseURL)
 	if err != nil {
@@ -119,7 +119,7 @@ func CompleteAuthorization(ctx context.Context, issuer Issuer, callbackURL strin
 	}
 	record, readable := required.ReadAs[api.PendingAuthorization]([]byte(taken))
 	if !had || !readable {
-		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeNoPending, "No sign-in is pending here")
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeNoPending, "No sign-in is pending here")
 	}
 
 	callback, err := url.Parse(callbackURL)
@@ -127,14 +127,14 @@ func CompleteAuthorization(ctx context.Context, issuer Issuer, callbackURL strin
 		err = errors.New("relative URL without a base")
 	}
 	if err != nil {
-		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The sign-in response is not a URL: "+err.Error())
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeExchange, "The sign-in response is not a URL: "+err.Error())
 	}
 	said := callback.Query()
 	if said.Has("error") {
 		failure := said.Get("error")
-		code := SignInErrorCodeExchange
+		code := api.SignInErrorCodeExchange
 		if failure == "access_denied" {
-			code = SignInErrorCodeDenied
+			code = api.SignInErrorCodeDenied
 		}
 		if said.Has("error_description") {
 			failure = said.Get("error_description")
@@ -142,10 +142,10 @@ func CompleteAuthorization(ctx context.Context, issuer Issuer, callbackURL strin
 		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(code, failure)
 	}
 	if !said.Has("state") || said.Get("state") != record.State {
-		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeState, "The sign-in response does not belong to the pending sign-in")
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeState, "The sign-in response does not belong to the pending sign-in")
 	}
 	if !said.Has("code") {
-		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The sign-in response carries no authorization code")
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeExchange, "The sign-in response carries no authorization code")
 	}
 
 	status, answered, err := issuer.postForm(ctx, record.Issuer.Token, url.Values{
@@ -156,15 +156,15 @@ func CompleteAuthorization(ctx context.Context, issuer Issuer, callbackURL strin
 		"code_verifier": {record.Verifier},
 	})
 	if err != nil {
-		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
 	}
 	access, ok := answered.text("access_token")
 	if status != http.StatusOK || !ok {
-		return api.PendingAuthorization{}, api.IssuedTokens{}, NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the token request (%s)", answered.refusal(status)), status)
+		return api.PendingAuthorization{}, api.IssuedTokens{}, NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the token request (%s)", answered.refusal(status)), status)
 	}
 	refresh, ok := answered.text("refresh_token")
 	if !ok {
-		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer returned no refresh token: the session could not outlive its first access token")
+		return api.PendingAuthorization{}, api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeExchange, "The issuer returned no refresh token: the session could not outlive its first access token")
 	}
 	return record, api.IssuedTokens{Access: access, Refresh: refresh}, nil
 }

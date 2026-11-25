@@ -73,7 +73,7 @@ func (n *JobNamespace) PollUntilComplete(ctx context.Context, jobID api.JobId, o
 		if err := ctx.Err(); err != nil {
 			return status, err
 		}
-		return status, &BusRequestError{Code: BusRequestErrorCodeTimeout, Message: fmt.Sprintf("Job polling timeout after %dms", within.Milliseconds())}
+		return status, &BusRequestError{Code: api.BusRequestErrorCodeTimeout, Message: fmt.Sprintf("Job polling timeout after %dms", within.Milliseconds())}
 	}
 	for {
 		status, err := n.Status(polling, jobID)

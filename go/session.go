@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/kept"
 )
@@ -369,8 +368,8 @@ func (s *Session) Refresh(_ context.Context, refused string) (string, bool) {
 	if err != nil {
 		// A gateway that could not be asked refused nothing.
 		var refused *TransportError
-		if errors.As(err, &refused) && refused.Code == TransportErrorCodeUnauthorized && held {
-			s.signedOut(api.SessionEndReasonRefused, &SessionError{Code: SessionErrorCodeCredentialRefused, Message: justIssuedAndRefused, KbID: s.config.Kb.Id})
+		if errors.As(err, &refused) && refused.Code == api.TransportErrorCodeUnauthorized && held {
+			s.signedOut(api.SessionEndReasonRefused, &SessionError{Code: api.SessionErrorCodeCredentialRefused, Message: justIssuedAndRefused, KbID: s.config.Kb.Id})
 		}
 	} else if held {
 		s.user.Set(&user)
@@ -522,7 +521,7 @@ func (s *Session) renewWhenUnanswered() {
 // again, and so does the reconnect backoff.
 func (s *Session) unrenewed(failure error) {
 	s.config.Token.Set("")
-	err := &SessionError{Code: SessionErrorCodeRefreshExhausted, Message: notRenewed(failure), KbID: s.config.Kb.Id}
+	err := &SessionError{Code: api.SessionErrorCodeRefreshExhausted, Message: notRenewed(failure), KbID: s.config.Kb.Id}
 	if failure != nil && !refusedRenewal(failure) {
 		s.unanswered.Set(true)
 		s.failed(err)
@@ -578,14 +577,14 @@ func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 				// There was no session to end: the sign-in is forgotten, and
 				// nothing is said unless it could not be.
 				if forgotten := s.config.Kept.Forget(s.alive); forgotten != nil {
-					s.failed(notForgotten(&SessionError{Code: SessionErrorCodeRefreshExhausted, Message: notRenewed(failure), KbID: s.config.Kb.Id}, forgotten))
+					s.failed(notForgotten(&SessionError{Code: api.SessionErrorCodeRefreshExhausted, Message: notRenewed(failure), KbID: s.config.Kb.Id}, forgotten))
 				}
 			default:
 				// The issuer did not refuse it: the sign-in is kept, and
 				// renewed on the reconnect backoff or when a request is
 				// refused.
 				s.unanswered.Set(true)
-				s.failed(&SessionError{Code: SessionErrorCodeAuthFailed, Message: notRenewed(failure), KbID: s.config.Kb.Id})
+				s.failed(&SessionError{Code: api.SessionErrorCodeAuthFailed, Message: notRenewed(failure), KbID: s.config.Kb.Id})
 			}
 			return
 		}
@@ -602,7 +601,7 @@ func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 			return
 		}
 		var refused *TransportError
-		if errors.As(err, &refused) && refused.Code == TransportErrorCodeUnauthorized {
+		if errors.As(err, &refused) && refused.Code == api.TransportErrorCodeUnauthorized {
 			next, goOn := s.answerAtStart(token, held, justIssued)
 			if !goOn {
 				return
@@ -614,7 +613,7 @@ func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 			s.config.Token.Set(token)
 		}
 		if err != nil {
-			s.failed(&SessionError{Code: SessionErrorCodeAuthFailed, Message: err.Error(), KbID: s.config.Kb.Id})
+			s.failed(&SessionError{Code: api.SessionErrorCodeAuthFailed, Message: err.Error(), KbID: s.config.Kb.Id})
 			return
 		}
 		s.user.Set(&user)
@@ -627,7 +626,7 @@ func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 // about next, given to the transport, or false when there is none.
 func (s *Session) answerAtStart(token, held string, justIssued bool) (string, bool) {
 	if justIssued {
-		s.signedOut(api.SessionEndReasonRefused, &SessionError{Code: SessionErrorCodeCredentialRefused, Message: justIssuedAndRefused, KbID: s.config.Kb.Id})
+		s.signedOut(api.SessionEndReasonRefused, &SessionError{Code: api.SessionErrorCodeCredentialRefused, Message: justIssuedAndRefused, KbID: s.config.Kb.Id})
 		return "", false
 	}
 	// The session's token changed while the gateway was asked: it fell due

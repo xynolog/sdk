@@ -446,7 +446,7 @@ func (v *live) removeAnnotation(subject cacheSubject) {
 	if subject.annotation.IsZero() || !v.annotation.Known(subject.annotation) {
 		return
 	}
-	v.annotation.Remove(subject.annotation, &BusRequestError{Code: BusRequestErrorCodeNotFound, Message: fmt.Sprintf("Annotation %s was removed", subject.annotation)})
+	v.annotation.Remove(subject.annotation, &BusRequestError{Code: api.BusRequestErrorCodeNotFound, Message: fmt.Sprintf("Annotation %s was removed", subject.annotation)})
 }
 
 // liveCache is what the client asks of each of its caches as a whole.

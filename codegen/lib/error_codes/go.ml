@@ -1,13 +1,14 @@
 (* The vocabularies as the Go SDK reads them (go/errors.go): a named type per
    vocabulary with a constant per code, the bus code a wire code becomes, and
-   the transport code an HTTP status becomes. A wire code's constant is the
-   one the Go types group writes in package api for CommandErrorCode's value,
-   named by the same rule ([Naming.variant]). *)
+   the transport code an HTTP status becomes. They are in package api, beside
+   the types that name them ([Typing.Code]). A wire code's constant is the one
+   the Go types group writes for CommandErrorCode's value, named by the same
+   rule ([Naming.variant]). *)
 
 module G = Go_syntax
 
-let path = "go/errorcodes_gen.go"
-let wire_constant wire = G.Name ("api.CommandErrorCode" ^ Naming.variant wire)
+let path = "go/api/errorcodes_gen.go"
+let wire_constant wire = G.Name ("CommandErrorCode" ^ Naming.variant wire)
 
 (* A vocabulary: its type, and a constant per code in the table's order, each
    under its comment. *)
@@ -44,8 +45,8 @@ let text (t : Table.t) =
            The TypeScript, Python and Rust vocabularies are generated from the \
            same\n\
            table.";
-      package = "xynolog";
-      imports = [ [ "github.com/xynolog/sdk/go/api" ] ];
+      package = "api";
+      imports = [];
       decls =
         vocabulary t.bus
         @ [
@@ -61,7 +62,7 @@ let text (t : Table.t) =
                        code CommandErrorCode does not name is none a failure \
                        is read with: given one, it panics."
                       t.bus.go_name t.unrecognized.go))
-              ~params:[ ("code", G.Pointer (G.Named "api.CommandErrorCode")) ]
+              ~params:[ ("code", G.Pointer (G.Named "CommandErrorCode")) ]
               ~results:(G.Unnamed [ bus ]) (t.bus.go_name ^ "OfWire")
               (G.Block
                  [
@@ -110,7 +111,7 @@ let text (t : Table.t) =
               ~results:
                 (G.Named_results
                    [
-                     ("code", G.Named "api.CommandErrorCode");
+                     ("code", G.Named "CommandErrorCode");
                      ("ok", G.Named "bool");
                    ])
               "Wire"

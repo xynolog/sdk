@@ -212,6 +212,8 @@ and type_of st what (ty : T.ty) =
   | T.Any -> t "JsonElement"
   | T.Nullable inner -> type_of st what inner
   | T.Scalar (T.Text _) -> t "String"
+  | T.Scalar (T.Code vocabulary) ->
+      t ("xynolog.errors." ^ snd (Error_codes.Table.named vocabulary))
   | T.Scalar T.Boolean -> t "Boolean"
   | T.Scalar T.Number -> t "Double"
   | T.Scalar (T.Integer _) -> t "Long"

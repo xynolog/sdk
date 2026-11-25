@@ -185,7 +185,7 @@ type ClaimRefusal struct {
 	// sent. bus.none-pending never appears: an empty queue is not a fault.
 	// bus.unauthorized means this credential cannot claim, and will not be
 	// able to later.
-	Code    *BusRequestErrorCode
+	Code    *api.BusRequestErrorCode
 	Message string
 }
 
@@ -560,7 +560,7 @@ func (h *heldJob) Commit(ctx context.Context, resourceID api.ResourceId, annotat
 	// commit's failure as it is. Only an acknowledgement that did not arrive
 	// leaves what the record holds unknown.
 	var timedOut *BusRequestError
-	if !errors.As(unanswered, &timedOut) || timedOut.Code != BusRequestErrorCodeTimeout {
+	if !errors.As(unanswered, &timedOut) || timedOut.Code != api.BusRequestErrorCodeTimeout {
 		return unanswered
 	}
 	observed := h.askWhetherRecorded(ctx, resourceID, annotations[len(annotations)-1].Id)
@@ -593,7 +593,7 @@ func (h *heldJob) askWhetherRecorded(ctx context.Context, resourceID api.Resourc
 	// the job says what was observed, and its reader judges. Anything else
 	// (bus.timeout, bus.closed) means nobody answered.
 	var refused *BusRequestError
-	if errors.As(err, &refused) && refused.Code == BusRequestErrorCodeRejected {
+	if errors.As(err, &refused) && refused.Code == api.BusRequestErrorCodeRejected {
 		return api.DurabilityEvidenceProbeRefused
 	}
 	return api.DurabilityEvidenceProbeUnreachable
@@ -996,7 +996,7 @@ func (c *Claims) begin() error {
 	}
 	if len(unnamed) > 0 {
 		c.beginErr = &BusRequestError{
-			Code: BusRequestErrorCodeUnsubscribed,
+			Code: api.BusRequestErrorCodeUnsubscribed,
 			Message: fmt.Sprintf("This transport's stream does not name %s: a worker on it would never be answered, woken or told of a cancellation. Give the transport JobClaimChannels.",
 				strings.Join(unnamed, ", ")),
 		}
@@ -1239,7 +1239,7 @@ func (c *Claims) claimNext() (HeldJob, *ClaimRefusal) {
 		}
 		var refused *BusRequestError
 		if errors.As(err, &refused) {
-			if refused.Code == BusRequestErrorCodeNonePending {
+			if refused.Code == api.BusRequestErrorCodeNonePending {
 				return nil, nil
 			}
 			code := refused.Code

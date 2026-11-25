@@ -90,7 +90,7 @@ func RetryKeyOf(channel bus.Channel, payload json.RawMessage) string {
 // for: a refusal that names the operation, never a response made up.
 func RefuseUnscriptedOperation(operation bus.Channel, _ json.RawMessage) (json.RawMessage, error) {
 	return nil, &xynolog.TransportError{
-		Code: xynolog.TransportErrorCodeError,
+		Code: api.TransportErrorCodeError,
 		Message: fmt.Sprintf(`No response scripted for bus operation %q. `+
 			`Script one with QueueReply(%q, …) or build the transport with a MakeResponse that answers it.`, operation, operation),
 	}
@@ -310,7 +310,7 @@ func (f *FaultyTransport) Emit(_ context.Context, channel bus.Channel, payload m
 	f.log = append(f.log, RequestLogEntry{Channel: channel, Action: action, CorrelationID: envelope.CorrelationID, RetryKey: RetryKeyOf(channel, sent), Payload: sent, Scope: envelope.Scope})
 	if _, rejected := action.(RejectEmit); rejected {
 		f.mu.Unlock()
-		return 0, false, &xynolog.TransportError{Code: xynolog.TransportErrorCodeError, Message: fmt.Sprintf("FaultyTransport: emit rejected by schedule on %s", channel)}
+		return 0, false, &xynolog.TransportError{Code: api.TransportErrorCodeError, Message: fmt.Sprintf("FaultyTransport: emit rejected by schedule on %s", channel)}
 	}
 	refuse := f.refuse
 	f.mu.Unlock()
@@ -365,7 +365,7 @@ func (f *FaultyTransport) answer(channel bus.Channel, operation bus.Replies, req
 	for _, named := range operation.ReplyNames {
 		value, stated := asked[named]
 		if !stated {
-			return xynolog.Frame{}, &xynolog.TransportError{Code: xynolog.TransportErrorCodeError, Message: fmt.Sprintf("FaultyTransport: the reply to %s names %q, which this request does not state", channel, named)}
+			return xynolog.Frame{}, &xynolog.TransportError{Code: api.TransportErrorCodeError, Message: fmt.Sprintf("FaultyTransport: the reply to %s names %q, which this request does not state", channel, named)}
 		}
 		answered[named] = value
 	}

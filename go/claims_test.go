@@ -650,7 +650,7 @@ func TestARefusalIsHandedOutWithItsCodeAndAReplyThatNamesNoJobIsRefusedHere(t *t
 	defer claims.Close()
 	pull := pulling(t, claims)
 	var refused *ClaimRefusal
-	if one := pull.take(t); !errors.As(one.err, &refused) || refused.Code == nil || *refused.Code != BusRequestErrorCodeUnauthorized ||
+	if one := pull.take(t); !errors.As(one.err, &refused) || refused.Code == nil || *refused.Code != api.BusRequestErrorCodeUnauthorized ||
 		refused.Message != "the caller is not a worker for this knowledge base" {
 		t.Fatalf("handed out %+v", one)
 	}
@@ -684,7 +684,7 @@ func TestAStreamThatDoesNotNameWhatClaimingReadsCannotCarryAWorkersClaims(t *tes
 	defer claims.Close()
 	one := pulling(t, claims).take(t)
 	var refused *BusRequestError
-	if !errors.As(one.err, &refused) || refused.Code != BusRequestErrorCodeUnsubscribed {
+	if !errors.As(one.err, &refused) || refused.Code != api.BusRequestErrorCodeUnsubscribed {
 		t.Fatalf("handed out %+v", one)
 	}
 	if sent := w.wire.sent(bus.JobClaim.Request().Channel()); len(sent) != 0 {
@@ -947,7 +947,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 		job, claims := held(t, w)
 		defer claims.Close()
 		var timedOut *BusRequestError
-		if err := job.Commit(ctx, job.ResourceId(), batch(t)); !errors.As(err, &timedOut) || timedOut.Code != BusRequestErrorCodeTimeout {
+		if err := job.Commit(ctx, job.ResourceId(), batch(t)); !errors.As(err, &timedOut) || timedOut.Code != api.BusRequestErrorCodeTimeout {
 			t.Fatalf("committed with %v", err)
 		}
 		if err := job.Fail(ctx, "a commit was not established", JobFailure{}); err != nil {
@@ -980,7 +980,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 		job, claims := held(t, w)
 		defer claims.Close()
 		var refused *BusRequestError
-		if err := job.Commit(ctx, job.ResourceId(), batch(t)); !errors.As(err, &refused) || refused.Code != BusRequestErrorCodeUnsubscribed {
+		if err := job.Commit(ctx, job.ResourceId(), batch(t)); !errors.As(err, &refused) || refused.Code != api.BusRequestErrorCodeUnsubscribed {
 			t.Fatalf("committed with %v", err)
 		}
 		if committed := w.wire.sent(bus.MarkCommit.Request().Channel()); len(committed) != 0 {

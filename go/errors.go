@@ -23,7 +23,7 @@ type Error interface {
 
 // TransportError is a request the gateway refused, or one it never answered.
 type TransportError struct {
-	Code    TransportErrorCode
+	Code    api.TransportErrorCode
 	Message string
 
 	status        int
@@ -47,20 +47,20 @@ func (e *TransportError) RetryAfter() (time.Duration, bool) { return e.retryAfte
 // transportErrorOfStatus is a refusal, its code the one its status becomes.
 func transportErrorOfStatus(message string, status int, retryAfter time.Duration, hasRetryAfter bool) *TransportError {
 	return &TransportError{
-		Code: TransportErrorCodeOfStatus(status), Message: message,
+		Code: api.TransportErrorCodeOfStatus(status), Message: message,
 		status: status, hasStatus: true,
 		retryAfter: retryAfter, hasRetryAfter: hasRetryAfter,
 	}
 }
 
 // transportErrorWithoutResponse is a request no server answered.
-func transportErrorWithoutResponse(message string, code TransportErrorCode) *TransportError {
+func transportErrorWithoutResponse(message string, code api.TransportErrorCode) *TransportError {
 	return &TransportError{Code: code, Message: message}
 }
 
 // BusRequestError is why a bus request did not resolve.
 type BusRequestError struct {
-	Code    BusRequestErrorCode
+	Code    api.BusRequestErrorCode
 	Message string
 	// Failure is the payload of the failure a peer answered with, as it is
 	// read (without a code the wire does not list), when it answered one; nil
@@ -77,10 +77,10 @@ func (e *BusRequestError) ErrorCode() string { return string(e.Code) }
 func (e *BusRequestError) Status() (int, bool) { return 0, false }
 
 // SessionError is a failure that makes a session itself unusable, or that
-// stops its client keeping what it holds (SessionErrorCodeKeepFailed). A
+// stops its client keeping what it holds (api.SessionErrorCodeKeepFailed). A
 // request's own failure stays with its caller.
 type SessionError struct {
-	Code    SessionErrorCode
+	Code    api.SessionErrorCode
 	Message string
 	// KbID is the knowledge base the session was with.
 	KbID string
@@ -99,7 +99,7 @@ func (e *SessionError) Status() (int, bool) { return 0, false }
 // issuer's answer; one that carries none got no answer: a refusal and an
 // outage are different events.
 type SignInError struct {
-	Code    SignInErrorCode
+	Code    api.SignInErrorCode
 	Message string
 
 	status    int
@@ -117,12 +117,12 @@ func (e *SignInError) Status() (int, bool) { return e.status, e.hasStatus }
 
 // NewSignInError is the issuer's answer, with the status it answered. One no
 // issuer answered is a SignInError of its Code and Message alone.
-func NewSignInError(code SignInErrorCode, message string, status int) *SignInError {
+func NewSignInError(code api.SignInErrorCode, message string, status int) *SignInError {
 	return &SignInError{Code: code, Message: message, status: status, hasStatus: true}
 }
 
 // signInUnanswered is a sign-in step no issuer answered.
-func signInUnanswered(code SignInErrorCode, message string) *SignInError {
+func signInUnanswered(code api.SignInErrorCode, message string) *SignInError {
 	return &SignInError{Code: code, Message: message}
 }
 
@@ -130,7 +130,7 @@ func signInUnanswered(code SignInErrorCode, message string) *SignInError {
 // could not learn: it was not reached, or it answered that it cannot say what
 // it is. Either way nothing is registered, and the sign-in stops there.
 type IdentityUnverifiableError struct {
-	Reason IdentityUnverifiableReason
+	Reason api.IdentityUnverifiableReason
 	Detail string
 }
 
@@ -146,7 +146,7 @@ func (e *IdentityUnverifiableError) Status() (int, bool) { return 0, false }
 // JobError is a job its follower saw end without completing: it failed for
 // good, was cancelled, or said nothing for too long.
 type JobError struct {
-	Code    JobErrorCode
+	Code    api.JobErrorCode
 	Message string
 	// JobID is the job, when its creation was answered: one that stalled
 	// before that has none (the zero JobId).

@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/required"
@@ -57,7 +56,7 @@ func (w *Wire) RequestOf(ctx context.Context, request bus.Channel, payload map[s
 		Response json.RawMessage `json:"response"`
 	}
 	if err := json.Unmarshal(reply.Payload, &result); err != nil {
-		return nil, &BusRequestError{Code: BusRequestErrorCodeRejected, Message: fmt.Sprintf("the reply on %s is not its result: %v", reply.Channel, err), Failure: reply.Payload}
+		return nil, &BusRequestError{Code: api.BusRequestErrorCodeRejected, Message: fmt.Sprintf("the reply on %s is not its result: %v", reply.Channel, err), Failure: reply.Payload}
 	}
 	return result.Response, nil
 }
@@ -75,13 +74,13 @@ func (w *Wire) result(ctx context.Context, request bus.Channel, payload map[stri
 	for _, channel := range []bus.Channel{operation.Result, operation.Failure} {
 		if !w.transport.IsSubscribed(channel) {
 			return Frame{}, &BusRequestError{
-				Code:    BusRequestErrorCodeUnsubscribed,
+				Code:    api.BusRequestErrorCodeUnsubscribed,
 				Message: fmt.Sprintf("Transport is not subscribed to reply channel %s: a reply to %s can never arrive. Add this operation's reply channels to the transport's channels.", channel, request),
 			}
 		}
 	}
 	timedOut := &BusRequestError{
-		Code:    BusRequestErrorCodeTimeout,
+		Code:    api.BusRequestErrorCodeTimeout,
 		Message: fmt.Sprintf("Bus request timed out after %dms on %s", within.Milliseconds(), operation.Result),
 	}
 	waiting, cancel := context.WithTimeout(ctx, within)
@@ -103,7 +102,7 @@ func (w *Wire) result(ctx context.Context, request bus.Channel, payload map[stri
 			break
 		}
 		if state == ConnectionStateClosed {
-			return Frame{}, &BusRequestError{Code: BusRequestErrorCodeClosed, Message: fmt.Sprintf("Bus closed before emit on %s", request)}
+			return Frame{}, &BusRequestError{Code: api.BusRequestErrorCodeClosed, Message: fmt.Sprintf("Bus closed before emit on %s", request)}
 		}
 	}
 	if !open {
@@ -129,12 +128,12 @@ func (w *Wire) result(ctx context.Context, request bus.Channel, payload map[stri
 	select {
 	case frame, delivered := <-pending.Reply():
 		if !delivered {
-			return Frame{}, &BusRequestError{Code: BusRequestErrorCodeClosed, Message: fmt.Sprintf("Bus closed before a reply on %s", operation.Result)}
+			return Frame{}, &BusRequestError{Code: api.BusRequestErrorCodeClosed, Message: fmt.Sprintf("Bus closed before a reply on %s", operation.Result)}
 		}
 		reply = frame
 	case refusal := <-pending.Refused():
 		// As a reply whose payload is not its channel's fails it.
-		return Frame{}, transportErrorWithoutResponse(refusal.Error(), TransportErrorCodeError)
+		return Frame{}, transportErrorWithoutResponse(refusal.Error(), api.TransportErrorCodeError)
 	case <-waiting.Done():
 		return Frame{}, ended()
 	}
@@ -155,11 +154,11 @@ func failureOf(reply Frame, payload reflect.Type) error {
 	if !faulty {
 		var failure api.CommandError
 		if json.Unmarshal(read, &failure) == nil {
-			return &BusRequestError{Code: BusRequestErrorCodeOfWire(failure.Code), Message: failure.Message, Failure: read}
+			return &BusRequestError{Code: api.BusRequestErrorCodeOfWire(failure.Code), Message: failure.Message, Failure: read}
 		}
 		fault = required.Undecoded
 	}
-	return transportErrorWithoutResponse(fmt.Sprintf("a payload on %s is not that channel's: %s", reply.Channel, fault), TransportErrorCodeError)
+	return transportErrorWithoutResponse(fmt.Sprintf("a payload on %s is not that channel's: %s", reply.Channel, fault), api.TransportErrorCodeError)
 }
 
 // ── By type ─────────────────────────────────────────────────────────────
@@ -330,7 +329,7 @@ func requestAsking[Q, R, F any](ctx context.Context, w *Wire, op bus.Operation[Q
 	}
 	answer, fault, faulty := payloadAs[R](reply)
 	if faulty {
-		return none, transportErrorWithoutResponse(fmt.Sprintf("a payload on %s is not that channel's: %s", reply.Channel, fault), TransportErrorCodeError)
+		return none, transportErrorWithoutResponse(fmt.Sprintf("a payload on %s is not that channel's: %s", reply.Channel, fault), api.TransportErrorCodeError)
 	}
 	return answer.Payload, nil
 }

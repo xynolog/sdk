@@ -134,14 +134,14 @@ func (s *ServiceToken) endpoint(ctx context.Context) (string, error) {
 	discovery := strings.TrimRight(issuer, "/") + "/.well-known/openid-configuration"
 	status, document, err := s.issuer.get(ctx, discovery)
 	if err != nil {
-		return "", signInUnanswered(SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s got no answer: %v", issuer, err))
+		return "", signInUnanswered(api.SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s got no answer: %v", issuer, err))
 	}
 	if status < 200 || status > 299 {
-		return "", NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s failed: HTTP %d from %s", issuer, status, discovery), status)
+		return "", NewSignInError(api.SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s failed: HTTP %d from %s", issuer, status, discovery), status)
 	}
 	endpoint, ok := document.text("token_endpoint")
 	if !ok {
-		return "", NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s returned no token_endpoint", issuer), status)
+		return "", NewSignInError(api.SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s returned no token_endpoint", issuer), status)
 	}
 	s.tokenEndpoint = endpoint
 	return endpoint, nil
@@ -174,19 +174,19 @@ func (s *ServiceToken) token(ctx context.Context, renewed bool) (string, error) 
 	issuer, clientID := s.credential.account()
 	form, err := s.credential.GrantForm(endpoint)
 	if err != nil {
-		return "", signInUnanswered(SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s could not be made: %v", clientID, issuer, err))
+		return "", signInUnanswered(api.SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s could not be made: %v", clientID, issuer, err))
 	}
 	status, answered, err := s.issuer.postForm(ctx, endpoint, form)
 	if err != nil {
-		return "", signInUnanswered(SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s got no answer", clientID, issuer))
+		return "", signInUnanswered(api.SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s got no answer", clientID, issuer))
 	}
 	if status < 200 || status > 299 {
 		// The status, never the body: an error body can echo the secret or the assertion.
-		return "", NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s failed (HTTP %d)", clientID, issuer, status), status)
+		return "", NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s failed (HTTP %d)", clientID, issuer, status), status)
 	}
 	token, ok := answered.text("access_token")
 	if !ok {
-		return "", NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("Token endpoint for %s returned no access_token", issuer), status)
+		return "", NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("Token endpoint for %s returned no access_token", issuer), status)
 	}
 	// Used until it is due for renewal, and never past its expiry.
 	lifetime, hasLifetime := answered.seconds("expires_in")
@@ -361,12 +361,12 @@ func named(ctx context.Context, config AgentConfig, token string) (api.UserId, e
 	request.Header.Set("Authorization", "Bearer "+token)
 	response, err := config.HTTP.Do(request)
 	if err != nil {
-		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s got no answer: %v", target, err), TransportErrorCodeUnavailable)
+		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s got no answer: %v", target, err), api.TransportErrorCodeUnavailable)
 	}
 	defer response.Body.Close()
 	answered, err := io.ReadAll(io.LimitReader(response.Body, 1<<20))
 	if err != nil {
-		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s ended before its answer did: %v", target, err), TransportErrorCodeUnavailable)
+		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s ended before its answer did: %v", target, err), api.TransportErrorCodeUnavailable)
 	}
 	if response.StatusCode < 200 || response.StatusCode > 299 {
 		wait, hasWait := RetryAfter(response.Header.Get(HeaderRetryAfter))
@@ -374,7 +374,7 @@ func named(ctx context.Context, config AgentConfig, token string) (api.UserId, e
 	}
 	var user api.UserResponse
 	if err := json.Unmarshal(answered, &user); err != nil || user.Did.IsZero() {
-		return api.UserId{}, &TransportError{Code: TransportErrorCodeError, Message: target + " did not answer a DID", status: response.StatusCode, hasStatus: true}
+		return api.UserId{}, &TransportError{Code: api.TransportErrorCodeError, Message: target + " did not answer a DID", status: response.StatusCode, hasStatus: true}
 	}
 	return user.Did, nil
 }

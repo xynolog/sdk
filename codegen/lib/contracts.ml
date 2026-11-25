@@ -310,7 +310,7 @@ let error_codes t (spec : Spec.t) =
     ~item:(fun (_, (c : E.code)) -> c.code)
     ~declared:(fun sdk ((v : E.vocabulary), (c : E.code)) ->
       match sdk with
-      | Go -> declares (t.generated "go/errorcodes_gen.go") ("\n\t", " ") c.go
+      | Go -> declares (t.generated "go/api/errorcodes_gen.go") ("\n\t", " ") c.go
       | Python ->
           declares
             (block
@@ -338,7 +338,7 @@ let error_codes t (spec : Spec.t) =
             (block
                ~opening:
                  ("public enum "
-                 ^ Swift_sdk.Table_decls.error_code_enum v.member
+                 ^ snd (Error_codes.Table.named v.member)
                  ^ ":")
                ~closing:"\n}" (t.generated swift_models))
             ("case ", " = ")

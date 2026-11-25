@@ -86,7 +86,7 @@ func NewScriptedSessions(answer Answer, random *rand.Rand) *ScriptedSessions {
 // scripted for: a refusal naming both, never a response made up.
 func refuseUnscripted(kbID string, operation bus.Channel, _ json.RawMessage) (json.RawMessage, error) {
 	return nil, &xynolog.TransportError{
-		Code:    xynolog.TransportErrorCodeError,
+		Code:    api.TransportErrorCodeError,
 		Message: fmt.Sprintf("No response scripted for %q of knowledge base %q. Build the factory with an Answer.", operation, kbID),
 	}
 }
@@ -164,7 +164,7 @@ func (s *ScriptedSessions) Session(ctx context.Context, options registry.Session
 	why := s.refusesToBuild
 	s.mu.Unlock()
 	if why != "" {
-		return nil, nil, &xynolog.SessionError{Code: xynolog.SessionErrorCodeConstructFailed, Message: why, KbID: kbID}
+		return nil, nil, &xynolog.SessionError{Code: api.SessionErrorCodeConstructFailed, Message: why, KbID: kbID}
 	}
 
 	transport := NewFaultyTransport(FaultyConfig{Channels: bus.BridgedChannels, MakeResponse: func(operation bus.Channel, payload json.RawMessage) (json.RawMessage, error) {
@@ -196,7 +196,7 @@ func (s *ScriptedSessions) Session(ctx context.Context, options registry.Session
 			defer s.mu.Unlock()
 			s.renewed++
 			if len(s.renewals) == 0 {
-				return "", &xynolog.SignInError{Code: xynolog.SignInErrorCodeExchange, Message: fmt.Sprintf("ScriptedSessions: not scripted: a renewal of %q. Script one with QueueRenewals.", kbID)}
+				return "", &xynolog.SignInError{Code: api.SignInErrorCodeExchange, Message: fmt.Sprintf("ScriptedSessions: not scripted: a renewal of %q. Script one with QueueRenewals.", kbID)}
 			}
 			renewal := s.renewals[0]
 			s.renewals = s.renewals[1:]
@@ -212,7 +212,7 @@ func (s *ScriptedSessions) Session(ctx context.Context, options registry.Session
 				return api.UserResponse{}, ctx.Err()
 			}
 			if user == nil {
-				return api.UserResponse{}, &xynolog.TransportError{Code: xynolog.TransportErrorCodeError, Message: fmt.Sprintf("ScriptedSessions: not scripted: who a token of %q is. Script it with SaysWho.", kbID)}
+				return api.UserResponse{}, &xynolog.TransportError{Code: api.TransportErrorCodeError, Message: fmt.Sprintf("ScriptedSessions: not scripted: who a token of %q is. Script it with SaysWho.", kbID)}
 			}
 			return *user, nil
 		},

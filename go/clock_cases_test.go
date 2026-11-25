@@ -453,7 +453,7 @@ func timedOutBusRequest(t *testing.T, given clockGiven) clockSubject {
 	var timedOut atomic.Int64
 	refusedRequest(t, given, func(err error) {
 		var failed *xynolog.BusRequestError
-		if !errors.As(err, &failed) || failed.Code != xynolog.BusRequestErrorCodeTimeout {
+		if !errors.As(err, &failed) || failed.Code != api.BusRequestErrorCodeTimeout {
 			t.Errorf("the request ended otherwise: %v", err)
 			return
 		}
@@ -783,7 +783,7 @@ func jobPollTimeout(t *testing.T, _ clockGiven) clockSubject {
 	var timedOut atomic.Int64
 	polledJob(t, func(err error) {
 		var failed *xynolog.BusRequestError
-		if !errors.As(err, &failed) || failed.Code != xynolog.BusRequestErrorCodeTimeout {
+		if !errors.As(err, &failed) || failed.Code != api.BusRequestErrorCodeTimeout {
 			t.Errorf("the poll ended otherwise: %v", err)
 			return
 		}

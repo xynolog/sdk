@@ -447,7 +447,7 @@ func TestARegistryOverHTTPCannotBuildASessionForWhatIsNotAtAGateway(t *testing.T
 		refused = err
 		break
 	}
-	if refused == nil || refused.Code != xynolog.SessionErrorCodeConstructFailed || refused.KbID != "kb-local" || !strings.Contains(refused.Message, `"local"`) {
+	if refused == nil || refused.Code != api.SessionErrorCodeConstructFailed || refused.KbID != "kb-local" || !strings.Contains(refused.Message, `"local"`) {
 		t.Errorf("the failure said is %+v", refused)
 	}
 }
@@ -538,7 +538,7 @@ func TestAKnowledgeBaseThatCannotSayWhoItIsIsNotRegistered(t *testing.T) {
 	s.grant(jwt(time.Hour), "r")
 	_, err := registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), s.sentBack(t, browser, s.begin(t)))
 	var unverifiable *xynolog.IdentityUnverifiableError
-	if !errors.As(err, &unverifiable) || unverifiable.Reason != xynolog.IdentityUnverifiableReasonNotReported {
+	if !errors.As(err, &unverifiable) || unverifiable.Reason != api.IdentityUnverifiableReasonNotReported {
 		t.Errorf("a knowledge base that cannot say who it is: %v", err)
 	}
 
@@ -549,7 +549,7 @@ func TestAKnowledgeBaseThatCannotSayWhoItIsIsNotRegistered(t *testing.T) {
 	s.mu.Unlock()
 	s.grant(unwelcome, "r")
 	_, err = registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), s.sentBack(t, browser, s.begin(t)))
-	if !errors.As(err, &unverifiable) || unverifiable.Reason != xynolog.IdentityUnverifiableReasonUnreachable {
+	if !errors.As(err, &unverifiable) || unverifiable.Reason != api.IdentityUnverifiableReasonUnreachable {
 		t.Errorf("a knowledge base not reached: %v", err)
 	}
 
@@ -566,7 +566,7 @@ func TestACallbackThatIsNotThePendingSignInsRegistersNothing(t *testing.T) {
 	_, err := registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), "http://127.0.0.1:9/callback?state=another&code=the-code")
 
 	var refused *xynolog.SignInError
-	if !errors.As(err, &refused) || refused.Code != xynolog.SignInErrorCodeState || refused.Message != "The sign-in response does not belong to the pending sign-in" {
+	if !errors.As(err, &refused) || refused.Code != api.SignInErrorCodeState || refused.Message != "The sign-in response does not belong to the pending sign-in" {
 		t.Errorf("a callback of another sign-in: %v", err)
 	}
 	if len(browser.KnowledgeBases().Value()) != 0 {

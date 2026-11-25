@@ -238,7 +238,7 @@ func (e *signInEntry) Keep(_ context.Context, signIn api.StoredSession) error {
 	}
 	issuer, hasIssuer := TextClaim(signIn.Access, "iss")
 	if !hasIssuer {
-		return signInUnanswered(SignInErrorCodeExchange, fmt.Sprintf("The sign-in to %s was not kept: its access token names no issuer", e.key))
+		return signInUnanswered(api.SignInErrorCodeExchange, fmt.Sprintf("The sign-in to %s was not kept: its access token names no issuer", e.key))
 	}
 	email, _ := TextClaim(signIn.Access, "email")
 	learned := SignIn{Email: email, Issuer: issuer, TokenEndpoint: signIn.TokenEndpoint, RevocationEndpoint: optional.Said(signIn.RevocationEndpoint)}

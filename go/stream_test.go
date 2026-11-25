@@ -218,7 +218,7 @@ func TestAListenerTakenAfterTheFirstConnectWasRefusedStillHearsTheRefusal(t *tes
 
 	refused := firstFailure(t, transport)
 	status, stated := refused.Status()
-	if refused.Code != TransportErrorCodeUnavailable || !stated || status != http.StatusServiceUnavailable {
+	if refused.Code != api.TransportErrorCodeUnavailable || !stated || status != http.StatusServiceUnavailable {
 		t.Errorf("the refusal is heard as %q, %d (%v)", refused.Code, status, stated)
 	}
 }
@@ -393,7 +393,7 @@ func TestALineThatNamesNoChannelIsToldToTheFailureReportAndTheStreamGoesOn(t *te
 		select {
 		case failure := <-told:
 			_, stated := failure.Status()
-			if want := "the stream carried what is not a frame: " + said; failure.Code != TransportErrorCodeError || stated || failure.Message != want {
+			if want := "the stream carried what is not a frame: " + said; failure.Code != api.TransportErrorCodeError || stated || failure.Message != want {
 				t.Errorf("told %q (%v) %q, want %q", failure.Code, stated, failure.Message, want)
 			}
 		case <-time.After(5 * time.Second):
@@ -420,7 +420,7 @@ func TestAChannelTheStreamCannotDeliverIsRefusedAsUnsubscribed(t *testing.T) {
 	defer transport.Close()
 	_, err := transport.Frames(context.Background(), bus.BeckonHover.Channel())
 	var refused *BusRequestError
-	if !errors.As(err, &refused) || refused.Code != BusRequestErrorCodeUnsubscribed {
+	if !errors.As(err, &refused) || refused.Code != api.BusRequestErrorCodeUnsubscribed {
 		t.Errorf("a channel the stream does not carry is refused with %v", err)
 	}
 }

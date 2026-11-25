@@ -166,6 +166,7 @@ let rec placed st ~what ?(tag = false) (ty : T.ty) : P.expr =
   | T.Any -> json
   | T.Nothing -> refuse "%s: a schema that admits nothing" what
   | T.Scalar (T.Text { binary; _ }) -> name (if binary then "bytes" else "str")
+  | T.Scalar (T.Code vocabulary) -> name (fst (Error_codes.Table.named vocabulary))
   | T.Scalar (T.Integer _) -> name "int"
   | T.Scalar T.Number -> name "float"
   | T.Scalar T.Boolean -> name "bool"
@@ -509,7 +510,17 @@ let module_ ~also (typing : T.t) =
             P.From ("pydantic", [ "JsonValue"; "Field" ]);
             P.From ("xynolog.model", [ "WireModel" ]);
             P.From ("xynolog.identifiers", kinds);
-          ];
+          ]
+          @ (match T.codes typing with
+            | [] -> []
+            | codes ->
+                [
+                  P.From
+                    ( "xynolog.error_codes",
+                      List.map
+                        (fun v -> fst (Error_codes.Table.named v))
+                        codes );
+                ]);
         ];
       body =
         P.assign "__all__"

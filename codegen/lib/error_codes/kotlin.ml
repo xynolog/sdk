@@ -18,7 +18,7 @@ let variant code =
 let vocabulary ~docs (v : Table.vocabulary) =
   let taken = Hashtbl.create 16 in
   K.class_ ~about:(K.Doc docs)
-    ~annotations:[ K.annotation "Generated" ]
+    ~annotations:[ K.annotation "Generated"; K.annotation "Serializable" ]
     ~visibility:K.Public
     ~constructor:
       (K.constructor
@@ -34,7 +34,9 @@ let vocabulary ~docs (v : Table.vocabulary) =
            if Hashtbl.mem taken constant then
              Names.refuse "%s: two codes would both be %s" v.go_name constant;
            Hashtbl.replace taken constant ();
-           K.entry ~about:(K.Block c.docs) ~args:[ K.Str c.code ] constant)
+           K.entry ~about:(K.Block c.docs)
+             ~annotations:[ K.annotation ~args:[ K.arg (K.Str c.code) ] "SerialName" ]
+             ~args:[ K.Str c.code ] constant)
          v.codes)
     K.Enum_class v.go_name
 
@@ -56,7 +58,9 @@ let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
     ~name:"ErrorCodes"
     ~imports:
       (List.sort_uniq String.compare
-         ("xynolog.Generated" :: Kotlin_sdk.Types.imports_of types code_type))
+         ("xynolog.Generated" :: "kotlinx.serialization.SerialName"
+         :: "kotlinx.serialization.Serializable"
+         :: Kotlin_sdk.Types.imports_of types code_type))
     ([
        vocabulary
          ~docs:

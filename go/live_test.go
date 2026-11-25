@@ -782,11 +782,11 @@ func TestEnginesThatFailAreAFailedStateWhateverTheirHoldersReportAndAReadOfThemF
 	w := newLiveWorld(t, liveSetup{})
 	engines := bus.BrowseEnginesRequested.Request().Channel()
 	w.refuse(engines)
-	if _, err := w.client.Browse.Engines().Fresh(context.Background()); err == nil || codeOf(err) != string(xynolog.BusRequestErrorCodeRejected) {
+	if _, err := w.client.Browse.Engines().Fresh(context.Background()); err == nil || codeOf(err) != string(api.BusRequestErrorCodeRejected) {
 		t.Fatalf("the read failed with %v, want the engines' refusal", err)
 	}
 	live := watch(t, w.client.Browse.Engines())
-	if failed := untilFailed(t, live); codeOf(failed.Err) != string(xynolog.BusRequestErrorCodeRejected) {
+	if failed := untilFailed(t, live); codeOf(failed.Err) != string(api.BusRequestErrorCodeRejected) {
 		t.Fatalf("the engines failed with %v, want their refusal", failed.Err)
 	}
 	live.close()

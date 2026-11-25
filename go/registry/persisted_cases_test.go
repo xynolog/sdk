@@ -1011,11 +1011,11 @@ func (h *hearing) sofar() []*xynolog.SessionError {
 
 // keptFailedOnce is whether told is one session.keep-failed, of kb-a.
 func keptFailedOnce(told []*xynolog.SessionError) bool {
-	return slices.Equal(codesOf(told), []xynolog.SessionErrorCode{xynolog.SessionErrorCodeKeepFailed}) && told[0].KbID == kbA
+	return slices.Equal(codesOf(told), []api.SessionErrorCode{api.SessionErrorCodeKeepFailed}) && told[0].KbID == kbA
 }
 
-func codesOf(told []*xynolog.SessionError) []xynolog.SessionErrorCode {
-	codes := []xynolog.SessionErrorCode{}
+func codesOf(told []*xynolog.SessionError) []api.SessionErrorCode {
+	codes := []api.SessionErrorCode{}
 	for _, each := range told {
 		codes = append(codes, each.Code)
 	}
@@ -1181,7 +1181,7 @@ func TestASessionEndedOnTheKeepFailedItSaidEnds(t *testing.T) {
 	go func() {
 		for failure := range errs {
 			var said *xynolog.SessionError
-			if errors.As(failure, &said) && said.Code == xynolog.SessionErrorCodeKeepFailed {
+			if errors.As(failure, &said) && said.Code == api.SessionErrorCodeKeepFailed {
 				close(ending)
 				ended()
 				close(endedFromTheStream)
@@ -1249,8 +1249,8 @@ func TestAWriteTheStorageRefusesIsSaidOnceAndStaysOwed(t *testing.T) {
 	_, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
 	must(t, err)
 	said := heard.next(t, "that the storage refused a write")
-	if said.Code != xynolog.SessionErrorCodeSaveRefused || said.KbID != kbA || !strings.Contains(said.Message, errFull.Error()) {
-		t.Errorf("the session said %s of %s: %q; want %s of kb-a, with what the storage said", said.Code, said.KbID, said.Message, xynolog.SessionErrorCodeSaveRefused)
+	if said.Code != api.SessionErrorCodeSaveRefused || said.KbID != kbA || !strings.Contains(said.Message, errFull.Error()) {
+		t.Errorf("the session said %s of %s: %q; want %s of kb-a, with what the storage said", said.Code, said.KbID, said.Message, api.SessionErrorCodeSaveRefused)
 	}
 	if session.Client().PersistenceSettled() {
 		t.Error("the refused save is not owed")
@@ -1289,7 +1289,7 @@ func TestAClosingWriteTheStorageRefusesIsSaidBeforeTheErrorsEnd(t *testing.T) {
 	ended()
 
 	told := heard.rest(t)
-	if codes := codesOf(told); !slices.Equal(codes, []xynolog.SessionErrorCode{xynolog.SessionErrorCodeSaveRefused}) || told[0].KbID != kbA {
+	if codes := codesOf(told); !slices.Equal(codes, []api.SessionErrorCode{api.SessionErrorCodeSaveRefused}) || told[0].KbID != kbA {
 		t.Errorf("by the end of its errors stream the session said %v; it says session.save-refused of kb-a, once", codes)
 	}
 	jo := personOf(t, table, "jo").PersonKey

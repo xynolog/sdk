@@ -14,6 +14,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
 )
 
 const cacheKeyOne = "k"
@@ -84,7 +86,7 @@ func (s *answering) answer(t *testing.T, request, value int) {
 
 func (s *answering) fail(t *testing.T, request int, why string) error {
 	t.Helper()
-	failure := &BusRequestError{Code: BusRequestErrorCodeTimeout, Message: why}
+	failure := &BusRequestError{Code: api.BusRequestErrorCodeTimeout, Message: why}
 	s.reply(t, request, replied{err: failure})
 	return failure
 }
@@ -621,7 +623,7 @@ func TestB15AFailedKeyIsMadeReadyByAValueHoweverItComesWithNoPendingBetween(t *t
 func TestB13aARemovedKeyIsFailedAsItWasToldAtOnceAndNothingIsAskedFor(t *testing.T) {
 	c, service, _ := cacheWorld(t, nil, 0)
 	o := ready(t, c, service, 1)
-	gone := &BusRequestError{Code: BusRequestErrorCodeNotFound, Message: "it was removed"}
+	gone := &BusRequestError{Code: api.BusRequestErrorCodeNotFound, Message: "it was removed"}
 	c.Remove(cacheKeyOne, gone)
 	isState(t, o.now(t), Failed{Err: gone})
 	if _, has := c.Get(cacheKeyOne); has || !c.Known(cacheKeyOne) {
@@ -649,7 +651,7 @@ func TestB13aAFetchInFlightWhenItsKeyIsRemovedAnswersItsOwnReaderAndWritesNothin
 	service.count(t, 1)
 	o := watching(t, c, cacheKeyOne)
 	isState(t, o.now(t), Pending{})
-	gone := &BusRequestError{Code: BusRequestErrorCodeNotFound, Message: "it was removed"}
+	gone := &BusRequestError{Code: api.BusRequestErrorCodeNotFound, Message: "it was removed"}
 	c.Remove(cacheKeyOne, gone)
 	isState(t, o.now(t), Failed{Err: gone})
 	if c.keptFetching() {
@@ -835,13 +837,13 @@ func TestB16DisposingEndsEveryObserverAndNothingIsAskedOrWrittenAfter(t *testing
 	watching(t, c, cacheKeyOne).ended(t)
 	watching(t, c, "new").ended(t)
 	var refused *BusRequestError
-	if _, err := c.Fetch(context.Background(), cacheKeyOne); !errors.As(err, &refused) || refused.Code != BusRequestErrorCodeClosed {
+	if _, err := c.Fetch(context.Background(), cacheKeyOne); !errors.As(err, &refused) || refused.Code != api.BusRequestErrorCodeClosed {
 		t.Fatalf("a read of a disposed cache failed with %v, want bus.closed", err)
 	}
 	c.Invalidate(cacheKeyOne)
 	c.InvalidateAll()
 	c.Set(cacheKeyOne, 9)
-	c.Remove(cacheKeyOne, &BusRequestError{Code: BusRequestErrorCodeNotFound, Message: "gone"})
+	c.Remove(cacheKeyOne, &BusRequestError{Code: api.BusRequestErrorCodeNotFound, Message: "gone"})
 	service.askedJust(t, cacheKeyOne, "waiting")
 	if _, has := c.Get(cacheKeyOne); has || c.Known(cacheKeyOne) || len(c.Keys()) != 0 {
 		t.Fatal("a disposed cache holds something")
@@ -885,7 +887,7 @@ func TestAReadWhoseFetchItsClientsClosingEndedFailsAsClosedAndOneThatIsAbandoned
 	service.askedJust(t, cacheKeyOne)
 	runner.close(t)
 	var refused *BusRequestError
-	if got := readEnded(t, read); !errors.As(got.err, &refused) || refused.Code != BusRequestErrorCodeClosed {
+	if got := readEnded(t, read); !errors.As(got.err, &refused) || refused.Code != api.BusRequestErrorCodeClosed {
 		t.Fatalf("the read ended with %v, want bus.closed", got.err)
 	}
 }
@@ -966,7 +968,7 @@ func TestB18AKeptValueIsNoLongerOneOnceAnythingHasAskedForItOrWrittenIt(t *testi
 				c.Set(cacheKeyOne, 2)
 				asked = 0
 			default:
-				c.Remove(cacheKeyOne, &BusRequestError{Code: BusRequestErrorCodeNotFound, Message: "gone"})
+				c.Remove(cacheKeyOne, &BusRequestError{Code: api.BusRequestErrorCodeNotFound, Message: "gone"})
 				asked = 0
 			}
 			settledFor()
@@ -1023,7 +1025,7 @@ func TestB17ValuesAreSavedOnceTheyHaveStoppedChangingAndOnlyValues(t *testing.T)
 	eventually(t, "nothing owed", func() bool { return !c.PersistencePending() })
 
 	// A removal is a change too, and what is gone is no longer kept.
-	c.Remove("a", &BusRequestError{Code: BusRequestErrorCodeNotFound, Message: "gone"})
+	c.Remove("a", &BusRequestError{Code: api.BusRequestErrorCodeNotFound, Message: "gone"})
 	if !c.PersistencePending() {
 		t.Fatal("a removal owes nothing")
 	}

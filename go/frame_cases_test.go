@@ -400,7 +400,7 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 				t.Errorf("%s: refused as %+v, and the table states %s refused at %q, %s, carrying %q", c.Why, refused[0], c.Frame, c.Member, c.Reason, c.CorrelationID)
 			}
 		case "failure-report":
-			want := fmt.Sprintf("%s false the stream carried what is not a frame: %s", TransportErrorCodeError, fault)
+			want := fmt.Sprintf("%s false the stream carried what is not a frame: %s", api.TransportErrorCodeError, fault)
 			if len(reported) != 1 || reported[0] != want {
 				t.Errorf("%s: the failure report is told %v, and the table says it is told %q", c.Why, reported, want)
 			}

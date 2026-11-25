@@ -72,7 +72,7 @@ func focusOf(gathered api.GatheredContext) (api.ResourceId, error) {
 	if gathered.Focus.As(&annotation) == nil && annotation.Kind == api.GatheredContextFocusAnnotationKindAnnotation && !annotation.SourceResource.Id.IsZero() {
 		return annotation.SourceResource.Id, nil
 	}
-	return api.ResourceId{}, transportErrorWithoutResponse("a gathered context whose focus names no resource", TransportErrorCodeError)
+	return api.ResourceId{}, transportErrorWithoutResponse("a gathered context whose focus names no resource", api.TransportErrorCodeError)
 }
 
 // CloneToken is a token another resource can be created from: a clone of

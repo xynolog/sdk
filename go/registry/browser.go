@@ -54,7 +54,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/kept"
@@ -834,7 +833,7 @@ func constructFailed(err error, kbID string) *xynolog.SessionError {
 	if errors.As(err, &refused) {
 		return refused
 	}
-	return &xynolog.SessionError{Code: xynolog.SessionErrorCodeConstructFailed, Message: err.Error(), KbID: kbID}
+	return &xynolog.SessionError{Code: api.SessionErrorCodeConstructFailed, Message: err.Error(), KbID: kbID}
 }
 
 // route reads the session's errors, as their one reader, and so from what
@@ -851,7 +850,7 @@ func (b *XynologBrowser) route(session *xynolog.Session, signals *xynolog.Sessio
 			continue
 		}
 		var failure *xynolog.TransportError
-		if errors.As(each, &failure) && failure.Code == xynolog.TransportErrorCodeForbidden {
+		if errors.As(each, &failure) && failure.Code == api.TransportErrorCodeForbidden {
 			detail := failure.Message
 			signals.NotifyPermissionDenied(&detail)
 		}
@@ -1123,7 +1122,7 @@ func checkOpenResource(ctx context.Context, session *xynolog.Session, id api.Res
 			ready.MediaType = &mediaType
 		}
 		written = check.From(ready)
-	case errors.As(err, &refusal) && refusal.Code == xynolog.BusRequestErrorCodeNotFound:
+	case errors.As(err, &refusal) && refusal.Code == api.BusRequestErrorCodeNotFound:
 		written = check.From(api.TabCheckGone{})
 	default:
 		// Anything else is a symptom, not a verdict.
