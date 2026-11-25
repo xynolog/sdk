@@ -202,7 +202,8 @@ and in_place t what (i : T.inline) =
   match (i.form, single_ref i.composition) with
   | _, Some r -> named t r
   | T.Enum { base = Some T.Number; _ }, None -> S.Named "Double"
-  | T.Empty { rest = T.Open; _ }, None -> dictionary_of json_value
+  | T.Empty { rest = T.Open | T.Unstated; none = false }, None ->
+      dictionary_of json_value
   | T.Map { key; value }, None -> map_of t what key value
   | T.Union u, None when Deviations.text_union u -> string_type
   | _, None -> declare t ~modifiers:[ "public" ] i
