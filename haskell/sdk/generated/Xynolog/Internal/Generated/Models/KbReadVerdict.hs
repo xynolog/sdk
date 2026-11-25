@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.KbReadVerdict (KbReadVerdict (..), KbReadVerdictConflict (..), KbReadVerdictNoVerdict (..), KbReadVerdictRecorded (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -13,7 +12,7 @@ import Xynolog.Internal.Generated.Models.KbReadKind
 
 data KbReadVerdict = KbReadVerdictRecorded KbReadVerdictRecorded | KbReadVerdictConflict KbReadVerdictConflict | KbReadVerdictNoVerdict KbReadVerdictNoVerdict deriving (Eq, Show)
 
-instance FromJSON KbReadVerdict where parseJSON = checked "KbReadVerdict" $ \value -> (KbReadVerdictRecorded <$> parseJSON value) <|> (KbReadVerdictConflict <$> parseJSON value) <|> (KbReadVerdictNoVerdict <$> parseJSON value)
+instance FromJSON KbReadVerdict where parseJSON = checked "KbReadVerdict" $ \value -> readMember "KbReadVerdict" [([Signature {signatureKind = ObjectKind, signatureRequired = ["kind"], signatureAllowed = Just ["kind"], signatureFixed = [("kind", [String "recorded"])], signaturePattern = Nothing, signatureValues = Nothing}], KbReadVerdictRecorded <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["kind", "observedDid", "observedName"], signatureAllowed = Just ["kind", "observedDid", "observedName"], signatureFixed = [("kind", [String "conflict"])], signaturePattern = Nothing, signatureValues = Nothing}], KbReadVerdictConflict <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = ["kind"], signatureAllowed = Just ["kind"], signatureFixed = [("kind", [String "no-verdict"])], signaturePattern = Nothing, signatureValues = Nothing}], KbReadVerdictNoVerdict <$> parseJSON value)] value
 
 instance ToJSON KbReadVerdict where
   toJSON (KbReadVerdictRecorded value) = toJSON value

@@ -79,6 +79,7 @@ library internal
     Xynolog.EventBus
     Xynolog.Bus
     Xynolog.Internal.Schema
+    Xynolog.Internal.Codec
     Xynolog.Internal.Required
     Xynolog.Internal.Cache
     Xynolog.Internal.CacheDocument
@@ -195,7 +196,6 @@ library internal
   other-modules:
     Paths_xynolog
     Xynolog.Internal.Telemetry
-    Xynolog.Internal.Codec
     Xynolog.Internal.Bus
     Xynolog.Internal.Local
     Xynolog.Internal.RetryPolicy

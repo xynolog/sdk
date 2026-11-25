@@ -58,13 +58,6 @@ let haskell_enumeration (s : Schema.schema) = Option.is_some s.enum
    which is the type's name, and Haskell's constructors share one namespace,
    where [Typing] has a type constructed by its name. *)
 
-(* Haskell declares every named schema that is no record, enumeration or
-   union as a newtype, a named list or map among them, where [Typing] has it
-   an alias. *)
-
-(* Haskell reads a union as the first member that parses, where [Typing]
-   tells its members apart by their signatures. *)
-
 (* Haskell holds a schema in place that states one [allOf] as that [allOf]'s
    schema, dropping what it states beside it ([KnowledgeIndex]'s
    [spec.graph] is a [Runner]), where [Typing] merges them. *)

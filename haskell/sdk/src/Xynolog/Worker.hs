@@ -167,7 +167,7 @@ completedUnits :: HeldJob result -> [Text]
 completedUnits = fromMaybe [] . jobMetadataCompletedUnits . jobRunningMetadata . heldRecord
 
 unitCursors :: HeldJob result -> KM.KeyMap UnitCursor
-unitCursors = maybe KM.empty jobMetadataUnitCursorsAdditionalProperties . jobMetadataUnitCursors . jobRunningMetadata . heldRecord
+unitCursors = fromMaybe KM.empty . jobMetadataUnitCursors . jobRunningMetadata . heldRecord
 
 retryCount :: HeldJob result -> Integer
 retryCount = jobMetadataRetryCount . jobRunningMetadata . heldRecord
@@ -495,7 +495,7 @@ checkpoint job value = withMVar (heldGate job) $ \() -> do
   emit
     job
     Ch.JobCheckpoint
-    (JobCheckpointCommand {jobCheckpointCommandUserId = Nothing, jobCheckpointCommandCompletedUnits = (jobCheckpointCompletedUnits value), jobCheckpointCommandJobId = (jobId job), jobCheckpointCommandUnitCursors = (JobCheckpointCommandUnitCursors <$> jobCheckpointUnitCursors value)})
+    (JobCheckpointCommand {jobCheckpointCommandUserId = Nothing, jobCheckpointCommandCompletedUnits = (jobCheckpointCompletedUnits value), jobCheckpointCommandJobId = (jobId job), jobCheckpointCommandUnitCursors = jobCheckpointUnitCursors value})
 
 weakness :: DurabilityEvidence -> Int
 weakness DurabilityEvidenceAcknowledged = 0
@@ -577,7 +577,7 @@ fail job message failure = settle job False $ do
   let durability = observed >>= \value -> if weakness value > weakness DurabilityEvidenceProbeConfirmed then Just value else Nothing
       classification = failure >>= jobFailureFailureClass
       units = failure >>= jobFailureCompletedUnits
-      cursors = JobFailCommandUnitCursors <$> (failure >>= jobFailureUnitCursors)
+      cursors = failure >>= jobFailureUnitCursors
   emit
     job
     JobFail
@@ -589,4 +589,4 @@ cancel job reached =
     emit
       job
       JobCancel
-      (JobCancelCommand {jobCancelCommandUserId = Nothing, jobCancelCommandAnnotationId = (annotationId job), jobCancelCommandCompletedUnits = (reached >>= jobReachedCompletedUnits), jobCancelCommandJobId = (jobId job), jobCancelCommandJobType = (jobType job), jobCancelCommandResourceId = (resourceId job), jobCancelCommandUnitCursors = (JobCancelCommandUnitCursors <$> (reached >>= jobReachedUnitCursors))})
+      (JobCancelCommand {jobCancelCommandUserId = Nothing, jobCancelCommandAnnotationId = (annotationId job), jobCancelCommandCompletedUnits = (reached >>= jobReachedCompletedUnits), jobCancelCommandJobId = (jobId job), jobCancelCommandJobType = (jobType job), jobCancelCommandResourceId = (resourceId job), jobCancelCommandUnitCursors = reached >>= jobReachedUnitCursors})
