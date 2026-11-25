@@ -153,7 +153,7 @@ discoverIssuer options target = do
   doc <- configuration options identity
   authorization <- requiredText Code.SignInDiscovery "authorization_endpoint" doc
   tokenEndpoint <- requiredText Code.SignInDiscovery "token_endpoint" doc
-  pure (PendingAuthorizationIssuer authorization (text "device_authorization_endpoint" doc) identity (text "revocation_endpoint" doc) tokenEndpoint KM.empty)
+  pure (PendingAuthorizationIssuer authorization (text "device_authorization_endpoint" doc) identity (text "revocation_endpoint" doc) tokenEndpoint)
 
 configuration :: IssuerOptions -> Text -> IO Value
 configuration options identity = do
@@ -183,7 +183,6 @@ beginAuthorization options begin storage = do
           state
           (beginAuthorizationOptionsTarget begin)
           verifier
-          KM.empty
   address <- case parseURI (Text.unpack (pendingAuthorizationIssuerAuthorization issuer)) of
     Just uri | uriScheme uri `elem` ["http:", "https:"] && maybe False ((== "") . uriUserInfo) (uriAuthority uri) -> pure uri
     _ -> failWith Code.SignInDiscovery "The authorization endpoint is not a credential-free HTTP URL" Nothing

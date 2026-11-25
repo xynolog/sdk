@@ -38,7 +38,6 @@ search (MatchNamespace wire _ timing _) identity reference context options =
           reference
           identity
           (Just (fromMaybe True (matchSearchOptionsUseSemanticScoring chosen)))
-          mempty
       )
       (Timing.busRequestTimeoutMs timing)
   where
@@ -57,10 +56,9 @@ resources (MatchNamespace _ _ _ cache) text filters =
         (Just (fromMaybe 100 (browseResourcesRequestLimit selected)))
         (Just (fromMaybe 0 (browseResourcesRequestOffset selected)))
         text
-        (browseResourcesRequestAdditionalProperties selected)
     )
   where
-    selected = fromMaybe (BrowseResourcesRequest Nothing Nothing Nothing Nothing mempty) filters
+    selected = fromMaybe (BrowseResourcesRequest Nothing Nothing Nothing Nothing) filters
 
 controls :: MatchNamespace -> [(Fact.Query, Refresh.Acts)]
 controls (MatchNamespace _ _ _ cache) =

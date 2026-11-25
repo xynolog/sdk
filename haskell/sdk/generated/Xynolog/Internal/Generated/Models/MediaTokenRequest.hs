@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data MediaTokenRequest = MediaTokenRequest
-  { mediaTokenRequestResourceId :: ResourceId,
-    mediaTokenRequestAdditionalProperties :: KM.KeyMap Value
+  { mediaTokenRequestResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON MediaTokenRequest where parseJSON = checked "MediaTokenRequest" $ withObject "MediaTokenRequest" (\fields -> MediaTokenRequest <$> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["resourceId"] fields))
+instance FromJSON MediaTokenRequest where parseJSON = checked "MediaTokenRequest" $ withObject "MediaTokenRequest" (\fields -> MediaTokenRequest <$> (fields .: "resourceId"))
 
-instance ToJSON MediaTokenRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (mediaTokenRequestResourceId value))]]) <> fmap toJSON (withoutFields ["resourceId"] (mediaTokenRequestAdditionalProperties value)))
+instance ToJSON MediaTokenRequest where toJSON value = Object (KM.fromList (concat [[("resourceId", toJSON (mediaTokenRequestResourceId value))]]))

@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data GatherReferencedByRequest = GatherReferencedByRequest
   { gatherReferencedByRequestMotivation :: Maybe Motivation,
-    gatherReferencedByRequestResourceId :: ResourceId,
-    gatherReferencedByRequestAdditionalProperties :: KM.KeyMap Value
+    gatherReferencedByRequestResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherReferencedByRequest where parseJSON = checked "GatherReferencedByRequest" $ withObject "GatherReferencedByRequest" (\fields -> GatherReferencedByRequest <$> optional fields "motivation" <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["motivation", "resourceId"] fields))
+instance FromJSON GatherReferencedByRequest where parseJSON = checked "GatherReferencedByRequest" $ withObject "GatherReferencedByRequest" (\fields -> GatherReferencedByRequest <$> optional fields "motivation" <*> (fields .: "resourceId"))
 
-instance ToJSON GatherReferencedByRequest where toJSON value = Object (KM.fromList (concat [optionalPair "motivation" (gatherReferencedByRequestMotivation value), [("resourceId", toJSON (gatherReferencedByRequestResourceId value))]]) <> fmap toJSON (withoutFields ["motivation", "resourceId"] (gatherReferencedByRequestAdditionalProperties value)))
+instance ToJSON GatherReferencedByRequest where toJSON value = Object (KM.fromList (concat [optionalPair "motivation" (gatherReferencedByRequestMotivation value), [("resourceId", toJSON (gatherReferencedByRequestResourceId value))]]))

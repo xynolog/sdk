@@ -18,11 +18,10 @@ data JobAssignCommand = JobAssignCommand
     jobAssignCommandJobId :: JobId,
     jobAssignCommandJobType :: JobType,
     jobAssignCommandRequester :: UserId,
-    jobAssignCommandResourceId :: ResourceId,
-    jobAssignCommandAdditionalProperties :: KM.KeyMap Value
+    jobAssignCommandResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON JobAssignCommand where parseJSON = checked "JobAssignCommand" $ withObject "JobAssignCommand" (\fields -> JobAssignCommand <$> optional fields "_userId" <*> (fields .: "holder") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "requester") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["_userId", "holder", "jobId", "jobType", "requester", "resourceId"] fields))
+instance FromJSON JobAssignCommand where parseJSON = checked "JobAssignCommand" $ withObject "JobAssignCommand" (\fields -> JobAssignCommand <$> optional fields "_userId" <*> (fields .: "holder") <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "requester") <*> (fields .: "resourceId"))
 
-instance ToJSON JobAssignCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobAssignCommandUserId value), [("holder", toJSON (jobAssignCommandHolder value))], [("jobId", toJSON (jobAssignCommandJobId value))], [("jobType", toJSON (jobAssignCommandJobType value))], [("requester", toJSON (jobAssignCommandRequester value))], [("resourceId", toJSON (jobAssignCommandResourceId value))]]) <> fmap toJSON (withoutFields ["_userId", "holder", "jobId", "jobType", "requester", "resourceId"] (jobAssignCommandAdditionalProperties value)))
+instance ToJSON JobAssignCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobAssignCommandUserId value), [("holder", toJSON (jobAssignCommandHolder value))], [("jobId", toJSON (jobAssignCommandJobId value))], [("jobType", toJSON (jobAssignCommandJobType value))], [("requester", toJSON (jobAssignCommandRequester value))], [("resourceId", toJSON (jobAssignCommandResourceId value))]]))

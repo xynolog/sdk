@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.GetTagSchemasResponse
 
 data BrowseTagSchemasResult = BrowseTagSchemasResult
-  { browseTagSchemasResultResponse :: GetTagSchemasResponse,
-    browseTagSchemasResultAdditionalProperties :: KM.KeyMap Value
+  { browseTagSchemasResultResponse :: GetTagSchemasResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseTagSchemasResult where parseJSON = checked "BrowseTagSchemasResult" $ withObject "BrowseTagSchemasResult" (\fields -> BrowseTagSchemasResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON BrowseTagSchemasResult where parseJSON = checked "BrowseTagSchemasResult" $ withObject "BrowseTagSchemasResult" (\fields -> BrowseTagSchemasResult <$> (fields .: "response"))
 
-instance ToJSON BrowseTagSchemasResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseTagSchemasResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (browseTagSchemasResultAdditionalProperties value)))
+instance ToJSON BrowseTagSchemasResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseTagSchemasResultResponse value))]]))

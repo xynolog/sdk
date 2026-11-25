@@ -15,28 +15,26 @@ import Xynolog.Internal.Generated.Models.GraphResourceNode
 data KnowledgeGraph = KnowledgeGraph
   { knowledgeGraphEdges :: [KnowledgeGraphEdgesItem],
     knowledgeGraphNodes :: [KnowledgeGraphNodesItem],
-    knowledgeGraphTruncated :: Maybe Bool,
-    knowledgeGraphAdditionalProperties :: KM.KeyMap Value
+    knowledgeGraphTruncated :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeGraph where parseJSON = checked "KnowledgeGraph" $ withObject "KnowledgeGraph" (\fields -> KnowledgeGraph <$> (fields .: "edges") <*> (fields .: "nodes") <*> optional fields "truncated" <*> traverse parseJSON (withoutFields ["edges", "nodes", "truncated"] fields))
+instance FromJSON KnowledgeGraph where parseJSON = checked "KnowledgeGraph" $ withObject "KnowledgeGraph" (\fields -> KnowledgeGraph <$> (fields .: "edges") <*> (fields .: "nodes") <*> optional fields "truncated")
 
-instance ToJSON KnowledgeGraph where toJSON value = Object (KM.fromList (concat [[("edges", toJSON (knowledgeGraphEdges value))], [("nodes", toJSON (knowledgeGraphNodes value))], optionalPair "truncated" (knowledgeGraphTruncated value)]) <> fmap toJSON (withoutFields ["edges", "nodes", "truncated"] (knowledgeGraphAdditionalProperties value)))
+instance ToJSON KnowledgeGraph where toJSON value = Object (KM.fromList (concat [[("edges", toJSON (knowledgeGraphEdges value))], [("nodes", toJSON (knowledgeGraphNodes value))], optionalPair "truncated" (knowledgeGraphTruncated value)]))
 
 data KnowledgeGraphEdgesItem = KnowledgeGraphEdgesItem
   { knowledgeGraphEdgesItemBidirectional :: Maybe Bool,
     knowledgeGraphEdgesItemMetadata :: Maybe KnowledgeGraphEdgesItemMetadata,
     knowledgeGraphEdgesItemSource :: Text,
     knowledgeGraphEdgesItemTarget :: Text,
-    knowledgeGraphEdgesItemType :: Text,
-    knowledgeGraphEdgesItemAdditionalProperties :: KM.KeyMap Value
+    knowledgeGraphEdgesItemType :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeGraphEdgesItem where parseJSON = checked "KnowledgeGraphEdgesItem" $ withObject "KnowledgeGraphEdgesItem" (\fields -> KnowledgeGraphEdgesItem <$> optional fields "bidirectional" <*> optional fields "metadata" <*> (fields .: "source") <*> (fields .: "target") <*> (fields .: "type") <*> traverse parseJSON (withoutFields ["bidirectional", "metadata", "source", "target", "type"] fields))
+instance FromJSON KnowledgeGraphEdgesItem where parseJSON = checked "KnowledgeGraphEdgesItem" $ withObject "KnowledgeGraphEdgesItem" (\fields -> KnowledgeGraphEdgesItem <$> optional fields "bidirectional" <*> optional fields "metadata" <*> (fields .: "source") <*> (fields .: "target") <*> (fields .: "type"))
 
-instance ToJSON KnowledgeGraphEdgesItem where toJSON value = Object (KM.fromList (concat [optionalPair "bidirectional" (knowledgeGraphEdgesItemBidirectional value), optionalPair "metadata" (knowledgeGraphEdgesItemMetadata value), [("source", toJSON (knowledgeGraphEdgesItemSource value))], [("target", toJSON (knowledgeGraphEdgesItemTarget value))], [("type", toJSON (knowledgeGraphEdgesItemType value))]]) <> fmap toJSON (withoutFields ["bidirectional", "metadata", "source", "target", "type"] (knowledgeGraphEdgesItemAdditionalProperties value)))
+instance ToJSON KnowledgeGraphEdgesItem where toJSON value = Object (KM.fromList (concat [optionalPair "bidirectional" (knowledgeGraphEdgesItemBidirectional value), optionalPair "metadata" (knowledgeGraphEdgesItemMetadata value), [("source", toJSON (knowledgeGraphEdgesItemSource value))], [("target", toJSON (knowledgeGraphEdgesItemTarget value))], [("type", toJSON (knowledgeGraphEdgesItemType value))]]))
 
 data KnowledgeGraphEdgesItemMetadata = KnowledgeGraphEdgesItemMetadata
   { knowledgeGraphEdgesItemMetadataAdditionalProperties :: KM.KeyMap Value

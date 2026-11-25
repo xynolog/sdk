@@ -19,11 +19,10 @@ data SemanticMatch = SemanticMatch
     semanticMatchResourceId :: ResourceId,
     semanticMatchResourceName :: Text,
     semanticMatchScore :: Scientific,
-    semanticMatchText :: Text,
-    semanticMatchAdditionalProperties :: KM.KeyMap Value
+    semanticMatchText :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON SemanticMatch where parseJSON = checked "SemanticMatch" $ withObject "SemanticMatch" (\fields -> SemanticMatch <$> optional fields "annotationId" <*> optional fields "entityTypes" <*> optional fields "machineRead" <*> (fields .: "resourceId") <*> (fields .: "resourceName") <*> (fields .: "score") <*> (fields .: "text") <*> traverse parseJSON (withoutFields ["annotationId", "entityTypes", "machineRead", "resourceId", "resourceName", "score", "text"] fields))
+instance FromJSON SemanticMatch where parseJSON = checked "SemanticMatch" $ withObject "SemanticMatch" (\fields -> SemanticMatch <$> optional fields "annotationId" <*> optional fields "entityTypes" <*> optional fields "machineRead" <*> (fields .: "resourceId") <*> (fields .: "resourceName") <*> (fields .: "score") <*> (fields .: "text"))
 
-instance ToJSON SemanticMatch where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (semanticMatchAnnotationId value), optionalPair "entityTypes" (semanticMatchEntityTypes value), optionalPair "machineRead" (semanticMatchMachineRead value), [("resourceId", toJSON (semanticMatchResourceId value))], [("resourceName", toJSON (semanticMatchResourceName value))], [("score", toJSON (semanticMatchScore value))], [("text", toJSON (semanticMatchText value))]]) <> fmap toJSON (withoutFields ["annotationId", "entityTypes", "machineRead", "resourceId", "resourceName", "score", "text"] (semanticMatchAdditionalProperties value)))
+instance ToJSON SemanticMatch where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (semanticMatchAnnotationId value), optionalPair "entityTypes" (semanticMatchEntityTypes value), optionalPair "machineRead" (semanticMatchMachineRead value), [("resourceId", toJSON (semanticMatchResourceId value))], [("resourceName", toJSON (semanticMatchResourceName value))], [("score", toJSON (semanticMatchScore value))], [("text", toJSON (semanticMatchText value))]]))

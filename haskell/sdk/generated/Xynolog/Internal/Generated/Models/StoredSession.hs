@@ -15,11 +15,10 @@ data StoredSession = StoredSession
     storedSessionPersonKey :: Maybe Text,
     storedSessionRefresh :: Text,
     storedSessionRevocationEndpoint :: Maybe Text,
-    storedSessionTokenEndpoint :: Text,
-    storedSessionAdditionalProperties :: KM.KeyMap Value
+    storedSessionTokenEndpoint :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON StoredSession where parseJSON = checked "StoredSession" $ withObject "StoredSession" (\fields -> StoredSession <$> (fields .: "access") <*> (fields .: "clientId") <*> optional fields "personKey" <*> (fields .: "refresh") <*> optional fields "revocationEndpoint" <*> (fields .: "tokenEndpoint") <*> traverse parseJSON (withoutFields ["access", "clientId", "personKey", "refresh", "revocationEndpoint", "tokenEndpoint"] fields))
+instance FromJSON StoredSession where parseJSON = checked "StoredSession" $ withObject "StoredSession" (\fields -> StoredSession <$> (fields .: "access") <*> (fields .: "clientId") <*> optional fields "personKey" <*> (fields .: "refresh") <*> optional fields "revocationEndpoint" <*> (fields .: "tokenEndpoint"))
 
-instance ToJSON StoredSession where toJSON value = Object (KM.fromList (concat [[("access", toJSON (storedSessionAccess value))], [("clientId", toJSON (storedSessionClientId value))], optionalPair "personKey" (storedSessionPersonKey value), [("refresh", toJSON (storedSessionRefresh value))], optionalPair "revocationEndpoint" (storedSessionRevocationEndpoint value), [("tokenEndpoint", toJSON (storedSessionTokenEndpoint value))]]) <> fmap toJSON (withoutFields ["access", "clientId", "personKey", "refresh", "revocationEndpoint", "tokenEndpoint"] (storedSessionAdditionalProperties value)))
+instance ToJSON StoredSession where toJSON value = Object (KM.fromList (concat [[("access", toJSON (storedSessionAccess value))], [("clientId", toJSON (storedSessionClientId value))], optionalPair "personKey" (storedSessionPersonKey value), [("refresh", toJSON (storedSessionRefresh value))], optionalPair "revocationEndpoint" (storedSessionRevocationEndpoint value), [("tokenEndpoint", toJSON (storedSessionTokenEndpoint value))]]))

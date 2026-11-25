@@ -16,11 +16,10 @@ data KnowledgeBase = KnowledgeBase
     knowledgeBaseEndpoint :: KbEndpoint,
     knowledgeBaseId :: Text,
     knowledgeBaseLabel :: Text,
-    knowledgeBaseLastRead :: Maybe KbRead,
-    knowledgeBaseAdditionalProperties :: KM.KeyMap Value
+    knowledgeBaseLastRead :: Maybe KbRead
   }
   deriving (Eq, Show)
 
-instance FromJSON KnowledgeBase where parseJSON = checked "KnowledgeBase" $ withObject "KnowledgeBase" (\fields -> KnowledgeBase <$> (fields .: "did") <*> (fields .: "endpoint") <*> (fields .: "id") <*> (fields .: "label") <*> optional fields "lastRead" <*> traverse parseJSON (withoutFields ["did", "endpoint", "id", "label", "lastRead"] fields))
+instance FromJSON KnowledgeBase where parseJSON = checked "KnowledgeBase" $ withObject "KnowledgeBase" (\fields -> KnowledgeBase <$> (fields .: "did") <*> (fields .: "endpoint") <*> (fields .: "id") <*> (fields .: "label") <*> optional fields "lastRead")
 
-instance ToJSON KnowledgeBase where toJSON value = Object (KM.fromList (concat [[("did", toJSON (knowledgeBaseDid value))], [("endpoint", toJSON (knowledgeBaseEndpoint value))], [("id", toJSON (knowledgeBaseId value))], [("label", toJSON (knowledgeBaseLabel value))], optionalPair "lastRead" (knowledgeBaseLastRead value)]) <> fmap toJSON (withoutFields ["did", "endpoint", "id", "label", "lastRead"] (knowledgeBaseAdditionalProperties value)))
+instance ToJSON KnowledgeBase where toJSON value = Object (KM.fromList (concat [[("did", toJSON (knowledgeBaseDid value))], [("endpoint", toJSON (knowledgeBaseEndpoint value))], [("id", toJSON (knowledgeBaseId value))], [("label", toJSON (knowledgeBaseLabel value))], optionalPair "lastRead" (knowledgeBaseLastRead value)]))

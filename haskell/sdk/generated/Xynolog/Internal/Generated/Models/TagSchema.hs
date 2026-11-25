@@ -15,11 +15,10 @@ data TagSchema = TagSchema
     tagSchemaDomain :: Text,
     tagSchemaId :: Text,
     tagSchemaName :: Text,
-    tagSchemaTags :: [TagCategory],
-    tagSchemaAdditionalProperties :: KM.KeyMap Value
+    tagSchemaTags :: [TagCategory]
   }
   deriving (Eq, Show)
 
-instance FromJSON TagSchema where parseJSON = checked "TagSchema" $ withObject "TagSchema" (\fields -> TagSchema <$> (fields .: "description") <*> (fields .: "domain") <*> (fields .: "id") <*> (fields .: "name") <*> (fields .: "tags") <*> traverse parseJSON (withoutFields ["description", "domain", "id", "name", "tags"] fields))
+instance FromJSON TagSchema where parseJSON = checked "TagSchema" $ withObject "TagSchema" (\fields -> TagSchema <$> (fields .: "description") <*> (fields .: "domain") <*> (fields .: "id") <*> (fields .: "name") <*> (fields .: "tags"))
 
-instance ToJSON TagSchema where toJSON value = Object (KM.fromList (concat [[("description", toJSON (tagSchemaDescription value))], [("domain", toJSON (tagSchemaDomain value))], [("id", toJSON (tagSchemaId value))], [("name", toJSON (tagSchemaName value))], [("tags", toJSON (tagSchemaTags value))]]) <> fmap toJSON (withoutFields ["description", "domain", "id", "name", "tags"] (tagSchemaAdditionalProperties value)))
+instance ToJSON TagSchema where toJSON value = Object (KM.fromList (concat [[("description", toJSON (tagSchemaDescription value))], [("domain", toJSON (tagSchemaDomain value))], [("id", toJSON (tagSchemaId value))], [("name", toJSON (tagSchemaName value))], [("tags", toJSON (tagSchemaTags value))]]))

@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data MarkDelegateTimeoutEvent = MarkDelegateTimeoutEvent
   { markDelegateTimeoutEventMotivation :: Motivation,
-    markDelegateTimeoutEventResourceId :: ResourceId,
-    markDelegateTimeoutEventAdditionalProperties :: KM.KeyMap Value
+    markDelegateTimeoutEventResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkDelegateTimeoutEvent where parseJSON = checked "MarkDelegateTimeoutEvent" $ withObject "MarkDelegateTimeoutEvent" (\fields -> MarkDelegateTimeoutEvent <$> (fields .: "motivation") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["motivation", "resourceId"] fields))
+instance FromJSON MarkDelegateTimeoutEvent where parseJSON = checked "MarkDelegateTimeoutEvent" $ withObject "MarkDelegateTimeoutEvent" (\fields -> MarkDelegateTimeoutEvent <$> (fields .: "motivation") <*> (fields .: "resourceId"))
 
-instance ToJSON MarkDelegateTimeoutEvent where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (markDelegateTimeoutEventMotivation value))], [("resourceId", toJSON (markDelegateTimeoutEventResourceId value))]]) <> fmap toJSON (withoutFields ["motivation", "resourceId"] (markDelegateTimeoutEventAdditionalProperties value)))
+instance ToJSON MarkDelegateTimeoutEvent where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (markDelegateTimeoutEventMotivation value))], [("resourceId", toJSON (markDelegateTimeoutEventResourceId value))]]))

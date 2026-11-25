@@ -152,7 +152,7 @@ httpCases root fixtures = do
           reach peer "the connection proof"
           target <- case parseURI (Text.unpack origin) >>= uriAuthority of
             Just address -> case readMaybe (drop 1 (uriPort address)) of
-              Just port -> pure (HttpEndpoint (Text.pack (uriRegName address)) HttpEndpointKindHttp port HttpEndpointProtocolHttp mempty)
+              Just port -> pure (HttpEndpoint (Text.pack (uriRegName address)) HttpEndpointKindHttp port HttpEndpointProtocolHttp)
               Nothing -> ioError (userError "HTTP peer named no port")
             Nothing -> ioError (userError "HTTP peer named no origin")
           proven <- Identity.describeConnection (options pool) target "proof-credential-not-for-log"

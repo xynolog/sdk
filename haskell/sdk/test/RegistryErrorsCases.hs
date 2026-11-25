@@ -195,7 +195,7 @@ factoryOf why doubles http person opening = do
             settings =
               Session.SessionOptions
                 (knowledgeBaseId kb)
-                (KbTarget (knowledgeBaseEndpoint kb) (knowledgeBaseId kb) (knowledgeBaseLabel kb) mempty)
+                (KbTarget (knowledgeBaseEndpoint kb) (knowledgeBaseId kb) (knowledgeBaseLabel kb))
                 kept
                 Nothing
                 (Just renew)

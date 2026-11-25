@@ -12,11 +12,10 @@ import Xynolog.Internal.Codec
 data OcrConfidence = OcrConfidence
   { ocrConfidenceLowConfidenceWords :: Integer,
     ocrConfidenceMean :: Scientific,
-    ocrConfidenceTotalWords :: Integer,
-    ocrConfidenceAdditionalProperties :: KM.KeyMap Value
+    ocrConfidenceTotalWords :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON OcrConfidence where parseJSON = checked "OcrConfidence" $ withObject "OcrConfidence" (\fields -> OcrConfidence <$> (fields .: "lowConfidenceWords") <*> (fields .: "mean") <*> (fields .: "totalWords") <*> traverse parseJSON (withoutFields ["lowConfidenceWords", "mean", "totalWords"] fields))
+instance FromJSON OcrConfidence where parseJSON = checked "OcrConfidence" $ withObject "OcrConfidence" (\fields -> OcrConfidence <$> (fields .: "lowConfidenceWords") <*> (fields .: "mean") <*> (fields .: "totalWords"))
 
-instance ToJSON OcrConfidence where toJSON value = Object (KM.fromList (concat [[("lowConfidenceWords", toJSON (ocrConfidenceLowConfidenceWords value))], [("mean", toJSON (ocrConfidenceMean value))], [("totalWords", toJSON (ocrConfidenceTotalWords value))]]) <> fmap toJSON (withoutFields ["lowConfidenceWords", "mean", "totalWords"] (ocrConfidenceAdditionalProperties value)))
+instance ToJSON OcrConfidence where toJSON value = Object (KM.fromList (concat [[("lowConfidenceWords", toJSON (ocrConfidenceLowConfidenceWords value))], [("mean", toJSON (ocrConfidenceMean value))], [("totalWords", toJSON (ocrConfidenceTotalWords value))]]))

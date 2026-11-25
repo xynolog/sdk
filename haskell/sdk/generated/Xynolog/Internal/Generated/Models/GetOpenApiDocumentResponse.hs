@@ -12,14 +12,13 @@ import Xynolog.Internal.Codec
 data GetOpenApiDocumentResponse = GetOpenApiDocumentResponse
   { getOpenApiDocumentResponseInfo :: GetOpenApiDocumentResponseInfo,
     getOpenApiDocumentResponseOpenapi :: Text,
-    getOpenApiDocumentResponsePaths :: GetOpenApiDocumentResponsePaths,
-    getOpenApiDocumentResponseAdditionalProperties :: KM.KeyMap Value
+    getOpenApiDocumentResponsePaths :: GetOpenApiDocumentResponsePaths
   }
   deriving (Eq, Show)
 
-instance FromJSON GetOpenApiDocumentResponse where parseJSON = checked "GetOpenApiDocumentResponse" $ withObject "GetOpenApiDocumentResponse" (\fields -> GetOpenApiDocumentResponse <$> (fields .: "info") <*> (fields .: "openapi") <*> (fields .: "paths") <*> traverse parseJSON (withoutFields ["info", "openapi", "paths"] fields))
+instance FromJSON GetOpenApiDocumentResponse where parseJSON = checked "GetOpenApiDocumentResponse" $ withObject "GetOpenApiDocumentResponse" (\fields -> GetOpenApiDocumentResponse <$> (fields .: "info") <*> (fields .: "openapi") <*> (fields .: "paths"))
 
-instance ToJSON GetOpenApiDocumentResponse where toJSON value = Object (KM.fromList (concat [[("info", toJSON (getOpenApiDocumentResponseInfo value))], [("openapi", toJSON (getOpenApiDocumentResponseOpenapi value))], [("paths", toJSON (getOpenApiDocumentResponsePaths value))]]) <> fmap toJSON (withoutFields ["info", "openapi", "paths"] (getOpenApiDocumentResponseAdditionalProperties value)))
+instance ToJSON GetOpenApiDocumentResponse where toJSON value = Object (KM.fromList (concat [[("info", toJSON (getOpenApiDocumentResponseInfo value))], [("openapi", toJSON (getOpenApiDocumentResponseOpenapi value))], [("paths", toJSON (getOpenApiDocumentResponsePaths value))]]))
 
 data GetOpenApiDocumentResponseInfo = GetOpenApiDocumentResponseInfo
   { getOpenApiDocumentResponseInfoAdditionalProperties :: KM.KeyMap Value

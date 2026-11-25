@@ -14,22 +14,20 @@ data StatusResponse = StatusResponse
     statusResponseFeatures :: StatusResponseFeatures,
     statusResponseMessage :: Text,
     statusResponseStatus :: Text,
-    statusResponseVersion :: Text,
-    statusResponseAdditionalProperties :: KM.KeyMap Value
+    statusResponseVersion :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON StatusResponse where parseJSON = checked "StatusResponse" $ withObject "StatusResponse" (\fields -> StatusResponse <$> optional fields "authenticatedAs" <*> (fields .: "features") <*> (fields .: "message") <*> (fields .: "status") <*> (fields .: "version") <*> traverse parseJSON (withoutFields ["authenticatedAs", "features", "message", "status", "version"] fields))
+instance FromJSON StatusResponse where parseJSON = checked "StatusResponse" $ withObject "StatusResponse" (\fields -> StatusResponse <$> optional fields "authenticatedAs" <*> (fields .: "features") <*> (fields .: "message") <*> (fields .: "status") <*> (fields .: "version"))
 
-instance ToJSON StatusResponse where toJSON value = Object (KM.fromList (concat [optionalPair "authenticatedAs" (statusResponseAuthenticatedAs value), [("features", toJSON (statusResponseFeatures value))], [("message", toJSON (statusResponseMessage value))], [("status", toJSON (statusResponseStatus value))], [("version", toJSON (statusResponseVersion value))]]) <> fmap toJSON (withoutFields ["authenticatedAs", "features", "message", "status", "version"] (statusResponseAdditionalProperties value)))
+instance ToJSON StatusResponse where toJSON value = Object (KM.fromList (concat [optionalPair "authenticatedAs" (statusResponseAuthenticatedAs value), [("features", toJSON (statusResponseFeatures value))], [("message", toJSON (statusResponseMessage value))], [("status", toJSON (statusResponseStatus value))], [("version", toJSON (statusResponseVersion value))]]))
 
 data StatusResponseFeatures = StatusResponseFeatures
   { statusResponseFeaturesCollaboration :: Text,
-    statusResponseFeaturesSemanticContent :: Text,
-    statusResponseFeaturesAdditionalProperties :: KM.KeyMap Value
+    statusResponseFeaturesSemanticContent :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON StatusResponseFeatures where parseJSON = checked "StatusResponseFeatures" $ withObject "StatusResponseFeatures" (\fields -> StatusResponseFeatures <$> (fields .: "collaboration") <*> (fields .: "semanticContent") <*> traverse parseJSON (withoutFields ["collaboration", "semanticContent"] fields))
+instance FromJSON StatusResponseFeatures where parseJSON = checked "StatusResponseFeatures" $ withObject "StatusResponseFeatures" (\fields -> StatusResponseFeatures <$> (fields .: "collaboration") <*> (fields .: "semanticContent"))
 
-instance ToJSON StatusResponseFeatures where toJSON value = Object (KM.fromList (concat [[("collaboration", toJSON (statusResponseFeaturesCollaboration value))], [("semanticContent", toJSON (statusResponseFeaturesSemanticContent value))]]) <> fmap toJSON (withoutFields ["collaboration", "semanticContent"] (statusResponseFeaturesAdditionalProperties value)))
+instance ToJSON StatusResponseFeatures where toJSON value = Object (KM.fromList (concat [[("collaboration", toJSON (statusResponseFeaturesCollaboration value))], [("semanticContent", toJSON (statusResponseFeaturesSemanticContent value))]]))

@@ -16,14 +16,13 @@ data DiscoveredKB = DiscoveredKB
     discoveredKBPlacement :: DiscoveredKBPlacement,
     discoveredKBPort :: Integer,
     discoveredKBRepo :: Maybe Text,
-    discoveredKBSiteName :: Maybe Text,
-    discoveredKBAdditionalProperties :: KM.KeyMap Value
+    discoveredKBSiteName :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON DiscoveredKB where parseJSON = checked "DiscoveredKB" $ withObject "DiscoveredKB" (\fields -> DiscoveredKB <$> (fields .: "did") <*> (fields .: "host") <*> (fields .: "managedBy") <*> (fields .: "placement") <*> (fields .: "port") <*> optional fields "repo" <*> optional fields "siteName" <*> traverse parseJSON (withoutFields ["did", "host", "managedBy", "placement", "port", "repo", "siteName"] fields))
+instance FromJSON DiscoveredKB where parseJSON = checked "DiscoveredKB" $ withObject "DiscoveredKB" (\fields -> DiscoveredKB <$> (fields .: "did") <*> (fields .: "host") <*> (fields .: "managedBy") <*> (fields .: "placement") <*> (fields .: "port") <*> optional fields "repo" <*> optional fields "siteName")
 
-instance ToJSON DiscoveredKB where toJSON value = Object (KM.fromList (concat [[("did", toJSON (discoveredKBDid value))], [("host", toJSON (discoveredKBHost value))], [("managedBy", toJSON (discoveredKBManagedBy value))], [("placement", toJSON (discoveredKBPlacement value))], [("port", toJSON (discoveredKBPort value))], optionalPair "repo" (discoveredKBRepo value), optionalPair "siteName" (discoveredKBSiteName value)]) <> fmap toJSON (withoutFields ["did", "host", "managedBy", "placement", "port", "repo", "siteName"] (discoveredKBAdditionalProperties value)))
+instance ToJSON DiscoveredKB where toJSON value = Object (KM.fromList (concat [[("did", toJSON (discoveredKBDid value))], [("host", toJSON (discoveredKBHost value))], [("managedBy", toJSON (discoveredKBManagedBy value))], [("placement", toJSON (discoveredKBPlacement value))], [("port", toJSON (discoveredKBPort value))], optionalPair "repo" (discoveredKBRepo value), optionalPair "siteName" (discoveredKBSiteName value)]))
 
 data DiscoveredKBPlacement = DiscoveredKBPlacementLocal | DiscoveredKBPlacementCodespace deriving (Eq, Show)
 

@@ -11,11 +11,10 @@ import Xynolog.Internal.Codec
 data GatherAnnotationOptions = GatherAnnotationOptions
   { gatherAnnotationOptionsContextWindow :: Maybe Integer,
     gatherAnnotationOptionsIncludeSourceContext :: Maybe Bool,
-    gatherAnnotationOptionsIncludeTargetContext :: Maybe Bool,
-    gatherAnnotationOptionsAdditionalProperties :: KM.KeyMap Value
+    gatherAnnotationOptionsIncludeTargetContext :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherAnnotationOptions where parseJSON = checked "GatherAnnotationOptions" $ withObject "GatherAnnotationOptions" (\fields -> GatherAnnotationOptions <$> optional fields "contextWindow" <*> optional fields "includeSourceContext" <*> optional fields "includeTargetContext" <*> traverse parseJSON (withoutFields ["contextWindow", "includeSourceContext", "includeTargetContext"] fields))
+instance FromJSON GatherAnnotationOptions where parseJSON = checked "GatherAnnotationOptions" $ withObject "GatherAnnotationOptions" (\fields -> GatherAnnotationOptions <$> optional fields "contextWindow" <*> optional fields "includeSourceContext" <*> optional fields "includeTargetContext")
 
-instance ToJSON GatherAnnotationOptions where toJSON value = Object (KM.fromList (concat [optionalPair "contextWindow" (gatherAnnotationOptionsContextWindow value), optionalPair "includeSourceContext" (gatherAnnotationOptionsIncludeSourceContext value), optionalPair "includeTargetContext" (gatherAnnotationOptionsIncludeTargetContext value)]) <> fmap toJSON (withoutFields ["contextWindow", "includeSourceContext", "includeTargetContext"] (gatherAnnotationOptionsAdditionalProperties value)))
+instance ToJSON GatherAnnotationOptions where toJSON value = Object (KM.fromList (concat [optionalPair "contextWindow" (gatherAnnotationOptionsContextWindow value), optionalPair "includeSourceContext" (gatherAnnotationOptionsIncludeSourceContext value), optionalPair "includeTargetContext" (gatherAnnotationOptionsIncludeTargetContext value)]))

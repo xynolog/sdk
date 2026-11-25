@@ -16,11 +16,10 @@ data MarkUpdateBodyCommand = MarkUpdateBodyCommand
   { markUpdateBodyCommandUserId :: Maybe UserId,
     markUpdateBodyCommandAnnotationId :: AnnotationId,
     markUpdateBodyCommandOperations :: [BodyOperation],
-    markUpdateBodyCommandResourceId :: ResourceId,
-    markUpdateBodyCommandAdditionalProperties :: KM.KeyMap Value
+    markUpdateBodyCommandResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkUpdateBodyCommand where parseJSON = checked "MarkUpdateBodyCommand" $ withObject "MarkUpdateBodyCommand" (\fields -> MarkUpdateBodyCommand <$> optional fields "_userId" <*> (fields .: "annotationId") <*> (fields .: "operations") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["_userId", "annotationId", "operations", "resourceId"] fields))
+instance FromJSON MarkUpdateBodyCommand where parseJSON = checked "MarkUpdateBodyCommand" $ withObject "MarkUpdateBodyCommand" (\fields -> MarkUpdateBodyCommand <$> optional fields "_userId" <*> (fields .: "annotationId") <*> (fields .: "operations") <*> (fields .: "resourceId"))
 
-instance ToJSON MarkUpdateBodyCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markUpdateBodyCommandUserId value), [("annotationId", toJSON (markUpdateBodyCommandAnnotationId value))], [("operations", toJSON (markUpdateBodyCommandOperations value))], [("resourceId", toJSON (markUpdateBodyCommandResourceId value))]]) <> fmap toJSON (withoutFields ["_userId", "annotationId", "operations", "resourceId"] (markUpdateBodyCommandAdditionalProperties value)))
+instance ToJSON MarkUpdateBodyCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markUpdateBodyCommandUserId value), [("annotationId", toJSON (markUpdateBodyCommandAnnotationId value))], [("operations", toJSON (markUpdateBodyCommandOperations value))], [("resourceId", toJSON (markUpdateBodyCommandResourceId value))]]))

@@ -14,11 +14,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 data GatherAnnotationRequest = GatherAnnotationRequest
   { gatherAnnotationRequestAnnotationId :: AnnotationId,
     gatherAnnotationRequestOptions :: Maybe GatherAnnotationOptions,
-    gatherAnnotationRequestResourceId :: ResourceId,
-    gatherAnnotationRequestAdditionalProperties :: KM.KeyMap Value
+    gatherAnnotationRequestResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherAnnotationRequest where parseJSON = checked "GatherAnnotationRequest" $ withObject "GatherAnnotationRequest" (\fields -> GatherAnnotationRequest <$> (fields .: "annotationId") <*> optional fields "options" <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["annotationId", "options", "resourceId"] fields))
+instance FromJSON GatherAnnotationRequest where parseJSON = checked "GatherAnnotationRequest" $ withObject "GatherAnnotationRequest" (\fields -> GatherAnnotationRequest <$> (fields .: "annotationId") <*> optional fields "options" <*> (fields .: "resourceId"))
 
-instance ToJSON GatherAnnotationRequest where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherAnnotationRequestAnnotationId value))], optionalPair "options" (gatherAnnotationRequestOptions value), [("resourceId", toJSON (gatherAnnotationRequestResourceId value))]]) <> fmap toJSON (withoutFields ["annotationId", "options", "resourceId"] (gatherAnnotationRequestAdditionalProperties value)))
+instance ToJSON GatherAnnotationRequest where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherAnnotationRequestAnnotationId value))], optionalPair "options" (gatherAnnotationRequestOptions value), [("resourceId", toJSON (gatherAnnotationRequestResourceId value))]]))

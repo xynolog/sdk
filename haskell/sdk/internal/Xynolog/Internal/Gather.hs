@@ -20,22 +20,22 @@ newGather wire carrier clock timing =
     <$> Cache.newCache
       ( \identity ->
           getReferencedByResponseReferencedBy . gatherReferencedByResultResponse
-            <$> Bus.request wire GatherReferencedByRequestedOperation (GatherReferencedByRequest Nothing identity mempty) (Timing.busRequestTimeoutMs timing)
+            <$> Bus.request wire GatherReferencedByRequestedOperation (GatherReferencedByRequest Nothing identity) (Timing.busRequestTimeoutMs timing)
       )
       (cacheOptions clock timing (Transport.subscribeToResource carrier))
 
 annotation :: GatherNamespace -> ResourceId -> AnnotationId -> Maybe GatherAnnotationOptions -> IO (Running.Running GatherAnnotationComplete GatherAnnotationComplete)
 annotation (GatherNamespace wire timing _) identity mark options =
   oneReport $
-    Bus.request wire GatherRequestedOperation (GatherAnnotationRequest mark (Just withWindow) identity mempty) (Timing.busRequestTimeoutMs timing)
+    Bus.request wire GatherRequestedOperation (GatherAnnotationRequest mark (Just withWindow) identity) (Timing.busRequestTimeoutMs timing)
   where
-    chosen = fromMaybe (GatherAnnotationOptions Nothing Nothing Nothing mempty) options
+    chosen = fromMaybe (GatherAnnotationOptions Nothing Nothing Nothing) options
     withWindow = chosen {gatherAnnotationOptionsContextWindow = Just (fromMaybe 2000 (gatherAnnotationOptionsContextWindow chosen))}
 
 resource :: GatherNamespace -> ResourceId -> Maybe GatherResourceOptions -> IO GatheredContext
 resource (GatherNamespace wire timing _) identity options =
   gatherResourceCompleteResponse
-    <$> Bus.request wire GatherResourceRequestedOperation (GatherResourceRequest selected identity mempty) (Timing.busRequestTimeoutMs timing)
+    <$> Bus.request wire GatherResourceRequestedOperation (GatherResourceRequest selected identity) (Timing.busRequestTimeoutMs timing)
   where
     chosen = fromMaybe (GatherResourceOptions Nothing Nothing Nothing Nothing Nothing) options
     selected =
@@ -45,7 +45,6 @@ resource (GatherNamespace wire timing _) identity options =
         (fromMaybe True (gatherResourceOptionsIncludeContent chosen))
         (fromMaybe False (gatherResourceOptionsIncludeSummary chosen))
         (fromMaybe 10 (gatherResourceOptionsMaxResources chosen))
-        mempty
 
 referencedBy :: GatherNamespace -> ResourceId -> Cache.Query [GetReferencedByResponseReferencedByItem]
 referencedBy (GatherNamespace _ _ cache) = Cache.query cache

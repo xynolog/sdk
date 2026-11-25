@@ -9,11 +9,10 @@ import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Internal.Codec
 
 data JobCancelResult = JobCancelResult
-  { jobCancelResultCancelled :: Bool,
-    jobCancelResultAdditionalProperties :: KM.KeyMap Value
+  { jobCancelResultCancelled :: Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON JobCancelResult where parseJSON = checked "JobCancelResult" $ withObject "JobCancelResult" (\fields -> JobCancelResult <$> (fields .: "cancelled") <*> traverse parseJSON (withoutFields ["cancelled"] fields))
+instance FromJSON JobCancelResult where parseJSON = checked "JobCancelResult" $ withObject "JobCancelResult" (\fields -> JobCancelResult <$> (fields .: "cancelled"))
 
-instance ToJSON JobCancelResult where toJSON value = Object (KM.fromList (concat [[("cancelled", toJSON (jobCancelResultCancelled value))]]) <> fmap toJSON (withoutFields ["cancelled"] (jobCancelResultAdditionalProperties value)))
+instance ToJSON JobCancelResult where toJSON value = Object (KM.fromList (concat [[("cancelled", toJSON (jobCancelResultCancelled value))]]))

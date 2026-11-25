@@ -12,11 +12,10 @@ import Xynolog.Internal.Codec
 data TagCategory = TagCategory
   { tagCategoryDescription :: Text,
     tagCategoryExamples :: [Text],
-    tagCategoryName :: Text,
-    tagCategoryAdditionalProperties :: KM.KeyMap Value
+    tagCategoryName :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON TagCategory where parseJSON = checked "TagCategory" $ withObject "TagCategory" (\fields -> TagCategory <$> (fields .: "description") <*> (fields .: "examples") <*> (fields .: "name") <*> traverse parseJSON (withoutFields ["description", "examples", "name"] fields))
+instance FromJSON TagCategory where parseJSON = checked "TagCategory" $ withObject "TagCategory" (\fields -> TagCategory <$> (fields .: "description") <*> (fields .: "examples") <*> (fields .: "name"))
 
-instance ToJSON TagCategory where toJSON value = Object (KM.fromList (concat [[("description", toJSON (tagCategoryDescription value))], [("examples", toJSON (tagCategoryExamples value))], [("name", toJSON (tagCategoryName value))]]) <> fmap toJSON (withoutFields ["description", "examples", "name"] (tagCategoryAdditionalProperties value)))
+instance ToJSON TagCategory where toJSON value = Object (KM.fromList (concat [[("description", toJSON (tagCategoryDescription value))], [("examples", toJSON (tagCategoryExamples value))], [("name", toJSON (tagCategoryName value))]]))

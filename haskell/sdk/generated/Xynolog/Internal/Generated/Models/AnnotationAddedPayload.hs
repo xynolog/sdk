@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.Annotation
 
 data AnnotationAddedPayload = AnnotationAddedPayload
   { annotationAddedPayloadAnnotation :: Annotation,
-    annotationAddedPayloadContentChecksum :: Maybe Text,
-    annotationAddedPayloadAdditionalProperties :: KM.KeyMap Value
+    annotationAddedPayloadContentChecksum :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON AnnotationAddedPayload where parseJSON = checked "AnnotationAddedPayload" $ withObject "AnnotationAddedPayload" (\fields -> AnnotationAddedPayload <$> (fields .: "annotation") <*> optional fields "contentChecksum" <*> traverse parseJSON (withoutFields ["annotation", "contentChecksum"] fields))
+instance FromJSON AnnotationAddedPayload where parseJSON = checked "AnnotationAddedPayload" $ withObject "AnnotationAddedPayload" (\fields -> AnnotationAddedPayload <$> (fields .: "annotation") <*> optional fields "contentChecksum")
 
-instance ToJSON AnnotationAddedPayload where toJSON value = Object (KM.fromList (concat [[("annotation", toJSON (annotationAddedPayloadAnnotation value))], optionalPair "contentChecksum" (annotationAddedPayloadContentChecksum value)]) <> fmap toJSON (withoutFields ["annotation", "contentChecksum"] (annotationAddedPayloadAdditionalProperties value)))
+instance ToJSON AnnotationAddedPayload where toJSON value = Object (KM.fromList (concat [[("annotation", toJSON (annotationAddedPayloadAnnotation value))], optionalPair "contentChecksum" (annotationAddedPayloadContentChecksum value)]))

@@ -23,11 +23,10 @@ data EnrichedResourceEvent = EnrichedResourceEvent
     enrichedResourceEventTimestamp :: Text,
     enrichedResourceEventType :: Text,
     enrichedResourceEventUserId :: UserId,
-    enrichedResourceEventVersion :: Integer,
-    enrichedResourceEventAdditionalProperties :: KM.KeyMap Value
+    enrichedResourceEventVersion :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON EnrichedResourceEvent where parseJSON = checked "EnrichedResourceEvent" $ withObject "EnrichedResourceEvent" (\fields -> EnrichedResourceEvent <$> optional fields "annotation" <*> (fields .: "id") <*> (fields .: "metadata") <*> (fields .: "payload") <*> optional fields "resourceId" <*> (fields .: "timestamp") <*> (fields .: "type") <*> (fields .: "userId") <*> (fields .: "version") <*> traverse parseJSON (withoutFields ["annotation", "id", "metadata", "payload", "resourceId", "timestamp", "type", "userId", "version"] fields))
+instance FromJSON EnrichedResourceEvent where parseJSON = checked "EnrichedResourceEvent" $ withObject "EnrichedResourceEvent" (\fields -> EnrichedResourceEvent <$> optional fields "annotation" <*> (fields .: "id") <*> (fields .: "metadata") <*> (fields .: "payload") <*> optional fields "resourceId" <*> (fields .: "timestamp") <*> (fields .: "type") <*> (fields .: "userId") <*> (fields .: "version"))
 
-instance ToJSON EnrichedResourceEvent where toJSON value = Object (KM.fromList (concat [optionalPair "annotation" (enrichedResourceEventAnnotation value), [("id", toJSON (enrichedResourceEventId value))], [("metadata", toJSON (enrichedResourceEventMetadata value))], [("payload", toJSON (enrichedResourceEventPayload value))], optionalPair "resourceId" (enrichedResourceEventResourceId value), [("timestamp", toJSON (enrichedResourceEventTimestamp value))], [("type", toJSON (enrichedResourceEventType value))], [("userId", toJSON (enrichedResourceEventUserId value))], [("version", toJSON (enrichedResourceEventVersion value))]]) <> fmap toJSON (withoutFields ["annotation", "id", "metadata", "payload", "resourceId", "timestamp", "type", "userId", "version"] (enrichedResourceEventAdditionalProperties value)))
+instance ToJSON EnrichedResourceEvent where toJSON value = Object (KM.fromList (concat [optionalPair "annotation" (enrichedResourceEventAnnotation value), [("id", toJSON (enrichedResourceEventId value))], [("metadata", toJSON (enrichedResourceEventMetadata value))], [("payload", toJSON (enrichedResourceEventPayload value))], optionalPair "resourceId" (enrichedResourceEventResourceId value), [("timestamp", toJSON (enrichedResourceEventTimestamp value))], [("type", toJSON (enrichedResourceEventType value))], [("userId", toJSON (enrichedResourceEventUserId value))], [("version", toJSON (enrichedResourceEventVersion value))]]))

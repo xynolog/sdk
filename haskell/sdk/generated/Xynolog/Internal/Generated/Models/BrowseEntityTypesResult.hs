@@ -10,11 +10,10 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.GetEntityTypesResponse
 
 data BrowseEntityTypesResult = BrowseEntityTypesResult
-  { browseEntityTypesResultResponse :: GetEntityTypesResponse,
-    browseEntityTypesResultAdditionalProperties :: KM.KeyMap Value
+  { browseEntityTypesResultResponse :: GetEntityTypesResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseEntityTypesResult where parseJSON = checked "BrowseEntityTypesResult" $ withObject "BrowseEntityTypesResult" (\fields -> BrowseEntityTypesResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON BrowseEntityTypesResult where parseJSON = checked "BrowseEntityTypesResult" $ withObject "BrowseEntityTypesResult" (\fields -> BrowseEntityTypesResult <$> (fields .: "response"))
 
-instance ToJSON BrowseEntityTypesResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseEntityTypesResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (browseEntityTypesResultAdditionalProperties value)))
+instance ToJSON BrowseEntityTypesResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseEntityTypesResultResponse value))]]))

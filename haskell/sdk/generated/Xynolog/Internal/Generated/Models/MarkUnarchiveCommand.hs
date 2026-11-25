@@ -14,11 +14,10 @@ import Xynolog.Internal.Generated.Models.UserId
 data MarkUnarchiveCommand = MarkUnarchiveCommand
   { markUnarchiveCommandUserId :: Maybe UserId,
     markUnarchiveCommandResourceId :: ResourceId,
-    markUnarchiveCommandStorageUri :: Maybe Text,
-    markUnarchiveCommandAdditionalProperties :: KM.KeyMap Value
+    markUnarchiveCommandStorageUri :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkUnarchiveCommand where parseJSON = checked "MarkUnarchiveCommand" $ withObject "MarkUnarchiveCommand" (\fields -> MarkUnarchiveCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> optional fields "storageUri" <*> traverse parseJSON (withoutFields ["_userId", "resourceId", "storageUri"] fields))
+instance FromJSON MarkUnarchiveCommand where parseJSON = checked "MarkUnarchiveCommand" $ withObject "MarkUnarchiveCommand" (\fields -> MarkUnarchiveCommand <$> optional fields "_userId" <*> (fields .: "resourceId") <*> optional fields "storageUri")
 
-instance ToJSON MarkUnarchiveCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markUnarchiveCommandUserId value), [("resourceId", toJSON (markUnarchiveCommandResourceId value))], optionalPair "storageUri" (markUnarchiveCommandStorageUri value)]) <> fmap toJSON (withoutFields ["_userId", "resourceId", "storageUri"] (markUnarchiveCommandAdditionalProperties value)))
+instance ToJSON MarkUnarchiveCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markUnarchiveCommandUserId value), [("resourceId", toJSON (markUnarchiveCommandResourceId value))], optionalPair "storageUri" (markUnarchiveCommandStorageUri value)]))

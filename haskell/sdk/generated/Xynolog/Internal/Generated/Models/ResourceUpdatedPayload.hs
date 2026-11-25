@@ -11,11 +11,10 @@ import Xynolog.Internal.Codec
 
 data ResourceUpdatedPayload = ResourceUpdatedPayload
   { resourceUpdatedPayloadContentByteSize :: Maybe Integer,
-    resourceUpdatedPayloadContentChecksum :: Text,
-    resourceUpdatedPayloadAdditionalProperties :: KM.KeyMap Value
+    resourceUpdatedPayloadContentChecksum :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ResourceUpdatedPayload where parseJSON = checked "ResourceUpdatedPayload" $ withObject "ResourceUpdatedPayload" (\fields -> ResourceUpdatedPayload <$> optional fields "contentByteSize" <*> (fields .: "contentChecksum") <*> traverse parseJSON (withoutFields ["contentByteSize", "contentChecksum"] fields))
+instance FromJSON ResourceUpdatedPayload where parseJSON = checked "ResourceUpdatedPayload" $ withObject "ResourceUpdatedPayload" (\fields -> ResourceUpdatedPayload <$> optional fields "contentByteSize" <*> (fields .: "contentChecksum"))
 
-instance ToJSON ResourceUpdatedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "contentByteSize" (resourceUpdatedPayloadContentByteSize value), [("contentChecksum", toJSON (resourceUpdatedPayloadContentChecksum value))]]) <> fmap toJSON (withoutFields ["contentByteSize", "contentChecksum"] (resourceUpdatedPayloadAdditionalProperties value)))
+instance ToJSON ResourceUpdatedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "contentByteSize" (resourceUpdatedPayloadContentByteSize value), [("contentChecksum", toJSON (resourceUpdatedPayloadContentChecksum value))]]))

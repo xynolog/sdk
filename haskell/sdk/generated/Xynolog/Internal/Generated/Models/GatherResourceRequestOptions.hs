@@ -14,11 +14,10 @@ data GatherResourceRequestOptions = GatherResourceRequestOptions
     gatherResourceRequestOptionsExcludeEntityTypes :: Maybe [Text],
     gatherResourceRequestOptionsIncludeContent :: Bool,
     gatherResourceRequestOptionsIncludeSummary :: Bool,
-    gatherResourceRequestOptionsMaxResources :: Integer,
-    gatherResourceRequestOptionsAdditionalProperties :: KM.KeyMap Value
+    gatherResourceRequestOptionsMaxResources :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherResourceRequestOptions where parseJSON = checked "GatherResourceRequestOptions" $ withObject "GatherResourceRequestOptions" (\fields -> GatherResourceRequestOptions <$> (fields .: "depth") <*> optional fields "excludeEntityTypes" <*> (fields .: "includeContent") <*> (fields .: "includeSummary") <*> (fields .: "maxResources") <*> traverse parseJSON (withoutFields ["depth", "excludeEntityTypes", "includeContent", "includeSummary", "maxResources"] fields))
+instance FromJSON GatherResourceRequestOptions where parseJSON = checked "GatherResourceRequestOptions" $ withObject "GatherResourceRequestOptions" (\fields -> GatherResourceRequestOptions <$> (fields .: "depth") <*> optional fields "excludeEntityTypes" <*> (fields .: "includeContent") <*> (fields .: "includeSummary") <*> (fields .: "maxResources"))
 
-instance ToJSON GatherResourceRequestOptions where toJSON value = Object (KM.fromList (concat [[("depth", toJSON (gatherResourceRequestOptionsDepth value))], optionalPair "excludeEntityTypes" (gatherResourceRequestOptionsExcludeEntityTypes value), [("includeContent", toJSON (gatherResourceRequestOptionsIncludeContent value))], [("includeSummary", toJSON (gatherResourceRequestOptionsIncludeSummary value))], [("maxResources", toJSON (gatherResourceRequestOptionsMaxResources value))]]) <> fmap toJSON (withoutFields ["depth", "excludeEntityTypes", "includeContent", "includeSummary", "maxResources"] (gatherResourceRequestOptionsAdditionalProperties value)))
+instance ToJSON GatherResourceRequestOptions where toJSON value = Object (KM.fromList (concat [[("depth", toJSON (gatherResourceRequestOptionsDepth value))], optionalPair "excludeEntityTypes" (gatherResourceRequestOptionsExcludeEntityTypes value), [("includeContent", toJSON (gatherResourceRequestOptionsIncludeContent value))], [("includeSummary", toJSON (gatherResourceRequestOptionsIncludeSummary value))], [("maxResources", toJSON (gatherResourceRequestOptionsMaxResources value))]]))

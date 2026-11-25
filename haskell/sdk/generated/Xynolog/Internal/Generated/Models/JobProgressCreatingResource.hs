@@ -10,14 +10,13 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data JobProgressCreatingResource = JobProgressCreatingResource
-  { jobProgressCreatingResourceCode :: JobProgressCreatingResourceCode,
-    jobProgressCreatingResourceAdditionalProperties :: KM.KeyMap Value
+  { jobProgressCreatingResourceCode :: JobProgressCreatingResourceCode
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCreatingResource where parseJSON = checked "JobProgressCreatingResource" $ withObject "JobProgressCreatingResource" (\fields -> JobProgressCreatingResource <$> (fields .: "code") <*> traverse parseJSON (withoutFields ["code"] fields))
+instance FromJSON JobProgressCreatingResource where parseJSON = checked "JobProgressCreatingResource" $ withObject "JobProgressCreatingResource" (\fields -> JobProgressCreatingResource <$> (fields .: "code"))
 
-instance ToJSON JobProgressCreatingResource where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingResourceCode value))]]) <> fmap toJSON (withoutFields ["code"] (jobProgressCreatingResourceAdditionalProperties value)))
+instance ToJSON JobProgressCreatingResource where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingResourceCode value))]]))
 
 data JobProgressCreatingResourceCode = JobProgressCreatingResourceCodeCreatingResource deriving (Eq, Show)
 

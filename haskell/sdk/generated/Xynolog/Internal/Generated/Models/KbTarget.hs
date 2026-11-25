@@ -13,11 +13,10 @@ import Xynolog.Internal.Generated.Models.KbEndpoint
 data KbTarget = KbTarget
   { kbTargetEndpoint :: KbEndpoint,
     kbTargetId :: Text,
-    kbTargetLabel :: Text,
-    kbTargetAdditionalProperties :: KM.KeyMap Value
+    kbTargetLabel :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON KbTarget where parseJSON = checked "KbTarget" $ withObject "KbTarget" (\fields -> KbTarget <$> (fields .: "endpoint") <*> (fields .: "id") <*> (fields .: "label") <*> traverse parseJSON (withoutFields ["endpoint", "id", "label"] fields))
+instance FromJSON KbTarget where parseJSON = checked "KbTarget" $ withObject "KbTarget" (\fields -> KbTarget <$> (fields .: "endpoint") <*> (fields .: "id") <*> (fields .: "label"))
 
-instance ToJSON KbTarget where toJSON value = Object (KM.fromList (concat [[("endpoint", toJSON (kbTargetEndpoint value))], [("id", toJSON (kbTargetId value))], [("label", toJSON (kbTargetLabel value))]]) <> fmap toJSON (withoutFields ["endpoint", "id", "label"] (kbTargetAdditionalProperties value)))
+instance ToJSON KbTarget where toJSON value = Object (KM.fromList (concat [[("endpoint", toJSON (kbTargetEndpoint value))], [("id", toJSON (kbTargetId value))], [("label", toJSON (kbTargetLabel value))]]))

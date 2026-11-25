@@ -137,7 +137,7 @@ factory (ScriptedSessions clock bus timing wall answer content refusal buildRefu
           options =
             Session.SessionOptions
               key
-              (KbTarget (knowledgeBaseEndpoint kb) key (knowledgeBaseLabel kb) mempty)
+              (KbTarget (knowledgeBaseEndpoint kb) key (knowledgeBaseLabel kb))
               kept
               Nothing
               (Just renew)

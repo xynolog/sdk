@@ -26,14 +26,13 @@ data JobStatusResponse = JobStatusResponse
     jobStatusResponseStartedAt :: Maybe Text,
     jobStatusResponseStatus :: JobStatusResponseStatus,
     jobStatusResponseType :: JobType,
-    jobStatusResponseUserId :: UserId,
-    jobStatusResponseAdditionalProperties :: KM.KeyMap Value
+    jobStatusResponseUserId :: UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON JobStatusResponse where parseJSON = checked "JobStatusResponse" $ withObject "JobStatusResponse" (\fields -> JobStatusResponse <$> optional fields "completedAt" <*> (fields .: "created") <*> optional fields "error" <*> optional fields "failureClass" <*> (fields .: "jobId") <*> optional fields "progress" <*> optional fields "result" <*> optional fields "startedAt" <*> (fields .: "status") <*> (fields .: "type") <*> (fields .: "userId") <*> traverse parseJSON (withoutFields ["completedAt", "created", "error", "failureClass", "jobId", "progress", "result", "startedAt", "status", "type", "userId"] fields))
+instance FromJSON JobStatusResponse where parseJSON = checked "JobStatusResponse" $ withObject "JobStatusResponse" (\fields -> JobStatusResponse <$> optional fields "completedAt" <*> (fields .: "created") <*> optional fields "error" <*> optional fields "failureClass" <*> (fields .: "jobId") <*> optional fields "progress" <*> optional fields "result" <*> optional fields "startedAt" <*> (fields .: "status") <*> (fields .: "type") <*> (fields .: "userId"))
 
-instance ToJSON JobStatusResponse where toJSON value = Object (KM.fromList (concat [optionalPair "completedAt" (jobStatusResponseCompletedAt value), [("created", toJSON (jobStatusResponseCreated value))], optionalPair "error" (jobStatusResponseError value), optionalPair "failureClass" (jobStatusResponseFailureClass value), [("jobId", toJSON (jobStatusResponseJobId value))], optionalPair "progress" (jobStatusResponseProgress value), optionalPair "result" (jobStatusResponseResult value), optionalPair "startedAt" (jobStatusResponseStartedAt value), [("status", toJSON (jobStatusResponseStatus value))], [("type", toJSON (jobStatusResponseType value))], [("userId", toJSON (jobStatusResponseUserId value))]]) <> fmap toJSON (withoutFields ["completedAt", "created", "error", "failureClass", "jobId", "progress", "result", "startedAt", "status", "type", "userId"] (jobStatusResponseAdditionalProperties value)))
+instance ToJSON JobStatusResponse where toJSON value = Object (KM.fromList (concat [optionalPair "completedAt" (jobStatusResponseCompletedAt value), [("created", toJSON (jobStatusResponseCreated value))], optionalPair "error" (jobStatusResponseError value), optionalPair "failureClass" (jobStatusResponseFailureClass value), [("jobId", toJSON (jobStatusResponseJobId value))], optionalPair "progress" (jobStatusResponseProgress value), optionalPair "result" (jobStatusResponseResult value), optionalPair "startedAt" (jobStatusResponseStartedAt value), [("status", toJSON (jobStatusResponseStatus value))], [("type", toJSON (jobStatusResponseType value))], [("userId", toJSON (jobStatusResponseUserId value))]]))
 
 data JobStatusResponseStatus = JobStatusResponseStatusPending | JobStatusResponseStatusRunning | JobStatusResponseStatusComplete | JobStatusResponseStatusFailed | JobStatusResponseStatusCancelled deriving (Eq, Show)
 

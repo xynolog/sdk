@@ -18,7 +18,7 @@ mark =
                 JobResultMarkJobDone done -> Just (Just (MarkJobResultMarkJobDone done))
                 JobResultYieldJobDone _ -> Nothing
                 JobResultJobDeclined decline -> Just (Just (MarkJobResultJobDeclined decline))
-            pure (MarkJobCompleteCommand Nothing Nothing Nothing (jobStatusResponseJobId status) MarkJobCompleteCommandJobTypeMark resource result mempty)
+            pure (MarkJobCompleteCommand Nothing Nothing Nothing (jobStatusResponseJobId status) MarkJobCompleteCommandJobTypeMark resource result)
     )
 
 yield :: Verb YieldJobCompleteCommand
@@ -36,5 +36,5 @@ yield =
                 JobResultMarkJobDone _ -> Nothing
                 JobResultYieldJobDone done -> Just (Just (YieldJobResultYieldJobDone done))
                 JobResultJobDeclined decline -> Just (Just (YieldJobResultJobDeclined decline))
-            pure (YieldJobCompleteCommand Nothing Nothing Nothing Nothing (jobStatusResponseJobId status) YieldJobCompleteCommandJobTypeYield resource result mempty)
+            pure (YieldJobCompleteCommand Nothing Nothing Nothing Nothing (jobStatusResponseJobId status) YieldJobCompleteCommandJobTypeYield resource result)
     )

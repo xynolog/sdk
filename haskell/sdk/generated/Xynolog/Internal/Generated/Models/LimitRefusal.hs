@@ -13,14 +13,13 @@ data LimitRefusal = LimitRefusal
   { limitRefusalCode :: LimitRefusalCode,
     limitRefusalDetails :: Maybe Value,
     limitRefusalError :: Text,
-    limitRefusalHint :: Maybe Text,
-    limitRefusalAdditionalProperties :: KM.KeyMap Value
+    limitRefusalHint :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON LimitRefusal where parseJSON = checked "LimitRefusal" $ withObject "LimitRefusal" (\fields -> LimitRefusal <$> (fields .: "code") <*> optional fields "details" <*> (fields .: "error") <*> optional fields "hint" <*> traverse parseJSON (withoutFields ["code", "details", "error", "hint"] fields))
+instance FromJSON LimitRefusal where parseJSON = checked "LimitRefusal" $ withObject "LimitRefusal" (\fields -> LimitRefusal <$> (fields .: "code") <*> optional fields "details" <*> (fields .: "error") <*> optional fields "hint")
 
-instance ToJSON LimitRefusal where toJSON value = Object (KM.fromList (concat [[("code", toJSON (limitRefusalCode value))], optionalPair "details" (limitRefusalDetails value), [("error", toJSON (limitRefusalError value))], optionalPair "hint" (limitRefusalHint value)]) <> fmap toJSON (withoutFields ["code", "details", "error", "hint"] (limitRefusalAdditionalProperties value)))
+instance ToJSON LimitRefusal where toJSON value = Object (KM.fromList (concat [[("code", toJSON (limitRefusalCode value))], optionalPair "details" (limitRefusalDetails value), [("error", toJSON (limitRefusalError value))], optionalPair "hint" (limitRefusalHint value)]))
 
 data LimitRefusalCode = LimitRefusalCodeStreams | LimitRefusalCodeEmitRate | LimitRefusalCodeUnansweredRequests | LimitRefusalCodeCapacity | LimitRefusalCodeRefusalRate deriving (Eq, Show)
 

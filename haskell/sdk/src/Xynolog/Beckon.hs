@@ -13,19 +13,19 @@ newBeckon :: Bus.Bus -> EventBus -> BeckonNamespace
 newBeckon = BeckonNamespace
 
 attention :: BeckonNamespace -> ResourceId -> Maybe AnnotationId -> IO (Maybe Integer)
-attention (BeckonNamespace wire _) resource annotation = Bus.emit wire BeckonFocus (BeckonFocusEvent annotation resource mempty) NoScope Nothing
+attention (BeckonNamespace wire _) resource annotation = Bus.emit wire BeckonFocus (BeckonFocusEvent annotation resource) NoScope Nothing
 
 click :: BeckonNamespace -> AnnotationId -> IO (Maybe Integer)
-click (BeckonNamespace wire _) annotation = Bus.emit wire BrowseClick (BrowseClickEvent Nothing annotation mempty) NoScope Nothing
+click (BeckonNamespace wire _) annotation = Bus.emit wire BrowseClick (BrowseClickEvent Nothing annotation) NoScope Nothing
 
 openResource :: BeckonNamespace -> ResourceId -> IO (Maybe Integer)
-openResource (BeckonNamespace wire _) resource = Bus.emit wire BrowseResourceOpen (BrowseResourceOpenEvent resource mempty) NoScope Nothing
+openResource (BeckonNamespace wire _) resource = Bus.emit wire BrowseResourceOpen (BrowseResourceOpenEvent resource) NoScope Nothing
 
 sparkleAll :: BeckonNamespace -> AnnotationId -> IO (Maybe Integer)
-sparkleAll (BeckonNamespace wire _) annotation = Bus.emit wire BeckonSparkle (BeckonSparkleEvent annotation mempty) NoScope Nothing
+sparkleAll (BeckonNamespace wire _) annotation = Bus.emit wire BeckonSparkle (BeckonSparkleEvent annotation) NoScope Nothing
 
 hover :: BeckonNamespace -> Maybe AnnotationId -> STM ()
-hover (BeckonNamespace _ bus) annotation = Local.signal bus BeckonHover (BeckonHoverEvent annotation mempty) NoScope
+hover (BeckonNamespace _ bus) annotation = Local.signal bus BeckonHover (BeckonHoverEvent annotation) NoScope
 
 sparkle :: BeckonNamespace -> AnnotationId -> STM ()
-sparkle (BeckonNamespace _ bus) annotation = Local.signal bus BeckonSparkle (BeckonSparkleEvent annotation mempty) NoScope
+sparkle (BeckonNamespace _ bus) annotation = Local.signal bus BeckonSparkle (BeckonSparkleEvent annotation) NoScope

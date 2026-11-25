@@ -9,11 +9,10 @@ import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Internal.Codec
 
 data EventMetadata = EventMetadata
-  { eventMetadataSequenceNumber :: Integer,
-    eventMetadataAdditionalProperties :: KM.KeyMap Value
+  { eventMetadataSequenceNumber :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON EventMetadata where parseJSON = checked "EventMetadata" $ withObject "EventMetadata" (\fields -> EventMetadata <$> (fields .: "sequenceNumber") <*> traverse parseJSON (withoutFields ["sequenceNumber"] fields))
+instance FromJSON EventMetadata where parseJSON = checked "EventMetadata" $ withObject "EventMetadata" (\fields -> EventMetadata <$> (fields .: "sequenceNumber"))
 
-instance ToJSON EventMetadata where toJSON value = Object (KM.fromList (concat [[("sequenceNumber", toJSON (eventMetadataSequenceNumber value))]]) <> fmap toJSON (withoutFields ["sequenceNumber"] (eventMetadataAdditionalProperties value)))
+instance ToJSON EventMetadata where toJSON value = Object (KM.fromList (concat [[("sequenceNumber", toJSON (eventMetadataSequenceNumber value))]]))

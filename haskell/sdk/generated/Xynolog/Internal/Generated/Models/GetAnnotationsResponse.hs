@@ -14,11 +14,10 @@ import Xynolog.Internal.Generated.Models.Motivation
 data GetAnnotationsResponse = GetAnnotationsResponse
   { getAnnotationsResponseAnnotations :: [Annotation],
     getAnnotationsResponseMotivation :: Maybe Motivation,
-    getAnnotationsResponseTotal :: Scientific,
-    getAnnotationsResponseAdditionalProperties :: KM.KeyMap Value
+    getAnnotationsResponseTotal :: Scientific
   }
   deriving (Eq, Show)
 
-instance FromJSON GetAnnotationsResponse where parseJSON = checked "GetAnnotationsResponse" $ withObject "GetAnnotationsResponse" (\fields -> GetAnnotationsResponse <$> (fields .: "annotations") <*> optional fields "motivation" <*> (fields .: "total") <*> traverse parseJSON (withoutFields ["annotations", "motivation", "total"] fields))
+instance FromJSON GetAnnotationsResponse where parseJSON = checked "GetAnnotationsResponse" $ withObject "GetAnnotationsResponse" (\fields -> GetAnnotationsResponse <$> (fields .: "annotations") <*> optional fields "motivation" <*> (fields .: "total"))
 
-instance ToJSON GetAnnotationsResponse where toJSON value = Object (KM.fromList (concat [[("annotations", toJSON (getAnnotationsResponseAnnotations value))], optionalPair "motivation" (getAnnotationsResponseMotivation value), [("total", toJSON (getAnnotationsResponseTotal value))]]) <> fmap toJSON (withoutFields ["annotations", "motivation", "total"] (getAnnotationsResponseAdditionalProperties value)))
+instance ToJSON GetAnnotationsResponse where toJSON value = Object (KM.fromList (concat [[("annotations", toJSON (getAnnotationsResponseAnnotations value))], optionalPair "motivation" (getAnnotationsResponseMotivation value), [("total", toJSON (getAnnotationsResponseTotal value))]]))

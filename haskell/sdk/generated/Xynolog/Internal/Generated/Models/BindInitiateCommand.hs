@@ -15,11 +15,10 @@ data BindInitiateCommand = BindInitiateCommand
   { bindInitiateCommandAnnotationId :: AnnotationId,
     bindInitiateCommandDefaultTitle :: Text,
     bindInitiateCommandEntityTypes :: [Text],
-    bindInitiateCommandResourceId :: ResourceId,
-    bindInitiateCommandAdditionalProperties :: KM.KeyMap Value
+    bindInitiateCommandResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON BindInitiateCommand where parseJSON = checked "BindInitiateCommand" $ withObject "BindInitiateCommand" (\fields -> BindInitiateCommand <$> (fields .: "annotationId") <*> (fields .: "defaultTitle") <*> (fields .: "entityTypes") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["annotationId", "defaultTitle", "entityTypes", "resourceId"] fields))
+instance FromJSON BindInitiateCommand where parseJSON = checked "BindInitiateCommand" $ withObject "BindInitiateCommand" (\fields -> BindInitiateCommand <$> (fields .: "annotationId") <*> (fields .: "defaultTitle") <*> (fields .: "entityTypes") <*> (fields .: "resourceId"))
 
-instance ToJSON BindInitiateCommand where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (bindInitiateCommandAnnotationId value))], [("defaultTitle", toJSON (bindInitiateCommandDefaultTitle value))], [("entityTypes", toJSON (bindInitiateCommandEntityTypes value))], [("resourceId", toJSON (bindInitiateCommandResourceId value))]]) <> fmap toJSON (withoutFields ["annotationId", "defaultTitle", "entityTypes", "resourceId"] (bindInitiateCommandAdditionalProperties value)))
+instance ToJSON BindInitiateCommand where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (bindInitiateCommandAnnotationId value))], [("defaultTitle", toJSON (bindInitiateCommandDefaultTitle value))], [("entityTypes", toJSON (bindInitiateCommandEntityTypes value))], [("resourceId", toJSON (bindInitiateCommandResourceId value))]]))

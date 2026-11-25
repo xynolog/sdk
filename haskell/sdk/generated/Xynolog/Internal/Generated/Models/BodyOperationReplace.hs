@@ -13,14 +13,13 @@ import Xynolog.Internal.Generated.Models.AnnotationBody
 data BodyOperationReplace = BodyOperationReplace
   { bodyOperationReplaceNewItem :: AnnotationBody,
     bodyOperationReplaceOldItem :: AnnotationBody,
-    bodyOperationReplaceOp :: BodyOperationReplaceOp,
-    bodyOperationReplaceAdditionalProperties :: KM.KeyMap Value
+    bodyOperationReplaceOp :: BodyOperationReplaceOp
   }
   deriving (Eq, Show)
 
-instance FromJSON BodyOperationReplace where parseJSON = checked "BodyOperationReplace" $ withObject "BodyOperationReplace" (\fields -> BodyOperationReplace <$> (fields .: "newItem") <*> (fields .: "oldItem") <*> (fields .: "op") <*> traverse parseJSON (withoutFields ["newItem", "oldItem", "op"] fields))
+instance FromJSON BodyOperationReplace where parseJSON = checked "BodyOperationReplace" $ withObject "BodyOperationReplace" (\fields -> BodyOperationReplace <$> (fields .: "newItem") <*> (fields .: "oldItem") <*> (fields .: "op"))
 
-instance ToJSON BodyOperationReplace where toJSON value = Object (KM.fromList (concat [[("newItem", toJSON (bodyOperationReplaceNewItem value))], [("oldItem", toJSON (bodyOperationReplaceOldItem value))], [("op", toJSON (bodyOperationReplaceOp value))]]) <> fmap toJSON (withoutFields ["newItem", "oldItem", "op"] (bodyOperationReplaceAdditionalProperties value)))
+instance ToJSON BodyOperationReplace where toJSON value = Object (KM.fromList (concat [[("newItem", toJSON (bodyOperationReplaceNewItem value))], [("oldItem", toJSON (bodyOperationReplaceOldItem value))], [("op", toJSON (bodyOperationReplaceOp value))]]))
 
 data BodyOperationReplaceOp = BodyOperationReplaceOpReplace deriving (Eq, Show)
 

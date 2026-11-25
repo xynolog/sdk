@@ -19,11 +19,10 @@ data JobStartCommand = JobStartCommand
     jobStartCommandAttempt :: Maybe Integer,
     jobStartCommandJobId :: JobId,
     jobStartCommandJobType :: JobType,
-    jobStartCommandResourceId :: ResourceId,
-    jobStartCommandAdditionalProperties :: KM.KeyMap Value
+    jobStartCommandResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON JobStartCommand where parseJSON = checked "JobStartCommand" $ withObject "JobStartCommand" (\fields -> JobStartCommand <$> optional fields "_userId" <*> optional fields "annotationId" <*> optional fields "attempt" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["_userId", "annotationId", "attempt", "jobId", "jobType", "resourceId"] fields))
+instance FromJSON JobStartCommand where parseJSON = checked "JobStartCommand" $ withObject "JobStartCommand" (\fields -> JobStartCommand <$> optional fields "_userId" <*> optional fields "annotationId" <*> optional fields "attempt" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId"))
 
-instance ToJSON JobStartCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobStartCommandUserId value), optionalPair "annotationId" (jobStartCommandAnnotationId value), optionalPair "attempt" (jobStartCommandAttempt value), [("jobId", toJSON (jobStartCommandJobId value))], [("jobType", toJSON (jobStartCommandJobType value))], [("resourceId", toJSON (jobStartCommandResourceId value))]]) <> fmap toJSON (withoutFields ["_userId", "annotationId", "attempt", "jobId", "jobType", "resourceId"] (jobStartCommandAdditionalProperties value)))
+instance ToJSON JobStartCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (jobStartCommandUserId value), optionalPair "annotationId" (jobStartCommandAnnotationId value), optionalPair "attempt" (jobStartCommandAttempt value), [("jobId", toJSON (jobStartCommandJobId value))], [("jobType", toJSON (jobStartCommandJobType value))], [("resourceId", toJSON (jobStartCommandResourceId value))]]))

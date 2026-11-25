@@ -11,14 +11,13 @@ import Xynolog.Internal.Codec
 
 data JobProgressCompleteGenerated = JobProgressCompleteGenerated
   { jobProgressCompleteGeneratedCode :: JobProgressCompleteGeneratedCode,
-    jobProgressCompleteGeneratedTruncated :: Bool,
-    jobProgressCompleteGeneratedAdditionalProperties :: KM.KeyMap Value
+    jobProgressCompleteGeneratedTruncated :: Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCompleteGenerated where parseJSON = checked "JobProgressCompleteGenerated" $ withObject "JobProgressCompleteGenerated" (\fields -> JobProgressCompleteGenerated <$> (fields .: "code") <*> (fields .: "truncated") <*> traverse parseJSON (withoutFields ["code", "truncated"] fields))
+instance FromJSON JobProgressCompleteGenerated where parseJSON = checked "JobProgressCompleteGenerated" $ withObject "JobProgressCompleteGenerated" (\fields -> JobProgressCompleteGenerated <$> (fields .: "code") <*> (fields .: "truncated"))
 
-instance ToJSON JobProgressCompleteGenerated where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCompleteGeneratedCode value))], [("truncated", toJSON (jobProgressCompleteGeneratedTruncated value))]]) <> fmap toJSON (withoutFields ["code", "truncated"] (jobProgressCompleteGeneratedAdditionalProperties value)))
+instance ToJSON JobProgressCompleteGenerated where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCompleteGeneratedCode value))], [("truncated", toJSON (jobProgressCompleteGeneratedTruncated value))]]))
 
 data JobProgressCompleteGeneratedCode = JobProgressCompleteGeneratedCodeCompleteGenerated deriving (Eq, Show)
 

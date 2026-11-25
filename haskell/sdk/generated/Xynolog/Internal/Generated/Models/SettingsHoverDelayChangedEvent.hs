@@ -9,11 +9,10 @@ import Data.Aeson.KeyMap qualified as KM
 import Xynolog.Internal.Codec
 
 data SettingsHoverDelayChangedEvent = SettingsHoverDelayChangedEvent
-  { settingsHoverDelayChangedEventHoverDelayMs :: Integer,
-    settingsHoverDelayChangedEventAdditionalProperties :: KM.KeyMap Value
+  { settingsHoverDelayChangedEventHoverDelayMs :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON SettingsHoverDelayChangedEvent where parseJSON = checked "SettingsHoverDelayChangedEvent" $ withObject "SettingsHoverDelayChangedEvent" (\fields -> SettingsHoverDelayChangedEvent <$> (fields .: "hoverDelayMs") <*> traverse parseJSON (withoutFields ["hoverDelayMs"] fields))
+instance FromJSON SettingsHoverDelayChangedEvent where parseJSON = checked "SettingsHoverDelayChangedEvent" $ withObject "SettingsHoverDelayChangedEvent" (\fields -> SettingsHoverDelayChangedEvent <$> (fields .: "hoverDelayMs"))
 
-instance ToJSON SettingsHoverDelayChangedEvent where toJSON value = Object (KM.fromList (concat [[("hoverDelayMs", toJSON (settingsHoverDelayChangedEventHoverDelayMs value))]]) <> fmap toJSON (withoutFields ["hoverDelayMs"] (settingsHoverDelayChangedEventAdditionalProperties value)))
+instance ToJSON SettingsHoverDelayChangedEvent where toJSON value = Object (KM.fromList (concat [[("hoverDelayMs", toJSON (settingsHoverDelayChangedEventHoverDelayMs value))]]))

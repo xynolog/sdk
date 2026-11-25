@@ -15,11 +15,10 @@ data MarkArchiveCommand = MarkArchiveCommand
   { markArchiveCommandUserId :: Maybe UserId,
     markArchiveCommandKeepFile :: Maybe Bool,
     markArchiveCommandResourceId :: ResourceId,
-    markArchiveCommandStorageUri :: Maybe Text,
-    markArchiveCommandAdditionalProperties :: KM.KeyMap Value
+    markArchiveCommandStorageUri :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkArchiveCommand where parseJSON = checked "MarkArchiveCommand" $ withObject "MarkArchiveCommand" (\fields -> MarkArchiveCommand <$> optional fields "_userId" <*> optional fields "keepFile" <*> (fields .: "resourceId") <*> optional fields "storageUri" <*> traverse parseJSON (withoutFields ["_userId", "keepFile", "resourceId", "storageUri"] fields))
+instance FromJSON MarkArchiveCommand where parseJSON = checked "MarkArchiveCommand" $ withObject "MarkArchiveCommand" (\fields -> MarkArchiveCommand <$> optional fields "_userId" <*> optional fields "keepFile" <*> (fields .: "resourceId") <*> optional fields "storageUri")
 
-instance ToJSON MarkArchiveCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markArchiveCommandUserId value), optionalPair "keepFile" (markArchiveCommandKeepFile value), [("resourceId", toJSON (markArchiveCommandResourceId value))], optionalPair "storageUri" (markArchiveCommandStorageUri value)]) <> fmap toJSON (withoutFields ["_userId", "keepFile", "resourceId", "storageUri"] (markArchiveCommandAdditionalProperties value)))
+instance ToJSON MarkArchiveCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markArchiveCommandUserId value), optionalPair "keepFile" (markArchiveCommandKeepFile value), [("resourceId", toJSON (markArchiveCommandResourceId value))], optionalPair "storageUri" (markArchiveCommandStorageUri value)]))

@@ -16,11 +16,10 @@ data BindUpdateBodyCommand = BindUpdateBodyCommand
   { bindUpdateBodyCommandUserId :: Maybe UserId,
     bindUpdateBodyCommandAnnotationId :: AnnotationId,
     bindUpdateBodyCommandOperations :: [BindBodyOperation],
-    bindUpdateBodyCommandResourceId :: ResourceId,
-    bindUpdateBodyCommandAdditionalProperties :: KM.KeyMap Value
+    bindUpdateBodyCommandResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON BindUpdateBodyCommand where parseJSON = checked "BindUpdateBodyCommand" $ withObject "BindUpdateBodyCommand" (\fields -> BindUpdateBodyCommand <$> optional fields "_userId" <*> (fields .: "annotationId") <*> (fields .: "operations") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["_userId", "annotationId", "operations", "resourceId"] fields))
+instance FromJSON BindUpdateBodyCommand where parseJSON = checked "BindUpdateBodyCommand" $ withObject "BindUpdateBodyCommand" (\fields -> BindUpdateBodyCommand <$> optional fields "_userId" <*> (fields .: "annotationId") <*> (fields .: "operations") <*> (fields .: "resourceId"))
 
-instance ToJSON BindUpdateBodyCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (bindUpdateBodyCommandUserId value), [("annotationId", toJSON (bindUpdateBodyCommandAnnotationId value))], [("operations", toJSON (bindUpdateBodyCommandOperations value))], [("resourceId", toJSON (bindUpdateBodyCommandResourceId value))]]) <> fmap toJSON (withoutFields ["_userId", "annotationId", "operations", "resourceId"] (bindUpdateBodyCommandAdditionalProperties value)))
+instance ToJSON BindUpdateBodyCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (bindUpdateBodyCommandUserId value), [("annotationId", toJSON (bindUpdateBodyCommandAnnotationId value))], [("operations", toJSON (bindUpdateBodyCommandOperations value))], [("resourceId", toJSON (bindUpdateBodyCommandResourceId value))]]))

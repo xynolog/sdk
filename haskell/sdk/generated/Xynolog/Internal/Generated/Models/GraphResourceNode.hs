@@ -15,14 +15,13 @@ data GraphResourceNode = GraphResourceNode
     graphResourceNodeId :: ResourceId,
     graphResourceNodeLabel :: Text,
     graphResourceNodeMetadata :: Maybe GraphResourceNodeMetadata,
-    graphResourceNodeType :: GraphResourceNodeType,
-    graphResourceNodeAdditionalProperties :: KM.KeyMap Value
+    graphResourceNodeType :: GraphResourceNodeType
   }
   deriving (Eq, Show)
 
-instance FromJSON GraphResourceNode where parseJSON = checked "GraphResourceNode" $ withObject "GraphResourceNode" (\fields -> GraphResourceNode <$> optional fields "entityTypes" <*> (fields .: "id") <*> (fields .: "label") <*> optional fields "metadata" <*> (fields .: "type") <*> traverse parseJSON (withoutFields ["entityTypes", "id", "label", "metadata", "type"] fields))
+instance FromJSON GraphResourceNode where parseJSON = checked "GraphResourceNode" $ withObject "GraphResourceNode" (\fields -> GraphResourceNode <$> optional fields "entityTypes" <*> (fields .: "id") <*> (fields .: "label") <*> optional fields "metadata" <*> (fields .: "type"))
 
-instance ToJSON GraphResourceNode where toJSON value = Object (KM.fromList (concat [optionalPair "entityTypes" (graphResourceNodeEntityTypes value), [("id", toJSON (graphResourceNodeId value))], [("label", toJSON (graphResourceNodeLabel value))], optionalPair "metadata" (graphResourceNodeMetadata value), [("type", toJSON (graphResourceNodeType value))]]) <> fmap toJSON (withoutFields ["entityTypes", "id", "label", "metadata", "type"] (graphResourceNodeAdditionalProperties value)))
+instance ToJSON GraphResourceNode where toJSON value = Object (KM.fromList (concat [optionalPair "entityTypes" (graphResourceNodeEntityTypes value), [("id", toJSON (graphResourceNodeId value))], [("label", toJSON (graphResourceNodeLabel value))], optionalPair "metadata" (graphResourceNodeMetadata value), [("type", toJSON (graphResourceNodeType value))]]))
 
 data GraphResourceNodeMetadata = GraphResourceNodeMetadata
   { graphResourceNodeMetadataAdditionalProperties :: KM.KeyMap Value

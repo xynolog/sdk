@@ -15,14 +15,13 @@ data MatchResourcesResponse = MatchResourcesResponse
     matchResourcesResponseMatchKind :: MatchResourcesResponseMatchKind,
     matchResourcesResponseOffset :: Integer,
     matchResourcesResponseResources :: [ResourceDescriptor],
-    matchResourcesResponseTotal :: Integer,
-    matchResourcesResponseAdditionalProperties :: KM.KeyMap Value
+    matchResourcesResponseTotal :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON MatchResourcesResponse where parseJSON = checked "MatchResourcesResponse" $ withObject "MatchResourcesResponse" (\fields -> MatchResourcesResponse <$> (fields .: "limit") <*> (fields .: "matchKind") <*> (fields .: "offset") <*> (fields .: "resources") <*> (fields .: "total") <*> traverse parseJSON (withoutFields ["limit", "matchKind", "offset", "resources", "total"] fields))
+instance FromJSON MatchResourcesResponse where parseJSON = checked "MatchResourcesResponse" $ withObject "MatchResourcesResponse" (\fields -> MatchResourcesResponse <$> (fields .: "limit") <*> (fields .: "matchKind") <*> (fields .: "offset") <*> (fields .: "resources") <*> (fields .: "total"))
 
-instance ToJSON MatchResourcesResponse where toJSON value = Object (KM.fromList (concat [[("limit", toJSON (matchResourcesResponseLimit value))], [("matchKind", toJSON (matchResourcesResponseMatchKind value))], [("offset", toJSON (matchResourcesResponseOffset value))], [("resources", toJSON (matchResourcesResponseResources value))], [("total", toJSON (matchResourcesResponseTotal value))]]) <> fmap toJSON (withoutFields ["limit", "matchKind", "offset", "resources", "total"] (matchResourcesResponseAdditionalProperties value)))
+instance ToJSON MatchResourcesResponse where toJSON value = Object (KM.fromList (concat [[("limit", toJSON (matchResourcesResponseLimit value))], [("matchKind", toJSON (matchResourcesResponseMatchKind value))], [("offset", toJSON (matchResourcesResponseOffset value))], [("resources", toJSON (matchResourcesResponseResources value))], [("total", toJSON (matchResourcesResponseTotal value))]]))
 
 data MatchResourcesResponseMatchKind = MatchResourcesResponseMatchKindLexical | MatchResourcesResponseMatchKindSemantic deriving (Eq, Show)
 

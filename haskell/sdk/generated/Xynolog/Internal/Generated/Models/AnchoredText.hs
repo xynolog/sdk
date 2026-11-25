@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.PdfTextItem
 
 data AnchoredText = AnchoredText
   { anchoredTextItems :: [PdfTextItem],
-    anchoredTextText :: Text,
-    anchoredTextAdditionalProperties :: KM.KeyMap Value
+    anchoredTextText :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchoredText where parseJSON = checked "AnchoredText" $ withObject "AnchoredText" (\fields -> AnchoredText <$> (fields .: "items") <*> (fields .: "text") <*> traverse parseJSON (withoutFields ["items", "text"] fields))
+instance FromJSON AnchoredText where parseJSON = checked "AnchoredText" $ withObject "AnchoredText" (\fields -> AnchoredText <$> (fields .: "items") <*> (fields .: "text"))
 
-instance ToJSON AnchoredText where toJSON value = Object (KM.fromList (concat [[("items", toJSON (anchoredTextItems value))], [("text", toJSON (anchoredTextText value))]]) <> fmap toJSON (withoutFields ["items", "text"] (anchoredTextAdditionalProperties value)))
+instance ToJSON AnchoredText where toJSON value = Object (KM.fromList (concat [[("items", toJSON (anchoredTextItems value))], [("text", toJSON (anchoredTextText value))]]))

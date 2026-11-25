@@ -14,32 +14,29 @@ import Xynolog.Internal.Generated.Models.ResourceId
 data GetReferencedByResponseReferencedByItem = GetReferencedByResponseReferencedByItem
   { getReferencedByResponseReferencedByItemId :: AnnotationId,
     getReferencedByResponseReferencedByItemResourceName :: Maybe Text,
-    getReferencedByResponseReferencedByItemTarget :: GetReferencedByResponseReferencedByItemTarget,
-    getReferencedByResponseReferencedByItemAdditionalProperties :: KM.KeyMap Value
+    getReferencedByResponseReferencedByItemTarget :: GetReferencedByResponseReferencedByItemTarget
   }
   deriving (Eq, Show)
 
-instance FromJSON GetReferencedByResponseReferencedByItem where parseJSON = checked "GetReferencedByResponseReferencedByItem" $ withObject "GetReferencedByResponseReferencedByItem" (\fields -> GetReferencedByResponseReferencedByItem <$> (fields .: "id") <*> optional fields "resourceName" <*> (fields .: "target") <*> traverse parseJSON (withoutFields ["id", "resourceName", "target"] fields))
+instance FromJSON GetReferencedByResponseReferencedByItem where parseJSON = checked "GetReferencedByResponseReferencedByItem" $ withObject "GetReferencedByResponseReferencedByItem" (\fields -> GetReferencedByResponseReferencedByItem <$> (fields .: "id") <*> optional fields "resourceName" <*> (fields .: "target"))
 
-instance ToJSON GetReferencedByResponseReferencedByItem where toJSON value = Object (KM.fromList (concat [[("id", toJSON (getReferencedByResponseReferencedByItemId value))], optionalPair "resourceName" (getReferencedByResponseReferencedByItemResourceName value), [("target", toJSON (getReferencedByResponseReferencedByItemTarget value))]]) <> fmap toJSON (withoutFields ["id", "resourceName", "target"] (getReferencedByResponseReferencedByItemAdditionalProperties value)))
+instance ToJSON GetReferencedByResponseReferencedByItem where toJSON value = Object (KM.fromList (concat [[("id", toJSON (getReferencedByResponseReferencedByItemId value))], optionalPair "resourceName" (getReferencedByResponseReferencedByItemResourceName value), [("target", toJSON (getReferencedByResponseReferencedByItemTarget value))]]))
 
 data GetReferencedByResponseReferencedByItemTarget = GetReferencedByResponseReferencedByItemTarget
   { getReferencedByResponseReferencedByItemTargetSelector :: GetReferencedByResponseReferencedByItemTargetSelector,
-    getReferencedByResponseReferencedByItemTargetSource :: ResourceId,
-    getReferencedByResponseReferencedByItemTargetAdditionalProperties :: KM.KeyMap Value
+    getReferencedByResponseReferencedByItemTargetSource :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON GetReferencedByResponseReferencedByItemTarget where parseJSON = checked "GetReferencedByResponseReferencedByItemTarget" $ withObject "GetReferencedByResponseReferencedByItemTarget" (\fields -> GetReferencedByResponseReferencedByItemTarget <$> (fields .: "selector") <*> (fields .: "source") <*> traverse parseJSON (withoutFields ["selector", "source"] fields))
+instance FromJSON GetReferencedByResponseReferencedByItemTarget where parseJSON = checked "GetReferencedByResponseReferencedByItemTarget" $ withObject "GetReferencedByResponseReferencedByItemTarget" (\fields -> GetReferencedByResponseReferencedByItemTarget <$> (fields .: "selector") <*> (fields .: "source"))
 
-instance ToJSON GetReferencedByResponseReferencedByItemTarget where toJSON value = Object (KM.fromList (concat [[("selector", toJSON (getReferencedByResponseReferencedByItemTargetSelector value))], [("source", toJSON (getReferencedByResponseReferencedByItemTargetSource value))]]) <> fmap toJSON (withoutFields ["selector", "source"] (getReferencedByResponseReferencedByItemTargetAdditionalProperties value)))
+instance ToJSON GetReferencedByResponseReferencedByItemTarget where toJSON value = Object (KM.fromList (concat [[("selector", toJSON (getReferencedByResponseReferencedByItemTargetSelector value))], [("source", toJSON (getReferencedByResponseReferencedByItemTargetSource value))]]))
 
 data GetReferencedByResponseReferencedByItemTargetSelector = GetReferencedByResponseReferencedByItemTargetSelector
-  { getReferencedByResponseReferencedByItemTargetSelectorExact :: Text,
-    getReferencedByResponseReferencedByItemTargetSelectorAdditionalProperties :: KM.KeyMap Value
+  { getReferencedByResponseReferencedByItemTargetSelectorExact :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GetReferencedByResponseReferencedByItemTargetSelector where parseJSON = checked "GetReferencedByResponseReferencedByItemTargetSelector" $ withObject "GetReferencedByResponseReferencedByItemTargetSelector" (\fields -> GetReferencedByResponseReferencedByItemTargetSelector <$> (fields .: "exact") <*> traverse parseJSON (withoutFields ["exact"] fields))
+instance FromJSON GetReferencedByResponseReferencedByItemTargetSelector where parseJSON = checked "GetReferencedByResponseReferencedByItemTargetSelector" $ withObject "GetReferencedByResponseReferencedByItemTargetSelector" (\fields -> GetReferencedByResponseReferencedByItemTargetSelector <$> (fields .: "exact"))
 
-instance ToJSON GetReferencedByResponseReferencedByItemTargetSelector where toJSON value = Object (KM.fromList (concat [[("exact", toJSON (getReferencedByResponseReferencedByItemTargetSelectorExact value))]]) <> fmap toJSON (withoutFields ["exact"] (getReferencedByResponseReferencedByItemTargetSelectorAdditionalProperties value)))
+instance ToJSON GetReferencedByResponseReferencedByItemTargetSelector where toJSON value = Object (KM.fromList (concat [[("exact", toJSON (getReferencedByResponseReferencedByItemTargetSelectorExact value))]]))

@@ -382,8 +382,8 @@ writeKbs owner change = do
   values <- Storage.update (storage owner) knowledgeBasesKey $ \raw ->
     let before = case readJSON raw :: Maybe [Value] of
           Nothing -> []
-          Just entries -> [value | entry <- entries, Just parsed <- [readValue entry], let value = Kept.projectKnowledgeBase parsed]
-        next = map Kept.projectKnowledgeBase (change before)
+          Just entries -> [value | entry <- entries, Just value <- [readValue entry]]
+        next = change before
      in (Just (jsonText next), next)
   atomically (State.update (registered owner) values)
   pure values
@@ -398,7 +398,6 @@ addKb owner proposed grant = Lifetime.run (lifetime owner) $ do
           key
           (newKnowledgeBaseLabel proposed)
           (newKnowledgeBaseLastRead proposed)
-          mempty
   storeSession (storage owner) key grant
   void (writeKbs owner (<> [added]))
   setActiveKb owner (Just key)
@@ -440,7 +439,7 @@ kbSessionStatus owner key = do
 readNow :: XynologBrowser -> KbDescription -> IO KbRead
 readNow owner description = do
   now <- registryWallNow (configuration owner)
-  pure (KbRead (Text.pack (formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%3QZ" (posixSecondsToUTCTime (realToFrac now)))) (kbDescriptionGitBranch description) mempty)
+  pure (KbRead (Text.pack (formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%3QZ" (posixSecondsToUTCTime (realToFrac now)))) (kbDescriptionGitBranch description))
 
 signedIn :: XynologBrowser -> SignedIn -> IO SignInOutcome
 signedIn owner completed = Lifetime.run (lifetime owner) $ do
@@ -455,7 +454,7 @@ signedIn owner completed = Lifetime.run (lifetime owner) $ do
         Just did -> Just (Expected did (signedInExpectedName completed))
         Nothing -> (\entry -> Expected (knowledgeBaseDid entry) (Just (knowledgeBaseLabel entry))) <$> belief
   landed <- case find ((== actual) . knowledgeBaseDid) atAddress of
-    Nothing -> addKb owner (NewKnowledgeBase actual (signedInEndpoint completed) (kbDescriptionName (signedInDescription completed)) (Just reading) mempty) (signedInSession completed)
+    Nothing -> addKb owner (NewKnowledgeBase actual (signedInEndpoint completed) (kbDescriptionName (signedInDescription completed)) (Just reading)) (signedInSession completed)
     Just existing -> do
       updateKb owner (knowledgeBaseId existing) (Just (kbDescriptionName (signedInDescription completed))) (Just reading)
       signIn owner (knowledgeBaseId existing) (signedInSession completed)
@@ -522,7 +521,7 @@ addOpenResource owner resource name media uri = Lifetime.run (lifetime owner) $ 
               }
       | tab <- tabs
       ]
-    Nothing -> tabs ++ [OpenResource resource media name now (maximum (0 : [1 + openResourceOrder tab | tab <- tabs])) uri mempty]
+    Nothing -> tabs ++ [OpenResource resource media name now (maximum (0 : [1 + openResourceOrder tab | tab <- tabs])) uri]
 
 removeOpenResource :: XynologBrowser -> ResourceId -> IO ()
 removeOpenResource owner resource = Lifetime.run (lifetime owner) (changeOpen owner (filter ((/= resource) . openResourceId)))
@@ -641,7 +640,7 @@ completeSignIn owner callback = Lifetime.run (lifetime owner) $ do
   (pending, tokens) <- Issuer.completeAuthorization (issuer owner) callback (storage owner)
   identityProof <- Connection.describeConnection (registryHttp (configuration owner)) (pendingAuthorizationTarget pending) (issuedTokensAccess tokens)
   let endpoints = pendingAuthorizationIssuer pending
-      grant = StoredSession (issuedTokensAccess tokens) Issuer.browserClientId Nothing (issuedTokensRefresh tokens) (pendingAuthorizationIssuerRevocation endpoints) (pendingAuthorizationIssuerToken endpoints) mempty
+      grant = StoredSession (issuedTokensAccess tokens) Issuer.browserClientId Nothing (issuedTokensRefresh tokens) (pendingAuthorizationIssuerRevocation endpoints) (pendingAuthorizationIssuerToken endpoints)
       completed =
         SignedIn
           (connectionIdentityDescription identityProof)

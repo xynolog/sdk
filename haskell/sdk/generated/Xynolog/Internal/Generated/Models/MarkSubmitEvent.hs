@@ -16,11 +16,10 @@ data MarkSubmitEvent = MarkSubmitEvent
   { markSubmitEventBody :: Maybe AnnotationBodies,
     markSubmitEventMotivation :: Motivation,
     markSubmitEventSelector :: AnnotationSelector,
-    markSubmitEventSource :: ResourceId,
-    markSubmitEventAdditionalProperties :: KM.KeyMap Value
+    markSubmitEventSource :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkSubmitEvent where parseJSON = checked "MarkSubmitEvent" $ withObject "MarkSubmitEvent" (\fields -> MarkSubmitEvent <$> optional fields "body" <*> (fields .: "motivation") <*> (fields .: "selector") <*> (fields .: "source") <*> traverse parseJSON (withoutFields ["body", "motivation", "selector", "source"] fields))
+instance FromJSON MarkSubmitEvent where parseJSON = checked "MarkSubmitEvent" $ withObject "MarkSubmitEvent" (\fields -> MarkSubmitEvent <$> optional fields "body" <*> (fields .: "motivation") <*> (fields .: "selector") <*> (fields .: "source"))
 
-instance ToJSON MarkSubmitEvent where toJSON value = Object (KM.fromList (concat [optionalPair "body" (markSubmitEventBody value), [("motivation", toJSON (markSubmitEventMotivation value))], [("selector", toJSON (markSubmitEventSelector value))], [("source", toJSON (markSubmitEventSource value))]]) <> fmap toJSON (withoutFields ["body", "motivation", "selector", "source"] (markSubmitEventAdditionalProperties value)))
+instance ToJSON MarkSubmitEvent where toJSON value = Object (KM.fromList (concat [optionalPair "body" (markSubmitEventBody value), [("motivation", toJSON (markSubmitEventMotivation value))], [("selector", toJSON (markSubmitEventSelector value))], [("source", toJSON (markSubmitEventSource value))]]))

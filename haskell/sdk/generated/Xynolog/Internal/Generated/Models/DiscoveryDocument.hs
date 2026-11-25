@@ -11,14 +11,13 @@ import Xynolog.Internal.Generated.Models.DiscoveredKB
 
 data DiscoveryDocument = DiscoveryDocument
   { discoveryDocumentKbs :: [DiscoveredKB],
-    discoveryDocumentVersion :: DiscoveryDocumentVersion,
-    discoveryDocumentAdditionalProperties :: KM.KeyMap Value
+    discoveryDocumentVersion :: DiscoveryDocumentVersion
   }
   deriving (Eq, Show)
 
-instance FromJSON DiscoveryDocument where parseJSON = checked "DiscoveryDocument" $ withObject "DiscoveryDocument" (\fields -> DiscoveryDocument <$> (fields .: "kbs") <*> (fields .: "version") <*> traverse parseJSON (withoutFields ["kbs", "version"] fields))
+instance FromJSON DiscoveryDocument where parseJSON = checked "DiscoveryDocument" $ withObject "DiscoveryDocument" (\fields -> DiscoveryDocument <$> (fields .: "kbs") <*> (fields .: "version"))
 
-instance ToJSON DiscoveryDocument where toJSON value = Object (KM.fromList (concat [[("kbs", toJSON (discoveryDocumentKbs value))], [("version", toJSON (discoveryDocumentVersion value))]]) <> fmap toJSON (withoutFields ["kbs", "version"] (discoveryDocumentAdditionalProperties value)))
+instance ToJSON DiscoveryDocument where toJSON value = Object (KM.fromList (concat [[("kbs", toJSON (discoveryDocumentKbs value))], [("version", toJSON (discoveryDocumentVersion value))]]))
 
 data DiscoveryDocumentVersion = DiscoveryDocumentVersion1 deriving (Eq, Show)
 

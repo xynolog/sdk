@@ -13,11 +13,10 @@ data ErrorResponse = ErrorResponse
   { errorResponseCode :: Maybe Text,
     errorResponseDetails :: Maybe Value,
     errorResponseError :: Text,
-    errorResponseHint :: Maybe Text,
-    errorResponseAdditionalProperties :: KM.KeyMap Value
+    errorResponseHint :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON ErrorResponse where parseJSON = checked "ErrorResponse" $ withObject "ErrorResponse" (\fields -> ErrorResponse <$> optional fields "code" <*> optional fields "details" <*> (fields .: "error") <*> optional fields "hint" <*> traverse parseJSON (withoutFields ["code", "details", "error", "hint"] fields))
+instance FromJSON ErrorResponse where parseJSON = checked "ErrorResponse" $ withObject "ErrorResponse" (\fields -> ErrorResponse <$> optional fields "code" <*> optional fields "details" <*> (fields .: "error") <*> optional fields "hint")
 
-instance ToJSON ErrorResponse where toJSON value = Object (KM.fromList (concat [optionalPair "code" (errorResponseCode value), optionalPair "details" (errorResponseDetails value), [("error", toJSON (errorResponseError value))], optionalPair "hint" (errorResponseHint value)]) <> fmap toJSON (withoutFields ["code", "details", "error", "hint"] (errorResponseAdditionalProperties value)))
+instance ToJSON ErrorResponse where toJSON value = Object (KM.fromList (concat [optionalPair "code" (errorResponseCode value), optionalPair "details" (errorResponseDetails value), [("error", toJSON (errorResponseError value))], optionalPair "hint" (errorResponseHint value)]))

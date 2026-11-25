@@ -12,14 +12,13 @@ import Xynolog.Internal.Generated.Models.AnnotationBody
 
 data BodyOperationRemove = BodyOperationRemove
   { bodyOperationRemoveItem :: AnnotationBody,
-    bodyOperationRemoveOp :: BodyOperationRemoveOp,
-    bodyOperationRemoveAdditionalProperties :: KM.KeyMap Value
+    bodyOperationRemoveOp :: BodyOperationRemoveOp
   }
   deriving (Eq, Show)
 
-instance FromJSON BodyOperationRemove where parseJSON = checked "BodyOperationRemove" $ withObject "BodyOperationRemove" (\fields -> BodyOperationRemove <$> (fields .: "item") <*> (fields .: "op") <*> traverse parseJSON (withoutFields ["item", "op"] fields))
+instance FromJSON BodyOperationRemove where parseJSON = checked "BodyOperationRemove" $ withObject "BodyOperationRemove" (\fields -> BodyOperationRemove <$> (fields .: "item") <*> (fields .: "op"))
 
-instance ToJSON BodyOperationRemove where toJSON value = Object (KM.fromList (concat [[("item", toJSON (bodyOperationRemoveItem value))], [("op", toJSON (bodyOperationRemoveOp value))]]) <> fmap toJSON (withoutFields ["item", "op"] (bodyOperationRemoveAdditionalProperties value)))
+instance ToJSON BodyOperationRemove where toJSON value = Object (KM.fromList (concat [[("item", toJSON (bodyOperationRemoveItem value))], [("op", toJSON (bodyOperationRemoveOp value))]]))
 
 data BodyOperationRemoveOp = BodyOperationRemoveOpRemove deriving (Eq, Show)
 

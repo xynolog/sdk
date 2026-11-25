@@ -177,7 +177,7 @@ commits fixtures = forM_ [0 :: Int .. 3] $ \mode -> rig fixtures $ \rigValue@(Ri
       probe <- outgoing rigValue (channelName BrowseAnnotationRequested)
       case mode of
         1 -> fixture fixtures "BrowseAnnotationResult" >>= reply rigValue probe Ch.BrowseAnnotationResult
-        2 -> reply rigValue probe BrowseAnnotationFailed (CommandError Nothing Nothing "probe refused" KM.empty)
+        2 -> reply rigValue probe BrowseAnnotationFailed (CommandError Nothing Nothing "probe refused")
         _ -> atomically (writeTVar clock 20000000)
   outcome <- try (wait running) :: IO (Either BusRequestError ())
   require "commit outcome disagrees with its observation" (case outcome of Right () -> mode < 2; Left failure -> mode >= 2 && busRequestErrorCode failure == Code.BusRequestTimeout)
@@ -223,9 +223,9 @@ idleAndStalled fixtures = rig fixtures $ \rigValue@(Rig worker input _ clock _) 
         case workerVitalsLastQueuedEventAt stats of { Nothing -> yield >> waitStamp; Just _ -> pure () }
   announceJob fixtures rigValue
   waitStamp
-  reply rigValue firstClaim JobClaimFailed (CommandError (Just CommandErrorCodeNonePending) Nothing "empty" KM.empty)
+  reply rigValue firstClaim JobClaimFailed (CommandError (Just CommandErrorCodeNonePending) Nothing "empty")
   secondClaim <- outgoing rigValue (channelName JobClaim)
-  reply rigValue secondClaim JobClaimFailed (CommandError (Just CommandErrorCodeUnauthorized) Nothing "refused" KM.empty)
+  reply rigValue secondClaim JobClaimFailed (CommandError (Just CommandErrorCodeUnauthorized) Nothing "refused")
   refusal <- wait refusalReader
   require "none-pending was reported or refusal lost its code" (fmap claimRefusalCode refusal == Just (Just Code.BusRequestUnauthorized))
   Transport.setState input Transport.Reconnecting
@@ -252,7 +252,7 @@ refusing :: Map.Map Text Value -> [Text] -> (Worker.Claims -> IO ()) -> IO ()
 refusing fixtures reasons body = rig fixtures $ \rigValue@(Rig worker _ _ _ _) -> withAsync (Worker.next worker) $ \_ -> do
   forM_ reasons $ \reason -> do
     asked <- outgoing rigValue (channelName JobClaim)
-    reply rigValue asked JobClaimFailed (CommandError (Just CommandErrorCodeUnauthorized) Nothing reason KM.empty)
+    reply rigValue asked JobClaimFailed (CommandError (Just CommandErrorCodeUnauthorized) Nothing reason)
     -- A job announced wakes the worker to claim again once the refusal is said.
     announceJob fixtures rigValue
   -- The claim after the last refusal: every refusal was said before it.

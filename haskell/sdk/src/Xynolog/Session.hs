@@ -393,7 +393,6 @@ signInDevice http storage options onCode = do
           (issuedTokensRefresh issued)
           (pendingAuthorizationIssuerRevocation issuer)
           (pendingAuthorizationIssuerToken issuer)
-          mempty
   fromIssuedSession http storage options stored
 
 -- | An account proves itself to its issuer, and the gateway names that account.

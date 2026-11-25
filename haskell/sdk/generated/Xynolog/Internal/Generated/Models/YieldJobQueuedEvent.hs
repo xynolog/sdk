@@ -18,14 +18,13 @@ data YieldJobQueuedEvent = YieldJobQueuedEvent
     yieldJobQueuedEventJobType :: YieldJobQueuedEventJobType,
     yieldJobQueuedEventParams :: GenerationJobRequest,
     yieldJobQueuedEventResourceId :: ResourceId,
-    yieldJobQueuedEventUserId :: UserId,
-    yieldJobQueuedEventAdditionalProperties :: KM.KeyMap Value
+    yieldJobQueuedEventUserId :: UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldJobQueuedEvent where parseJSON = checked "YieldJobQueuedEvent" $ withObject "YieldJobQueuedEvent" (\fields -> YieldJobQueuedEvent <$> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "params") <*> (fields .: "resourceId") <*> (fields .: "userId") <*> traverse parseJSON (withoutFields ["jobId", "jobType", "params", "resourceId", "userId"] fields))
+instance FromJSON YieldJobQueuedEvent where parseJSON = checked "YieldJobQueuedEvent" $ withObject "YieldJobQueuedEvent" (\fields -> YieldJobQueuedEvent <$> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "params") <*> (fields .: "resourceId") <*> (fields .: "userId"))
 
-instance ToJSON YieldJobQueuedEvent where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (yieldJobQueuedEventJobId value))], [("jobType", toJSON (yieldJobQueuedEventJobType value))], [("params", toJSON (yieldJobQueuedEventParams value))], [("resourceId", toJSON (yieldJobQueuedEventResourceId value))], [("userId", toJSON (yieldJobQueuedEventUserId value))]]) <> fmap toJSON (withoutFields ["jobId", "jobType", "params", "resourceId", "userId"] (yieldJobQueuedEventAdditionalProperties value)))
+instance ToJSON YieldJobQueuedEvent where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (yieldJobQueuedEventJobId value))], [("jobType", toJSON (yieldJobQueuedEventJobType value))], [("params", toJSON (yieldJobQueuedEventParams value))], [("resourceId", toJSON (yieldJobQueuedEventResourceId value))], [("userId", toJSON (yieldJobQueuedEventUserId value))]]))
 
 data YieldJobQueuedEventJobType = YieldJobQueuedEventJobTypeYield deriving (Eq, Show)
 

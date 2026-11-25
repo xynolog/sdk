@@ -154,7 +154,6 @@ asStored value = do
             refresh
             (signInRevocationEndpoint value)
             (signInTokenEndpoint value)
-            KM.empty
         )
 
 writtenTimes :: SignInStoreOptions -> Text -> IO (Text, Maybe Text)
@@ -193,7 +192,6 @@ entry store@(SignInStore options _ _) identity =
                   (storedSessionRevocationEndpoint held)
                   (storedSessionAccess held)
                   (storedSessionTokenEndpoint held)
-                  KM.empty
           pure (Just (KM.insert (Key.fromText identity) (toJSON written) document), ())
     )
     ( \before issued -> change store $ \document -> do

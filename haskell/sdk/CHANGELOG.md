@@ -97,6 +97,14 @@ the coming release's, and gathers its changes as they land.
   enumeration's constructor by its value in Pascal case
   (`AnchorMethodFuzzyMatch`, `SupportedMediaTypeTextXCPlusPlus`,
   `AnchoredTextDeclinedEntryV3`).
+- A record drops the members its schema does not name, where it kept them
+  in a `…AdditionalProperties` field and wrote them back: only the records
+  Protocol states hold other members keep that field (`AgentOrganization`,
+  `AgentPerson`, `AgentSoftware`, `JobParams`, `Representation`,
+  `ResourceDescriptor`, `ResourceDescriptorIdentifierObject` and
+  `ScoredResource`), beside the maps and the objects that name no member
+  (`BusFramePayload`). A record built positionally takes no `mempty` for
+  them, and a knowledge base is kept as it is read, with nothing to strip.
 
 ### Removed
 

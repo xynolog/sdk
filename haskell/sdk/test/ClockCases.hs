@@ -227,7 +227,7 @@ httpClockCases root = clockCasesFor
                         ( Bus.request
                             wire
                             Channel.BrowseEventsRequestedOperation
-                            (BrowseEventsRequest Nothing resource Nothing Nothing mempty)
+                            (BrowseEventsRequest Nothing resource Nothing Nothing)
                             (Timing.busRequestTimeoutMs Timing.protocolSettings)
                         ) ::
                         IO (Either BusRequestError BrowseEventsResult)
@@ -373,7 +373,7 @@ jobPollClockCases root fixtures = clockCasesFor root ["jobPoll", "jobPollTimeout
   timedOut <- newTVarIO 0
   identity <- either (ioError . userError) pure (mkJobId "polled-job")
   base <- fixture fixtures "JobStatusResponse"
-  let running = JobStatusResult base {jobStatusResponseJobId = identity, jobStatusResponseStatus = JobStatusResponseStatusRunning} mempty
+  let running = JobStatusResult base {jobStatusResponseJobId = identity, jobStatusResponseStatus = JobStatusResponseStatusRunning}
   (client, _) <- inProcessClient time $ \input frame -> do
     unless (busFrameChannel frame == Channel.channelName Channel.JobStatusRequested) (ioError (userError "unexpected job poll request"))
     atomically (modifyTVar' asks (+ 1))

@@ -17,14 +17,13 @@ data GraphAnnotationNode = GraphAnnotationNode
     graphAnnotationNodeId :: AnnotationId,
     graphAnnotationNodeLabel :: Text,
     graphAnnotationNodeMetadata :: Maybe GraphAnnotationNodeMetadata,
-    graphAnnotationNodeType :: GraphAnnotationNodeType,
-    graphAnnotationNodeAdditionalProperties :: KM.KeyMap Value
+    graphAnnotationNodeType :: GraphAnnotationNodeType
   }
   deriving (Eq, Show)
 
-instance FromJSON GraphAnnotationNode where parseJSON = checked "GraphAnnotationNode" $ withObject "GraphAnnotationNode" (\fields -> GraphAnnotationNode <$> (fields .: "annotation") <*> optional fields "entityTypes" <*> (fields .: "id") <*> (fields .: "label") <*> optional fields "metadata" <*> (fields .: "type") <*> traverse parseJSON (withoutFields ["annotation", "entityTypes", "id", "label", "metadata", "type"] fields))
+instance FromJSON GraphAnnotationNode where parseJSON = checked "GraphAnnotationNode" $ withObject "GraphAnnotationNode" (\fields -> GraphAnnotationNode <$> (fields .: "annotation") <*> optional fields "entityTypes" <*> (fields .: "id") <*> (fields .: "label") <*> optional fields "metadata" <*> (fields .: "type"))
 
-instance ToJSON GraphAnnotationNode where toJSON value = Object (KM.fromList (concat [[("annotation", toJSON (graphAnnotationNodeAnnotation value))], optionalPair "entityTypes" (graphAnnotationNodeEntityTypes value), [("id", toJSON (graphAnnotationNodeId value))], [("label", toJSON (graphAnnotationNodeLabel value))], optionalPair "metadata" (graphAnnotationNodeMetadata value), [("type", toJSON (graphAnnotationNodeType value))]]) <> fmap toJSON (withoutFields ["annotation", "entityTypes", "id", "label", "metadata", "type"] (graphAnnotationNodeAdditionalProperties value)))
+instance ToJSON GraphAnnotationNode where toJSON value = Object (KM.fromList (concat [[("annotation", toJSON (graphAnnotationNodeAnnotation value))], optionalPair "entityTypes" (graphAnnotationNodeEntityTypes value), [("id", toJSON (graphAnnotationNodeId value))], [("label", toJSON (graphAnnotationNodeLabel value))], optionalPair "metadata" (graphAnnotationNodeMetadata value), [("type", toJSON (graphAnnotationNodeType value))]]))
 
 data GraphAnnotationNodeMetadata = GraphAnnotationNodeMetadata
   { graphAnnotationNodeMetadataAdditionalProperties :: KM.KeyMap Value

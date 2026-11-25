@@ -18,14 +18,13 @@ data MarkJobQueuedEvent = MarkJobQueuedEvent
     markJobQueuedEventJobType :: MarkJobQueuedEventJobType,
     markJobQueuedEventParams :: MarkJobParams,
     markJobQueuedEventResourceId :: ResourceId,
-    markJobQueuedEventUserId :: UserId,
-    markJobQueuedEventAdditionalProperties :: KM.KeyMap Value
+    markJobQueuedEventUserId :: UserId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkJobQueuedEvent where parseJSON = checked "MarkJobQueuedEvent" $ withObject "MarkJobQueuedEvent" (\fields -> MarkJobQueuedEvent <$> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "params") <*> (fields .: "resourceId") <*> (fields .: "userId") <*> traverse parseJSON (withoutFields ["jobId", "jobType", "params", "resourceId", "userId"] fields))
+instance FromJSON MarkJobQueuedEvent where parseJSON = checked "MarkJobQueuedEvent" $ withObject "MarkJobQueuedEvent" (\fields -> MarkJobQueuedEvent <$> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "params") <*> (fields .: "resourceId") <*> (fields .: "userId"))
 
-instance ToJSON MarkJobQueuedEvent where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (markJobQueuedEventJobId value))], [("jobType", toJSON (markJobQueuedEventJobType value))], [("params", toJSON (markJobQueuedEventParams value))], [("resourceId", toJSON (markJobQueuedEventResourceId value))], [("userId", toJSON (markJobQueuedEventUserId value))]]) <> fmap toJSON (withoutFields ["jobId", "jobType", "params", "resourceId", "userId"] (markJobQueuedEventAdditionalProperties value)))
+instance ToJSON MarkJobQueuedEvent where toJSON value = Object (KM.fromList (concat [[("jobId", toJSON (markJobQueuedEventJobId value))], [("jobType", toJSON (markJobQueuedEventJobType value))], [("params", toJSON (markJobQueuedEventParams value))], [("resourceId", toJSON (markJobQueuedEventResourceId value))], [("userId", toJSON (markJobQueuedEventUserId value))]]))
 
 data MarkJobQueuedEventJobType = MarkJobQueuedEventJobTypeMark deriving (Eq, Show)
 

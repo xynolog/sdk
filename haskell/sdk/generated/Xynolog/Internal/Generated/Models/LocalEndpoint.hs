@@ -11,14 +11,13 @@ import Xynolog.Internal.Codec
 
 data LocalEndpoint = LocalEndpoint
   { localEndpointKbId :: Text,
-    localEndpointKind :: LocalEndpointKind,
-    localEndpointAdditionalProperties :: KM.KeyMap Value
+    localEndpointKind :: LocalEndpointKind
   }
   deriving (Eq, Show)
 
-instance FromJSON LocalEndpoint where parseJSON = checked "LocalEndpoint" $ withObject "LocalEndpoint" (\fields -> LocalEndpoint <$> (fields .: "kbId") <*> (fields .: "kind") <*> traverse parseJSON (withoutFields ["kbId", "kind"] fields))
+instance FromJSON LocalEndpoint where parseJSON = checked "LocalEndpoint" $ withObject "LocalEndpoint" (\fields -> LocalEndpoint <$> (fields .: "kbId") <*> (fields .: "kind"))
 
-instance ToJSON LocalEndpoint where toJSON value = Object (KM.fromList (concat [[("kbId", toJSON (localEndpointKbId value))], [("kind", toJSON (localEndpointKind value))]]) <> fmap toJSON (withoutFields ["kbId", "kind"] (localEndpointAdditionalProperties value)))
+instance ToJSON LocalEndpoint where toJSON value = Object (KM.fromList (concat [[("kbId", toJSON (localEndpointKbId value))], [("kind", toJSON (localEndpointKind value))]]))
 
 data LocalEndpointKind = LocalEndpointKindLocal deriving (Eq, Show)
 

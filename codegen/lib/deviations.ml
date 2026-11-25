@@ -61,10 +61,6 @@ let haskell_enumeration (s : Schema.schema) = Option.is_some s.enum
 (* Haskell sorts a record's members by name, where [Typing] has them in the
    schema's order. *)
 
-(* Haskell keeps the members an object does not name unless it is closed
-   ([Unstated] among them), where [Typing] has an [Unstated] object hold
-   none. *)
-
 (* Haskell declares every named schema that is no record, enumeration or
    union as a newtype, a named list or map among them, where [Typing] has it
    an alias. *)

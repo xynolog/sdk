@@ -14,11 +14,10 @@ data MatchResourcesRequest = MatchResourcesRequest
     matchResourcesRequestEntityType :: Maybe Text,
     matchResourcesRequestLimit :: Maybe Integer,
     matchResourcesRequestOffset :: Maybe Integer,
-    matchResourcesRequestSearch :: Text,
-    matchResourcesRequestAdditionalProperties :: KM.KeyMap Value
+    matchResourcesRequestSearch :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON MatchResourcesRequest where parseJSON = checked "MatchResourcesRequest" $ withObject "MatchResourcesRequest" (\fields -> MatchResourcesRequest <$> optional fields "archived" <*> optional fields "entityType" <*> optional fields "limit" <*> optional fields "offset" <*> (fields .: "search") <*> traverse parseJSON (withoutFields ["archived", "entityType", "limit", "offset", "search"] fields))
+instance FromJSON MatchResourcesRequest where parseJSON = checked "MatchResourcesRequest" $ withObject "MatchResourcesRequest" (\fields -> MatchResourcesRequest <$> optional fields "archived" <*> optional fields "entityType" <*> optional fields "limit" <*> optional fields "offset" <*> (fields .: "search"))
 
-instance ToJSON MatchResourcesRequest where toJSON value = Object (KM.fromList (concat [optionalPair "archived" (matchResourcesRequestArchived value), optionalPair "entityType" (matchResourcesRequestEntityType value), optionalPair "limit" (matchResourcesRequestLimit value), optionalPair "offset" (matchResourcesRequestOffset value), [("search", toJSON (matchResourcesRequestSearch value))]]) <> fmap toJSON (withoutFields ["archived", "entityType", "limit", "offset", "search"] (matchResourcesRequestAdditionalProperties value)))
+instance ToJSON MatchResourcesRequest where toJSON value = Object (KM.fromList (concat [optionalPair "archived" (matchResourcesRequestArchived value), optionalPair "entityType" (matchResourcesRequestEntityType value), optionalPair "limit" (matchResourcesRequestLimit value), optionalPair "offset" (matchResourcesRequestOffset value), [("search", toJSON (matchResourcesRequestSearch value))]]))

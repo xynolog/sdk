@@ -157,12 +157,11 @@ built wall resource motivation anchor target generator body = do
         (AnnotationTargetValueAnnotationTarget target)
         AnnotationTypeAnnotation
         Nothing
-        mempty
     )
 
 annotationOfResource :: IO UTCTime -> ResourceId -> Motivation -> Maybe Agent -> Maybe AnnotationBodies -> IO Annotation
 annotationOfResource wall resource motivation generator body =
-  built wall resource motivation "" (AnnotationTarget Nothing resource Nothing mempty) generator body
+  built wall resource motivation "" (AnnotationTarget Nothing resource Nothing) generator body
 
 -- | The span a reconciliation found, as 'annotationOfSpan' takes one.
 textSpanOf :: ReconciledSpan -> TextSpan
@@ -194,7 +193,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       unless
         (between whole (fromInteger start) (fromInteger end) == exact)
         (refuse SpanRefusalExactMismatch "The span's words differ from the text between its offsets")
-      pure [SelectorTextPositionSelector (TextPositionSelector end start TextPositionSelectorTypeTextPositionSelector mempty)]
+      pure [SelectorTextPositionSelector (TextPositionSelector end start TextPositionSelectorTypeTextPositionSelector)]
     PdfContent anchored -> do
       let (overlapping, rectangles) = Pdf.locate anchored start end
       unless (not (null rectangles)) (refuse SpanRefusalNothingLocated "No anchored-text item overlaps the span")
@@ -202,7 +201,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       unless
         (collapsed exact `Text.isInfixOf` collapsed covered)
         (refuse SpanRefusalExactNotCovered "The overlapping items do not cover the span's words")
-      pure [SelectorFragmentSelector (FragmentSelector (Just "http://tools.ietf.org/rfc/rfc3778") FragmentSelectorTypeFragmentSelector (Pdf.fragmentOf rectangle) mempty) | rectangle <- rectangles]
+      pure [SelectorFragmentSelector (FragmentSelector (Just "http://tools.ietf.org/rfc/rfc3778") FragmentSelectorTypeFragmentSelector (Pdf.fragmentOf rectangle)) | rectangle <- rectangles]
   forM_ (textSpanPrefix spanValue) $ \prefix ->
     unless
       (prefix `Text.isSuffixOf` Text.take (fromInteger start) whole)
@@ -212,7 +211,7 @@ annotationOfSpan wall content spanValue resource motivation generator body = do
       (suffix `Text.isPrefixOf` Text.drop (fromInteger end) whole)
       (refuse SpanRefusalSuffixMismatch "The span's suffix differs from the text after it")
   let nonempty = (>>= \value -> if Text.null value then Nothing else Just value)
-      quote = SelectorTextQuoteSelector (TextQuoteSelector exact (nonempty (textSpanPrefix spanValue)) (nonempty (textSpanSuffix spanValue)) TextQuoteSelectorTypeTextQuoteSelector mempty)
-      target = AnnotationTarget (Just (AnnotationSelectorList (places ++ [quote]))) resource (Just AnnotationTargetTypeSpecificResource) mempty
+      quote = SelectorTextQuoteSelector (TextQuoteSelector exact (nonempty (textSpanPrefix spanValue)) (nonempty (textSpanSuffix spanValue)) TextQuoteSelectorTypeTextQuoteSelector)
+      target = AnnotationTarget (Just (AnnotationSelectorList (places ++ [quote]))) resource (Just AnnotationTargetTypeSpecificResource)
       anchor = Text.pack (show start) <> ":" <> Text.pack (show end) <> ":" <> exact
   built wall resource motivation anchor target (Just generator) body

@@ -14,14 +14,13 @@ data SmeltSettled = SmeltSettled
   { smeltSettledContentChecksum :: Text,
     smeltSettledOutcome :: SmeltSettledOutcome,
     smeltSettledReason :: Maybe SmeltSettledReason,
-    smeltSettledResourceId :: ResourceId,
-    smeltSettledAdditionalProperties :: KM.KeyMap Value
+    smeltSettledResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON SmeltSettled where parseJSON = checked "SmeltSettled" $ withObject "SmeltSettled" (\fields -> SmeltSettled <$> (fields .: "contentChecksum") <*> (fields .: "outcome") <*> optional fields "reason" <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["contentChecksum", "outcome", "reason", "resourceId"] fields))
+instance FromJSON SmeltSettled where parseJSON = checked "SmeltSettled" $ withObject "SmeltSettled" (\fields -> SmeltSettled <$> (fields .: "contentChecksum") <*> (fields .: "outcome") <*> optional fields "reason" <*> (fields .: "resourceId"))
 
-instance ToJSON SmeltSettled where toJSON value = Object (KM.fromList (concat [[("contentChecksum", toJSON (smeltSettledContentChecksum value))], [("outcome", toJSON (smeltSettledOutcome value))], optionalPair "reason" (smeltSettledReason value), [("resourceId", toJSON (smeltSettledResourceId value))]]) <> fmap toJSON (withoutFields ["contentChecksum", "outcome", "reason", "resourceId"] (smeltSettledAdditionalProperties value)))
+instance ToJSON SmeltSettled where toJSON value = Object (KM.fromList (concat [[("contentChecksum", toJSON (smeltSettledContentChecksum value))], [("outcome", toJSON (smeltSettledOutcome value))], optionalPair "reason" (smeltSettledReason value), [("resourceId", toJSON (smeltSettledResourceId value))]]))
 
 data SmeltSettledOutcome = SmeltSettledOutcomeIndexed | SmeltSettledOutcomeSkipped deriving (Eq, Show)
 

@@ -20,24 +20,24 @@ newMark = MarkNamespace
 annotation :: MarkNamespace -> CreateAnnotationRequest -> IO AnnotationId
 annotation (MarkNamespace wire _ timing _) input =
   markCreateOkResponseAnnotationId . markCreateOkResponse
-    <$> Bus.request wire MarkCreateRequestOperation (MarkCreateRequest input (annotationTargetSource (createAnnotationRequestTarget input)) mempty) (Timing.busRequestTimeoutMs timing)
+    <$> Bus.request wire MarkCreateRequestOperation (MarkCreateRequest input (annotationTargetSource (createAnnotationRequestTarget input))) (Timing.busRequestTimeoutMs timing)
 
 delete :: MarkNamespace -> ResourceId -> AnnotationId -> IO MarkDeleteOkResponse
 delete (MarkNamespace wire _ timing _) resource mark =
   markDeleteOkResponse
-    <$> Bus.request wire MarkDeleteOperation (MarkDeleteCommand Nothing mark (Just resource) mempty) (Timing.busRequestTimeoutMs timing)
+    <$> Bus.request wire MarkDeleteOperation (MarkDeleteCommand Nothing mark (Just resource)) (Timing.busRequestTimeoutMs timing)
 
 archive :: MarkNamespace -> ResourceId -> IO EmptyBusPayload
 archive (MarkNamespace wire _ timing _) resource =
-  Bus.request wire MarkArchiveOperation (MarkArchiveCommand Nothing Nothing resource Nothing mempty) (Timing.busRequestTimeoutMs timing)
+  Bus.request wire MarkArchiveOperation (MarkArchiveCommand Nothing Nothing resource Nothing) (Timing.busRequestTimeoutMs timing)
 
 unarchive :: MarkNamespace -> ResourceId -> IO EmptyBusPayload
 unarchive (MarkNamespace wire _ timing _) resource =
-  Bus.request wire MarkUnarchiveOperation (MarkUnarchiveCommand Nothing resource Nothing mempty) (Timing.busRequestTimeoutMs timing)
+  Bus.request wire MarkUnarchiveOperation (MarkUnarchiveCommand Nothing resource Nothing) (Timing.busRequestTimeoutMs timing)
 
 updateEntityTypes :: MarkNamespace -> ResourceId -> [Text] -> [Text] -> IO EmptyBusPayload
 updateEntityTypes (MarkNamespace wire _ timing _) resource current updated =
-  Bus.request wire MarkUpdateEntityTypesOperation (MarkUpdateEntityTypesCommand Nothing current resource updated mempty) (Timing.busRequestTimeoutMs timing)
+  Bus.request wire MarkUpdateEntityTypesOperation (MarkUpdateEntityTypesCommand Nothing current resource updated) (Timing.busRequestTimeoutMs timing)
 
 delegate :: MarkNamespace -> ResourceId -> MarkJobParams -> IO (Running.Running (Delegation.JobEvent MarkJobCompleteCommand) MarkJobCompleteCommand)
 delegate (MarkNamespace _ _ _ follower) resource params =
@@ -49,7 +49,7 @@ delegate (MarkNamespace _ _ _ follower) resource params =
     Nothing
 
 request :: MarkNamespace -> ResourceId -> AnnotationSelector -> Motivation -> STM ()
-request (MarkNamespace _ local _ _) resource selector motivation = Local.signal local MarkRequested (MarkRequestedEvent motivation selector resource mempty) NoScope
+request (MarkNamespace _ local _ _) resource selector motivation = Local.signal local MarkRequested (MarkRequestedEvent motivation selector resource) NoScope
 
 submit :: MarkNamespace -> MarkSubmitEvent -> STM ()
 submit (MarkNamespace _ local _ _) input = Local.signal local MarkSubmit input NoScope

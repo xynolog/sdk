@@ -44,12 +44,12 @@ delegate (YieldNamespace _ _ _ timing follower) params stall =
 cloneToken :: YieldNamespace -> ResourceId -> IO CloneResourceWithTokenResponse
 cloneToken (YieldNamespace wire _ _ timing _) identity =
   cloneResourceWithTokenResponseBusEnvelopeResponse
-    <$> Bus.request wire YieldCloneTokenRequestedOperation (YieldCloneTokenRequest identity mempty) (Timing.busRequestTimeoutMs timing)
+    <$> Bus.request wire YieldCloneTokenRequestedOperation (YieldCloneTokenRequest identity) (Timing.busRequestTimeoutMs timing)
 
 fromToken :: YieldNamespace -> Text -> IO ResourceDescriptor
 fromToken (YieldNamespace wire _ _ timing _) token =
   getResourceByTokenResponseSourceResource . getResourceByTokenResponseBusEnvelopeResponse
-    <$> Bus.request wire YieldCloneResourceRequestedOperation (YieldCloneResourceRequest token mempty) (Timing.busRequestTimeoutMs timing)
+    <$> Bus.request wire YieldCloneResourceRequestedOperation (YieldCloneResourceRequest token) (Timing.busRequestTimeoutMs timing)
 
 createFromToken :: YieldNamespace -> CreateFromTokenOptions -> IO CreateResourceResponse
 createFromToken namespace@(YieldNamespace _ _ content _ follower) (CreateFromTokenOptions archiveOriginal text name token) = Delegation.run follower $ do
@@ -70,8 +70,7 @@ createFromToken namespace@(YieldNamespace _ _ content _ follower) (CreateFromTok
             resourceUploadMetadataName = name,
             resourceUploadMetadataSourceAnnotationId = Nothing,
             resourceUploadMetadataSourceResourceId = Nothing,
-            resourceUploadMetadataStorageUri = "file://" <> file,
-            resourceUploadMetadataAdditionalProperties = mempty
+            resourceUploadMetadataStorageUri = "file://" <> file
           }
   Content.putBinary content Nothing metadata (Content.bytesBody (encodeUtf8 text)) (const (pure ()))
 

@@ -16,11 +16,10 @@ data MatchSearchRequest = MatchSearchRequest
     matchSearchRequestLimit :: Maybe Integer,
     matchSearchRequestReferenceId :: AnnotationId,
     matchSearchRequestResourceId :: ResourceId,
-    matchSearchRequestUseSemanticScoring :: Maybe Bool,
-    matchSearchRequestAdditionalProperties :: KM.KeyMap Value
+    matchSearchRequestUseSemanticScoring :: Maybe Bool
   }
   deriving (Eq, Show)
 
-instance FromJSON MatchSearchRequest where parseJSON = checked "MatchSearchRequest" $ withObject "MatchSearchRequest" (\fields -> MatchSearchRequest <$> (fields .: "context") <*> optional fields "limit" <*> (fields .: "referenceId") <*> (fields .: "resourceId") <*> optional fields "useSemanticScoring" <*> traverse parseJSON (withoutFields ["context", "limit", "referenceId", "resourceId", "useSemanticScoring"] fields))
+instance FromJSON MatchSearchRequest where parseJSON = checked "MatchSearchRequest" $ withObject "MatchSearchRequest" (\fields -> MatchSearchRequest <$> (fields .: "context") <*> optional fields "limit" <*> (fields .: "referenceId") <*> (fields .: "resourceId") <*> optional fields "useSemanticScoring")
 
-instance ToJSON MatchSearchRequest where toJSON value = Object (KM.fromList (concat [[("context", toJSON (matchSearchRequestContext value))], optionalPair "limit" (matchSearchRequestLimit value), [("referenceId", toJSON (matchSearchRequestReferenceId value))], [("resourceId", toJSON (matchSearchRequestResourceId value))], optionalPair "useSemanticScoring" (matchSearchRequestUseSemanticScoring value)]) <> fmap toJSON (withoutFields ["context", "limit", "referenceId", "resourceId", "useSemanticScoring"] (matchSearchRequestAdditionalProperties value)))
+instance ToJSON MatchSearchRequest where toJSON value = Object (KM.fromList (concat [[("context", toJSON (matchSearchRequestContext value))], optionalPair "limit" (matchSearchRequestLimit value), [("referenceId", toJSON (matchSearchRequestReferenceId value))], [("resourceId", toJSON (matchSearchRequestResourceId value))], optionalPair "useSemanticScoring" (matchSearchRequestUseSemanticScoring value)]))

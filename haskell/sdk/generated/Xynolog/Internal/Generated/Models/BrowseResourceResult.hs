@@ -10,14 +10,13 @@ import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ResourceDescriptor
 
 data BrowseResourceResult = BrowseResourceResult
-  { browseResourceResultResponse :: BrowseResourceResultResponse,
-    browseResourceResultAdditionalProperties :: KM.KeyMap Value
+  { browseResourceResultResponse :: BrowseResourceResultResponse
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseResourceResult where parseJSON = checked "BrowseResourceResult" $ withObject "BrowseResourceResult" (\fields -> BrowseResourceResult <$> (fields .: "response") <*> traverse parseJSON (withoutFields ["response"] fields))
+instance FromJSON BrowseResourceResult where parseJSON = checked "BrowseResourceResult" $ withObject "BrowseResourceResult" (\fields -> BrowseResourceResult <$> (fields .: "response"))
 
-instance ToJSON BrowseResourceResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseResourceResultResponse value))]]) <> fmap toJSON (withoutFields ["response"] (browseResourceResultAdditionalProperties value)))
+instance ToJSON BrowseResourceResult where toJSON value = Object (KM.fromList (concat [[("response", toJSON (browseResourceResultResponse value))]]))
 
 data BrowseResourceResultResponse = BrowseResourceResultResponse
   { browseResourceResultResponseLastSequence :: Integer,

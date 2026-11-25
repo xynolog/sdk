@@ -24,14 +24,13 @@ data JobCompletedPayload = JobCompletedPayload
     jobCompletedPayloadJobType :: JobType,
     jobCompletedPayloadResult :: Maybe JobCompletedPayloadResult,
     jobCompletedPayloadResultResourceId :: Maybe ResourceId,
-    jobCompletedPayloadTotalSteps :: Maybe Integer,
-    jobCompletedPayloadAdditionalProperties :: KM.KeyMap Value
+    jobCompletedPayloadTotalSteps :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JobCompletedPayload where parseJSON = checked "JobCompletedPayload" $ withObject "JobCompletedPayload" (\fields -> JobCompletedPayload <$> optional fields "annotationId" <*> optional fields "annotationUri" <*> optional fields "attempt" <*> optional fields "durability" <*> optional fields "foundCount" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "result" <*> optional fields "resultResourceId" <*> optional fields "totalSteps" <*> traverse parseJSON (withoutFields ["annotationId", "annotationUri", "attempt", "durability", "foundCount", "jobId", "jobType", "result", "resultResourceId", "totalSteps"] fields))
+instance FromJSON JobCompletedPayload where parseJSON = checked "JobCompletedPayload" $ withObject "JobCompletedPayload" (\fields -> JobCompletedPayload <$> optional fields "annotationId" <*> optional fields "annotationUri" <*> optional fields "attempt" <*> optional fields "durability" <*> optional fields "foundCount" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "result" <*> optional fields "resultResourceId" <*> optional fields "totalSteps")
 
-instance ToJSON JobCompletedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (jobCompletedPayloadAnnotationId value), optionalPair "annotationUri" (jobCompletedPayloadAnnotationUri value), optionalPair "attempt" (jobCompletedPayloadAttempt value), optionalPair "durability" (jobCompletedPayloadDurability value), optionalPair "foundCount" (jobCompletedPayloadFoundCount value), [("jobId", toJSON (jobCompletedPayloadJobId value))], [("jobType", toJSON (jobCompletedPayloadJobType value))], optionalPair "result" (jobCompletedPayloadResult value), optionalPair "resultResourceId" (jobCompletedPayloadResultResourceId value), optionalPair "totalSteps" (jobCompletedPayloadTotalSteps value)]) <> fmap toJSON (withoutFields ["annotationId", "annotationUri", "attempt", "durability", "foundCount", "jobId", "jobType", "result", "resultResourceId", "totalSteps"] (jobCompletedPayloadAdditionalProperties value)))
+instance ToJSON JobCompletedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (jobCompletedPayloadAnnotationId value), optionalPair "annotationUri" (jobCompletedPayloadAnnotationUri value), optionalPair "attempt" (jobCompletedPayloadAttempt value), optionalPair "durability" (jobCompletedPayloadDurability value), optionalPair "foundCount" (jobCompletedPayloadFoundCount value), [("jobId", toJSON (jobCompletedPayloadJobId value))], [("jobType", toJSON (jobCompletedPayloadJobType value))], optionalPair "result" (jobCompletedPayloadResult value), optionalPair "resultResourceId" (jobCompletedPayloadResultResourceId value), optionalPair "totalSteps" (jobCompletedPayloadTotalSteps value)]))
 
 data JobCompletedPayloadResult = JobCompletedPayloadResult
   { jobCompletedPayloadResultAdditionalProperties :: KM.KeyMap Value

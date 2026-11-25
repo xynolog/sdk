@@ -346,7 +346,7 @@ claimLoop claims = forever $ mask $ \restore -> do
     connection <- State.current (Transport.state (transport claims))
     check (connection == Transport.Open)
     takeTMVar (wake claims)
-  let command = JobClaimCommand Nothing Nothing (accepts claims) KM.empty
+  let command = JobClaimCommand Nothing Nothing (accepts claims)
       rooted action = bracket (attachContext Context.empty) detachContext (const action)
   outcome <-
     restore
@@ -476,7 +476,7 @@ start job = withMVar (heldGate job) $ \() -> do
     before <- readTVar (heldState job)
     unless (before == Claimed) (throwSTM StartAlreadySaid)
     writeTVar (heldState job) Begun
-  emit job JobStart (JobStartCommand Nothing (annotationId job) (Just (attempt job)) (jobId job) (jobType job) (resourceId job) KM.empty)
+  emit job JobStart (JobStartCommand Nothing (annotationId job) (Just (attempt job)) (jobId job) (jobType job) (resourceId job))
 
 progress :: HeldJob result -> JobProgress -> IO ()
 progress job value = withMVar (heldGate job) $ \() -> do
@@ -495,7 +495,6 @@ progress job value = withMVar (heldGate job) $ \() -> do
         (jobProgressPercentage value)
         (Just report)
         (resourceId job)
-        KM.empty
     )
 
 checkpoint :: HeldJob result -> JobCheckpoint -> IO ()
@@ -510,7 +509,6 @@ checkpoint job value = withMVar (heldGate job) $ \() -> do
         (jobCheckpointCompletedUnits value)
         (jobId job)
         (JobCheckpointCommandUnitCursors <$> jobCheckpointUnitCursors value)
-        KM.empty
     )
 
 weakness :: DurabilityEvidence -> Int
@@ -531,7 +529,7 @@ commit job resource annotations = withMVar (heldGate job) $ \() -> do
     lastAnnotation : _ -> do
       let claims = heldClaims job
           timeoutMs = Timing.markCommitTimeoutMs (timing claims)
-          send = Bus.request (wire claims) MarkCommitOperation (MarkCommitCommand Nothing Nothing annotations (Just (jobId job)) resource KM.empty) timeoutMs
+          send = Bus.request (wire claims) MarkCommitOperation (MarkCommitCommand Nothing Nothing annotations (Just (jobId job)) resource) timeoutMs
       result <- try send
       case result of
         Right _ -> observeDurability job DurabilityEvidenceAcknowledged
@@ -541,7 +539,7 @@ commit job resource annotations = withMVar (heldGate job) $ \() -> do
               ( Bus.request
                   (wire claims)
                   BrowseAnnotationRequestedOperation
-                  (BrowseAnnotationRequest (Types.annotationId lastAnnotation) resource KM.empty)
+                  (BrowseAnnotationRequest (Types.annotationId lastAnnotation) resource)
                   timeoutMs
               )
           let evidence = case probe of
@@ -589,7 +587,6 @@ complete job result = settle job True $ do
                 MarkJobCompleteCommandJobTypeMark
                 (resourceId job)
                 (Just result)
-                KM.empty
             )
         YieldCompletion ->
           JobCompleteCommandYieldJobCompleteCommand
@@ -602,7 +599,6 @@ complete job result = settle job True $ do
                 YieldJobCompleteCommandJobTypeYield
                 (resourceId job)
                 (Just result)
-                KM.empty
             )
   emit job Ch.JobComplete payload
 
@@ -629,7 +625,6 @@ fail job message failure = settle job False $ do
         (resourceId job)
         cursors
         (Just (willRetryAfter (jobRunningMetadata (heldRecord job)) classification))
-        KM.empty
     )
 
 cancel :: HeldJob result -> Maybe JobReached -> IO ()
@@ -646,5 +641,4 @@ cancel job reached =
           (jobType job)
           (resourceId job)
           (JobCancelCommandUnitCursors <$> (reached >>= jobReachedUnitCursors))
-          KM.empty
       )

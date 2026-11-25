@@ -14,11 +14,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 data MarkRequestedEvent = MarkRequestedEvent
   { markRequestedEventMotivation :: Motivation,
     markRequestedEventSelector :: AnnotationSelector,
-    markRequestedEventSource :: ResourceId,
-    markRequestedEventAdditionalProperties :: KM.KeyMap Value
+    markRequestedEventSource :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkRequestedEvent where parseJSON = checked "MarkRequestedEvent" $ withObject "MarkRequestedEvent" (\fields -> MarkRequestedEvent <$> (fields .: "motivation") <*> (fields .: "selector") <*> (fields .: "source") <*> traverse parseJSON (withoutFields ["motivation", "selector", "source"] fields))
+instance FromJSON MarkRequestedEvent where parseJSON = checked "MarkRequestedEvent" $ withObject "MarkRequestedEvent" (\fields -> MarkRequestedEvent <$> (fields .: "motivation") <*> (fields .: "selector") <*> (fields .: "source"))
 
-instance ToJSON MarkRequestedEvent where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (markRequestedEventMotivation value))], [("selector", toJSON (markRequestedEventSelector value))], [("source", toJSON (markRequestedEventSource value))]]) <> fmap toJSON (withoutFields ["motivation", "selector", "source"] (markRequestedEventAdditionalProperties value)))
+instance ToJSON MarkRequestedEvent where toJSON value = Object (KM.fromList (concat [[("motivation", toJSON (markRequestedEventMotivation value))], [("selector", toJSON (markRequestedEventSelector value))], [("source", toJSON (markRequestedEventSource value))]]))

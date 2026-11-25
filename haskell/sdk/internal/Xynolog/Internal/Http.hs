@@ -450,7 +450,6 @@ emit http frame = Telemetry.sending frame $ do
           (busFrameCorrelationId frame)
           (BusEmitRequestPayload (busFramePayloadAdditionalProperties (busFramePayload frame)))
           (busFrameScope frame)
-          mempty
       sending = exchange http EmitOnBus Nothing (jsonBody EmitOnBus body) (Just key) Nothing [] $ \response -> do
         let count = do
               bytes <- deadline http (Settings.emitTimeoutMs (httpTiming (options http))) (Bytes.concat <$> brConsume (responseBody response))

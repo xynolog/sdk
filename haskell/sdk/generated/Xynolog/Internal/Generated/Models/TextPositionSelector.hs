@@ -12,14 +12,13 @@ import Xynolog.Internal.Codec
 data TextPositionSelector = TextPositionSelector
   { textPositionSelectorEnd :: Integer,
     textPositionSelectorStart :: Integer,
-    textPositionSelectorType :: TextPositionSelectorType,
-    textPositionSelectorAdditionalProperties :: KM.KeyMap Value
+    textPositionSelectorType :: TextPositionSelectorType
   }
   deriving (Eq, Show)
 
-instance FromJSON TextPositionSelector where parseJSON = checked "TextPositionSelector" $ withObject "TextPositionSelector" (\fields -> TextPositionSelector <$> (fields .: "end") <*> (fields .: "start") <*> (fields .: "type") <*> traverse parseJSON (withoutFields ["end", "start", "type"] fields))
+instance FromJSON TextPositionSelector where parseJSON = checked "TextPositionSelector" $ withObject "TextPositionSelector" (\fields -> TextPositionSelector <$> (fields .: "end") <*> (fields .: "start") <*> (fields .: "type"))
 
-instance ToJSON TextPositionSelector where toJSON value = Object (KM.fromList (concat [[("end", toJSON (textPositionSelectorEnd value))], [("start", toJSON (textPositionSelectorStart value))], [("type", toJSON (textPositionSelectorType value))]]) <> fmap toJSON (withoutFields ["end", "start", "type"] (textPositionSelectorAdditionalProperties value)))
+instance ToJSON TextPositionSelector where toJSON value = Object (KM.fromList (concat [[("end", toJSON (textPositionSelectorEnd value))], [("start", toJSON (textPositionSelectorStart value))], [("type", toJSON (textPositionSelectorType value))]]))
 
 data TextPositionSelectorType = TextPositionSelectorTypeTextPositionSelector deriving (Eq, Show)
 

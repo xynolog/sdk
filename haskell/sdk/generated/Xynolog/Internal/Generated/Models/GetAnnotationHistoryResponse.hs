@@ -16,11 +16,10 @@ data GetAnnotationHistoryResponse = GetAnnotationHistoryResponse
   { getAnnotationHistoryResponseAnnotationId :: AnnotationId,
     getAnnotationHistoryResponseEvents :: [AttributedEvent],
     getAnnotationHistoryResponseResourceId :: ResourceId,
-    getAnnotationHistoryResponseTotal :: Scientific,
-    getAnnotationHistoryResponseAdditionalProperties :: KM.KeyMap Value
+    getAnnotationHistoryResponseTotal :: Scientific
   }
   deriving (Eq, Show)
 
-instance FromJSON GetAnnotationHistoryResponse where parseJSON = checked "GetAnnotationHistoryResponse" $ withObject "GetAnnotationHistoryResponse" (\fields -> GetAnnotationHistoryResponse <$> (fields .: "annotationId") <*> (fields .: "events") <*> (fields .: "resourceId") <*> (fields .: "total") <*> traverse parseJSON (withoutFields ["annotationId", "events", "resourceId", "total"] fields))
+instance FromJSON GetAnnotationHistoryResponse where parseJSON = checked "GetAnnotationHistoryResponse" $ withObject "GetAnnotationHistoryResponse" (\fields -> GetAnnotationHistoryResponse <$> (fields .: "annotationId") <*> (fields .: "events") <*> (fields .: "resourceId") <*> (fields .: "total"))
 
-instance ToJSON GetAnnotationHistoryResponse where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (getAnnotationHistoryResponseAnnotationId value))], [("events", toJSON (getAnnotationHistoryResponseEvents value))], [("resourceId", toJSON (getAnnotationHistoryResponseResourceId value))], [("total", toJSON (getAnnotationHistoryResponseTotal value))]]) <> fmap toJSON (withoutFields ["annotationId", "events", "resourceId", "total"] (getAnnotationHistoryResponseAdditionalProperties value)))
+instance ToJSON GetAnnotationHistoryResponse where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (getAnnotationHistoryResponseAnnotationId value))], [("events", toJSON (getAnnotationHistoryResponseEvents value))], [("resourceId", toJSON (getAnnotationHistoryResponseResourceId value))], [("total", toJSON (getAnnotationHistoryResponseTotal value))]]))

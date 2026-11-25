@@ -17,11 +17,10 @@ data AnchorRect = AnchorRect
     anchorRectTop :: Scientific,
     anchorRectWidth :: Scientific,
     anchorRectX :: Scientific,
-    anchorRectY :: Scientific,
-    anchorRectAdditionalProperties :: KM.KeyMap Value
+    anchorRectY :: Scientific
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchorRect where parseJSON = checked "AnchorRect" $ withObject "AnchorRect" (\fields -> AnchorRect <$> (fields .: "bottom") <*> (fields .: "height") <*> (fields .: "left") <*> (fields .: "right") <*> (fields .: "top") <*> (fields .: "width") <*> (fields .: "x") <*> (fields .: "y") <*> traverse parseJSON (withoutFields ["bottom", "height", "left", "right", "top", "width", "x", "y"] fields))
+instance FromJSON AnchorRect where parseJSON = checked "AnchorRect" $ withObject "AnchorRect" (\fields -> AnchorRect <$> (fields .: "bottom") <*> (fields .: "height") <*> (fields .: "left") <*> (fields .: "right") <*> (fields .: "top") <*> (fields .: "width") <*> (fields .: "x") <*> (fields .: "y"))
 
-instance ToJSON AnchorRect where toJSON value = Object (KM.fromList (concat [[("bottom", toJSON (anchorRectBottom value))], [("height", toJSON (anchorRectHeight value))], [("left", toJSON (anchorRectLeft value))], [("right", toJSON (anchorRectRight value))], [("top", toJSON (anchorRectTop value))], [("width", toJSON (anchorRectWidth value))], [("x", toJSON (anchorRectX value))], [("y", toJSON (anchorRectY value))]]) <> fmap toJSON (withoutFields ["bottom", "height", "left", "right", "top", "width", "x", "y"] (anchorRectAdditionalProperties value)))
+instance ToJSON AnchorRect where toJSON value = Object (KM.fromList (concat [[("bottom", toJSON (anchorRectBottom value))], [("height", toJSON (anchorRectHeight value))], [("left", toJSON (anchorRectLeft value))], [("right", toJSON (anchorRectRight value))], [("top", toJSON (anchorRectTop value))], [("width", toJSON (anchorRectWidth value))], [("x", toJSON (anchorRectX value))], [("y", toJSON (anchorRectY value))]]))

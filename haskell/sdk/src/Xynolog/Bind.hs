@@ -15,7 +15,7 @@ newBind = BindNamespace
 
 body :: BindNamespace -> ResourceId -> AnnotationId -> [BindBodyOperation] -> IO BindBodyUpdated
 body (BindNamespace wire _ timing) resource annotation operations =
-  Bus.request wire BindUpdateBodyOperation (BindUpdateBodyCommand Nothing annotation operations resource mempty) (Timing.busRequestTimeoutMs timing)
+  Bus.request wire BindUpdateBodyOperation (BindUpdateBodyCommand Nothing annotation operations resource) (Timing.busRequestTimeoutMs timing)
 
 initiate :: BindNamespace -> BindInitiateCommand -> STM ()
 initiate (BindNamespace _ bus _) input = Local.signal bus BindInitiate input NoScope

@@ -16,11 +16,10 @@ data OpenResource = OpenResource
     openResourceName :: Text,
     openResourceOpenedAt :: Integer,
     openResourceOrder :: Integer,
-    openResourceStorageUri :: Maybe Text,
-    openResourceAdditionalProperties :: KM.KeyMap Value
+    openResourceStorageUri :: Maybe Text
   }
   deriving (Eq, Show)
 
-instance FromJSON OpenResource where parseJSON = checked "OpenResource" $ withObject "OpenResource" (\fields -> OpenResource <$> (fields .: "id") <*> optional fields "mediaType" <*> (fields .: "name") <*> (fields .: "openedAt") <*> (fields .: "order") <*> optional fields "storageUri" <*> traverse parseJSON (withoutFields ["id", "mediaType", "name", "openedAt", "order", "storageUri"] fields))
+instance FromJSON OpenResource where parseJSON = checked "OpenResource" $ withObject "OpenResource" (\fields -> OpenResource <$> (fields .: "id") <*> optional fields "mediaType" <*> (fields .: "name") <*> (fields .: "openedAt") <*> (fields .: "order") <*> optional fields "storageUri")
 
-instance ToJSON OpenResource where toJSON value = Object (KM.fromList (concat [[("id", toJSON (openResourceId value))], optionalPair "mediaType" (openResourceMediaType value), [("name", toJSON (openResourceName value))], [("openedAt", toJSON (openResourceOpenedAt value))], [("order", toJSON (openResourceOrder value))], optionalPair "storageUri" (openResourceStorageUri value)]) <> fmap toJSON (withoutFields ["id", "mediaType", "name", "openedAt", "order", "storageUri"] (openResourceAdditionalProperties value)))
+instance ToJSON OpenResource where toJSON value = Object (KM.fromList (concat [[("id", toJSON (openResourceId value))], optionalPair "mediaType" (openResourceMediaType value), [("name", toJSON (openResourceName value))], [("openedAt", toJSON (openResourceOpenedAt value))], [("order", toJSON (openResourceOrder value))], optionalPair "storageUri" (openResourceStorageUri value)]))

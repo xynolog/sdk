@@ -467,9 +467,18 @@ and declare state name original (form : T.form) =
                (normalize state original) ->
           enumeration name values
       | Union u -> union state name original u
-      | Record { members; rest } -> object_ state name original members rest
-      | Empty { rest; _ } -> object_ state name original [] rest
-      | Map { value; _ } -> object_ state name original [] (Of value)
+      | Record { members; rest } ->
+          object_ state name original members rest
+            ~open_:
+              (match rest with
+              | Open | Of _ -> true
+              | Closed | Unstated -> false)
+      (* Deviations: an object that names no member and says nothing of
+         others holds whatever members it is given. *)
+      | Empty { rest; _ } ->
+          object_ state name original [] rest ~open_:(rest <> Closed)
+      | Map { value; _ } ->
+          object_ state name original [] (Of value) ~open_:true
       | Enum { base; _ } -> (
           match base with
           | Some s -> newtype state name (scalar_of s)
@@ -514,11 +523,11 @@ and newtype state name value_type =
   newtype_decls name ~constructor:(constructed state name) value_type
     (Names.mem name state.identifiers)
 
-and object_ state name original (members : T.member list) (rest : T.rest) =
+and object_ state name original (members : T.member list) (rest : T.rest) ~open_
+    =
   let members =
     List.sort (fun (a : T.member) b -> String.compare a.wire b.wire) members
   in
-  let open_ = rest <> Closed in
   let names = H.List (List.map (fun (m : T.member) -> H.Str m.wire) members) in
   let* fields =
     Result.map List.rev

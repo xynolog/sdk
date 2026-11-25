@@ -14,14 +14,13 @@ data BindBodyOperation = BindBodyOperation
   { bindBodyOperationItem :: Maybe AnnotationBody,
     bindBodyOperationNewItem :: Maybe AnnotationBody,
     bindBodyOperationOldItem :: Maybe AnnotationBody,
-    bindBodyOperationOp :: BindBodyOperationOp,
-    bindBodyOperationAdditionalProperties :: KM.KeyMap Value
+    bindBodyOperationOp :: BindBodyOperationOp
   }
   deriving (Eq, Show)
 
-instance FromJSON BindBodyOperation where parseJSON = checked "BindBodyOperation" $ withObject "BindBodyOperation" (\fields -> BindBodyOperation <$> optional fields "item" <*> optional fields "newItem" <*> optional fields "oldItem" <*> (fields .: "op") <*> traverse parseJSON (withoutFields ["item", "newItem", "oldItem", "op"] fields))
+instance FromJSON BindBodyOperation where parseJSON = checked "BindBodyOperation" $ withObject "BindBodyOperation" (\fields -> BindBodyOperation <$> optional fields "item" <*> optional fields "newItem" <*> optional fields "oldItem" <*> (fields .: "op"))
 
-instance ToJSON BindBodyOperation where toJSON value = Object (KM.fromList (concat [optionalPair "item" (bindBodyOperationItem value), optionalPair "newItem" (bindBodyOperationNewItem value), optionalPair "oldItem" (bindBodyOperationOldItem value), [("op", toJSON (bindBodyOperationOp value))]]) <> fmap toJSON (withoutFields ["item", "newItem", "oldItem", "op"] (bindBodyOperationAdditionalProperties value)))
+instance ToJSON BindBodyOperation where toJSON value = Object (KM.fromList (concat [optionalPair "item" (bindBodyOperationItem value), optionalPair "newItem" (bindBodyOperationNewItem value), optionalPair "oldItem" (bindBodyOperationOldItem value), [("op", toJSON (bindBodyOperationOp value))]]))
 
 data BindBodyOperationOp = BindBodyOperationOpAdd | BindBodyOperationOpRemove | BindBodyOperationOpReplace deriving (Eq, Show)
 

@@ -23,11 +23,10 @@ data AttributedEvent = AttributedEvent
     attributedEventTimestamp :: Text,
     attributedEventType :: Text,
     attributedEventUserId :: UserId,
-    attributedEventVersion :: Integer,
-    attributedEventAdditionalProperties :: KM.KeyMap Value
+    attributedEventVersion :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON AttributedEvent where parseJSON = checked "AttributedEvent" $ withObject "AttributedEvent" (\fields -> AttributedEvent <$> (fields .: "agent") <*> (fields .: "id") <*> (fields .: "metadata") <*> (fields .: "payload") <*> optional fields "resourceId" <*> (fields .: "timestamp") <*> (fields .: "type") <*> (fields .: "userId") <*> (fields .: "version") <*> traverse parseJSON (withoutFields ["agent", "id", "metadata", "payload", "resourceId", "timestamp", "type", "userId", "version"] fields))
+instance FromJSON AttributedEvent where parseJSON = checked "AttributedEvent" $ withObject "AttributedEvent" (\fields -> AttributedEvent <$> (fields .: "agent") <*> (fields .: "id") <*> (fields .: "metadata") <*> (fields .: "payload") <*> optional fields "resourceId" <*> (fields .: "timestamp") <*> (fields .: "type") <*> (fields .: "userId") <*> (fields .: "version"))
 
-instance ToJSON AttributedEvent where toJSON value = Object (KM.fromList (concat [[("agent", toJSON (attributedEventAgent value))], [("id", toJSON (attributedEventId value))], [("metadata", toJSON (attributedEventMetadata value))], [("payload", toJSON (attributedEventPayload value))], optionalPair "resourceId" (attributedEventResourceId value), [("timestamp", toJSON (attributedEventTimestamp value))], [("type", toJSON (attributedEventType value))], [("userId", toJSON (attributedEventUserId value))], [("version", toJSON (attributedEventVersion value))]]) <> fmap toJSON (withoutFields ["agent", "id", "metadata", "payload", "resourceId", "timestamp", "type", "userId", "version"] (attributedEventAdditionalProperties value)))
+instance ToJSON AttributedEvent where toJSON value = Object (KM.fromList (concat [[("agent", toJSON (attributedEventAgent value))], [("id", toJSON (attributedEventId value))], [("metadata", toJSON (attributedEventMetadata value))], [("payload", toJSON (attributedEventPayload value))], optionalPair "resourceId" (attributedEventResourceId value), [("timestamp", toJSON (attributedEventTimestamp value))], [("type", toJSON (attributedEventType value))], [("userId", toJSON (attributedEventUserId value))], [("version", toJSON (attributedEventVersion value))]]))

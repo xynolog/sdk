@@ -14,11 +14,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 data GetEventsResponse = GetEventsResponse
   { getEventsResponseEvents :: [AttributedEvent],
     getEventsResponseResourceId :: ResourceId,
-    getEventsResponseTotal :: Scientific,
-    getEventsResponseAdditionalProperties :: KM.KeyMap Value
+    getEventsResponseTotal :: Scientific
   }
   deriving (Eq, Show)
 
-instance FromJSON GetEventsResponse where parseJSON = checked "GetEventsResponse" $ withObject "GetEventsResponse" (\fields -> GetEventsResponse <$> (fields .: "events") <*> (fields .: "resourceId") <*> (fields .: "total") <*> traverse parseJSON (withoutFields ["events", "resourceId", "total"] fields))
+instance FromJSON GetEventsResponse where parseJSON = checked "GetEventsResponse" $ withObject "GetEventsResponse" (\fields -> GetEventsResponse <$> (fields .: "events") <*> (fields .: "resourceId") <*> (fields .: "total"))
 
-instance ToJSON GetEventsResponse where toJSON value = Object (KM.fromList (concat [[("events", toJSON (getEventsResponseEvents value))], [("resourceId", toJSON (getEventsResponseResourceId value))], [("total", toJSON (getEventsResponseTotal value))]]) <> fmap toJSON (withoutFields ["events", "resourceId", "total"] (getEventsResponseAdditionalProperties value)))
+instance ToJSON GetEventsResponse where toJSON value = Object (KM.fromList (concat [[("events", toJSON (getEventsResponseEvents value))], [("resourceId", toJSON (getEventsResponseResourceId value))], [("total", toJSON (getEventsResponseTotal value))]]))

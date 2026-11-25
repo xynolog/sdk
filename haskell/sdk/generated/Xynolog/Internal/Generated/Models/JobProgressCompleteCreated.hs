@@ -13,14 +13,13 @@ import Xynolog.Internal.Generated.Models.Motivation
 data JobProgressCompleteCreated = JobProgressCompleteCreated
   { jobProgressCompleteCreatedCode :: JobProgressCompleteCreatedCode,
     jobProgressCompleteCreatedCount :: Integer,
-    jobProgressCompleteCreatedMotivation :: Motivation,
-    jobProgressCompleteCreatedAdditionalProperties :: KM.KeyMap Value
+    jobProgressCompleteCreatedMotivation :: Motivation
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCompleteCreated where parseJSON = checked "JobProgressCompleteCreated" $ withObject "JobProgressCompleteCreated" (\fields -> JobProgressCompleteCreated <$> (fields .: "code") <*> (fields .: "count") <*> (fields .: "motivation") <*> traverse parseJSON (withoutFields ["code", "count", "motivation"] fields))
+instance FromJSON JobProgressCompleteCreated where parseJSON = checked "JobProgressCompleteCreated" $ withObject "JobProgressCompleteCreated" (\fields -> JobProgressCompleteCreated <$> (fields .: "code") <*> (fields .: "count") <*> (fields .: "motivation"))
 
-instance ToJSON JobProgressCompleteCreated where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCompleteCreatedCode value))], [("count", toJSON (jobProgressCompleteCreatedCount value))], [("motivation", toJSON (jobProgressCompleteCreatedMotivation value))]]) <> fmap toJSON (withoutFields ["code", "count", "motivation"] (jobProgressCompleteCreatedAdditionalProperties value)))
+instance ToJSON JobProgressCompleteCreated where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCompleteCreatedCode value))], [("count", toJSON (jobProgressCompleteCreatedCount value))], [("motivation", toJSON (jobProgressCompleteCreatedMotivation value))]]))
 
 data JobProgressCompleteCreatedCode = JobProgressCompleteCreatedCodeCompleteCreated deriving (Eq, Show)
 

@@ -13,11 +13,10 @@ data UnitCursor = UnitCursor
     unitCursorErrors :: Integer,
     unitCursorFound :: Integer,
     unitCursorNext :: Integer,
-    unitCursorSize :: Integer,
-    unitCursorAdditionalProperties :: KM.KeyMap Value
+    unitCursorSize :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON UnitCursor where parseJSON = checked "UnitCursor" $ withObject "UnitCursor" (\fields -> UnitCursor <$> (fields .: "emitted") <*> (fields .: "errors") <*> (fields .: "found") <*> (fields .: "next") <*> (fields .: "size") <*> traverse parseJSON (withoutFields ["emitted", "errors", "found", "next", "size"] fields))
+instance FromJSON UnitCursor where parseJSON = checked "UnitCursor" $ withObject "UnitCursor" (\fields -> UnitCursor <$> (fields .: "emitted") <*> (fields .: "errors") <*> (fields .: "found") <*> (fields .: "next") <*> (fields .: "size"))
 
-instance ToJSON UnitCursor where toJSON value = Object (KM.fromList (concat [[("emitted", toJSON (unitCursorEmitted value))], [("errors", toJSON (unitCursorErrors value))], [("found", toJSON (unitCursorFound value))], [("next", toJSON (unitCursorNext value))], [("size", toJSON (unitCursorSize value))]]) <> fmap toJSON (withoutFields ["emitted", "errors", "found", "next", "size"] (unitCursorAdditionalProperties value)))
+instance ToJSON UnitCursor where toJSON value = Object (KM.fromList (concat [[("emitted", toJSON (unitCursorEmitted value))], [("errors", toJSON (unitCursorErrors value))], [("found", toJSON (unitCursorFound value))], [("next", toJSON (unitCursorNext value))], [("size", toJSON (unitCursorSize value))]]))

@@ -21,14 +21,13 @@ data MarkJobCompleteCommand = MarkJobCompleteCommand
     markJobCompleteCommandJobId :: JobId,
     markJobCompleteCommandJobType :: MarkJobCompleteCommandJobType,
     markJobCompleteCommandResourceId :: ResourceId,
-    markJobCompleteCommandResult :: Maybe MarkJobResult,
-    markJobCompleteCommandAdditionalProperties :: KM.KeyMap Value
+    markJobCompleteCommandResult :: Maybe MarkJobResult
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkJobCompleteCommand where parseJSON = checked "MarkJobCompleteCommand" $ withObject "MarkJobCompleteCommand" (\fields -> MarkJobCompleteCommand <$> optional fields "_userId" <*> optional fields "attempt" <*> optional fields "durability" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> optional fields "result" <*> traverse parseJSON (withoutFields ["_userId", "attempt", "durability", "jobId", "jobType", "resourceId", "result"] fields))
+instance FromJSON MarkJobCompleteCommand where parseJSON = checked "MarkJobCompleteCommand" $ withObject "MarkJobCompleteCommand" (\fields -> MarkJobCompleteCommand <$> optional fields "_userId" <*> optional fields "attempt" <*> optional fields "durability" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> (fields .: "resourceId") <*> optional fields "result")
 
-instance ToJSON MarkJobCompleteCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markJobCompleteCommandUserId value), optionalPair "attempt" (markJobCompleteCommandAttempt value), optionalPair "durability" (markJobCompleteCommandDurability value), [("jobId", toJSON (markJobCompleteCommandJobId value))], [("jobType", toJSON (markJobCompleteCommandJobType value))], [("resourceId", toJSON (markJobCompleteCommandResourceId value))], optionalPair "result" (markJobCompleteCommandResult value)]) <> fmap toJSON (withoutFields ["_userId", "attempt", "durability", "jobId", "jobType", "resourceId", "result"] (markJobCompleteCommandAdditionalProperties value)))
+instance ToJSON MarkJobCompleteCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (markJobCompleteCommandUserId value), optionalPair "attempt" (markJobCompleteCommandAttempt value), optionalPair "durability" (markJobCompleteCommandDurability value), [("jobId", toJSON (markJobCompleteCommandJobId value))], [("jobType", toJSON (markJobCompleteCommandJobType value))], [("resourceId", toJSON (markJobCompleteCommandResourceId value))], optionalPair "result" (markJobCompleteCommandResult value)]))
 
 data MarkJobCompleteCommandJobType = MarkJobCompleteCommandJobTypeMark deriving (Eq, Show)
 

@@ -12,14 +12,13 @@ import Xynolog.Internal.Codec
 data ClientSecretForm = ClientSecretForm
   { clientSecretFormClientId :: Text,
     clientSecretFormClientSecret :: Text,
-    clientSecretFormGrantType :: ClientSecretFormGrantType,
-    clientSecretFormAdditionalProperties :: KM.KeyMap Value
+    clientSecretFormGrantType :: ClientSecretFormGrantType
   }
   deriving (Eq, Show)
 
-instance FromJSON ClientSecretForm where parseJSON = checked "ClientSecretForm" $ withObject "ClientSecretForm" (\fields -> ClientSecretForm <$> (fields .: "client_id") <*> (fields .: "client_secret") <*> (fields .: "grant_type") <*> traverse parseJSON (withoutFields ["client_id", "client_secret", "grant_type"] fields))
+instance FromJSON ClientSecretForm where parseJSON = checked "ClientSecretForm" $ withObject "ClientSecretForm" (\fields -> ClientSecretForm <$> (fields .: "client_id") <*> (fields .: "client_secret") <*> (fields .: "grant_type"))
 
-instance ToJSON ClientSecretForm where toJSON value = Object (KM.fromList (concat [[("client_id", toJSON (clientSecretFormClientId value))], [("client_secret", toJSON (clientSecretFormClientSecret value))], [("grant_type", toJSON (clientSecretFormGrantType value))]]) <> fmap toJSON (withoutFields ["client_id", "client_secret", "grant_type"] (clientSecretFormAdditionalProperties value)))
+instance ToJSON ClientSecretForm where toJSON value = Object (KM.fromList (concat [[("client_id", toJSON (clientSecretFormClientId value))], [("client_secret", toJSON (clientSecretFormClientSecret value))], [("grant_type", toJSON (clientSecretFormGrantType value))]]))
 
 data ClientSecretFormGrantType = ClientSecretFormGrantTypeClientCredentials deriving (Eq, Show)
 

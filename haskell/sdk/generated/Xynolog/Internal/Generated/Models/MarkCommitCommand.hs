@@ -18,11 +18,10 @@ data MarkCommitCommand = MarkCommitCommand
     markCommitCommandUserId :: Maybe UserId,
     markCommitCommandAnnotations :: [Annotation],
     markCommitCommandJobId :: Maybe JobId,
-    markCommitCommandResourceId :: ResourceId,
-    markCommitCommandAdditionalProperties :: KM.KeyMap Value
+    markCommitCommandResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON MarkCommitCommand where parseJSON = checked "MarkCommitCommand" $ withObject "MarkCommitCommand" (\fields -> MarkCommitCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "annotations") <*> optional fields "jobId" <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["_roles", "_userId", "annotations", "jobId", "resourceId"] fields))
+instance FromJSON MarkCommitCommand where parseJSON = checked "MarkCommitCommand" $ withObject "MarkCommitCommand" (\fields -> MarkCommitCommand <$> optional fields "_roles" <*> optional fields "_userId" <*> (fields .: "annotations") <*> optional fields "jobId" <*> (fields .: "resourceId"))
 
-instance ToJSON MarkCommitCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (markCommitCommandRoles value), optionalPair "_userId" (markCommitCommandUserId value), [("annotations", toJSON (markCommitCommandAnnotations value))], optionalPair "jobId" (markCommitCommandJobId value), [("resourceId", toJSON (markCommitCommandResourceId value))]]) <> fmap toJSON (withoutFields ["_roles", "_userId", "annotations", "jobId", "resourceId"] (markCommitCommandAdditionalProperties value)))
+instance ToJSON MarkCommitCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_roles" (markCommitCommandRoles value), optionalPair "_userId" (markCommitCommandUserId value), [("annotations", toJSON (markCommitCommandAnnotations value))], optionalPair "jobId" (markCommitCommandJobId value), [("resourceId", toJSON (markCommitCommandResourceId value))]]))

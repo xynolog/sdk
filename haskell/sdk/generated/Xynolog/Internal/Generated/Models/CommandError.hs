@@ -12,14 +12,13 @@ import Xynolog.Internal.Codec
 data CommandError = CommandError
   { commandErrorCode :: Maybe CommandErrorCode,
     commandErrorDetails :: Maybe Text,
-    commandErrorMessage :: Text,
-    commandErrorAdditionalProperties :: KM.KeyMap Value
+    commandErrorMessage :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON CommandError where parseJSON = checked "CommandError" $ withObject "CommandError" (\fields -> CommandError <$> optional fields "code" <*> optional fields "details" <*> (fields .: "message") <*> traverse parseJSON (withoutFields ["code", "details", "message"] fields))
+instance FromJSON CommandError where parseJSON = checked "CommandError" $ withObject "CommandError" (\fields -> CommandError <$> optional fields "code" <*> optional fields "details" <*> (fields .: "message"))
 
-instance ToJSON CommandError where toJSON value = Object (KM.fromList (concat [optionalPair "code" (commandErrorCode value), optionalPair "details" (commandErrorDetails value), [("message", toJSON (commandErrorMessage value))]]) <> fmap toJSON (withoutFields ["code", "details", "message"] (commandErrorAdditionalProperties value)))
+instance ToJSON CommandError where toJSON value = Object (KM.fromList (concat [optionalPair "code" (commandErrorCode value), optionalPair "details" (commandErrorDetails value), [("message", toJSON (commandErrorMessage value))]]))
 
 data CommandErrorCode = CommandErrorCodePeerUnavailable | CommandErrorCodeNotFound | CommandErrorCodeUnauthorized | CommandErrorCodeNonePending deriving (Eq, Show)
 

@@ -11,14 +11,13 @@ import Xynolog.Internal.Codec
 
 data JobProgressDetectingEntities = JobProgressDetectingEntities
   { jobProgressDetectingEntitiesCode :: JobProgressDetectingEntitiesCode,
-    jobProgressDetectingEntitiesEntityType :: Text,
-    jobProgressDetectingEntitiesAdditionalProperties :: KM.KeyMap Value
+    jobProgressDetectingEntitiesEntityType :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressDetectingEntities where parseJSON = checked "JobProgressDetectingEntities" $ withObject "JobProgressDetectingEntities" (\fields -> JobProgressDetectingEntities <$> (fields .: "code") <*> (fields .: "entityType") <*> traverse parseJSON (withoutFields ["code", "entityType"] fields))
+instance FromJSON JobProgressDetectingEntities where parseJSON = checked "JobProgressDetectingEntities" $ withObject "JobProgressDetectingEntities" (\fields -> JobProgressDetectingEntities <$> (fields .: "code") <*> (fields .: "entityType"))
 
-instance ToJSON JobProgressDetectingEntities where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressDetectingEntitiesCode value))], [("entityType", toJSON (jobProgressDetectingEntitiesEntityType value))]]) <> fmap toJSON (withoutFields ["code", "entityType"] (jobProgressDetectingEntitiesAdditionalProperties value)))
+instance ToJSON JobProgressDetectingEntities where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressDetectingEntitiesCode value))], [("entityType", toJSON (jobProgressDetectingEntitiesEntityType value))]]))
 
 data JobProgressDetectingEntitiesCode = JobProgressDetectingEntitiesCodeDetectingEntities deriving (Eq, Show)
 

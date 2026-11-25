@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.AnnotationId
 
 data BrowseClickEvent = BrowseClickEvent
   { browseClickEventAnchorRect :: Maybe AnchorRect,
-    browseClickEventAnnotationId :: AnnotationId,
-    browseClickEventAdditionalProperties :: KM.KeyMap Value
+    browseClickEventAnnotationId :: AnnotationId
   }
   deriving (Eq, Show)
 
-instance FromJSON BrowseClickEvent where parseJSON = checked "BrowseClickEvent" $ withObject "BrowseClickEvent" (\fields -> BrowseClickEvent <$> optional fields "anchorRect" <*> (fields .: "annotationId") <*> traverse parseJSON (withoutFields ["anchorRect", "annotationId"] fields))
+instance FromJSON BrowseClickEvent where parseJSON = checked "BrowseClickEvent" $ withObject "BrowseClickEvent" (\fields -> BrowseClickEvent <$> optional fields "anchorRect" <*> (fields .: "annotationId"))
 
-instance ToJSON BrowseClickEvent where toJSON value = Object (KM.fromList (concat [optionalPair "anchorRect" (browseClickEventAnchorRect value), [("annotationId", toJSON (browseClickEventAnnotationId value))]]) <> fmap toJSON (withoutFields ["anchorRect", "annotationId"] (browseClickEventAdditionalProperties value)))
+instance ToJSON BrowseClickEvent where toJSON value = Object (KM.fromList (concat [optionalPair "anchorRect" (browseClickEventAnchorRect value), [("annotationId", toJSON (browseClickEventAnnotationId value))]]))

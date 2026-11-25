@@ -16,11 +16,10 @@ data YieldUpdateCommand = YieldUpdateCommand
     yieldUpdateCommandByteSize :: Integer,
     yieldUpdateCommandContentChecksum :: Text,
     yieldUpdateCommandResourceId :: ResourceId,
-    yieldUpdateCommandStorageUri :: Text,
-    yieldUpdateCommandAdditionalProperties :: KM.KeyMap Value
+    yieldUpdateCommandStorageUri :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON YieldUpdateCommand where parseJSON = checked "YieldUpdateCommand" $ withObject "YieldUpdateCommand" (\fields -> YieldUpdateCommand <$> optional fields "_userId" <*> (fields .: "byteSize") <*> (fields .: "contentChecksum") <*> (fields .: "resourceId") <*> (fields .: "storageUri") <*> traverse parseJSON (withoutFields ["_userId", "byteSize", "contentChecksum", "resourceId", "storageUri"] fields))
+instance FromJSON YieldUpdateCommand where parseJSON = checked "YieldUpdateCommand" $ withObject "YieldUpdateCommand" (\fields -> YieldUpdateCommand <$> optional fields "_userId" <*> (fields .: "byteSize") <*> (fields .: "contentChecksum") <*> (fields .: "resourceId") <*> (fields .: "storageUri"))
 
-instance ToJSON YieldUpdateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldUpdateCommandUserId value), [("byteSize", toJSON (yieldUpdateCommandByteSize value))], [("contentChecksum", toJSON (yieldUpdateCommandContentChecksum value))], [("resourceId", toJSON (yieldUpdateCommandResourceId value))], [("storageUri", toJSON (yieldUpdateCommandStorageUri value))]]) <> fmap toJSON (withoutFields ["_userId", "byteSize", "contentChecksum", "resourceId", "storageUri"] (yieldUpdateCommandAdditionalProperties value)))
+instance ToJSON YieldUpdateCommand where toJSON value = Object (KM.fromList (concat [optionalPair "_userId" (yieldUpdateCommandUserId value), [("byteSize", toJSON (yieldUpdateCommandByteSize value))], [("contentChecksum", toJSON (yieldUpdateCommandContentChecksum value))], [("resourceId", toJSON (yieldUpdateCommandResourceId value))], [("storageUri", toJSON (yieldUpdateCommandStorageUri value))]]))

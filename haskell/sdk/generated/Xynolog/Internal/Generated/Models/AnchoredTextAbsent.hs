@@ -10,14 +10,13 @@ import Data.Text (Text)
 import Xynolog.Internal.Codec
 
 data AnchoredTextAbsent = AnchoredTextAbsent
-  { anchoredTextAbsentKind :: AnchoredTextAbsentKind,
-    anchoredTextAbsentAdditionalProperties :: KM.KeyMap Value
+  { anchoredTextAbsentKind :: AnchoredTextAbsentKind
   }
   deriving (Eq, Show)
 
-instance FromJSON AnchoredTextAbsent where parseJSON = checked "AnchoredTextAbsent" $ withObject "AnchoredTextAbsent" (\fields -> AnchoredTextAbsent <$> (fields .: "kind") <*> traverse parseJSON (withoutFields ["kind"] fields))
+instance FromJSON AnchoredTextAbsent where parseJSON = checked "AnchoredTextAbsent" $ withObject "AnchoredTextAbsent" (\fields -> AnchoredTextAbsent <$> (fields .: "kind"))
 
-instance ToJSON AnchoredTextAbsent where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (anchoredTextAbsentKind value))]]) <> fmap toJSON (withoutFields ["kind"] (anchoredTextAbsentAdditionalProperties value)))
+instance ToJSON AnchoredTextAbsent where toJSON value = Object (KM.fromList (concat [[("kind", toJSON (anchoredTextAbsentKind value))]]))
 
 data AnchoredTextAbsentKind = AnchoredTextAbsentKindNotYet | AnchoredTextAbsentKindNoMap | AnchoredTextAbsentKindUnknown deriving (Eq, Show)
 

@@ -20,14 +20,13 @@ data ExtractedText = ExtractedText
     extractedTextOcrConfidence :: Maybe OcrConfidence,
     extractedTextPdfClass :: Maybe PdfClass,
     extractedTextText :: Text,
-    extractedTextUnreadPages :: Maybe [Integer],
-    extractedTextAdditionalProperties :: KM.KeyMap Value
+    extractedTextUnreadPages :: Maybe [Integer]
   }
   deriving (Eq, Show)
 
-instance FromJSON ExtractedText where parseJSON = checked "ExtractedText" $ withObject "ExtractedText" (\fields -> ExtractedText <$> (fields .: "items") <*> (fields .: "kind") <*> (fields .: "method") <*> optional fields "ocrConfidence" <*> optional fields "pdfClass" <*> (fields .: "text") <*> optional fields "unreadPages" <*> traverse parseJSON (withoutFields ["items", "kind", "method", "ocrConfidence", "pdfClass", "text", "unreadPages"] fields))
+instance FromJSON ExtractedText where parseJSON = checked "ExtractedText" $ withObject "ExtractedText" (\fields -> ExtractedText <$> (fields .: "items") <*> (fields .: "kind") <*> (fields .: "method") <*> optional fields "ocrConfidence" <*> optional fields "pdfClass" <*> (fields .: "text") <*> optional fields "unreadPages")
 
-instance ToJSON ExtractedText where toJSON value = Object (KM.fromList (concat [[("items", toJSON (extractedTextItems value))], [("kind", toJSON (extractedTextKind value))], [("method", toJSON (extractedTextMethod value))], optionalPair "ocrConfidence" (extractedTextOcrConfidence value), optionalPair "pdfClass" (extractedTextPdfClass value), [("text", toJSON (extractedTextText value))], optionalPair "unreadPages" (extractedTextUnreadPages value)]) <> fmap toJSON (withoutFields ["items", "kind", "method", "ocrConfidence", "pdfClass", "text", "unreadPages"] (extractedTextAdditionalProperties value)))
+instance ToJSON ExtractedText where toJSON value = Object (KM.fromList (concat [[("items", toJSON (extractedTextItems value))], [("kind", toJSON (extractedTextKind value))], [("method", toJSON (extractedTextMethod value))], optionalPair "ocrConfidence" (extractedTextOcrConfidence value), optionalPair "pdfClass" (extractedTextPdfClass value), [("text", toJSON (extractedTextText value))], optionalPair "unreadPages" (extractedTextUnreadPages value)]))
 
 data ExtractedTextKind = ExtractedTextKindExtracted deriving (Eq, Show)
 

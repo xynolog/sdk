@@ -15,14 +15,13 @@ data TextualBody = TextualBody
     textualBodyLanguage :: Maybe Text,
     textualBodyPurpose :: Maybe BodyPurpose,
     textualBodyType :: TextualBodyType,
-    textualBodyValue :: Text,
-    textualBodyAdditionalProperties :: KM.KeyMap Value
+    textualBodyValue :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON TextualBody where parseJSON = checked "TextualBody" $ withObject "TextualBody" (\fields -> TextualBody <$> optional fields "format" <*> optional fields "language" <*> optional fields "purpose" <*> (fields .: "type") <*> (fields .: "value") <*> traverse parseJSON (withoutFields ["format", "language", "purpose", "type", "value"] fields))
+instance FromJSON TextualBody where parseJSON = checked "TextualBody" $ withObject "TextualBody" (\fields -> TextualBody <$> optional fields "format" <*> optional fields "language" <*> optional fields "purpose" <*> (fields .: "type") <*> (fields .: "value"))
 
-instance ToJSON TextualBody where toJSON value = Object (KM.fromList (concat [optionalPair "format" (textualBodyFormat value), optionalPair "language" (textualBodyLanguage value), optionalPair "purpose" (textualBodyPurpose value), [("type", toJSON (textualBodyType value))], [("value", toJSON (textualBodyValue value))]]) <> fmap toJSON (withoutFields ["format", "language", "purpose", "type", "value"] (textualBodyAdditionalProperties value)))
+instance ToJSON TextualBody where toJSON value = Object (KM.fromList (concat [optionalPair "format" (textualBodyFormat value), optionalPair "language" (textualBodyLanguage value), optionalPair "purpose" (textualBodyPurpose value), [("type", toJSON (textualBodyType value))], [("value", toJSON (textualBodyValue value))]]))
 
 data TextualBodyType = TextualBodyTypeTextualBody deriving (Eq, Show)
 

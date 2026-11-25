@@ -107,7 +107,7 @@ rig time fixtures = do
                         domain <- case conflict of
                           Just value -> pure value
                           Nothing -> maybe (ioError (userError "Test KB declares no did:web identity")) pure (Text.stripPrefix "did:web:" (knowledgeBaseDid kb))
-                        pure (toJSON (BrowseKbResult description {kbDescriptionDomain = domain, kbDescriptionName = knowledgeBaseLabel kb} mempty))
+                        pure (toJSON (BrowseKbResult description {kbDescriptionDomain = domain, kbDescriptionName = knowledgeBaseLabel kb}))
                       else maybe (ioError (userError "No scripted registry reply")) pure (Map.lookup (Channels.channelSchema answer) fixtures)
                   case payload of
                     Object fields -> Transport.receive input (BusFrame (Channels.channelName answer) (busFrameCorrelationId frame) (BusFramePayload fields) Nothing)
@@ -119,7 +119,7 @@ rig time fixtures = do
         Transport.setState input Transport.Open
         client <- Client.newClient carrier contents Nothing options Timing.protocolSettings Nothing
         kept <- SignIn.newMemorySignIn
-        let target = KbTarget (knowledgeBaseEndpoint kb) (knowledgeBaseId kb) (knowledgeBaseLabel kb) mempty
+        let target = KbTarget (knowledgeBaseEndpoint kb) (knowledgeBaseId kb) (knowledgeBaseLabel kb)
             settings =
               Session.SessionOptions
                 (knowledgeBaseId kb)
@@ -162,8 +162,8 @@ cases fixtures = do
           (pure Map.empty)
           (\_ _ -> pure ())
       config = Browser.XynologBrowserConfig storage factory http (pure 1800000000)
-      local name = KbEndpointLocalEndpoint (LocalEndpoint name LocalEndpointKindLocal mempty)
-      proposed name domain = NewKnowledgeBase (either error userIdValue (Identity.kbDid domain)) (local name) name Nothing mempty
+      local name = KbEndpointLocalEndpoint (LocalEndpoint name LocalEndpointKindLocal)
+      proposed name domain = NewKnowledgeBase (either error userIdValue (Identity.kbDid domain)) (local name) name Nothing
   grant <- fixture fixtures "StoredSession"
   resource <- either (ioError . userError) pure (mkResourceId "res-1")
   bracket (Browser.newXynologBrowser config) Browser.dispose $ \browser -> do
@@ -190,7 +190,7 @@ cases fixtures = do
     -- last-viewed id for A, while B kept its own empty projection.
     require "KB switch lost its per-KB viewed bookmark" . (== Just resource) =<< atomically (State.current (Browser.lastViewedResource browser))
     Time.settle
-    let description = KbDescription "another.example.test" Nothing "Another" mempty
+    let description = KbDescription "another.example.test" Nothing "Another"
         newGrant = grant {storedSessionAccess = "another-issued-access", storedSessionRefresh = "another-refresh"}
         signed = SignedIn description (knowledgeBaseEndpoint a) Nothing Nothing Nothing newGrant
     outcome <- Browser.signedIn browser signed

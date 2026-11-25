@@ -12,11 +12,10 @@ import Xynolog.Internal.Generated.Models.ResourceId
 
 data UpdateAnnotationBodyRequest = UpdateAnnotationBodyRequest
   { updateAnnotationBodyRequestOperations :: [BodyOperation],
-    updateAnnotationBodyRequestResourceId :: ResourceId,
-    updateAnnotationBodyRequestAdditionalProperties :: KM.KeyMap Value
+    updateAnnotationBodyRequestResourceId :: ResourceId
   }
   deriving (Eq, Show)
 
-instance FromJSON UpdateAnnotationBodyRequest where parseJSON = checked "UpdateAnnotationBodyRequest" $ withObject "UpdateAnnotationBodyRequest" (\fields -> UpdateAnnotationBodyRequest <$> (fields .: "operations") <*> (fields .: "resourceId") <*> traverse parseJSON (withoutFields ["operations", "resourceId"] fields))
+instance FromJSON UpdateAnnotationBodyRequest where parseJSON = checked "UpdateAnnotationBodyRequest" $ withObject "UpdateAnnotationBodyRequest" (\fields -> UpdateAnnotationBodyRequest <$> (fields .: "operations") <*> (fields .: "resourceId"))
 
-instance ToJSON UpdateAnnotationBodyRequest where toJSON value = Object (KM.fromList (concat [[("operations", toJSON (updateAnnotationBodyRequestOperations value))], [("resourceId", toJSON (updateAnnotationBodyRequestResourceId value))]]) <> fmap toJSON (withoutFields ["operations", "resourceId"] (updateAnnotationBodyRequestAdditionalProperties value)))
+instance ToJSON UpdateAnnotationBodyRequest where toJSON value = Object (KM.fromList (concat [[("operations", toJSON (updateAnnotationBodyRequestOperations value))], [("resourceId", toJSON (updateAnnotationBodyRequestResourceId value))]]))

@@ -15,11 +15,10 @@ data JobStartedPayload = JobStartedPayload
   { jobStartedPayloadAnnotationId :: Maybe AnnotationId,
     jobStartedPayloadJobId :: JobId,
     jobStartedPayloadJobType :: JobType,
-    jobStartedPayloadTotalSteps :: Maybe Integer,
-    jobStartedPayloadAdditionalProperties :: KM.KeyMap Value
+    jobStartedPayloadTotalSteps :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JobStartedPayload where parseJSON = checked "JobStartedPayload" $ withObject "JobStartedPayload" (\fields -> JobStartedPayload <$> optional fields "annotationId" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "totalSteps" <*> traverse parseJSON (withoutFields ["annotationId", "jobId", "jobType", "totalSteps"] fields))
+instance FromJSON JobStartedPayload where parseJSON = checked "JobStartedPayload" $ withObject "JobStartedPayload" (\fields -> JobStartedPayload <$> optional fields "annotationId" <*> (fields .: "jobId") <*> (fields .: "jobType") <*> optional fields "totalSteps")
 
-instance ToJSON JobStartedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (jobStartedPayloadAnnotationId value), [("jobId", toJSON (jobStartedPayloadJobId value))], [("jobType", toJSON (jobStartedPayloadJobType value))], optionalPair "totalSteps" (jobStartedPayloadTotalSteps value)]) <> fmap toJSON (withoutFields ["annotationId", "jobId", "jobType", "totalSteps"] (jobStartedPayloadAdditionalProperties value)))
+instance ToJSON JobStartedPayload where toJSON value = Object (KM.fromList (concat [optionalPair "annotationId" (jobStartedPayloadAnnotationId value), [("jobId", toJSON (jobStartedPayloadJobId value))], [("jobType", toJSON (jobStartedPayloadJobType value))], optionalPair "totalSteps" (jobStartedPayloadTotalSteps value)]))

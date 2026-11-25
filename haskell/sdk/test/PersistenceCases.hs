@@ -181,8 +181,8 @@ clientCases fixtures = do
               (reply, payload) <- case busFrameChannel frame of
                 request | request == Channel.channelName Channel.BrowseResourceRequested -> do
                   atomically (readTMVar blocked)
-                  pure (Channel.channelName Channel.BrowseResourceResult, toJSON (BrowseResourceResult (BrowseResourceResultResponse 1 (descriptor name)) mempty))
-                request | request == Channel.channelName Channel.BrowseAnnotationRequested -> pure (Channel.channelName Channel.BrowseAnnotationResult, toJSON (BrowseAnnotationResult (GetAnnotationResponse annotationValue Nothing Nothing mempty) mempty))
+                  pure (Channel.channelName Channel.BrowseResourceResult, toJSON (BrowseResourceResult (BrowseResourceResultResponse 1 (descriptor name))))
+                request | request == Channel.channelName Channel.BrowseAnnotationRequested -> pure (Channel.channelName Channel.BrowseAnnotationResult, toJSON (BrowseAnnotationResult (GetAnnotationResponse annotationValue Nothing Nothing)))
                 request -> case find (\(Channel.SomeOperation operation) -> let (channel, _, _) = Channel.operationChannels operation in Channel.channelName channel == request) Channel.allOperations of
                   Nothing -> ioError (userError "Unexpected persistence request")
                   Just (Channel.SomeOperation operation) -> do

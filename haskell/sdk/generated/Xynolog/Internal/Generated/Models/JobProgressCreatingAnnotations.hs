@@ -11,14 +11,13 @@ import Xynolog.Internal.Codec
 
 data JobProgressCreatingAnnotations = JobProgressCreatingAnnotations
   { jobProgressCreatingAnnotationsCode :: JobProgressCreatingAnnotationsCode,
-    jobProgressCreatingAnnotationsCount :: Integer,
-    jobProgressCreatingAnnotationsAdditionalProperties :: KM.KeyMap Value
+    jobProgressCreatingAnnotationsCount :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON JobProgressCreatingAnnotations where parseJSON = checked "JobProgressCreatingAnnotations" $ withObject "JobProgressCreatingAnnotations" (\fields -> JobProgressCreatingAnnotations <$> (fields .: "code") <*> (fields .: "count") <*> traverse parseJSON (withoutFields ["code", "count"] fields))
+instance FromJSON JobProgressCreatingAnnotations where parseJSON = checked "JobProgressCreatingAnnotations" $ withObject "JobProgressCreatingAnnotations" (\fields -> JobProgressCreatingAnnotations <$> (fields .: "code") <*> (fields .: "count"))
 
-instance ToJSON JobProgressCreatingAnnotations where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingAnnotationsCode value))], [("count", toJSON (jobProgressCreatingAnnotationsCount value))]]) <> fmap toJSON (withoutFields ["code", "count"] (jobProgressCreatingAnnotationsAdditionalProperties value)))
+instance ToJSON JobProgressCreatingAnnotations where toJSON value = Object (KM.fromList (concat [[("code", toJSON (jobProgressCreatingAnnotationsCode value))], [("count", toJSON (jobProgressCreatingAnnotationsCount value))]]))
 
 data JobProgressCreatingAnnotationsCode = JobProgressCreatingAnnotationsCodeCreatingAnnotations deriving (Eq, Show)
 

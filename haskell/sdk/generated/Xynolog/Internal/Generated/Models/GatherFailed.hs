@@ -15,11 +15,10 @@ data GatherFailed = GatherFailed
   { gatherFailedAnnotationId :: AnnotationId,
     gatherFailedCode :: Maybe CommandErrorCode,
     gatherFailedDetails :: Maybe Text,
-    gatherFailedMessage :: Text,
-    gatherFailedAdditionalProperties :: KM.KeyMap Value
+    gatherFailedMessage :: Text
   }
   deriving (Eq, Show)
 
-instance FromJSON GatherFailed where parseJSON = checked "GatherFailed" $ withObject "GatherFailed" (\fields -> GatherFailed <$> (fields .: "annotationId") <*> optional fields "code" <*> optional fields "details" <*> (fields .: "message") <*> traverse parseJSON (withoutFields ["annotationId", "code", "details", "message"] fields))
+instance FromJSON GatherFailed where parseJSON = checked "GatherFailed" $ withObject "GatherFailed" (\fields -> GatherFailed <$> (fields .: "annotationId") <*> optional fields "code" <*> optional fields "details" <*> (fields .: "message"))
 
-instance ToJSON GatherFailed where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherFailedAnnotationId value))], optionalPair "code" (gatherFailedCode value), optionalPair "details" (gatherFailedDetails value), [("message", toJSON (gatherFailedMessage value))]]) <> fmap toJSON (withoutFields ["annotationId", "code", "details", "message"] (gatherFailedAdditionalProperties value)))
+instance ToJSON GatherFailed where toJSON value = Object (KM.fromList (concat [[("annotationId", toJSON (gatherFailedAnnotationId value))], optionalPair "code" (gatherFailedCode value), optionalPair "details" (gatherFailedDetails value), [("message", toJSON (gatherFailedMessage value))]]))

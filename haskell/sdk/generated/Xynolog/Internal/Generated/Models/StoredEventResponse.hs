@@ -20,14 +20,13 @@ data StoredEventResponse = StoredEventResponse
     storedEventResponseTimestamp :: Text,
     storedEventResponseType :: Text,
     storedEventResponseUserId :: UserId,
-    storedEventResponseVersion :: Integer,
-    storedEventResponseAdditionalProperties :: KM.KeyMap Value
+    storedEventResponseVersion :: Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON StoredEventResponse where parseJSON = checked "StoredEventResponse" $ withObject "StoredEventResponse" (\fields -> StoredEventResponse <$> (fields .: "id") <*> (fields .: "metadata") <*> (fields .: "payload") <*> optional fields "resourceId" <*> (fields .: "timestamp") <*> (fields .: "type") <*> (fields .: "userId") <*> (fields .: "version") <*> traverse parseJSON (withoutFields ["id", "metadata", "payload", "resourceId", "timestamp", "type", "userId", "version"] fields))
+instance FromJSON StoredEventResponse where parseJSON = checked "StoredEventResponse" $ withObject "StoredEventResponse" (\fields -> StoredEventResponse <$> (fields .: "id") <*> (fields .: "metadata") <*> (fields .: "payload") <*> optional fields "resourceId" <*> (fields .: "timestamp") <*> (fields .: "type") <*> (fields .: "userId") <*> (fields .: "version"))
 
-instance ToJSON StoredEventResponse where toJSON value = Object (KM.fromList (concat [[("id", toJSON (storedEventResponseId value))], [("metadata", toJSON (storedEventResponseMetadata value))], [("payload", toJSON (storedEventResponsePayload value))], optionalPair "resourceId" (storedEventResponseResourceId value), [("timestamp", toJSON (storedEventResponseTimestamp value))], [("type", toJSON (storedEventResponseType value))], [("userId", toJSON (storedEventResponseUserId value))], [("version", toJSON (storedEventResponseVersion value))]]) <> fmap toJSON (withoutFields ["id", "metadata", "payload", "resourceId", "timestamp", "type", "userId", "version"] (storedEventResponseAdditionalProperties value)))
+instance ToJSON StoredEventResponse where toJSON value = Object (KM.fromList (concat [[("id", toJSON (storedEventResponseId value))], [("metadata", toJSON (storedEventResponseMetadata value))], [("payload", toJSON (storedEventResponsePayload value))], optionalPair "resourceId" (storedEventResponseResourceId value), [("timestamp", toJSON (storedEventResponseTimestamp value))], [("type", toJSON (storedEventResponseType value))], [("userId", toJSON (storedEventResponseUserId value))], [("version", toJSON (storedEventResponseVersion value))]]))
 
 data StoredEventResponsePayload = StoredEventResponsePayload
   { storedEventResponsePayloadAdditionalProperties :: KM.KeyMap Value

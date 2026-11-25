@@ -28,14 +28,13 @@ data Annotation = Annotation
     annotationMotivation :: Motivation,
     annotationTarget :: AnnotationTargetValue,
     annotationType :: AnnotationType,
-    annotationWasAttributedTo :: Maybe OneOrMoreAgents,
-    annotationAdditionalProperties :: KM.KeyMap Value
+    annotationWasAttributedTo :: Maybe OneOrMoreAgents
   }
   deriving (Eq, Show)
 
-instance FromJSON Annotation where parseJSON = checked "Annotation" $ withObject "Annotation" (\fields -> Annotation <$> (fields .: "@context") <*> optional fields "body" <*> (fields .: "created") <*> optional fields "creator" <*> optional fields "generator" <*> (fields .: "id") <*> optional fields "modified" <*> (fields .: "motivation") <*> (fields .: "target") <*> (fields .: "type") <*> optional fields "wasAttributedTo" <*> traverse parseJSON (withoutFields ["@context", "body", "created", "creator", "generator", "id", "modified", "motivation", "target", "type", "wasAttributedTo"] fields))
+instance FromJSON Annotation where parseJSON = checked "Annotation" $ withObject "Annotation" (\fields -> Annotation <$> (fields .: "@context") <*> optional fields "body" <*> (fields .: "created") <*> optional fields "creator" <*> optional fields "generator" <*> (fields .: "id") <*> optional fields "modified" <*> (fields .: "motivation") <*> (fields .: "target") <*> (fields .: "type") <*> optional fields "wasAttributedTo")
 
-instance ToJSON Annotation where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (annotationContext value))], optionalPair "body" (annotationBody value), [("created", toJSON (annotationCreated value))], optionalPair "creator" (annotationCreator value), optionalPair "generator" (annotationGenerator value), [("id", toJSON (annotationId value))], optionalPair "modified" (annotationModified value), [("motivation", toJSON (annotationMotivation value))], [("target", toJSON (annotationTarget value))], [("type", toJSON (annotationType value))], optionalPair "wasAttributedTo" (annotationWasAttributedTo value)]) <> fmap toJSON (withoutFields ["@context", "body", "created", "creator", "generator", "id", "modified", "motivation", "target", "type", "wasAttributedTo"] (annotationAdditionalProperties value)))
+instance ToJSON Annotation where toJSON value = Object (KM.fromList (concat [[("@context", toJSON (annotationContext value))], optionalPair "body" (annotationBody value), [("created", toJSON (annotationCreated value))], optionalPair "creator" (annotationCreator value), optionalPair "generator" (annotationGenerator value), [("id", toJSON (annotationId value))], optionalPair "modified" (annotationModified value), [("motivation", toJSON (annotationMotivation value))], [("target", toJSON (annotationTarget value))], [("type", toJSON (annotationType value))], optionalPair "wasAttributedTo" (annotationWasAttributedTo value)]))
 
 data AnnotationContext = AnnotationContextHttpWwwW3OrgNsAnnoJsonld deriving (Eq, Show)
 

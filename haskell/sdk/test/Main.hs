@@ -237,6 +237,11 @@ sample depth schema
               Nothing -> Right Null
               _ -> Left "sample shape unsupported"
 
+-- Whether an object holds the members its schema does not name: when it says
+-- what they are, or names none of its own.
+holdsOthers :: Value -> Bool
+holdsOthers schema = at "additionalProperties" schema /= Null || KM.null (object (at "properties" schema))
+
 expectRoundTrip :: Text -> Value -> IO ()
 expectRoundTrip name value = case roundTrip name value of
   Left reason -> ioError (userError (T.unpack name ++ ": " ++ reason))
@@ -267,7 +272,11 @@ schemaCases root = do
           typed@(Object _) -> either (ioError . userError) pure (sample 0 typed)
           _ -> pure (Number 18446744073709551617)
         case [Key.fromText probe | probe <- memberNames definition, not (KM.member (Key.fromText probe) fields)] of
-          probe : _ -> expectRoundTrip name (Object (KM.insert probe extra fields))
+          probe : _
+            | holdsOthers definition -> expectRoundTrip name given
+            | otherwise -> require (T.unpack name ++ " kept a member its schema does not name: " ++ show given) (roundTrip name given == Right value)
+            where
+              given = Object (KM.insert probe extra fields)
           [] -> pure ()
       _ -> pure ()
     case at "enum" definition of
