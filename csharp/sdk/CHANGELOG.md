@@ -43,6 +43,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
+  `client/RetryBudget.json`, where it was `Xynolog.Http.RetryPolicy`:
+  `Timing.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes one. It
+  is made with an initializer
+  (`new RetryBudget { Attempts = 2, InitialDelayMs = 1, MaxDelayMs = 1 }`),
+  and its members are `long`.
 - The HTTP transports name each span and their count by the SDK telemetry
   table, and the live queries each query by the refresh table, as generated
   constants (`TelemetrySpans`, `TelemetryMetrics`, `CacheQuery`) in place of
@@ -78,8 +84,6 @@ the coming release's, and gathers its changes as they land.
 - `Timing.HttpRequestMs` and `Timing.StreamOpenMs` are
   `HttpRequestTimeoutMs` and `StreamOpenTimeoutMs`, the names the protocol's
   timing table gives them; each of `Timing`'s defaults is that table's.
-  `RetryPolicy` is a record of its `Attempts`, `InitialDelayMs` and
-  `MaxDelayMs`.
 - The pending sign-in is `Xynolog.Types.PendingAuthorization`, the type
   Protocol states, in place of `Xynolog.Authorization.PendingAuthorization`,
   and its issuer is `PendingAuthorizationIssuer` in place of

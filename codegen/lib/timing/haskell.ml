@@ -1,6 +1,6 @@
 (* The timing as the Haskell SDK reads it: a value per entry under its name
    (haskell/sdk/src/Xynolog/Timing.hs), a duration or a count an Integer and
-   a retry budget a RetryBudget; Settings, a field per entry, and the
+   a retry budget a RetryBudget, the model of client/RetryBudget.json; Settings, a field per entry, and the
    table's values as one (generated/.../TimingSettings.hs), which
    Xynolog.Timing.Settings overrides; and each entry's value as JSON, by its
    name, for the tests (test/.../TimingValues.hs). *)
@@ -9,9 +9,11 @@ module H = Haskell_syntax
 
 let banner = Banner.lines ~from_:("protocol/specs/src/" ^ Table.file) __FILE__
 
-(* A budget's members, each with its field's name. *)
+(* A budget's members, each with its field's name in the model. *)
 let budget = [ "attempts"; "initialDelayMs"; "maxDelayMs" ]
-let budget_field member = "retry" ^ String.capitalize_ascii member
+
+let budget_field member =
+  Haskell_sdk.Models.lower "RetryBudget" ^ Haskell_sdk.Models.identifier member
 
 let budget_value = function
   | Table.Budget { attempts; initial_delay_ms; max_delay_ms } ->
@@ -107,41 +109,16 @@ let to_object ~type_ pairs =
     ]
 
 let timing (t : Table.t) =
-  let fields = List.map budget_field budget in
   {
     H.banner;
-    extensions = [ "OverloadedStrings" ];
+    extensions = [];
     name = "Xynolog.Timing";
-    imports =
-      [
-        H.import "Control.Monad" ~items:[ Plain "unless" ];
-        H.import "Data.Aeson"
-          ~items:
-            [
-              All "FromJSON";
-              All "ToJSON";
-              Plain "withObject";
-              Plain "object";
-              Op ".:";
-              Op ".=";
-            ];
-        H.import "Data.Aeson.KeyMap" ~qualified:"KM";
-      ];
+    imports = [ H.import "Xynolog.Types" ~items:[ All "RetryBudget" ] ];
     body =
-      [
-        H.record "RetryBudget"
-          (List.map (fun f -> (f, H.T_name "Integer")) fields)
-          ~deriving:[ "Eq"; "Show" ];
-        to_object ~type_:"RetryBudget" (List.combine budget fields);
-        is_object ~type_:"RetryBudget" ~members:budget
-          ~unknown:"Unknown retry budget member"
-          ~negative:"Negative retry budget member" ~constructor:"RetryBudget"
-          ~fields;
-      ]
-      @ List.map
-          (fun (e : Table.entry) ->
-            H.value e.name (type_of ~budget_type:"RetryBudget" e) (value e))
-          t;
+      List.map
+        (fun (e : Table.entry) ->
+          H.value e.name (type_of ~budget_type:"RetryBudget" e) (value e))
+        t;
   }
 
 let settings (t : Table.t) =
@@ -165,13 +142,14 @@ let settings (t : Table.t) =
             ];
         H.import "Data.Aeson.KeyMap" ~qualified:"KM";
         H.import "Xynolog.Timing" ~qualified:"Base";
+        H.import "Xynolog.Types" ~items:[ Plain "RetryBudget" ];
       ];
     body =
       [
         H.record "Settings"
           (List.map
              (fun (e : Table.entry) ->
-               (e.name, type_of ~budget_type:"Base.RetryBudget" e))
+               (e.name, type_of ~budget_type:"RetryBudget" e))
              t)
           ~deriving:[ "Eq"; "Show" ];
         H.value "protocolSettings" (T_name "Settings")

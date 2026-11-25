@@ -155,6 +155,8 @@ let rec plain state (s : Schema.schema) =
   | { ref_ = Some r; _ } ->
       let name = referenced state r in
       plain state (layer name (definition state name).schema)
+  | { type_ = Some [ String ]; format = Some Binary; _ } ->
+      Some (C.Array (T "byte"))
   | { type_ = Some [ String ]; enum = None; _ } -> Some (C.T "string")
   | { type_ = Some [ Integer ]; enum = None; _ } -> Some (C.T "long")
   | { type_ = Some [ Number ]; enum = None; _ } -> Some (C.T "double")

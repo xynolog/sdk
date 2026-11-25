@@ -8,7 +8,7 @@ val sleep_ms : Clock.t -> float -> unit
 
 val retry_with_backoff :
   clock:Clock.t ->
-  budget:Client_timing.retry ->
+  budget:Records.Retry_budget.t ->
   accepts:('error -> bool) ->
   retry_after:('error -> int option) ->
   (unit -> ('value, 'error) result) ->

@@ -9,6 +9,7 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
+import Xynolog.Internal.Generated.Models.Binary
 import Xynolog.Internal.Generated.Models.JobId
 import Xynolog.Internal.Generated.Models.ResourceId
 
@@ -16,7 +17,7 @@ data ResourceUpload = ResourceUpload
   { resourceUploadArchiveOriginal :: Maybe Text,
     resourceUploadCloneToken :: Maybe Text,
     resourceUploadEntityTypes :: Maybe Text,
-    resourceUploadFile :: Text,
+    resourceUploadFile :: Binary,
     resourceUploadFormat :: Text,
     resourceUploadGenerationPrompt :: Maybe Text,
     resourceUploadGenerator :: Maybe Text,

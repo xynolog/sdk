@@ -42,7 +42,6 @@ import xynolog.registry.StoredKt;
 import xynolog.registry.XynologBrowser;
 import xynolog.registry.XynologBrowserConfig;
 import xynolog.retry.RetryKt;
-import xynolog.retry.RetryPolicy;
 import xynolog.session.SessionSignals;
 import xynolog.session.TokensKt;
 import xynolog.storage.MemoryStorage;
@@ -68,6 +67,7 @@ import xynolog.types.PendingAuthorizationIssuer;
 import xynolog.types.QuotedText;
 import xynolog.types.ReconciledSpan;
 import xynolog.types.ReconciledSpanFuzzyMatch;
+import xynolog.types.RetryBudget;
 import xynolog.types.SignInOutcome;
 import xynolog.types.SignedIn;
 import xynolog.types.StoredSession;
@@ -231,7 +231,7 @@ final class ModulesTest {
     void aRetryIsRunFromJava() throws Exception {
         AtomicInteger attempts = new AtomicInteger();
         // What is retried is a failure the SDK names: here, a stream that cannot deliver a channel.
-        String done = RetryKt.retryWithBackoffFuture(new RetryPolicy(3, 1, 2), failed -> failed instanceof BusRequestError, () -> attempts.incrementAndGet() == 1
+        String done = RetryKt.retryWithBackoffFuture(new RetryBudget(3, 1, 2), failed -> failed instanceof BusRequestError, () -> attempts.incrementAndGet() == 1
                 ? CompletableFuture.<String>failedFuture(TransportKt.unsubscribed("job:queued"))
                 : CompletableFuture.completedFuture("done")).get(10, SECONDS);
         assertEquals("done", done);

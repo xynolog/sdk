@@ -59,8 +59,13 @@ let retry_timing () =
     Fiber.fork_promise ~sw (fun () ->
         Retry.retry_with_backoff ~clock
           ~budget:
-            Client_timing.
-              { attempts = 3; initial_delay_ms = 100; max_delay_ms = 200 }
+            Records.Retry_budget.
+              {
+                attempts = 3;
+                initial_delay_ms = 100;
+                max_delay_ms = 200;
+                extra = [];
+              }
           ~accepts:(fun _ -> true)
           ~retry_after:(fun _ -> Some 80)
           (fun () ->

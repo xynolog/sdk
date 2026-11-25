@@ -79,9 +79,11 @@ the coming release's, and gathers its changes as they land.
 - An optional member that may not be null is an `option`; `Types.presence`
   is left to a member that may be absent and may be null.
 
-- `Retry.retry_with_backoff` takes its `budget` as a `Client_timing.retry`,
-  the type Protocol's client timing states, in place of `Retry.budget`.
-  `Client_timing`, the timing every SDK reads from Protocol, is public.
+- `Retry.retry_with_backoff` takes its `budget` as a `Records.Retry_budget.t`,
+  the record of Protocol's `client/RetryBudget.json`, in place of
+  `Retry.budget`; `Client_timing.emit_retry` and `Client_timing.refresh_retry`
+  are one. `Client_timing`, the timing every SDK reads from Protocol, is
+  public.
 
 ## 0.8.1
 

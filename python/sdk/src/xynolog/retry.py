@@ -1,7 +1,7 @@
 """Trying again: which failures are worth another attempt, and how long to keep at it.
 
 The two are separate questions. A `RetryRule` answers the first for one
-context, as `protocol/specs/src/retry/cases.json` states it. A `RetryPolicy` answers
+context, as `protocol/specs/src/retry/cases.json` states it. A `RetryBudget` answers
 the second: a budget of attempts, and the backoff between them. The budgets a
 client keeps are `protocol/specs/src/client/timing.json`'s (`xynolog.timing`).
 """
@@ -15,6 +15,7 @@ from types import MappingProxyType
 from typing import Final, final
 
 from xynolog.errors import XynologError
+from xynolog.types import RetryBudget
 
 __all__ = [
     "BOOT",
@@ -23,25 +24,11 @@ __all__ = [
     "RETRY_RULES",
     "TRANSPORT",
     "RetryFacts",
-    "RetryPolicy",
     "RetryRule",
     "equal_jitter",
     "retry_after_ms",
     "retry_with_backoff",
 ]
-
-
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class RetryPolicy:
-    """A retry budget: how many attempts, and the backoff between them."""
-
-    attempts: int
-    """How many times it is tried in all, the first included."""
-    initial_delay_ms: int
-    """The wait before the second attempt; each later wait doubles it."""
-    max_delay_ms: int
-    """The longest any wait grows to."""
 
 
 @final
@@ -152,7 +139,7 @@ async def _set_within(event: asyncio.Event, wait_ms: float) -> bool:
 
 
 async def retry_with_backoff[T](
-    policy: RetryPolicy,
+    policy: RetryBudget,
     attempt: Callable[[], Awaitable[T]],
     *,
     retryable: Callable[[XynologError], bool],

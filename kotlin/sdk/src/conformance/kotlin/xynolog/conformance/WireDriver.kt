@@ -24,12 +24,12 @@ import xynolog.http.TokenRefresher
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
-import xynolog.retry.RetryPolicy
 import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
 import xynolog.transport.PutBinaryRequest
 import xynolog.transport.ResourceHold
+import xynolog.types.RetryBudget
 import xynolog.types.UploadProgressProgress
 import java.util.Base64
 import kotlin.system.exitProcess
@@ -132,7 +132,7 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
                 "seenEventIdsCount" -> timing.copy(seenEventIdsCount = stated.count(name).toInt())
                 "emitRetry" -> {
                     val budget = stated.obj(name)
-                    timing.copy(emitRetry = RetryPolicy(budget.count("attempts").toInt(), budget.count("initialDelayMs"), budget.count("maxDelayMs")))
+                    timing.copy(emitRetry = RetryBudget(budget.count("attempts"), budget.count("initialDelayMs"), budget.count("maxDelayMs")))
                 }
                 else -> throw Misuse("this driver cannot override $name")
             }

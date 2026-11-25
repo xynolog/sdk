@@ -12,7 +12,8 @@ from aio import run
 from spec import SPEC, JsonObject, objects, read, text
 
 from xynolog.errors import TransportError, XynologError
-from xynolog.retry import BOOT, RETRY_RULES, RetryFacts, RetryPolicy, equal_jitter, retry_after_ms, retry_with_backoff
+from xynolog.retry import BOOT, RETRY_RULES, RetryFacts, equal_jitter, retry_after_ms, retry_with_backoff
+from xynolog.types import RetryBudget
 
 TABLE = read(SPEC / "retry/cases.json")
 RULES = objects(TABLE["rules"], "rules")
@@ -71,7 +72,7 @@ def test_a_budget_is_spent_and_the_last_failure_raised() -> None:
 
         try:
             await retry_with_backoff(
-                RetryPolicy(attempts=3, initial_delay_ms=1, max_delay_ms=2), attempt, retryable=worth_another, give_up=asyncio.Event()
+                RetryBudget(attempts=3, initial_delay_ms=1, max_delay_ms=2), attempt, retryable=worth_another, give_up=asyncio.Event()
             )
         except TransportError as error:
             return made, error.status
@@ -96,7 +97,7 @@ def test_a_failure_not_worth_another_attempt_is_raised_at_once_and_a_success_end
                 raise refused(429)
             return "accepted"
 
-        policy = RetryPolicy(attempts=5, initial_delay_ms=1, max_delay_ms=1)
+        policy = RetryBudget(attempts=5, initial_delay_ms=1, max_delay_ms=1)
         with pytest.raises(TransportError):
             await retry_with_backoff(policy, refused_outright, retryable=worth_another, give_up=asyncio.Event())
         answer = await retry_with_backoff(policy, third_time, retryable=worth_another, give_up=asyncio.Event())
@@ -117,7 +118,7 @@ def test_the_wait_a_failure_states_is_a_floor_under_the_backoff() -> None:
 
         started = asyncio.get_running_loop().time()
         await retry_with_backoff(
-            RetryPolicy(attempts=2, initial_delay_ms=1, max_delay_ms=1), attempt, retryable=worth_another, give_up=asyncio.Event()
+            RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1), attempt, retryable=worth_another, give_up=asyncio.Event()
         )
         return asyncio.get_running_loop().time() - started
 
@@ -137,7 +138,7 @@ def test_giving_up_ends_a_wait_in_progress_with_the_failure_that_began_it() -> N
         started = asyncio.get_running_loop().time()
         retrying = asyncio.ensure_future(
             retry_with_backoff(
-                RetryPolicy(attempts=5, initial_delay_ms=1, max_delay_ms=1), attempt, retryable=worth_another, give_up=give_up
+                RetryBudget(attempts=5, initial_delay_ms=1, max_delay_ms=1), attempt, retryable=worth_another, give_up=give_up
             )
         )
         await asyncio.sleep(0.01)

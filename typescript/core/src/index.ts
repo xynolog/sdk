@@ -451,7 +451,7 @@ export {
   retryAfterMs,
   STARTUP_FETCH_RETRY,
 } from './retry';
-export type { HttpStatusError, RetryPolicy, RetryAttemptInfo } from './retry';
+export type { HttpStatusError, RetryBudget, RetryAttemptInfo } from './retry';
 
 // Browser ↔ launcher KB discovery — the canonical served URL of the
 // launcher's discovery document.

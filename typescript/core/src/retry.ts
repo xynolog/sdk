@@ -8,7 +8,7 @@
  * dead for good.
  *
  * **What lives HERE — the mechanism, because it is one fact each:**
- *   - `RetryPolicy` / `retryWithBackoff` — the loop, deadline-aware
+ *   - `RetryBudget` / `retryWithBackoff` — the loop, deadline-aware
  *   - `equalJitter` — the backoff curve, shared with the SSE reconnect
  *   - the predicates that narrow an error type CORE owns (`isTransientFetchError`
  *     over `fetch`'s `TypeError`, `isRetryableRequestError` over `HttpStatusError`)
@@ -35,16 +35,10 @@
  */
 
 import { RETRY_RULES } from './retry-rules';
+import type { components } from './types';
 import { UnansweredError } from './unanswered';
 
-export interface RetryPolicy {
-  /** Total attempts, including the first one. */
-  attempts: number;
-  /** Ceiling on the delay before the second attempt; doubles each retry. */
-  initialDelayMs: number;
-  /** Ceiling for the doubled delay. */
-  maxDelayMs: number;
-}
+export type RetryBudget = components['schemas']['RetryBudget'];
 
 /**
  * Equal jitter: half the computed ceiling, plus a random share of the other
@@ -85,7 +79,7 @@ export interface RetryAttemptInfo {
  * ceilings 1s, 2s, 4s, then capped at 8s. The equal-jittered backoff means
  * the expected wait is ~75% of the sum of those ceilings.
  */
-export const STARTUP_FETCH_RETRY: RetryPolicy = {
+export const STARTUP_FETCH_RETRY: RetryBudget = {
   attempts: 8,
   initialDelayMs: 1_000,
   maxDelayMs: 8_000,
@@ -204,7 +198,7 @@ function waited(ms: number, signal: AbortSignal | undefined): Promise<boolean> {
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   isRetryable: (error: unknown) => boolean,
-  policy: RetryPolicy,
+  policy: RetryBudget,
   onRetry?: (info: RetryAttemptInfo) => void,
   signal?: AbortSignal,
 ): Promise<T> {

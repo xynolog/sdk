@@ -7,7 +7,12 @@ internal static class Timings
 {
     internal const int BusRequestTimeoutMs = 30000;
     internal const int EmitTimeoutMs = 30000;
-    internal static global::Xynolog.Http.RetryPolicy EmitRetry { get; } = new(4, 1000, 4000);
+    internal static global::Xynolog.Types.RetryBudget EmitRetry { get; } = new()
+    {
+        Attempts = 4,
+        InitialDelayMs = 1000,
+        MaxDelayMs = 4000,
+    };
     internal const int HttpRequestTimeoutMs = 30000;
     internal const int RequestRetryPauseMs = 300;
     internal const int StreamOpenTimeoutMs = 30000;
@@ -18,7 +23,12 @@ internal static class Timings
     internal const int SeenEventIdsCount = 512;
     internal const int ReconnectDebounceMs = 100;
     internal const int LazyRemoveMs = 5000;
-    internal static global::Xynolog.Http.RetryPolicy RefreshRetry { get; } = new(4, 500, 4000);
+    internal static global::Xynolog.Types.RetryBudget RefreshRetry { get; } = new()
+    {
+        Attempts = 4,
+        InitialDelayMs = 500,
+        MaxDelayMs = 4000,
+    };
     internal const int RefreshBeforeExpMs = 300000;
     internal const int MinRefreshDelayMs = 10000;
     internal const int DevicePollMs = 5000;

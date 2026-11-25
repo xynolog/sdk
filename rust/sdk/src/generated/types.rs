@@ -2256,6 +2256,9 @@ impl BeginAuthorizationOptions {
 
 schema!(BeginAuthorizationOptions);
 
+/// Bytes held whole. They can be read more than once, and sent again when an upload is retried.
+pub type Binary = String;
+
 /// One edit to a linking annotation's body list: add or remove a body item, or replace an existing one.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct BindBodyOperation {
@@ -15596,7 +15599,7 @@ pub struct ResourceUpload {
     /// Human-readable resource name
     pub name: String,
     /// Binary content
-    pub file: String,
+    pub file: Binary,
     /// Media type of the content (e.g. text/plain, text/markdown, image/png)
     pub format: String,
     /// Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.
@@ -15646,13 +15649,13 @@ impl ResourceUpload {
     /// The `ResourceUpload` that states these and nothing else.
     pub fn new(
         name: impl Into<String>,
-        file: impl Into<String>,
+        file: Binary,
         format: impl Into<String>,
         storage_uri: impl Into<String>,
     ) -> Self {
         Self {
             name: name.into(),
-            file: file.into(),
+            file,
             format: format.into(),
             storage_uri: storage_uri.into(),
             language: None,
@@ -15701,6 +15704,22 @@ pub struct ResourcesLimits {
     /// The memory ceiling: a whole number of gigabytes or megabytes, `8G` or `512M`.
     pub memory: String,
 }
+
+/// A retry budget: how many `attempts` are allowed, with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetryBudget {
+    /// How many attempts the budget allows.
+    pub attempts: u64,
+    /// The delay before the second attempt, in milliseconds.
+    #[serde(rename = "initialDelayMs")]
+    pub initial_delay_ms: u64,
+    /// The longest delay between attempts, in milliseconds.
+    #[serde(rename = "maxDelayMs")]
+    pub max_delay_ms: u64,
+}
+
+schema!(RetryBudget);
 
 /// One knowledge base this machine knows: a registered or running local clone, or a codespace stack recorded here. Registration, the directory, the stack and the forward are separate facts, each stated as it is.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]

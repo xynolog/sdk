@@ -47,7 +47,6 @@ import Xynolog.Session qualified as Session
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
 import Xynolog.StateValue qualified as State
-import Xynolog.Timing qualified as Budget
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
@@ -283,7 +282,7 @@ issuerCases fixtures = do
       agentOptions = sessionOptions {Session.sessionKb = agentKb}
   atomically (writeTVar identities [503, 200])
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service -> do
-    opening <- async (Session.signInAgent http agentOptions (Budget.RetryBudget 2 10 20) service)
+    opening <- async (Session.signInAgent http agentOptions (RetryBudget 2 10 20) service)
     Time.settle
     Time.advance time 4000000
     waitingForRetry <- poll opening
@@ -314,7 +313,7 @@ issuerCases fixtures = do
   -- with the issuer asked nothing more.
   atomically (writeTVar identities [200])
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service -> do
-    opened <- Session.signInAgent http agentOptions (Budget.RetryBudget 2 10 20) service
+    opened <- Session.signInAgent http agentOptions (RetryBudget 2 10 20) service
     let session = Session.openedSession opened
         tokenAsks = length . filter ((== "/token") . route) <$> readTVar seen
     first <- atomically (State.current (Session.token session))
@@ -345,7 +344,7 @@ issuerCases fixtures = do
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service ->
     bracket
       ( async
-          ( try (Session.signInAgent http refusedOptions (Budget.RetryBudget 2 10 20) service) ::
+          ( try (Session.signInAgent http refusedOptions (RetryBudget 2 10 20) service) ::
               IO (Either TransportError Session.OpenedSession)
           )
       )

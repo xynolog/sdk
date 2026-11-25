@@ -25,7 +25,7 @@ import {
   type ContentFormat,
   type EventMap,
   type PutBinaryRequest,
-  type RetryPolicy,
+  type RetryBudget,
 } from '@xynolog/core';
 import { HttpContentTransport, HttpTransport } from '@xynolog/http-transport';
 import {
@@ -145,7 +145,7 @@ function uploadOf(args: Arguments): PutBinaryRequest {
   };
 }
 
-function budget(timing: Arguments): RetryPolicy {
+function budget(timing: Arguments): RetryBudget {
   const stated = object(timing, 'emitRetry');
   return {
     attempts: count(stated, 'attempts'),

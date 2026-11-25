@@ -124,8 +124,8 @@
     "lib/client_core.mli": "332f7bb6fde85b3730a125d768d85be422629c6364f34cfc75c11433a086ee74",
     "lib/client_query.ml": "eb6fc5678015e8e48f296efe403e21795b46005ddec65d042ef9a4d2eb5011e2",
     "lib/client_record.ml": "4426f9cc4ab4e5d96403cb5c1e780d8f5cbcc593905964062219847f202bcead",
-    "lib/client_timing.ml": "6a7215850e59f60a4c5d92477c73b4ac04a47510acff3a39d931a38789fb4de0",
-    "lib/client_timing.mli": "39d78d21f3de0f064ce6fd62d9f5a68d8b90ce21d85c3cc10a7177af3428c533",
+    "lib/client_timing.ml": "cd72606334ad8dbfe7ffe2a9f16e010e52e218cc760e31cf91878a696c4599d5",
+    "lib/client_timing.mli": "09c3204e45443ed9764d70785a9a4f33a3b76818c9901f0e870322cc8c0168af",
     "lib/clock.ml": "71063b036aa3069ad2ed649ba8a73505b4eb4a00631c48af43a01f732c6623ab",
     "lib/clock.mli": "5333b1d2447f81415c54bfc99d87ae98362a4ce249695d7783c35df41cdab364",
     "lib/control.ml": "e59aa7ab3626e5093d2414f08bfd9625b383a2a675ca6e32c1276d6c8c6a4562",
@@ -180,8 +180,8 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "7b4263ace72f71c039343e9cb12a0b174932c3db4ee49571dffbd0c74e4768e6",
-    "lib/models.mli": "860158845da48b0888e6b2c5f2e6aa233fd6416fbd60a49033192903d60dd504",
+    "lib/models.ml": "d474d42e4b163c10e26b2206ffc5f05049f32f97d902c13648fef834141355f5",
+    "lib/models.mli": "b99a1cdfa29cdeb8f84327d4c61b073c1a5b181dceb13b935ed371c0502fdabf",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "83e3a22603a7623efa040692be2134de278c2b08a8d1d9a74e077fcb2c039f58",
     "lib/oauth.mli": "e553d7b097ce242bcb9309a2bf829c6c2611d1fad4a335a69ef91164668ca088",
@@ -189,7 +189,7 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "a965c726fe5d0ac4527f39dd8ecf902b9ff5765fd6676b94a7b5542f91eb4963",
     "lib/record_reader.mli": "19f5172554a4e57e3c6a13ce8213ccb5e4d4c9bf6beb49234306f4c9044227e9",
-    "lib/records.ml": "12ac6a5d5fb87f8fe35f4649cb630bfc4b8183bea00f3b7fe148c4409daa37ef",
+    "lib/records.ml": "a685ce24a20cf8fcdd1254e9a9a7014e784e04111331b93f3e2101464b8cdb2e",
     "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "c0f2a5d59959339292ce480e83bb7b2a2e667557f6ef6e97d62a12da33d1fbdb",
@@ -197,13 +197,13 @@
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "9edc5b61f4dd7d1069e921607ae2181c1eca02fa77b1d3cef178e0766d3b3fed",
     "lib/resources.mli": "681c8d831db9af64fc28b7b91b6e913bf992f99529f2a3edb7f0d16121b10bf2",
-    "lib/retry.ml": "c1d938db21bb4c1a99b5e103f0d552af5299b9f8c09ad6e299857bb4fa64ca11",
-    "lib/retry.mli": "dc9e910cc0c0ac2904e00416c4259b80deebf0fe296852bc3f0ff1adcbe3387b",
+    "lib/retry.ml": "5b706f83906d5d97c46fb3e55e9e38672e557404b4f1b59e69eadd73eb45cb3e",
+    "lib/retry.mli": "2792680b10e43d361d6c78bf5fe0758cd38adfd6fc6425ca333af18becd8202d",
     "lib/running.ml": "d1e491aa088ca534f4668aa784ce843b98aea9c83b0dfe42c8f679dbb8c0cb03",
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "53ceb3895f5d0cbdf100f2bab8dc19f8e007d7e2dd8281f644e1f507e884570b",
+    "lib/schema_shapes.ml": "e87b349e909a1a915ce2731432ada5f67f16a35a72fdaa1d9d284236e1c32573",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "aa663f563557765b0b8bf77b32669fd1ab0f7b7e5b618eb8865445dd642dc8b6",
@@ -272,7 +272,7 @@
     "lib/yield_state.ml": "964626f32956299da2c452708bd8be0e9c69017c7c98b8cef2a96cbfae777cf0",
     "lib/yield_state.mli": "fe746d0f5b1657d53c8a2856e1ee7b0626dd570e0c855ba57fe502958686b978",
     "probes/api_inventory.ml": "97b819335b2d6d55f2f4a7c73422ad4df34ca5e459fe4df300f01a0ff5efb36a",
-    "probes/dune": "ba1fed5d8ec703fcb895d69c0f59506fc2bcd19d8dcfcfaa6d50a2c72ff01bb1",
+    "probes/dune": "a6dfea54d41769a2f81ab943f4e8d1ce3588830d6bf690ce9d8248cba9abe4d3",
     "public-api.inputs.json": "d51dffdaf5479e46082425ce99f6a1de24d4e0443fc1dff943e91df103ee14e0",
     "xynolog.opam": "68040d9729a552220494a7a9055d55a470629e5259b7ac5d6b2156a4e696f095"
   },
@@ -3800,6 +3800,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.binary",
+      "declaration": "val binary : [ `Binary ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.bind_body_operation",
       "declaration": "val bind_body_operation : [ `BindBodyOperation ] descriptor"
     },
@@ -5392,6 +5397,11 @@
       "kind": "value",
       "path": "Xynolog.Models.resources",
       "declaration": "val resources : [ `Resources ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.retry_budget",
+      "declaration": "val retry_budget : [ `RetryBudget ] descriptor"
     },
     {
       "kind": "value",
@@ -15722,6 +15732,43 @@
       "kind": "value",
       "path": "Xynolog.Records.Representation_not_found.to_model",
       "declaration": "val to_model :\n  t ->\n  ([ `RepresentationNotFound ] Xynolog__.Models.t,\n   Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Retry_budget",
+      "declaration": "module Retry_budget :\n  sig\n    type t = {\n      attempts : int;\n      initial_delay_ms : int;\n      max_delay_ms : int;\n      extra : (string * Yojson.Raw.t) list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `RetryBudget ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `RetryBudget ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Retry_budget.t",
+      "declaration": "type t = {\n  attempts : int;\n  initial_delay_ms : int;\n  max_delay_ms : int;\n  extra : (string * Yojson.Raw.t) list;\n}",
+      "representation": "record",
+      "fields": [
+        "attempts",
+        "initial_delay_ms",
+        "max_delay_ms",
+        "extra"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Retry_budget.project",
+      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Retry_budget.of_model",
+      "declaration": "val of_model : [ `RetryBudget ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Retry_budget.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Retry_budget.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `RetryBudget ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
     },
     {
       "kind": "module",
@@ -33744,24 +33791,13 @@
     {
       "kind": "value",
       "path": "Xynolog.Retry.retry_with_backoff",
-      "declaration": "val retry_with_backoff :\n  clock:Xynolog__.Clock.t ->\n  budget:Xynolog__.Client_timing.retry ->\n  accepts:('error -> bool) ->\n  retry_after:('error -> int option) ->\n  (unit -> ('value, 'error) result) -> ('value, 'error) result"
+      "declaration": "val retry_with_backoff :\n  clock:Xynolog__.Clock.t ->\n  budget:Xynolog__.Records.Retry_budget.t ->\n  accepts:('error -> bool) ->\n  retry_after:('error -> int option) ->\n  (unit -> ('value, 'error) result) -> ('value, 'error) result"
     },
     {
       "kind": "module",
       "path": "Xynolog.Client_timing",
       "declaration": "module Client_timing = Xynolog__.Client_timing",
       "alias": "Xynolog__.Client_timing"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Client_timing.retry",
-      "declaration": "type retry = { attempts : int; initial_delay_ms : int; max_delay_ms : int; }",
-      "representation": "record",
-      "fields": [
-        "attempts",
-        "initial_delay_ms",
-        "max_delay_ms"
-      ]
     },
     {
       "kind": "value",
@@ -33776,7 +33812,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client_timing.emit_retry",
-      "declaration": "val emit_retry : retry"
+      "declaration": "val emit_retry : Xynolog__.Records.Retry_budget.t"
     },
     {
       "kind": "value",
@@ -33831,7 +33867,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client_timing.refresh_retry",
-      "declaration": "val refresh_retry : retry"
+      "declaration": "val refresh_retry : Xynolog__.Records.Retry_budget.t"
     },
     {
       "kind": "value",

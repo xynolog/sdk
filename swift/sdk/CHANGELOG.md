@@ -54,6 +54,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `RetryBudget` is the model of Protocol's `client/RetryBudget.json`:
+  `Codable` and `Hashable`, its members `var`s.
+- `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
+  whole, which is a `String`.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `GetAnnotationsResponse.motivation` is a `Motivation?`, where it was a

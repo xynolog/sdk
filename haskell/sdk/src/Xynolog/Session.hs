@@ -60,11 +60,10 @@ import Xynolog.Retry qualified as Retry
 import Xynolog.ServiceToken qualified as Service
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
-import Xynolog.Timing (RetryBudget)
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Tokens qualified as Tokens
 import Xynolog.Transport qualified as Transport
-import Xynolog.Types (DeviceCode, HttpEndpoint, IssuedTokens (..), KbEndpoint (..), KbTarget (..), PendingAuthorizationIssuer (..), SessionEndReason (..), StoredSession (..), UserResponse (..), userIdValue)
+import Xynolog.Types (DeviceCode, HttpEndpoint, IssuedTokens (..), KbEndpoint (..), KbTarget (..), PendingAuthorizationIssuer (..), RetryBudget, SessionEndReason (..), StoredSession (..), UserResponse (..), userIdValue)
 import Prelude hiding (id)
 import Prelude qualified
 

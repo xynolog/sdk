@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.await
 import xynolog.errors.XynologError
 import xynolog.telemetry.futureOf
+import xynolog.types.RetryBudget
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.function.Predicate
@@ -82,7 +83,7 @@ public fun equalJitter(capMs: Long, random: Random = Random.Default): Long = cap
  * refusal's `Retry-After`). Cancelled, it gives up: no further attempt is
  * made, and a wait in progress ends.
  */
-public suspend fun <T> retryWithBackoff(policy: RetryPolicy, retryable: (XynologError) -> Boolean, random: Random = Random.Default, attempt: suspend () -> T): T {
+public suspend fun <T> retryWithBackoff(policy: RetryBudget, retryable: (XynologError) -> Boolean, random: Random = Random.Default, attempt: suspend () -> T): T {
     var capMs = policy.initialDelayMs
     var made = 1
     while (true) {
@@ -100,7 +101,7 @@ public suspend fun <T> retryWithBackoff(policy: RetryPolicy, retryable: (Xynolog
 /** `retryWithBackoff`, for Java, on `context`: cancelling the future gives up. */
 @JvmOverloads
 public fun <T> retryWithBackoffFuture(
-    policy: RetryPolicy,
+    policy: RetryBudget,
     retryable: Predicate<XynologError>,
     attempt: Supplier<CompletionStage<T>>,
     context: CoroutineContext = Dispatchers.Default,

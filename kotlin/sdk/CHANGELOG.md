@@ -36,6 +36,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A retry budget is `xynolog.types.RetryBudget`, the type of Protocol's
+  `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
+  `Timing.emitRetry` is one, and `retryWithBackoff` and
+  `retryWithBackoffFuture` take one. Its `attempts` is a `Long`.
+- `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
+  whole, which is a `String`.
 - A stream's place, and each place the bookmarks keep, is an id
   `LastEventIds` holds in its scope, in place of an id held to
   `PersistedEventId` by that schema's name.

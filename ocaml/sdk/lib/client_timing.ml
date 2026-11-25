@@ -1,11 +1,17 @@
 (* Generated from protocol/specs/src/client/timing.json. Do not edit.
    Regenerate: make generate (codegen/lib/timing/ocaml.ml) *)
 
-type retry = { attempts : int; initial_delay_ms : int; max_delay_ms : int }
-
 let bus_request_timeout_ms = 30000
 let emit_timeout_ms = 30000
-let emit_retry = { attempts = 4; initial_delay_ms = 1000; max_delay_ms = 4000 }
+
+let emit_retry =
+  {
+    Records.Retry_budget.attempts = 4;
+    initial_delay_ms = 1000;
+    max_delay_ms = 4000;
+    extra = [];
+  }
+
 let http_request_timeout_ms = 30000
 let request_retry_pause_ms = 300
 let stream_open_timeout_ms = 30000
@@ -18,7 +24,12 @@ let reconnect_debounce_ms = 100
 let lazy_remove_ms = 5000
 
 let refresh_retry =
-  { attempts = 4; initial_delay_ms = 500; max_delay_ms = 4000 }
+  {
+    Records.Retry_budget.attempts = 4;
+    initial_delay_ms = 500;
+    max_delay_ms = 4000;
+    extra = [];
+  }
 
 let refresh_before_exp_ms = 300000
 let min_refresh_delay_ms = 10000

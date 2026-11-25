@@ -7843,6 +7843,42 @@ module Representation_not_found = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
+module Retry_budget = struct
+  type t = {
+    attempts : int;
+    initial_delay_ms : int;
+    max_delay_ms : int;
+    extra : (string * Yojson.Raw.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    let record =
+      {
+        attempts = required reader int "attempts";
+        initial_delay_ms = required reader int "initialDelayMs";
+        max_delay_ms = required reader int "maxDelayMs";
+        extra = [];
+      }
+    in
+    { record with extra = rest reader }
+
+  let of_model (model : [ `RetryBudget ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("attempts", Some (json_int value.attempts));
+        ("initialDelayMs", Some (json_int value.initial_delay_ms));
+        ("maxDelayMs", Some (json_int value.max_delay_ms));
+      ]
+      value.extra
+
+  let to_model value =
+    Models.decode Models.retry_budget (Yojson.Raw.to_string (to_json value))
+end
+
 module Conformance_bus_fetch = struct
   type t = {
     fetch : string;

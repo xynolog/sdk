@@ -53,7 +53,11 @@ type expr =
   | Assign of expr * expr
 
 and arg = Arg of expr | Ref of expr | Out_var of string
-and init = Keyed of (expr * expr) list  (** [[key] = value], a line each. *)
+
+and init =
+  | Keyed of (expr * expr) list  (** [[key] = value], a line each. *)
+  | Members of (string * expr) list  (** [Name = value], a line each. *)
+
 and pattern = Value of expr | Discard
 
 type stmt =
@@ -394,16 +398,25 @@ and block_lines ~depth items =
 and item_lines ~depth first value =
   [ indent (depth + 1) ^ first ] ^^ value ^^ [ "," ]
 
-and init_lines ~depth (Keyed pairs) =
-  block_lines ~depth
-    (List.map
-       (fun (key, value) ->
-         item_lines ~depth ""
-           ([ "[" ]
-           ^^ at_least ~depth:(depth + 1) 1 key
-           ^^ [ "] = " ]
-           ^^ at_least ~depth:(depth + 1) 0 value))
-       pairs)
+and init_lines ~depth = function
+  | Keyed pairs ->
+      block_lines ~depth
+        (List.map
+           (fun (key, value) ->
+             item_lines ~depth ""
+               ([ "[" ]
+               ^^ at_least ~depth:(depth + 1) 1 key
+               ^^ [ "] = " ]
+               ^^ at_least ~depth:(depth + 1) 0 value))
+           pairs)
+  | Members pairs ->
+      block_lines ~depth
+        (List.map
+           (fun (name, value) ->
+             item_lines ~depth
+               (checked name ^ " = ")
+               (at_least ~depth:(depth + 1) 0 value))
+           pairs)
 
 and lines ~depth = function
   | Name name -> [ qualified name ]

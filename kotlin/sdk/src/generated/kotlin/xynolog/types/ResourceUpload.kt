@@ -17,7 +17,7 @@ public data class ResourceUpload(
     /** Human-readable resource name */
     public val name: String,
     /** Binary content */
-    public val file: String,
+    public val file: Binary,
     /** Media type of the content (e.g. text/plain, text/markdown, image/png) */
     public val format: String,
     /** Where the content lives (file://... for local). Required — the client names the location; the server does not derive one. */
@@ -49,7 +49,7 @@ public data class ResourceUpload(
     /** How Java makes a `ResourceUpload`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val name: String,
-        private val file: String,
+        private val file: Binary,
         private val format: String,
         private val storageUri: String,
     ) {
@@ -89,6 +89,6 @@ public data class ResourceUpload(
     public companion object {
         /** A builder of a `ResourceUpload` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(name: String, file: String, format: String, storageUri: String): Builder = Builder(name, file, format, storageUri)
+        public fun builder(name: String, file: Binary, format: String, storageUri: String): Builder = Builder(name, file, format, storageUri)
     }
 }

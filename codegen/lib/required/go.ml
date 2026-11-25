@@ -23,7 +23,7 @@ let kind_of_go named : Shape.kind option =
       "uint64";
     ]
   in
-  if named = "string" then Some String
+  if named = "string" || named = "[]byte" then Some String
   else if named = "bool" then Some Boolean
   else if List.mem named integer then Some Integer
   else if named = "float32" || named = "float64" then Some Number

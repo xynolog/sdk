@@ -1,4 +1,5 @@
 using Xynolog.Protocol;
+using Xynolog.Types;
 namespace Xynolog.Http;
 
 /// <summary>The deadlines, retry budgets and stream cadence a caller may set for a client, each named as
@@ -45,12 +46,5 @@ public sealed record Timing
     /// <summary>How long, in milliseconds, a worker waits for a commit of annotations to be acknowledged.</summary>
     public int MarkCommitTimeoutMs { get; init; } = Timings.MarkCommitTimeoutMs;
     /// <summary>The retry budget of one emit.</summary>
-    public RetryPolicy EmitRetry { get; init; } = Timings.EmitRetry;
+    public RetryBudget EmitRetry { get; init; } = Timings.EmitRetry;
 }
-
-/// <summary>A retry budget: how many attempts to make, and a backoff between them that starts at one delay and doubles
-/// up to another.</summary>
-/// <param name="Attempts">How many attempts to make, the first included.</param>
-/// <param name="InitialDelayMs">The backoff before the second attempt, in milliseconds.</param>
-/// <param name="MaxDelayMs">The longest the backoff grows to, in milliseconds.</param>
-public sealed record RetryPolicy(int Attempts, int InitialDelayMs, int MaxDelayMs);

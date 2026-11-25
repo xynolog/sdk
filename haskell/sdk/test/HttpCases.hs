@@ -419,8 +419,8 @@ httpFaults peer http client resource clock waits = do
     atomically (writeTVar waits Set.empty)
     retryAt <- readTVarIO clock
     retrying <- async (Frame.addEntityType (Client.frame client) "Retried")
-    let firstWait = retryAt + Timing.retryInitialDelayMs Timing.emitRetry * 1000000 `div` 2
-        secondWait = firstWait + Timing.retryInitialDelayMs Timing.emitRetry * 1000000
+    let firstWait = retryAt + retryBudgetInitialDelayMs Timing.emitRetry * 1000000 `div` 2
+        secondWait = firstWait + retryBudgetInitialDelayMs Timing.emitRetry * 1000000
     waitForDeadline waits firstWait
     atomically (writeTVar clock firstWait)
     waitForDeadline waits secondWait

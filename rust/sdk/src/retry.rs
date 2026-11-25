@@ -4,7 +4,7 @@
 //! The two are separate questions. A `RetryRule` answers the first for one
 //! context, and the four contexts answer differently on purpose: a `500` in
 //! the middle of a job is worth another attempt, where the same `500` in a
-//! boot pass replays whatever broke it. A `RetryPolicy` answers the second: a
+//! boot pass replays whatever broke it. A `RetryBudget` answers the second: a
 //! budget of attempts and the backoff between them. Every implementation
 //! answers the first as protocol/specs/src/retry/cases.json states, which this crate's
 //! tests run; the budgets a client keeps are protocol/specs/src/client/timing.json's
@@ -18,20 +18,12 @@
 //! protocol/specs/src/client/clock-cases.json says.
 
 use crate::locked;
+use crate::types::RetryBudget;
 use getrandom::SysRng;
 use rand_core::{Rng, UnwrapErr};
 use std::future::Future;
 use std::sync::Mutex;
 use std::time::Duration;
-
-/// A budget: `attempts` in all, the first included, with a wait before each
-/// further one that starts at `initial_delay` and doubles to `max_delay`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct RetryPolicy {
-    pub attempts: u32,
-    pub initial_delay: Duration,
-    pub max_delay: Duration,
-}
 
 /// What is known of a failure when someone asks whether to try again. A
 /// status or a method that is not stated is `None`, and an unstated method
@@ -138,14 +130,14 @@ pub fn equal_jitter(cap: Duration, random: Option<&Mutex<dyn Rng + Send>>) -> Du
     cap.div_f64(2.0) + cap.div_f64(2.0).mul_f64(share)
 }
 
-/// Run `attempt` until it succeeds, `policy`'s attempts are spent, or it
+/// Run `attempt` until it succeeds, `budget`'s attempts are spent, or it
 /// fails in a way `retryable` does not accept. The wait before each further
-/// attempt is the policy's jittered backoff, drawn from `random`
+/// attempt is the budget's jittered backoff, drawn from `random`
 /// (`equal_jitter`), and never less than the wait the failure itself stated
 /// (`stated_wait`: a refusal's `Retry-After`). The last failure is returned
 /// as it was.
 pub async fn retry_with_backoff<T, E, F>(
-    policy: RetryPolicy,
+    budget: &RetryBudget,
     random: Option<&Mutex<dyn Rng + Send>>,
     mut attempt: impl FnMut() -> F,
     retryable: impl Fn(&E) -> bool,
@@ -154,19 +146,19 @@ pub async fn retry_with_backoff<T, E, F>(
 where
     F: Future<Output = Result<T, E>>,
 {
-    let mut cap = policy.initial_delay;
+    let mut cap = Duration::from_millis(budget.initial_delay_ms);
     let mut made = 1;
     loop {
         let error = match attempt().await {
             Ok(value) => return Ok(value),
             Err(error) => error,
         };
-        if made >= policy.attempts || !retryable(&error) {
+        if made >= budget.attempts || !retryable(&error) {
             return Err(error);
         }
         let wait = equal_jitter(cap, random).max(stated_wait(&error).unwrap_or_default());
         tokio::time::sleep(wait).await;
-        cap = (cap * 2).min(policy.max_delay);
+        cap = (cap * 2).min(Duration::from_millis(budget.max_delay_ms));
         made += 1;
     }
 }
@@ -215,14 +207,14 @@ mod tests {
     #[tokio::test(start_paused = true)]
     async fn each_wait_of_a_budget_is_drawn_from_the_callers_source() {
         let lowest = Mutex::new(Lowest);
-        let policy = RetryPolicy {
+        let budget = RetryBudget {
             attempts: 3,
-            initial_delay: Duration::from_millis(10),
-            max_delay: Duration::from_millis(20),
+            initial_delay_ms: 10,
+            max_delay_ms: 20,
         };
         let started = tokio::time::Instant::now();
         let outcome: Result<(), ()> = retry_with_backoff(
-            policy,
+            &budget,
             Some(&lowest),
             || async { Err(()) },
             |_| true,
@@ -235,14 +227,14 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn a_budget_is_spent_and_the_last_failure_returned() {
-        let policy = RetryPolicy {
+        let budget = RetryBudget {
             attempts: 3,
-            initial_delay: Duration::from_millis(10),
-            max_delay: Duration::from_millis(20),
+            initial_delay_ms: 10,
+            max_delay_ms: 20,
         };
         let mut made = 0;
         let outcome: Result<(), u32> = retry_with_backoff(
-            policy,
+            &budget,
             None,
             || {
                 made += 1;
@@ -258,14 +250,14 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn a_failure_not_worth_retrying_ends_at_once() {
-        let policy = RetryPolicy {
+        let budget = RetryBudget {
             attempts: 4,
-            initial_delay: Duration::from_millis(10),
-            max_delay: Duration::from_millis(20),
+            initial_delay_ms: 10,
+            max_delay_ms: 20,
         };
         let mut made = 0;
         let outcome: Result<(), u32> = retry_with_backoff(
-            policy,
+            &budget,
             None,
             || {
                 made += 1;
@@ -281,15 +273,15 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn a_stated_wait_is_a_floor_under_the_backoff() {
-        let policy = RetryPolicy {
+        let budget = RetryBudget {
             attempts: 2,
-            initial_delay: Duration::from_millis(10),
-            max_delay: Duration::from_millis(10),
+            initial_delay_ms: 10,
+            max_delay_ms: 10,
         };
         let started = tokio::time::Instant::now();
         let mut made = 0;
         let outcome: Result<u32, u32> = retry_with_backoff(
-            policy,
+            &budget,
             None,
             || {
                 made += 1;

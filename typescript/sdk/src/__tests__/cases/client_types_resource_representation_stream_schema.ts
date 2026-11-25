@@ -13,8 +13,7 @@ export const schema = {
     "A resource's bytes as the content transport answers them, read as they arrive, with the media type it answered with.",
   properties: {
     stream: {
-      type: 'string',
-      format: 'binary',
+      $ref: 'https://xynolog.org/protocol/ByteStream.json',
       description: 'The bytes, in order, as they arrive: read once.',
     },
     contentType: {

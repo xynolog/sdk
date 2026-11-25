@@ -1,6 +1,6 @@
 (* The timing as the Rust SDK reads it (rust/sdk/src/timing.rs): a constant
    per entry. A duration is a std::time::Duration named without its unit
-   ([reconnectMs] is [RECONNECT]), a retry budget a RetryPolicy, and a count
+   ([reconnectMs] is [RECONNECT]), a retry budget a RetryBudget, and a count
    a usize. *)
 
 module R = Rust_syntax
@@ -20,13 +20,13 @@ let constant (e : Table.entry) =
     match e.value with
     | Duration n -> (duration, millis n)
     | Budget { attempts; initial_delay_ms; max_delay_ms } ->
-        ( R.named "crate::retry::RetryPolicy",
+        ( R.named "crate::types::RetryBudget",
           R.Struct
-            ( [ "crate"; "retry"; "RetryPolicy" ],
+            ( [ "crate"; "types"; "RetryBudget" ],
               [
                 ("attempts", R.Int attempts);
-                ("initial_delay", millis initial_delay_ms);
-                ("max_delay", millis max_delay_ms);
+                ("initial_delay_ms", R.Int initial_delay_ms);
+                ("max_delay_ms", R.Int max_delay_ms);
               ],
               None ) )
     | Count n -> (R.named "usize", R.Int n)

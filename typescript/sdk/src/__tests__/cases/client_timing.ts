@@ -3,13 +3,13 @@
 // Authority:   protocol/specs/src/client/timing.json
 // Regenerate:  make generate  (codegen/lib/case_data/typescript.ml)
 
-export type Object = {
+export type RetryBudget = {
   attempts: number;
   initialDelayMs: number;
   maxDelayMs: number;
 };
 
-export type ItemValue = number | Object;
+export type ItemValue = number | RetryBudget;
 
 export type TimingItem = {
   name: string;
