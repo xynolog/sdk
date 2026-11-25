@@ -57,8 +57,9 @@ the coming release's, and gathers its changes as they land.
   boolean a `long` or `bool` a caller set; neither remains.
 - A model's properties are declared in its schema's order, as the other
   SDKs hold them, where they were in the order of their names. A model is
-  made by naming its properties, so no code that makes one changes, and its
-  members are still written in ordinal order of their names.
+  made by naming its properties, so no code that makes one changes. Its
+  members are written in that order too, where they were written in ordinal
+  order of their names.
 - A union's member written in place is the union's type and its title, as
   the other SDKs name it: `JobStoredProgressEmpty`, `JobStoredResultEmpty`
   and `ResourceDescriptorContextItem`, where they were

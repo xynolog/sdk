@@ -56,7 +56,7 @@ internal sealed class WireConstantAttribute(object value) : JsonConverterAttribu
 /// <summary>
 /// A model read from and written to its schema's object. What each property is comes from its declaration:
 /// one with no setter is the schema's constant, a <c>required</c> one must be present (and is null only where its type admits null), and any other is absent when null.
-/// The model is validated against its schema, named as the type is, and its members are written in ordinal order of their names.
+/// The model is validated against its schema, named as the type is, and its members are written in the order they are declared, its schema's order.
 /// </summary>
 internal sealed class WireObjectConverter<T> : JsonConverter<T>
     where T : class
@@ -66,7 +66,7 @@ internal sealed class WireObjectConverter<T> : JsonConverter<T>
         .GetProperties(BindingFlags.Public | BindingFlags.Instance)
         .Select(Member.Of)
         .OfType<Member>()
-        .OrderBy(member => member.Wire, StringComparer.Ordinal)
+        .OrderBy(member => member.Property.MetadataToken)
         .ToArray();
     private static readonly string[] Named = Members.Select(member => member.Wire).ToArray();
     private static readonly PropertyInfo? Rest = typeof(T)

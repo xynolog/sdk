@@ -7,7 +7,7 @@ internal static partial class WireJson
 {
     private static readonly JsonDocument Schemas = JsonDocument.Parse(SchemaSource);
 
-    private static JsonElement Definition(string name) => Schemas.RootElement.GetProperty(name);
+    internal static JsonElement Definition(string name) => Schemas.RootElement.GetProperty(name);
 
     internal static bool Declares(string schema, string member) => Declares(Definition(schema), member);
 
