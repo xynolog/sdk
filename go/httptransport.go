@@ -84,7 +84,7 @@ type transportShared struct {
 // background as soon as there is a token. Close stops it.
 type HTTPTransport struct {
 	shared   *transportShared
-	state    *Variable[ConnectionState]
+	state    *Variable[api.ConnectionState]
 	commands chan<- command
 	stopped  <-chan struct{}
 
@@ -111,7 +111,7 @@ func NewHTTPTransport(config HTTPTransportConfig) *HTTPTransport {
 		router:    NewReplyRouter(),
 		failures:  kept.NewTelling[*TransportError](config.Timing.ErrorsKeptForFirstReaderCount),
 	}
-	state := NewVariable(ConnectionStateInitial)
+	state := NewVariable(api.ConnectionStateInitial)
 	s := newStream(shared, state, config.Bookmarks)
 	stopped := make(chan struct{})
 	go s.run(stopped)
@@ -227,7 +227,7 @@ func (t *HTTPTransport) TrackReply(correlationID string, channels ...bus.Channel
 	return t.shared.router.Track(correlationID, channels)
 }
 
-func (t *HTTPTransport) State() Watched[ConnectionState] { return t.state.Reading() }
+func (t *HTTPTransport) State() Watched[api.ConnectionState] { return t.state.Reading() }
 
 // Failures tells told each failure the transport meets from now on: what a
 // server refused, and what the gateway never answered, each before it is

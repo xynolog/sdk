@@ -3,15 +3,6 @@
 
 type t
 
-type state =
-  | Initial
-  | Connecting
-  | Open
-  | Reconnecting
-  | Degraded
-  | Unauthenticated
-  | Closed
-
 type scope = {
   resource : Identifiers.Resource_id.t;
   channels : Bus_registry.packed_channel list;
@@ -81,8 +72,8 @@ val hold_scope : t -> scope -> unit -> unit
 (** Hold the listed channels on a resource. The returned function releases that
     hold once. A replacement opens before the current stream is retired. *)
 
-val state : t -> state
-val await_state_change : t -> from:state -> state
+val state : t -> Enums.Connection_state.t
+val await_state_change : t -> from:Enums.Connection_state.t -> Enums.Connection_state.t
 val close : t -> unit
 val await_closed : t -> unit
 

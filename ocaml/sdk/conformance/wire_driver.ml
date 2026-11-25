@@ -40,14 +40,7 @@ let resource_of_name value =
   | Ok value -> value
   | Error _ -> raise (Misuse "invalid resource ID")
 
-let state = function
-  | S.Initial -> "initial"
-  | S.Connecting -> "connecting"
-  | S.Open -> "open"
-  | S.Reconnecting -> "reconnecting"
-  | S.Degraded -> "degraded"
-  | S.Unauthenticated -> "unauthenticated"
-  | S.Closed -> "closed"
+let state = Xynolog.Enums.Connection_state.to_string
 
 let error ?status code =
   let fields = [ ("code", text code); ("detail", text code) ] in
@@ -360,9 +353,9 @@ let run mode env =
         let rec report previous =
           let current = S.await_state_change subscription ~from:previous in
           output_json (`Assoc [ ("state", text (state current)) ]);
-          if current <> S.Closed then report current
+          if current <> Xynolog.Enums.Connection_state.Closed then report current
         in
-        report S.Initial;
+        report Xynolog.Enums.Connection_state.Initial;
         `Stop_daemon)
   in
   let emit client ?scope ?correlation_id channel payload =

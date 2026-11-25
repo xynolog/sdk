@@ -60,6 +60,7 @@ import {
   refusalBody,
   retryableUnlessRefused,
 } from './api-error';
+import { CONNECTION_STATE_MOVES } from './connection-state-moves';
 import { MALFORMED } from './declared-body';
 import { fetchOf } from './fetch-of';
 import type { TokenRefresher } from './http-transport';
@@ -275,22 +276,6 @@ export interface ActorStateUnit
 const SUBSCRIBE = gatewayRoutes.subscribeToBus;
 const EMIT = gatewayRoutes.emitOnBus;
 
-/** Allowed transitions in the connection state machine. */
-const ALLOWED_TRANSITIONS: Record<
-  ConnectionState,
-  ReadonlyArray<ConnectionState>
-> = {
-  initial: ['connecting', 'unauthenticated', 'closed'],
-  connecting: ['open', 'reconnecting', 'unauthenticated', 'closed'],
-  open: ['reconnecting', 'closed'],
-  reconnecting: ['connecting', 'degraded', 'unauthenticated', 'closed'],
-  degraded: ['connecting', 'unauthenticated', 'closed'],
-  // Leaving `unauthenticated` takes a usable credential (the gate saw a
-  // different, non-empty token) → straight to `connecting`; or teardown.
-  unauthenticated: ['connecting', 'closed'],
-  closed: [],
-};
-
 export function createActorStateUnit(
   options: ActorStateUnitOptions,
 ): ActorStateUnit {
@@ -354,14 +339,14 @@ export function createActorStateUnit(
    * that takes down the host process. A bad edge means a bug in the
    * reconnect loop, but degrading gracefully (keep the current state, warn)
    * is strictly better than killing a long-running job. The permitted edges
-   * are in `ALLOWED_TRANSITIONS`.
+   * are in `CONNECTION_STATE_MOVES`.
    *
    * Side effect: manages the `degraded` timer. Enters on
    * `reconnecting`, cleared on exit.
    */
   const transition = (next: ConnectionState): void => {
     if (currentState === next) return;
-    const allowed = ALLOWED_TRANSITIONS[currentState];
+    const allowed = CONNECTION_STATE_MOVES[currentState];
     if (!allowed.includes(next)) {
       console.warn(
         `[actor] ignoring invalid connection state transition: ${currentState} → ${next}`,

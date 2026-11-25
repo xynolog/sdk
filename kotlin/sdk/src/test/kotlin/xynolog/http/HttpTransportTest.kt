@@ -16,7 +16,7 @@ import xynolog.errors.TransportError
 import xynolog.errors.XynologError
 import xynolog.identifiers.ResourceId
 import xynolog.retry.RetryPolicy
-import xynolog.transport.ConnectionState
+import xynolog.types.ConnectionState
 import java.io.IOException
 import java.net.InetAddress
 import java.net.ServerSocket

@@ -350,7 +350,7 @@ func unansweredStream(t *testing.T, _ clockGiven) clockSubject {
 func degradedStream(t *testing.T, given clockGiven) clockSubject {
 	gateway := newFakeGateway(t, streamRefused, given.RetryAfterSeconds, nil)
 	transport := gateway.transport(t)
-	return clockSubject{counted: tallied(t, transport.State(), func(state xynolog.ConnectionState) bool { return state == xynolog.ConnectionStateDegraded })}
+	return clockSubject{counted: tallied(t, transport.State(), func(state api.ConnectionState) bool { return state == api.ConnectionStateDegraded })}
 }
 
 func scopeTaken(t *testing.T, _ clockGiven) clockSubject {
@@ -368,7 +368,7 @@ func scopeLetGo(t *testing.T, _ clockGiven) clockSubject {
 	gateway := newFakeGateway(t, streamHeld, nil, nil)
 	transport := gateway.transport(t)
 	synctest.Wait()
-	if state := transport.State().Value(); state != xynolog.ConnectionStateOpen {
+	if state := transport.State().Value(); state != api.ConnectionStateOpen {
 		t.Fatalf("the stream is %s, not open", state)
 	}
 	release := transport.SubscribeToResource(resourceOf(t, "res-1"))

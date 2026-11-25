@@ -1022,13 +1022,6 @@ public sealed partial class TransportTests
         }
     }
 
-    [Fact]
-    public void ConnectionStatesAreTheSuitesStatesButItsInitialOne()
-    {
-        var suite = Enum.GetNames<ConformanceStepStateState>().Except([nameof(ConformanceStepStateState.Initial)]);
-        Assert.Equal(suite.Order(StringComparer.Ordinal), Enum.GetNames<ConnectionState>().Order(StringComparer.Ordinal));
-    }
-
     [Theory]
     [InlineData("emitRetry")]
     [InlineData("refreshRetry")]

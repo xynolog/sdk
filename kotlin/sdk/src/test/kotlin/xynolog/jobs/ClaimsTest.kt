@@ -45,9 +45,9 @@ import xynolog.telemetry.callersTrace
 import xynolog.testing.Deliver
 import xynolog.testing.DropReply
 import xynolog.testing.FaultAction
-import xynolog.transport.ConnectionState
 import xynolog.types.Annotation
 import xynolog.types.ClaimOptions
+import xynolog.types.ConnectionState
 import xynolog.types.DurabilityEvidence
 import xynolog.types.Engine
 import xynolog.types.EngineProvider

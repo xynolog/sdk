@@ -515,7 +515,7 @@ let subscription_replay () =
           B.Operations.mark_archive ~send:(fun () -> Promise.resolve send ()))
   in
   Promise.await waiting;
-  check "drop leaves open" true (S.state subscription = S.Reconnecting);
+  check "drop leaves open" true (S.state subscription = Xynolog.Enums.Connection_state.Reconnecting);
   let before = Mtime.of_uint64_ns (Int64.pred retry_at) in
   let barrier =
     Fiber.fork_promise ~sw (fun () -> Eio.Time.Mono.sleep_until base before)
@@ -553,7 +553,7 @@ let subscription_replay () =
   S.await_closed subscription;
   check "close ends a pending request" true
     (Promise.await_exn outstanding = Error S.Transport_closed);
-  check "close is terminal" true (S.state subscription = S.Closed);
+  check "close is terminal" true (S.state subscription = Xynolog.Enums.Connection_state.Closed);
   Promise.resolve release_peer ();
   Promise.await_exn server
 
@@ -662,7 +662,7 @@ let scope_handoff () =
   check "remaining hold is included" true (List.length replacement.scoped = 1);
   publish original "while-opening";
   read "while-opening";
-  check "handoff stays open" true (S.state subscription = S.Open);
+  check "handoff stays open" true (S.state subscription = Xynolog.Enums.Connection_state.Open);
   Promise.resolve open_successor ();
   let retire_at = Int64.add handoff_at (nanos Subscription_timing.linger_ms) in
   await_timer retire_at;

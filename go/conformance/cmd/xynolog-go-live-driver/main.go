@@ -278,7 +278,7 @@ type live struct {
 	// observers is what stops each observer, by the name the suite gave it.
 	observers map[string]context.CancelFunc
 	// reported is the state last reported.
-	reported xynolog.ConnectionState
+	reported api.ConnectionState
 	// reporters is what reports what the client observes.
 	reporters sync.WaitGroup
 }
@@ -298,7 +298,7 @@ func (l *live) opened() (*xynolog.Client, error) {
 
 // report reports the state the transport is in, unless it is the one last
 // reported.
-func (l *live) report(state xynolog.ConnectionState) {
+func (l *live) report(state api.ConnectionState) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.reported != state {
@@ -429,7 +429,7 @@ func (l *live) open(args protocol.Arguments) error {
 		defer l.reporters.Done()
 		for state := range transport.State().Changes(context.Background()) {
 			l.report(state)
-			if state == xynolog.ConnectionStateClosed {
+			if state == api.ConnectionStateClosed {
 				return
 			}
 		}

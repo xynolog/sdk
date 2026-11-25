@@ -24,19 +24,8 @@ public struct BusRequestError: Error, Sendable, CustomStringConvertible {
     self.description = message
   }
 }
-public enum ConnectionState: String, Sendable, CaseIterable {
-  case initial, connecting, open, reconnecting, degraded, unauthenticated, closed
-  func mayBecome(_ next: Self) -> Bool {
-    switch self {
-    case .initial: [.connecting, .unauthenticated, .closed].contains(next)
-    case .connecting: [.open, .reconnecting, .unauthenticated, .closed].contains(next)
-    case .open: [.reconnecting, .closed].contains(next)
-    case .reconnecting: [.connecting, .degraded, .unauthenticated, .closed].contains(next)
-    case .degraded: [.connecting, .unauthenticated, .closed].contains(next)
-    case .unauthenticated: [.connecting, .closed].contains(next)
-    case .closed: false
-    }
-  }
+extension ConnectionState {
+  func mayBecome(_ next: Self) -> Bool { connectionStateMoves[self]!.contains(next) }
 }
 
 /// The four retry rules of `retryRules`, each asked whether it retries an answer: its status, or

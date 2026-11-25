@@ -496,8 +496,8 @@ let real_delivery () =
   let bus = Client.subscription client in
   let rec await_open () =
     match Subscription.state bus with
-    | Open -> ()
-    | Closed -> failwith "test bus closed"
+    | Xynolog.Enums.Connection_state.Open -> ()
+    | Xynolog.Enums.Connection_state.Closed -> failwith "test bus closed"
     | from ->
         ignore (Subscription.await_state_change bus ~from);
         await_open ()

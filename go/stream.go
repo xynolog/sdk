@@ -138,7 +138,7 @@ type retry struct {
 
 type stream struct {
 	shared   *transportShared
-	state    *Variable[ConnectionState]
+	state    *Variable[api.ConnectionState]
 	commands chan command
 	events   chan streamEvent
 	// ctx is cancelled when the stream closes; every goroutine it starts ends
@@ -189,7 +189,7 @@ type stream struct {
 	degradedAt *time.Time
 }
 
-func newStream(shared *transportShared, state *Variable[ConnectionState], bookmarks Bookmarks) *stream {
+func newStream(shared *transportShared, state *Variable[api.ConnectionState], bookmarks Bookmarks) *stream {
 	ctx, cancel := context.WithCancel(context.Background())
 	watermarks := map[api.ResourceId]string{}
 	if bookmarks != nil {
@@ -210,7 +210,7 @@ func newStream(shared *transportShared, state *Variable[ConnectionState], bookma
 	}
 }
 
-func (s *stream) transition(next ConnectionState) {
+func (s *stream) transition(next api.ConnectionState) {
 	current := s.state.Value()
 	if current == next || !allowed(current, next) {
 		return
@@ -218,7 +218,7 @@ func (s *stream) transition(next ConnectionState) {
 	// A stream that stays down is degraded once it has been reconnecting for
 	// the threshold: the timer runs while the state is reconnecting.
 	s.degradedAt = nil
-	if next == ConnectionStateReconnecting {
+	if next == api.ConnectionStateReconnecting {
 		at := time.Now().Add(s.shared.timing.DegradedThreshold)
 		s.degradedAt = &at
 	}
@@ -270,7 +270,7 @@ func (s *stream) connect(keepPrevious bool) {
 			// With a stream still live the state stays open: only the change
 			// of subscription is waiting for a credential.
 			if !s.hasLive {
-				s.transition(ConnectionStateUnauthenticated)
+				s.transition(api.ConnectionStateUnauthenticated)
 			}
 			s.awaitingCredential = true
 			s.scheduleRetry(s.shared.timing.Reconnect, keepPrevious)
@@ -293,7 +293,7 @@ func (s *stream) connect(keepPrevious bool) {
 	// Opening beside a live stream is a handoff, and the state stays open.
 	// With none, this is connecting.
 	if !s.hasLive {
-		s.transition(ConnectionStateConnecting)
+		s.transition(api.ConnectionStateConnecting)
 	}
 
 	body := s.subscription()
@@ -385,7 +385,7 @@ func (s *stream) opened(conn uint64) {
 		s.lingering = append(s.lingering, lingering{at: time.Now().Add(s.shared.timing.Linger), conns: retired})
 	}
 	s.live, s.hasLive = conn, true
-	s.transition(ConnectionStateOpen)
+	s.transition(api.ConnectionStateOpen)
 	s.retryAttempt = 0
 	s.refreshBurned = false
 	s.settleConnect(conn, true)
@@ -515,7 +515,7 @@ func (s *stream) refused(conn uint64, err *TransportError) {
 		s.refusedToken = c.token
 		s.retryAttempt = 0
 		if !s.hasLive {
-			s.transition(ConnectionStateUnauthenticated)
+			s.transition(api.ConnectionStateUnauthenticated)
 		}
 		if s.shared.refresher != nil && !s.refreshBurned {
 			s.refreshBurned = true
@@ -564,11 +564,11 @@ func (s *stream) droppedOrFailed(conn uint64, superseded bool, statedWait time.D
 	}
 	// A drop.
 	s.hasLive = false
-	s.transition(ConnectionStateReconnecting)
+	s.transition(api.ConnectionStateReconnecting)
 	if s.hasConnecting {
 		// A handoff's connect is in flight: it is the recovery now, and comes
 		// back through here if it fails.
-		s.transition(ConnectionStateConnecting)
+		s.transition(api.ConnectionStateConnecting)
 		return
 	}
 	s.scheduleRetry(max(s.backoff(), statedWait), false)
@@ -623,7 +623,7 @@ func (s *stream) command(c command) {
 // tries at once.
 func (s *stream) tokenChanged() {
 	if !s.running {
-		if s.state.Value() == ConnectionStateInitial && s.shared.token.Value() != "" {
+		if s.state.Value() == api.ConnectionStateInitial && s.shared.token.Value() != "" {
 			s.running = true
 			s.connect(false)
 		}
@@ -658,8 +658,8 @@ func (s *stream) timers() {
 	due := func(at *time.Time) bool { return at != nil && !at.After(now) }
 	if due(s.degradedAt) {
 		s.degradedAt = nil
-		if s.state.Value() == ConnectionStateReconnecting {
-			s.state.Set(ConnectionStateDegraded)
+		if s.state.Value() == api.ConnectionStateReconnecting {
+			s.state.Set(api.ConnectionStateDegraded)
 		}
 	}
 	var still []lingering
@@ -689,7 +689,7 @@ func (s *stream) timers() {
 // close ends the stream, and returns once every goroutine it started has.
 func (s *stream) close() {
 	s.running = false
-	s.transition(ConnectionStateClosed)
+	s.transition(api.ConnectionStateClosed)
 	s.cancel()
 	clear(s.connections)
 	clear(s.superseded)

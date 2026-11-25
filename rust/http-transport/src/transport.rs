@@ -28,11 +28,8 @@ use xynolog::event_bus::EventBus;
 use xynolog::gateway_http::{self, EMIT_ON_BUS, GET_CURRENT_USER, IDEMPOTENCY_KEY, Method, Route};
 use xynolog::retry::{self, RetryFacts, RetryPolicy, retry_after, retry_with_backoff};
 use xynolog::timing;
-use xynolog::transport::{
-    BoxFuture, ConnectionState, Envelope, Events, FailureListener, FailureStream, Failures,
-    FrameHub, Frames, GatewayOperations, PendingReply, ReplyRouter, ResourceHold, TraceCarrier,
-    Transport, unsubscribed,
-};
+use xynolog::transport::{BoxFuture, Envelope, Events, FailureListener, FailureStream, Failures, FrameHub, Frames, GatewayOperations, PendingReply, ReplyRouter, ResourceHold, TraceCarrier, Transport, unsubscribed};
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     BusEmitAccepted, BusEmitRequest, ErrorResponse, HealthResponse, LimitRefusal, LimitRefusalCode,
     MediaTokenRequest, MediaTokenResponse, ProtectedResourceMetadata, StatusResponse, UserResponse,

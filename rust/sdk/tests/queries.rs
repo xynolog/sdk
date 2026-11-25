@@ -29,7 +29,8 @@ use xynolog::testing::{
     create_test_client,
 };
 use xynolog::timing::SAVE_DEBOUNCE;
-use xynolog::transport::{ConnectionState, Envelope, Frame, STREAM_BACKLOG};
+use xynolog::transport::{Envelope, Frame, STREAM_BACKLOG};
+use xynolog::types::ConnectionState;
 use xynolog::types::BusFrame;
 use xynolog::types::{BrowseResourcesRequest, MatchResourcesResponse, ResourceSearchFilters};
 

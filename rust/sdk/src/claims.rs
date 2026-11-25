@@ -64,7 +64,8 @@ use crate::kept_for_first_reader::KeptForFirstReader;
 use crate::locked;
 use crate::rfc3339::to_the_millisecond;
 use crate::timing::{HELD_JOB_STALL, HELD_JOB_STALL_CHECK, JOB_CLAIM_TIMEOUT, MARK_COMMIT_TIMEOUT};
-use crate::transport::{ConnectionState, Envelope, Events, TraceCarrier, Transport};
+use crate::transport::{Envelope, Events, TraceCarrier, Transport};
+use crate::types::ConnectionState;
 use crate::types::{
     Annotation, AnnotationId, BrowseAnnotationRequest, ClaimOptions, DurabilityEvidence, Engine,
     FailureClass, GatheredContextFocus, GenerationJobParams, JobCancelCommand, JobCancelRequest,

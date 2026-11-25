@@ -25,11 +25,10 @@ internal static class Lines
     internal static ConformanceDriverLine Misuse(long id, Exception error) =>
         new ConformanceDriverLine.Misuse(new() { Id = id, Misuse = error.Message });
 
-    // ConnectionState names the suite's states but its initial one, which TransportTests holds.
     internal static ConformanceDriverLine State(ConnectionState state) =>
         new ConformanceDriverLine.State(new()
         {
-            State = JsonSerializer.SerializeToElement(Enum.Parse<ConformanceStepStateState>(state.ToString())).GetString()
+            State = JsonSerializer.SerializeToElement(state).GetString()
                 ?? throw new InvalidOperationException("A state is null"),
         });
 

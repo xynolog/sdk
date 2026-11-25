@@ -9,7 +9,7 @@ type t = {
     [ `UserResponse ] Models.t option State_value.t
     * [ `UserResponse ] Models.t option State_value.writer;
   stream :
-    Subscription.state State_value.t * Subscription.state State_value.writer;
+    Enums.Connection_state.t State_value.t * Enums.Connection_state.t State_value.writer;
   said : Client.said Kept_for_first_reader.t;
   ready : unit Promise.t * unit Promise.u;
   tasks : State_task.t;
@@ -127,7 +127,7 @@ let make ?(on_auth_failed = ignore) ~id ~kb client =
       in
       let rec stream state =
         State_value.set (snd t.stream) state;
-        if state <> Subscription.Closed then
+        if state <> Enums.Connection_state.Closed then
           stream (Subscription.await_state_change bus ~from:state)
       in
       let initialize () =

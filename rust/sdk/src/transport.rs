@@ -28,6 +28,7 @@ use crate::types::{
     HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, StatusResponse, UploadProgress,
     UploadProgressFinished, UserResponse,
 };
+use crate::types::ConnectionState;
 use crate::types::{AnnotationId, JobId};
 use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema};
 use bytes::Bytes;
@@ -52,41 +53,7 @@ pub const STREAM_BACKLOG: usize = 1024;
 
 // ── The connection ──────────────────────────────────────────────────────
 
-/// Whether the bus can deliver, as a transport reports it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ConnectionState {
-    /// Before the transport has started its stream.
-    Initial,
-    /// A connect is in flight and no stream is live.
-    Connecting,
-    /// A stream is live. Left only when the stream drops: a transport that
-    /// changes what its stream carries without missing anything stays open,
-    /// so `Open` reached again always means something may have been missed.
-    Open,
-    /// The stream dropped, or a connect failed with none live; retrying.
-    Reconnecting,
-    /// Has been reconnecting for longer than `DEGRADED_THRESHOLD`.
-    Degraded,
-    /// Not attempting: there is no credential, or the one there is was
-    /// refused. Ends when a different credential appears.
-    Unauthenticated,
-    /// The transport was closed. Terminal.
-    Closed,
-}
-
-impl ConnectionState {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            ConnectionState::Initial => "initial",
-            ConnectionState::Connecting => "connecting",
-            ConnectionState::Open => "open",
-            ConnectionState::Reconnecting => "reconnecting",
-            ConnectionState::Degraded => "degraded",
-            ConnectionState::Unauthenticated => "unauthenticated",
-            ConnectionState::Closed => "closed",
-        }
-    }
-}
+include!("generated/connection_states.rs");
 
 // ── Frames ──────────────────────────────────────────────────────────────
 

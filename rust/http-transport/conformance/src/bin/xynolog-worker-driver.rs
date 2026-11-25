@@ -25,7 +25,8 @@ use tokio::sync::watch;
 use tokio::task::JoinSet;
 use xynolog::claims::{Claims, HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, JobFailure};
 use xynolog::client::{ClientOptions, XynologClient};
-use xynolog::transport::{ConnectionState, ResourceHold, Transport};
+use xynolog::transport::{ResourceHold, Transport};
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     Annotation, ClaimOptions, ConformanceDriverLine, ConformanceDriverLineClaimed,
     ConformanceDriverLineErrorStream, ConformanceDriverLineRefused, ConformanceDriverLineSignalled,

@@ -23,11 +23,11 @@ import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
 import xynolog.registry.WHOLE_KEY
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
 import xynolog.transport.Place
 import xynolog.types.Annotation
+import xynolog.types.ConnectionState
 import xynolog.types.wireJson
 
 /**

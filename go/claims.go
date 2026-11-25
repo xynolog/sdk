@@ -1075,13 +1075,13 @@ func (c *Claims) cancellation(frame Frame) {
 func (c *Claims) watchTheStream() {
 	first, wasOpen := true, false
 	for state := range c.links.transport.State().Changes(c.life) {
-		open := state == ConnectionStateOpen
+		open := state == api.ConnectionStateOpen
 		if open && (first || !wasOpen) {
 			c.mu.Lock()
 			c.pull()
 			c.mu.Unlock()
 		}
-		if state == ConnectionStateClosed {
+		if state == api.ConnectionStateClosed {
 			c.stop()
 			return
 		}

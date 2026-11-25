@@ -25,11 +25,11 @@ import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
 import xynolog.retry.RetryPolicy
-import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
 import xynolog.transport.PutBinaryRequest
 import xynolog.transport.ResourceHold
+import xynolog.types.ConnectionState
 import xynolog.types.UploadProgressProgress
 import java.util.Base64
 import kotlin.system.exitProcess
@@ -79,7 +79,7 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
             if (reported == state) return
             reported = state
         }
-        Say.line(Say.of("state" to JsonPrimitive(state.wire)))
+        Say.line(Say.of("state" to JsonPrimitive(state.value)))
     }
 
     override suspend fun run(id: Long, op: String, args: JsonObject): JsonElement = when (op) {

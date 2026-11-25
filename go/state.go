@@ -3,56 +3,16 @@ package xynolog
 import (
 	"context"
 	"iter"
+	"slices"
 	"sync"
-)
 
-// ConnectionState is whether the bus can deliver, as a transport reports it
-// (protocol/contract/TRANSPORT-CONTRACT.md § State).
-type ConnectionState string
-
-const (
-	// ConnectionStateInitial is before the transport has started its stream.
-	ConnectionStateInitial ConnectionState = "initial"
-	// ConnectionStateConnecting is a connect in flight with no stream live.
-	ConnectionStateConnecting ConnectionState = "connecting"
-	// ConnectionStateOpen is a stream live. It is left only when the stream
-	// drops: a transport that changes what its stream carries without missing
-	// anything stays open, so open reached again always means something may
-	// have been missed.
-	ConnectionStateOpen ConnectionState = "open"
-	// ConnectionStateReconnecting is a stream that dropped, or a connect that
-	// failed with none live, being tried again.
-	ConnectionStateReconnecting ConnectionState = "reconnecting"
-	// ConnectionStateDegraded is reconnecting for longer than
-	// Timing.DegradedThreshold.
-	ConnectionStateDegraded ConnectionState = "degraded"
-	// ConnectionStateUnauthenticated is not attempting: there is no
-	// credential, or the one there is was refused. It ends when a different
-	// credential appears.
-	ConnectionStateUnauthenticated ConnectionState = "unauthenticated"
-	// ConnectionStateClosed is the transport closed. Terminal.
-	ConnectionStateClosed ConnectionState = "closed"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // allowed reports whether the connection's state may move from one state to
 // another (protocol/contract/TRANSPORT-HTTP.md § Connection lifecycle).
-func allowed(from, to ConnectionState) bool {
-	switch from {
-	case ConnectionStateInitial:
-		return to == ConnectionStateConnecting || to == ConnectionStateUnauthenticated || to == ConnectionStateClosed
-	case ConnectionStateConnecting:
-		return to == ConnectionStateOpen || to == ConnectionStateReconnecting || to == ConnectionStateUnauthenticated || to == ConnectionStateClosed
-	case ConnectionStateOpen:
-		return to == ConnectionStateReconnecting || to == ConnectionStateClosed
-	case ConnectionStateReconnecting:
-		return to == ConnectionStateConnecting || to == ConnectionStateDegraded || to == ConnectionStateUnauthenticated || to == ConnectionStateClosed
-	case ConnectionStateDegraded:
-		return to == ConnectionStateConnecting || to == ConnectionStateUnauthenticated || to == ConnectionStateClosed
-	case ConnectionStateUnauthenticated:
-		return to == ConnectionStateConnecting || to == ConnectionStateClosed
-	default:
-		return false
-	}
+func allowed(from, to api.ConnectionState) bool {
+	return slices.Contains(connectionStateMoves[from], to)
 }
 
 // Watched is what a reader of a changing value holds: its value now, and

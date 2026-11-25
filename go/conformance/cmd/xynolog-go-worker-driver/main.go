@@ -135,7 +135,7 @@ type worker struct {
 	// out.
 	held     *running
 	releases []func()
-	reported xynolog.ConnectionState
+	reported api.ConnectionState
 	// reporters is what says what the worker observes.
 	reporters sync.WaitGroup
 }
@@ -185,7 +185,7 @@ func (w *worker) settling(ctx context.Context) (*running, context.Context, func(
 
 // report says the state the transport is in, unless it is the one last
 // said.
-func (w *worker) report(state xynolog.ConnectionState) {
+func (w *worker) report(state api.ConnectionState) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if w.reported != state {
@@ -277,7 +277,7 @@ func (w *worker) open(args protocol.Arguments) error {
 		defer w.reporters.Done()
 		for state := range transport.State().Changes(context.Background()) {
 			w.report(state)
-			if state == xynolog.ConnectionStateClosed {
+			if state == api.ConnectionStateClosed {
 				return
 			}
 		}

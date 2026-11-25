@@ -30,7 +30,6 @@ import xynolog.identifiers.ResourceId
 import xynolog.identifiers.UserId
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Delivered
 import xynolog.transport.Events
 import xynolog.transport.Frame
@@ -46,6 +45,7 @@ import xynolog.transport.Watched
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.BrowseProfilesRequest
 import xynolog.types.BusPingMessage
+import xynolog.types.ConnectionState
 import xynolog.types.EmptyObject
 import xynolog.types.FrameAddEntityTypeCommand
 import xynolog.types.FrameRefusalReason

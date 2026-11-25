@@ -32,7 +32,8 @@ use xynolog::gateway_http::{EMIT_ON_BUS, SUBSCRIBE_TO_BUS};
 use xynolog::retry::RetryPolicy;
 use xynolog::testing::as_id;
 use xynolog::testing::liveness::{DeliverySubject, assert_exactly_once_delivery_on};
-use xynolog::transport::{BoxFuture, ConnectionState, ResourceHold, Transport};
+use xynolog::transport::{BoxFuture, ResourceHold, Transport};
+use xynolog::types::ConnectionState;
 use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 
 const CHANNEL: &str = "beckon:focus";

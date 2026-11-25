@@ -1,28 +1,22 @@
-"""The transport contract's own parts, and the request made over them.
+"""The request made over the transport contract's own parts.
 
-The connection's states are stated in the protocol's documents and written
-again here by hand, so a test holds this SDK's to the documents'. The request
-is run against a transport this file scripts, for what no gateway can be made
-to do on cue.
+The request is run against a transport this file scripts, for what no gateway
+can be made to do on cue.
 """
 
 import asyncio
-import re
 from collections.abc import Collection, Mapping
-from typing import get_args
 
 import pytest
 from aio import run, soon
 from pydantic import JsonValue
-from spec import ROOT, SPEC, objects, read, text
+from spec import SPEC, objects, read, text
 
 from xynolog.bus import request
 from xynolog.errors import BusRequestError, TransportError
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
 from xynolog.testing import DropReply, FaultyTransport, RejectEmit
 from xynolog.transport import (
-    CONNECTION_STATE_MAY_BECOME,
-    CONNECTION_STATES,
     ConnectionState,
     Frame,
     FrameRefusal,
@@ -30,27 +24,7 @@ from xynolog.transport import (
     ResourceHold,
 )
 
-PROTOCOL = ROOT / "protocol/contract"
 RESULT, FAILURE = "browse:resource-result", "browse:resource-failed"
-
-
-def test_the_states_are_the_ones_the_contract_states_and_the_type_names_no_other() -> None:
-    contract = (PROTOCOL / "TRANSPORT-CONTRACT.md").read_text(encoding="utf-8")
-    stated = re.search(r"### State\n\n```\n(.+?)\n```", contract, re.DOTALL)
-    assert stated is not None, "the contract no longer states the connection's states where this test reads them"
-    assert tuple(re.findall(r"'([a-z]+)'", stated.group(1))) == CONNECTION_STATES
-    assert get_args(ConnectionState.__value__) == CONNECTION_STATES
-
-
-def test_each_state_may_become_what_the_protocol_says_it_may() -> None:
-    lifecycle = (PROTOCOL / "TRANSPORT-HTTP.md").read_text(encoding="utf-8")
-    stated = re.search(r"```\n(initial +→.+?)\n```", lifecycle, re.DOTALL)
-    assert stated is not None, "the protocol no longer states the transitions where this test reads them"
-    transitions: dict[str, frozenset[str]] = {}
-    for line in stated.group(1).splitlines():
-        state, _, after = line.partition("→")
-        transitions[state.strip()] = frozenset() if "terminal" in after else frozenset(name.strip() for name in after.split("|"))
-    assert transitions == CONNECTION_STATE_MAY_BECOME
 
 
 def frame(channel: str, correlation_id: str | None = None, payload: Mapping[str, JsonValue] | None = None) -> Frame:

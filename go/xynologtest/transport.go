@@ -136,7 +136,7 @@ type FaultyTransport struct {
 
 	hub      *xynolog.FrameHub
 	router   *xynolog.ReplyRouter
-	state    *xynolog.Variable[xynolog.ConnectionState]
+	state    *xynolog.Variable[api.ConnectionState]
 	failures *kept.Telling[*xynolog.TransportError]
 }
 
@@ -150,7 +150,7 @@ func NewFaultyTransport(config FaultyConfig) *FaultyTransport {
 		held:     map[api.ResourceId]int{},
 		hub:      xynolog.NewFrameHub(),
 		router:   xynolog.NewReplyRouter(),
-		state:    xynolog.NewVariable(xynolog.ConnectionStateOpen),
+		state:    xynolog.NewVariable(api.ConnectionStateOpen),
 		failures: kept.NewTelling[*xynolog.TransportError](xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount),
 	}
 }
@@ -184,7 +184,7 @@ func (f *FaultyTransport) Fail(err *xynolog.TransportError) { f.failures.Report(
 
 // SetState changes the connection's state, as a wire would. A closed
 // transport's is closed.
-func (f *FaultyTransport) SetState(state xynolog.ConnectionState) { f.state.Set(state) }
+func (f *FaultyTransport) SetState(state api.ConnectionState) { f.state.Set(state) }
 
 // Counted makes every emit from here on report that the gateway counted n
 // subscribers. Zero is a room nobody is in.
@@ -444,7 +444,7 @@ func (f *FaultyTransport) TrackReply(correlationID string, channels ...bus.Chann
 	return f.router.Track(correlationID, channels)
 }
 
-func (f *FaultyTransport) State() xynolog.Watched[xynolog.ConnectionState] { return f.state.Reading() }
+func (f *FaultyTransport) State() xynolog.Watched[api.ConnectionState] { return f.state.Reading() }
 
 func (f *FaultyTransport) BridgeInto(sink xynolog.FrameSink) { f.hub.Bridge(sink) }
 
@@ -464,7 +464,7 @@ func (f *FaultyTransport) Close() {
 	}
 	f.closed = true
 	f.mu.Unlock()
-	f.state.Set(xynolog.ConnectionStateClosed)
+	f.state.Set(api.ConnectionStateClosed)
 	f.state.End()
 	f.hub.Close()
 	f.router.Close()

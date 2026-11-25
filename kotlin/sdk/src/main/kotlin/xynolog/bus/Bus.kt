@@ -28,7 +28,6 @@ import xynolog.identifiers.ResourceId
 import xynolog.identifiers.UserId
 import xynolog.telemetry.futureOf
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Delivered
 import xynolog.transport.Events
 import xynolog.transport.Frame
@@ -39,6 +38,7 @@ import xynolog.transport.TraceContext
 import xynolog.transport.Transport
 import xynolog.transport.scope
 import xynolog.types.CommandError
+import xynolog.types.ConnectionState
 import xynolog.types.wireJson
 import java.util.UUID
 import java.util.concurrent.CompletableFuture

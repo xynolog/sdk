@@ -49,10 +49,8 @@ use crate::errors::{
     BusRequestError, BusRequestErrorCode, TransportError, TransportErrorCode, XynologError,
 };
 use crate::required::{Fault, fault_of};
-use crate::transport::{
-    ConnectionState, Envelope, Frame, FrameRefusal, Frames, Lagged, ResourceHold, TraceCarrier,
-    Transport,
-};
+use crate::transport::{Envelope, Frame, FrameRefusal, Frames, Lagged, ResourceHold, TraceCarrier, Transport};
+use crate::types::ConnectionState;
 use crate::types::{CommandError, ResourceId};
 use futures_core::Stream;
 use serde::Serialize;

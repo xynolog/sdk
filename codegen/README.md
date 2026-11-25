@@ -151,6 +151,10 @@ writes:
   operation's result and failure channel from `bus/registry.json` then each
   other channel, for every SDK but Haskell, whose `haskell-sdk` group writes
   them from the same resolution.
+- `connection-states`: each state of a client's stream with the states it
+  moves to, from `client/connection-states.json`, over each SDK's generated
+  `ConnectionState`, for the Go, Python, Rust, TypeScript, Kotlin and Swift
+  SDKs; the `haskell-sdk` group writes Haskell's from the same table.
 - `client-types`: the shapes an SDK hands its callers that no wire message
   carries, from `client/types`, and the form a service account posts with a
   client secret, from `session/ClientSecretForm.json`, for the Haskell SDK:

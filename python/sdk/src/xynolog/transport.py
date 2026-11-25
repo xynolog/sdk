@@ -22,12 +22,14 @@ from typing import Final, Literal, Protocol, Self, final
 
 from pydantic import JsonValue
 
+from xynolog._connection_states import CONNECTION_STATE_MAY_BECOME, CONNECTION_STATES
 from xynolog.errors import BusRequestError, XynologError
 from xynolog.events import Broadcast, Events
 from xynolog.identifiers import AnnotationId, JobId, ResourceId
 from xynolog.types import (
     Agent,
     AnchoredTextAnswer,
+    ConnectionState,
     CreateResourceResponse,
     FrameRefusalReason,
     GetAnnotationsResponse,
@@ -64,43 +66,6 @@ __all__ = [
     "UploadProgress",
     "unsubscribed",
 ]
-
-type ConnectionState = Literal["initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"]
-"""Whether the bus can deliver (`protocol/contract/TRANSPORT-HTTP.md` § Connection lifecycle).
-
-- `initial`: before the transport has started its stream.
-- `connecting`: a connect is in flight and no stream is live.
-- `open`: a stream is live. It is left only when the stream drops: a transport
-  that changes what its stream carries without missing anything stays open, so
-  `open` reached again always means something may have been missed.
-- `reconnecting`: the stream dropped, or a connect failed with none live.
-- `degraded`: has been reconnecting for longer than `DEGRADED_THRESHOLD_MS`.
-- `unauthenticated`: not attempting. There is no credential, or the one there
-  is was refused. Ends when a different credential appears.
-- `closed`: the transport was closed. Terminal.
-"""
-
-CONNECTION_STATES: Final[tuple[ConnectionState, ...]] = (
-    "initial",
-    "connecting",
-    "open",
-    "reconnecting",
-    "degraded",
-    "unauthenticated",
-    "closed",
-)
-
-CONNECTION_STATE_MAY_BECOME: Final[Mapping[ConnectionState, frozenset[ConnectionState]]] = {
-    "initial": frozenset({"connecting", "unauthenticated", "closed"}),
-    "connecting": frozenset({"open", "reconnecting", "unauthenticated", "closed"}),
-    "open": frozenset({"reconnecting", "closed"}),
-    "reconnecting": frozenset({"connecting", "degraded", "unauthenticated", "closed"}),
-    "degraded": frozenset({"connecting", "unauthenticated", "closed"}),
-    "unauthenticated": frozenset({"connecting", "closed"}),
-    "closed": frozenset(),
-}
-"""The states each state may be followed by."""
-
 
 @final
 @dataclass(frozen=True, slots=True, kw_only=True)

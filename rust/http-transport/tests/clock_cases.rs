@@ -62,9 +62,8 @@ use xynolog::gateway_http::{
 use xynolog::session::{XynologSession, XynologSessionConfig, kept_in, store_session};
 use xynolog::storage::InMemorySessionStorage;
 use xynolog::testing::{FaultyTransport, TestClientOptions, as_id, create_test_client};
-use xynolog::transport::{
-    BoxFuture, ConnectionState, Envelope, Frame, GatewayOperations, ResourceHold, Transport,
-};
+use xynolog::transport::{BoxFuture, Envelope, Frame, GatewayOperations, ResourceHold, Transport};
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     BusFrame, DiscoveredKB, HighlightingJobParams, HttpEndpoint, HttpEndpointProtocol, JobFilter,
     JobPollOptions, JobProgress, JobStatusResponse, KbTarget, UserResponse,

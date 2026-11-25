@@ -68,23 +68,3 @@ import Testing
   let schema = try Spec.read("components/schemas/ResourceUpload.json").object
   #expect(members == Set(try required(schema, "properties").object.keys))
 }
-@Test func stateGraphFollowsTheProtocolDocument() throws {
-  let document = try String(
-    contentsOf: Spec.repository.appendingPathComponent("protocol/contract/TRANSPORT-HTTP.md"),
-    encoding: .utf8)
-  let rows = document.split(separator: "\n").filter { $0.contains("→") }
-  var covered: Set<String> = []
-  for row in rows {
-    let sides = row.components(separatedBy: "→")
-    guard sides.count == 2,
-      let source = ConnectionState(rawValue: sides[0].trimmingCharacters(in: .whitespaces))
-    else { continue }
-    covered.insert(source.rawValue)
-    let targets = Set(
-      sides[1].split(separator: "|").map { $0.trimmingCharacters(in: .whitespaces) })
-    for destination in ConnectionState.allCases {
-      #expect(source.mayBecome(destination) == targets.contains(destination.rawValue))
-    }
-  }
-  #expect(covered == Set(ConnectionState.allCases.map(\.rawValue)))
-}

@@ -104,7 +104,7 @@ func TestATestSessionHoldsTheTokenItsSignInHeldAndThenTheOneTheTestSets(t *testi
 		test.Client.Close()
 		test.Session.Close()
 		test.Transport.Close()
-		if test.Transport.State().Value() != xynolog.ConnectionStateClosed {
+		if test.Transport.State().Value() != api.ConnectionStateClosed {
 			t.Error("the transport is not closed")
 		}
 	})

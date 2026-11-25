@@ -44,10 +44,10 @@ import xynolog.namespaces.EngineWithLimits
 import xynolog.registry.personKey
 import xynolog.storage.CachePersistence
 import xynolog.storage.MemoryStorage
-import xynolog.transport.ConnectionState
 import xynolog.types.Annotation
 import xynolog.types.AttributedEvent
 import xynolog.types.BrowseResourcesRequest
+import xynolog.types.ConnectionState
 import xynolog.types.EngineEntry
 import xynolog.types.GenerationJobParams
 import xynolog.types.GetReferencedByResponseReferencedByItem
@@ -151,7 +151,7 @@ private class LiveDriver : Driver {
             if (reported == state) return
             reported = state
         }
-        Say.line(Say.of("state" to JsonPrimitive(state.wire)))
+        Say.line(Say.of("state" to JsonPrimitive(state.value)))
     }
 
     override suspend fun run(id: Long, op: String, args: JsonObject): JsonElement = when (op) {

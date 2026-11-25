@@ -36,7 +36,6 @@ import xynolog.identifiers.ResourceId
 import xynolog.storage.CachePersistence
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Content
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
@@ -51,6 +50,7 @@ import xynolog.transport.Transport
 import xynolog.transport.Upload
 import xynolog.transport.Watched
 import xynolog.types.AnchoredTextAnswer
+import xynolog.types.ConnectionState
 import xynolog.types.GetAnnotationsResponse
 import xynolog.types.GetResourceResponse
 import xynolog.types.wireJson

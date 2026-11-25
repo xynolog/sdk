@@ -25,7 +25,6 @@ import xynolog.stamped
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Delivered
 import xynolog.transport.Events
 import xynolog.transport.Frame
@@ -33,6 +32,7 @@ import xynolog.transport.FrameRefusal
 import xynolog.transport.Transport
 import xynolog.transport.Variable
 import xynolog.types.ClaimOptions
+import xynolog.types.ConnectionState
 import xynolog.types.Engine
 import xynolog.types.JobClaimCommand
 import xynolog.types.JobFilter

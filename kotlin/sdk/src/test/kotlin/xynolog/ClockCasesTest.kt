@@ -67,9 +67,9 @@ import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.testing.FaultyTransport
 import xynolog.testing.REFUSE_UNSCRIPTED
 import xynolog.testing.Respond
-import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
 import xynolog.types.ClaimOptions
+import xynolog.types.ConnectionState
 import xynolog.types.DiscoveredKB
 import xynolog.types.HighlightingJobParams
 import xynolog.types.JobFilter

@@ -29,7 +29,6 @@ import xynolog.telemetry.Telemetry
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Events
 import xynolog.transport.FrameSink
 import xynolog.transport.GatewayOperations
@@ -41,6 +40,7 @@ import xynolog.transport.Watched
 import xynolog.transport.unsubscribed
 import xynolog.types.BusEmitAccepted
 import xynolog.types.BusEmitRequest
+import xynolog.types.ConnectionState
 import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenRequest
 import xynolog.types.MediaTokenResponse

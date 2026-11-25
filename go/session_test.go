@@ -1219,7 +1219,7 @@ func TestASessionEndedAloneEndsItsErrors(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("the session's errors stream did not end when the session was closed, its client and its transport still open")
 	}
-	if client.Transport.State().Value() == xynolog.ConnectionStateClosed {
+	if client.Transport.State().Value() == api.ConnectionStateClosed {
 		t.Error("the session closed its client's transport")
 	}
 }

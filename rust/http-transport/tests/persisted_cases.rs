@@ -49,10 +49,8 @@ use xynolog::session::{
 use xynolog::state_unit::StateUnit;
 use xynolog::storage::{SessionStorage, StorageChange, StorageSubscription};
 use xynolog::testing::{FaultyTransport, InMemoryContent, SharedStorage, as_id};
-use xynolog::transport::{
-    BoxFuture, ConnectionState, Envelope, FailureListener, Failures, Frames, PendingReply,
-    ResourceHold, Transport,
-};
+use xynolog::transport::{BoxFuture, Envelope, FailureListener, Failures, Frames, PendingReply, ResourceHold, Transport};
+use xynolog::types::ConnectionState;
 use xynolog::types::StoredSession;
 use xynolog::types::{
     HttpEndpoint, HttpEndpointProtocol, KbEndpoint, KnowledgeBase, LocalEndpoint,

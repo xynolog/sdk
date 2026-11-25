@@ -1,6 +1,7 @@
 package readme
 
 import (
+	"github.com/xynolog/sdk/go/api"
 	"context"
 	"fmt"
 	"net/http"
@@ -29,7 +30,7 @@ func Work(ctx context.Context, gateway, issuer, secret string) error {
 	defer transport.Close()
 	fmt.Println("working as", agent.DID()) // who its work is attributed to: its account, as the gateway names it
 	for state := range transport.State().Changes(ctx) {
-		if state == xynolog.ConnectionStateOpen {
+		if state == api.ConnectionStateOpen {
 			fmt.Println("its stream is open, as the agent")
 			return nil
 		}

@@ -57,7 +57,7 @@ type wire struct {
 	// held is the holds subscribe-resource took, per resource, newest last.
 	held map[string][]func()
 	// reported is the state last reported.
-	reported xynolog.ConnectionState
+	reported api.ConnectionState
 	// reporters is what reports what the client observes; stopReporting ends
 	// the ones that do not end with the transport.
 	reporters     sync.WaitGroup
@@ -83,7 +83,7 @@ func (w *wire) current() (*client, error) {
 
 // report reports the state the transport is in, unless it is the one last
 // reported.
-func (w *wire) report(state xynolog.ConnectionState) {
+func (w *wire) report(state api.ConnectionState) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if w.reported != state {

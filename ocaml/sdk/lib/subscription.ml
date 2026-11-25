@@ -1,14 +1,5 @@
 open Eio.Std
 
-type state =
-  | Initial
-  | Connecting
-  | Open
-  | Reconnecting
-  | Degraded
-  | Unauthenticated
-  | Closed
-
 type scope = {
   resource : Identifiers.Resource_id.t;
   channels : Bus_registry.packed_channel list;
@@ -116,7 +107,7 @@ type t = {
   closing : unit Promise.t;
   close_now : unit Promise.u;
   closed : unit Promise.t;
-  mutable state : state;
+  mutable state : Enums.Connection_state.t;
   mutable changed : unit Promise.t * unit Promise.u;
 }
 
@@ -191,7 +182,7 @@ let set_state t state =
 let state t = t.state
 
 let rec await_state_change t ~from =
-  if t.state <> from || t.state = Closed then t.state
+  if t.state <> from || t.state = Enums.Connection_state.Closed then t.state
   else (
     Promise.await (fst t.changed);
     await_state_change t ~from)
@@ -236,7 +227,7 @@ let hold_scope t scope =
   let changed left right =
     names (scope_channels left) <> names (scope_channels right)
   in
-  if t.state <> Closed && not (Promise.is_resolved t.closing) then (
+  if t.state <> Enums.Connection_state.Closed && not (Promise.is_resolved t.closing) then (
     Hashtbl.replace t.scopes key held;
     if changed add held then schedule_scope_change t ~addition:true);
   fun () ->
@@ -245,7 +236,7 @@ let hold_scope t scope =
     (match remaining with
     | [] -> Hashtbl.remove t.scopes key
     | _ -> Hashtbl.replace t.scopes key remaining);
-    if t.state <> Closed && changed held remaining then
+    if t.state <> Enums.Connection_state.Closed && changed held remaining then
       schedule_scope_change t ~addition:false
 
 let route = function
@@ -435,7 +426,7 @@ let run t =
   in
   let begin_outage () =
     if Option.is_none !recovered then (
-      set_state t Reconnecting;
+      set_state t Enums.Connection_state.Reconnecting;
       let restored, restore = Promise.create () in
       recovered := Some restore;
       let degraded_at = deadline t (float t.timing.degraded_threshold_ms) in
@@ -443,13 +434,13 @@ let run t =
           Fiber.first
             (fun () ->
               Clock.sleep_until t.clock degraded_at;
-              if not (Promise.is_resolved restored) then set_state t Degraded)
+              if not (Promise.is_resolved restored) then set_state t Enums.Connection_state.Degraded)
             (fun () -> Promise.await restored);
           `Stop_daemon))
   in
   let activate stream =
     end_outage ();
-    set_state t Open;
+    set_state t Enums.Connection_state.Open;
     stream.read ()
   in
   let backoff ?(minimum = 0) step =
@@ -467,9 +458,9 @@ let run t =
         serve stream
     | Error No_credential ->
         end_outage ();
-        set_state t Unauthenticated;
+        set_state t Enums.Connection_state.Unauthenticated;
         sleep t (float t.timing.reconnect_ms);
-        set_state t Connecting;
+        set_state t Enums.Connection_state.Connecting;
         connect t.timing.reconnect_ms
     | Error (Retry | Retry_after _) as error ->
         begin_outage ();
@@ -523,7 +514,7 @@ let run t =
                 `Stop_daemon);
             serve candidate)
   in
-  set_state t Connecting;
+  set_state t Enums.Connection_state.Connecting;
   connect t.timing.reconnect_ms
 
 let start ?(timing = default_timing) ?telemetry ?(positions = []) ~sw ~clock
@@ -549,7 +540,7 @@ let start ?(timing = default_timing) ?telemetry ?(positions = []) ~sw ~clock
       closing;
       close_now;
       closed;
-      state = Initial;
+      state = Enums.Connection_state.Initial;
       changed = Promise.create ();
     }
   in
@@ -562,7 +553,7 @@ let start ?(timing = default_timing) ?telemetry ?(positions = []) ~sw ~clock
   Fiber.fork_daemon ~sw (fun () ->
       Fun.protect
         ~finally:(fun () ->
-          set_state t Closed;
+          set_state t Enums.Connection_state.Closed;
           Promise.resolve mark_closed ())
         (fun () ->
           Fiber.first (fun () -> run t) (fun () -> Promise.await closing));
@@ -573,8 +564,8 @@ let rec await_open t =
   if Promise.is_resolved t.closing then Error Transport_closed
   else
     match t.state with
-    | Open -> Ok ()
-    | Closed -> Error Transport_closed
+    | Enums.Connection_state.Open -> Ok ()
+    | Enums.Connection_state.Closed -> Error Transport_closed
     | _ ->
         Promise.await (fst t.changed);
         await_open t
@@ -660,7 +651,7 @@ let request t ?(timeout_ms = t.timing.bus_request_timeout_ms)
               send ();
               Promise.await reply)
   in
-  if t.state = Closed || Promise.is_resolved t.closing then
+  if t.state = Enums.Connection_state.Closed || Promise.is_resolved t.closing then
     Error Transport_closed
   else if not (List.mem result_name globals && List.mem failure_name globals)
   then Error Unsubscribed

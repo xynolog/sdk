@@ -344,7 +344,7 @@ func open(browser *registry.XynologBrowser) []string {
 }
 
 func closed(transport *xynologtest.FaultyTransport) bool {
-	return transport.State().Value() == xynolog.ConnectionStateClosed
+	return transport.State().Value() == api.ConnectionStateClosed
 }
 
 func description(name, domain, branch string) json.RawMessage {

@@ -1,5 +1,6 @@
 using Xynolog.Http;
 using Xynolog.Namespaces;
+using Xynolog.Types;
 
 namespace Xynolog;
 

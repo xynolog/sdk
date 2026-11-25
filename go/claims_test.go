@@ -33,7 +33,7 @@ import (
 type workerWire struct {
 	hub    *FrameHub
 	router *ReplyRouter
-	state  *Variable[ConnectionState]
+	state  *Variable[api.ConnectionState]
 	// channels is what its stream names; nil names every channel.
 	channels []bus.Channel
 	// answer is what a request is answered with: the reply's payload, whether
@@ -57,7 +57,7 @@ type sentFrame struct {
 var _ Transport = (*workerWire)(nil)
 
 func newWorkerWire() *workerWire {
-	return &workerWire{hub: NewFrameHub(), router: NewReplyRouter(), state: NewVariable(ConnectionStateOpen)}
+	return &workerWire{hub: NewFrameHub(), router: NewReplyRouter(), state: NewVariable(api.ConnectionStateOpen)}
 }
 
 func (w *workerWire) BaseURL() string { return "http://worker.test" }
@@ -106,7 +106,7 @@ func (w *workerWire) TrackReply(correlationID string, channels ...bus.Channel) *
 	return w.router.Track(correlationID, channels)
 }
 
-func (w *workerWire) State() Watched[ConnectionState] { return w.state }
+func (w *workerWire) State() Watched[api.ConnectionState] { return w.state }
 
 func (w *workerWire) BridgeInto(sink FrameSink) { w.hub.Bridge(sink) }
 
@@ -114,7 +114,7 @@ func (w *workerWire) Failures(func(*TransportError)) (stop func()) { return func
 
 func (w *workerWire) Close() {
 	w.once.Do(func() {
-		w.state.Set(ConnectionStateClosed)
+		w.state.Set(api.ConnectionStateClosed)
 		w.router.Close()
 		w.hub.Close()
 	})
@@ -620,7 +620,7 @@ func TestARefusedAnnouncementClaimsOnceMoreAfterAClaimInFlightAndNotWhileAJobIsH
 
 func TestClaimsWhenTheStreamOpensAndWhenItOpensAgain(t *testing.T) {
 	w := newClaimWorld(t, DefaultTiming())
-	w.wire.state.Set(ConnectionStateConnecting)
+	w.wire.state.Set(api.ConnectionStateConnecting)
 	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
 	claimsSent := func() int { return len(w.wire.sent(bus.JobClaim.Request().Channel())) }
@@ -632,14 +632,14 @@ func TestClaimsWhenTheStreamOpensAndWhenItOpensAgain(t *testing.T) {
 	if claimsSent() != 0 {
 		t.Fatal("a claim on a closed stream would only be refused here")
 	}
-	w.wire.state.Set(ConnectionStateOpen)
+	w.wire.state.Set(api.ConnectionStateOpen)
 	eventually(t, "the stream opening asks", func() bool { return claimsSent() == 1 })
-	w.wire.state.Set(ConnectionStateReconnecting)
+	w.wire.state.Set(api.ConnectionStateReconnecting)
 	settledFor()
 	if claimsSent() != 1 {
 		t.Fatal("losing the stream claimed")
 	}
-	w.wire.state.Set(ConnectionStateOpen)
+	w.wire.state.Set(api.ConnectionStateOpen)
 	eventually(t, "regaining it asks", func() bool { return claimsSent() == 2 })
 }
 

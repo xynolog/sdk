@@ -20,10 +20,8 @@ use tokio::task::JoinSet;
 use xynolog::bus::{Bus, operation};
 use xynolog::errors::XynologError;
 use xynolog::retry::RetryPolicy;
-use xynolog::transport::{
-    BoxFuture, ConnectionState, ContentTransport, Envelope, GatewayOperations, PutBinaryRequest,
-    ResourceHold, Transport,
-};
+use xynolog::transport::{BoxFuture, ContentTransport, Envelope, GatewayOperations, PutBinaryRequest, ResourceHold, Transport};
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     ConformanceDriverLine, ConformanceDriverLineErrorStream, ConformanceDriverLineFrame,
     ConformanceDriverLineFrameFrame, ConformanceDriverLineProgress,

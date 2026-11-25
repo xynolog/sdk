@@ -375,12 +375,12 @@ func TestB13OnlyAStreamThatLeftOpenAndReturnedHasReopened(t *testing.T) {
 	// Its first opening is no reopening: nothing was missed. What was watched before it waits for it, and asks once.
 	live := watch(t, w.client.Browse.EntityTypes())
 	isPending(t, live.now(t))
-	w.transport.SetState(xynolog.ConnectionStateConnecting)
+	w.transport.SetState(api.ConnectionStateConnecting)
 	time.Sleep(settling)
 	if asked() != 0 {
 		t.Fatalf("asked %d times before the stream opened", asked())
 	}
-	w.transport.SetState(xynolog.ConnectionStateOpen)
+	w.transport.SetState(api.ConnectionStateOpen)
 	if types := valueIn[[]string](t, untilReady(t, live)); !slices.Equal(types, []string{"Person"}) {
 		t.Fatalf("the entity types are %v", types)
 	}
@@ -390,14 +390,14 @@ func TestB13OnlyAStreamThatLeftOpenAndReturnedHasReopened(t *testing.T) {
 	}
 
 	// Down, and a failed attempt to return, and then back: one reopening.
-	for _, state := range []xynolog.ConnectionState{xynolog.ConnectionStateReconnecting, xynolog.ConnectionStateConnecting, xynolog.ConnectionStateReconnecting, xynolog.ConnectionStateConnecting} {
+	for _, state := range []api.ConnectionState{api.ConnectionStateReconnecting, api.ConnectionStateConnecting, api.ConnectionStateReconnecting, api.ConnectionStateConnecting} {
 		w.transport.SetState(state)
 		time.Sleep(settling)
 	}
 	if asked() != 1 {
 		t.Fatalf("asked %d times while the stream was down, want 1", asked())
 	}
-	w.transport.SetState(xynolog.ConnectionStateOpen)
+	w.transport.SetState(api.ConnectionStateOpen)
 	waitUntil(t, "the reopening's refetch", time.Second, func() bool { return asked() == 2 })
 	time.Sleep(settling)
 	if asked() != 2 {

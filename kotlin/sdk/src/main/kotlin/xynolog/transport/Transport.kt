@@ -24,6 +24,7 @@ import xynolog.errors.XynologError
 import xynolog.identifiers.ResourceId
 import xynolog.identifiers.UserId
 import xynolog.telemetry.futureOf
+import xynolog.types.ConnectionState
 import xynolog.types.FrameRefusalReason
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
@@ -217,43 +218,8 @@ internal class Broadcast<T : Any>(private val keptForFirst: Long = 0) {
     }
 }
 
-/** A connection's state: whether the bus can deliver (protocol/contract/TRANSPORT-HTTP.md, Connection lifecycle). */
-public enum class ConnectionState(
-    /** The state as every SDK spells it. */
-    public val wire: String,
-) {
-    /** Before the transport has started its stream. */
-    Initial("initial"),
-
-    /** A connect is in flight and no stream is live. */
-    Connecting("connecting"),
-
-    /** A stream is live. It is left only when the stream drops. */
-    Open("open"),
-
-    /** The stream dropped, or a connect failed with none live. */
-    Reconnecting("reconnecting"),
-
-    /** Has been reconnecting for longer than the degraded threshold. */
-    Degraded("degraded"),
-
-    /** Not attempting: there is no credential, or the one there is was refused. */
-    Unauthenticated("unauthenticated"),
-
-    /** The transport was closed. Terminal. */
-    Closed("closed"),
-    ;
-
-    internal fun mayBecome(next: ConnectionState): Boolean = next in when (this) {
-        Initial -> setOf(Connecting, Unauthenticated, Closed)
-        Connecting -> setOf(Open, Reconnecting, Unauthenticated, Closed)
-        Open -> setOf(Reconnecting, Closed)
-        Reconnecting -> setOf(Connecting, Degraded, Unauthenticated, Closed)
-        Degraded -> setOf(Connecting, Unauthenticated, Closed)
-        Unauthenticated -> setOf(Connecting, Closed)
-        Closed -> emptySet()
-    }
-}
+/** Whether this state may be followed by [next]. */
+internal fun ConnectionState.mayBecome(next: ConnectionState): Boolean = next in CONNECTION_STATE_MOVES.getValue(this)
 
 /** A W3C trace context, as the wire carries one. */
 public data class TraceContext(public val traceparent: String, public val tracestate: String? = null)

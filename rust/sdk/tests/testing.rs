@@ -24,9 +24,8 @@ use xynolog::testing::{
     TestSessionOptions, create_test_client, create_test_session,
 };
 use xynolog::timing::ERRORS_KEPT_FOR_FIRST_READER_COUNT;
-use xynolog::transport::{
-    ConnectionState, Content, ContentTransport, Events, Failures, PutBinaryRequest, Transport,
-};
+use xynolog::transport::{Content, ContentTransport, Events, Failures, PutBinaryRequest, Transport};
+use xynolog::types::ConnectionState;
 use xynolog::types::StoredSession;
 use xynolog::types::{
     AnchoredTextAnswer, GatherResourceOptions, HttpEndpoint, HttpEndpointProtocol, KbEndpoint,

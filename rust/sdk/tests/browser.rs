@@ -36,7 +36,8 @@ use xynolog::testing::{
     FaultyTransport, ScriptedSessions, SharedStorage, TestClientOptions, create_test_client,
 };
 use xynolog::timing::SAVE_DEBOUNCE;
-use xynolog::transport::{BoxFuture, ConnectionState, Events, Transport};
+use xynolog::transport::{BoxFuture, Events, Transport};
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     Expected, KbIdentityConflict, KbReadVerdict, KbReadVerdictConflict, KbReadVerdictNoVerdict,
     KbReadVerdictRecorded, KbSessionStatus, OpenResource, PermissionDenied, SessionEnded, SignedIn,

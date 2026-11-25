@@ -35,7 +35,6 @@ import xynolog.retry.retryAfterMs
 import xynolog.telemetry.Telemetry
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Events
 import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
@@ -43,11 +42,13 @@ import xynolog.transport.FrameSink
 import xynolog.transport.Place
 import xynolog.transport.ReplyRouter
 import xynolog.transport.TraceContext
+import xynolog.transport.mayBecome
 import xynolog.transport.scope
 import xynolog.types.BusEventMessageEvent
 import xynolog.types.BusFrame
 import xynolog.types.BusSubscribeRequest
 import xynolog.types.BusSubscribeRequestScopedItem
+import xynolog.types.ConnectionState
 import xynolog.types.wireJson
 import java.io.IOException
 import java.net.http.HttpClient

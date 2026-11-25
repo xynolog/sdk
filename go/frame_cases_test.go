@@ -210,7 +210,7 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 	defer stopResourceFailures()
 	nextGatherFailure, stopGatherFailures := pulledByType(t, reading, wire, bus.GatherFailed)
 	defer stopGatherFailures()
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 
 	for at, c := range readFrameCases(t) {
 		if c.Refused && c.Read != nil {

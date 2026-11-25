@@ -565,7 +565,7 @@ let run_case ~fixture (row : Units.cases_item) =
       | Bus_destroyed { bus_destroyed } ->
           assert (
             Subscription.state (Client.subscription client)
-            = Subscription.Closed = bus_destroyed))
+            = Xynolog.Enums.Connection_state.Closed = bus_destroyed))
     row.steps;
   List.iter (fun (_, (dispose, _, _)) -> dispose ()) units;
   Client.close client;

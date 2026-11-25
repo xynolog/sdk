@@ -26,8 +26,8 @@ import xynolog.storage.SessionStorage
 import xynolog.testing.FaultyTransport
 import xynolog.testing.ScriptedSessions
 import xynolog.testing.SharedStorage
-import xynolog.transport.ConnectionState
 import xynolog.transport.Watched
+import xynolog.types.ConnectionState
 import xynolog.types.HttpEndpoint
 import xynolog.types.HttpEndpointProtocol
 import xynolog.types.KbRead

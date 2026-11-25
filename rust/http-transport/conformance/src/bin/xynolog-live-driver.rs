@@ -23,7 +23,7 @@ use xynolog::refresh::CacheQuery;
 use xynolog::resume::CoupledBookmarks;
 use xynolog::session::{last_event_id_key, person_key};
 use xynolog::storage::InMemorySessionStorage;
-use xynolog::transport::ConnectionState;
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     AnnotationId, ConformanceDriverLine, ConformanceDriverLineCompleted,
     ConformanceDriverLineEmission, ConformanceDriverLineEmissionEmission,

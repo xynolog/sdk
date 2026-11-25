@@ -24,7 +24,6 @@ import xynolog.identifiers.ResourceId
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Events
 import xynolog.transport.Frame
 import xynolog.transport.FrameSink
@@ -36,6 +35,7 @@ import xynolog.transport.Variable
 import xynolog.transport.Watched
 import xynolog.transport.scope
 import xynolog.transport.unsubscribed
+import xynolog.types.ConnectionState
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 

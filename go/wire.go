@@ -97,11 +97,11 @@ func (w *Wire) result(ctx context.Context, request bus.Channel, payload map[stri
 	// fails at once rather than burning the deadline.
 	open := false
 	for state := range w.transport.State().Changes(waiting) {
-		if state == ConnectionStateOpen {
+		if state == api.ConnectionStateOpen {
 			open = true
 			break
 		}
-		if state == ConnectionStateClosed {
+		if state == api.ConnectionStateClosed {
 			return Frame{}, &BusRequestError{Code: api.BusRequestErrorCodeClosed, Message: fmt.Sprintf("Bus closed before emit on %s", request)}
 		}
 	}

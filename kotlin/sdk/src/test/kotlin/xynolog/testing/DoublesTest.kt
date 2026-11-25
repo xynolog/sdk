@@ -31,10 +31,10 @@ import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Content
 import xynolog.transport.Frame
 import xynolog.transport.PutBinaryRequest
+import xynolog.types.ConnectionState
 import xynolog.types.UploadProgressFinished
 import xynolog.types.UploadProgressProgress
 import xynolog.types.UploadProgressStarted

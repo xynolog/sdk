@@ -180,7 +180,7 @@ func newLiveWorld(t *testing.T, setup liveSetup) *liveWorld {
 	}
 	transport := xynologtest.NewFaultyTransport(config)
 	if setup.opening {
-		transport.SetState(xynolog.ConnectionStateInitial)
+		transport.SetState(api.ConnectionStateInitial)
 	}
 	content := &annotatedContent{InMemoryContent: xynologtest.NewInMemoryContent(), silent: setup.silent}
 	timing := xynolog.DefaultTiming()
@@ -273,9 +273,9 @@ func (w *liveWorld) everyHolderAsked(t *testing.T) {
 // reopen drops the stream and opens it again. The refresher reads only the
 // latest state, so it is given a while to see the drop.
 func (w *liveWorld) reopen() {
-	w.transport.SetState(xynolog.ConnectionStateReconnecting)
+	w.transport.SetState(api.ConnectionStateReconnecting)
 	time.Sleep(settling)
-	w.transport.SetState(xynolog.ConnectionStateOpen)
+	w.transport.SetState(api.ConnectionStateOpen)
 }
 
 // answerRequest answers request as the service that answers its operation

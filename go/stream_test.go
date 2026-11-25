@@ -48,7 +48,7 @@ func TestTheBackoffWaitsBetweenHalfItsCapAndItsCap(t *testing.T) {
 	timing := DefaultTiming()
 	timing.Reconnect = 100 * time.Millisecond
 	timing.MaxReconnect = time.Second
-	s := newStream(&transportShared{timing: timing}, NewVariable(ConnectionStateInitial), nil)
+	s := newStream(&transportShared{timing: timing}, NewVariable(api.ConnectionStateInitial), nil)
 	for attempt, limit := range []time.Duration{100, 200, 400, 800, 1000, 1000} {
 		limit *= time.Millisecond
 		wait := s.backoff()
@@ -211,7 +211,7 @@ func TestAListenerTakenAfterTheFirstConnectWasRefusedStillHearsTheRefusal(t *tes
 	defer transport.Close()
 	// The first connect is refused and the next opens, all before anything
 	// listens to the failures: the refusal is reported while no one listens.
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	if gateway.subscribes() != 2 {
 		t.Fatalf("%d subscribes arrived, want 2", gateway.subscribes())
 	}
@@ -278,7 +278,7 @@ func TestARefusalWhoseBodyNeverEndsIsReportedAtTheRequestDeadline(t *testing.T) 
 		t.Errorf("the refusal is heard as %q, %d (%v)", refused.Message, status, stated)
 	}
 	until(t, "the stream to open on the subscribe after the refused one", func() bool {
-		return transport.State().Value() == ConnectionStateOpen
+		return transport.State().Value() == api.ConnectionStateOpen
 	})
 }
 
@@ -301,7 +301,7 @@ func TestAnOpenTheGatewayNeverAnswersFailsAtItsDeadlineAndIsMadeAgain(t *testing
 	defer transport.Close()
 	started := time.Now()
 	until(t, "the stream to open on the subscribe after the unanswered one", func() bool {
-		return transport.State().Value() == ConnectionStateOpen
+		return transport.State().Value() == api.ConnectionStateOpen
 	})
 	if waited := time.Since(started); waited < timing.StreamOpenTimeout {
 		t.Errorf("the stream opened %v after it started, before the unanswered open's deadline", waited)
@@ -325,7 +325,7 @@ func TestNothingTheTransportStartedOutlivesClose(t *testing.T) {
 		for range frames {
 		}
 	}()
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	// A handoff: a second connection opens beside the first, which lingers.
 	release := transport.SubscribeToResource(mustResource(t, "res-1"))
 	until(t, "the handoff's connect", func() bool { return gateway.subscribes() == 2 })
@@ -337,7 +337,7 @@ func TestNothingTheTransportStartedOutlivesClose(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("a listener's sequence did not end when the transport closed")
 	}
-	if transport.State().Value() != ConnectionStateClosed {
+	if transport.State().Value() != api.ConnectionStateClosed {
 		t.Errorf("the state is %s after Close", transport.State().Value())
 	}
 	httpClient.CloseIdleConnections()
@@ -368,7 +368,7 @@ func TestALineThatNamesNoChannelIsToldToTheFailureReportAndTheStreamGoesOn(t *te
 		}
 	}()
 	defer transport.SubscribeToResource(mustResource(t, "res-1"))()
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	subscribes := func() int {
 		gateway.mu.Lock()
 		defer gateway.mu.Unlock()
@@ -567,7 +567,7 @@ func TestATransportMakesItsStreamItsEmitsItsRequestsAndItsContentWithItsCallersC
 	})
 	defer transport.Close()
 
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	if _, _, err := transport.Emit(context.Background(), bus.BeckonFocus.Channel(), map[string]any{}, Envelope{}); err != nil {
 		t.Fatalf("emit: %v", err)
 	}
@@ -615,7 +615,7 @@ func TestARefusedConnectTellsItsRefresherTheTokenItSent(t *testing.T) {
 	transport, _ := transportTo(gateway.URL, gateway.token, refresher)
 	defer transport.Close()
 
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	if told := refresher.told(); !slices.Equal(told, []string{tokenSent}) {
 		t.Errorf("the refresher was told %q was refused, want [%q], the token the connect sent", told, tokenSent)
 	}

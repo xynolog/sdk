@@ -155,13 +155,13 @@ let listen t =
           (fun () ->
             let rec watch previous seen_open =
               match S.await_state_change bus ~from:previous with
-              | S.Closed -> ()
+              | Enums.Connection_state.Closed -> ()
               | state ->
-                  if seen_open && state = S.Open then wake t;
-                  watch state (seen_open || state = S.Open)
+                  if seen_open && state = Enums.Connection_state.Open then wake t;
+                  watch state (seen_open || state = Enums.Connection_state.Open)
             in
             let state = S.state bus in
-            watch state (state = S.Open));
+            watch state (state = Enums.Connection_state.Open));
         Option.iter (fun release -> release ()) t.release;
         `Stop_daemon))
 

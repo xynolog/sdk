@@ -14,23 +14,6 @@ using Xynolog.Types;
 
 namespace Xynolog.Http;
 
-/// <summary>Where a transport's bus stream stands.</summary>
-public enum ConnectionState
-{
-    /// <summary>Opening the stream for the first time.</summary>
-    Connecting,
-    /// <summary>Open, and delivering frames.</summary>
-    Open,
-    /// <summary>Opening the stream again after it failed.</summary>
-    Reconnecting,
-    /// <summary>Reconnecting for longer than the protocol's degraded threshold.</summary>
-    Degraded,
-    /// <summary>Waiting for a usable credential: there is none, or the gateway refused the one it has.</summary>
-    Unauthenticated,
-    /// <summary>Disposed; nothing opens the stream again.</summary>
-    Closed
-}
-
 public sealed partial class HttpTransport : IDisposable
 {
     private readonly object gate = new();

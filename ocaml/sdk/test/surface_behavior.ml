@@ -113,8 +113,8 @@ let args_payload name args =
 let await_open client =
   let bus = C.subscription client in
   let rec wait = function
-    | Subscription.Open -> ()
-    | Subscription.Closed -> failwith "test subscription closed"
+    | Xynolog.Enums.Connection_state.Open -> ()
+    | Xynolog.Enums.Connection_state.Closed -> failwith "test subscription closed"
     | previous -> wait (Subscription.await_state_change bus ~from:previous)
   in
   wait (Subscription.state bus)

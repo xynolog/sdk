@@ -234,7 +234,7 @@ let controlled () =
           | Clock_cases.Scope_let_go ->
               Fiber.fork_daemon ~sw (fun () ->
                   let rec open_ previous =
-                    if previous = Subscription.Open then ()
+                    if previous = Xynolog.Enums.Connection_state.Open then ()
                     else
                       open_ (Subscription.await_state_change bus ~from:previous)
                   in
@@ -247,10 +247,10 @@ let controlled () =
                     let next =
                       Subscription.await_state_change bus ~from:previous
                     in
-                    if next = Subscription.Degraded then incr count;
-                    if next <> Subscription.Closed then read next
+                    if next = Xynolog.Enums.Connection_state.Degraded then incr count;
+                    if next <> Xynolog.Enums.Connection_state.Closed then read next
                   in
-                  read Subscription.Initial;
+                  read Xynolog.Enums.Connection_state.Initial;
                   `Stop_daemon)
           | _ -> ())
       | ( Clock_cases.Held_job_stall | Clock_cases.Invalidation_window
@@ -940,7 +940,7 @@ let session_unit startup () =
   assert (
     State_value.get (S.token unit) = None
     && State_value.get (S.user unit) = None);
-  assert (Subscription.state (Client.subscription client) <> Subscription.Closed);
+  assert (Subscription.state (Client.subscription client) <> Xynolog.Enums.Connection_state.Closed);
   Client.close client;
   Client.await_closed client
 

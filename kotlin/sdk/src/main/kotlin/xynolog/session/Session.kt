@@ -30,10 +30,10 @@ import xynolog.retry.equalJitter
 import xynolog.signin.SignInKept
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
-import xynolog.transport.ConnectionState
 import xynolog.transport.Events
 import xynolog.transport.Variable
 import xynolog.transport.Watched
+import xynolog.types.ConnectionState
 import xynolog.types.KbTarget
 import xynolog.types.SessionEndReason
 import xynolog.types.StoredSession

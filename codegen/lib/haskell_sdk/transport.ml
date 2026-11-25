@@ -8,8 +8,6 @@ module H = Haskell_syntax
 
 let ( let* ) = Result.bind
 
-module States = Tables.Client_connection_states
-
 type t = {
   states : (string * string list) list;  (** Each state, and where it moves. *)
   carrier : string list;  (** The members a trace carrier holds. *)
@@ -28,12 +26,7 @@ let derive ~user_field (spec : Spec.t) =
   in
   Ok
   {
-    states =
-      List.map
-        (fun (row : States.states_item) ->
-          ( States.connection_state_value row.state,
-            List.map States.connection_state_value row.moves ))
-        spec.tables.client_connection_states.states;
+    states = Connection_states.Table.derive spec;
     carrier;
     trace_field = spec.tables.bus_registry.trace.field;
     user_field;

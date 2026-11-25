@@ -16,7 +16,8 @@ use tokio::sync::{mpsc, watch};
 use tokio_stream::StreamExt;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use xynolog::gateway_http::{EMIT_ON_BUS, SUBSCRIBE_TO_BUS};
-use xynolog::transport::{ConnectionState, Frame, Transport};
+use xynolog::transport::{Frame, Transport};
+use xynolog::types::ConnectionState;
 use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 
 /// The channel the client's stream carries.

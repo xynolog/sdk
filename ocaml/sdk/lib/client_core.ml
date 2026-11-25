@@ -127,17 +127,17 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
   Fiber.fork_daemon ~sw (fun () ->
       let rec monitor previous dropped =
         match Subscription.await_state_change bus ~from:previous with
-        | Subscription.Closed ->
+        | Enums.Connection_state.Closed ->
             flush_cache ();
             Live_query.close cache;
             `Stop_daemon
-        | Subscription.Open ->
+        | Enums.Connection_state.Open ->
             if dropped then
               Live_query.refetch cache ~on:"reopened" ~payload:None;
-            monitor Subscription.Open false
-        | state -> monitor state (dropped || state = Subscription.Reconnecting)
+            monitor Enums.Connection_state.Open false
+        | state -> monitor state (dropped || state = Enums.Connection_state.Reconnecting)
       in
-      monitor Subscription.Initial false);
+      monitor Enums.Connection_state.Initial false);
   {
     sw;
     clock;
@@ -207,7 +207,7 @@ let ask t operation payload =
   with Http_wire.Failed failure -> Error (Http failure)
 
 let publish t ?correlation_id channel payload =
-  if Subscription.state t.bus <> Subscription.Closed then
+  if Subscription.state t.bus <> Enums.Connection_state.Closed then
     t.on_event
       (Ok
          (Wire_stream.Frame
@@ -260,7 +260,7 @@ type unsubscribe = unit -> unit
 
 let on_frame t receive : unsubscribe =
   let handler = ref receive in
-  if Subscription.state t.bus <> Subscription.Closed then
+  if Subscription.state t.bus <> Enums.Connection_state.Closed then
     t.listeners := handler :: !(t.listeners);
   fun () ->
     t.listeners := List.filter (fun other -> other != handler) !(t.listeners)
