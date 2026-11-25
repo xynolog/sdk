@@ -68,7 +68,7 @@ import Xynolog.ErrorCodes qualified as Errors
 import Xynolog.Internal.Generated.ChannelRoundTrip (channelMetadata, operationMetadata, roundTripChannel)
 import Xynolog.Internal.Generated.DiscoveryReasonRoundTrip qualified as DiscoveryReasons
 import Xynolog.Internal.Generated.ErrorRoundTrip (roundTripError)
-import Xynolog.Internal.Generated.RoundTrip (roundTrip)
+import Xynolog.Internal.Generated.RoundTrip (enumerationCases, roundTrip)
 import Xynolog.Internal.Generated.Schemas (schemas)
 import Xynolog.Internal.Generated.ServiceEnvironmentValues (serviceEnvironmentValues)
 import Xynolog.Internal.Generated.TimingValues (timingValues)
@@ -177,17 +177,23 @@ memberNames schema = case at "propertyNames" schema of
       _ -> []
 
 sample :: Int -> Value -> Either String Value
-sample depth schema
+sample = variant 0
+
+-- A value [schema] admits: its required members and the first valid
+-- choice at each place, or, as variant [k] above 0, every optional member
+-- it can sample too and the k-th valid choice at each place.
+variant :: Int -> Int -> Value -> Either String Value
+variant k depth schema
   | depth > 40 = Left "required schema recursion exceeds sample budget"
   | otherwise = do
       let fields = object schema
-          nested = sample (depth + 1)
+          nested = variant k (depth + 1)
           unstatedMember owner = case at "additionalProperties" owner of
             Bool False -> Left "required member is neither stated nor allowed"
             Null -> Right (Bool True)
             definition -> nested definition
           choose candidates = case filter (either (const False) (const True) . validate schemas schema) candidates of
-            value : _ -> Right value
+            valid@(_ : _) -> Right (valid !! (k `mod` length valid))
             [] -> Left ("no valid generated sample for " ++ show schema)
       case KM.lookup "$ref" fields of
         Just (String reference) -> case Map.lookup (T.pack (takeBaseName (T.unpack reference))) schemas of
@@ -229,7 +235,10 @@ sample depth schema
                     (array (at "required" schema))
                 let fewest = case KM.lookup "minProperties" fields of Just (Number n) -> ceiling n; _ -> 0
                     optional = [(key, definition) | (key, definition) <- KM.toList properties, not (any ((== key) . fst) required)]
-                added <- mapM (\(key, definition) -> (,) key <$> nested definition) (take (fewest - length required) optional)
+                added <-
+                  if k > 0
+                    then Right [(key, value) | (key, definition) <- optional, Right value <- [nested definition]]
+                    else mapM (\(key, definition) -> (,) key <$> nested definition) (take (fewest - length required) optional)
                 let stated = required ++ added
                     unstated = [Key.fromText name | name <- memberNames schema, not (any ((== Key.fromText name) . fst) stated)]
                 extra <- mapM (\key -> (,) key <$> unstatedMember schema) (take (fewest - length stated) unstated)
@@ -279,12 +288,24 @@ schemaCases root = do
               given = Object (KM.insert probe extra fields)
           [] -> pure ()
       _ -> pure ()
+    forM_ [1 .. 3] $ \k -> case variant k 0 definition of
+      Right fuller -> expectRoundTrip name fuller
+      Left _ -> pure ()
     case at "enum" definition of
       Array values -> do
         mapM_ (expectRoundTrip name) values
         let unknown candidate = if String candidate `V.elem` values then unknown (candidate <> "_") else candidate
         require (T.unpack name ++ " accepted an unknown enum member") (isLeft (roundTrip name (String (unknown "__haskell_unknown"))))
       _ -> pure ()
+
+-- Every value of every enumeration the models declare is written as
+-- Protocol states it, read back as itself, and, of words, has its word.
+enumerationValueCases :: IO ()
+enumerationValueCases = forM_ enumerationCases $ \(name, wire, written, readBack, word) -> do
+  let label = T.unpack name ++ " " ++ show wire
+  require (label ++ " is written as " ++ show written) (written == wire)
+  require (label ++ " is read back as " ++ show readBack) (readBack == Right wire)
+  require (label ++ " has the word " ++ show word) (maybe True ((== wire) . String) word)
 
 identifierCases :: FilePath -> IO ()
 identifierCases root = do
@@ -593,6 +614,7 @@ runCases root = do
   forM_ ["\n", "\r", "\x2028", "\x2029"] $ \separator ->
     require "ECMAScript dot matched line terminator" (isLeft (validate schemas dot (String ("x" <> separator <> "z"))))
   schemaCases root
+  enumerationValueCases
   specification <- readJSON (root </> "protocol/specs/src/openapi.json")
   forM_ (KM.keys (object (at "schemas" (at "components" specification)))) $ \key -> do
     let name = Key.toText key

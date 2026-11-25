@@ -259,6 +259,7 @@ let files ~root (spec : Spec.t) =
         file ~under:"test"
           (Companions.round_trip_module
              ~banner:(banner "protocol/specs/src")
+             ~enumerations:models.enumerations
              (List.map fst models.definitions));
         file ~under:"src"
           (Http.file

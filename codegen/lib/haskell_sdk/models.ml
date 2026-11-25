@@ -63,6 +63,8 @@ type state = {
   mutable dependencies : Names.t Named.t;
   ids : Decode.ids;  (** Each schema's [$id]: what a reference names. *)
   identifiers : Names.t;
+  mutable enumerations : (string * Schema.literal list) list;
+      (** Every enumeration declared, and its values. *)
   mutable union_members : Names.t;
       (** The types written in place as a union's members. *)
   typing : T.t;
@@ -109,6 +111,22 @@ let depend state component =
         Some (Names.add component (Option.value found ~default:Names.empty)))
       state.dependencies
 
+(* The function that gives each value of the enumeration [name] its word. *)
+let words_of name = lower name ^ "Text"
+
+(* The words of an enumeration of [values] that is one of words, and so has
+   [words_of]. *)
+let words values =
+  let words =
+    List.filter_map
+      (fun (v : Schema.literal) ->
+        match v with
+        | String_literal text -> Some text
+        | Int_literal _ | Bool_literal _ -> None)
+      values
+  in
+  if List.length words = List.length values then Some words else None
+
 let enumeration name values =
   let members =
     List.map
@@ -131,31 +149,26 @@ let enumeration name values =
         members
         (H.Apply (Name "fail", [ Str "unknown enumeration member" ]))
     in
-    let words =
-      List.filter_map
-        (fun (v : Schema.literal) ->
-          match v with String_literal text -> Some text | _ -> None)
-        values
-    in
     let text =
-      if List.length words <> List.length values then []
-      else
-        [
-          H.Value
-            {
-              about = [];
-              name = lower name ^ "Text";
-              type_ = T_fun (T_name name, T_name "Text");
-              clauses =
-                List.map2
-                  (fun constructor word ->
-                    {
-                      H.patterns = [ Constructor (constructor, []) ];
-                      body = Str word;
-                    })
-                  constructors words;
-            };
-        ]
+      match words values with
+      | None -> []
+      | Some words ->
+          [
+            H.Value
+              {
+                about = [];
+                name = words_of name;
+                type_ = T_fun (T_name name, T_name "Text");
+                clauses =
+                  List.map2
+                    (fun constructor word ->
+                      {
+                        H.patterns = [ Constructor (constructor, []) ];
+                        body = Str word;
+                      })
+                    constructors words;
+              };
+          ]
     in
     Ok
       ([
@@ -465,6 +478,7 @@ and declare state name original (form : T.form) =
         when Result.fold ~ok:Deviations.haskell_enumeration
                ~error:(fun _ -> false)
                (normalize state original) ->
+          state.enumerations <- (name, values) :: state.enumerations;
           enumeration name values
       | Union u -> union state name original u
       | Record { members; rest } ->
@@ -627,6 +641,8 @@ type t = {
       (** Every schema a type was made for, those stated in place among them, by
           name. *)
   typing : T.t;
+  enumerations : (string * Schema.literal list) list;
+      (** Every enumeration declared, and its values, by name. *)
 }
 
 let prefix = "Xynolog.Internal.Generated.Models."
@@ -731,6 +747,7 @@ let generate ~banner ~ids ~identifiers definitions =
       dependencies = Named.empty;
       ids;
       identifiers = Names.of_list identifiers;
+      enumerations = [];
       union_members = Names.empty;
       typing;
     }
@@ -794,4 +811,6 @@ let generate ~banner ~ids ~identifiers definitions =
         List.sort String.compare (List.map (fun m -> m.H.name) modules);
       definitions = Named.bindings state.definitions;
       typing;
+      enumerations =
+        List.sort (fun (a, _) (b, _) -> String.compare a b) state.enumerations;
     }
