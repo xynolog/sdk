@@ -55,6 +55,15 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `Agent.sign_in` asks the gateway to name the agent once. A gateway that
+  does not answer, or answers 503 or 401, fails the sign-in at once, after
+  one grant and one `GET /api/users/me`. It no longer asks again after
+  `request_retry_pause_ms`, and no longer renews the token on a 401 to ask
+  again. Starting the sign-in again is the service's, as in the other eight
+  SDKs.
+- `Http_wire.check_user` gives a refusal its status's code (`Not_found` for
+  404, `Unavailable` for 5xx), as every other request does, where every
+  refusal that was not of the credential was `Unavailable`.
 - `Annotations.span_refusal` is `Error_codes.Span_refusal.t`, the
   generated vocabulary, in place of a variant of its own.
 - A member that holds null where its schema does not allow null is refused
