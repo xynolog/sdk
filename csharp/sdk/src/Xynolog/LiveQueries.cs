@@ -11,16 +11,14 @@ internal sealed class LiveQueries : IDisposable
 {
     internal readonly record struct AnnotationKey(ResourceId Resource, AnnotationId Annotation);
 
-    private static readonly JsonDocument Table = JsonDocument.Parse(ProtocolTables.CacheRefresh);
-    internal static readonly IReadOnlyList<string> PersistedQueries = Array.AsReadOnly(Table.RootElement.GetProperty("queries").EnumerateArray()
-        .Where(row => row.TryGetProperty("persisted", out var persisted) && persisted.GetBoolean()).Select(row => Text(row, "name")).ToArray());
-    private static readonly string[] RowMembers = ["on", "stream", "when", "reach", "names", "carries", "refetches", "writes", "removes", "docs"];
-    private static readonly string[] NamedSlots = ["resource", "annotation"];
-    private const string Reopened = "reopened";
-    private const string Unreadable = "unreadable";
+    internal static readonly IReadOnlyList<string> PersistedQueries = Array.AsReadOnly(ProtocolTables.ClientRefresh.Queries
+        .Where(KeptTable.Persisted).Select(KeptTable.Name).ToArray());
+    internal static readonly ILookup<string, ClientRefreshRefreshItemOn> OnChannel = ProtocolTables.ClientRefresh.Refresh
+        .OfType<ClientRefreshRefreshItem.On>().Select(row => row.Value).ToLookup(row => row.On, StringComparer.Ordinal);
+    internal static readonly ILookup<ClientRefreshRefreshItemStreamStream, ClientRefreshRefreshItemStream> OnStream = ProtocolTables.ClientRefresh.Refresh
+        .OfType<ClientRefreshRefreshItem.Stream>().Select(row => row.Value).ToLookup(row => row.Stream);
     private readonly EventBus.Subscription events;
     private readonly Dictionary<string, Query> queries;
-    private readonly ILookup<string, JsonElement> refresh;
     private readonly IRefreshedCache[] caches;
     private readonly LiveCacheStorage? persistence;
     private IReadOnlyList<EngineLimits> reportedLimits = [];
@@ -87,9 +85,8 @@ internal sealed class LiveQueries : IDisposable
             [CacheQuery.Engines] = new((_, _) => Engines.Refresh()),
         };
 
-        refresh = Table.RootElement.GetProperty("refresh").EnumerateArray().ToLookup(Trigger, StringComparer.Ordinal);
         CheckRefresh();
-        var channels = refresh.Select(group => group.Key).Where(BusChannels.Readings.ContainsKey);
+        var channels = OnChannel.Select(group => group.Key).Where(BusChannels.Readings.ContainsKey);
         if (persistence is not null) channels = channels.Concat(BusChannels.Scoped).Distinct(StringComparer.Ordinal);
         events = bus.Listen(channels.ToArray());
         if (persistence is not null)
@@ -192,36 +189,19 @@ internal sealed class LiveQueries : IDisposable
             if (AnnotationMatches(pair.Key, subject)) pair.Value.Remove(onlyIfHeld: true);
     }
 
+    /// <summary>Every query the table names is one of the cache's, and each it writes or removes has a write or a
+    /// removal; LiveCacheTests holds the rest of the table to what the cache reads.</summary>
     private void CheckRefresh()
     {
-        var named = Table.RootElement.GetProperty("queries").EnumerateArray().Select(row => Text(row, "name"));
-        var rows = refresh.SelectMany(group => group).ToArray();
-        var streams = rows.Where(row => row.TryGetProperty("stream", out _)).Select(row => Text(row, "stream"));
-        var channels = rows.Where(row => row.TryGetProperty("on", out _)).Select(row => Text(row, "on"));
-        if (!queries.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(named) ||
-            !streams.ToHashSet(StringComparer.Ordinal).SetEquals([Reopened, Unreadable]) ||
-            !channels.All(BusChannels.Readings.ContainsKey))
+        var refetched = OnChannel.SelectMany(group => group).SelectMany(row => row.Refetches ?? [])
+            .Concat(OnStream.SelectMany(group => group).SelectMany(row => row.Refetches ?? []));
+        var written = OnChannel.SelectMany(group => group).SelectMany(row => row.Writes ?? []);
+        var removed = OnChannel.SelectMany(group => group).SelectMany(row => row.Removes ?? []);
+        if (!queries.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(ProtocolTables.ClientRefresh.Queries.Select(KeptTable.Name)) ||
+            !refetched.All(queries.ContainsKey) ||
+            !written.All(name => queries.TryGetValue(name, out var query) && query.Write is not null) ||
+            !removed.All(name => queries.TryGetValue(name, out var query) && query.Remove is not null))
             throw new InvalidOperationException("The live cache does not cover the refresh table.");
-        foreach (var group in refresh)
-            foreach (var row in group)
-            {
-                foreach (var member in row.EnumerateObject())
-                    if (!RowMembers.Contains(member.Name, StringComparer.Ordinal))
-                        throw new InvalidOperationException("A refresh row states " + member.Name + ", which the live cache does not read.");
-                if (row.TryGetProperty("names", out var names))
-                    foreach (var slot in names.EnumerateObject())
-                        if (!NamedSlots.Contains(slot.Name, StringComparer.Ordinal))
-                            throw new InvalidOperationException("A refresh row names a " + slot.Name + ", which the live cache does not read.");
-                var reach = OptionalText(row, "reach");
-                var when = OptionalText(row, "when");
-                if (reach is not (null or "held") || when is not (null or "enriched" or "unenriched"))
-                    throw new InvalidOperationException("Unknown cache refresh reach or variant.");
-                foreach (var name in Names(row, "refetches")) _ = queries[name];
-                foreach (var name in Names(row, "writes"))
-                    if (queries[name].Write is null) throw new InvalidOperationException("No cache write for " + name);
-                foreach (var name in Names(row, "removes"))
-                    if (queries[name].Remove is null) throw new InvalidOperationException("No cache removal for " + name);
-            }
     }
 
     private async Task ReadEventsAsync()
@@ -235,11 +215,11 @@ internal sealed class LiveQueries : IDisposable
 
     private void Apply(Carried carried)
     {
-        if (!refresh.Contains(carried.Channel)) return;
+        if (!OnChannel.Contains(carried.Channel)) return;
         // A frame that cannot be read could be of anything held.
         if (SubjectOf(carried) is not { } subject)
         {
-            Refresh(Unreadable, new Subject());
+            Refresh(ClientRefreshRefreshItemStreamStream.Unreadable);
             return;
         }
         Refresh(carried.Channel, subject);
@@ -255,23 +235,23 @@ internal sealed class LiveQueries : IDisposable
         {
             var row = RowOf(carried.Channel, payload);
             return new Subject(
-                Resource: MemberAt(payload, Named(row, "resource"))?.Deserialize<ResourceId>(),
-                Annotation: MemberAt(payload, Named(row, "annotation"))?.Deserialize<AnnotationId>(),
-                Written: MemberAt(payload, OptionalText(row, "carries"))?.Deserialize<Annotation>(),
-                When: OptionalText(row, "when"));
+                Resource: MemberAt(payload, row.Names?.Resource)?.Deserialize<ResourceId>(),
+                Annotation: MemberAt(payload, row.Names?.Annotation)?.Deserialize<AnnotationId>(),
+                Written: MemberAt(payload, row.Carries)?.Deserialize<Annotation>(),
+                When: row.When);
         }
         catch (JsonException) { return null; }
     }
 
     /// <summary>A channel's row: of a split channel, the enriched one where the member it carries is present and not
     /// null.</summary>
-    private JsonElement RowOf(string channel, JsonElement payload)
+    private static ClientRefreshRefreshItemOn RowOf(string channel, JsonElement payload)
     {
-        var rows = refresh[channel];
-        if (rows.All(row => OptionalText(row, "when") is null)) return rows.Single();
-        var enriched = rows.Single(row => OptionalText(row, "when") == "enriched");
-        return MemberAt(payload, OptionalText(enriched, "carries")) is null
-            ? rows.Single(row => OptionalText(row, "when") == "unenriched")
+        var rows = OnChannel[channel];
+        if (rows.All(row => row.When is null)) return rows.Single();
+        var enriched = rows.Single(row => row.When == ClientRefreshRefreshItemOnWhen.Enriched);
+        return MemberAt(payload, enriched.Carries) is null
+            ? rows.Single(row => row.When == ClientRefreshRefreshItemOnWhen.Unenriched)
             : enriched;
     }
 
@@ -291,8 +271,6 @@ internal sealed class LiveQueries : IDisposable
         return member.ValueKind == JsonValueKind.Null ? null : member;
     }
 
-    private static string? Named(JsonElement row, string slot) => row.TryGetProperty("names", out var names) ? OptionalText(names, slot) : null;
-
     private async Task ReadReopensAsync(HttpTransport transport)
     {
         var opened = false;
@@ -300,37 +278,28 @@ internal sealed class LiveQueries : IDisposable
         await foreach (var state in transport.States().ConfigureAwait(Spawning.Captures))
         {
             if (state != ConnectionState.Open) { left = opened; continue; }
-            if (left) Refresh(Reopened, new Subject());
+            if (left) Refresh(ClientRefreshRefreshItemStreamStream.Reopened);
             opened = true;
             left = false;
         }
     }
 
-    private void Refresh(string trigger, Subject subject)
+    private void Refresh(string channel, Subject subject)
     {
-        foreach (var row in refresh[trigger])
+        foreach (var row in OnChannel[channel])
         {
-            if (OptionalText(row, "when") != subject.When) continue;
-            foreach (var name in Names(row, "writes")) queries[name].Write?.Invoke(subject);
-            foreach (var name in Names(row, "removes")) queries[name].Remove?.Invoke(subject);
-            foreach (var name in Names(row, "refetches")) queries[name].Refetch(subject, OptionalText(row, "reach") == "held");
+            if (row.When != subject.When) continue;
+            foreach (var name in row.Writes ?? []) queries[name].Write?.Invoke(subject);
+            foreach (var name in row.Removes ?? []) queries[name].Remove?.Invoke(subject);
+            foreach (var name in row.Refetches ?? []) queries[name].Refetch(subject, row.Reach == ClientRefreshRefreshItemOnReach.Held);
         }
     }
 
-    // A row is on a channel, or of what befalls the stream: one, and not both.
-    private static string Trigger(JsonElement row) => (row.TryGetProperty("on", out _), row.TryGetProperty("stream", out _)) switch
+    private void Refresh(ClientRefreshRefreshItemStreamStream befell)
     {
-        (true, false) => Text(row, "on"),
-        (false, true) => Text(row, "stream"),
-        _ => throw new InvalidOperationException("A refresh row is on a channel or of the stream, and not both."),
-    };
-    private static string Text(JsonElement row, string name) =>
-        row.GetProperty(name).GetString() ?? throw new InvalidOperationException("Missing refresh member " + name);
-    private static string? OptionalText(JsonElement row, string name) => row.TryGetProperty(name, out var value) ? value.GetString() : null;
-    private static IEnumerable<string> Names(JsonElement row, string action) =>
-        row.TryGetProperty(action, out var values)
-            ? values.EnumerateArray().Select(value => value.GetString() ?? throw new InvalidOperationException("Missing refresh query."))
-            : [];
+        foreach (var row in OnStream[befell])
+            foreach (var name in row.Refetches ?? []) queries[name].Refetch(new Subject(), row.Reach == ClientRefreshRefreshItemStreamReach.Held);
+    }
 
     public void Dispose()
     {
@@ -339,6 +308,6 @@ internal sealed class LiveQueries : IDisposable
         foreach (var cache in caches) cache.Dispose();
     }
 
-    private sealed record Subject(ResourceId? Resource = null, AnnotationId? Annotation = null, Annotation? Written = null, string? When = null);
+    private sealed record Subject(ResourceId? Resource = null, AnnotationId? Annotation = null, Annotation? Written = null, ClientRefreshRefreshItemOnWhen? When = null);
     private sealed record Query(Action<Subject, bool> Refetch, Action<Subject>? Write = null, Action<Subject>? Remove = null);
 }

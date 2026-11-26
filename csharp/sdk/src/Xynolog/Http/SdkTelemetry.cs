@@ -1,27 +1,28 @@
 using Xynolog.Protocol;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Text.Json;
 using Xynolog.Identifiers;
+using Xynolog.Serialization;
+using Xynolog.Types;
 
 namespace Xynolog.Http;
 
 internal static class SdkTelemetry
 {
-    private static readonly JsonDocument Table = JsonDocument.Parse(ProtocolTables.Telemetry);
+    private static readonly SdkTelemetryTelemetry Table = ProtocolTables.SdkTelemetryTelemetry;
     private static readonly ActivitySource Activities = new("xynolog");
     private static readonly Meter Meter = new("xynolog");
-    private static readonly Dictionary<string, Counter<long>> Counters = Table.RootElement.GetProperty("metrics").EnumerateArray().ToDictionary(
-        row => row.GetProperty("name").GetString() ?? throw new InvalidOperationException("Null metric name"),
-        row => row.GetProperty("instrument").GetString() == "counter"
-            ? Meter.CreateCounter<long>(row.GetProperty("name").GetString() ?? throw new InvalidOperationException("Null metric name"))
+    private static readonly Dictionary<string, Counter<long>> Counters = Table.Metrics.ToDictionary(
+        row => row.Name,
+        row => row.Instrument == SdkTelemetryTelemetryMetricsItemInstrument.Counter
+            ? Meter.CreateCounter<long>(row.Name)
             : throw new InvalidOperationException("Unsupported metric instrument"));
 
     internal static Activity? Start(string name, ActivityTagsCollection attributes, string? channel = null, ActivityContext parent = default)
     {
-        var row = Table.RootElement.GetProperty("spans").EnumerateArray().Single(row => row.GetProperty("name").GetString() == name);
-        Validate(row, attributes);
-        var kind = Enum.Parse<ActivityKind>(row.GetProperty("kind").GetString() ?? throw new InvalidOperationException("Null span kind"), ignoreCase: true);
+        var row = Table.Spans.Single(row => row.Name == name);
+        Validate(row.Attributes.ToDictionary(attribute => attribute.Key, attribute => attribute.Only is not null), attributes);
+        var kind = Enum.Parse<ActivityKind>(WireEnumConverter<SdkTelemetryTelemetrySpansItemKind>.Wire(row.Kind), ignoreCase: true);
         return Activities.StartActivity(name.Replace(TelemetrySpans.Channel, channel ?? "", StringComparison.Ordinal), kind, parent, attributes);
     }
 
@@ -36,20 +37,21 @@ internal static class SdkTelemetry
     {
         const string name = TelemetryMetrics.XynologBusSent;
         var tags = BusTags(channel, scope);
-        Validate(Table.RootElement.GetProperty("metrics").EnumerateArray().Single(row => row.GetProperty("name").GetString() == name), tags);
+        Validate(Table.Metrics.Single(row => row.Name == name).Attributes.ToDictionary(attribute => attribute.Key, attribute => attribute.Only is not null), tags);
         Counters[name].Add(1, tags.ToArray());
     }
 
-    private static void Validate(JsonElement row, ActivityTagsCollection attributes)
+    /// <summary>Holds <paramref name="attributes"/> to the attributes a row states, each by its key and whether it is stated
+    /// only in some case.</summary>
+    private static void Validate(Dictionary<string, bool> stated, ActivityTagsCollection attributes)
     {
-        var stated = row.GetProperty("attributes").EnumerateArray().ToDictionary(attribute => attribute.GetProperty("key").GetString() ?? throw new InvalidOperationException("Null attribute name"));
         foreach (var attribute in attributes)
         {
             if (!stated.ContainsKey(attribute.Key)) throw new InvalidOperationException("Unstated telemetry attribute " + attribute.Key);
         }
-        foreach (var attribute in stated)
+        foreach (var (key, only) in stated)
         {
-            if (!attribute.Value.TryGetProperty("only", out _) && !attributes.Any(tag => tag.Key == attribute.Key)) throw new InvalidOperationException("Missing telemetry attribute " + attribute.Key);
+            if (!only && !attributes.Any(tag => tag.Key == key)) throw new InvalidOperationException("Missing telemetry attribute " + key);
         }
     }
 }

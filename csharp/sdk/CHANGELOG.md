@@ -66,6 +66,11 @@ the coming release's, and gathers its changes as they land.
   Protocol's `client/types/EnginesWithLimits.json`, where it was of
   `Xynolog.EngineWithLimits`: an engine's `Engine` and `Jobs` are its own,
   where they were its `Entry`'s.
+- The SDK reads the refresh table, the media types, the OAuth clients, the
+  sign-in store's owner-only permissions and its telemetry as their
+  generated types (`ClientRefresh`, `MediaTypesRegistry`, `SessionOauth`,
+  `SignInStoreOwnerOnly`, `SdkTelemetryTelemetry`), each held to its schema
+  when first read, where it read their JSON by member name.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `Xynolog.Http.RetryPolicy`:
   `Timing.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes one. It
