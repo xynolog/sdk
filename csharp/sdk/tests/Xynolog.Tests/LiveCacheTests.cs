@@ -150,6 +150,28 @@ public sealed partial class TransportTests
         }
     }
 
+    // A census of client/refresh.json's rows against what the live cache reads of them: a member or a named slot
+    // Protocol adds, a stream event, a channel the bus does not read, or a reach the cache does not know fails it.
+    [Fact]
+    public void TheRefreshTableStatesOnlyWhatTheLiveCacheReads()
+    {
+        string[] rowMembers = ["on", "stream", "when", "reach", "names", "carries", "refetches", "writes", "removes", "docs"];
+        string[] namedSlots = ["resource", "annotation"];
+        Assert.Subset(rowMembers.ToHashSet(StringComparer.Ordinal),
+            WireMembers<ClientRefreshRefreshItemOn>().Concat(WireMembers<ClientRefreshRefreshItemStream>()).ToHashSet(StringComparer.Ordinal));
+        Assert.Subset(namedSlots.ToHashSet(StringComparer.Ordinal), WireMembers<ClientRefreshRefreshItemOnNames>().ToHashSet(StringComparer.Ordinal));
+        Assert.Equal(
+            new HashSet<ClientRefreshRefreshItemStreamStream> { ClientRefreshRefreshItemStreamStream.Reopened, ClientRefreshRefreshItemStreamStream.Unreadable },
+            LiveQueries.OnStream.Select(group => group.Key).ToHashSet());
+        Assert.All(LiveQueries.OnChannel.Select(group => group.Key), channel => Assert.True(BusChannels.Readings.ContainsKey(channel), channel));
+        Assert.All(LiveQueries.OnChannel.SelectMany(group => group), row => Assert.True(row.Reach is null or ClientRefreshRefreshItemOnReach.Held, row.On));
+        Assert.All(LiveQueries.OnStream.SelectMany(group => group), row => Assert.True(row.Reach is null or ClientRefreshRefreshItemStreamReach.Held));
+    }
+
+    private static IEnumerable<string> WireMembers<T>() =>
+        typeof(T).GetProperties().Select(property => property.GetCustomAttribute<Xynolog.Serialization.WireAttribute>()?.Name ??
+            throw new InvalidOperationException(typeof(T).Name + "." + property.Name + " names no wire member."));
+
     // client/refresh.json's `value` owns what each live query's cache holds for a key: the generated type of the
     // component it names, or of the member within one, is the type of the query's values here.
     [Fact]

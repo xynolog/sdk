@@ -184,20 +184,28 @@ internal sealed class WritesWhileNamed(ISignInKept kept, string kbId, Action<Ses
     }
 }
 
-/// <summary>What protocol/specs/src/client/refresh.json says of a kept query.</summary>
+/// <summary>What protocol/specs/src/client/refresh.json says of a query.</summary>
 internal static class KeptTable
 {
-    private static readonly JsonElement Refresh = JsonSerializer.Deserialize<JsonElement>(ProtocolTables.CacheRefresh);
-
-    /// <summary>What client/refresh.json says a query is per: a resource, an annotation, or nothing (null).</summary>
-    internal static string? Per(string query)
+    internal static string Name(ClientRefreshQueriesItem row) => row switch
     {
-        var row = Refresh.GetProperty("queries").EnumerateArray().Single(row => Text(row, "name") == query);
-        return row.TryGetProperty("per", out var per) ? per.GetString() : null;
-    }
+        ClientRefreshQueriesItem.Asks asks => asks.Value.Name,
+        ClientRefreshQueriesItem.Reads reads => reads.Value.Name,
+    };
 
-    private static string Text(JsonElement row, string name) =>
-        row.GetProperty(name).GetString() ?? throw new InvalidOperationException("Missing " + name);
+    internal static bool Persisted(ClientRefreshQueriesItem row) => row switch
+    {
+        ClientRefreshQueriesItem.Asks asks => asks.Value.Persisted is not null,
+        ClientRefreshQueriesItem.Reads reads => reads.Value.Persisted is not null,
+    };
+
+    /// <summary>What client/refresh.json says a query is per: a resource, an annotation, filters, or nothing (null).</summary>
+    internal static string? Per(string query) => ProtocolTables.ClientRefresh.Queries.Single(row => Name(row) == query) switch
+    {
+        ClientRefreshQueriesItem.Asks { Value.Per: { } per } => WireEnumConverter<ClientRefreshQueriesItemAsksPer>.Wire(per),
+        ClientRefreshQueriesItem.Reads { Value.Per: { } per } => WireEnumConverter<ClientRefreshQueriesItemReadsPer>.Wire(per),
+        _ => null,
+    };
 }
 
 /// <summary>How a kept query's key is written in its document, and read back beside its value. Read throws
