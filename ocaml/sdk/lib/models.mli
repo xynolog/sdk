@@ -127,7 +127,6 @@ val client_discovery_absent : [ `ClientDiscoveryAbsent ] descriptor
 val client_refresh : [ `ClientRefresh ] descriptor
 val client_secret_form : [ `ClientSecretForm ] descriptor
 val client_testing : [ `ClientTesting ] descriptor
-val client_timing : [ `ClientTiming ] descriptor
 
 val clone_resource_with_token_response :
   [ `CloneResourceWithTokenResponse ] descriptor
@@ -145,7 +144,6 @@ val connection_identity : [ `ConnectionIdentity ] descriptor
 val content_format : [ `ContentFormat ] descriptor
 val contextual_summary_response : [ `ContextualSummaryResponse ] descriptor
 val control_cli : [ `ControlCli ] descriptor
-val control_methods : [ `ControlMethods ] descriptor
 val create_annotation_request : [ `CreateAnnotationRequest ] descriptor
 val create_from_token_options : [ `CreateFromTokenOptions ] descriptor
 val create_resource_response : [ `CreateResourceResponse ] descriptor

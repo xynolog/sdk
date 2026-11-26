@@ -125,7 +125,6 @@ func roundTripModel(_ name: String, _ value: JSONValue) throws -> JSONValue {
   case "ClientRefresh": return try roundTrip(ClientRefresh.self, value)
   case "ClientSecretForm": return try roundTrip(ClientSecretForm.self, value)
   case "ClientTesting": return try roundTrip(ClientTesting.self, value)
-  case "ClientTiming": return try roundTrip(ClientTiming.self, value)
   case "CloneResourceWithTokenResponse":
     return try roundTrip(CloneResourceWithTokenResponse.self, value)
   case "CommandError": return try roundTrip(CommandError.self, value)
@@ -141,7 +140,6 @@ func roundTripModel(_ name: String, _ value: JSONValue) throws -> JSONValue {
   case "ContentFormat": return try roundTrip(ContentFormat.self, value)
   case "ContextualSummaryResponse": return try roundTrip(ContextualSummaryResponse.self, value)
   case "ControlCli": return try roundTrip(ControlCli.self, value)
-  case "ControlMethods": return try roundTrip(ControlMethods.self, value)
   case "CreateAnnotationRequest": return try roundTrip(CreateAnnotationRequest.self, value)
   case "CreateFromTokenOptions": return try roundTrip(CreateFromTokenOptions.self, value)
   case "CreateResourceResponse": return try roundTrip(CreateResourceResponse.self, value)

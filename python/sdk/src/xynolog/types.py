@@ -182,8 +182,6 @@ __all__ = [
     "ClientTestingRecordsItem",
     "ClientTestingScheduleLength",
     "ClientTestingSlack",
-    "ClientTiming",
-    "ClientTimingTimingItem",
     "CloneResourceWithTokenResponse",
     "CommandError",
     "CommandErrorCode",
@@ -268,10 +266,6 @@ __all__ = [
     "ControlCliCommandsValuePositionalsItem",
     "ControlCliCommandsValuePositionalsItemCliOnly",
     "ControlCliCommandsValuePositionalsItemFields",
-    "ControlMethods",
-    "ControlMethodsMethodsItem",
-    "ControlMethodsNotificationsItem",
-    "ControlMethodsNotificationsItemFrom",
     "CreateAnnotationRequest",
     "CreateFromTokenOptions",
     "CreateResourceResponse",
@@ -3368,31 +3362,6 @@ class ClientTesting(WireModel, frozen=True, extra="forbid"):
     records: Annotated[list[ClientTestingRecordsItem], Field(description="The kit's records.")]
 
 
-class RetryBudget(WireModel, frozen=True, extra="forbid"):
-    """
-    A retry budget: how many `attempts` are allowed, with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`.
-    """
-
-    attempts: Annotated[int, Field(description="How many attempts the budget allows.")]
-    initial_delay_ms: Annotated[int, Field(alias="initialDelayMs", description="The delay before the second attempt, in milliseconds.")]
-    max_delay_ms: Annotated[int, Field(alias="maxDelayMs", description="The longest delay between attempts, in milliseconds.")]
-
-
-class ClientTimingTimingItem(WireModel, frozen=True, extra="forbid"):
-    name: Annotated[str, Field(description="The timing's name: a duration's ends in Ms, a retry budget's in Retry, a count's in Count.")]
-    value: int | RetryBudget
-    docs: Annotated[str, Field(description="What it is, in prose.")]
-
-
-class ClientTiming(WireModel, frozen=True, extra="forbid"):
-    """
-    client/timing.json: the timings every Xynolog client keeps.
-    """
-
-    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
-    timing: Annotated[list[ClientTimingTimingItem], Field(description="Each timing.")]
-
-
 class CloneResourceWithTokenResponse(WireModel, frozen=True):
     token: Annotated[str, Field(description="Generated clone token")]
     expires_at: Annotated[str, Field(alias="expiresAt", description="ISO 8601 timestamp when token expires")]
@@ -4230,39 +4199,6 @@ class ControlCli(WireModel, frozen=True, extra="forbid"):
 
     comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
     commands: Annotated[dict[str, ControlCliCommandsValue], Field(description="Each command, by its name.")]
-
-
-class ControlMethodsMethodsItem(WireModel, frozen=True, extra="forbid"):
-    name: Annotated[str, Field(description="The method's name.")]
-    params: Annotated[str, Field(description="A schema of control/, by its $id.")]
-    result: Annotated[str, Field(description="A schema of control/, by its $id.")]
-    exclusive: Annotated[
-        bool, Field(description="Whether a request waits for every other exclusive request to end, and holds the others off until it does.")
-    ]
-    sends: Annotated[list[str], Field(description="The notifications a request may send besides notifications/progress.")]
-    docs: Annotated[str, Field(description="What the method does.")]
-
-
-type ControlMethodsNotificationsItemFrom = Annotated[Literal["client", "launcher"], Field(description="Which side sends it.")]
-
-
-class ControlMethodsNotificationsItem(WireModel, frozen=True, extra="forbid"):
-    name: Annotated[str, Field(description="A notification's name.")]
-    from_: Annotated[ControlMethodsNotificationsItemFrom, Field(alias="from")]
-    params: Annotated[str, Field(description="A schema of control/, by its $id.")]
-    docs: Annotated[str, Field(description="What it says.")]
-
-
-class ControlMethods(WireModel, frozen=True, extra="forbid"):
-    """
-    control/methods.json: the control API's methods and notifications, and the schemas each names.
-    """
-
-    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
-    api_version: Annotated[str, Field(alias="apiVersion", description="A schema of control/, by its $id.")]
-    error_data: Annotated[str, Field(alias="errorData", description="A schema of control/, by its $id.")]
-    methods: list[ControlMethodsMethodsItem]
-    notifications: list[ControlMethodsNotificationsItem]
 
 
 class CreateAnnotationRequest(WireModel, frozen=True):
@@ -8988,6 +8924,16 @@ class ResourceView(WireModel, frozen=True, extra="forbid"):
             description="The sequence number of the last event applied. A graph read that follows a write waits for the graph projection to reach it.",
         ),
     ]
+
+
+class RetryBudget(WireModel, frozen=True, extra="forbid"):
+    """
+    A retry budget: how many `attempts` are allowed, with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`.
+    """
+
+    attempts: Annotated[int, Field(description="How many attempts the budget allows.")]
+    initial_delay_ms: Annotated[int, Field(alias="initialDelayMs", description="The delay before the second attempt, in milliseconds.")]
+    max_delay_ms: Annotated[int, Field(alias="maxDelayMs", description="The longest delay between attempts, in milliseconds.")]
 
 
 type RootPlacement = Annotated[

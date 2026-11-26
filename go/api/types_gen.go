@@ -3074,60 +3074,6 @@ type ClientTestingSlack struct {
 	Times int `json:"times"`
 }
 
-// ClientTiming client/timing.json: the timings every Xynolog client keeps.
-type ClientTiming struct {
-	// Comment The rule the table states, in prose.
-	Comment string `json:"$comment"`
-	// Timing Each timing.
-	Timing []ClientTimingTimingItem `json:"timing"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ClientTiming) MarshalJSON() ([]byte, error) {
-	type written ClientTiming
-	v.Timing = listOf(v.Timing)
-	return json.Marshal(written(v))
-}
-
-type ClientTimingTimingItem struct {
-	// Name The timing's name: a duration's ends in Ms, a retry budget's in
-	// Retry, a count's in Count.
-	Name  string                      `json:"name"`
-	Value ClientTimingTimingItemValue `json:"value"`
-	// Docs What it is, in prose.
-	Docs string `json:"docs"`
-}
-
-type ClientTimingTimingItemValue struct {
-	union[ClientTimingTimingItemValueMember]
-}
-
-// ClientTimingTimingItemValueMember is a member of
-// ClientTimingTimingItemValue: ClientTimingTimingItemValueInteger,
-// RetryBudget.
-type ClientTimingTimingItemValueMember interface {
-	memberOfClientTimingTimingItemValue()
-}
-
-// Member is the member this value is: the one whose schema admits it.
-func (u ClientTimingTimingItemValue) Member() (any, error) {
-	return u.member("ClientTimingTimingItemValue", clientTimingTimingItemValueMembers)
-}
-
-// clientTimingTimingItemValueMembers is what each member of
-// ClientTimingTimingItemValue admits, and how a value of it is read.
-var clientTimingTimingItemValueMembers = []unionMember{
-	{"ClientTimingTimingItemValueInteger", readAs[ClientTimingTimingItemValueInteger], []signature{{kind: integerKind}}},
-	{"RetryBudget", readAs[RetryBudget], []signature{{kind: objectKind, required: []string{"attempts", "initialDelayMs", "maxDelayMs"}, allowed: []string{"attempts", "initialDelayMs", "maxDelayMs"}}}},
-}
-
-// ClientTimingTimingItemValueInteger is a ClientTimingTimingItemValue that is
-// integer.
-type ClientTimingTimingItemValueInteger int
-
-func (ClientTimingTimingItemValueInteger) memberOfClientTimingTimingItemValue() {}
-
 type CloneResourceWithTokenResponse struct {
 	// Token Generated clone token
 	Token string `json:"token"`
@@ -4580,81 +4526,6 @@ func (v ControlCliCommandsValuePositionalsItemFields) MarshalJSON() ([]byte, err
 	type written ControlCliCommandsValuePositionalsItemFields
 	v.Fields = listOf(v.Fields)
 	return json.Marshal(written(v))
-}
-
-// ControlMethods control/methods.json: the control API's methods and
-// notifications, and the schemas each names.
-type ControlMethods struct {
-	// Comment The rule the table states, in prose.
-	Comment string `json:"$comment"`
-	// ApiVersion A schema of control/, by its $id.
-	ApiVersion string `json:"apiVersion"`
-	// ErrorData A schema of control/, by its $id.
-	ErrorData     string                            `json:"errorData"`
-	Methods       []ControlMethodsMethodsItem       `json:"methods"`
-	Notifications []ControlMethodsNotificationsItem `json:"notifications"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ControlMethods) MarshalJSON() ([]byte, error) {
-	type written ControlMethods
-	v.Methods = listOf(v.Methods)
-	v.Notifications = listOf(v.Notifications)
-	return json.Marshal(written(v))
-}
-
-type ControlMethodsMethodsItem struct {
-	// Name The method's name.
-	Name string `json:"name"`
-	// Params A schema of control/, by its $id.
-	Params string `json:"params"`
-	// Result A schema of control/, by its $id.
-	Result string `json:"result"`
-	// Exclusive Whether a request waits for every other exclusive request to
-	// end, and holds the others off until it does.
-	Exclusive bool `json:"exclusive"`
-	// Sends The notifications a request may send besides notifications/progress.
-	Sends []string `json:"sends"`
-	// Docs What the method does.
-	Docs string `json:"docs"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ControlMethodsMethodsItem) MarshalJSON() ([]byte, error) {
-	type written ControlMethodsMethodsItem
-	v.Sends = listOf(v.Sends)
-	return json.Marshal(written(v))
-}
-
-type ControlMethodsNotificationsItem struct {
-	// Name A notification's name.
-	Name string `json:"name"`
-	// From Which side sends it.
-	From ControlMethodsNotificationsItemFrom `json:"from"`
-	// Params A schema of control/, by its $id.
-	Params string `json:"params"`
-	// Docs What it says.
-	Docs string `json:"docs"`
-}
-
-// ControlMethodsNotificationsItemFrom Which side sends it.
-type ControlMethodsNotificationsItemFrom string
-
-// The values of ControlMethodsNotificationsItemFrom.
-const (
-	ControlMethodsNotificationsItemFromClient   ControlMethodsNotificationsItemFrom = "client"
-	ControlMethodsNotificationsItemFromLauncher ControlMethodsNotificationsItemFrom = "launcher"
-)
-
-// Valid is whether e is one of ControlMethodsNotificationsItemFrom's values.
-func (e ControlMethodsNotificationsItemFrom) Valid() bool {
-	switch e {
-	case ControlMethodsNotificationsItemFromClient, ControlMethodsNotificationsItemFromLauncher:
-		return true
-	}
-	return false
 }
 
 type CreateAnnotationRequest struct {
@@ -12459,8 +12330,6 @@ type RetryBudget struct {
 	// MaxDelayMs The longest delay between attempts, in milliseconds.
 	MaxDelayMs int `json:"maxDelayMs"`
 }
-
-func (RetryBudget) memberOfClientTimingTimingItemValue() {}
 
 // Root One knowledge base this machine knows: a registered or running local
 // clone, or a codespace stack recorded here. Registration, the directory, the

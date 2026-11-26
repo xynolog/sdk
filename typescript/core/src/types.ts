@@ -1168,13 +1168,6 @@ export interface components {
       /** The kit's records. */
       records: ClientTestingRecordsItem[];
     };
-    /** client/timing.json: the timings every Xynolog client keeps. */
-    ClientTiming: {
-      /** The rule the table states, in prose. */
-      $comment: string;
-      /** Each timing. */
-      timing: ClientTimingTimingItem[];
-    };
     CloneResourceWithTokenResponse: {
       /** Generated clone token */
       token: string;
@@ -1433,20 +1426,6 @@ export interface components {
       $comment: string;
       /** Each command, by its name. */
       commands: { [key: string]: ControlCliCommandsValue };
-    };
-    /**
-     * control/methods.json: the control API's methods and notifications, and
-     * the schemas each names.
-     */
-    ControlMethods: {
-      /** The rule the table states, in prose. */
-      $comment: string;
-      /** A schema of control/, by its $id. */
-      apiVersion: string;
-      /** A schema of control/, by its $id. */
-      errorData: string;
-      methods: ControlMethodsMethodsItem[];
-      notifications: ControlMethodsNotificationsItem[];
     };
     CreateAnnotationRequest: {
       motivation: components['schemas']['Motivation'];
@@ -9617,20 +9596,6 @@ export type ClientTestingRecordsItem = {
   members: string[];
 };
 
-export type ClientTimingTimingItem = {
-  /**
-   * The timing's name: a duration's ends in Ms, a retry budget's in Retry, a
-   * count's in Count.
-   */
-  name: string;
-  value: ClientTimingTimingItemValue;
-  /** What it is, in prose. */
-  docs: string;
-};
-
-export type ClientTimingTimingItemValue =
-  number | components['schemas']['RetryBudget'];
-
 /**
  * Machine-readable failure class, for consumers that must BRANCH on why a
  * command failed rather than log it. Optional and deliberately sparse: absent
@@ -10264,38 +10229,6 @@ export type ControlCliCommandsValueFlagsValueCliOnly = {
   /** Why it has no place in the API. */
   cliOnly: string;
 };
-
-export type ControlMethodsMethodsItem = {
-  /** The method's name. */
-  name: string;
-  /** A schema of control/, by its $id. */
-  params: string;
-  /** A schema of control/, by its $id. */
-  result: string;
-  /**
-   * Whether a request waits for every other exclusive request to end, and holds
-   * the others off until it does.
-   */
-  exclusive: boolean;
-  /** The notifications a request may send besides notifications/progress. */
-  sends: string[];
-  /** What the method does. */
-  docs: string;
-};
-
-export type ControlMethodsNotificationsItem = {
-  /** A notification's name. */
-  name: string;
-  /** Which side sends it. */
-  from: ControlMethodsNotificationsItemFrom;
-  /** A schema of control/, by its $id. */
-  params: string;
-  /** What it says. */
-  docs: string;
-};
-
-/** Which side sends it. */
-export type ControlMethodsNotificationsItemFrom = 'client' | 'launcher';
 
 /**
  * Where the stack actually runs. "local": containers on this machine.

@@ -9053,72 +9053,6 @@ module Control_cli_commands_value_flags_value_cli_only = struct
     write [ ("cliOnly", Some (json_string value.cli_only)) ]
 end
 
-module Control_methods_methods_item = struct
-  type t = {
-    name : string;
-    params : string;
-    result : string;
-    exclusive : bool;
-    sends : string list;
-    docs : string;
-  }
-
-  let project fields =
-    let reader = start fields in
-    {
-      name = required reader string "name";
-      params = required reader string "params";
-      result = required reader string "result";
-      exclusive = required reader bool "exclusive";
-      sends = required reader (list string) "sends";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("name", Some (json_string value.name));
-        ("params", Some (json_string value.params));
-        ("result", Some (json_string value.result));
-        ("exclusive", Some (json_bool value.exclusive));
-        ("sends", Some ((json_list json_string) value.sends));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
-module Control_methods_notifications_item = struct
-  module From = struct
-    type t = Client | Launcher
-
-    let to_string = function Client -> "client" | Launcher -> "launcher"
-
-    let of_string = function
-      | "client" -> Some Client
-      | "launcher" -> Some Launcher
-      | _ -> None
-  end
-
-  type t = { name : string; from : From.t; params : string; docs : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      name = required reader string "name";
-      from = required reader (enum From.of_string) "from";
-      params = required reader string "params";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("name", Some (json_string value.name));
-        ("from", Some ((json_enum From.to_string) value.from));
-        ("params", Some (json_string value.params));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
 module Workload_status_ledger = struct
   type t = { claims : int; capacity : int }
 
@@ -11588,53 +11522,6 @@ module Cancelled = struct
     Models.decode Models.cancelled (Yojson.Raw.to_string (to_json value))
 end
 
-module Control_methods = struct
-  type t = {
-    field_comment : string;
-    api_version : string;
-    error_data : string;
-    methods : Control_methods_methods_item.t list;
-    notifications : Control_methods_notifications_item.t list;
-  }
-
-  let project fields =
-    let reader = start fields in
-    {
-      field_comment = required reader string "$comment";
-      api_version = required reader string "apiVersion";
-      error_data = required reader string "errorData";
-      methods =
-        required reader
-          (list (record Control_methods_methods_item.project))
-          "methods";
-      notifications =
-        required reader
-          (list (record Control_methods_notifications_item.project))
-          "notifications";
-    }
-
-  let of_model (model : [ `ControlMethods ] Models.t) =
-    project (fields_of (Models.json model))
-
-  let to_json (value : t) =
-    write
-      [
-        ("$comment", Some (json_string value.field_comment));
-        ("apiVersion", Some (json_string value.api_version));
-        ("errorData", Some (json_string value.error_data));
-        ( "methods",
-          Some ((json_list Control_methods_methods_item.to_json) value.methods)
-        );
-        ( "notifications",
-          Some
-            ((json_list Control_methods_notifications_item.to_json)
-               value.notifications) );
-      ]
-
-  let to_model value =
-    Models.decode Models.control_methods (Yojson.Raw.to_string (to_json value))
-end
-
 module Error_data = struct
   type t = {
     code : string;
@@ -13926,42 +13813,6 @@ module Client_refresh_refresh_item_on = struct
         ("removes", Option.map (json_list json_string) value.removes);
         ("docs", Some (json_string value.docs));
       ]
-end
-
-module Client_timing_timing_item_value = struct
-  type t = Integer of int | RetryBudget of Retry_budget.t
-
-  let members =
-    [
-      [
-        {
-          kind = Integer_kind;
-          required = [];
-          allowed = None;
-          fixed = [];
-          values = None;
-        };
-      ];
-      [
-        {
-          kind = Object_kind;
-          required = [ "attempts"; "initialDelayMs"; "maxDelayMs" ];
-          allowed = Some [ "attempts"; "initialDelayMs"; "maxDelayMs" ];
-          fixed = [];
-          values = None;
-        };
-      ];
-    ]
-
-  let read value =
-    match member members value with
-    | 0 -> Integer (int value)
-    | 1 -> RetryBudget ((record Retry_budget.project) value)
-    | _ -> assert false
-
-  let to_json = function
-    | Integer value -> json_int value
-    | RetryBudget value -> Retry_budget.to_json value
 end
 
 module Conformance_step_observe = struct
@@ -16916,30 +16767,6 @@ module Client_refresh_refresh_item = struct
     | Stream value -> Client_refresh_refresh_item_stream.to_json value
 end
 
-module Client_timing_timing_item = struct
-  type t = {
-    name : string;
-    value : Client_timing_timing_item_value.t;
-    docs : string;
-  }
-
-  let project fields =
-    let reader = start fields in
-    {
-      name = required reader string "name";
-      value = required reader Client_timing_timing_item_value.read "value";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("name", Some (json_string value.name));
-        ("value", Some (Client_timing_timing_item_value.to_json value.value));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
 module Conformance_step_fetches = struct
   type t = { fetches : Conformance_step_fetches_fetches_item.t list }
 
@@ -18933,34 +18760,6 @@ module Client_refresh = struct
 
   let to_model value =
     Models.decode Models.client_refresh (Yojson.Raw.to_string (to_json value))
-end
-
-module Client_timing = struct
-  type t = { field_comment : string; timing : Client_timing_timing_item.t list }
-
-  let project fields =
-    let reader = start fields in
-    {
-      field_comment = required reader string "$comment";
-      timing =
-        required reader
-          (list (record Client_timing_timing_item.project))
-          "timing";
-    }
-
-  let of_model (model : [ `ClientTiming ] Models.t) =
-    project (fields_of (Models.json model))
-
-  let to_json (value : t) =
-    write
-      [
-        ("$comment", Some (json_string value.field_comment));
-        ( "timing",
-          Some ((json_list Client_timing_timing_item.to_json) value.timing) );
-      ]
-
-  let to_model value =
-    Models.decode Models.client_timing (Yojson.Raw.to_string (to_json value))
 end
 
 module Control_cli = struct

@@ -320,7 +320,6 @@ library internal
     Xynolog.Internal.Generated.Models.ClientRefresh
     Xynolog.Internal.Generated.Models.ClientSecretForm
     Xynolog.Internal.Generated.Models.ClientTesting
-    Xynolog.Internal.Generated.Models.ClientTiming
     Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponse
     Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponseBusEnvelope
     Xynolog.Internal.Generated.Models.CommandError
@@ -337,7 +336,6 @@ library internal
     Xynolog.Internal.Generated.Models.ContextualSummaryResponse
     Xynolog.Internal.Generated.Models.ContextualSummaryResponseBusEnvelope
     Xynolog.Internal.Generated.Models.ControlCli
-    Xynolog.Internal.Generated.Models.ControlMethods
     Xynolog.Internal.Generated.Models.CreateAnnotationRequest
     Xynolog.Internal.Generated.Models.CreateFromTokenOptions
     Xynolog.Internal.Generated.Models.CreateResourceResponse

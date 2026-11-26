@@ -4119,59 +4119,6 @@ pub struct ClientTestingSlack {
     pub times: u64,
 }
 
-/// client/timing.json: the timings every Xynolog client keeps.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ClientTiming {
-    /// The rule the table states, in prose.
-    #[serde(rename = "$comment")]
-    pub _comment: String,
-    /// Each timing.
-    pub timing: Vec<ClientTimingTimingItem>,
-}
-
-schema!(ClientTiming);
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ClientTimingTimingItem {
-    /// The timing's name: a duration's ends in Ms, a retry budget's in Retry, a count's in Count.
-    pub name: String,
-    pub value: ClientTimingTimingItemValue,
-    /// What it is, in prose.
-    pub docs: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
-#[serde(untagged)]
-pub enum ClientTimingTimingItemValue {
-    Integer(i64),
-    RetryBudget(RetryBudget),
-}
-
-impl ClientTimingTimingItemValue {
-    /// What each of its members admits, in the order of its variants.
-    pub const MEMBERS: &'static [&'static [Signature]] = &[
-        &[Signature {
-            kind: Kind::Integer,
-            required: &[],
-            allowed: None,
-            fixed: &[],
-            values: None,
-        }],
-        &[Signature {
-            kind: Kind::Object,
-            required: &["attempts", "initialDelayMs", "maxDelayMs"],
-            allowed: Some(&["attempts", "initialDelayMs", "maxDelayMs"]),
-            fixed: &[],
-            values: None,
-        }],
-    ];
-}
-
-union!(ClientTimingTimingItemValue, Integer, RetryBudget);
-member!(ClientTimingTimingItemValue::RetryBudget(RetryBudget));
-
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct CloneResourceWithTokenResponse {
     /// Generated clone token
@@ -6240,76 +6187,6 @@ pub struct ControlCliCommandsValuePositionalsItemFields {
     pub name: String,
     /// The params fields it becomes, each `<method>.<field path>`.
     pub fields: Vec<String>,
-}
-
-/// control/methods.json: the control API's methods and notifications, and the schemas each names.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ControlMethods {
-    /// The rule the table states, in prose.
-    #[serde(rename = "$comment")]
-    pub _comment: String,
-    /// A schema of control/, by its $id.
-    #[serde(rename = "apiVersion")]
-    pub api_version: String,
-    /// A schema of control/, by its $id.
-    #[serde(rename = "errorData")]
-    pub error_data: String,
-    pub methods: Vec<ControlMethodsMethodsItem>,
-    pub notifications: Vec<ControlMethodsNotificationsItem>,
-}
-
-schema!(ControlMethods);
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ControlMethodsMethodsItem {
-    /// The method's name.
-    pub name: String,
-    /// A schema of control/, by its $id.
-    pub params: String,
-    /// A schema of control/, by its $id.
-    pub result: String,
-    /// Whether a request waits for every other exclusive request to end, and holds the others off until it does.
-    pub exclusive: bool,
-    /// The notifications a request may send besides notifications/progress.
-    pub sends: Vec<String>,
-    /// What the method does.
-    pub docs: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ControlMethodsNotificationsItem {
-    /// A notification's name.
-    pub name: String,
-    /// Which side sends it.
-    pub from: ControlMethodsNotificationsItemFrom,
-    /// A schema of control/, by its $id.
-    pub params: String,
-    /// What it says.
-    pub docs: String,
-}
-
-/// Which side sends it.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ControlMethodsNotificationsItemFrom {
-    #[serde(rename = "client")]
-    Client,
-    #[serde(rename = "launcher")]
-    Launcher,
-}
-
-impl ControlMethodsNotificationsItemFrom {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ControlMethodsNotificationsItemFrom::Client => "client",
-            ControlMethodsNotificationsItemFrom::Launcher => "launcher",
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]

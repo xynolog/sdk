@@ -14,7 +14,7 @@ public data class RetryBudget(
     public val initialDelayMs: Long,
     /** The longest delay between attempts, in milliseconds. */
     public val maxDelayMs: Long,
-) : ClientTimingTimingItemValue {
+) {
     /** How Java makes a `RetryBudget`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val attempts: Long,

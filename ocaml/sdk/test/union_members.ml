@@ -729,27 +729,6 @@ let unions =
           };
         ];
       ] );
-    ( "Client_timing_timing_item_value",
-      [
-        [
-          {
-            kind = Integer_kind;
-            required = [];
-            allowed = None;
-            fixed = [];
-            values = None;
-          };
-        ];
-        [
-          {
-            kind = Object_kind;
-            required = [ "attempts"; "initialDelayMs"; "maxDelayMs" ];
-            allowed = Some [ "attempts"; "initialDelayMs"; "maxDelayMs" ];
-            fixed = [];
-            values = None;
-          };
-        ];
-      ] );
     ( "Conformance_step_fetches_fetches_item",
       [
         [
