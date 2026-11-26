@@ -376,8 +376,7 @@ let ocaml (t : t) =
          O.let_ (ocaml_name r.name)
            (O.tuple
               [
-                O.string
-                  (Text.replace_all ~sub:Channel.placeholder ~by:"" r.name);
+                O.string (Channel.left_open r.name);
                 O.construct ("Telemetry." ^ String.capitalize_ascii r.kind);
               ]))
        t.spans
@@ -391,7 +390,7 @@ let ocaml (t : t) =
 let about = "An attribute key a row of the telemetry table lists."
 
 (* A row's name by the words of its name without what stands for the
-   channel, which the name itself keeps, for the caller to put the Channel.placeholder
+   channel, which the name itself keeps, for the caller to put the channel
    in place of. *)
 let row_pascal (r : row) = key_pascal (Channel.without r.name)
 let row_upper (r : row) = key_upper (Channel.without r.name)

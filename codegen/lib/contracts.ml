@@ -304,7 +304,7 @@ let error_codes t (spec : Spec.t) =
   let codes =
     List.concat_map
       (fun (v : E.vocabulary) -> List.map (fun c -> (v, c)) v.codes)
-      ((table.bus :: table.transport :: table.others) @ [ table.control ])
+      (E.vocabularies table)
   in
   kind "error codes" codes
     ~item:(fun (_, (c : E.code)) -> c.code)
