@@ -293,7 +293,7 @@ let check_user t token =
                 code =
                   (if credential_refused status body then
                      Error_codes.Transport.Unauthorized
-                   else Error_codes.Transport.Unavailable);
+                   else Http_facts.status_code status);
                 status = Some status;
                 message = refusal status body;
               })
