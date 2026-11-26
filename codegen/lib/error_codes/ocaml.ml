@@ -128,7 +128,7 @@ let files (t : Table.t) =
             v.codes
         in
         (module_, values))
-      ((t.bus :: t.transport :: t.others) @ [ t.control ])
+      (Table.vocabularies t)
   in
   let modules =
     List.map
