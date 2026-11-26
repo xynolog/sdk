@@ -59,6 +59,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- Two failure vocabularies are named as every SDK names them, from the error
+  codes' shared table: `SpanRefusal`, where it was `SpanRefusalErrorCode`
+  (`SpanRefusedError.reason`), and `IdentityUnverifiableReason`, where it was
+  `KbIdentityErrorCode` (`IdentityUnverifiableError.reason`).
 - `PutBinaryRequest` is the type of Protocol's
   `client/types/PutBinaryRequest.json`, where it was the SDK's own: `Codable`
   and `Hashable` as every generated type is, its four required members `var`s

@@ -336,10 +336,7 @@ let error_codes t (spec : Spec.t) =
       | Swift ->
           declares
             (block
-               ~opening:
-                 ("public enum "
-                 ^ Swift_sdk.Table_decls.error_code_enum v.member
-                 ^ ":")
+               ~opening:("public enum " ^ v.go_name ^ ":")
                ~closing:"\n}" (t.generated swift_models))
             ("case ", " = ")
             (Swift_sdk.Models.enum_case c.code)
