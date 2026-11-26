@@ -1128,7 +1128,9 @@ let files (entries, tabled) =
                                       (O.construct v.constructor
                                          ~arg:(O.ident "value")));
                                  O.call (module_ ^ ".of_json")
-                                   [ O.variant "Assoc" ~arg:(O.ident "members") ];
+                                   [
+                                     O.variant "Assoc" ~arg:(O.ident "members");
+                                   ];
                                ]))
                      variants
                   @ [

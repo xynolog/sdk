@@ -204,7 +204,8 @@ let record_module ~shape name =
     | Named { name = n; _ } -> Ok (H.T_name n)
     | Parameter p -> Ok (H.T_name (String.uncapitalize_ascii p))
     | List held -> Result.map (fun t -> H.T_list t) (type_of held)
-    | _ -> Error [ refusal name "holds no scalar, type, type parameter or list" ]
+    | _ ->
+        Error [ refusal name "holds no scalar, type, type parameter or list" ]
   in
   let* fields =
     Spec.all
@@ -214,8 +215,7 @@ let record_module ~shape name =
            if not m.required then
              Error
                [ refusal name (m.name ^ " is optional, and a record's is not") ]
-           else
-             Result.bind (type_of m.held) field)
+           else Result.bind (type_of m.held) field)
          members)
   in
   let params =
@@ -451,8 +451,9 @@ let report ~shape ~native ~prefix name =
                                         Lambda
                                           ( "stated",
                                             List
-                                              [ pair m encode (H.Name "stated") ]
-                                          );
+                                              [
+                                                pair m encode (H.Name "stated");
+                                              ] );
                                         v;
                                       ] ) ))
                           held

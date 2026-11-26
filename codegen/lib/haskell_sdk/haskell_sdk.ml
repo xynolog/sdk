@@ -18,7 +18,6 @@ module Control = Control
 module H = Haskell_syntax
 
 let ( let* ) = Result.bind
-
 let banner from_ = Banner.lines ~from_ __FILE__
 
 (* The client types the SDK models, as their group states them. *)
