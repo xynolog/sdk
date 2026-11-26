@@ -115,37 +115,38 @@
     "lib/bus_registry.mli": "ecad6838058b809e98ad9cc872bf2c3e519ba8dc744d791b12d06a4c38a67254",
     "lib/bus_reply_bounds.ml": "f2b227aadf8284d8a8060f036e4d159f057d26f7ee21dc97af938c699b53d66c",
     "lib/cache_state.ml": "b270721df6ee9432f61bfa450fb280036a1c1a1f880de8eabed84aec0fab8c5a",
-    "lib/cache_state.mli": "940957912e84b57a1404ea6adceeb35efbc6ecb7cdc3bd28f5c6e98b24ecb13f",
+    "lib/cache_state.mli": "0453793e8b7bcc4873b255d34f12d4f230b7d5bf28b32f571bf3b6dc0cb5067b",
     "lib/claims.ml": "b3588f1c699659d33d1cd067485db060e12b04a63bf039b2f366fcefcbe59c26",
     "lib/claims.mli": "4996e729b6dc400b97b4854e7f00e3b07e8a5a956d67441d2bd6f54d0250cf2d",
     "lib/client.ml": "bd8b8934d2931bd1037c34763287324828ae26e726ecaa832e3e11cbc91340ad",
     "lib/client.mli": "6e08b6b7851820acced98ca320e6ec093455f2d0340828149b2f43e255d30e39",
-    "lib/client_core.ml": "d9bf7f2a8530b6b82b232486615a662b42e6ffafdb030e8b7edc7b9e23afe58f",
-    "lib/client_core.mli": "332f7bb6fde85b3730a125d768d85be422629c6364f34cfc75c11433a086ee74",
-    "lib/client_query.ml": "eb6fc5678015e8e48f296efe403e21795b46005ddec65d042ef9a4d2eb5011e2",
-    "lib/client_record.ml": "4426f9cc4ab4e5d96403cb5c1e780d8f5cbcc593905964062219847f202bcead",
+    "lib/client_core.ml": "e10660f70fad6191b92a39db552ccb0e9996c98c7d5fc30fa3db22093d1983b1",
+    "lib/client_core.mli": "6447ce3fa3e333c2d325e99556c31833416a8589950613a0703d9017c710ff3f",
+    "lib/client_query.ml": "93a5d538eea97cefee9000a06454a1885ba7328e6a74f13b6542e9a75a7277df",
+    "lib/client_record.ml": "bab8e90abf6e54c353d077b90334bda3f9895673179f70bf70641dd92a09b6a2",
     "lib/client_timing.ml": "f0eba736f2f18a07c65f734c629fa94cfe6648e3e967b8b9e03447ba04cb2606",
     "lib/client_timing.mli": "09c3204e45443ed9764d70785a9a4f33a3b76818c9901f0e870322cc8c0168af",
     "lib/clock.ml": "71063b036aa3069ad2ed649ba8a73505b4eb4a00631c48af43a01f732c6623ab",
     "lib/clock.mli": "5333b1d2447f81415c54bfc99d87ae98362a4ce249695d7783c35df41cdab364",
-    "lib/control.ml": "e59aa7ab3626e5093d2414f08bfd9625b383a2a675ca6e32c1276d6c8c6a4562",
+    "lib/control.ml": "1a8991f00221f2d47425beb0992ca7189631df63f0db36a895390b8968c78b31",
     "lib/delegation.ml": "86867a17f93d178c52b52e5dc0f3d5c1bee05f636b58f484411df48ff4cb53dd",
     "lib/delegation.mli": "acf0397656d1185b5f3308a9e9858cf967a3630c52500957c3aeb109a1cf0838",
-    "lib/discovery.ml": "030f2dc4fdb85017b8c810053e2c851eae68a4ae575167e6f3ed3008fa085b06",
+    "lib/discovery.ml": "96adcfd2bb9e88d7c6e3242beea35383a26f809683c43658bef178bf1f170d78",
     "lib/discovery.mli": "965ec952d3195c633ee3b4c5f262a6feb3ab62d44467908da0037cbfbedfd080",
+    "lib/discovery_url_path.ml": "68d586e56767a12ccba8624b58da93855c8b0a8f38230b38dd223c6a442b6ceb",
     "lib/dispatcher_messages.ml": "de3216f424fe297f08f80696f2aa490f004c8995568fca13ee3f3bdccd5065d8",
     "lib/dune": "1518991b807af927b4e71d57d6097ef120d03f5e773f5ea4adf31ac6baa9f4a6",
     "lib/embedding_requests.ml": "cae3ff1469b45d5421de0048d70e2fea9d2f0e5f5a060de176910b70aefec950",
     "lib/encoding_facts.ml": "dc9602d08894d9a3bd5334cb3254218f7a74dad0528d552acb00cec4061bb9bb",
-    "lib/enums.ml": "e9beb8e9d792d23adc2dfbeb2f5eb5a81e9442820b3bcd78bd8babeed16fd554",
-    "lib/error_codes.ml": "33b5c122d4333a5d02df0cf9608e381b347eb80be488e7cd068e2ab2f6295c14",
+    "lib/enums.ml": "d44729883f468e67b89081c14b0c217521999ecb347efbcf2fc4cd843cafa3c7",
+    "lib/error_codes.ml": "42a5f061d3acb50b47b870155c09f7f30066db6474099917d76fe946003e3a00",
     "lib/frame.ml": "6e0ba59a959758ccdc672cec1d8d802be2f882a5d1354ded4e5ab21398716d54",
     "lib/gateway_http.ml": "cbcd0c640321c0ec910cb7f23f3991a766b24587e8b4e0dcb0c9870ab43cf251",
     "lib/gateway_media_token.ml": "3e8e99df97fa6e0d8d53664f5b18c2807b1551f6ea2eb7c593ac3c62866f3dd7",
     "lib/gateway_messages.ml": "25f713862810dc3325fd6068e96c752bc0765e6eaa4ca8956cbe012a22764765",
     "lib/gateway_response_headers.ml": "ec26450be954b4758c1ac2d5e0568cc0d89feb3fecde9097a33c254b32ed6275",
     "lib/gather.ml": "79ce316d7cb74f60d07da80acbf3570d57ba949e4a3fbec81e4da34a6ca9ce6f",
-    "lib/gather_state.ml": "f2600f1104077a6df23fadaf662d715026732537af6eb8d216f0a4f6b97127d7",
+    "lib/gather_state.ml": "573b44e8e269ad473acf9ee1e14465cf010f2eca3c97aef23d84d2066788c0b9",
     "lib/gather_state.mli": "f5da939b80588f462f13befe2c6974e46448be17e64bb43bfaabfaf848cfe6ae",
     "lib/graph_schema.ml": "60629639fec1c9666f455a28e28eb511500f519c604d138363bd3b6246837c40",
     "lib/held_job_members.ml": "956498482537e526b9c0a187437d0c7342ac30423088d882eff2600fc46d097f",
@@ -153,9 +154,9 @@
     "lib/host_name.mli": "ae48395a873d6cb0d60dc1fce328a283adb07c6e0bb9d7107260a1ae8d57bc69",
     "lib/hover_dwell.ml": "2a8e9fef90c75ce18569793c04f553523e3dc523d53d869ceef4dab6a7702122",
     "lib/hover_dwell.mli": "3bf63911f6482ad960a6e4d3881e4a637caa0d9929dc8d62dbf7b69421fa19af",
-    "lib/http_facts.ml": "fa5774ea443d7d01c8a1186238031bc3b90d65e77cf419ecee487eb3dc65fce8",
-    "lib/http_wire.ml": "3a5f91953fdb1132258bd25a9a97f01a7a48c1d464f4bcbaa472326156a377ac",
-    "lib/http_wire.mli": "84d35fa7ac6e419457ceb3784960de7a2b9cd5d845a599f973340de6b1fea165",
+    "lib/http_facts.ml": "22bb288902aa4a0b628b9d02e7b694480c375b2b9e7ae856c3e27965055271d8",
+    "lib/http_wire.ml": "a17ce008b7523c9de688049c77eec6bdad7f3189e55df66f7933f97381f87a78",
+    "lib/http_wire.mli": "8676b8cf100e1813bc7da23aabc130652f7895b5a62614ef62975b3d2491c126",
     "lib/identifiers.ml": "1ee61e8298715512590d2e8045869efb0687ace6df642970da0d54baffe26448",
     "lib/identifiers.mli": "d344831d9323c9ab0934e9027f4e8269b5d3554ef347c1d71b04cedc65d6a92b",
     "lib/identity.ml": "926a5ae2b89b08a294af2bbee6975347194bdaea78109f82a777b9fcff388e58",
@@ -172,7 +173,7 @@
     "lib/log_facts.ml": "1bf6dc1bb379d78ebf88e28eaad640364552b8f2f469926f7f62333313d04d97",
     "lib/mark.ml": "7bb5dc6de229d81c29c5349f719a2902263b1026d02a10e274facc4781d82b82",
     "lib/mark.mli": "daa70a35284997cf8b5796bda5f3262c19e8690a40090dc415729c4e3dddbbb3",
-    "lib/mark_state.ml": "6b89a6e7ff15ecfc90bb565b335db6297e23547ed31f284ba547781f208b55f3",
+    "lib/mark_state.ml": "dd18f41167e9d76656478ae699b4bbca40ddf737596f0d6897b9b0b05416ff5c",
     "lib/mark_state.mli": "bf975ad19fabb066cc94f6815911fe1fd39c7fcfd8274525a97539af770e5afb",
     "lib/match.ml": "688566865cf768c0b4bfb6cddeda957366e7dedce57ddd19d8a2588927f821e6",
     "lib/match.mli": "54ac094a6a9f8e8a09b7bc5f175ae198788c3d82b9b80a1f7efc9014fd135179",
@@ -181,8 +182,8 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "59f56fabfdce135b6919970b493176555c76816e050e3ecab2291655c70c9bdf",
-    "lib/models.mli": "676382e154fc02a0486802fd0d0cd55ed37fecc1610fbce4111652c33047e152",
+    "lib/models.ml": "8399f94de588c499f723d2e71445bc31e465252ea219dd8f7d809c004c212b97",
+    "lib/models.mli": "11846d7e3ee854a176738b5d30f7fc1b1dde14c3e032ac9b4915c8a43130b127",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "d908e2497f7a14f92a98e35cd9be8b92f717faaa2e20480e703efd6fb8ef09a0",
     "lib/oauth.mli": "b535175120377dd42d5d60ce71dbf893b51839f4fe61db06135f6f525728543d",
@@ -190,11 +191,11 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "2100ce3678992a6896e6317d1afa9534352969c6d0e3a51eaa4e763f2ac9a892",
-    "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
+    "lib/records.ml": "d9bf8f13b736f0d3afc93a30322475129be9e500cc81ec9ff0bd08fabac140e0",
+    "lib/redirect_sign_in.ml": "80c9bafb2de127baf0cd4f7148041d5445e442b17737be235afdee854eb821e9",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
-    "lib/registry.ml": "616898eab847dbcdaddcdd7645ba68226bea598b67b398e44d0cc866f8c570e9",
-    "lib/registry.mli": "9b95a73c33583b9e737263db624a5fff5d441076ce74c134deaa119afdcef60d",
+    "lib/registry.ml": "1ccbab54055322314fb5d3abc0c9be7433a3a04d3b1768c804e3bcdc13998028",
+    "lib/registry.mli": "2faf0a93878d53522db748155ea015638da686c86a0fd62ca134d7997558872a",
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "b5304c8b1d16637743f5036069431ea2b0f4f5ef4d856e76d14583178bf506f5",
     "lib/resources.mli": "19c9a01b99a577f62cf85d1922c4abdf6584c5648321b6500602ee22f8429460",
@@ -204,7 +205,7 @@
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "58950292fc2a5f34396577ae86f267426e33bd64a711e63d254b92a8602b7013",
+    "lib/schema_shapes.ml": "06ce208b94ad83182efeb9a6429c2261d98423a9b397983da29ce969240d6206",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "f631bad7d16a82910665c02614d271aa21ec4e8f8262848c82b360f95072e07a",
@@ -223,10 +224,10 @@
     "lib/session_notices.ml": "cccea843423b06e5802f1675a614063b9533b8a5ea8038fa19d76db1f8eeec59",
     "lib/session_signals.ml": "7241256a68a2a0b4703d06a95d7867cc4f739268c32612fe1401c924608acef4",
     "lib/session_signals.mli": "75d9e803669a38f99e84aa96938790d283100139f1dc35ae9a28d642fe21db5b",
-    "lib/session_state.ml": "3b490b20672018ec7913f94b4cb1eaef3b7fc3664acf4c92570d3108dcecfdc4",
+    "lib/session_state.ml": "e37d27a40b24138dba753797521206e02b8c3f7c24c45aa485167ca38d7b999b",
     "lib/session_state.mli": "0c8500f016d8e498c20ccd34471a3707fd26415781b8c4aba9c7aea1e6b7abf5",
-    "lib/sign_in_store.ml": "8393505169e0e4576de05aa971246d09c26614344a5528e69e5a0c5256ea24dd",
-    "lib/sign_in_store.mli": "e2a35e93c105d84d53ce7b6a1cf8117f4c9645a077d66d3d38d614e92e942ba6",
+    "lib/sign_in_store.ml": "f5463e9e0ed8fb0a2b8f3d06b6a72077df513c3658a41ca690f1eafbf0a1d24f",
+    "lib/sign_in_store.mli": "5850fcc03ed8a5ffc5f0c3100112396f859ff8743d599cb39284a4533fcfcd38",
     "lib/sign_in_store_names.ml": "3339dba3b41d74a767840d9afeb9e41390c025c28a5e98659e518cd9b25ae514",
     "lib/smelter_messages.ml": "b8e465e5674f6aa99f3689a6a470d6aa1d3f483ae7be948ee970e9c5f9fd8ca0",
     "lib/state_task.ml": "2061a7893545d7ecf7f52b0235c21fa2a5346ef3c65334e043e63dd7dfc74c8c",
@@ -245,7 +246,7 @@
     "lib/subscription.ml": "9983c994547862c90e13e4b623828189ce9d2e7e72da14daf50f0e8fc69e9ecf",
     "lib/subscription.mli": "6a87af157d49f51fad7c42eb99d36c6546625babd5c4a87fe30681077b9d3879",
     "lib/system.ml": "2b48cd685aa8882505bcdb8b75ba376730082ff377aeb67caeaabde6b4070459",
-    "lib/table_codec.ml": "00d65005b735387ad5496622991fbed9e3be9847cae6938df4af37324f95187b",
+    "lib/table_codec.ml": "54764d13acec3b8d29719e3053beff625a44c9b3b315a046b2781a6ebdbb5461",
     "lib/telemetry.ml": "34a37e065b0e01d85e631334204d4f6df3432544a3909227ee3e9722841c6e61",
     "lib/telemetry.mli": "621a2b22cc1c772d6759995561e88c666d566da26e7fdfc026459912b0b5d6db",
     "lib/telemetry_facts.ml": "abd1ec8dd54a246db71223dcf1cb7b4085df79c48de53dca7a36f5a747ee0f83",
@@ -262,8 +263,8 @@
     "lib/upload.mli": "2da3e555f0e86db3441a21ce158920509c48a0bafd9d446d8c9d5dc428b658c6",
     "lib/wire_stream.ml": "cf1f72d3c871ab9d305d229b9fe8c2e0cbd34c346062cb846d66fc2ca4a893b9",
     "lib/wire_stream.mli": "9f3d5ac3500f9829c589430fedf9de25742dc4d5db4a33aa1b7b5e06ed85a9d0",
-    "lib/worker.ml": "672c55f9cd8f847fa56d891b329f56e69901e6c1ffa40d9c5274a803cbd3ad31",
-    "lib/worker.mli": "10f7f47a4e945da088c9d5c00c4fe59a65e1427599e46c77f6f93dd7e7b1ff28",
+    "lib/worker.ml": "17031209705e16c5414e15531a74f401b99428dddb3786a966fd7e454478af41",
+    "lib/worker.mli": "1150f0a488fd3638c77f4b847cc4964d9b227ff652783d44091d7a4c9168b27d",
     "lib/worker_answer_formats.ml": "da2a821edb0788848608a6195f7fb7f2109cdeac8e29223064da7fcba0efaebe",
     "lib/worker_facts.ml": "2d7077df05d7d6f8099e878b30a29fefadb5d78f4078a57e9aa878cacb81557e",
     "lib/worker_messages.ml": "f1afd7b85f6a93528e39a878d15d51c8047c00320f07417fd85ccef28554cfc7",
@@ -623,6 +624,43 @@
     {
       "kind": "value",
       "path": "Xynolog.Enums.Body_purpose.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Enums.Control_sender",
+      "declaration": "module Control_sender :\n  sig\n    type t = Client | Launcher\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Control_sender.t",
+      "declaration": "type t = Client | Launcher",
+      "representation": "variant",
+      "constructors": [
+        "Client",
+        "Launcher"
+      ],
+      "variants": [
+        {
+          "name": "Client",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Launcher",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Control_sender.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Control_sender.of_string",
       "declaration": "val of_string : string -> t option"
     },
     {
@@ -1820,6 +1858,49 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Enums.System",
+      "declaration": "module System :\n  sig\n    type t = Macos | Windows | Other\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.System.t",
+      "declaration": "type t = Macos | Windows | Other",
+      "representation": "variant",
+      "constructors": [
+        "Macos",
+        "Windows",
+        "Other"
+      ],
+      "variants": [
+        {
+          "name": "Macos",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Windows",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Other",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.System.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.System.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Enums.Anchor_method",
       "declaration": "module Anchor_method :\n  sig\n    type t = Unique_match | Context_recovered | First_of_many | Fuzzy_match\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
     },
@@ -1865,6 +1946,49 @@
     {
       "kind": "value",
       "path": "Xynolog.Enums.Anchor_method.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Enums.Cache_status",
+      "declaration": "module Cache_status :\n  sig\n    type t = Pending | Ready | Failed\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Cache_status.t",
+      "declaration": "type t = Pending | Ready | Failed",
+      "representation": "variant",
+      "constructors": [
+        "Pending",
+        "Ready",
+        "Failed"
+      ],
+      "variants": [
+        {
+          "name": "Pending",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Ready",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Failed",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Cache_status.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Cache_status.of_string",
       "declaration": "val of_string : string -> t option"
     },
     {
@@ -3826,6 +3950,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.access_token",
+      "declaration": "val access_token : [ `AccessToken ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.agent",
       "declaration": "val agent : [ `Agent ] descriptor"
     },
@@ -4306,6 +4435,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.cache_status",
+      "declaration": "val cache_status : [ `CacheStatus ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.cancelled",
       "declaration": "val cancelled : [ `Cancelled ] descriptor"
     },
@@ -4396,6 +4530,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.control_sender",
+      "declaration": "val control_sender : [ `ControlSender ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.create_annotation_request",
       "declaration": "val create_annotation_request : [ `CreateAnnotationRequest ] descriptor"
     },
@@ -4441,8 +4580,18 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.discovery_diff",
+      "declaration": "val discovery_diff : [ `DiscoveryDiff ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.discovery_document",
       "declaration": "val discovery_document : [ `DiscoveryDocument ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.discovery_read",
+      "declaration": "val discovery_read : [ `DiscoveryRead ] descriptor"
     },
     {
       "kind": "value",
@@ -4556,6 +4705,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.fault",
+      "declaration": "val fault : [ `Fault ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.field_fault",
       "declaration": "val field_fault : [ `FieldFault ] descriptor"
     },
@@ -4583,6 +4737,11 @@
       "kind": "value",
       "path": "Xynolog.Models.frame_add_tag_schema_command",
       "declaration": "val frame_add_tag_schema_command : [ `FrameAddTagSchemaCommand ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.frame_refusal",
+      "declaration": "val frame_refusal : [ `FrameRefusal ] descriptor"
     },
     {
       "kind": "value",
@@ -6021,6 +6180,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.system",
+      "declaration": "val system : [ `System ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.tab_check",
       "declaration": "val tab_check : [ `TabCheck ] descriptor"
     },
@@ -6462,79 +6626,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Session_ended",
-      "declaration": "module Session_ended :\n  sig\n    type t = { reason : Xynolog__.Enums.Session_end_reason.t; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Session_ended.t",
-      "declaration": "type t = { reason : Xynolog__.Enums.Session_end_reason.t; }",
-      "representation": "record",
-      "fields": [
-        "reason"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Session_ended.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Session_ended.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Permission_denied",
-      "declaration": "module Permission_denied :\n  sig\n    type t = { detail : string option; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Permission_denied.t",
-      "declaration": "type t = { detail : string option; }",
-      "representation": "record",
-      "fields": [
-        "detail"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Permission_denied.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Permission_denied.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Kb_identity_conflict",
-      "declaration": "module Kb_identity_conflict :\n  sig\n    type t = { expected_did : string; observed_did : string; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Kb_identity_conflict.t",
-      "declaration": "type t = { expected_did : string; observed_did : string; }",
-      "representation": "record",
-      "fields": [
-        "expected_did",
-        "observed_did"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Kb_identity_conflict.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Kb_identity_conflict.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Stored_session",
       "declaration": "module Stored_session :\n  sig\n    type t = {\n      access : string;\n      refresh : string;\n      client_id : string;\n      token_endpoint : string;\n      revocation_endpoint : string option;\n      person_key : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6716,6 +6807,134 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Device_code.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Discovery_diff",
+      "declaration": "module Discovery_diff :\n  sig\n    type t = {\n      added : [ `DiscoveredKB ] Xynolog__.Models.t list;\n      updated : [ `DiscoveredKB ] Xynolog__.Models.t list;\n      removed : [ `DiscoveredKB ] Xynolog__.Models.t list;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Discovery_diff.t",
+      "declaration": "type t = {\n  added : [ `DiscoveredKB ] Xynolog__.Models.t list;\n  updated : [ `DiscoveredKB ] Xynolog__.Models.t list;\n  removed : [ `DiscoveredKB ] Xynolog__.Models.t list;\n}",
+      "representation": "record",
+      "fields": [
+        "added",
+        "updated",
+        "removed"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_diff.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_diff.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Discovery_read",
+      "declaration": "module Discovery_read :\n  sig\n    type t =\n        Absent of { reason : string; diagnostic : string option; }\n      | Managed of { kbs : [ `DiscoveredKB ] Xynolog__.Models.t list; }\n      | Unchanged\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Discovery_read.t",
+      "declaration": "type t =\n    Absent of { reason : string; diagnostic : string option; }\n  | Managed of { kbs : [ `DiscoveredKB ] Xynolog__.Models.t list; }\n  | Unchanged",
+      "representation": "variant",
+      "constructors": [
+        "Absent",
+        "Managed",
+        "Unchanged"
+      ],
+      "variants": [
+        {
+          "name": "Absent",
+          "fields": [
+            "reason",
+            "diagnostic"
+          ],
+          "unit": false
+        },
+        {
+          "name": "Managed",
+          "fields": [
+            "kbs"
+          ],
+          "unit": false
+        },
+        {
+          "name": "Unchanged",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_read.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_read.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Fault",
+      "declaration": "module Fault :\n  sig\n    type t = {\n      member : string;\n      reason : Xynolog__.Enums.Frame_refusal_reason.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Fault.t",
+      "declaration": "type t = {\n  member : string;\n  reason : Xynolog__.Enums.Frame_refusal_reason.t;\n}",
+      "representation": "record",
+      "fields": [
+        "member",
+        "reason"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Fault.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Fault.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Frame_refusal",
+      "declaration": "module Frame_refusal :\n  sig\n    type t = {\n      channel : string;\n      member : string;\n      reason : Xynolog__.Enums.Frame_refusal_reason.t;\n      payload : Yojson.Safe.t option;\n      scope : Xynolog__.Identifiers.Resource_id.t option;\n      correlation_id : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Frame_refusal.t",
+      "declaration": "type t = {\n  channel : string;\n  member : string;\n  reason : Xynolog__.Enums.Frame_refusal_reason.t;\n  payload : Yojson.Safe.t option;\n  scope : Xynolog__.Identifiers.Resource_id.t option;\n  correlation_id : string option;\n}",
+      "representation": "record",
+      "fields": [
+        "channel",
+        "member",
+        "reason",
+        "payload",
+        "scope",
+        "correlation_id"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Frame_refusal.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Frame_refusal.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -6934,6 +7153,31 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Kb_identity_conflict",
+      "declaration": "module Kb_identity_conflict :\n  sig\n    type t = { expected_did : string; observed_did : string; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Kb_identity_conflict.t",
+      "declaration": "type t = { expected_did : string; observed_did : string; }",
+      "representation": "record",
+      "fields": [
+        "expected_did",
+        "observed_did"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_identity_conflict.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_identity_conflict.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Match_search_options",
       "declaration": "module Match_search_options :\n  sig\n    type t = { limit : int option; use_semantic_scoring : bool option; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -7008,6 +7252,30 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Pending_annotation.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Permission_denied",
+      "declaration": "module Permission_denied :\n  sig\n    type t = { detail : string option; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Permission_denied.t",
+      "declaration": "type t = { detail : string option; }",
+      "representation": "record",
+      "fields": [
+        "detail"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Permission_denied.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Permission_denied.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -7135,6 +7403,30 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Resource_search_filters.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Session_ended",
+      "declaration": "module Session_ended :\n  sig\n    type t = { reason : Xynolog__.Enums.Session_end_reason.t; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Session_ended.t",
+      "declaration": "type t = { reason : Xynolog__.Enums.Session_end_reason.t; }",
+      "representation": "record",
+      "fields": [
+        "reason"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Session_ended.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Session_ended.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -32469,7 +32761,7 @@
     {
       "kind": "module",
       "path": "Xynolog.Error_codes.Bus_request",
-      "declaration": "module Bus_request :\n  sig\n    type t =\n        Timeout\n      | Rejected\n      | Closed\n      | Not_found\n      | Unsubscribed\n      | Peer_unavailable\n      | Unauthorized\n      | None_pending\n    val code : t -> string\n    val of_code : string -> t option\n    val timeout : string\n    val rejected : string\n    val closed : string\n    val not_found : string\n    val unsubscribed : string\n    val peer_unavailable : string\n    val unauthorized : string\n    val none_pending : string\n  end"
+      "declaration": "module Bus_request :\n  sig\n    type t =\n        Timeout\n      | Rejected\n      | Closed\n      | Not_found\n      | Unsubscribed\n      | Peer_unavailable\n      | Unauthorized\n      | None_pending\n    val code : t -> string\n    val of_code : string -> t option\n  end"
     },
     {
       "kind": "type",
@@ -32540,49 +32832,9 @@
       "declaration": "val of_code : string -> t option"
     },
     {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Bus_request.timeout",
-      "declaration": "val timeout : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Bus_request.rejected",
-      "declaration": "val rejected : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Bus_request.closed",
-      "declaration": "val closed : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Bus_request.not_found",
-      "declaration": "val not_found : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Bus_request.unsubscribed",
-      "declaration": "val unsubscribed : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Bus_request.peer_unavailable",
-      "declaration": "val peer_unavailable : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Bus_request.unauthorized",
-      "declaration": "val unauthorized : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Bus_request.none_pending",
-      "declaration": "val none_pending : string"
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Error_codes.Transport",
-      "declaration": "module Transport :\n  sig\n    type t =\n        Unauthorized\n      | Forbidden\n      | Not_found\n      | Conflict\n      | Bad_request\n      | Unprocessable\n      | Rate_limited\n      | Unavailable\n      | Error\n    val code : t -> string\n    val of_code : string -> t option\n    val unauthorized : string\n    val forbidden : string\n    val not_found : string\n    val conflict : string\n    val bad_request : string\n    val unprocessable : string\n    val rate_limited : string\n    val unavailable : string\n    val error : string\n  end"
+      "declaration": "module Transport :\n  sig\n    type t =\n        Unauthorized\n      | Forbidden\n      | Not_found\n      | Conflict\n      | Bad_request\n      | Unprocessable\n      | Rate_limited\n      | Unavailable\n      | Error\n    val code : t -> string\n    val of_code : string -> t option\n  end"
     },
     {
       "kind": "type",
@@ -32659,54 +32911,9 @@
       "declaration": "val of_code : string -> t option"
     },
     {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.unauthorized",
-      "declaration": "val unauthorized : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.forbidden",
-      "declaration": "val forbidden : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.not_found",
-      "declaration": "val not_found : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.conflict",
-      "declaration": "val conflict : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.bad_request",
-      "declaration": "val bad_request : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.unprocessable",
-      "declaration": "val unprocessable : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.rate_limited",
-      "declaration": "val rate_limited : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.unavailable",
-      "declaration": "val unavailable : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Transport.error",
-      "declaration": "val error : string"
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Error_codes.Job",
-      "declaration": "module Job :\n  sig\n    type t = Failed | Cancelled | Stalled\n    val code : t -> string\n    val of_code : string -> t option\n    val failed : string\n    val cancelled : string\n    val stalled : string\n  end"
+      "declaration": "module Job :\n  sig\n    type t = Failed | Cancelled | Stalled\n    val code : t -> string\n    val of_code : string -> t option\n  end"
     },
     {
       "kind": "type",
@@ -32747,24 +32954,9 @@
       "declaration": "val of_code : string -> t option"
     },
     {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Job.failed",
-      "declaration": "val failed : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Job.cancelled",
-      "declaration": "val cancelled : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Job.stalled",
-      "declaration": "val stalled : string"
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Error_codes.Session",
-      "declaration": "module Session :\n  sig\n    type t =\n        Construct_failed\n      | Auth_failed\n      | Refresh_exhausted\n      | Credential_refused\n      | Keep_failed\n      | Save_refused\n    val code : t -> string\n    val of_code : string -> t option\n    val construct_failed : string\n    val auth_failed : string\n    val refresh_exhausted : string\n    val credential_refused : string\n    val keep_failed : string\n    val save_refused : string\n  end"
+      "declaration": "module Session :\n  sig\n    type t =\n        Construct_failed\n      | Auth_failed\n      | Refresh_exhausted\n      | Credential_refused\n      | Keep_failed\n      | Save_refused\n    val code : t -> string\n    val of_code : string -> t option\n  end"
     },
     {
       "kind": "type",
@@ -32823,39 +33015,9 @@
       "declaration": "val of_code : string -> t option"
     },
     {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Session.construct_failed",
-      "declaration": "val construct_failed : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Session.auth_failed",
-      "declaration": "val auth_failed : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Session.refresh_exhausted",
-      "declaration": "val refresh_exhausted : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Session.credential_refused",
-      "declaration": "val credential_refused : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Session.keep_failed",
-      "declaration": "val keep_failed : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Session.save_refused",
-      "declaration": "val save_refused : string"
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Error_codes.Sign_in",
-      "declaration": "module Sign_in :\n  sig\n    type t =\n        No_issuer\n      | Discovery\n      | No_pending\n      | State\n      | Denied\n      | Expired\n      | Aborted\n      | Exchange\n    val code : t -> string\n    val of_code : string -> t option\n    val no_issuer : string\n    val discovery : string\n    val no_pending : string\n    val state : string\n    val denied : string\n    val expired : string\n    val aborted : string\n    val exchange : string\n  end"
+      "declaration": "module Sign_in :\n  sig\n    type t =\n        No_issuer\n      | Discovery\n      | No_pending\n      | State\n      | Denied\n      | Expired\n      | Aborted\n      | Exchange\n    val code : t -> string\n    val of_code : string -> t option\n  end"
     },
     {
       "kind": "type",
@@ -32926,49 +33088,9 @@
       "declaration": "val of_code : string -> t option"
     },
     {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Sign_in.no_issuer",
-      "declaration": "val no_issuer : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Sign_in.discovery",
-      "declaration": "val discovery : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Sign_in.no_pending",
-      "declaration": "val no_pending : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Sign_in.state",
-      "declaration": "val state : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Sign_in.denied",
-      "declaration": "val denied : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Sign_in.expired",
-      "declaration": "val expired : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Sign_in.aborted",
-      "declaration": "val aborted : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Sign_in.exchange",
-      "declaration": "val exchange : string"
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Error_codes.Kb_identity",
-      "declaration": "module Kb_identity :\n  sig\n    type t = Unreachable | Not_reported\n    val code : t -> string\n    val of_code : string -> t option\n    val unreachable : string\n    val not_reported : string\n  end"
+      "declaration": "module Kb_identity :\n  sig\n    type t = Unreachable | Not_reported\n    val code : t -> string\n    val of_code : string -> t option\n  end"
     },
     {
       "kind": "type",
@@ -33003,19 +33125,9 @@
       "declaration": "val of_code : string -> t option"
     },
     {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Kb_identity.unreachable",
-      "declaration": "val unreachable : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Kb_identity.not_reported",
-      "declaration": "val not_reported : string"
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Error_codes.Span_refusal",
-      "declaration": "module Span_refusal :\n  sig\n    type t =\n        Span_out_of_range\n      | Exact_mismatch\n      | Prefix_mismatch\n      | Suffix_mismatch\n      | Nothing_located\n      | Exact_not_covered\n      | Item_out_of_range\n    val code : t -> string\n    val of_code : string -> t option\n    val span_out_of_range : string\n    val exact_mismatch : string\n    val prefix_mismatch : string\n    val suffix_mismatch : string\n    val nothing_located : string\n    val exact_not_covered : string\n    val item_out_of_range : string\n  end"
+      "declaration": "module Span_refusal :\n  sig\n    type t =\n        Span_out_of_range\n      | Exact_mismatch\n      | Prefix_mismatch\n      | Suffix_mismatch\n      | Nothing_located\n      | Exact_not_covered\n      | Item_out_of_range\n    val code : t -> string\n    val of_code : string -> t option\n  end"
     },
     {
       "kind": "type",
@@ -33080,44 +33192,9 @@
       "declaration": "val of_code : string -> t option"
     },
     {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Span_refusal.span_out_of_range",
-      "declaration": "val span_out_of_range : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Span_refusal.exact_mismatch",
-      "declaration": "val exact_mismatch : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Span_refusal.prefix_mismatch",
-      "declaration": "val prefix_mismatch : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Span_refusal.suffix_mismatch",
-      "declaration": "val suffix_mismatch : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Span_refusal.nothing_located",
-      "declaration": "val nothing_located : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Span_refusal.exact_not_covered",
-      "declaration": "val exact_not_covered : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Span_refusal.item_out_of_range",
-      "declaration": "val item_out_of_range : string"
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Error_codes.Control",
-      "declaration": "module Control :\n  sig\n    type t =\n        Invalid_params\n      | Unsupported_api_version\n      | Invalid_request\n      | Invalid_service\n      | Invalid_value\n      | Unknown_setting\n      | Target_required\n      | Target_ambiguous\n      | Root_not_found\n      | Root_not_registered\n      | Stack_not_running\n      | Stack_running\n      | Start_in_progress\n      | Runtime_unavailable\n      | Dependency_unavailable\n      | Unreachable\n      | Instance_in_use\n      | Instance_not_found\n      | Confirmation_required\n      | Unreadable_state\n      | Already_signed_in\n      | Sign_in_failed\n      | Cancelled\n      | Failed\n    val code : t -> string\n    val of_code : string -> t option\n    val invalid_params : string\n    val unsupported_api_version : string\n    val invalid_request : string\n    val invalid_service : string\n    val invalid_value : string\n    val unknown_setting : string\n    val target_required : string\n    val target_ambiguous : string\n    val root_not_found : string\n    val root_not_registered : string\n    val stack_not_running : string\n    val stack_running : string\n    val start_in_progress : string\n    val runtime_unavailable : string\n    val dependency_unavailable : string\n    val unreachable : string\n    val instance_in_use : string\n    val instance_not_found : string\n    val confirmation_required : string\n    val unreadable_state : string\n    val already_signed_in : string\n    val sign_in_failed : string\n    val cancelled : string\n    val failed : string\n  end"
+      "declaration": "module Control :\n  sig\n    type t =\n        Invalid_params\n      | Unsupported_api_version\n      | Invalid_request\n      | Invalid_service\n      | Invalid_value\n      | Unknown_setting\n      | Target_required\n      | Target_ambiguous\n      | Root_not_found\n      | Root_not_registered\n      | Stack_not_running\n      | Stack_running\n      | Start_in_progress\n      | Runtime_unavailable\n      | Dependency_unavailable\n      | Unreachable\n      | Instance_in_use\n      | Instance_not_found\n      | Confirmation_required\n      | Unreadable_state\n      | Already_signed_in\n      | Sign_in_failed\n      | Cancelled\n      | Failed\n    val code : t -> string\n    val of_code : string -> t option\n  end"
     },
     {
       "kind": "type",
@@ -33285,128 +33362,53 @@
     },
     {
       "kind": "value",
-      "path": "Xynolog.Error_codes.Control.invalid_params",
-      "declaration": "val invalid_params : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.unsupported_api_version",
-      "declaration": "val unsupported_api_version : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.invalid_request",
-      "declaration": "val invalid_request : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.invalid_service",
-      "declaration": "val invalid_service : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.invalid_value",
-      "declaration": "val invalid_value : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.unknown_setting",
-      "declaration": "val unknown_setting : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.target_required",
-      "declaration": "val target_required : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.target_ambiguous",
-      "declaration": "val target_ambiguous : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.root_not_found",
-      "declaration": "val root_not_found : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.root_not_registered",
-      "declaration": "val root_not_registered : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.stack_not_running",
-      "declaration": "val stack_not_running : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.stack_running",
-      "declaration": "val stack_running : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.start_in_progress",
-      "declaration": "val start_in_progress : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.runtime_unavailable",
-      "declaration": "val runtime_unavailable : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.dependency_unavailable",
-      "declaration": "val dependency_unavailable : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.unreachable",
-      "declaration": "val unreachable : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.instance_in_use",
-      "declaration": "val instance_in_use : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.instance_not_found",
-      "declaration": "val instance_not_found : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.confirmation_required",
-      "declaration": "val confirmation_required : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.unreadable_state",
-      "declaration": "val unreadable_state : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.already_signed_in",
-      "declaration": "val already_signed_in : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.sign_in_failed",
-      "declaration": "val sign_in_failed : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.cancelled",
-      "declaration": "val cancelled : string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Error_codes.Control.failed",
-      "declaration": "val failed : string"
-    },
-    {
-      "kind": "value",
       "path": "Xynolog.Error_codes.limit_refusal_transport_codes",
       "declaration": "val limit_refusal_transport_codes : (int * string * Transport.t) list"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Error_codes.Control_rpc",
+      "declaration": "module Control_rpc :\n  sig\n    val parse_error : int\n    val invalid_request : int\n    val method_not_found : int\n    val invalid_params : int\n    val internal_error : int\n    val operation_failed : int\n  end"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.parse_error",
+      "declaration": "val parse_error : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.invalid_request",
+      "declaration": "val invalid_request : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.method_not_found",
+      "declaration": "val method_not_found : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.invalid_params",
+      "declaration": "val invalid_params : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.internal_error",
+      "declaration": "val internal_error : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.operation_failed",
+      "declaration": "val operation_failed : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.control_rpc",
+      "declaration": "val control_rpc : Control.t -> int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.control_retryable",
+      "declaration": "val control_retryable : Control.t -> bool"
     },
     {
       "kind": "module",
@@ -36359,37 +36361,9 @@
       "declaration": "exception Invalid_store"
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Sign_in_store.platform",
-      "declaration": "type platform = Macos | Windows | Other",
-      "representation": "variant",
-      "constructors": [
-        "Macos",
-        "Windows",
-        "Other"
-      ],
-      "variants": [
-        {
-          "name": "Macos",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Windows",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Other",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
       "kind": "value",
       "path": "Xynolog.Sign_in_store.state_directory",
-      "declaration": "val state_directory :\n  platform:platform ->\n  home:string option ->\n  xdg_state_home:string option ->\n  local_app_data:string option -> string option"
+      "declaration": "val state_directory :\n  system:Xynolog__.Enums.System.t ->\n  home:string option ->\n  xdg_state_home:string option ->\n  local_app_data:string option -> string option"
     },
     {
       "kind": "value",
@@ -43393,28 +43367,6 @@
       "alias": "Xynolog__.Control"
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Control.sender",
-      "declaration": "type sender = Client | Launcher",
-      "representation": "variant",
-      "constructors": [
-        "Client",
-        "Launcher"
-      ],
-      "variants": [
-        {
-          "name": "Client",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Launcher",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Control.Method",
       "declaration": "module Method :\n  sig\n    type ('params, 'result) t = {\n      name : string;\n      exclusive : bool;\n      sends : string list;\n      params : 'params Xynolog__.Models.descriptor;\n      result : 'result Xynolog__.Models.descriptor;\n    }\n  end"
@@ -43435,12 +43387,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Control.Notification",
-      "declaration": "module Notification :\n  sig\n    type 'params t = {\n      name : string;\n      from : sender;\n      params : 'params Xynolog__.Models.descriptor;\n    }\n  end"
+      "declaration": "module Notification :\n  sig\n    type 'params t = {\n      name : string;\n      from : Xynolog__.Enums.Control_sender.t;\n      params : 'params Xynolog__.Models.descriptor;\n    }\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Control.Notification.t",
-      "declaration": "type 'params t = {\n  name : string;\n  from : sender;\n  params : 'params Xynolog__.Models.descriptor;\n}",
+      "declaration": "type 'params t = {\n  name : string;\n  from : Xynolog__.Enums.Control_sender.t;\n  params : 'params Xynolog__.Models.descriptor;\n}",
       "representation": "record",
       "fields": [
         "name",
