@@ -8,6 +8,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Testing.delivery_op_name`: a delivery step as Protocol's word for it
+  (`"write"`, `"transition"`), as the other SDKs carry it.
 - A record of `Records` for ten of Protocol's tables that no service keeps,
   each typed by the table's own schema: `Client_discovery_absent`,
   `Client_refresh`, `Client_testing`, `Control_cli`, `Errors_codes`,

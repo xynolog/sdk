@@ -271,51 +271,19 @@ let timings (entries : Timing.Table.t) =
 
 (* Error codes *)
 
-(* Each family of codes.json, by its member's name there; the pattern names
-   every family, so one the table gains is one this must name. *)
-let families
-    ({
-       comment = _;
-       bus_request;
-       transport;
-       job;
-       session;
-       sign_in;
-       kb_identity;
-       span_refusal;
-       control;
-     } :
-      Tables.Errors_codes.t) =
-  let codes (v : Tables.Errors_codes.job) =
-    List.map (fun (c : Tables.Errors_codes.job_codes_item) -> c.code) v.codes
-  in
-  [
-    ( "busRequest",
-      List.map
-        (fun (c : Tables.Errors_codes.codes_item) -> c.code)
-        bus_request.codes );
-    ( "transport",
-      List.map
-        (fun c -> fst (Error_codes.Table.transport_code_and_docs c))
-        transport.codes );
-    ("job", codes job);
-    ("session", codes session);
-    ("signIn", codes sign_in);
-    ("kbIdentity", codes kb_identity);
-    ("spanRefusal", codes span_refusal);
-    ("control", codes control);
-  ]
-
-(* A failure vocabulary's enum, by its member in errors/codes.json. *)
-let error_code_enum member = Text.pascal member ^ "ErrorCode"
-
-let error_codes models ~shapes ~table (codes : Error_codes.Table.t) =
+(* Each failure vocabulary's enum, named as the error codes' table names it
+   for every SDK. *)
+let error_codes models ~shapes (codes : Error_codes.Table.t) =
   let wire_codes = Error_codes.Table.wire_codes in
   let enums =
     List.map
-      (fun (family, listed) ->
-        string_enumeration [ "public" ] (error_code_enum family) listed)
-      (List.sort (fun (a, _) (b, _) -> String.compare a b) (families table))
+      (fun (v : Error_codes.Table.vocabulary) ->
+        string_enumeration [ "public" ] v.go_name
+          (List.map (fun (c : Error_codes.Table.code) -> c.code) v.codes))
+      (List.sort
+         (fun (a : Error_codes.Table.vocabulary) b ->
+           String.compare a.member b.member)
+         ((codes.bus :: codes.transport :: codes.others) @ [ codes.control ]))
   in
   let returns (code : Error_codes.Table.code) =
     S.Return (Some (case code.code))
@@ -1446,9 +1414,7 @@ let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
       (fun (m : Tables.Sdk_telemetry_telemetry.metrics_item) -> m.name)
       tables.sdk_telemetry_telemetry.metrics
   in
-  let error_decls =
-    error_codes models ~shapes ~table:tables.errors_codes codes
-  in
+  let error_decls = error_codes models ~shapes codes in
   let text_source =
     vocabulary models "TextSource" tables.media_types_registry.text_source
   in

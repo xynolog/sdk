@@ -59,6 +59,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- Two failure vocabularies are named as every SDK names them, from the error
+  codes' shared table: `SpanRefusal`, where it was `SpanRefusalErrorCode`
+  (`SpanRefusedError.reason`), and `IdentityUnverifiableReason`, where it was
+  `KbIdentityErrorCode` (`IdentityUnverifiableError.reason`).
 - `RetryBudget` is the model of Protocol's `client/RetryBudget.json`:
   `Codable` and `Hashable`, its members `var`s.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held

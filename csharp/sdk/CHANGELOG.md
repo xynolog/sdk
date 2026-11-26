@@ -48,6 +48,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The testing kit's `DeliveryOp` is written and read as Protocol's words for
+  the steps, `"write"` and `"transition"`, as the other SDKs carry them.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `Xynolog.Http.RetryPolicy`:
   `Timing.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes one. It

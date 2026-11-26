@@ -2,7 +2,7 @@ import Crypto
 import Foundation
 
 public struct SpanRefusedError: Error, Sendable {
-  public let reason: SpanRefusalErrorCode
+  public let reason: SpanRefusal
   public let message: String
   public var code: String { reason.rawValue }
 }
@@ -115,7 +115,7 @@ private func built(
 private func validSpan(_ start: Int, _ end: Int, _ length: Int) -> Bool {
   start >= 0 && start <= end && end <= length
 }
-private func refused(_ reason: SpanRefusalErrorCode) -> SpanRefusedError {
+private func refused(_ reason: SpanRefusal) -> SpanRefusedError {
   SpanRefusedError(reason: reason, message: reason.rawValue)
 }
 public func annotationOfSpan(_ of: OfSpan) throws -> Annotation {

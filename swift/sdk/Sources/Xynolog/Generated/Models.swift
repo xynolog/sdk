@@ -23722,7 +23722,7 @@ public enum JobErrorCode: String, Codable, Sendable, CaseIterable {
   case jobCancelled = "job.cancelled"
   case jobStalled = "job.stalled"
 }
-public enum KbIdentityErrorCode: String, Codable, Sendable, CaseIterable {
+public enum IdentityUnverifiableReason: String, Codable, Sendable, CaseIterable {
   case unreachable = "unreachable"
   case notReported = "not-reported"
 }
@@ -23744,7 +23744,7 @@ public enum SignInErrorCode: String, Codable, Sendable, CaseIterable {
   case aborted = "aborted"
   case exchange = "exchange"
 }
-public enum SpanRefusalErrorCode: String, Codable, Sendable, CaseIterable {
+public enum SpanRefusal: String, Codable, Sendable, CaseIterable {
   case spanOutOfRange = "span-out-of-range"
   case exactMismatch = "exact-mismatch"
   case prefixMismatch = "prefix-mismatch"

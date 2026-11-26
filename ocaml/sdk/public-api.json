@@ -248,9 +248,9 @@
     "lib/telemetry.ml": "d3e6ba70a0b5a00eb4733a8fc973c1c3b98ea5d07661da3297f2d71ee77da306",
     "lib/telemetry.mli": "6968385e5ecbd2db1b9003eb403766c066975b0ff116e9d81da367ec87b4137f",
     "lib/telemetry_facts.ml": "abd1ec8dd54a246db71223dcf1cb7b4085df79c48de53dca7a36f5a747ee0f83",
-    "lib/testing.ml": "b90696bcd2d0ac07d1ef843acb29fe9a93c30f2a8af9239286af3b1e0af392af",
-    "lib/testing.mli": "237bd3501f8d626c1048c23e024e513f87203449d6e9ad3a98e9300aa7b3c73a",
-    "lib/testing_facts.ml": "2ba49cf9d14b0c4b9d55874193f0d622513ec6265c55c4171430551361883113",
+    "lib/testing.ml": "1e1028e8d857bc17cbc5b0bdf145a6c5f642a02c9950731dd75921483bbfeca4",
+    "lib/testing.mli": "10b6a61833fa0f78c5e0c7610f7d67135f7e1b8ee508447964579a1ed37ec691",
+    "lib/testing_facts.ml": "d1271b34e26f2c8dc2f3d137913ba98019b528e7adc7c327beb9f1696761f567",
     "lib/text_encoding.ml": "905bc2c16c4fc1416236a3e2751e5d61627d6dddf431941e36e8f233f5589dad",
     "lib/text_encoding.mli": "60ca2f5b3a32d1c92e3ee786afb1ae8a38b893b3764052fb1b62897eb115da6e",
     "lib/tokens.ml": "a18316d4f94a7deffdaed3a99670163a86ca3ccf66f179628117c4e3a5e0410a",
@@ -42680,6 +42680,11 @@
       "kind": "value",
       "path": "Xynolog.Testing.fault_actions",
       "declaration": "val fault_actions : Random.State.t -> fault_action"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Testing.delivery_op_name",
+      "declaration": "val delivery_op_name : delivery_op -> string"
     },
     {
       "kind": "value",
