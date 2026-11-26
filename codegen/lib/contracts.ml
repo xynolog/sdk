@@ -304,7 +304,7 @@ let error_codes t (spec : Spec.t) =
   let codes =
     List.concat_map
       (fun (v : E.vocabulary) -> List.map (fun c -> (v, c)) v.codes)
-      ((table.bus :: table.transport :: table.others) @ [ table.control ])
+      (E.vocabularies table)
   in
   kind "error codes" codes
     ~item:(fun (_, (c : E.code)) -> c.code)
@@ -549,9 +549,7 @@ let environment t (spec : Spec.t) =
             (E.camel n)
       | Kotlin ->
           declares
-            (t.generated
-               (kotlin_generated ^ "services/"
-              ^ Kotlin_sdk.Service_environment.name ^ ".kt"))
+            (t.generated (kotlin_generated ^ "services/" ^ E.group ^ ".kt"))
             ("const val ", ":") n
       | Csharp ->
           declares
@@ -922,8 +920,8 @@ let gateway_operations t (spec : Spec.t) =
 let archivist_operations t (spec : Spec.t) =
   kind "archivist operations"
     (List.map
-       (fun (id, _, _) -> id)
-       (Gateway_http.Model.archivist_operations spec))
+       (fun (r : Archivist_routes.route) -> r.operation.operation_id)
+       (Archivist_routes.all spec))
     ~item:Fun.id
     ~declared:(fun sdk id ->
       match sdk with

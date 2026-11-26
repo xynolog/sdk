@@ -91,8 +91,8 @@ let archivist (spec : Spec.t) =
          ~from_:"protocol/specs/src/archivist/openapi.json and its paths"
          __FILE__)
     (List.map
-       (fun (operation_id, method_, path) ->
+       (fun { Archivist_routes.method_; path; operation } ->
          O.let_
-           (operation_name operation_id)
+           (operation_name operation.operation_id)
            (O.tuple [ O.string method_; O.string path ]))
-       (Model.archivist_operations spec))
+       (Archivist_routes.all spec))

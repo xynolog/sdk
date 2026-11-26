@@ -205,8 +205,9 @@ let file (m : Model.t) =
   }
 
 let archivist (spec : Spec.t) =
-  let operations = Model.archivist_operations spec in
-  let route (operation_id, method_, path) =
+  let operations = Archivist_routes.all spec in
+  let route { Archivist_routes.method_; path; operation } =
+    let operation_id = operation.operation_id in
     [
       R.Blank;
       R.Const
@@ -248,7 +249,9 @@ let archivist (spec : Spec.t) =
                  List.map
                    (fun m -> R.variant (method_variant m))
                    (List.sort_uniq compare
-                      (List.map (fun (_, m, _) -> m) operations));
+                      (List.map
+                         (fun (r : Archivist_routes.route) -> r.method_)
+                         operations));
              };
            R.Blank;
            R.Struct_def

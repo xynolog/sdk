@@ -283,7 +283,7 @@ let error_codes models ~shapes (codes : Error_codes.Table.t) =
       (List.sort
          (fun (a : Error_codes.Table.vocabulary) b ->
            String.compare a.member b.member)
-         ((codes.bus :: codes.transport :: codes.others) @ [ codes.control ]))
+         (Error_codes.Table.vocabularies codes))
   in
   let returns (code : Error_codes.Table.code) =
     S.Return (Some (case code.code))
