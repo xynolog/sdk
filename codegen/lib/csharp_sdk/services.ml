@@ -23,7 +23,9 @@ let schemas spec =
 
 let refusal file message = [ { Decode.file; pointer = ""; message } ]
 
-let table ~root file =
+(* [file] read once, when its class is first used, as the type its own
+   schema is. *)
+let table ~modifiers ~root file =
   let source = Filename.concat root (specs ^ file) in
   let name = type_of file in
   let type_ = C.T ("global::Xynolog.Types." ^ name) in
@@ -32,14 +34,14 @@ let table ~root file =
       C.Property
         {
           attributes = [];
-          modifiers = [ Public; Static ];
+          modifiers;
           type_;
           name;
           accessors = [ Get ];
           value =
             Some
               (C.Call
-                 ( Name "global::Xynolog.Services.ServiceTable.Read",
+                 ( Name "global::Xynolog.Protocol.ProtocolTable.Read",
                    [ type_ ],
                    [
                      Arg
@@ -126,7 +128,8 @@ let file ~root (spec : Spec.t) =
             namespace = "Xynolog.Services";
             decls =
               [
-                static_class "ServiceTables" (List.map (table ~root) tables);
+                static_class "ServiceTables"
+                  (List.map (table ~modifiers:[ Public; Static ] ~root) tables);
                 static_class "ArchivistRoutes" (List.concat routes);
               ];
           };

@@ -227,26 +227,59 @@ let wire_schemas ids records (models : Models.t) =
         ];
     ]
 
-(* The tables the SDK reads, by the constant it reads each as. *)
+(* The tables the SDK reads as their schemas' types ([Roots.all] roots each
+   one's schema), each named as its type is. *)
+let typed_tables =
+  [
+    "client/refresh.json";
+    "media-types/registry.json";
+    "sdk-telemetry/telemetry.json";
+    "session/oauth.json";
+    "sign-in-store/owner-only.json";
+  ]
+
+(* The tables the SDK reads as Protocol writes them, by the constant it reads
+   each as: those whose schemas [Roots.all] does not root. *)
 let tables =
   [
     ("Registry", "bus/registry.json");
     ("Timing", "client/timing.json");
     ("RetryRules", "retry/rules.json");
-    ("Telemetry", "sdk-telemetry/telemetry.json");
     ("Log", "bus/log-cases.json");
-    ("OwnerOnly", "sign-in-store/owner-only.json");
-    ("OAuth", "session/oauth.json");
     ("ClientAssertion", "session/client-assertion-cases.json");
     ("Principals", "principals/cases.json");
-    ("MediaTypes", "media-types/registry.json");
     ("Encodings", "text/encoding-cases.json");
-    ("CacheRefresh", "client/refresh.json");
     ("Discovery", "discovery/DiscoveryDocument.json");
   ]
 
-let protocol_tables ~root =
+let protocol_tables ~root (spec : Spec.t) =
   let* contract = Sign_in.Contract.read ~root in
+  let rooted path =
+    List.mem path spec.table_files
+    && List.exists
+         (fun (_, r) -> r.Decode.file = Places.schema_of path)
+         (Roots.all spec)
+  in
+  let* () =
+    match
+      List.filter (fun (_, path) -> rooted path) tables
+      @ List.filter_map
+          (fun path -> if rooted path then None else Some ("", path))
+          typed_tables
+    with
+    | [] -> Ok ()
+    | (_, path) :: _ ->
+        Error
+          [
+            {
+              Decode.file = path;
+              pointer = "";
+              message =
+                "a table the C# SDK reads is read as its schema's type exactly \
+                 when its schema is rooted";
+            };
+          ]
+  in
   let text path =
     In_channel.with_open_bin
       (Filename.concat root (specs ^ path))
@@ -256,14 +289,17 @@ let protocol_tables ~root =
     (file ~namespace:"Xynolog.Protocol"
        ~from_:
          ("protocol/specs/src: "
-         ^ String.concat ", " (List.map snd tables)
+         ^ String.concat ", " (typed_tables @ List.map snd tables)
          ^ " and " ^ Sign_in.Contract.file)
        (generated ^ "ProtocolTables.g.cs")
        [
          static_class "ProtocolTables"
            (List.map
-              (fun (name, path) -> constant "string" name (Str (text path)))
-              tables
+              (Services.table ~modifiers:[ Internal; Static ] ~root)
+              typed_tables
+           @ List.map
+               (fun (name, path) -> constant "string" name (Str (text path)))
+               tables
            @ [
                constant "uint" "WindowsOffsetHigh"
                  (Uint_hex contract.offset_high);
@@ -493,7 +529,7 @@ let files ~root (spec : Spec.t) =
   let* codes = Error_codes.Table.derive spec.tables.errors_codes in
   let* failures = failure_codes codes models in
   let* timing = Timing.Table.derive spec.tables.client_timing in
-  let* tables = protocol_tables ~root in
+  let* tables = protocol_tables ~root spec in
   let* services = Services.file ~root spec in
   let* control = Control.file models spec in
   let written = List.map model_file models.models @ [ discovery_absent spec ] in
