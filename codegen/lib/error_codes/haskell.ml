@@ -46,6 +46,10 @@ type family = {
 
 let type_of member = words member ^ "Code"
 let type_name f = type_of f.member
+
+(* The bus vocabulary's type, and the constructor of each of its codes. *)
+let bus_type = type_of Table.bus_member
+let bus_constructor = code_constructor Table.bus_member
 let function_name f = f.member ^ "Code"
 
 let declarations f =

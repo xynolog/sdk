@@ -148,26 +148,10 @@ let elements_file specs =
    method and its path, a [{name}] for each parameter. *)
 let archivist_file (spec : Spec.t) =
   let operations =
-    List.concat_map
-      (fun (path, reference) ->
-        let file, _ = Decode.resolve spec.ids reference in
-        match List.assoc_opt file spec.path_items with
-        | None ->
-            [
-              Error
-                [
-                  refusal "archivist/openapi.json" ("names no path item " ^ file);
-                ];
-            ]
-        | Some (item : Openapi.path_item) ->
-            List.filter_map
-              (fun (method_, operation) ->
-                Option.map
-                  (fun (o : Openapi.operation) ->
-                    Ok (o.operation_id, method_, path))
-                  operation)
-              [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
-      spec.archivist.paths
+    match Archivist_routes.all spec with
+    | found -> Ok found
+    | exception Definitions.Refused message ->
+        Error [ refusal "archivist/openapi.json" message ]
   in
   Result.map
     (fun found ->
@@ -192,8 +176,8 @@ let archivist_file (spec : Spec.t) =
                     ~as_const:true "archivistRoutes"
                     (T.rows
                        (List.map
-                          (fun (operation_id, method_, path) ->
-                            T.entry (Ident operation_id)
+                          (fun { Archivist_routes.method_; path; operation } ->
+                            T.entry (Ident operation.operation_id)
                               (Object
                                  {
                                    layout = Inline;
@@ -207,7 +191,7 @@ let archivist_file (spec : Spec.t) =
                 ];
             };
       })
-    (all operations)
+    operations
 
 let files ~root (spec : Spec.t) =
   let specs = Filename.concat root "protocol/specs/src" in
