@@ -729,36 +729,6 @@ let unions =
           };
         ];
       ] );
-    ( "Client_option_defaults_defaults_item_schema",
-      [
-        [
-          {
-            kind = Object_kind;
-            required = [ "$ref" ];
-            allowed = Some [ "$ref" ];
-            fixed = [];
-            values = None;
-          };
-        ];
-        [
-          {
-            kind = Object_kind;
-            required = [ "type"; "description" ];
-            allowed = Some [ "type"; "minimum"; "format"; "description" ];
-            fixed =
-              [
-                ( "type",
-                  [
-                    Text_value "integer";
-                    Text_value "string";
-                    Text_value "boolean";
-                  ] );
-                ("format", [ Text_value "date-time" ]);
-              ];
-            values = None;
-          };
-        ];
-      ] );
     ( "Conformance_step_fetches_fetches_item",
       [
         [

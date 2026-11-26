@@ -69,6 +69,7 @@ library internal
     Xynolog.Timing
     Xynolog.Timing.Settings
     Xynolog.Internal.Generated.TimingSettings
+    Xynolog.Internal.Generated.DiscoveryUrlPath
     Xynolog.Retry
     Xynolog.Discovery
     Xynolog.Transport
