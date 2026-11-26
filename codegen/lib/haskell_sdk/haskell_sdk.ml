@@ -18,10 +18,6 @@ module Control = Control
 module H = Haskell_syntax
 
 let ( let* ) = Result.bind
-
-(* The member Xynolog.Discovery.Reasons names its type and constructors by,
-   as a failure vocabulary's are. *)
-let discovery_absent_member = "discoveryAbsent"
 let banner from_ = Banner.lines ~from_ __FILE__
 
 (* The client types the SDK models, as their group states them. *)
@@ -223,7 +219,6 @@ let files ~root (spec : Spec.t) =
     Error_codes.Table.derive ~rpc_codes:spec.tables.control_rpc_codes
       spec.tables.errors_codes
   in
-  let* discovery_url_path = Discovery_url_path.value spec in
   let* round_trip =
     within "openapi.json"
       (Companions.round_trip_module
@@ -286,28 +281,4 @@ let files ~root (spec : Spec.t) =
         H.file ~under:"generated" (Worker.file spec);
         H.file ~under:"generated" held_job;
       ]
-    @ manifest
-    @ Error_codes.Haskell.modules
-        ~beside:
-          [
-            Haskell_syntax.value
-              ~about:[ Discovery_url_path.about ]
-              "discoveryUrlPath" (Haskell_syntax.T_name "Text")
-              (Haskell_syntax.Str discovery_url_path);
-          ]
-        ~from_:
-          "protocol/specs/src/client/discovery-absent.json and \
-           protocol/specs/src/client/surface.json"
-        ~module_name:"Xynolog.Discovery.Reasons"
-        ~test_name:"DiscoveryReasonRoundTrip"
-        [
-          {
-            Error_codes.Haskell.member = discovery_absent_member;
-            codes =
-              List.map
-                (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                  r.reason)
-                spec.tables.client_discovery_absent.reasons;
-            statuses = None;
-          };
-        ])
+    @ manifest)

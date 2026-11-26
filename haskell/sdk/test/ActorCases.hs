@@ -116,8 +116,7 @@ makeUnit client time kind inputs = case kind of
           ( \name args -> case name of
               "gatherAnnotation" -> do
                 identity <- decode (member "annotationId" args)
-                let stated = KM.delete "annotationId" (objectFields args)
-                options <- if KM.null stated then pure Nothing else Just <$> decode (Object stated)
+                options <- traverse decode (KM.lookup "options" (objectFields args))
                 Gather.gatherAnnotation unit identity options
               "gatherResource" -> do
                 identity <- decode (member "resourceId" args)

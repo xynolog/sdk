@@ -5,7 +5,7 @@
 namespace Xynolog.Types;
 
 [global::Xynolog.Serialization.WireObject]
-public sealed record DiscoveryReadUnchanged
+public sealed record ClientOptionDefaultsDefaultsItemSchemaTypeParameter
 {
-    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.DiscoveryReadUnchangedKind Kind => global::Xynolog.Types.DiscoveryReadUnchangedKind.Unchanged;
+    [global::Xynolog.Serialization.Wire("typeParameter")] public required string TypeParameter { get; init; }
 }

@@ -97,7 +97,7 @@ jwt instant name expired =
     <> "."
 
 held :: Text -> Text -> StoredSession
-held access refresh = StoredSession {storedSessionAccess = access, storedSessionClientId = Issuer.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "http://issuer.test/token"}
+held access refresh = StoredSession {storedSessionAccess = AccessToken access, storedSessionClientId = Issuer.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "http://issuer.test/token"}
 
 clockOptions :: Time.ControlledTime -> Retry.RetryOptions
 clockOptions time = Retry.RetryOptions (Time.now time) (Time.waitUntil time) (pure 0)
@@ -138,7 +138,7 @@ signInStoreCases root = do
             String "renews" -> do
               theirs <- pair (member "theirs" event)
               current <- SignIn.held backend >>= maybe (ioError (userError "another renewal found no sign-in")) pure
-              void (SignIn.renewed backend current (IssuedTokens (storedSessionAccess theirs) (storedSessionRefresh theirs)))
+              void (SignIn.renewed backend current (IssuedTokens (accessTokenValue (storedSessionAccess theirs)) (storedSessionRefresh theirs)))
             _ -> ioError (userError "unhandled competing store change")
         at phase = case member "meanwhile" row of
           Null -> pure ()

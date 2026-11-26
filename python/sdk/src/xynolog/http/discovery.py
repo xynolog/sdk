@@ -11,9 +11,10 @@ from typing import Final, final, override
 
 import httpx
 
-from xynolog.discovery import Absent, DiscoveryRead, DiscoveryTransport, Managed, Unchanged, parse_discovery_document
+from xynolog.discovery import DiscoveryTransport, parse_discovery_document
 from xynolog.http._withheld import why_unanswered
 from xynolog.timing import HTTP_REQUEST_TIMEOUT_MS
+from xynolog.types import DiscoveryAbsent, DiscoveryManaged, DiscoveryRead, DiscoveryUnchanged
 
 __all__ = ["http_discovery"]
 
@@ -38,20 +39,22 @@ class _HttpDiscovery(DiscoveryTransport):
             ):
                 response = await http.get(self._url, headers=headers, follow_redirects=True)
         except TimeoutError:
-            return Absent(reason="unreadable", diagnostic=f"the document was not served within {HTTP_REQUEST_TIMEOUT_MS // 1000}s")
+            return DiscoveryAbsent(
+                kind="absent", reason="unreadable", diagnostic=f"the document was not served within {HTTP_REQUEST_TIMEOUT_MS // 1000}s"
+            )
         except httpx.HTTPError as error:
-            return Absent(reason="unreadable", diagnostic=why_unanswered(error))
+            return DiscoveryAbsent(kind="absent", reason="unreadable", diagnostic=why_unanswered(error))
         if response.status_code == 304:
-            return Unchanged()
+            return DiscoveryUnchanged(kind="unchanged")
         if not response.is_success:
-            return Absent(reason="not-found", diagnostic=f"HTTP {response.status_code}")
+            return DiscoveryAbsent(kind="absent", reason="not-found", diagnostic=f"HTTP {response.status_code}")
         content_type = response.headers.get("content-type", "")
         if "json" not in content_type.lower():
-            return Absent(reason="not-found", diagnostic=f'the content type is "{content_type}", not JSON')
+            return DiscoveryAbsent(kind="absent", reason="not-found", diagnostic=f'the content type is "{content_type}", not JSON')
         state = parse_discovery_document(response.text)
         # Only a good document's tag is kept: one kept for a document that did
         # not read would have this believe it for good.
-        if isinstance(state, Managed):
+        if isinstance(state, DiscoveryManaged):
             self._etag = response.headers.get("etag")
         return state
 

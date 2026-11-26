@@ -5,8 +5,8 @@
 namespace Xynolog.Types;
 
 [global::Xynolog.Serialization.WireObject]
-public sealed record DiscoveryReadManaged
+public sealed record DiscoveryManaged
 {
-    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.DiscoveryReadManagedKind Kind => global::Xynolog.Types.DiscoveryReadManagedKind.Managed;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.DiscoveryManagedKind Kind => global::Xynolog.Types.DiscoveryManagedKind.Managed;
     [global::Xynolog.Serialization.Wire("kbs")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DiscoveredKB> Kbs { get; init; }
 }

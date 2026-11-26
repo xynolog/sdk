@@ -65,6 +65,22 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `Browse.resource_representation` answers a
+  `Records.Resource_representation.t`, the record of Protocol's
+  `client/types/ResourceRepresentation.json`, `{ data; content_type }`, where
+  it answered a pair of the media type and the bytes.
+- `Yield.resource` takes a `Records.Put_binary_request.t`, the record of
+  Protocol's `client/types/PutBinaryRequest.json`, whose `file` holds the
+  bytes, in place of `~fields` and `~bytes`.
+- `Agent.sign_in` asks the gateway to name the agent once. A gateway that
+  does not answer, or answers 503 or 401, fails the sign-in at once, after
+  one grant and one `GET /api/users/me`. It no longer asks again after
+  `request_retry_pause_ms`, and no longer renews the token on a 401 to ask
+  again. Starting the sign-in again is the service's, as in the other eight
+  SDKs.
+- `Http_wire.check_user` gives a refusal its status's code (`Not_found` for
+  404, `Unavailable` for 5xx), as every other request does, where every
+  refusal that was not of the credential was `Unavailable`.
 - A frame's trace, a held job's and the one a worker's claims are made in is
   the generated `Records.Trace_carrier.t` (`traceparent`, `tracestate`),
   where `Wire_stream.trace` (`parent`, `state`) declared its own.
@@ -119,11 +135,10 @@ the coming release's, and gathers its changes as they land.
 - `Bus.frame_refusal_reason` is `Enums.Frame_refusal_reason.t`
   (`Lacks | Malformed`), as is every fault's reason, in place of
   `` [ `Lacks | `Malformed ] ``.
-- `Registry` hands and takes `Records.Open_resource.t`, `Discovery` hands
-  `Records.Discovered_kb.t`, `Annotations.locate_pdf` takes
-  `Records.Pdf_text_item.t`, and `Oauth.device` holds the
-  `Records.Device_code.t` the gateway answered, in place of records of their
-  own that restated those schemas.
+- `Registry` hands and takes `Records.Open_resource.t`,
+  `Annotations.locate_pdf` takes `Records.Pdf_text_item.t`, and
+  `Oauth.device` holds the `Records.Device_code.t` the gateway answered, in
+  place of records of their own that restated those schemas.
 - A sign-in by a page redirect that is under way is
   `Records.Pending_authorization.t`, and an issuer is
   `Records.Pending_authorization_issuer.t`, in place of
@@ -200,6 +215,21 @@ the coming release's, and gathers its changes as they land.
   was a code Protocol does not state (`kb.not-found`, `kb.id-conflict`).
 - `Sign_in_store.state_directory` takes `~system`, Protocol's
   `Enums.System.t`, where it took `~platform`, the SDK's own `platform`.
+- What discovery reads is the generated records Protocol names, in place of
+  `Discovery`'s own types: `Discovery.parse_discovery_document` gives a
+  `Records.Discovery_state.t` (`Absent` of a `Records.Discovery_absent.t`,
+  its reason and diagnostic, or `Managed` of a `Records.Discovery_managed.t`),
+  a transport reads a `Records.Discovery_read.t` (either of those, or
+  `Unchanged`), and `Discovery.discovery_diff` and `subscribe_discovery` give
+  a `Records.Discovery_diff.t`. Its knowledge bases are
+  `` [ `DiscoveredKB ] Models.t ``, where they were `Records.Discovered_kb.t`,
+  and an address more than one claims is its `host:port` text, where it was
+  a pair. The types `Discovery.discovery_state`, `discovery_read` and
+  `discovery_diff` go.
+- An upload's `Records.Upload_progress.Started` and `Progress` state
+  `total_bytes` as an `int option`, as does
+  `Records.Conformance_driver_line_progress_progress`: the total is stated
+  when the source states its length, as every upload's does today.
 
 ## 0.8.1
 

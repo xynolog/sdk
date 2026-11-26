@@ -93,8 +93,8 @@ withAnswers fixtures answerOverride action = do
               let sent = case toJSON metadata of Object fields -> Object (KM.insert "content" (String (decodeUtf8 bytes)) fields); _ -> error "upload metadata is not an object"
               atomically (writeTQueue calls (Called "content:putBinary" sent))
               let size = fromIntegral (Bytes.length bytes)
-              progress (UploadStarted size)
-              progress (UploadProgress size size)
+              progress (UploadStarted (Just size))
+              progress (UploadProgress size (Just size))
               created <- fixture fixtures "CreateResourceResponse"
               progress (UploadFinished (createResourceResponseResourceId created))
               pure created

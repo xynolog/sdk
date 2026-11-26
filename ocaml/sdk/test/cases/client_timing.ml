@@ -22,7 +22,12 @@ let item_value_json = function
   | (Integer v : item_value) -> (fun n -> `Int n) v
   | (Object v : item_value) -> retry_budget_json v
 
-type timing_item = { name : string; value : item_value; docs : string }
+type timing_item = {
+  name : string;
+  value : item_value;
+  override : string option;
+  docs : string;
+}
 
 let timing_item_json (r : timing_item) =
   `Assoc
@@ -30,6 +35,7 @@ let timing_item_json (r : timing_item) =
        [
          Option.Some ("name", (fun s -> `String s) r.name);
          Option.Some ("value", item_value_json r.value);
+         Option.map (fun v -> ("override", (fun s -> `String s) v)) r.override;
          Option.Some ("docs", (fun s -> `String s) r.docs);
        ])
 
@@ -53,14 +59,21 @@ let table : t =
         often, as another. A name ending in `Ms` is a duration in \
         milliseconds; one ending in `Retry` is a budget of `attempts` with a \
         backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`; \
-        one ending in `Count` is a whole number of things. An SDK's testing \
-        surface may override any of these; these are what it does unasked. \
-        Which failures are worth an attempt is specs/src/retry/rules.json.";
+        one ending in `Count` is a whole number of things. A row with \
+        `override` is one a caller may override, and `override` says where: \
+        `client` is the client's timing record, `transport` the transport's, \
+        and `Owner.member` a member of the client type Owner \
+        (specs/src/client/types) or a parameter of a state unit or function \
+        client/surface.json lists. A row without it is fixed, and no \
+        conformance case overrides it. Each of these is what a client does \
+        unasked. Which failures are worth an attempt is \
+        specs/src/retry/rules.json.";
      timing =
        [
          ({
             name = "busRequestTimeoutMs";
             value = (Integer 30000 : item_value);
+            override = Some "client";
             docs =
               "How long a bus request has, from the call, to be answered: the \
                wait for the stream to open, the emit with its retries and the \
@@ -76,6 +89,7 @@ let table : t =
          ({
             name = "emitTimeoutMs";
             value = (Integer 30000 : item_value);
+            override = None;
             docs =
               "The deadline on one POST /bus/emit. The gateway accepts an emit \
                promptly; one still unanswered here means the gateway is \
@@ -91,6 +105,7 @@ let table : t =
                  ({ attempts = 4; initial_delay_ms = 1000; max_delay_ms = 4000 }
                    : retry_budget)
                 : item_value);
+            override = Some "transport";
             docs =
               "The retry budget of ONE emit. Per request, never per boot pass: \
                re-running a whole catch-up pass to recover from one refusal \
@@ -103,6 +118,7 @@ let table : t =
          ({
             name = "httpRequestTimeoutMs";
             value = (Integer 30000 : item_value);
+            override = Some "transport";
             docs =
               "The deadline on one HTTP request that is neither the stream nor \
                an emit: one of the gateway's own operations (who a token is, a \
@@ -131,6 +147,7 @@ let table : t =
          ({
             name = "requestRetryPauseMs";
             value = (Integer 300 : item_value);
+            override = None;
             docs =
               "The wait before an HTTP request that is neither the stream nor \
                an emit is made a second time. It is made again when the \
@@ -142,12 +159,15 @@ let table : t =
                that is longer. A request whose credential was refused is \
                renewed and sent again at once, without this wait, and one \
                unanswered at its deadline (`httpRequestTimeoutMs`) is not made \
-               again.";
+               again. The naming request of an agent's sign-in is made once, \
+               and is not made again (contract/TRANSPORT-HTTP.md \194\167 An \
+               agent's sign-in).";
           }
            : timing_item);
          ({
             name = "streamOpenTimeoutMs";
             value = (Integer 30000 : item_value);
+            override = Some "transport";
             docs =
               "How long a client waits for the gateway to answer the request \
                that opens its stream (POST /bus/subscribe): for the answer's \
@@ -169,6 +189,7 @@ let table : t =
          ({
             name = "reconnectMs";
             value = (Integer 5000 : item_value);
+            override = Some "transport";
             docs =
               "The first wait before a failed stream is opened again. Each \
                further failure doubles it, up to `maxReconnectMs`, and a \
@@ -180,6 +201,7 @@ let table : t =
          ({
             name = "maxReconnectMs";
             value = (Integer 60000 : item_value);
+            override = None;
             docs =
               "The ceiling of the reconnect backoff: a long outage settles at \
                about one attempt a minute instead of growing without bound.";
@@ -188,6 +210,7 @@ let table : t =
          ({
             name = "degradedThresholdMs";
             value = (Integer 3000 : item_value);
+            override = None;
             docs =
               "How long a stream may be reconnecting before its state becomes \
                degraded.";
@@ -196,6 +219,7 @@ let table : t =
          ({
             name = "lingerMs";
             value = (Integer 1000 : item_value);
+            override = Some "transport";
             docs =
               "How long a superseded connection keeps draining after a \
                make-before-break handoff. Closing it the instant its \
@@ -208,6 +232,7 @@ let table : t =
          ({
             name = "seenEventIdsCount";
             value = (Integer 512 : item_value);
+            override = Some "transport";
             docs =
               "How many of the event ids it delivered last a client remembers. \
                A frame whose id is among them is one it has delivered already, \
@@ -220,6 +245,7 @@ let table : t =
          ({
             name = "reconnectDebounceMs";
             value = (Integer 100 : item_value);
+            override = None;
             docs =
               "How long additions to the subscription are gathered before the \
                stream is reopened with them. Short, because a new scope needs \
@@ -229,6 +255,7 @@ let table : t =
          ({
             name = "lazyRemoveMs";
             value = (Integer 5000 : item_value);
+            override = Some "transport";
             docs =
               "How long a removal from the subscription waits before the \
                stream is reopened without it. Removal only narrows delivery, \
@@ -243,6 +270,7 @@ let table : t =
                  ({ attempts = 4; initial_delay_ms = 500; max_delay_ms = 4000 }
                    : retry_budget)
                 : item_value);
+            override = None;
             docs =
               "The retry budget of one token renewal: long enough to ride out \
                a gateway restart or a rolling deploy, short enough that a user \
@@ -253,6 +281,7 @@ let table : t =
          ({
             name = "refreshBeforeExpMs";
             value = (Integer 300000 : item_value);
+            override = None;
             docs =
               "The LARGEST margin before expiry at which a token is \
                proactively renewed. A ceiling, not the margin: the margin is \
@@ -266,6 +295,7 @@ let table : t =
          ({
             name = "minRefreshDelayMs";
             value = (Integer 10000 : item_value);
+            override = None;
             docs =
               "The shortest the proactive renewal ever waits. A timer due now \
                that reschedules itself on arrival is a closed loop; a floor \
@@ -277,6 +307,7 @@ let table : t =
          ({
             name = "devicePollMs";
             value = (Integer 5000 : item_value);
+            override = None;
             docs =
               "How long a sign-in by the device grant (RFC 8628) waits before \
                each time it asks the token endpoint whether the person has \
@@ -288,6 +319,7 @@ let table : t =
          ({
             name = "deviceSlowDownMs";
             value = (Integer 5000 : item_value);
+            override = None;
             docs =
               "How much longer a sign-in by the device grant waits between its \
                asks, for that ask and every one after it, each time the issuer \
@@ -298,6 +330,7 @@ let table : t =
          ({
             name = "devicePollFloorMs";
             value = (Integer 1000 : item_value);
+            override = None;
             docs =
               "The shortest a sign-in by the device grant ever waits between \
                its asks of the token endpoint, whatever `interval` the issuer \
@@ -312,6 +345,7 @@ let table : t =
          ({
             name = "invalidationWindowMs";
             value = (Integer 1000 : item_value);
+            override = Some "client";
             docs =
               "How long bus-driven invalidations of one cache key fold \
                together (CACHE-SEMANTICS B19). The first runs at once; any \
@@ -324,6 +358,7 @@ let table : t =
          ({
             name = "saveDebounceMs";
             value = (Integer 50 : item_value);
+            override = None;
             docs =
               "How long a cache that keeps its values waits, after they last \
                changed, before it saves them (CACHE-SEMANTICS B17): a burst of \
@@ -334,6 +369,7 @@ let table : t =
          ({
             name = "maxStoredBytesCount";
             value = (Integer 2097152 : item_value);
+            override = None;
             docs =
               "The largest document, in bytes, a cache keeps of its values \
                (CACHE-SEMANTICS B17). One larger loses the entries that have \
@@ -345,6 +381,7 @@ let table : t =
          ({
             name = "errorsKeptForFirstReaderCount";
             value = (Integer 100 : item_value);
+            override = None;
             docs =
               "How many of what a stream says it keeps for its first reader \
                while none has come: a session's errors, its own and its \
@@ -361,6 +398,7 @@ let table : t =
          ({
             name = "jobSilenceMs";
             value = (Integer 10000 : item_value);
+            override = Some "client";
             docs =
               "How long a job a client is following may say nothing before the \
                client asks for its status. A job's progress and its end reach \
@@ -373,6 +411,7 @@ let table : t =
          ({
             name = "jobStatusPollMs";
             value = (Integer 5000 : item_value);
+            override = Some "client";
             docs =
               "How often a client asks for the status of a job that has been \
                silent for `jobSilenceMs`, until the job says something or its \
@@ -382,6 +421,7 @@ let table : t =
          ({
             name = "jobPollMs";
             value = (Integer 1000 : item_value);
+            override = Some "JobPollOptions.everyMs";
             docs =
               "How often a job's `pollUntilComplete` asks for its status \
                (`job:status-requested`) until the status is an end, when its \
@@ -391,6 +431,7 @@ let table : t =
          ({
             name = "jobPollTimeoutMs";
             value = (Integer 60000 : item_value);
+            override = Some "JobPollOptions.withinMs";
             docs =
               "How long a job's `pollUntilComplete` goes on asking for its \
                status before it fails as timed out, when its caller names no \
@@ -401,6 +442,7 @@ let table : t =
          ({
             name = "generationStallFloorMs";
             value = (Integer 120000 : item_value);
+            override = None;
             docs =
               "The shortest a client waits, with a generation it follows \
                saying nothing, before it asks for the job to be cancelled and \
@@ -411,6 +453,7 @@ let table : t =
          ({
             name = "generationStallPerTokenMs";
             value = (Integer 75 : item_value);
+            override = None;
             docs =
               "How long a followed generation may be silent for each token it \
                was asked for. A generation says nothing while its model \
@@ -422,6 +465,7 @@ let table : t =
          ({
             name = "generationStallAssumedTokensCount";
             value = (Integer 500 : item_value);
+            override = None;
             docs =
               "The length assumed of a generation whose request states no \
                `maxTokens`: the worker's own ceiling for one. At this length \
@@ -431,6 +475,7 @@ let table : t =
          ({
             name = "delegateSilenceMs";
             value = (Integer 180000 : item_value);
+            override = None;
             docs =
               "How long a delegated job a client's state is following may say \
                nothing before that state says the job has gone quiet \
@@ -443,6 +488,7 @@ let table : t =
          ({
             name = "jobClaimTimeoutMs";
             value = (Integer 10000 : item_value);
+            override = Some "ClaimOptions.jobClaimTimeoutMs";
             docs =
               "How long a party that takes jobs waits for the answer to one \
                claim (`job:claim`), from the call and its emit included, as \
@@ -455,6 +501,7 @@ let table : t =
          ({
             name = "heldJobStallMs";
             value = (Integer 900000 : item_value);
+            override = Some "ClaimOptions.heldJobStallMs";
             docs =
               "How long a held job may show no activity (its claim, a progress \
                report, its settle) before whoever holds it calls it stalled. \
@@ -466,6 +513,7 @@ let table : t =
          ({
             name = "heldJobStallCheckMs";
             value = (Integer 60000 : item_value);
+            override = Some "ClaimOptions.heldJobStallCheckMs";
             docs =
               "How often a party that holds a job looks at how long it has \
                shown no activity.";
@@ -474,6 +522,7 @@ let table : t =
          ({
             name = "markCommitTimeoutMs";
             value = (Integer 60000 : item_value);
+            override = Some "ClaimOptions.markCommitTimeoutMs";
             docs =
               "How long a worker waits for the record to acknowledge a commit \
                of annotations (`mark:commit`), and then, when no \
@@ -490,6 +539,7 @@ let table : t =
          ({
             name = "generatedTextAsksCount";
             value = (Integer 8 : item_value);
+            override = None;
             docs =
               "How many times a worker asks for the anchored text of a PDF it \
                has just yielded (`GET /resources/{id}/anchored-text`) before \
@@ -506,6 +556,7 @@ let table : t =
          ({
             name = "anchoredTextReaskMs";
             value = (Integer 5000 : item_value);
+            override = None;
             docs =
               "How long a viewer waits before it asks again for a resource's \
                anchored text (`GET /resources/{id}/anchored-text`), after an \
@@ -520,6 +571,7 @@ let table : t =
          ({
             name = "hoverDelayMs";
             value = (Integer 150 : item_value);
+            override = Some "hoverDwell.delay";
             docs =
               "How long a pointer rests on an annotation before the viewer \
                says it is hovered. Shorter, and a pointer crossing the page \
@@ -529,6 +581,7 @@ let table : t =
          ({
             name = "searchDebounceMs";
             value = (Integer 250 : item_value);
+            override = Some "search.debounce";
             docs =
               "How long a search waits after its query last changed before it \
                asks. A query still being typed is not asked for letter by \
@@ -538,6 +591,7 @@ let table : t =
          ({
             name = "discoveryIntervalMs";
             value = (Integer 5000 : item_value);
+            override = Some "subscribeDiscovery.interval";
             docs =
               "How often a launcher's discovery document is read again, unless \
                a caller says otherwise. A launcher rewrites it on every change \
@@ -549,6 +603,7 @@ let table : t =
          ({
             name = "checksAtOnceCount";
             value = (Integer 4 : item_value);
+            override = None;
             docs =
               "How many of the resources open in a knowledge base a registry \
                checks against it at once when its session comes up. A \

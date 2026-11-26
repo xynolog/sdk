@@ -170,6 +170,20 @@ the coming release's, and gathers its changes as they land.
   of its schema.
 - `Pending`, `Ready` and `Failed`'s `status` is Protocol's
   `xynolog.types.CacheStatus`.
+- What discovery reads is the models Protocol names, in place of
+  `xynolog.discovery`'s own: `parse_discovery_document` gives a
+  `xynolog.types.DiscoveryState` (a `DiscoveryAbsent` or a
+  `DiscoveryManaged`), a transport's `read` a `DiscoveryRead` (either, or a
+  `DiscoveryUnchanged`), and `subscribe_discovery` a `DiscoveryDiff`, in
+  place of `xynolog.discovery.Absent`, `Managed`, `Unchanged`,
+  `DiscoveryState`, `DiscoveryRead` and `DiscoveryDiff`. Each is a model,
+  made by keyword with its `kind` (`DiscoveryManaged(kind="managed",
+  kbs=…)`), and its knowledge bases and addresses are lists, where they were
+  tuples.
+- An upload's `UploadProgressStarted` and `UploadProgressProgress`, and
+  `ConformanceDriverLineProgressProgress`, state `total_bytes` as an
+  `int | None`: the total is stated when the source states its length, as
+  every upload's does today.
 
 ## 0.8.1
 

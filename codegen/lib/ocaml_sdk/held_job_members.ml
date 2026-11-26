@@ -19,7 +19,7 @@ let module_of (t : Table.t) ~tabled =
     match
       List.find_opt (fun (r : Records.tabled) -> r.module_ = module_) tabled
     with
-    | Some { form = Fields fields; _ } -> fields
+    | Some { form = Fields { fields; _ }; _ } -> fields
     | Some _ -> Definitions.refuse "%s: Records holds it as no record" t.record
     | None -> Definitions.refuse "%s: Records has no module of it" t.record
   in

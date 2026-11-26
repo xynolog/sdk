@@ -202,6 +202,21 @@ let ocaml path =
     ~banner:(Banner.ocaml ~from_:"client/surface.json" __FILE__)
     [ O.let_ "discovery_url_path" (O.string path) ]
 
+let haskell path =
+  let module H = Haskell_syntax in
+  H.file ~under:"generated"
+    {
+      H.banner = Banner.lines ~from_ __FILE__;
+      extensions = [ "OverloadedStrings" ];
+      name = "Xynolog.Internal.Generated.DiscoveryUrlPath";
+      imports = [ H.import "Data.Text" ~items:[ Plain "Text" ] ];
+      body =
+        [
+          H.value ~about:[ about ] "discoveryUrlPath" (H.T_name "Text")
+            (H.Str path);
+        ];
+    }
+
 let files ~root:_ (spec : Spec.t) =
   Result.map
     (fun path ->
@@ -214,5 +229,6 @@ let files ~root:_ (spec : Spec.t) =
         swift path;
         csharp path;
         ocaml path;
+        haskell path;
       ])
     (value spec)

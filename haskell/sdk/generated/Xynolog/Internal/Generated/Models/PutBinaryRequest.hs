@@ -9,14 +9,14 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
-import Xynolog.Internal.Generated.Models.Binary
+import Xynolog.Internal.Generated.Models.ByteSource
 import Xynolog.Internal.Generated.Models.JobId
 import Xynolog.Internal.Generated.Models.OneOrMoreAgents
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data PutBinaryRequest = PutBinaryRequest
   { putBinaryRequestName :: Text,
-    putBinaryRequestFile :: Binary,
+    putBinaryRequestFile :: ByteSource,
     putBinaryRequestFormat :: Text,
     putBinaryRequestStorageUri :: Text,
     putBinaryRequestLanguage :: Maybe Text,

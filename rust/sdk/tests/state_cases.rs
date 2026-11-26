@@ -486,36 +486,16 @@ fn adapters() -> Vec<Adapter> {
         Adapter {
             unit: "gather",
             method: "gatherAnnotation",
-            parameters: &[
-                "annotationId",
-                "contextWindow",
-                "includeSourceContext",
-                "includeTargetContext",
-            ],
+            parameters: &["annotationId", "options"],
             call: |unit, args| {
-                let context_window = args
-                    .get("contextWindow")
-                    .map(|window| {
-                        window
-                            .as_u64()
-                            .and_then(|window| u16::try_from(window).ok())
-                            .ok_or_else(|| format!("contextWindow is not a window: {window}"))
+                let options = args
+                    .get("options")
+                    .map(|stated| {
+                        serde_json::from_value::<GatherAnnotationOptions>(stated.clone())
+                            .map_err(|refused| format!("options are not options: {refused}"))
                     })
-                    .transpose()?;
-                let flag = |name: &str| {
-                    args.get(name)
-                        .map(|stated| {
-                            stated
-                                .as_bool()
-                                .ok_or_else(|| format!("{name} is not a boolean: {stated}"))
-                        })
-                        .transpose()
-                };
-                let options = GatherAnnotationOptions {
-                    context_window,
-                    include_source_context: flag("includeSourceContext")?,
-                    include_target_context: flag("includeTargetContext")?,
-                };
+                    .transpose()?
+                    .unwrap_or_default();
                 unit.as_gather()?
                     .gather_annotation(&id(args, "annotationId")?, options);
                 Ok(())

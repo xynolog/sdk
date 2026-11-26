@@ -14,8 +14,8 @@ import xynolog.identifiers.ResourceId
 public data class PutBinaryRequest(
     /** Human-readable resource name */
     public val name: String,
-    /** Binary content */
-    public val file: Binary,
+    /** The bytes, opened for each sending of the upload: the multipart body's `file` part each time. */
+    public val file: ByteSource,
     /** Media type of the content (e.g. text/plain, text/markdown, image/png) */
     public val format: String,
     /** Where the content lives (file://... for local). Required — the client names the location; the server does not derive one. */
@@ -45,7 +45,7 @@ public data class PutBinaryRequest(
     /** How Java makes a `PutBinaryRequest`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val name: String,
-        private val file: Binary,
+        private val file: ByteSource,
         private val format: String,
         private val storageUri: String,
     ) {
@@ -85,6 +85,6 @@ public data class PutBinaryRequest(
     public companion object {
         /** A builder of a `PutBinaryRequest` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(name: String, file: Binary, format: String, storageUri: String): Builder = Builder(name, file, format, storageUri)
+        public fun builder(name: String, file: ByteSource, format: String, storageUri: String): Builder = Builder(name, file, format, storageUri)
     }
 }

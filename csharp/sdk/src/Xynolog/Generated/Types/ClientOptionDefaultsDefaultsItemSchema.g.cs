@@ -4,10 +4,12 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(ClientOptionDefaultsDefaultsItemSchema.Reference), typeof(ClientOptionDefaultsDefaultsItemSchema.DateTime))]
+[global::Xynolog.Serialization.WireUnion(typeof(ClientOptionDefaultsDefaultsItemSchema.Reference), typeof(ClientOptionDefaultsDefaultsItemSchema.DateTime), typeof(ClientOptionDefaultsDefaultsItemSchema.TypeParameter), typeof(ClientOptionDefaultsDefaultsItemSchema.Decided))]
 public closed record ClientOptionDefaultsDefaultsItemSchema
 {
-    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["$ref"], ["$ref"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "description"], ["type", "minimum", "format", "description"], [new("type", [new global::Xynolog.Serialization.Literal.Text("integer"), new global::Xynolog.Serialization.Literal.Text("string"), new global::Xynolog.Serialization.Literal.Text("boolean")]), new("format", [new global::Xynolog.Serialization.Literal.Text("date-time")])], null)]];
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["$ref"], ["$ref", "typeArguments"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["type", "description"], ["type", "minimum", "format", "description"], [new("type", [new global::Xynolog.Serialization.Literal.Text("integer"), new global::Xynolog.Serialization.Literal.Text("string"), new global::Xynolog.Serialization.Literal.Text("boolean")]), new("format", [new global::Xynolog.Serialization.Literal.Text("date-time")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["typeParameter"], ["typeParameter"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["decided"], ["decided"], [], null)]];
     public sealed record Reference(global::Xynolog.Types.ClientOptionDefaultsDefaultsItemSchemaReference Value) : ClientOptionDefaultsDefaultsItemSchema;
     public sealed record DateTime(global::Xynolog.Types.ClientOptionDefaultsDefaultsItemSchemaDateTime Value) : ClientOptionDefaultsDefaultsItemSchema;
+    public sealed record TypeParameter(global::Xynolog.Types.ClientOptionDefaultsDefaultsItemSchemaTypeParameter Value) : ClientOptionDefaultsDefaultsItemSchema;
+    public sealed record Decided(global::Xynolog.Types.ClientOptionDefaultsDefaultsItemSchemaDecided Value) : ClientOptionDefaultsDefaultsItemSchema;
 }

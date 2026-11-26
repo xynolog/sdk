@@ -161,46 +161,6 @@ let model_file (name, decls) =
     (types ^ "/" ^ name ^ ".g.cs")
     decls
 
-(* Why a client that read a launcher's discovery document found no launcher
-   (protocol/specs/src/client/discovery-absent.json): a constant a reason,
-   written as the reason's word. *)
-let discovery_absent (spec : Spec.t) =
-  let name = "DiscoveryAbsentReason" in
-  let serialization = "global::System.Text.Json.Serialization." in
-  file ~nullable:true ~namespace:"Xynolog.Types"
-    ~from_:"protocol/specs/src/client/discovery-absent.json"
-    (types ^ "/" ^ name ^ ".g.cs")
-    [
-      C.Enum
-        {
-          attributes =
-            [
-              {
-                C.name = serialization ^ "JsonConverter";
-                args =
-                  [
-                    Typeof
-                      (Generic
-                         (serialization ^ "JsonStringEnumConverter", [ T name ]));
-                  ];
-              };
-            ];
-          modifiers = [ Public ];
-          name;
-          members =
-            List.map
-              (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                ( [
-                    {
-                      C.name = serialization ^ "JsonStringEnumMemberName";
-                      args = [ Str r.reason ];
-                    };
-                  ],
-                  Models.enum_constant r.reason ))
-              spec.tables.client_discovery_absent.reasons;
-        };
-    ]
-
 let wire_schemas ids records (models : Models.t) =
   let source =
     `Assoc
@@ -601,11 +561,7 @@ let models (spec : Spec.t) =
   let* models =
     Result.map_error refused
       (let bundle = Definitions.bundle spec in
-       let sign_in =
-         match List.assoc_opt Roots.sign_in_entry spec.schemas with
-         | Some s -> s
-         | None -> Definitions.refuse "Protocol has no %s" Roots.sign_in_entry
-       in
+       let sign_in = Definitions.sign_in spec in
        let made =
          List.map
            (fun (name, _, schema) ->
@@ -676,7 +632,7 @@ let files ~root (spec : Spec.t) =
   let* tables = protocol_tables ~root spec in
   let* services = Services.file ~root spec in
   let* control = Control.file models spec in
-  let written = List.map model_file models.models @ [ discovery_absent spec ] in
+  let written = List.map model_file models.models in
   match Output.stale ~root ~directory:types written with
   | [] ->
       Ok

@@ -54,10 +54,10 @@ use xynolog::cache::{Cache, CachePersister};
 use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::claims::JOB_CLAIM_CHANNELS;
 use xynolog::client::XynologClient;
-use xynolog::discovery::{DiscoveryRead, DiscoveryState, DiscoveryTransport, subscribe_discovery};
+use xynolog::discovery::{DiscoveryTransport, subscribe_discovery};
 use xynolog::errors::{BusRequestErrorCode, XynologError};
 use xynolog::gateway_http::{
-    EMIT_ON_BUS, GET_HEALTH, GET_PROTECTED_RESOURCE_METADATA, SUBSCRIBE_TO_BUS,
+    EMIT_ON_BUS, GET_CURRENT_USER, GET_HEALTH, GET_PROTECTED_RESOURCE_METADATA, SUBSCRIBE_TO_BUS,
 };
 use xynolog::session::{XynologSession, XynologSessionConfig, kept_in, store_session};
 use xynolog::storage::InMemorySessionStorage;
@@ -69,7 +69,10 @@ use xynolog::types::{
     JobPollOptions, JobProgress, JobStatusResponse, KbTarget, UserResponse,
 };
 use xynolog::types::{ClaimOptions, StoredSession};
+use xynolog::types::{DiscoveryManaged, DiscoveryRead, DiscoveryUnchanged};
+use xynolog_http_transport::agent::AgentToken;
 use xynolog_http_transport::oauth::sign_in_with_device_grant;
+use xynolog_http_transport::service_account::{Credential, SecretCredential, ServiceToken};
 use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
 
 static TABLE: LazyLock<Value> = LazyLock::new(|| {
@@ -928,6 +931,155 @@ fn renewal(given: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
     .boxed_local()
 }
 
+// ── An agent's sign-in ──────────────────────────────────────────────────
+
+/// What an agent's issuer and gateway in this process answer: the grant with
+/// a token that lives an hour, or `grant_status`; and the naming request with
+/// `naming_status`. No subject has the gateway name the agent.
+struct AgentServers {
+    ledger: Arc<Ledger>,
+    origin: String,
+    grant_status: Option<StatusCode>,
+    naming_status: Option<StatusCode>,
+}
+
+async fn agent_answer(State(servers): State<Arc<AgentServers>>, request: Request) -> Response {
+    let (method, path) = (request.method().clone(), request.uri().path().to_owned());
+    servers.ledger.ask(&path);
+    axum::body::to_bytes(request.into_body(), usize::MAX)
+        .await
+        .expect("the request's body");
+    let realm = format!("{}{REALM}", servers.origin);
+    if path == GET_CURRENT_USER.path
+        && let Some(status) = servers.naming_status
+    {
+        return (status, Json(json!({}))).into_response();
+    }
+    match path.strip_prefix(REALM) {
+        Some("/.well-known/openid-configuration") => Json(json!({
+            "issuer": realm,
+            "token_endpoint": format!("{realm}/token"),
+        }))
+        .into_response(),
+        Some("/token") => match servers.grant_status {
+            Some(status) => {
+                (status, Json(json!({ "error": "temporarily_unavailable" }))).into_response()
+            }
+            None => Json(json!({
+                "access_token": token(3600, servers.ledger.asked(&path)),
+                "token_type": "Bearer",
+                "expires_in": 3600,
+            }))
+            .into_response(),
+        },
+        _ => servers.ledger.stray(format!("{method} {path}")),
+    }
+}
+
+/// A gateway every connection to which fails as it is made: each is closed
+/// as it is accepted, and counted as `connection`.
+async fn unreachable_gateway(ledger: Arc<Ledger>) -> (String, tokio::task::JoinHandle<()>) {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("a port");
+    let port = listener.local_addr().expect("an address").port();
+    let closing = tokio::spawn(async move {
+        while let Ok((connection, _)) = listener.accept().await {
+            ledger.ask("connection");
+            drop(connection);
+        }
+    });
+    (format!("http://127.0.0.1:{port}"), closing)
+}
+
+/// Each request an agent's sign-in has sent, to the issuer and to the
+/// gateway: its grants, its naming requests, and each connection to the
+/// gateway it tried.
+fn sign_in_requests(ledger: &Arc<Ledger>) -> Box<dyn Fn() -> usize> {
+    let ledger = ledger.clone();
+    Box::new(move || {
+        ledger.asked(&format!("{REALM}/token"))
+            + ledger.asked(GET_CURRENT_USER.path)
+            + ledger.asked("connection")
+    })
+}
+
+/// An agent's sign-in at an issuer that answers its grant with `grant_status`
+/// when it states one, and at a gateway that answers its naming request with
+/// `naming_status` when it states one, or that it cannot reach when
+/// `unreachable`.
+async fn agent_sign_in(
+    grant_status: Option<StatusCode>,
+    naming_status: Option<StatusCode>,
+    unreachable: bool,
+) -> Subject {
+    let ledger = Arc::new(Ledger::default());
+    let serving = ledger.clone();
+    let network = Network::serve(ledger.clone(), move |origin| {
+        Router::new()
+            .fallback(agent_answer)
+            .with_state(Arc::new(AgentServers {
+                ledger: serving,
+                origin,
+                grant_status,
+                naming_status,
+            }))
+    })
+    .await;
+    let mut held: Vec<Box<dyn Any>> = Vec::new();
+    let gateway = if unreachable {
+        let (gateway, closing) = unreachable_gateway(ledger.clone()).await;
+        held.push(Box::new(AbortOnDrop(closing)));
+        gateway
+    } else {
+        network.origin.clone()
+    };
+    let service = ServiceToken::new(
+        Credential::Secret(SecretCredential {
+            issuer: format!("{}{REALM}", network.origin),
+            client_id: "smelter".to_owned(),
+            client_secret: "a-client-secret".to_owned(),
+        }),
+        http(),
+    );
+    let signing_in = tokio::spawn(async move {
+        let _ = AgentToken::sign_in(&gateway, service, http(), Some(lowest())).await;
+    });
+    held.push(Box::new(AbortOnDrop(signing_in)));
+    Subject {
+        counted: sign_in_requests(&ledger),
+        act: None,
+        network: Some(network),
+        _held: held,
+    }
+}
+
+/// A task that ends when the case that set it going is over.
+struct AbortOnDrop(tokio::task::JoinHandle<()>);
+
+impl Drop for AbortOnDrop {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
+}
+
+fn status_given(given: &Map<String, Value>) -> StatusCode {
+    let status = given["status"].as_u64().expect("given.status");
+    StatusCode::from_u16(u16::try_from(status).expect("a status")).expect("a status")
+}
+
+fn refused_agent_sign_in(given: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
+    async move { agent_sign_in(None, Some(status_given(&given)), false).await }.boxed_local()
+}
+
+fn unreachable_agent_sign_in(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
+    async move { agent_sign_in(None, None, true).await }.boxed_local()
+}
+
+fn refused_agent_grant(given: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
+    async move { agent_sign_in(Some(status_given(&given)), None, false).await }.boxed_local()
+}
+
 // ── A worker's claims ───────────────────────────────────────────────────
 
 /// A dispatcher with one job: it answers `job:claim` with it.
@@ -1011,14 +1163,14 @@ impl DiscoveryTransport for LauncherDocument {
         let read = self.reads.fetch_add(1, Ordering::SeqCst) + 1;
         Box::pin(async move {
             if read > 1 {
-                return DiscoveryRead::Unchanged;
+                return DiscoveryUnchanged::new().into();
             }
             let managed: DiscoveredKB = serde_json::from_value(json!({
                 "host": "localhost", "port": 4000, "placement": "local",
                 "managedBy": "xynolog-launcher", "did": "did:web:example.org:kb-a",
             }))
             .expect("a managed knowledge base");
-            DiscoveryRead::State(DiscoveryState::Managed { kbs: vec![managed] })
+            DiscoveryManaged::new(vec![managed]).into()
         })
     }
 }
@@ -1269,7 +1421,7 @@ fn job_poll_timeout(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
 }
 
 /// How this SDK builds each subject the table names.
-const SUBJECTS: [(&str, Build); 19] = [
+const SUBJECTS: [(&str, Build); 22] = [
     ("refusedStream", refused_stream),
     ("unansweredStream", unanswered_stream),
     ("degradedStream", degraded_stream),
@@ -1289,6 +1441,9 @@ const SUBJECTS: [(&str, Build); 19] = [
     ("timedOutBusRequest", timed_out_bus_request),
     ("jobPoll", job_poll),
     ("jobPollTimeout", job_poll_timeout),
+    ("refusedAgentSignIn", refused_agent_sign_in),
+    ("unreachableAgentSignIn", unreachable_agent_sign_in),
+    ("refusedAgentGrant", refused_agent_grant),
 ];
 
 // ── A case, played ──────────────────────────────────────────────────────

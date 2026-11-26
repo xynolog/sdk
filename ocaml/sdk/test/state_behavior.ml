@@ -347,12 +347,29 @@ let run_case ~fixture (row : Units.cases_item) =
         let invoke name args =
           match name with
           | "gatherAnnotation" ->
+              let options =
+                option
+                  (fun stated ->
+                    Records.Gather_annotation_options.of_model
+                      (Result.get_ok
+                         (Models.decode Models.gather_annotation_options
+                            (json stated))))
+                  (field "options" args)
+              in
               G.gather_annotation unit
-                ?context_window:(option J.to_int (field "contextWindow" args))
+                ?context_window:
+                  (Option.bind options (fun stated ->
+                       stated.Records.Gather_annotation_options.context_window))
                 ?include_source_context:
-                  (option J.to_bool (field "includeSourceContext" args))
+                  (Option.bind options (fun stated ->
+                       stated
+                         .Records.Gather_annotation_options
+                          .include_source_context))
                 ?include_target_context:
-                  (option J.to_bool (field "includeTargetContext" args))
+                  (Option.bind options (fun stated ->
+                       stated
+                         .Records.Gather_annotation_options
+                          .include_target_context))
                 (id (field "annotationId" args))
           | "gatherResource" ->
               G.gather_resource unit (resource "resourceId" args)

@@ -16,7 +16,7 @@ import xynolog.identifiers.ResourceId
 public data class ResourceUpload(
     /** Human-readable resource name */
     public val name: String,
-    /** Binary content */
+    /** The bytes, as the part carries them. */
     public val file: Binary,
     /** Media type of the content (e.g. text/plain, text/markdown, image/png) */
     public val format: String,

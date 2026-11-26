@@ -199,14 +199,21 @@ let typed (spec : Spec.t) =
   let whole = whole spec in
   fun s -> Result.map Normalize.shape_only (whole s)
 
-(* The client types each SDK writes by hand: SearchState and JobEvent, each
-   held to its schema by a census in every SDK; ResourceRepresentationStream,
-   which the content methods return, which waits on each SDK's methods
-   returning what client/surface.json says they return; and ByteStream, bytes
-   read once as they arrive, which only ResourceRepresentationStream holds, as
-   each SDK's own read-once stream. *)
+(* The client types each SDK writes by hand: SearchState, CacheState and
+   JobEvent, each held to its schema by a census in every SDK, CacheState
+   because its failure is the SDK's own error, which no schema states;
+   ResourceRepresentationStream, which the content methods return, which
+   waits on each SDK's methods returning what client/surface.json says they
+   return; ByteStream, bytes read once as they arrive, which only
+   ResourceRepresentationStream holds, as each SDK's own read-once stream. *)
 let hand_written_client_types =
-  [ "SearchState"; "JobEvent"; "ResourceRepresentationStream"; "ByteStream" ]
+  [
+    "SearchState";
+    "CacheState";
+    "JobEvent";
+    "ResourceRepresentationStream";
+    "ByteStream";
+  ]
 
 (* The client types every SDK generates, by name: each file of
    protocol/specs/src/client/types but the hand-written ones, each of which
@@ -555,6 +562,22 @@ let bundle (spec : Spec.t) =
       |> List.sort_uniq String.compare;
     client = names_of (fun file -> not (Hashtbl.mem gateway file));
   }
+
+(* The sign-in store's entry ([Roots.sign_in_entry]) with each [$ref] written
+   in its place, so that it is one schema alone ([alone]): each SDK's store
+   holds it as a record of its own, beside no other generated type. *)
+let sign_in (spec : Spec.t) =
+  match List.assoc_opt Roots.sign_in_entry spec.schemas with
+  | None -> refuse "Protocol has no %s" Roots.sign_in_entry
+  | Some s -> (
+      match
+        Schema_names.files_in_place ~ids:spec.ids
+          ~schemas:(Hashtbl.of_seq (List.to_seq spec.schemas))
+          ~named:(fun _ -> None)
+          s
+      with
+      | Ok s -> s
+      | Error message -> refuse "%s: %s" Roots.sign_in_entry message)
 
 (* One schema file alone, as its own definitions: its [$ref]s are refused. *)
 let alone ~ids ~name (s : Schema.t) =

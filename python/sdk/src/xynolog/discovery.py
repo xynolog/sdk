@@ -3,14 +3,14 @@
 What the document says, read whole or not at all, and what changed since it
 was last read.
 
-**Absent is not empty.** `Absent` is "no launcher was found", with why;
-`Managed` with no knowledge bases is "the launcher is here and manages
-nothing". A reader shows the two differently and never has to work out which
-it has.
+**Absent is not empty.** `DiscoveryAbsent` is "no launcher was found", with
+why; `DiscoveryManaged` with no knowledge bases is "the launcher is here and
+manages nothing". A reader shows the two differently and never has to work
+out which it has.
 
 **A document is read whole.** One of a version this client does not speak,
-or with an entry that is not what the schema says, is `Absent`: a partial
-reading would hide a running knowledge base without a trace.
+or with an entry that is not what the schema says, is `DiscoveryAbsent`: a
+partial reading would hide a running knowledge base without a trace.
 
 **The address is the key.** Entries are told apart by host and port, which
 the launcher keeps unique. A did is not unique: one knowledge base running in
@@ -26,7 +26,6 @@ lists is a person's act.
 
 import asyncio
 from collections.abc import AsyncGenerator, Awaitable, Callable, Sequence
-from dataclasses import dataclass
 from typing import Final, Protocol, final, get_args, override
 
 from pydantic import JsonValue, TypeAdapter, ValidationError
@@ -34,19 +33,23 @@ from pydantic import JsonValue, TypeAdapter, ValidationError
 from xynolog._discovery_url_path import DISCOVERY_URL_PATH
 from xynolog.required import fault_of
 from xynolog.timing import DISCOVERY_INTERVAL_MS
-from xynolog.types import DiscoveredKB, DiscoveryAbsentReason, DiscoveryDocument
+from xynolog.types import (
+    DiscoveredKB,
+    DiscoveryAbsent,
+    DiscoveryAbsentReason,
+    DiscoveryDiff,
+    DiscoveryDocument,
+    DiscoveryManaged,
+    DiscoveryRead,
+    DiscoveryState,
+    DiscoveryUnchanged,
+)
 
 __all__ = [
     "DISCOVERY_INTERVAL",
     "DISCOVERY_URL_PATH",
-    "Absent",
     "DiscoveryAbsentReason",
-    "DiscoveryDiff",
-    "DiscoveryRead",
-    "DiscoveryState",
     "DiscoveryTransport",
-    "Managed",
-    "Unchanged",
     "parse_discovery_document",
     "subscribe_discovery",
     "text_discovery",
@@ -70,37 +73,6 @@ _VERSION: Final = _version()
 _JSON: Final = TypeAdapter[JsonValue](JsonValue)
 
 
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class Absent:
-    """No launcher was found, and why."""
-
-    reason: DiscoveryAbsentReason
-    diagnostic: str | None = None
-    """What was wrong, in words; none when there is no more to say."""
-
-
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class Managed:
-    """The knowledge bases a launcher manages: none is a launcher that manages nothing."""
-
-    kbs: tuple[DiscoveredKB, ...]
-
-
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class Unchanged:
-    """A read that found nothing changed since the last."""
-
-
-type DiscoveryState = Absent | Managed
-"""What a launcher's document says."""
-
-type DiscoveryRead = Absent | Managed | Unchanged
-"""What one read gave: a state, or that nothing changed since the last."""
-
-
 class DiscoveryTransport(Protocol):
     """Where the document is read from."""
 
@@ -119,26 +91,27 @@ def parse_discovery_document(text: str) -> DiscoveryState:
     try:
         parsed = _JSON.validate_json(text)
     except ValidationError as error:
-        return Absent(reason="not-json", diagnostic=error.errors()[0]["msg"])
+        return DiscoveryAbsent(kind="absent", reason="not-json", diagnostic=error.errors()[0]["msg"])
     if not isinstance(parsed, dict):
-        return Absent(reason="invalid", diagnostic="document is not an object")
+        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic="document is not an object")
     version = parsed.get("version")
     if isinstance(version, bool) or not isinstance(version, int):
-        return Absent(reason="invalid", diagnostic='missing numeric "version"')
+        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic='missing numeric "version"')
     if version != _VERSION:
-        return Absent(
+        return DiscoveryAbsent(
+            kind="absent",
             reason="unsupported-version",
             diagnostic=f"discovery document version {version} is not the one this client speaks ({_VERSION}); it is not read in part",
         )
     if (fault := fault_of(DiscoveryDocument, parsed)) is not None:
-        return Absent(reason="invalid", diagnostic=str(fault))
+        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic=str(fault))
     try:
         # Strictly: a port written as text, or a name written as a number, is not the schema's.
         document = DiscoveryDocument.model_validate_json(text, strict=True)
     except ValidationError as error:
         first = error.errors()[0]
-        return Absent(reason="invalid", diagnostic=f"{_where(first['loc'])}: {first['msg']}")
-    return Managed(kbs=tuple(document.kbs))
+        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic=f"{_where(first['loc'])}: {first['msg']}")
+    return DiscoveryManaged(kind="managed", kbs=document.kbs)
 
 
 @final
@@ -151,9 +124,9 @@ class _TextDiscovery(DiscoveryTransport):
         try:
             text = await self._read()
         except FileNotFoundError:
-            return Absent(reason="not-found")
+            return DiscoveryAbsent(kind="absent", reason="not-found")
         except (OSError, UnicodeDecodeError) as error:
-            return Absent(reason="unreadable", diagnostic=str(error))
+            return DiscoveryAbsent(kind="absent", reason="unreadable", diagnostic=str(error))
         return parse_discovery_document(text)
 
 
@@ -168,26 +141,13 @@ def text_discovery(read: Callable[[], Awaitable[str]]) -> DiscoveryTransport:
     return _TextDiscovery(read)
 
 
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class DiscoveryDiff:
-    """What one read changed: the state now, and what was added, changed and removed since the last one told of."""
-
-    state: DiscoveryState
-    added: tuple[DiscoveredKB, ...]
-    updated: tuple[DiscoveredKB, ...]
-    removed: tuple[DiscoveredKB, ...]
-    duplicated: tuple[str, ...]
-    """The addresses more than one entry claims, each once. At most one claim can be true; every claimant is in `state`."""
-
-
 def _address(kb: DiscoveredKB) -> str:
     return f"{kb.host}:{kb.port}"
 
 
 def _kbs_of(state: DiscoveryState | None) -> Sequence[DiscoveredKB]:
     """The knowledge bases a state lists: none when it is absent, or when there is no state."""
-    return state.kbs if isinstance(state, Managed) else ()
+    return state.kbs if isinstance(state, DiscoveryManaged) else ()
 
 
 def _diff(last: DiscoveryState | None, next_state: DiscoveryState) -> DiscoveryDiff | None:
@@ -213,15 +173,15 @@ def _diff(last: DiscoveryState | None, next_state: DiscoveryState) -> DiscoveryD
     removed = [kb for kb in before_kbs if _address(kb) not in after]
 
     match last, next_state:
-        case Managed(), Managed():
+        case DiscoveryManaged(), DiscoveryManaged():
             state_changed = False
-        case Absent(reason=why_before), Absent(reason=why_now):
+        case DiscoveryAbsent(reason=why_before), DiscoveryAbsent(reason=why_now):
             state_changed = why_before != why_now
         case _:
             state_changed = True
     if not (state_changed or added or updated or removed):
         return None
-    return DiscoveryDiff(state=next_state, added=tuple(added), updated=tuple(updated), removed=tuple(removed), duplicated=tuple(duplicated))
+    return DiscoveryDiff(state=next_state, added=added, updated=updated, removed=removed, duplicated=duplicated)
 
 
 async def subscribe_discovery(transport: DiscoveryTransport, interval: float) -> AsyncGenerator[DiscoveryDiff]:
@@ -236,9 +196,9 @@ async def subscribe_discovery(transport: DiscoveryTransport, interval: float) ->
     last: DiscoveryState | None = None
     while True:
         match await transport.read():
-            case Unchanged():
+            case DiscoveryUnchanged():
                 pass
-            case Absent() | Managed() as state:
+            case DiscoveryAbsent() | DiscoveryManaged() as state:
                 change = _diff(last, state)
                 if change is not None:
                     last = change.state

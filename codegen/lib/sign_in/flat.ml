@@ -1,5 +1,5 @@
 (* A flat schema: an object whose every property is a string, some of them a
-   date-time, each described. The sign-in store's entry
+   date-time and some of a least length no store checks, each described. The sign-in store's entry
    (sign-in-store/SignIn.json) is one. Anything else is refused by name
    rather than rendered as a guess. *)
 
@@ -77,7 +77,9 @@ let read ~file (schema : Schema.t) =
                 refuse at "is not a string schema";
                 { name; description = ""; is_time = false; required = false }
             | Schema.Schema p ->
-                only ~at [ "type"; "format"; "description" ] p;
+                only ~at
+                  [ "title"; "type"; "minLength"; "format"; "description" ]
+                  p;
                 if p.type_ <> Some [ Schema.String ] then
                   refuse (at ^ "/type") "is not string";
                 (match p.format with

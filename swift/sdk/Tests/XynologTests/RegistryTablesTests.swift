@@ -442,13 +442,18 @@ private func openedBeforeActivation(
 
 @Test func discoveryTellsWhyNoLauncherWasFoundAndRejectsAnInvalidMember() async throws {
   func absentReason(_ state: DiscoveryState) -> DiscoveryAbsentReason? {
-    if case .absent(let absent) = state { return absent.reason }
+    if case .discoveryAbsent(let absent) = state { return absent.reason }
+    return nil
+  }
+  func absentReason(_ read: DiscoveryRead) -> DiscoveryAbsentReason? {
+    if case .discoveryAbsent(let absent) = read { return absent.reason }
     return nil
   }
   #expect(absentReason(parseDiscoveryDocument("{")) == .notJson)
   #expect(absentReason(parseDiscoveryDocument(#"{"version":2,"kbs":[]}"#)) == .unsupportedVersion)
   #expect(absentReason(parseDiscoveryDocument(#"{"version":1,"kbs":[{}]}"#)) == .invalid)
-  guard case .managed(let empty) = parseDiscoveryDocument(#"{"version":1,"kbs":[]}"#) else {
+  guard case .discoveryManaged(let empty) = parseDiscoveryDocument(#"{"version":1,"kbs":[]}"#)
+  else {
     Issue.record(
       "A launcher with no knowledge bases must be distinguishable from an absent launcher")
     return
@@ -457,16 +462,8 @@ private func openedBeforeActivation(
 
   let noFile = textDiscovery { throw CocoaError(.fileReadNoSuchFile) }
   let noAccess = textDiscovery { throw CocoaError(.fileReadNoPermission) }
-  if case .state(let state) = await noFile.read() {
-    #expect(absentReason(state) == .notFound)
-  } else {
-    Issue.record("Expected an absent launcher")
-  }
-  if case .state(let state) = await noAccess.read() {
-    #expect(absentReason(state) == .unreadable)
-  } else {
-    Issue.record("Expected an absent launcher")
-  }
+  #expect(absentReason(await noFile.read()) == .notFound)
+  #expect(absentReason(await noAccess.read()) == .unreadable)
 }
 
 @Test func redirectSignInUsesTheRFC7636ChallengeVector() {
@@ -481,7 +478,7 @@ private actor DiscoveryScript: DiscoveryTransport {
   init(_ answers: [DiscoveryRead]) { self.answers = answers }
 
   func read() -> DiscoveryRead {
-    answers.isEmpty ? .unchanged(Unchanged()) : answers.removeFirst()
+    answers.isEmpty ? .discoveryUnchanged(DiscoveryUnchanged()) : answers.removeFirst()
   }
 }
 
@@ -495,10 +492,10 @@ private actor DiscoveryScript: DiscoveryTransport {
     host: "localhost", port: 4002, placement: .local,
     did: "did:web:two.test", siteName: "Second", managedBy: "launcher")
   let script = DiscoveryScript([
-    .state(.managed(Managed(kbs: [first]))), .unchanged(Unchanged()),
-    .state(.managed(Managed(kbs: [first]))),
-    .state(.managed(Managed(kbs: [renamed, second, second]))),
-    .state(.absent(Absent(reason: .notFound))),
+    .discoveryManaged(DiscoveryManaged(kbs: [first])), .discoveryUnchanged(DiscoveryUnchanged()),
+    .discoveryManaged(DiscoveryManaged(kbs: [first])),
+    .discoveryManaged(DiscoveryManaged(kbs: [renamed, second, second])),
+    .discoveryAbsent(DiscoveryAbsent(reason: .notFound)),
   ])
   try await withinTestDeadline {
     let updates = subscribeDiscovery(script, interval: .milliseconds(1))
@@ -511,7 +508,7 @@ private actor DiscoveryScript: DiscoveryTransport {
     #expect(change.duplicated == ["localhost:4002"])
     let removed = try #require(await iterator.next())
     #expect(removed.removed.map(\.port) == [4001, 4002, 4002])
-    guard case .absent(let absent) = removed.state else {
+    guard case .discoveryAbsent(let absent) = removed.state else {
       Issue.record("Expected an absent launcher")
       return
     }

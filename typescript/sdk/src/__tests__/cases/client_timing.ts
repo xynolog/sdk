@@ -14,6 +14,7 @@ export type ItemValue = number | RetryBudget;
 export type TimingItem = {
   name: string;
   value: ItemValue;
+  override?: string;
   docs: string;
 };
 
@@ -24,11 +25,12 @@ export type Table = {
 
 export const table: Table = {
   $comment:
-    "AUTHORITY for the timing a Xynolog client keeps: its deadlines, its retry budgets and the cadence of its stream. Every SDK generates its constants from this file, so one client waits as long, and tries as often, as another. A name ending in `Ms` is a duration in milliseconds; one ending in `Retry` is a budget of `attempts` with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`; one ending in `Count` is a whole number of things. An SDK's testing surface may override any of these; these are what it does unasked. Which failures are worth an attempt is specs/src/retry/rules.json.",
+    "AUTHORITY for the timing a Xynolog client keeps: its deadlines, its retry budgets and the cadence of its stream. Every SDK generates its constants from this file, so one client waits as long, and tries as often, as another. A name ending in `Ms` is a duration in milliseconds; one ending in `Retry` is a budget of `attempts` with a backoff that starts at `initialDelayMs` and doubles to `maxDelayMs`; one ending in `Count` is a whole number of things. A row with `override` is one a caller may override, and `override` says where: `client` is the client's timing record, `transport` the transport's, and `Owner.member` a member of the client type Owner (specs/src/client/types) or a parameter of a state unit or function client/surface.json lists. A row without it is fixed, and no conformance case overrides it. Each of these is what a client does unasked. Which failures are worth an attempt is specs/src/retry/rules.json.",
   timing: [
     {
       name: 'busRequestTimeoutMs',
       value: 30000,
+      override: 'client',
       docs: 'How long a bus request has, from the call, to be answered: the wait for the stream to open, the emit with its retries and the waits between them, and the wait for the reply. When it falls due the request fails as timed out, and an emit still in flight is given up, with no attempt after it. The gateway keeps a reply for redelivery at least twice this long (`replyRetentionSeconds` on POST /bus/subscribe), so a reply published during an outage is still there when the requester reconnects inside its own deadline.',
     },
     {
@@ -43,26 +45,30 @@ export const table: Table = {
         initialDelayMs: 1000,
         maxDelayMs: 4000,
       },
+      override: 'transport',
       docs: 'The retry budget of ONE emit. Per request, never per boot pass: re-running a whole catch-up pass to recover from one refusal re-sends hundreds of emits that already succeeded. Small on purpose: an emit a caller awaits must fail while the caller still cares, and the patience for a gateway that is down belongs to the pass above it.',
     },
     {
       name: 'httpRequestTimeoutMs',
       value: 30000,
+      override: 'transport',
       docs: "The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's own operations (who a token is, a media token, the resource metadata, health, status), the wait for a resource's bytes to begin arriving, a read of a resource's description or of its anchored text, a request to the issuer (its discovery, a grant, a revocation), and a read of a launcher's discovery document. Unanswered here, the request fails as one that got no answer. It bounds the read of a refusal's body too, of such a request or of the request that opens the stream (`streamOpenTimeoutMs`): a body not read by then is the refusal with none of the gateway's words, refused, renewed or retried as any refusal is. Without it, a gateway or an issuer that accepts a connection and never answers holds a session's start, and every renewal after it, for as long as the process lives. An upload has no deadline: how long it takes is how large the resource is. A read of anchored text may be held by the Archivist while the Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds` and `readSeconds` together, and the hold is shorter than `readSeconds`, which the reader's protocol rules (`reader/lib/protocol_rules.ml`) hold.",
     },
     {
       name: 'requestRetryPauseMs',
       value: 300,
-      docs: "The wait before an HTTP request that is neither the stream nor an emit is made a second time. It is made again when the gateway answered it with a status that promises recovery, or did not answer at all, and a repeat cannot cause a second effect: its method cannot, or it carries an `Idempotency-Key`, as an upload does (`transport` in specs/src/retry/rules.json); once, after this wait, or after a refusal's `Retry-After` when that is longer. A request whose credential was refused is renewed and sent again at once, without this wait, and one unanswered at its deadline (`httpRequestTimeoutMs`) is not made again.",
+      docs: "The wait before an HTTP request that is neither the stream nor an emit is made a second time. It is made again when the gateway answered it with a status that promises recovery, or did not answer at all, and a repeat cannot cause a second effect: its method cannot, or it carries an `Idempotency-Key`, as an upload does (`transport` in specs/src/retry/rules.json); once, after this wait, or after a refusal's `Retry-After` when that is longer. A request whose credential was refused is renewed and sent again at once, without this wait, and one unanswered at its deadline (`httpRequestTimeoutMs`) is not made again. The naming request of an agent's sign-in is made once, and is not made again (contract/TRANSPORT-HTTP.md § An agent's sign-in).",
     },
     {
       name: 'streamOpenTimeoutMs',
       value: 30000,
+      override: 'transport',
       docs: "How long a client waits for the gateway to answer the request that opens its stream (POST /bus/subscribe): for the answer's status and headers. Unanswered here, the open has failed, and the stream is opened again on the backoff (`reconnectMs`), as after any open that failed. Without it, a gateway that accepts the connection and says nothing is waited on for as long as the process lives, and the stream is never opened again. The gateway answers an open as promptly as one of its own operations, so this is as long as `httpRequestTimeoutMs`. Only the answer is bounded here. An answer that refuses the open has its body read within `httpRequestTimeoutMs`, as any refusal's is: one not read by then is the refusal with none of the gateway's words. An open stream that carries nothing for a while has not failed, since a knowledge base where nothing happens has nothing to send.",
     },
     {
       name: 'reconnectMs',
       value: 5000,
+      override: 'transport',
       docs: 'The first wait before a failed stream is opened again. Each further failure doubles it, up to `maxReconnectMs`, and a successful open resets it. Also the cadence at which a transport with no usable credential checks for one, which costs no request.',
     },
     {
@@ -78,11 +84,13 @@ export const table: Table = {
     {
       name: 'lingerMs',
       value: 1000,
+      override: 'transport',
       docs: 'How long a superseded connection keeps draining after a make-before-break handoff. Closing it the instant its replacement opens discards replies already written to the old socket and not yet read. The overlap doubles nothing: a frame both connections carry has one id, and is delivered once (`seenEventIdsCount`).',
     },
     {
       name: 'seenEventIdsCount',
       value: 512,
+      override: 'transport',
       docs: 'How many of the event ids it delivered last a client remembers. A frame whose id is among them is one it has delivered already, and is dropped: that is what makes a frame carried by both streams of a handoff, or replayed to the new one, arrive once. A client that remembers fewer delivers twice whenever more than that many events pass between the two copies.',
     },
     {
@@ -93,6 +101,7 @@ export const table: Table = {
     {
       name: 'lazyRemoveMs',
       value: 5000,
+      override: 'transport',
       docs: 'How long a removal from the subscription waits before the stream is reopened without it. Removal only narrows delivery, and reopening on every scope a viewer brushes past would churn the connection.',
     },
     {
@@ -132,6 +141,7 @@ export const table: Table = {
     {
       name: 'invalidationWindowMs',
       value: 1000,
+      override: 'client',
       docs: "How long bus-driven invalidations of one cache key fold together (CACHE-SEMANTICS B19). The first runs at once; any more inside the window become one refetch at its end. Each refetch is a request the session's principal pays for, and another principal's bulk write invalidates an observed key once per event.",
     },
     {
@@ -152,21 +162,25 @@ export const table: Table = {
     {
       name: 'jobSilenceMs',
       value: 10000,
+      override: 'client',
       docs: "How long a job a client is following may say nothing before the client asks for its status. A job's progress and its end reach the client as passing frames, which a dropped stream loses and nothing redelivers; `job:status-requested` is how a follower learns what it missed. Every frame of the job starts the wait again.",
     },
     {
       name: 'jobStatusPollMs',
       value: 5000,
+      override: 'client',
       docs: 'How often a client asks for the status of a job that has been silent for `jobSilenceMs`, until the job says something or its status is an end.',
     },
     {
       name: 'jobPollMs',
       value: 1000,
+      override: 'JobPollOptions.everyMs',
       docs: "How often a job's `pollUntilComplete` asks for its status (`job:status-requested`) until the status is an end, when its caller names no interval of its own.",
     },
     {
       name: 'jobPollTimeoutMs',
       value: 60000,
+      override: 'JobPollOptions.withinMs',
       docs: "How long a job's `pollUntilComplete` goes on asking for its status before it fails as timed out, when its caller names no limit of its own: from its first ask, its asks and the waits between them included.",
     },
     {
@@ -192,21 +206,25 @@ export const table: Table = {
     {
       name: 'jobClaimTimeoutMs',
       value: 10000,
+      override: 'ClaimOptions.jobClaimTimeoutMs',
       docs: 'How long a party that takes jobs waits for the answer to one claim (`job:claim`), from the call and its emit included, as `busRequestTimeoutMs` is for any request. A claim is answered at once, with a job or with nothing pending; one still unanswered here is given up and reported as a refusal, and the party asks again at its next idle moment.',
     },
     {
       name: 'heldJobStallMs',
       value: 900000,
+      override: 'ClaimOptions.heldJobStallMs',
       docs: "How long a held job may show no activity (its claim, a progress report, its settle) before whoever holds it calls it stalled. Not a limit on how long a job runs: one that keeps reporting is never stalled. The dispatcher's own sweep of running jobs is the backstop for a holder too wedged to notice.",
     },
     {
       name: 'heldJobStallCheckMs',
       value: 60000,
+      override: 'ClaimOptions.heldJobStallCheckMs',
       docs: 'How often a party that holds a job looks at how long it has shown no activity.',
     },
     {
       name: 'markCommitTimeoutMs',
       value: 60000,
+      override: 'ClaimOptions.markCommitTimeoutMs',
       docs: "How long a worker waits for the record to acknowledge a commit of annotations (`mark:commit`), and then, when no acknowledgement came, for the answer to its question whether the batch's last annotation is on the resource (`browse:annotation-requested`). Each wait is from its request's call, its emit included, as `busRequestTimeoutMs` is for any request. Generous beside an append, since a batch is a unit's annotations and the record may be catching up, and finite, since a wait on an acknowledgement that never comes would hold the job forever.",
     },
     {
@@ -222,16 +240,19 @@ export const table: Table = {
     {
       name: 'hoverDelayMs',
       value: 150,
+      override: 'hoverDwell.delay',
       docs: 'How long a pointer rests on an annotation before the viewer says it is hovered. Shorter, and a pointer crossing the page hovers everything on its way.',
     },
     {
       name: 'searchDebounceMs',
       value: 250,
+      override: 'search.debounce',
       docs: 'How long a search waits after its query last changed before it asks. A query still being typed is not asked for letter by letter.',
     },
     {
       name: 'discoveryIntervalMs',
       value: 5000,
+      override: 'subscribeDiscovery.interval',
       docs: "How often a launcher's discovery document is read again, unless a caller says otherwise. A launcher rewrites it on every change to its stack, so a list of the knowledge bases it manages is a few seconds behind at worst, and the document is not read without pause.",
     },
     {

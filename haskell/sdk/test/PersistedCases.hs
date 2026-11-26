@@ -193,7 +193,7 @@ leftAsTheRowSays why table removes storage jo = do
 grantOf :: StoredSession -> Integer -> Maybe Text -> StoredSession
 grantOf base serial person =
   base
-    { storedSessionAccess = jwt 3600 serial,
+    { storedSessionAccess = AccessToken (jwt 3600 serial),
       storedSessionRefresh = "refresh-" <> Text.pack (show serial),
       storedSessionPersonKey = person
     }

@@ -174,7 +174,7 @@ public sealed class Bus
     internal static T Decoded<T>(string channel, JsonElement payload) where T : class =>
         TryDecode<T>(payload, out var decoded, out var fault)
             ? decoded
-            : throw new TransportError(TransportErrorCode.Error, "a payload on " + channel + " is not that channel's: " + fault);
+            : throw new TransportError(TransportErrorCode.Error, "a payload on " + channel + " is not that channel's: " + fault.Said());
 
     /// <summary>A payload as <typeparamref name="T"/>, held to the table before it is decoded, and decoded as the table
     /// reads it; or its first fault. What the gateway stamps on a payload (a member whose name begins <c>_</c>) is the

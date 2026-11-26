@@ -433,21 +433,16 @@ var invokers = map[string]invoker{
 		unit.(*state.YieldStateUnit).DismissProgress()
 		return nil
 	}},
-	"gather.gatherAnnotation": {[]string{"annotationId", "contextWindow", "includeSourceContext", "includeTargetContext"}, func(unit xynolog.StateUnit, args map[string]any) error {
+	"gather.gatherAnnotation": {[]string{"annotationId", "options"}, func(unit xynolog.StateUnit, args map[string]any) error {
 		annotation, err := takes[api.AnnotationId](args, "annotationId")
 		if err != nil {
 			return err
 		}
-		// What the call states beside the annotation is the gather's options, by their wire names.
-		stated := map[string]any{}
-		for name, value := range args {
-			if name != "annotationId" {
-				stated[name] = value
+		var options api.GatherAnnotationOptions
+		if stated, ok := args["options"]; ok {
+			if options, err = decoded[api.GatherAnnotationOptions](stated); err != nil {
+				return err
 			}
-		}
-		options, err := decoded[api.GatherAnnotationOptions](stated)
-		if err != nil {
-			return err
 		}
 		unit.(*state.GatherStateUnit).GatherAnnotation(annotation, options)
 		return nil

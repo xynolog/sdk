@@ -122,6 +122,7 @@ val bus_ping_message : [ `BusPingMessage ] descriptor
 val bus_resume_gap : [ `BusResumeGap ] descriptor
 val bus_stream_message : [ `BusStreamMessage ] descriptor
 val bus_subscribe_request : [ `BusSubscribeRequest ] descriptor
+val byte_source : [ `ByteSource ] descriptor
 val cache_status : [ `CacheStatus ] descriptor
 val cancelled : [ `Cancelled ] descriptor
 val claim_options : [ `ClaimOptions ] descriptor
@@ -160,10 +161,14 @@ val device_code : [ `DeviceCode ] descriptor
 val dir_entry : [ `DirEntry ] descriptor
 val directory_entry : [ `DirectoryEntry ] descriptor
 val discovered_kb : [ `DiscoveredKB ] descriptor
+val discovery_absent : [ `DiscoveryAbsent ] descriptor
 val discovery_absent_reason : [ `DiscoveryAbsentReason ] descriptor
 val discovery_diff : [ `DiscoveryDiff ] descriptor
 val discovery_document : [ `DiscoveryDocument ] descriptor
+val discovery_managed : [ `DiscoveryManaged ] descriptor
 val discovery_read : [ `DiscoveryRead ] descriptor
+val discovery_state : [ `DiscoveryState ] descriptor
+val discovery_unchanged : [ `DiscoveryUnchanged ] descriptor
 val dispatcher_config : [ `DispatcherConfig ] descriptor
 val dispatcher_health : [ `DispatcherHealth ] descriptor
 val durability_evidence : [ `DurabilityEvidence ] descriptor

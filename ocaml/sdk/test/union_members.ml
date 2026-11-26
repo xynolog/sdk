@@ -1562,6 +1562,54 @@ let unions =
           };
         ];
       ] );
+    ( "Client_option_defaults_defaults_item_schema",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "$ref" ];
+            allowed = Some [ "$ref"; "typeArguments" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "type"; "description" ];
+            allowed = Some [ "type"; "minimum"; "format"; "description" ];
+            fixed =
+              [
+                ( "type",
+                  [
+                    Text_value "integer";
+                    Text_value "string";
+                    Text_value "boolean";
+                  ] );
+                ("format", [ Text_value "date-time" ]);
+              ];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "typeParameter" ];
+            allowed = Some [ "typeParameter" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "decided" ];
+            allowed = Some [ "decided" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+      ] );
     ( "Conformance_step",
       [
         [

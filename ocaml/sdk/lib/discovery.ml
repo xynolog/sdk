@@ -1,46 +1,59 @@
 open Eio.Std
 
-type discovery_state =
-  | Absent of Enums.Discovery_absent_reason.t
-  | Managed of Records.Discovered_kb.t list
-
-type discovery_read = Read of discovery_state | Unchanged
-type discovery_transport = unit -> discovery_read
-
-type discovery_diff = {
-  state : discovery_state;
-  added : Records.Discovered_kb.t list;
-  updated : Records.Discovered_kb.t list;
-  removed : Records.Discovered_kb.t list;
-  duplicated : (string * int) list;
-}
+type discovery_transport = unit -> Records.Discovery_read.t
 
 let discovery_interval = Client_timing.discovery_interval_ms
 
+let absent reason =
+  Records.Discovery_state.Absent
+    { Records.Discovery_absent.reason; diagnostic = None }
+
+let read_of_state = function
+  | Records.Discovery_state.Absent absent ->
+      Records.Discovery_read.Absent absent
+  | Managed managed -> Managed managed
+
+let state_of_read = function
+  | Records.Discovery_read.Absent absent ->
+      Some (Records.Discovery_state.Absent absent)
+  | Managed managed -> Some (Managed managed)
+  | Unchanged -> None
+
 let parse_discovery_document source =
   match Strict_json.parse source with
-  | Error _ -> Absent Not_json
+  | Error _ -> absent Not_json
   | Ok _ -> (
       match Yojson.Safe.from_string source with
       | `Assoc fields -> (
           match List.assoc_opt "version" fields with
           | Some (`Int version)
             when not (List.mem version Registry_facts.discovery_versions) ->
-              Absent Unsupported_version
+              absent Unsupported_version
           | _ -> (
               match Models.decode Models.discovery_document source with
-              | Error _ -> Absent Invalid
+              | Error _ -> absent Invalid
               | Ok model ->
-                  Managed (Records.Discovery_document.of_model model).kbs))
-      | _ -> Absent Invalid)
+                  let entries =
+                    (Records.Discovery_document.of_model model).kbs
+                  in
+                  Records.Discovery_state.Managed
+                    {
+                      kbs =
+                        List.map
+                          (fun entry ->
+                            Result.get_ok (Records.Discovered_kb.to_model entry))
+                          entries;
+                    }))
+      | _ -> absent Invalid)
 
 let text_discovery read () =
   try
-    Read
+    read_of_state
       (match read () with
-      | None -> Absent Not_found
+      | None -> absent Not_found
       | Some text -> parse_discovery_document text)
-  with Sys_error _ | Unix.Unix_error _ | Eio.Io _ -> Read (Absent Unreadable)
+  with Sys_error _ | Unix.Unix_error _ | Eio.Io _ ->
+    read_of_state (absent Unreadable)
 
 let file_discovery ~state_directory =
   let path = state_directory ^ Discovery_url_path.discovery_url_path in
@@ -59,27 +72,32 @@ let http_discovery fetch =
   fun () ->
     try
       match fetch ~etag:!etag with
-      | 304, _, _ -> Unchanged
+      | 304, _, _ -> Records.Discovery_read.Unchanged
       | 200, next, source ->
           etag := next;
-          Read (parse_discovery_document source)
+          read_of_state (parse_discovery_document source)
       | 404, _, _ ->
           etag := None;
-          Read (Absent Not_found)
+          read_of_state (absent Not_found)
       | _ ->
           etag := None;
-          Read (Absent Unreadable)
+          read_of_state (absent Unreadable)
     with Eio.Io _ ->
       etag := None;
-      Read (Absent Unreadable)
+      read_of_state (absent Unreadable)
 
 let discovery_diff previous state =
-  let entries = function Managed entries -> entries | Absent _ -> [] in
+  let entries = function
+    | Records.Discovery_state.Managed { Records.Discovery_managed.kbs } -> kbs
+    | Absent _ -> []
+  in
   let before = Option.fold ~none:[] ~some:entries previous
   and after = entries state in
-  let address (kb : Records.Discovered_kb.t) =
+  let address model =
+    let kb = Records.Discovered_kb.of_model model in
     (String.lowercase_ascii kb.host, kb.port)
   in
+  let projected = List.map Records.Discovered_kb.of_model in
   let at key entries = List.filter (fun kb -> address kb = key) entries in
   let added = List.filter (fun kb -> at (address kb) before = []) after in
   let removed = List.filter (fun kb -> at (address kb) after = []) before in
@@ -88,7 +106,9 @@ let discovery_diff previous state =
       (fun kb ->
         let key = address kb in
         let old = at key before in
-        old <> [] && List.sort compare old <> List.sort compare (at key after))
+        old <> []
+        && List.sort compare (projected old)
+           <> List.sort compare (projected (at key after)))
       after
   in
   let duplicated =
@@ -98,15 +118,16 @@ let discovery_diff previous state =
         if List.length (at key after) > 1 then Some key else None)
       after
     |> List.sort_uniq compare
+    |> List.map (fun (host, port) -> Printf.sprintf "%s:%d" host port)
   in
   let changed =
     match (previous, state) with
-    | Some (Managed _), Managed _ -> false
-    | Some (Absent a), Absent b -> a <> b
+    | Some (Records.Discovery_state.Managed _), Managed _ -> false
+    | Some (Absent a), Absent b -> a.reason <> b.reason
     | _ -> true
   in
   if changed || added <> [] || removed <> [] || updated <> [] then
-    Some { state; added; updated; removed; duplicated }
+    Some { Records.Discovery_diff.state; added; updated; removed; duplicated }
   else None
 
 let subscribe_discovery ~sw ~clock ?(interval_ms = discovery_interval) transport
@@ -115,9 +136,9 @@ let subscribe_discovery ~sw ~clock ?(interval_ms = discovery_interval) transport
   let stopped, stop = Promise.create () in
   let rec loop previous =
     let previous =
-      match transport () with
-      | Unchanged -> previous
-      | Read state ->
+      match state_of_read (transport ()) with
+      | None -> previous
+      | Some state ->
           Option.iter on_change (discovery_diff previous state);
           Some state
     in

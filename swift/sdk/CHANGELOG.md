@@ -175,6 +175,16 @@ the coming release's, and gathers its changes as they land.
   `useSemanticScoring` true. Its `limit` is still 10 when none is stated.
 - `stateDir(system:home:…)` takes Protocol's `System`, where it took the SDK's
   own `Platform`.
+- Discovery's types are the ones Protocol states: `parseDiscoveryDocument`
+  returns `DiscoveryState`, a `DiscoveryTransport` reads a `DiscoveryRead`
+  (`.discoveryAbsent`, `.discoveryManaged` or `.discoveryUnchanged`, where it
+  was `.state` or `.unchanged`), and `subscribeDiscovery` yields
+  `DiscoveryDiff`, which is `Codable` and `Hashable`. `Absent`, `Managed` and
+  `Unchanged` are `DiscoveryAbsent`, `DiscoveryManaged` and
+  `DiscoveryUnchanged`.
+- `UploadProgressStarted` and `UploadProgressProgress` state `totalBytes`
+  only when the upload's source states its length (protocol#121), so it is an
+  `Int?`. Every upload holds its bytes whole and still reports it.
 
 ### Fixed
 

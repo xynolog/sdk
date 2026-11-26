@@ -441,7 +441,7 @@ private func lineOf(_ data: String) -> Line {
   return .refused(
     FrameRefusal(
       channel: channel, member: fault.member, reason: fault.reason, payload: stated["payload"],
-      correlationId: correlationIdOf(channel, stated["correlationId"]), scope: scope))
+      scope: scope, correlationId: correlationIdOf(channel, stated["correlationId"])))
 }
 
 /// The correlation id a frame on `channel` carries as `held`, when BusFrame allows it, whatever the

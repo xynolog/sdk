@@ -277,7 +277,7 @@ func (p *progressReader) Read(buffer []byte) (int, error) {
 	if p.sent > *p.reported {
 		*p.reported = p.sent
 		var progress api.UploadProgress
-		if err := progress.From(api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: p.sent, TotalBytes: len(p.body)}); err != nil {
+		if err := progress.From(api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: p.sent, TotalBytes: new(len(p.body))}); err != nil {
 			return n, err
 		}
 		p.report(progress)
@@ -301,7 +301,7 @@ func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting api.PutBin
 			return api.CreateResourceResponse{}, c.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an upload that cannot be written: %v", err), api.TransportErrorCodeError))
 		}
 		var started api.UploadProgress
-		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: len(body)}); err != nil {
+		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: new(len(body))}); err != nil {
 			return api.CreateResourceResponse{}, err
 		}
 		report(started)

@@ -197,6 +197,18 @@ the coming release's, and gathers its changes as they land.
   `SERVICE_ROLE` and `WORKER_ROLE` are `XYNOLOG_SERVICE_ROLE` and
   `XYNOLOG_WORKER_ROLE`.
 - `control::ControlSender` is `types::ControlSender`, the type of its schema.
+- Discovery's types are the generated ones, in `xynolog::types` as Protocol
+  states them, where `discovery` declared its own: `parse_discovery_document`
+  gives `DiscoveryState` (`DiscoveryAbsent` or `DiscoveryManaged`), a
+  `DiscoveryTransport` reads a `DiscoveryRead` (those two, or
+  `DiscoveryUnchanged`, where it was `State` or `Unchanged`), and
+  `subscribe_discovery` tells of each `DiscoveryDiff`. A `DiscoveryState` is
+  a `DiscoveryRead` by `From`.
+- `DiscoveryAbsentReason` is the generated client type, in `xynolog::types`,
+  where `discovery` declared it from the table of reasons.
+- An upload's `UploadProgressStarted` and `UploadProgressProgress` state
+  `total_bytes` as an `Option<u64>`: a source of unstated length states none.
+  Every upload today holds its bytes whole, and states its total.
 
 ## 0.8.1
 

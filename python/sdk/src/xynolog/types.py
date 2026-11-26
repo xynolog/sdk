@@ -156,6 +156,7 @@ __all__ = [
     "BusStreamMessage",
     "BusSubscribeRequest",
     "BusSubscribeRequestScopedItem",
+    "ByteSource",
     "CacheStatus",
     "Cancelled",
     "ClaimOptions",
@@ -168,7 +169,12 @@ __all__ = [
     "ClientOptionDefaultsDefaultsItem",
     "ClientOptionDefaultsDefaultsItemSchemaDateTime",
     "ClientOptionDefaultsDefaultsItemSchemaDateTimeType",
+    "ClientOptionDefaultsDefaultsItemSchemaDecided",
+    "ClientOptionDefaultsDefaultsItemSchemaDecidedDecided",
+    "ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy",
     "ClientOptionDefaultsDefaultsItemSchemaReference",
+    "ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue",
+    "ClientOptionDefaultsDefaultsItemSchemaTypeParameter",
     "ClientRefresh",
     "ClientRefreshQueriesItem",
     "ClientRefreshQueriesItemAsks",
@@ -287,13 +293,14 @@ __all__ = [
     "DirEntry",
     "DirectoryEntry",
     "DiscoveredKB",
+    "DiscoveryAbsent",
     "DiscoveryAbsentReason",
     "DiscoveryDiff",
     "DiscoveryDocument",
+    "DiscoveryManaged",
     "DiscoveryRead",
-    "DiscoveryReadAbsent",
-    "DiscoveryReadManaged",
-    "DiscoveryReadUnchanged",
+    "DiscoveryState",
+    "DiscoveryUnchanged",
     "DispatcherConfig",
     "DispatcherConfigQueue",
     "DispatcherConfigTiming",
@@ -2191,9 +2198,7 @@ class BeginAuthorizationOptions(WireModel, frozen=True, extra="forbid"):
     ] = None
 
 
-type Binary = Annotated[
-    bytes, Field(description="Bytes held whole. They can be read more than once, and sent again when an upload is retried.")
-]
+type Binary = Annotated[bytes, Field(description="Bytes held whole: all of them at once, read as often as wanted.")]
 
 type BindBodyOperationOp = Annotated[Literal["add", "remove", "replace"], Field(description="The type of body operation")]
 
@@ -3153,6 +3158,13 @@ class BusSubscribeRequest(WireModel, frozen=True, extra="forbid"):
     ]
 
 
+type ByteSource = Annotated[
+    bytes,
+    Field(
+        description="Bytes opened afresh each time they are to be sent. Each opening reads them from the first byte, in order, once, and gives the same bytes as every other; whoever opened them releases what they opened. Their length is stated when it is known and stated by nothing when it is not. An upload takes its bytes so: held whole, a file larger than memory could not be sent at all, and read once, as a ByteStream is, an upload sent again would have nothing left to send."
+    ),
+]
+
 type CacheStatus = Annotated[
     Literal["pending", "ready", "failed"],
     Field(
@@ -3244,8 +3256,16 @@ class ClientConnectionStates(WireModel, frozen=True, extra="forbid"):
     ]
 
 
+type DiscoveryAbsentReason = Annotated[
+    Literal["not-found", "not-json", "invalid", "unsupported-version", "unreadable"],
+    Field(
+        description="Why a client that read a launcher's discovery document found no launcher: one of the reasons of client/discovery-absent.json, which says what each means."
+    ),
+]
+
+
 class ClientDiscoveryAbsentReasonsItem(WireModel, frozen=True, extra="forbid"):
-    reason: Annotated[str, Field(description="The reason, as every SDK spells it.")]
+    reason: DiscoveryAbsentReason
     docs: Annotated[str, Field(description="What it is, in prose.")]
 
 
@@ -3255,7 +3275,19 @@ class ClientDiscoveryAbsent(WireModel, frozen=True, extra="forbid"):
     """
 
     comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
-    reasons: Annotated[list[ClientDiscoveryAbsentReasonsItem], Field(description="Each reason, and what it means.")]
+    reasons: Annotated[
+        list[ClientDiscoveryAbsentReasonsItem], Field(description="Each reason, in DiscoveryAbsentReason's order, and what it means.")
+    ]
+
+
+class ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue(WireModel, frozen=True, extra="forbid"):
+    type_parameter: Annotated[
+        str,
+        Field(
+            alias="typeParameter",
+            description="A type parameter of the state unit the member is of, by its name: what it is, the unit's maker says.",
+        ),
+    ]
 
 
 class ClientOptionDefaultsDefaultsItemSchemaReference(WireModel, frozen=True, extra="forbid"):
@@ -3266,6 +3298,13 @@ class ClientOptionDefaultsDefaultsItemSchemaReference(WireModel, frozen=True, ex
             description="The $id of a component, a member within one, or a client type of specs/src/client/types: an object is always one of these, so that it is named.",
         ),
     ]
+    type_arguments: Annotated[
+        dict[str, ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue] | None,
+        Field(
+            alias="typeArguments",
+            description="What each of the client type's type parameters is here, by its name: a type parameter of the unit it is given in, one for each the client type's x-xynolog-typeParameters states, and only where it states any.",
+        ),
+    ] = None
 
 
 type ClientOptionDefaultsDefaultsItemSchemaDateTimeType = Annotated[
@@ -3282,6 +3321,43 @@ class ClientOptionDefaultsDefaultsItemSchemaDateTime(WireModel, frozen=True, ext
     description: Annotated[str, Field(description="What the value is.")]
 
 
+class ClientOptionDefaultsDefaultsItemSchemaTypeParameter(WireModel, frozen=True, extra="forbid"):
+    type_parameter: Annotated[
+        str,
+        Field(
+            alias="typeParameter",
+            description="A type parameter of the state unit the member is of, by its name: what it is, the unit's maker says.",
+        ),
+    ]
+
+
+class ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy(WireModel, frozen=True, extra="forbid"):
+    """
+    What decides it.
+    """
+
+    member: Annotated[str, Field(description="A member beside the function, whose value is of an enum.")]
+
+
+class ClientOptionDefaultsDefaultsItemSchemaDecidedDecided(WireModel, frozen=True, extra="forbid"):
+    """
+    What a value decides: the schema a table names for it.
+    """
+
+    by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy
+    in_: Annotated[
+        Literal["takes"],
+        Field(
+            alias="in",
+            description="The table that names the schema: `takes`, the function's own, by each of the enum's values in its order.",
+        ),
+    ]
+
+
+class ClientOptionDefaultsDefaultsItemSchemaDecided(WireModel, frozen=True, extra="forbid"):
+    decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided
+
+
 class ClientOptionDefaultsDefaultsItem(WireModel, frozen=True, extra="forbid"):
     method: Annotated[
         str,
@@ -3296,8 +3372,12 @@ class ClientOptionDefaultsDefaultsItem(WireModel, frozen=True, extra="forbid"):
     ] = None
     value: JsonValue
     schema_: Annotated[
-        ClientOptionDefaultsDefaultsItemSchemaReference | ClientOptionDefaultsDefaultsItemSchemaDateTime | None,
-        Field(alias="schema", description="What the parameter is."),
+        ClientOptionDefaultsDefaultsItemSchemaReference
+        | ClientOptionDefaultsDefaultsItemSchemaDateTime
+        | ClientOptionDefaultsDefaultsItemSchemaTypeParameter
+        | ClientOptionDefaultsDefaultsItemSchemaDecided
+        | None,
+        Field(alias="schema", description="What the parameter is. Left out where it is the SDK's own: its error, which no schema states."),
     ] = None
     sends: Annotated[
         str | None,
@@ -4030,7 +4110,9 @@ class ConformanceDriverLineProgressProgress(WireModel, frozen=True, extra="forbi
 
     upload: Annotated[int, Field(description="The `upload` operation's id.")]
     bytes_uploaded: Annotated[int, Field(alias="bytesUploaded", description="How many bytes it has sent.")]
-    total_bytes: Annotated[int, Field(alias="totalBytes", description="How many it will send.")]
+    total_bytes: Annotated[
+        int | None, Field(alias="totalBytes", description="How many it will send. Absent for an upload whose source states no length.")
+    ] = None
 
 
 class ConformanceDriverLineProgress(WireModel, frozen=True, extra="forbid"):
@@ -4608,14 +4690,49 @@ class DiscoveredKB(WireModel, frozen=True):
     ]
 
 
+class DiscoveryAbsent(WireModel, frozen=True, extra="forbid"):
+    """
+    No launcher was found, and why.
+    """
+
+    kind: Literal["absent"]
+    reason: Annotated[DiscoveryAbsentReason, Field(description="Why.")]
+    diagnostic: Annotated[str | None, Field(description="What was wrong, in words, when there is more to say.")] = None
+
+
+class DiscoveryManaged(WireModel, frozen=True, extra="forbid"):
+    """
+    The knowledge bases a launcher manages: none is a launcher that manages nothing.
+    """
+
+    kind: Literal["managed"]
+    kbs: Annotated[list[DiscoveredKB], Field(description="Each knowledge base, as the document lists it.")]
+
+
+type DiscoveryState = Annotated[
+    DiscoveryAbsent | DiscoveryManaged,
+    Field(
+        description="What a launcher's discovery document says, told apart by `kind`: no launcher was found, or the knowledge bases one manages. A launcher that manages none is not an absent one.",
+        discriminator="kind",
+    ),
+]
+
+
 class DiscoveryDiff(WireModel, frozen=True, extra="forbid"):
     """
     How one poll's knowledge bases changed since the last state it gave.
     """
 
+    state: Annotated[DiscoveryState, Field(description="The state the poll found.")]
     added: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state did not have.")]
     updated: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state had at the same address, now otherwise.")]
     removed: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state had, and this one does not.")]
+    duplicated: Annotated[
+        list[str],
+        Field(
+            description="Each address, as host:port, that more than one of the state's knowledge bases is at. At most one of them is true: `added` and `removed` count each address once, and every one is in `state`."
+        ),
+    ]
 
 
 class DiscoveryDocument(WireModel, frozen=True):
@@ -4629,37 +4746,18 @@ class DiscoveryDocument(WireModel, frozen=True):
     kbs: Annotated[list[DiscoveredKB], Field(description="Every KB the launcher currently manages, local and forwarded")]
 
 
-class DiscoveryReadAbsent(WireModel, frozen=True, extra="forbid"):
+class DiscoveryUnchanged(WireModel, frozen=True, extra="forbid"):
     """
-    No launcher was found, and why.
-    """
-
-    kind: Literal["absent"]
-    reason: Annotated[str, Field(description="Why: one of client/discovery-absent.json's reasons.")]
-    diagnostic: Annotated[str | None, Field(description="What was wrong, in words, when there is more to say.")] = None
-
-
-class DiscoveryReadManaged(WireModel, frozen=True, extra="forbid"):
-    """
-    The knowledge bases a launcher manages: none is a launcher that manages nothing.
-    """
-
-    kind: Literal["managed"]
-    kbs: Annotated[list[DiscoveredKB], Field(description="Each knowledge base, as the document lists it.")]
-
-
-class DiscoveryReadUnchanged(WireModel, frozen=True, extra="forbid"):
-    """
-    Nothing changed since the last read.
+    Nothing changed since the last read of a launcher's discovery document.
     """
 
     kind: Literal["unchanged"]
 
 
 type DiscoveryRead = Annotated[
-    DiscoveryReadAbsent | DiscoveryReadManaged | DiscoveryReadUnchanged,
+    DiscoveryAbsent | DiscoveryManaged | DiscoveryUnchanged,
     Field(
-        description="What one read of a launcher's discovery document gave, told apart by `kind`: no launcher was found, the knowledge bases one manages, or nothing changed since the last read. A launcher that manages none is not an absent one.",
+        description="What one read of a launcher's discovery document gave: a DiscoveryState's absent or managed, or that nothing changed since the last read. Told apart by `kind`, as DiscoveryState's are.",
         discriminator="kind",
     ),
 ]
@@ -9018,7 +9116,9 @@ class PutBinaryRequest(WireModel, frozen=True, extra="forbid"):
     """
 
     name: Annotated[str, Field(description="Human-readable resource name")]
-    file: Annotated[Binary, Field(description="Binary content")]
+    file: Annotated[
+        ByteSource, Field(description="The bytes, opened for each sending of the upload: the multipart body's `file` part each time.")
+    ]
     format: Annotated[str, Field(description="Media type of the content (e.g. text/plain, text/markdown, image/png)")]
     storage_uri: Annotated[
         str,
@@ -9330,7 +9430,7 @@ class ResourceUpload(WireModel, frozen=True):
     """
 
     name: Annotated[str, Field(description="Human-readable resource name")]
-    file: Annotated[Binary, Field(description="Binary content")]
+    file: Annotated[Binary, Field(description="The bytes, as the part carries them.")]
     format: Annotated[str, Field(description="Media type of the content (e.g. text/plain, text/markdown, image/png)")]
     storage_uri: Annotated[
         str,
@@ -10368,7 +10468,7 @@ class StoredSession(WireModel, frozen=True):
     What is kept of a sign-in: the tokens an issuer issued, the client they were issued to, and the issuer's endpoints a renewal and a sign-out need, learned once at sign-in so no session asks again. TOKENS, never a password. A stored value that lacks a member it requires is no session.
     """
 
-    access: Annotated[str, Field(description="The access token: short-lived, sent as a Bearer token.")]
+    access: Annotated[AccessToken, Field(description="The access token: short-lived, sent as a Bearer token.")]
     refresh: Annotated[str, Field(description="The refresh token: what renews the access token at the issuer without another sign-in.")]
     client_id: Annotated[
         str, Field(alias="clientId", description="The client the tokens were issued to, which a renewal and a revocation name.")
@@ -11099,7 +11199,10 @@ class UploadProgressStarted(WireModel, frozen=True, extra="forbid"):
     """
 
     phase: Literal["started"]
-    total_bytes: Annotated[int, Field(alias="totalBytes", description="How many bytes the upload is.")]
+    total_bytes: Annotated[
+        int | None,
+        Field(alias="totalBytes", description="How many bytes the upload is: its ByteSource's length. Absent when the source states none."),
+    ] = None
 
 
 class UploadProgressProgress(WireModel, frozen=True, extra="forbid"):
@@ -11109,7 +11212,10 @@ class UploadProgressProgress(WireModel, frozen=True, extra="forbid"):
 
     phase: Literal["progress"]
     bytes_uploaded: Annotated[int, Field(alias="bytesUploaded", description="How many bytes are sent so far.")]
-    total_bytes: Annotated[int, Field(alias="totalBytes", description="How many bytes the upload is.")]
+    total_bytes: Annotated[
+        int | None,
+        Field(alias="totalBytes", description="How many bytes the upload is: its ByteSource's length. Absent when the source states none."),
+    ] = None
 
 
 class UploadProgressFinished(WireModel, frozen=True, extra="forbid"):
@@ -11124,7 +11230,7 @@ class UploadProgressFinished(WireModel, frozen=True, extra="forbid"):
 type UploadProgress = Annotated[
     UploadProgressStarted | UploadProgressProgress | UploadProgressFinished,
     Field(
-        description="What an upload reports as it goes, told apart by `phase`: its size first, then the bytes sent so far, then the resource made.",
+        description="What an upload reports as it goes, told apart by `phase`: that it began, with its size when its ByteSource states one, then the bytes sent so far, then the resource made. An upload whose source states no length reports none: a size it made up would be a size the caller could not tell from a true one.",
         discriminator="phase",
     ),
 ]
@@ -11815,17 +11921,3 @@ class YieldUpdateOk(WireModel, frozen=True):
     """
 
     response: Annotated[YieldedResource, Field(description="The updated resource's identity.")]
-
-
-type DiscoveryAbsentReason = Literal["not-found", "not-json", "invalid", "unsupported-version", "unreadable"]
-"""Why no launcher was found.
-
-`not-found`: There is no document where it was looked for: no file, an HTTP status that is not success, or a page that is not JSON.
-
-`not-json`: There is a document, and it is not JSON.
-
-`invalid`: It is JSON, and not a discovery document: one entry that is not what the schema says makes the whole document invalid, since a partial reading would hide a running knowledge base without a trace.
-
-`unsupported-version`: It is a discovery document of a version this client does not speak, and is not read in part.
-
-`unreadable`: It could not be read at all: the file could not be opened or decoded, or the request got no answer by its deadline."""

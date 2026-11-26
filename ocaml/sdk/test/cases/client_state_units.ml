@@ -1879,7 +1879,7 @@ let table : t =
                       args =
                         [
                           ("annotationId", `String "ann-1");
-                          ("contextWindow", `Int 500);
+                          ("options", `Assoc [ ("contextWindow", `Int 500) ]);
                         ];
                     }
                      : invoke)
@@ -1936,8 +1936,12 @@ let table : t =
                       args =
                         [
                           ("annotationId", `String "ann-1");
-                          ("includeSourceContext", `Bool false);
-                          ("includeTargetContext", `Bool true);
+                          ( "options",
+                            `Assoc
+                              [
+                                ("includeSourceContext", `Bool false);
+                                ("includeTargetContext", `Bool true);
+                              ] );
                         ];
                     }
                      : invoke)

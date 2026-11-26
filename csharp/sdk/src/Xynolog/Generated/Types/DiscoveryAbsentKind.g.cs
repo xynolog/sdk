@@ -5,7 +5,7 @@
 namespace Xynolog.Types;
 
 [global::Xynolog.Serialization.WireEnum]
-public enum DiscoveryReadUnchangedKind
+public enum DiscoveryAbsentKind
 {
-    [global::System.Text.Json.Serialization.JsonStringEnumMemberName("unchanged")] Unchanged,
+    [global::System.Text.Json.Serialization.JsonStringEnumMemberName("absent")] Absent,
 }

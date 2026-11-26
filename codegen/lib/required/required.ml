@@ -60,9 +60,7 @@ let components (spec : Spec.t) =
 
 (* Each table record ([Table_records]), by its title, read where the table
    states it; each client type every SDK generates
-   ([Definitions.generated_client_types]), by its file's stem; and why a
-   client found no launcher (client/discovery-absent.json), as the one text
-   of its reasons each SDK states it as. *)
+   ([Definitions.generated_client_types]), by its file's stem. *)
 let records (spec : Spec.t) =
   let in_place = whole spec in
   let read (title, file, schema) =
@@ -83,29 +81,13 @@ let records (spec : Spec.t) =
         | None -> Error (refusal file "" "is no JSON Schema"))
       (Definitions.generated_client_types spec)
   in
-  let discovery_absent =
-    Ok
-      ( "DiscoveryAbsentReason",
-        "client/discovery-absent.json",
-        Schema.Schema
-          {
-            Schema.empty with
-            type_ = Some [ Schema.String ];
-            enum =
-              Some
-                (List.map
-                   (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                     Schema.String_literal r.reason)
-                   spec.tables.client_discovery_absent.reasons);
-          } )
-  in
   match Table_records.all spec with
   | Error message -> [ Error (refusal "" "" message) ]
   | Ok records ->
       List.map
         (fun (key, title, schema) -> read (title, file_of key, schema))
         records
-      @ client_types @ [ discovery_absent ]
+      @ client_types
 
 (* Each gateway operation's reply: the schema of its one successful
    response's one content, by its operationId, capitalized. *)

@@ -5,9 +5,9 @@
 namespace Xynolog.Types;
 
 [global::Xynolog.Serialization.WireObject]
-public sealed record DiscoveryReadAbsent
+public sealed record DiscoveryAbsent
 {
-    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.DiscoveryReadAbsentKind Kind => global::Xynolog.Types.DiscoveryReadAbsentKind.Absent;
-    [global::Xynolog.Serialization.Wire("reason")] public required string Reason { get; init; }
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.DiscoveryAbsentKind Kind => global::Xynolog.Types.DiscoveryAbsentKind.Absent;
+    [global::Xynolog.Serialization.Wire("reason")] public required global::Xynolog.Types.DiscoveryAbsentReason Reason { get; init; }
     [global::Xynolog.Serialization.Wire("diagnostic")] public string? Diagnostic { get; init; }
 }

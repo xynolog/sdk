@@ -7,19 +7,19 @@ package xynolog.types
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 
-/** Nothing changed since the last read. */
+/** Nothing changed since the last read of a launcher's discovery document. */
 @Serializable
-public data class DiscoveryReadUnchanged(
+public data class DiscoveryUnchanged(
     @EncodeDefault
-    public val kind: DiscoveryReadUnchangedKind = DiscoveryReadUnchangedKind.Unchanged,
+    public val kind: DiscoveryUnchangedKind = DiscoveryUnchangedKind.Unchanged,
 ) : DiscoveryRead {
-    /** How Java makes a `DiscoveryReadUnchanged`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
+    /** How Java makes a `DiscoveryUnchanged`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor() {
-        public fun build(): DiscoveryReadUnchanged = DiscoveryReadUnchanged()
+        public fun build(): DiscoveryUnchanged = DiscoveryUnchanged()
     }
 
     public companion object {
-        /** A builder of a `DiscoveryReadUnchanged` that states these, and what its setters add. */
+        /** A builder of a `DiscoveryUnchanged` that states these, and what its setters add. */
         @JvmStatic
         public fun builder(): Builder = Builder()
     }

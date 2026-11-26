@@ -2259,7 +2259,7 @@ impl BeginAuthorizationOptions {
 
 schema!(BeginAuthorizationOptions);
 
-/// Bytes held whole. They can be read more than once, and sent again when an upload is retried.
+/// Bytes held whole: all of them at once, read as often as wanted.
 pub type Binary = bytes::Bytes;
 
 /// One edit to a linking annotation's body list: add or remove a body item, or replace an existing one.
@@ -3466,6 +3466,9 @@ impl BusSubscribeRequestScopedItem {
     }
 }
 
+/// Bytes opened afresh each time they are to be sent. Each opening reads them from the first byte, in order, once, and gives the same bytes as every other; whoever opened them releases what they opened. Their length is stated when it is known and stated by nothing when it is not. An upload takes its bytes so: held whole, a file larger than memory could not be sent at all, and read once, as a ByteStream is, an upload sent again would have nothing left to send.
+pub type ByteSource = bytes::Bytes;
+
 /// Where a live query's key stands (contract/CACHE-SEMANTICS.md): pending, with no value yet; ready, with a stored value; or failed, a value-less key's failure, which is an emission and not the stream's end.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -3596,7 +3599,7 @@ pub struct ClientDiscoveryAbsent {
     /// The rule the table states, in prose.
     #[serde(rename = "$comment")]
     pub _comment: String,
-    /// Each reason, and what it means.
+    /// Each reason, in DiscoveryAbsentReason's order, and what it means.
     pub reasons: Vec<ClientDiscoveryAbsentReasonsItem>,
 }
 
@@ -3605,8 +3608,7 @@ schema!(ClientDiscoveryAbsent);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ClientDiscoveryAbsentReasonsItem {
-    /// The reason, as every SDK spells it.
-    pub reason: String,
+    pub reason: DiscoveryAbsentReason,
     /// What it is, in prose.
     pub docs: String,
 }
@@ -3635,7 +3637,7 @@ pub struct ClientOptionDefaultsDefaultsItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub option: Option<String>,
     pub value: serde_json::Value,
-    /// What the parameter is.
+    /// What the parameter is. Left out where it is the SDK's own: its error, which no schema states.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub schema: Option<ClientOptionDefaultsDefaultsItemSchema>,
     /// Where in the request the method sends it, as a JSON Pointer into a case's `sends`. Absent: the option is not sent, and only changes what the client does.
@@ -3665,12 +3667,14 @@ impl ClientOptionDefaultsDefaultsItem {
     }
 }
 
-/// What the parameter is.
+/// What the parameter is. Left out where it is the SDK's own: its error, which no schema states.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum ClientOptionDefaultsDefaultsItemSchema {
     Reference(ClientOptionDefaultsDefaultsItemSchemaReference),
     DateTime(ClientOptionDefaultsDefaultsItemSchemaDateTime),
+    TypeParameter(ClientOptionDefaultsDefaultsItemSchemaTypeParameter),
+    Decided(ClientOptionDefaultsDefaultsItemSchemaDecided),
 }
 
 impl ClientOptionDefaultsDefaultsItemSchema {
@@ -3679,7 +3683,7 @@ impl ClientOptionDefaultsDefaultsItemSchema {
         &[Signature {
             kind: Kind::Object,
             required: &["$ref"],
-            allowed: Some(&["$ref"]),
+            allowed: Some(&["$ref", "typeArguments"]),
             fixed: &[],
             values: None,
         }],
@@ -3700,10 +3704,30 @@ impl ClientOptionDefaultsDefaultsItemSchema {
             ],
             values: None,
         }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["typeParameter"],
+            allowed: Some(&["typeParameter"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["decided"],
+            allowed: Some(&["decided"]),
+            fixed: &[],
+            values: None,
+        }],
     ];
 }
 
-union!(ClientOptionDefaultsDefaultsItemSchema, Reference, DateTime);
+union!(
+    ClientOptionDefaultsDefaultsItemSchema,
+    Reference,
+    DateTime,
+    TypeParameter,
+    Decided,
+);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -3779,10 +3803,98 @@ impl ClientOptionDefaultsDefaultsItemSchemaDateTimeType {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaDecided {
+    /// What a value decides: the schema a table names for it.
+    pub decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided,
+}
+
+/// What a value decides: the schema a table names for it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaDecidedDecided {
+    /// What decides it.
+    pub by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy,
+    /// The table that names the schema: `takes`, the function's own, by each of the enum's values in its order.
+    pub r#in: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaDecidedDecided {
+    /// The `ClientOptionDefaultsDefaultsItemSchemaDecidedDecided` that states these and nothing else.
+    pub fn new(by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy) -> Self {
+        Self {
+            by,
+            r#in: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn::Takes,
+        }
+    }
+}
+
+/// What decides it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy {
+    /// A member beside the function, whose value is of an enum.
+    pub member: String,
+}
+
+/// The table that names the schema: `takes`, the function's own, by each of the enum's values in its order.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn {
+    #[serde(rename = "takes")]
+    Takes,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn::Takes => "takes",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ClientOptionDefaultsDefaultsItemSchemaReference {
     /// The $id of a component, a member within one, or a client type of specs/src/client/types: an object is always one of these, so that it is named.
     #[serde(rename = "$ref")]
     pub _ref: String,
+    /// What each of the client type's type parameters is here, by its name: a type parameter of the unit it is given in, one for each the client type's x-xynolog-typeParameters states, and only where it states any.
+    #[serde(rename = "typeArguments")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub type_arguments: Option<
+        std::collections::BTreeMap<
+            String,
+            ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue,
+        >,
+    >,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaReference {
+    /// The `ClientOptionDefaultsDefaultsItemSchemaReference` that states these and nothing else.
+    pub fn new(_ref: impl Into<String>) -> Self {
+        Self {
+            _ref: _ref.into(),
+            type_arguments: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue {
+    /// A type parameter of the state unit the member is of, by its name: what it is, the unit's maker says.
+    #[serde(rename = "typeParameter")]
+    pub type_parameter: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaTypeParameter {
+    /// A type parameter of the state unit the member is of, by its name: what it is, the unit's maker says.
+    #[serde(rename = "typeParameter")]
+    pub type_parameter: String,
 }
 
 /// client/refresh.json: what a Xynolog client asks again for, and when.
@@ -5092,9 +5204,21 @@ pub struct ConformanceDriverLineProgressProgress {
     /// How many bytes it has sent.
     #[serde(rename = "bytesUploaded")]
     pub bytes_uploaded: u64,
-    /// How many it will send.
+    /// How many it will send. Absent for an upload whose source states no length.
     #[serde(rename = "totalBytes")]
-    pub total_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub total_bytes: Option<u64>,
+}
+
+impl ConformanceDriverLineProgressProgress {
+    /// The `ConformanceDriverLineProgressProgress` that states these and nothing else.
+    pub fn new(upload: u64, bytes_uploaded: u64) -> Self {
+        Self {
+            upload,
+            bytes_uploaded,
+            total_bytes: None,
+        }
+    }
 }
 
 /// The driver can take operations.
@@ -6690,16 +6814,94 @@ impl DiscoveredKB {
 
 schema!(DiscoveredKB);
 
+/// No launcher was found, and why.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DiscoveryAbsent {
+    pub kind: DiscoveryAbsentKind,
+    /// Why.
+    pub reason: DiscoveryAbsentReason,
+    /// What was wrong, in words, when there is more to say.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diagnostic: Option<String>,
+}
+
+impl DiscoveryAbsent {
+    /// The `DiscoveryAbsent` that states these and nothing else.
+    pub fn new(reason: DiscoveryAbsentReason) -> Self {
+        Self {
+            kind: DiscoveryAbsentKind::Absent,
+            reason,
+            diagnostic: None,
+        }
+    }
+}
+
+schema!(DiscoveryAbsent);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryAbsentKind {
+    #[serde(rename = "absent")]
+    Absent,
+}
+
+impl DiscoveryAbsentKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryAbsentKind::Absent => "absent",
+        }
+    }
+}
+
+/// Why a client that read a launcher's discovery document found no launcher: one of the reasons of client/discovery-absent.json, which says what each means.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryAbsentReason {
+    #[serde(rename = "not-found")]
+    NotFound,
+    #[serde(rename = "not-json")]
+    NotJson,
+    #[serde(rename = "invalid")]
+    Invalid,
+    #[serde(rename = "unsupported-version")]
+    UnsupportedVersion,
+    #[serde(rename = "unreadable")]
+    Unreadable,
+}
+
+impl DiscoveryAbsentReason {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryAbsentReason::NotFound => "not-found",
+            DiscoveryAbsentReason::NotJson => "not-json",
+            DiscoveryAbsentReason::Invalid => "invalid",
+            DiscoveryAbsentReason::UnsupportedVersion => "unsupported-version",
+            DiscoveryAbsentReason::Unreadable => "unreadable",
+        }
+    }
+}
+
+schema!(DiscoveryAbsentReason);
+
 /// How one poll's knowledge bases changed since the last state it gave.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DiscoveryDiff {
+    /// The state the poll found.
+    pub state: DiscoveryState,
     /// Each knowledge base the last state did not have.
     pub added: Vec<DiscoveredKB>,
     /// Each knowledge base the last state had at the same address, now otherwise.
     pub updated: Vec<DiscoveredKB>,
     /// Each knowledge base the last state had, and this one does not.
     pub removed: Vec<DiscoveredKB>,
+    /// Each address, as host:port, that more than one of the state's knowledge bases is at. At most one of them is true: `added` and `removed` count each address once, and every one is in `state`.
+    pub duplicated: Vec<String>,
 }
 
 schema!(DiscoveryDiff);
@@ -6731,13 +6933,51 @@ pub struct DiscoveryDocumentVersion;
 
 constant!(DiscoveryDocumentVersion, i64, 1);
 
-/// What one read of a launcher's discovery document gave, told apart by `kind`: no launcher was found, the knowledge bases one manages, or nothing changed since the last read. A launcher that manages none is not an absent one.
+/// The knowledge bases a launcher manages: none is a launcher that manages nothing.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DiscoveryManaged {
+    pub kind: DiscoveryManagedKind,
+    /// Each knowledge base, as the document lists it.
+    pub kbs: Vec<DiscoveredKB>,
+}
+
+impl DiscoveryManaged {
+    /// The `DiscoveryManaged` that states these and nothing else.
+    pub fn new(kbs: Vec<DiscoveredKB>) -> Self {
+        Self {
+            kind: DiscoveryManagedKind::Managed,
+            kbs,
+        }
+    }
+}
+
+schema!(DiscoveryManaged);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryManagedKind {
+    #[serde(rename = "managed")]
+    Managed,
+}
+
+impl DiscoveryManagedKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryManagedKind::Managed => "managed",
+        }
+    }
+}
+
+/// What one read of a launcher's discovery document gave: a DiscoveryState's absent or managed, or that nothing changed since the last read. Told apart by `kind`, as DiscoveryState's are.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum DiscoveryRead {
-    Absent(DiscoveryReadAbsent),
-    Managed(DiscoveryReadManaged),
-    Unchanged(DiscoveryReadUnchanged),
+    DiscoveryAbsent(DiscoveryAbsent),
+    DiscoveryManaged(DiscoveryManaged),
+    DiscoveryUnchanged(DiscoveryUnchanged),
 }
 
 impl DiscoveryRead {
@@ -6747,7 +6987,19 @@ impl DiscoveryRead {
             kind: Kind::Object,
             required: &["kind", "reason"],
             allowed: Some(&["kind", "reason", "diagnostic"]),
-            fixed: &[("kind", &[Literal::Text("absent")])],
+            fixed: &[
+                ("kind", &[Literal::Text("absent")]),
+                (
+                    "reason",
+                    &[
+                        Literal::Text("not-found"),
+                        Literal::Text("not-json"),
+                        Literal::Text("invalid"),
+                        Literal::Text("unsupported-version"),
+                        Literal::Text("unreadable"),
+                    ],
+                ),
+            ],
             values: None,
         }],
         &[Signature {
@@ -6767,120 +7019,99 @@ impl DiscoveryRead {
     ];
 }
 
-union!(DiscoveryRead, Absent, Managed, Unchanged);
+union!(
+    DiscoveryRead,
+    DiscoveryAbsent,
+    DiscoveryManaged,
+    DiscoveryUnchanged,
+);
+member!(DiscoveryRead::DiscoveryAbsent(DiscoveryAbsent));
+member!(DiscoveryRead::DiscoveryManaged(DiscoveryManaged));
+member!(DiscoveryRead::DiscoveryUnchanged(DiscoveryUnchanged));
 schema!(DiscoveryRead);
 
-/// No launcher was found, and why.
+/// What a launcher's discovery document says, told apart by `kind`: no launcher was found, or the knowledge bases one manages. A launcher that manages none is not an absent one.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum DiscoveryState {
+    DiscoveryAbsent(DiscoveryAbsent),
+    DiscoveryManaged(DiscoveryManaged),
+}
+
+impl DiscoveryState {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "reason"],
+            allowed: Some(&["kind", "reason", "diagnostic"]),
+            fixed: &[
+                ("kind", &[Literal::Text("absent")]),
+                (
+                    "reason",
+                    &[
+                        Literal::Text("not-found"),
+                        Literal::Text("not-json"),
+                        Literal::Text("invalid"),
+                        Literal::Text("unsupported-version"),
+                        Literal::Text("unreadable"),
+                    ],
+                ),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "kbs"],
+            allowed: Some(&["kind", "kbs"]),
+            fixed: &[("kind", &[Literal::Text("managed")])],
+            values: None,
+        }],
+    ];
+}
+
+union!(DiscoveryState, DiscoveryAbsent, DiscoveryManaged);
+member!(DiscoveryState::DiscoveryAbsent(DiscoveryAbsent));
+member!(DiscoveryState::DiscoveryManaged(DiscoveryManaged));
+schema!(DiscoveryState);
+
+/// Nothing changed since the last read of a launcher's discovery document.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct DiscoveryReadAbsent {
-    pub kind: DiscoveryReadAbsentKind,
-    /// Why: one of client/discovery-absent.json's reasons.
-    pub reason: String,
-    /// What was wrong, in words, when there is more to say.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub diagnostic: Option<String>,
+pub struct DiscoveryUnchanged {
+    pub kind: DiscoveryUnchangedKind,
 }
 
-impl DiscoveryReadAbsent {
-    /// The `DiscoveryReadAbsent` that states these and nothing else.
-    pub fn new(reason: impl Into<String>) -> Self {
-        Self {
-            kind: DiscoveryReadAbsentKind::Absent,
-            reason: reason.into(),
-            diagnostic: None,
-        }
-    }
-}
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum DiscoveryReadAbsentKind {
-    #[serde(rename = "absent")]
-    Absent,
-}
-
-impl DiscoveryReadAbsentKind {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            DiscoveryReadAbsentKind::Absent => "absent",
-        }
-    }
-}
-
-/// The knowledge bases a launcher manages: none is a launcher that manages nothing.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct DiscoveryReadManaged {
-    pub kind: DiscoveryReadManagedKind,
-    /// Each knowledge base, as the document lists it.
-    pub kbs: Vec<DiscoveredKB>,
-}
-
-impl DiscoveryReadManaged {
-    /// The `DiscoveryReadManaged` that states these and nothing else.
-    pub fn new(kbs: Vec<DiscoveredKB>) -> Self {
-        Self {
-            kind: DiscoveryReadManagedKind::Managed,
-            kbs,
-        }
-    }
-}
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum DiscoveryReadManagedKind {
-    #[serde(rename = "managed")]
-    Managed,
-}
-
-impl DiscoveryReadManagedKind {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            DiscoveryReadManagedKind::Managed => "managed",
-        }
-    }
-}
-
-/// Nothing changed since the last read.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct DiscoveryReadUnchanged {
-    pub kind: DiscoveryReadUnchangedKind,
-}
-
-impl Default for DiscoveryReadUnchanged {
+impl Default for DiscoveryUnchanged {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl DiscoveryReadUnchanged {
-    /// The `DiscoveryReadUnchanged` that states what it must and nothing else.
+impl DiscoveryUnchanged {
+    /// The `DiscoveryUnchanged` that states what it must and nothing else.
     pub fn new() -> Self {
         Self {
-            kind: DiscoveryReadUnchangedKind::Unchanged,
+            kind: DiscoveryUnchangedKind::Unchanged,
         }
     }
 }
 
+schema!(DiscoveryUnchanged);
+
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
 )]
-pub enum DiscoveryReadUnchangedKind {
+pub enum DiscoveryUnchangedKind {
     #[serde(rename = "unchanged")]
     Unchanged,
 }
 
-impl DiscoveryReadUnchangedKind {
+impl DiscoveryUnchangedKind {
     /// The value as the wire spells it.
     pub const fn as_str(&self) -> &'static str {
         match self {
-            DiscoveryReadUnchangedKind::Unchanged => "unchanged",
+            DiscoveryUnchangedKind::Unchanged => "unchanged",
         }
     }
 }
@@ -16156,8 +16387,8 @@ schema!(Provider);
 pub struct PutBinaryRequest {
     /// Human-readable resource name
     pub name: String,
-    /// Binary content
-    pub file: Binary,
+    /// The bytes, opened for each sending of the upload: the multipart body's `file` part each time.
+    pub file: ByteSource,
     /// Media type of the content (e.g. text/plain, text/markdown, image/png)
     pub format: String,
     /// Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.
@@ -16201,7 +16432,7 @@ impl PutBinaryRequest {
     /// The `PutBinaryRequest` that states these and nothing else.
     pub fn new(
         name: impl Into<String>,
-        file: Binary,
+        file: ByteSource,
         format: impl Into<String>,
         storage_uri: impl Into<String>,
     ) -> Self {
@@ -17486,7 +17717,7 @@ schema!(ResourceUpdatedPayload);
 pub struct ResourceUpload {
     /// Human-readable resource name
     pub name: String,
-    /// Binary content
+    /// The bytes, as the part carries them.
     pub file: Binary,
     /// Media type of the content (e.g. text/plain, text/markdown, image/png)
     pub format: String,
@@ -21220,7 +21451,7 @@ schema!(StoredEventResponse);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct StoredSession {
     /// The access token: short-lived, sent as a Bearer token.
-    pub access: String,
+    pub access: AccessToken,
     /// The refresh token: what renews the access token at the issuer without another sign-in.
     pub refresh: String,
     /// The client the tokens were issued to, which a renewal and a revocation name.
@@ -21242,13 +21473,13 @@ pub struct StoredSession {
 impl StoredSession {
     /// The `StoredSession` that states these and nothing else.
     pub fn new(
-        access: impl Into<String>,
+        access: AccessToken,
         refresh: impl Into<String>,
         client_id: impl Into<String>,
         token_endpoint: impl Into<String>,
     ) -> Self {
         Self {
-            access: access.into(),
+            access,
             refresh: refresh.into(),
             client_id: client_id.into(),
             token_endpoint: token_endpoint.into(),
@@ -22054,7 +22285,7 @@ pub struct UpdateAnnotationBodyRequest {
 
 schema!(UpdateAnnotationBodyRequest);
 
-/// What an upload reports as it goes, told apart by `phase`: its size first, then the bytes sent so far, then the resource made.
+/// What an upload reports as it goes, told apart by `phase`: that it began, with its size when its ByteSource states one, then the bytes sent so far, then the resource made. An upload whose source states no length reports none: a size it made up would be a size the caller could not tell from a true one.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum UploadProgress {
@@ -22068,14 +22299,14 @@ impl UploadProgress {
     pub const MEMBERS: &'static [&'static [Signature]] = &[
         &[Signature {
             kind: Kind::Object,
-            required: &["phase", "totalBytes"],
+            required: &["phase"],
             allowed: Some(&["phase", "totalBytes"]),
             fixed: &[("phase", &[Literal::Text("started")])],
             values: None,
         }],
         &[Signature {
             kind: Kind::Object,
-            required: &["phase", "bytesUploaded", "totalBytes"],
+            required: &["phase", "bytesUploaded"],
             allowed: Some(&["phase", "bytesUploaded", "totalBytes"]),
             fixed: &[("phase", &[Literal::Text("progress")])],
             values: None,
@@ -22137,18 +22368,19 @@ pub struct UploadProgressProgress {
     /// How many bytes are sent so far.
     #[serde(rename = "bytesUploaded")]
     pub bytes_uploaded: u64,
-    /// How many bytes the upload is.
+    /// How many bytes the upload is: its ByteSource's length. Absent when the source states none.
     #[serde(rename = "totalBytes")]
-    pub total_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub total_bytes: Option<u64>,
 }
 
 impl UploadProgressProgress {
     /// The `UploadProgressProgress` that states these and nothing else.
-    pub fn new(bytes_uploaded: u64, total_bytes: u64) -> Self {
+    pub fn new(bytes_uploaded: u64) -> Self {
         Self {
             phase: UploadProgressProgressPhase::Progress,
             bytes_uploaded,
-            total_bytes,
+            total_bytes: None,
         }
     }
 }
@@ -22175,17 +22407,24 @@ impl UploadProgressProgressPhase {
 #[serde(deny_unknown_fields)]
 pub struct UploadProgressStarted {
     pub phase: UploadProgressStartedPhase,
-    /// How many bytes the upload is.
+    /// How many bytes the upload is: its ByteSource's length. Absent when the source states none.
     #[serde(rename = "totalBytes")]
-    pub total_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub total_bytes: Option<u64>,
+}
+
+impl Default for UploadProgressStarted {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl UploadProgressStarted {
-    /// The `UploadProgressStarted` that states these and nothing else.
-    pub fn new(total_bytes: u64) -> Self {
+    /// The `UploadProgressStarted` that states what it must and nothing else.
+    pub fn new() -> Self {
         Self {
             phase: UploadProgressStartedPhase::Started,
-            total_bytes,
+            total_bytes: None,
         }
     }
 }

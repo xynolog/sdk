@@ -1732,7 +1732,9 @@ let shape_98 () =
     closed = Some [ "clientId"; "global"; "pendingReplies"; "scoped" ];
   }
 
-let shape_99 () =
+let shape_99 () = { any with kinds = Some [ String ] }
+
+let shape_100 () =
   {
     any with
     kinds = Some [ String ];
@@ -1745,7 +1747,7 @@ let shape_99 () =
         ];
   }
 
-let shape_100 () =
+let shape_101 () =
   {
     any with
     kinds = Some [ Object ];
@@ -1758,7 +1760,7 @@ let shape_100 () =
     closed = Some [ "reason"; "requestId" ];
   }
 
-let shape_101 () =
+let shape_102 () =
   {
     any with
     kinds = Some [ Object ];
@@ -1792,7 +1794,7 @@ let shape_101 () =
         ];
   }
 
-let shape_102 () =
+let shape_103 () =
   {
     any with
     kinds = Some [ Object ];
@@ -1829,7 +1831,7 @@ let shape_102 () =
     closed = Some [ "code"; "message" ];
   }
 
-let shape_103 () =
+let shape_104 () =
   {
     any with
     kinds = Some [ Object ];
@@ -1898,7 +1900,7 @@ let shape_103 () =
     closed = Some [ "$comment"; "states" ];
   }
 
-let shape_104 () =
+let shape_105 () =
   {
     any with
     kinds = Some [ Object ];
@@ -1952,24 +1954,7 @@ let shape_104 () =
                           min_length = Some 1;
                         } );
                       ( "reason",
-                        {
-                          any with
-                          kinds = Some [ String ];
-                          pattern =
-                            Some
-                              [
-                                Step ([ (97, 122) ], 1, None);
-                                Group
-                                  ( [
-                                      [
-                                        Step ([ (45, 45) ], 1, Some 1);
-                                        Step ([ (97, 122) ], 1, None);
-                                      ];
-                                    ],
-                                    0,
-                                    None );
-                              ];
-                        } );
+                        { any with reference = Some "DiscoveryAbsentReason" } );
                     ];
                   closed = Some [ "docs"; "reason" ];
                 };
@@ -1978,7 +1963,7 @@ let shape_104 () =
     closed = Some [ "$comment"; "reasons" ];
   }
 
-let shape_105 () =
+let shape_106 () =
   {
     any with
     kinds = Some [ Object ];
@@ -2192,8 +2177,45 @@ let shape_105 () =
                                                   Some 1 );
                                             ];
                                       } );
+                                    ( "typeArguments",
+                                      {
+                                        any with
+                                        kinds = Some [ Object ];
+                                        values =
+                                          Some
+                                            {
+                                              any with
+                                              kinds = Some [ Object ];
+                                              required = [ "typeParameter" ];
+                                              members =
+                                                [
+                                                  ( "typeParameter",
+                                                    {
+                                                      any with
+                                                      kinds = Some [ String ];
+                                                      pattern =
+                                                        Some
+                                                          [
+                                                            Step
+                                                              ( [ (65, 90) ],
+                                                                1,
+                                                                Some 1 );
+                                                            Step
+                                                              ( [
+                                                                  (65, 90);
+                                                                  (97, 122);
+                                                                ],
+                                                                0,
+                                                                None );
+                                                          ];
+                                                    } );
+                                                ];
+                                              closed = Some [ "typeParameter" ];
+                                            };
+                                        min_members = Some 1;
+                                      } );
                                   ];
-                                closed = Some [ "$ref" ];
+                                closed = Some [ "$ref"; "typeArguments" ];
                               };
                               {
                                 any with
@@ -2256,6 +2278,72 @@ let shape_105 () =
                                       "description"; "format"; "minimum"; "type";
                                     ];
                               };
+                              {
+                                any with
+                                kinds = Some [ Object ];
+                                required = [ "typeParameter" ];
+                                members =
+                                  [
+                                    ( "typeParameter",
+                                      {
+                                        any with
+                                        kinds = Some [ String ];
+                                        pattern =
+                                          Some
+                                            [
+                                              Step ([ (65, 90) ], 1, Some 1);
+                                              Step
+                                                ( [ (65, 90); (97, 122) ],
+                                                  0,
+                                                  None );
+                                            ];
+                                      } );
+                                  ];
+                                closed = Some [ "typeParameter" ];
+                              };
+                              {
+                                any with
+                                kinds = Some [ Object ];
+                                required = [ "decided" ];
+                                members =
+                                  [
+                                    ( "decided",
+                                      {
+                                        any with
+                                        kinds = Some [ Object ];
+                                        required = [ "by"; "in" ];
+                                        members =
+                                          [
+                                            ( "by",
+                                              {
+                                                any with
+                                                kinds = Some [ Object ];
+                                                required = [ "member" ];
+                                                members =
+                                                  [
+                                                    ( "member",
+                                                      {
+                                                        any with
+                                                        kinds = Some [ String ];
+                                                        min_length = Some 1;
+                                                      } );
+                                                  ];
+                                                closed = Some [ "member" ];
+                                              } );
+                                            ( "in",
+                                              {
+                                                any with
+                                                kinds = Some [ String ];
+                                                enum =
+                                                  Some
+                                                    [ `Stringlit "\"takes\"" ];
+                                              } );
+                                          ];
+                                        closed = Some [ "by"; "in" ];
+                                      } );
+                                  ];
+                                closed = Some [ "decided" ];
+                              };
                             ];
                         } );
                       ( "sends",
@@ -2294,7 +2382,7 @@ let shape_105 () =
     closed = Some [ "$comment"; "defaults" ];
   }
 
-let shape_106 () =
+let shape_107 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3048,7 +3136,7 @@ let shape_106 () =
     closed = Some [ "$comment"; "queries"; "refresh" ];
   }
 
-let shape_107 () =
+let shape_108 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3066,7 +3154,7 @@ let shape_107 () =
       ];
   }
 
-let shape_108 () =
+let shape_109 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3316,7 +3404,7 @@ let shape_108 () =
         ];
   }
 
-let shape_109 () =
+let shape_110 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3329,7 +3417,7 @@ let shape_109 () =
       ];
   }
 
-let shape_110 () =
+let shape_111 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3354,7 +3442,7 @@ let shape_110 () =
       ];
   }
 
-let shape_111 () =
+let shape_112 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3397,7 +3485,7 @@ let shape_111 () =
         ];
   }
 
-let shape_112 () =
+let shape_113 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3431,7 +3519,7 @@ let shape_112 () =
     closed = Some [ "as"; "fetch"; "payload" ];
   }
 
-let shape_113 () =
+let shape_114 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3473,7 +3561,7 @@ let shape_113 () =
     closed = Some [ "about"; "planes"; "source"; "steps"; "telemetry"; "tier" ];
   }
 
-let shape_114 () =
+let shape_115 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3606,7 +3694,7 @@ let shape_114 () =
                 {
                   any with
                   kinds = Some [ Object ];
-                  required = [ "upload"; "bytesUploaded"; "totalBytes" ];
+                  required = [ "upload"; "bytesUploaded" ];
                   members =
                     [
                       ( "bytesUploaded",
@@ -3751,7 +3839,7 @@ let shape_114 () =
       ];
   }
 
-let shape_115 () =
+let shape_116 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3766,7 +3854,7 @@ let shape_115 () =
     closed = Some [ "code"; "detail"; "failureClass"; "status" ];
   }
 
-let shape_116 () =
+let shape_117 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3792,7 +3880,7 @@ let shape_116 () =
     closed = Some [ "fetch"; "params" ];
   }
 
-let shape_117 () =
+let shape_118 () =
   {
     any with
     kinds = Some [ Object ];
@@ -3901,7 +3989,7 @@ let shape_117 () =
     closed = Some [ "launcher"; "modelCatalogue"; "sdks"; "target" ];
   }
 
-let shape_118 () =
+let shape_119 () =
   {
     any with
     kinds = Some [ Object ];
@@ -4446,7 +4534,7 @@ let shape_118 () =
       ];
   }
 
-let shape_119 () =
+let shape_120 () =
   {
     any with
     kinds = Some [ Object ];
@@ -4459,7 +4547,7 @@ let shape_119 () =
     closed = Some [ "description"; "did" ];
   }
 
-let shape_120 () =
+let shape_121 () =
   {
     any with
     kinds = Some [ String ];
@@ -4476,9 +4564,9 @@ let shape_120 () =
         ];
   }
 
-let shape_121 () = { any with kinds = Some [ String ] }
+let shape_122 () = { any with kinds = Some [ String ] }
 
-let shape_122 () =
+let shape_123 () =
   {
     any with
     kinds = Some [ Object ];
@@ -4519,7 +4607,7 @@ let shape_122 () =
       ];
   }
 
-let shape_123 () =
+let shape_124 () =
   {
     any with
     kinds = Some [ Object ];
@@ -4848,7 +4936,7 @@ let shape_123 () =
     closed = Some [ "$comment"; "commands" ];
   }
 
-let shape_124 () =
+let shape_125 () =
   {
     any with
     kinds = Some [ Object ];
@@ -4951,14 +5039,14 @@ let shape_124 () =
     closed = Some [ "$comment"; "codes" ];
   }
 
-let shape_125 () =
+let shape_126 () =
   {
     any with
     kinds = Some [ String ];
     enum = Some [ `Stringlit "\"client\""; `Stringlit "\"launcher\"" ];
   }
 
-let shape_126 () =
+let shape_127 () =
   {
     any with
     kinds = Some [ Object ];
@@ -4971,7 +5059,7 @@ let shape_126 () =
       ];
   }
 
-let shape_127 () =
+let shape_128 () =
   {
     any with
     kinds = Some [ Object ];
@@ -4986,7 +5074,7 @@ let shape_127 () =
     closed = Some [ "archiveOriginal"; "content"; "name"; "token" ];
   }
 
-let shape_128 () =
+let shape_129 () =
   {
     any with
     kinds = Some [ Object ];
@@ -4994,9 +5082,9 @@ let shape_128 () =
     members = [ ("resourceId", { any with reference = Some "ResourceId" }) ];
   }
 
-let shape_129 () = { any with kinds = Some [ String ]; min_length = Some 1 }
+let shape_130 () = { any with kinds = Some [ String ]; min_length = Some 1 }
 
-let shape_130 () =
+let shape_131 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5015,7 +5103,7 @@ let shape_130 () =
         ];
   }
 
-let shape_131 () =
+let shape_132 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5035,7 +5123,7 @@ let shape_131 () =
     closed = Some [ "mtime"; "name"; "path"; "type" ];
   }
 
-let shape_132 () =
+let shape_133 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5047,7 +5135,7 @@ let shape_132 () =
     discriminator = Some ("type", [ ("file", 0); ("dir", 1) ]);
   }
 
-let shape_133 () =
+let shape_134 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5070,7 +5158,26 @@ let shape_133 () =
       ];
   }
 
-let shape_134 () =
+let shape_135 () =
+  {
+    any with
+    kinds = Some [ Object ];
+    required = [ "kind"; "reason" ];
+    members =
+      [
+        ("diagnostic", { any with kinds = Some [ String ]; min_length = Some 1 });
+        ( "kind",
+          {
+            any with
+            kinds = Some [ String ];
+            enum = Some [ `Stringlit "\"absent\"" ];
+          } );
+        ("reason", { any with reference = Some "DiscoveryAbsentReason" });
+      ];
+    closed = Some [ "diagnostic"; "kind"; "reason" ];
+  }
+
+let shape_136 () =
   {
     any with
     kinds = Some [ String ];
@@ -5085,11 +5192,11 @@ let shape_134 () =
         ];
   }
 
-let shape_135 () =
+let shape_137 () =
   {
     any with
     kinds = Some [ Object ];
-    required = [ "added"; "updated"; "removed" ];
+    required = [ "state"; "added"; "updated"; "removed"; "duplicated" ];
     members =
       [
         ( "added",
@@ -5098,12 +5205,20 @@ let shape_135 () =
             kinds = Some [ Array ];
             items = Some { any with reference = Some "DiscoveredKB" };
           } );
+        ( "duplicated",
+          {
+            any with
+            kinds = Some [ Array ];
+            items =
+              Some { any with kinds = Some [ String ]; min_length = Some 1 };
+          } );
         ( "removed",
           {
             any with
             kinds = Some [ Array ];
             items = Some { any with reference = Some "DiscoveredKB" };
           } );
+        ("state", { any with reference = Some "DiscoveryState" });
         ( "updated",
           {
             any with
@@ -5111,10 +5226,10 @@ let shape_135 () =
             items = Some { any with reference = Some "DiscoveredKB" };
           } );
       ];
-    closed = Some [ "added"; "removed"; "updated" ];
+    closed = Some [ "added"; "duplicated"; "removed"; "state"; "updated" ];
   }
 
-let shape_136 () =
+let shape_138 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5132,73 +5247,73 @@ let shape_136 () =
       ];
   }
 
-let shape_137 () =
+let shape_139 () =
+  {
+    any with
+    kinds = Some [ Object ];
+    required = [ "kind"; "kbs" ];
+    members =
+      [
+        ( "kbs",
+          {
+            any with
+            kinds = Some [ Array ];
+            items = Some { any with reference = Some "DiscoveredKB" };
+          } );
+        ( "kind",
+          {
+            any with
+            kinds = Some [ String ];
+            enum = Some [ `Stringlit "\"managed\"" ];
+          } );
+      ];
+    closed = Some [ "kbs"; "kind" ];
+  }
+
+let shape_140 () =
   {
     any with
     kinds = Some [ Object ];
     variants =
       [
-        {
-          any with
-          kinds = Some [ Object ];
-          required = [ "kind"; "reason" ];
-          members =
-            [
-              ( "diagnostic",
-                { any with kinds = Some [ String ]; min_length = Some 1 } );
-              ( "kind",
-                {
-                  any with
-                  kinds = Some [ String ];
-                  enum = Some [ `Stringlit "\"absent\"" ];
-                } );
-              ( "reason",
-                { any with kinds = Some [ String ]; min_length = Some 1 } );
-            ];
-          closed = Some [ "diagnostic"; "kind"; "reason" ];
-        };
-        {
-          any with
-          kinds = Some [ Object ];
-          required = [ "kind"; "kbs" ];
-          members =
-            [
-              ( "kbs",
-                {
-                  any with
-                  kinds = Some [ Array ];
-                  items = Some { any with reference = Some "DiscoveredKB" };
-                } );
-              ( "kind",
-                {
-                  any with
-                  kinds = Some [ String ];
-                  enum = Some [ `Stringlit "\"managed\"" ];
-                } );
-            ];
-          closed = Some [ "kbs"; "kind" ];
-        };
-        {
-          any with
-          kinds = Some [ Object ];
-          required = [ "kind" ];
-          members =
-            [
-              ( "kind",
-                {
-                  any with
-                  kinds = Some [ String ];
-                  enum = Some [ `Stringlit "\"unchanged\"" ];
-                } );
-            ];
-          closed = Some [ "kind" ];
-        };
+        { any with reference = Some "DiscoveryAbsent" };
+        { any with reference = Some "DiscoveryManaged" };
+        { any with reference = Some "DiscoveryUnchanged" };
       ];
     discriminator =
       Some ("kind", [ ("absent", 0); ("managed", 1); ("unchanged", 2) ]);
   }
 
-let shape_138 () =
+let shape_141 () =
+  {
+    any with
+    kinds = Some [ Object ];
+    variants =
+      [
+        { any with reference = Some "DiscoveryAbsent" };
+        { any with reference = Some "DiscoveryManaged" };
+      ];
+    discriminator = Some ("kind", [ ("absent", 0); ("managed", 1) ]);
+  }
+
+let shape_142 () =
+  {
+    any with
+    kinds = Some [ Object ];
+    required = [ "kind" ];
+    members =
+      [
+        ( "kind",
+          {
+            any with
+            kinds = Some [ String ];
+            enum = Some [ `Stringlit "\"unchanged\"" ];
+          } );
+      ];
+    closed = Some [ "kind" ];
+  }
+
+let shape_143 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5301,7 +5416,7 @@ let shape_138 () =
         ];
   }
 
-let shape_139 () =
+let shape_144 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5324,7 +5439,7 @@ let shape_139 () =
     closed = Some [ "queue"; "status" ];
   }
 
-let shape_140 () =
+let shape_145 () =
   {
     any with
     kinds = Some [ String ];
@@ -5338,7 +5453,7 @@ let shape_140 () =
         ];
   }
 
-let shape_141 () =
+let shape_146 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5350,7 +5465,7 @@ let shape_141 () =
     discriminator = Some ("type", [ ("ollama", 0); ("voyage", 1) ]);
   }
 
-let shape_142 () =
+let shape_147 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5363,7 +5478,7 @@ let shape_142 () =
     closed = Some [ "model"; "provider" ];
   }
 
-let shape_143 () =
+let shape_148 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5381,7 +5496,7 @@ let shape_143 () =
     closed = Some [ "engine"; "jobs" ];
   }
 
-let shape_144 () =
+let shape_149 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5394,7 +5509,7 @@ let shape_144 () =
     closed = Some [ "engine"; "limits" ];
   }
 
-let shape_145 () =
+let shape_150 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5413,14 +5528,14 @@ let shape_145 () =
     closed = Some [ "engine"; "jobs"; "limits" ];
   }
 
-let shape_146 () =
+let shape_151 () =
   {
     any with
     kinds = Some [ Array ];
     items = Some { any with reference = Some "EngineWithLimits" };
   }
 
-let shape_147 () =
+let shape_152 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5436,7 +5551,7 @@ let shape_147 () =
       ];
   }
 
-let shape_148 () =
+let shape_153 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5444,7 +5559,7 @@ let shape_148 () =
     members = [ ("entityType", { any with kinds = Some [ String ] }) ];
   }
 
-let shape_149 () =
+let shape_154 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5452,7 +5567,7 @@ let shape_149 () =
     members = [ ("entityType", { any with kinds = Some [ String ] }) ];
   }
 
-let shape_150 () =
+let shape_155 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5469,7 +5584,7 @@ let shape_150 () =
     closed = Some [ "entityTypes" ];
   }
 
-let shape_151 () =
+let shape_156 () =
   {
     any with
     kinds = Some [ String ];
@@ -5482,7 +5597,7 @@ let shape_151 () =
         ];
   }
 
-let shape_152 () =
+let shape_157 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5548,7 +5663,7 @@ let shape_152 () =
         [ "choices"; "code"; "fields"; "mayStillRun"; "retryable"; "supported" ];
   }
 
-let shape_153 () =
+let shape_158 () =
   {
     any with
     kinds = Some [ Object ];
@@ -5561,7 +5676,7 @@ let shape_153 () =
       ];
   }
 
-let shape_154 () =
+let shape_159 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6651,7 +6766,7 @@ let shape_154 () =
         ];
   }
 
-let shape_155 () =
+let shape_160 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6659,7 +6774,7 @@ let shape_155 () =
     members = [ ("sequenceNumber", { any with kinds = Some [ Integer ] }) ];
   }
 
-let shape_156 () =
+let shape_161 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6672,7 +6787,7 @@ let shape_156 () =
     closed = Some [ "did"; "name" ];
   }
 
-let shape_157 () =
+let shape_162 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6705,7 +6820,7 @@ let shape_157 () =
       ];
   }
 
-let shape_158 () =
+let shape_163 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6722,7 +6837,7 @@ let shape_158 () =
       ];
   }
 
-let shape_159 () =
+let shape_164 () =
   {
     any with
     kinds = Some [ String ];
@@ -6736,7 +6851,7 @@ let shape_159 () =
         ];
   }
 
-let shape_160 () =
+let shape_165 () =
   {
     any with
     kinds = Some [ String ];
@@ -6751,7 +6866,7 @@ let shape_160 () =
         ];
   }
 
-let shape_161 () =
+let shape_166 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6763,7 +6878,7 @@ let shape_161 () =
     discriminator = Some ("kind", [ ("extracted", 0); ("declined", 1) ]);
   }
 
-let shape_162 () =
+let shape_167 () =
   {
     any with
     kinds = Some [ String ];
@@ -6776,7 +6891,7 @@ let shape_162 () =
         ];
   }
 
-let shape_163 () =
+let shape_168 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6814,7 +6929,7 @@ let shape_163 () =
     closed = Some [ "member"; "reason" ];
   }
 
-let shape_164 () =
+let shape_169 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6827,7 +6942,7 @@ let shape_164 () =
     closed = Some [ "field"; "message" ];
   }
 
-let shape_165 () =
+let shape_170 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6871,7 +6986,7 @@ let shape_165 () =
         ];
   }
 
-let shape_166 () =
+let shape_171 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6899,7 +7014,7 @@ let shape_166 () =
     closed = Some [ "refused"; "stopped"; "streamDrops"; "sweep" ];
   }
 
-let shape_167 () =
+let shape_172 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6917,7 +7032,7 @@ let shape_167 () =
       ];
   }
 
-let shape_168 () =
+let shape_173 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6929,7 +7044,7 @@ let shape_168 () =
       ];
   }
 
-let shape_169 () =
+let shape_174 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6941,7 +7056,7 @@ let shape_169 () =
       ];
   }
 
-let shape_170 () =
+let shape_175 () =
   {
     any with
     kinds = Some [ Object ];
@@ -6985,14 +7100,14 @@ let shape_170 () =
         [ "channel"; "correlationId"; "member"; "payload"; "reason"; "scope" ];
   }
 
-let shape_171 () =
+let shape_176 () =
   {
     any with
     kinds = Some [ String ];
     enum = Some [ `Stringlit "\"lacks\""; `Stringlit "\"malformed\"" ];
   }
 
-let shape_172 () =
+let shape_177 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7090,7 +7205,7 @@ let shape_172 () =
         ];
   }
 
-let shape_173 () =
+let shape_178 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7102,7 +7217,7 @@ let shape_173 () =
       ];
   }
 
-let shape_174 () =
+let shape_179 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7120,7 +7235,7 @@ let shape_174 () =
       ];
   }
 
-let shape_175 () =
+let shape_180 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7133,7 +7248,7 @@ let shape_175 () =
       ];
   }
 
-let shape_176 () =
+let shape_181 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7150,7 +7265,7 @@ let shape_176 () =
       ];
   }
 
-let shape_177 () =
+let shape_182 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7162,7 +7277,7 @@ let shape_177 () =
       ];
   }
 
-let shape_178 () =
+let shape_183 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7171,7 +7286,7 @@ let shape_178 () =
       [ ("response", { any with reference = Some "GetReferencedByResponse" }) ];
   }
 
-let shape_179 () =
+let shape_184 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7183,7 +7298,7 @@ let shape_179 () =
       ];
   }
 
-let shape_180 () =
+let shape_185 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7200,7 +7315,7 @@ let shape_180 () =
       ];
   }
 
-let shape_181 () =
+let shape_186 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7240,7 +7355,7 @@ let shape_181 () =
         ];
   }
 
-let shape_182 () =
+let shape_187 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7252,7 +7367,7 @@ let shape_182 () =
       ];
   }
 
-let shape_183 () =
+let shape_188 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7284,7 +7399,7 @@ let shape_183 () =
       ];
   }
 
-let shape_184 () =
+let shape_189 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7296,7 +7411,7 @@ let shape_184 () =
       ];
   }
 
-let shape_185 () =
+let shape_190 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7441,7 +7556,7 @@ let shape_185 () =
       ];
   }
 
-let shape_186 () =
+let shape_191 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7458,7 +7573,7 @@ let shape_186 () =
       ];
   }
 
-let shape_187 () =
+let shape_192 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7485,7 +7600,7 @@ let shape_187 () =
       ];
   }
 
-let shape_188 () =
+let shape_193 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7504,7 +7619,7 @@ let shape_188 () =
       ];
   }
 
-let shape_189 () =
+let shape_194 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7535,7 +7650,7 @@ let shape_189 () =
       ];
   }
 
-let shape_190 () =
+let shape_195 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7553,7 +7668,7 @@ let shape_190 () =
       ];
   }
 
-let shape_191 () =
+let shape_196 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7569,7 +7684,7 @@ let shape_191 () =
       ];
   }
 
-let shape_192 () =
+let shape_197 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7587,7 +7702,7 @@ let shape_192 () =
       ];
   }
 
-let shape_193 () =
+let shape_198 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7608,7 +7723,7 @@ let shape_193 () =
       ];
   }
 
-let shape_194 () =
+let shape_199 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7639,7 +7754,7 @@ let shape_194 () =
       ];
   }
 
-let shape_195 () =
+let shape_200 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7651,7 +7766,7 @@ let shape_195 () =
       ];
   }
 
-let shape_196 () =
+let shape_201 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7668,7 +7783,7 @@ let shape_196 () =
       ];
   }
 
-let shape_197 () =
+let shape_202 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7684,7 +7799,7 @@ let shape_197 () =
       ];
   }
 
-let shape_198 () =
+let shape_203 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7710,7 +7825,7 @@ let shape_198 () =
       ];
   }
 
-let shape_199 () =
+let shape_204 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7727,7 +7842,7 @@ let shape_199 () =
           [ ("neo4j", 0); ("janusgraph", 1); ("neptune", 2); ("memory", 3) ] );
   }
 
-let shape_200 () =
+let shape_205 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7752,7 +7867,7 @@ let shape_200 () =
       ];
   }
 
-let shape_201 () =
+let shape_206 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7766,7 +7881,7 @@ let shape_201 () =
       ];
   }
 
-let shape_202 () =
+let shape_207 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7816,7 +7931,7 @@ let shape_202 () =
         ];
   }
 
-let shape_203 () =
+let shape_208 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7852,7 +7967,7 @@ let shape_203 () =
         ];
   }
 
-let shape_204 () =
+let shape_209 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7872,7 +7987,7 @@ let shape_204 () =
     closed = Some [ "density"; "instructions"; "motivation"; "sourceLanguage" ];
   }
 
-let shape_205 () =
+let shape_210 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7891,7 +8006,7 @@ let shape_205 () =
     closed = Some [ "host"; "port" ];
   }
 
-let shape_206 () =
+let shape_211 () =
   {
     any with
     kinds = Some [ Object ];
@@ -7921,7 +8036,7 @@ let shape_206 () =
       ];
   }
 
-let shape_207 () =
+let shape_212 () =
   {
     any with
     kinds = Some [ Integer ];
@@ -7929,7 +8044,7 @@ let shape_207 () =
     maximum = Some "599";
   }
 
-let shape_208 () =
+let shape_213 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8162,7 +8277,7 @@ let shape_208 () =
     closed = Some [ "$comment"; "kinds"; "others" ];
   }
 
-let shape_209 () =
+let shape_214 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8176,7 +8291,7 @@ let shape_209 () =
     closed = Some [ "email"; "enabled"; "identity" ];
   }
 
-let shape_210 () =
+let shape_215 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8224,7 +8339,7 @@ let shape_210 () =
       ];
   }
 
-let shape_211 () =
+let shape_216 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8239,7 +8354,7 @@ let shape_211 () =
     closed = Some [ "created"; "email"; "generatedPassword"; "identity" ];
   }
 
-let shape_212 () =
+let shape_217 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8252,7 +8367,7 @@ let shape_212 () =
     closed = Some [ "apiVersion"; "target" ];
   }
 
-let shape_213 () =
+let shape_218 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8269,9 +8384,9 @@ let shape_213 () =
     closed = Some [ "users" ];
   }
 
-let shape_214 () = { any with kinds = Some [ String ]; min_length = Some 1 }
+let shape_219 () = { any with kinds = Some [ String ]; min_length = Some 1 }
 
-let shape_215 () =
+let shape_220 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8310,7 +8425,7 @@ let shape_215 () =
     closed = Some [ "apiVersion"; "kind"; "metadata"; "spec" ];
   }
 
-let shape_216 () =
+let shape_221 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8323,9 +8438,9 @@ let shape_216 () =
       ];
   }
 
-let shape_217 () = { any with kinds = Some [ Object ] }
+let shape_222 () = { any with kinds = Some [ Object ] }
 
-let shape_218 () =
+let shape_223 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8350,7 +8465,7 @@ let shape_218 () =
       ];
   }
 
-let shape_219 () =
+let shape_224 () =
   {
     any with
     kinds = Some [ String ];
@@ -8367,7 +8482,7 @@ let shape_219 () =
         ];
   }
 
-let shape_220 () =
+let shape_225 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8380,7 +8495,7 @@ let shape_220 () =
     closed = Some [ "access"; "refresh" ];
   }
 
-let shape_221 () =
+let shape_226 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8523,7 +8638,7 @@ let shape_221 () =
     closed = Some [ "apiVersion"; "kind"; "metadata"; "spec" ];
   }
 
-let shape_222 () =
+let shape_227 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8548,7 +8663,7 @@ let shape_222 () =
     closed = Some [ "host"; "port"; "type" ];
   }
 
-let shape_223 () =
+let shape_228 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8572,7 +8687,7 @@ let shape_223 () =
           ] );
   }
 
-let shape_224 () =
+let shape_229 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8588,7 +8703,7 @@ let shape_224 () =
       ];
   }
 
-let shape_225 () =
+let shape_230 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8603,7 +8718,7 @@ let shape_225 () =
       ];
   }
 
-let shape_226 () =
+let shape_231 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8630,7 +8745,7 @@ let shape_226 () =
       ];
   }
 
-let shape_227 () =
+let shape_232 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8638,7 +8753,7 @@ let shape_227 () =
     members = [ ("jobId", { any with reference = Some "JobId" }) ];
   }
 
-let shape_228 () =
+let shape_233 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8646,7 +8761,7 @@ let shape_228 () =
     members = [ ("cancelled", { any with kinds = Some [ Boolean ] }) ];
   }
 
-let shape_229 () =
+let shape_234 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8667,7 +8782,7 @@ let shape_229 () =
     closed = Some [ "completedAt"; "metadata"; "params"; "startedAt"; "status" ];
   }
 
-let shape_230 () =
+let shape_235 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8690,7 +8805,7 @@ let shape_230 () =
     closed = Some [ "completedUnits"; "unitCursors" ];
   }
 
-let shape_231 () =
+let shape_236 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8714,7 +8829,7 @@ let shape_231 () =
       ];
   }
 
-let shape_232 () =
+let shape_237 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8738,7 +8853,7 @@ let shape_232 () =
       ];
   }
 
-let shape_233 () =
+let shape_238 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8747,7 +8862,7 @@ let shape_233 () =
     closed = Some [ "response" ];
   }
 
-let shape_234 () =
+let shape_239 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8772,7 +8887,7 @@ let shape_234 () =
         [ "completedAt"; "metadata"; "params"; "result"; "startedAt"; "status" ];
   }
 
-let shape_235 () =
+let shape_240 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8784,7 +8899,7 @@ let shape_235 () =
     discriminator = Some ("jobType", [ ("mark", 0); ("yield", 1) ]);
   }
 
-let shape_236 () =
+let shape_241 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8804,7 +8919,7 @@ let shape_236 () =
       ];
   }
 
-let shape_237 () =
+let shape_242 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8816,7 +8931,7 @@ let shape_237 () =
     discriminator = Some ("jobType", [ ("mark", 0); ("yield", 1) ]);
   }
 
-let shape_238 () =
+let shape_243 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8825,7 +8940,7 @@ let shape_238 () =
       [ ("response", { any with reference = Some "JobCreatedResultResponse" }) ];
   }
 
-let shape_239 () =
+let shape_244 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8833,7 +8948,7 @@ let shape_239 () =
     members = [ ("jobId", { any with reference = Some "JobId" }) ];
   }
 
-let shape_240 () =
+let shape_245 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8860,7 +8975,7 @@ let shape_240 () =
     closed = Some [ "declined"; "reason" ];
   }
 
-let shape_241 () =
+let shape_246 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8892,7 +9007,7 @@ let shape_241 () =
       ];
   }
 
-let shape_242 () =
+let shape_247 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8925,7 +9040,7 @@ let shape_242 () =
         ];
   }
 
-let shape_243 () =
+let shape_248 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8943,7 +9058,7 @@ let shape_243 () =
       ];
   }
 
-let shape_244 () =
+let shape_249 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8966,7 +9081,7 @@ let shape_244 () =
     closed = Some [ "completedUnits"; "failureClass"; "unitCursors" ];
   }
 
-let shape_245 () =
+let shape_250 () =
   {
     any with
     kinds = Some [ Object ];
@@ -8978,7 +9093,7 @@ let shape_245 () =
     discriminator = Some ("jobType", [ ("mark", 0); ("yield", 1) ]);
   }
 
-let shape_246 () =
+let shape_251 () =
   {
     any with
     kinds = Some [ String ];
@@ -8990,7 +9105,7 @@ let shape_246 () =
         ];
   }
 
-let shape_247 () =
+let shape_252 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9030,7 +9145,7 @@ let shape_247 () =
         ];
   }
 
-let shape_248 () =
+let shape_253 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9042,7 +9157,7 @@ let shape_248 () =
       ];
   }
 
-let shape_249 () =
+let shape_254 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9061,7 +9176,7 @@ let shape_249 () =
     closed = Some [ "metadata"; "params"; "status" ];
   }
 
-let shape_250 () =
+let shape_255 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9073,7 +9188,7 @@ let shape_250 () =
     closed = Some [ "everyMs"; "withinMs" ];
   }
 
-let shape_251 () =
+let shape_256 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9171,7 +9286,7 @@ let shape_251 () =
       ];
   }
 
-let shape_252 () =
+let shape_257 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9187,7 +9302,7 @@ let shape_252 () =
       ];
   }
 
-let shape_253 () =
+let shape_258 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9203,7 +9318,7 @@ let shape_253 () =
       ];
   }
 
-let shape_254 () =
+let shape_259 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9221,7 +9336,7 @@ let shape_254 () =
       ];
   }
 
-let shape_255 () =
+let shape_260 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9238,7 +9353,7 @@ let shape_255 () =
       ];
   }
 
-let shape_256 () =
+let shape_261 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9255,7 +9370,7 @@ let shape_256 () =
       ];
   }
 
-let shape_257 () =
+let shape_262 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9271,7 +9386,7 @@ let shape_257 () =
       ];
   }
 
-let shape_258 () =
+let shape_263 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9288,7 +9403,7 @@ let shape_258 () =
       ];
   }
 
-let shape_259 () =
+let shape_264 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9305,7 +9420,7 @@ let shape_259 () =
       ];
   }
 
-let shape_260 () =
+let shape_265 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9321,7 +9436,7 @@ let shape_260 () =
       ];
   }
 
-let shape_261 () =
+let shape_266 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9337,7 +9452,7 @@ let shape_261 () =
       ];
   }
 
-let shape_262 () =
+let shape_267 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9371,7 +9486,7 @@ let shape_262 () =
           ] );
   }
 
-let shape_263 () =
+let shape_268 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9383,7 +9498,7 @@ let shape_263 () =
     discriminator = Some ("jobType", [ ("mark", 0); ("yield", 1) ]);
   }
 
-let shape_264 () =
+let shape_269 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9405,7 +9520,7 @@ let shape_264 () =
     closed = Some [ "completedUnits"; "unitCursors" ];
   }
 
-let shape_265 () =
+let shape_270 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9418,7 +9533,7 @@ let shape_265 () =
     closed = Some [ "job"; "lastProgressAt" ];
   }
 
-let shape_266 () =
+let shape_271 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9436,7 +9551,7 @@ let shape_266 () =
       ];
   }
 
-let shape_267 () =
+let shape_272 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9448,7 +9563,7 @@ let shape_267 () =
       ];
   }
 
-let shape_268 () =
+let shape_273 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9469,7 +9584,7 @@ let shape_268 () =
     closed = Some [ "metadata"; "params"; "progress"; "startedAt"; "status" ];
   }
 
-let shape_269 () =
+let shape_274 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9485,7 +9600,7 @@ let shape_269 () =
       ];
   }
 
-let shape_270 () =
+let shape_275 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9499,7 +9614,7 @@ let shape_270 () =
       ];
   }
 
-let shape_271 () =
+let shape_276 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9507,7 +9622,7 @@ let shape_271 () =
     members = [ ("jobId", { any with reference = Some "JobId" }) ];
   }
 
-let shape_272 () =
+let shape_277 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9541,7 +9656,7 @@ let shape_272 () =
       ];
   }
 
-let shape_273 () =
+let shape_278 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9550,7 +9665,7 @@ let shape_273 () =
       [ ("response", { any with reference = Some "JobStatusResponse" }) ];
   }
 
-let shape_274 () =
+let shape_279 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9561,7 +9676,7 @@ let shape_274 () =
       ];
   }
 
-let shape_275 () =
+let shape_280 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9572,14 +9687,14 @@ let shape_275 () =
       ];
   }
 
-let shape_276 () =
+let shape_281 () =
   {
     any with
     kinds = Some [ String ];
     enum = Some [ `Stringlit "\"mark\""; `Stringlit "\"yield\"" ];
   }
 
-let shape_277 () =
+let shape_282 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9592,7 +9707,7 @@ let shape_277 () =
       ];
   }
 
-let shape_278 () =
+let shape_283 () =
   {
     any with
     kinds = Some [ String ];
@@ -9626,7 +9741,7 @@ let shape_278 () =
         ];
   }
 
-let shape_279 () =
+let shape_284 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9638,7 +9753,7 @@ let shape_279 () =
     discriminator = Some ("kind", [ ("http", 0); ("local", 1) ]);
   }
 
-let shape_280 () =
+let shape_285 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9676,7 +9791,7 @@ let shape_280 () =
     closed = Some [ "domain"; "name" ];
   }
 
-let shape_281 () =
+let shape_286 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9689,14 +9804,14 @@ let shape_281 () =
     closed = Some [ "expectedDid"; "observedDid" ];
   }
 
-let shape_282 () =
+let shape_287 () =
   {
     any with
     kinds = Some [ String ];
     enum = Some [ `Stringlit "\"local\""; `Stringlit "\"codespace\"" ];
   }
 
-let shape_283 () =
+let shape_288 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9708,7 +9823,7 @@ let shape_283 () =
       ];
   }
 
-let shape_284 () =
+let shape_289 () =
   {
     any with
     kinds = Some [ String ];
@@ -9721,7 +9836,7 @@ let shape_284 () =
         ];
   }
 
-let shape_285 () =
+let shape_290 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9782,7 +9897,7 @@ let shape_285 () =
       Some ("kind", [ ("recorded", 0); ("conflict", 1); ("no-verdict", 2) ]);
   }
 
-let shape_286 () =
+let shape_291 () =
   {
     any with
     kinds = Some [ String ];
@@ -9795,7 +9910,7 @@ let shape_286 () =
         ];
   }
 
-let shape_287 () =
+let shape_292 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9808,7 +9923,7 @@ let shape_287 () =
       ];
   }
 
-let shape_288 () =
+let shape_293 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9819,7 +9934,7 @@ let shape_288 () =
       ];
   }
 
-let shape_289 () =
+let shape_294 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9885,7 +10000,7 @@ let shape_289 () =
         ];
   }
 
-let shape_290 () =
+let shape_295 () =
   {
     any with
     kinds = Some [ Object ];
@@ -9934,7 +10049,7 @@ let shape_290 () =
       ];
   }
 
-let shape_291 () =
+let shape_296 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10260,7 +10375,7 @@ let shape_291 () =
     closed = Some [ "apiVersion"; "kind"; "metadata"; "spec" ];
   }
 
-let shape_292 () =
+let shape_297 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10268,7 +10383,7 @@ let shape_292 () =
     names = Some { any with reference = Some "ResourceId" };
   }
 
-let shape_293 () =
+let shape_298 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10363,7 +10478,7 @@ let shape_293 () =
         ];
   }
 
-let shape_294 () =
+let shape_299 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10377,7 +10492,7 @@ let shape_294 () =
     closed = Some [ "apiKeyEnv"; "baseUrl"; "engine" ];
   }
 
-let shape_295 () =
+let shape_300 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10409,7 +10524,7 @@ let shape_295 () =
     closed = Some [ "actors"; "kb"; "status" ];
   }
 
-let shape_296 () =
+let shape_301 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10422,7 +10537,7 @@ let shape_296 () =
     closed = Some [ "candidate"; "score" ];
   }
 
-let shape_297 () =
+let shape_302 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10454,7 +10569,7 @@ let shape_297 () =
       ];
   }
 
-let shape_298 () =
+let shape_303 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10489,7 +10604,7 @@ let shape_298 () =
         ];
   }
 
-let shape_299 () =
+let shape_304 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10508,7 +10623,7 @@ let shape_299 () =
       ];
   }
 
-let shape_300 () =
+let shape_305 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10525,7 +10640,7 @@ let shape_300 () =
       ];
   }
 
-let shape_301 () =
+let shape_306 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10543,14 +10658,14 @@ let shape_301 () =
     closed = Some [ "kind"; "root" ];
   }
 
-let shape_302 () =
+let shape_307 () =
   {
     any with
     kinds = Some [ String ];
     enum = Some [ `Stringlit "\"json\""; `Stringlit "\"simple\"" ];
   }
 
-let shape_303 () =
+let shape_308 () =
   {
     any with
     kinds = Some [ String ];
@@ -10565,7 +10680,7 @@ let shape_303 () =
         ];
   }
 
-let shape_304 () =
+let shape_309 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10581,7 +10696,7 @@ let shape_304 () =
     closed = Some [ "line"; "receivedAt"; "requestId"; "service"; "stream" ];
   }
 
-let shape_305 () =
+let shape_310 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10596,7 +10711,7 @@ let shape_305 () =
     closed = Some [ "apiVersion"; "runtime"; "service"; "target" ];
   }
 
-let shape_306 () =
+let shape_311 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10613,7 +10728,7 @@ let shape_306 () =
     closed = Some [ "services" ];
   }
 
-let shape_307 () =
+let shape_312 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10627,7 +10742,7 @@ let shape_307 () =
       ];
   }
 
-let shape_308 () =
+let shape_313 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10652,7 +10767,7 @@ let shape_308 () =
       ];
   }
 
-let shape_309 () =
+let shape_314 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10678,7 +10793,7 @@ let shape_309 () =
       ];
   }
 
-let shape_310 () =
+let shape_315 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10687,7 +10802,7 @@ let shape_310 () =
       [ ("response", { any with reference = Some "MarkCreateOkResponse" }) ];
   }
 
-let shape_311 () =
+let shape_316 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10695,7 +10810,7 @@ let shape_311 () =
     members = [ ("annotationId", { any with reference = Some "AnnotationId" }) ];
   }
 
-let shape_312 () =
+let shape_317 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10707,7 +10822,7 @@ let shape_312 () =
       ];
   }
 
-let shape_313 () =
+let shape_318 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10719,7 +10834,7 @@ let shape_313 () =
       ];
   }
 
-let shape_314 () =
+let shape_319 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10732,7 +10847,7 @@ let shape_314 () =
       ];
   }
 
-let shape_315 () =
+let shape_320 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10750,7 +10865,7 @@ let shape_315 () =
       ];
   }
 
-let shape_316 () =
+let shape_321 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10772,7 +10887,7 @@ let shape_316 () =
       ];
   }
 
-let shape_317 () =
+let shape_322 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10798,7 +10913,7 @@ let shape_317 () =
     closed = Some [ "_roles"; "_userId"; "jobType"; "params"; "resourceId" ];
   }
 
-let shape_318 () =
+let shape_323 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10830,7 +10945,7 @@ let shape_318 () =
         ];
   }
 
-let shape_319 () =
+let shape_324 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10856,7 +10971,7 @@ let shape_319 () =
     closed = Some [ "jobType"; "params" ];
   }
 
-let shape_320 () =
+let shape_325 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10880,7 +10995,7 @@ let shape_320 () =
           ] );
   }
 
-let shape_321 () =
+let shape_326 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10900,7 +11015,7 @@ let shape_321 () =
       ];
   }
 
-let shape_322 () =
+let shape_327 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10911,7 +11026,7 @@ let shape_322 () =
       ];
   }
 
-let shape_323 () =
+let shape_328 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10924,7 +11039,7 @@ let shape_323 () =
       ];
   }
 
-let shape_324 () =
+let shape_329 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10938,7 +11053,7 @@ let shape_324 () =
       ];
   }
 
-let shape_325 () =
+let shape_330 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10951,7 +11066,7 @@ let shape_325 () =
       ];
   }
 
-let shape_326 () =
+let shape_331 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10970,7 +11085,7 @@ let shape_326 () =
       ];
   }
 
-let shape_327 () =
+let shape_332 () =
   {
     any with
     kinds = Some [ Object ];
@@ -10994,7 +11109,7 @@ let shape_327 () =
       ];
   }
 
-let shape_328 () =
+let shape_333 () =
   {
     any with
     kinds = Some [ String ];
@@ -11007,7 +11122,7 @@ let shape_328 () =
         ];
   }
 
-let shape_329 () =
+let shape_334 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11028,7 +11143,7 @@ let shape_329 () =
       ];
   }
 
-let shape_330 () =
+let shape_335 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11053,7 +11168,7 @@ let shape_330 () =
       ];
   }
 
-let shape_331 () =
+let shape_336 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11062,7 +11177,7 @@ let shape_331 () =
       [ ("response", { any with reference = Some "MatchResourcesResponse" }) ];
   }
 
-let shape_332 () =
+let shape_337 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11079,7 +11194,7 @@ let shape_332 () =
       ];
   }
 
-let shape_333 () =
+let shape_338 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11097,7 +11212,7 @@ let shape_333 () =
     closed = Some [ "limit"; "useSemanticScoring" ];
   }
 
-let shape_334 () =
+let shape_339 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11118,7 +11233,7 @@ let shape_334 () =
       ];
   }
 
-let shape_335 () =
+let shape_340 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11135,7 +11250,7 @@ let shape_335 () =
       ];
   }
 
-let shape_336 () =
+let shape_341 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11143,7 +11258,7 @@ let shape_336 () =
     members = [ ("resourceId", { any with reference = Some "ResourceId" }) ];
   }
 
-let shape_337 () =
+let shape_342 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11151,7 +11266,7 @@ let shape_337 () =
     members = [ ("token", { any with kinds = Some [ String ] }) ];
   }
 
-let shape_338 () =
+let shape_343 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11441,7 +11556,7 @@ let shape_338 () =
         ];
   }
 
-let shape_339 () =
+let shape_344 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11458,7 +11573,7 @@ let shape_339 () =
     closed = Some [ "type" ];
   }
 
-let shape_340 () =
+let shape_345 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11475,7 +11590,7 @@ let shape_340 () =
     closed = Some [ "type" ];
   }
 
-let shape_341 () =
+let shape_346 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11538,7 +11653,7 @@ let shape_341 () =
     closed = Some [ "annotations"; "labels"; "name"; "namespace" ];
   }
 
-let shape_342 () =
+let shape_347 () =
   {
     any with
     kinds = Some [ String ];
@@ -11553,7 +11668,7 @@ let shape_342 () =
         ];
   }
 
-let shape_343 () =
+let shape_348 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11575,7 +11690,7 @@ let shape_343 () =
     closed = Some [ "database"; "passwordEnv"; "type"; "uri"; "username" ];
   }
 
-let shape_344 () =
+let shape_349 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11600,7 +11715,7 @@ let shape_344 () =
     closed = Some [ "endpoint"; "port"; "type" ];
   }
 
-let shape_345 () =
+let shape_350 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11614,7 +11729,7 @@ let shape_345 () =
       ];
   }
 
-let shape_346 () =
+let shape_351 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11627,7 +11742,7 @@ let shape_346 () =
       ];
   }
 
-let shape_347 () =
+let shape_352 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11646,7 +11761,7 @@ let shape_347 () =
     closed = Some [ "baseUrl"; "model"; "type" ];
   }
 
-let shape_348 () =
+let shape_353 () =
   {
     any with
     kinds = Some [ Object; Array ];
@@ -11662,7 +11777,7 @@ let shape_348 () =
       ];
   }
 
-let shape_349 () =
+let shape_354 () =
   {
     any with
     kinds = Some [ Array; String ];
@@ -11678,7 +11793,7 @@ let shape_349 () =
       ];
   }
 
-let shape_350 () =
+let shape_355 () =
   {
     any with
     kinds = Some [ Array; String ];
@@ -11694,7 +11809,7 @@ let shape_350 () =
       ];
   }
 
-let shape_351 () =
+let shape_356 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11710,14 +11825,14 @@ let shape_351 () =
       ];
   }
 
-let shape_352 () =
+let shape_357 () =
   {
     any with
     kinds = Some [ String ];
     enum = Some [ `Stringlit "\"stdout\""; `Stringlit "\"stderr\"" ];
   }
 
-let shape_353 () =
+let shape_358 () =
   {
     any with
     kinds = Some [ String ];
@@ -11734,7 +11849,7 @@ let shape_353 () =
         ];
   }
 
-let shape_354 () =
+let shape_359 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11750,7 +11865,7 @@ let shape_354 () =
     closed = Some [ "height"; "page"; "width"; "x"; "y" ];
   }
 
-let shape_355 () =
+let shape_360 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11767,7 +11882,7 @@ let shape_355 () =
       ];
   }
 
-let shape_356 () =
+let shape_361 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11780,7 +11895,7 @@ let shape_356 () =
     closed = Some [ "motivation"; "selector" ];
   }
 
-let shape_357 () =
+let shape_362 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11811,7 +11926,7 @@ let shape_357 () =
       ];
   }
 
-let shape_358 () =
+let shape_363 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11820,7 +11935,7 @@ let shape_358 () =
     closed = Some [ "detail" ];
   }
 
-let shape_359 () =
+let shape_364 () =
   {
     any with
     kinds = Some [ String ];
@@ -11835,7 +11950,7 @@ let shape_359 () =
         ];
   }
 
-let shape_360 () =
+let shape_365 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11847,7 +11962,7 @@ let shape_360 () =
       ];
   }
 
-let shape_361 () =
+let shape_366 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11855,7 +11970,7 @@ let shape_361 () =
     members = [ ("name", { any with kinds = Some [ String ] }) ];
   }
 
-let shape_362 () =
+let shape_367 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11939,7 +12054,7 @@ let shape_362 () =
       Some [ "$comment"; "agentKind"; "kindClaim"; "roles"; "rolesClaim" ];
   }
 
-let shape_363 () =
+let shape_368 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11952,7 +12067,7 @@ let shape_363 () =
     closed = Some [ "name"; "since" ];
   }
 
-let shape_364 () =
+let shape_369 () =
   {
     any with
     kinds = Some [ Object ];
@@ -11969,7 +12084,7 @@ let shape_364 () =
     closed = Some [ "profiles" ];
   }
 
-let shape_365 () =
+let shape_370 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12001,7 +12116,7 @@ let shape_365 () =
     closed = Some [ "kind"; "requestId"; "text" ];
   }
 
-let shape_366 () =
+let shape_371 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12072,7 +12187,7 @@ let shape_366 () =
     closed = Some [ "git"; "project"; "site" ];
   }
 
-let shape_367 () =
+let shape_372 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12111,7 +12226,7 @@ let shape_367 () =
         ];
   }
 
-let shape_368 () =
+let shape_373 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12123,7 +12238,7 @@ let shape_368 () =
     closed = Some [ "apiKey"; "baseURL" ];
   }
 
-let shape_369 () =
+let shape_374 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12138,7 +12253,7 @@ let shape_369 () =
             kinds = Some [ Array ];
             items = Some { any with kinds = Some [ String ] };
           } );
-        ("file", { any with reference = Some "Binary" });
+        ("file", { any with reference = Some "ByteSource" });
         ("format", { any with kinds = Some [ String ] });
         ("generationPrompt", { any with kinds = Some [ String ] });
         ("generator", { any with reference = Some "OneOrMoreAgents" });
@@ -12170,7 +12285,7 @@ let shape_369 () =
         ];
   }
 
-let shape_370 () =
+let shape_375 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12196,7 +12311,7 @@ let shape_370 () =
     closed = Some [ "host"; "port"; "tokenEnv"; "type" ];
   }
 
-let shape_371 () =
+let shape_376 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12210,7 +12325,7 @@ let shape_371 () =
     closed = Some [ "exact"; "prefix"; "suffix" ];
   }
 
-let shape_372 () =
+let shape_377 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12326,7 +12441,7 @@ let shape_372 () =
           ] );
   }
 
-let shape_373 () =
+let shape_378 () =
   {
     any with
     kinds = Some [ String ];
@@ -12343,7 +12458,7 @@ let shape_373 () =
         ];
   }
 
-let shape_374 () =
+let shape_379 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12389,7 +12504,7 @@ let shape_374 () =
       ];
   }
 
-let shape_375 () =
+let shape_380 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12398,7 +12513,7 @@ let shape_375 () =
       [ ("representation", { any with reference = Some "Representation" }) ];
   }
 
-let shape_376 () =
+let shape_381 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12427,7 +12542,7 @@ let shape_376 () =
       ];
   }
 
-let shape_377 () =
+let shape_382 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12435,9 +12550,9 @@ let shape_377 () =
     members = [ ("checksum", { any with kinds = Some [ String ] }) ];
   }
 
-let shape_378 () = { any with kinds = Some [ String; Integer ] }
+let shape_383 () = { any with kinds = Some [ String; Integer ] }
 
-let shape_379 () =
+let shape_384 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12457,14 +12572,14 @@ let shape_379 () =
     closed = Some [ "annotations"; "resourceId"; "updatedAt"; "version" ];
   }
 
-let shape_380 () =
+let shape_385 () =
   {
     any with
     kinds = Some [ Object ];
     members = [ ("reason", { any with kinds = Some [ String ] }) ];
   }
 
-let shape_381 () =
+let shape_386 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12489,7 +12604,7 @@ let shape_381 () =
       ];
   }
 
-let shape_382 () =
+let shape_387 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12528,7 +12643,7 @@ let shape_382 () =
       ];
   }
 
-let shape_383 () =
+let shape_388 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12663,7 +12778,7 @@ let shape_383 () =
       ];
   }
 
-let shape_384 () =
+let shape_389 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12675,7 +12790,7 @@ let shape_384 () =
       ];
   }
 
-let shape_385 () =
+let shape_390 () =
   {
     any with
     kinds = Some [ String ];
@@ -12687,7 +12802,7 @@ let shape_385 () =
         ];
   }
 
-let shape_386 () =
+let shape_391 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12699,7 +12814,7 @@ let shape_386 () =
       ];
   }
 
-let shape_387 () =
+let shape_392 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12713,7 +12828,7 @@ let shape_387 () =
     closed = Some [ "contentType"; "data" ];
   }
 
-let shape_388 () =
+let shape_393 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12733,9 +12848,9 @@ let shape_388 () =
     closed = Some [ "archived"; "entityType"; "limit"; "offset" ];
   }
 
-let shape_389 () = { any with kinds = Some [ Object ] }
+let shape_394 () = { any with kinds = Some [ Object ] }
 
-let shape_390 () =
+let shape_395 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12747,7 +12862,7 @@ let shape_390 () =
       ];
   }
 
-let shape_391 () =
+let shape_396 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12771,7 +12886,7 @@ let shape_391 () =
       ];
   }
 
-let shape_392 () =
+let shape_397 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12786,7 +12901,7 @@ let shape_392 () =
     closed = Some [ "annotations"; "lastSequence"; "resource" ];
   }
 
-let shape_393 () =
+let shape_398 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12819,7 +12934,7 @@ let shape_393 () =
     closed = Some [ "limits" ];
   }
 
-let shape_394 () =
+let shape_399 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12834,7 +12949,7 @@ let shape_394 () =
     closed = Some [ "attempts"; "initialDelayMs"; "maxDelayMs" ];
   }
 
-let shape_395 () =
+let shape_400 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12894,7 +13009,7 @@ let shape_395 () =
         ];
   }
 
-let shape_396 () =
+let shape_401 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12907,7 +13022,7 @@ let shape_396 () =
     closed = Some [ "apiVersion"; "root" ];
   }
 
-let shape_397 () =
+let shape_402 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12921,7 +13036,7 @@ let shape_397 () =
     closed = Some [ "directoryMissing"; "path"; "persistentState" ];
   }
 
-let shape_398 () =
+let shape_403 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12968,7 +13083,7 @@ let shape_398 () =
         ];
   }
 
-let shape_399 () =
+let shape_404 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12978,7 +13093,7 @@ let shape_399 () =
     closed = Some [ "path" ];
   }
 
-let shape_400 () =
+let shape_405 () =
   {
     any with
     kinds = Some [ Object ];
@@ -12987,7 +13102,7 @@ let shape_400 () =
     closed = Some [ "apiVersion" ];
   }
 
-let shape_401 () =
+let shape_406 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13010,7 +13125,7 @@ let shape_401 () =
     closed = Some [ "roots"; "warnings" ];
   }
 
-let shape_402 () =
+let shape_407 () =
   {
     any with
     kinds = Some [ String ];
@@ -13030,7 +13145,7 @@ let shape_402 () =
         ];
   }
 
-let shape_403 () =
+let shape_408 () =
   {
     any with
     kinds = Some [ String ];
@@ -13047,7 +13162,7 @@ let shape_403 () =
         ];
   }
 
-let shape_404 () =
+let shape_409 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13068,7 +13183,7 @@ let shape_404 () =
       ];
   }
 
-let shape_405 () =
+let shape_410 () =
   {
     any with
     kinds = Some [ String ];
@@ -13081,7 +13196,7 @@ let shape_405 () =
         ];
   }
 
-let shape_406 () =
+let shape_411 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13094,7 +13209,7 @@ let shape_406 () =
     closed = Some [ "found"; "name" ];
   }
 
-let shape_407 () =
+let shape_412 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13113,7 +13228,7 @@ let shape_407 () =
       ];
   }
 
-let shape_408 () =
+let shape_413 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13420,7 +13535,7 @@ let shape_408 () =
     closed = Some [ "$comment"; "metrics"; "spans" ];
   }
 
-let shape_409 () =
+let shape_414 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13442,7 +13557,7 @@ let shape_409 () =
     closed = Some [ "fromEnv" ];
   }
 
-let shape_410 () =
+let shape_415 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13464,7 +13579,7 @@ let shape_410 () =
           ] );
   }
 
-let shape_411 () =
+let shape_416 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13486,7 +13601,7 @@ let shape_411 () =
       ];
   }
 
-let shape_412 () =
+let shape_417 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13505,7 +13620,7 @@ let shape_412 () =
     closed = Some [ "host"; "port" ];
   }
 
-let shape_413 () =
+let shape_418 () =
   {
     any with
     kinds = Some [ String ];
@@ -13521,7 +13636,7 @@ let shape_413 () =
         ];
   }
 
-let shape_414 () =
+let shape_419 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13534,7 +13649,7 @@ let shape_414 () =
     closed = Some [ "apiVersion"; "runtime" ];
   }
 
-let shape_415 () =
+let shape_420 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13547,7 +13662,7 @@ let shape_415 () =
     closed = Some [ "address"; "runtime" ];
   }
 
-let shape_416 () =
+let shape_421 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13557,7 +13672,7 @@ let shape_416 () =
     closed = Some [ "issuer" ];
   }
 
-let shape_417 () =
+let shape_422 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13572,7 +13687,7 @@ let shape_417 () =
     closed = Some [ "instance"; "line"; "requestId"; "stream" ];
   }
 
-let shape_418 () =
+let shape_423 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13666,7 +13781,7 @@ let shape_418 () =
         ];
   }
 
-let shape_419 () =
+let shape_424 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13680,7 +13795,7 @@ let shape_419 () =
     closed = Some [ "exitCode"; "instance"; "ranMs" ];
   }
 
-let shape_420 () =
+let shape_425 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13701,7 +13816,7 @@ let shape_420 () =
     closed = Some [ "apiVersion"; "instance"; "runtime"; "signal"; "target" ];
   }
 
-let shape_421 () =
+let shape_426 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13710,7 +13825,7 @@ let shape_421 () =
     closed = Some [ "delivered" ];
   }
 
-let shape_422 () =
+let shape_427 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13737,7 +13852,7 @@ let shape_422 () =
       Some [ "address"; "container"; "documentPath"; "instance"; "requestId" ];
   }
 
-let shape_423 () =
+let shape_428 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13794,7 +13909,7 @@ let shape_423 () =
         ];
   }
 
-let shape_424 () =
+let shape_429 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13819,14 +13934,14 @@ let shape_424 () =
     closed = Some [ "email"; "state" ];
   }
 
-let shape_425 () =
+let shape_430 () =
   {
     any with
     kinds = Some [ String ];
     enum = Some [ `Stringlit "\"expired\""; `Stringlit "\"refused\"" ];
   }
 
-let shape_426 () =
+let shape_431 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13835,7 +13950,7 @@ let shape_426 () =
     closed = Some [ "reason" ];
   }
 
-let shape_427 () =
+let shape_432 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13847,7 +13962,7 @@ let shape_427 () =
       ];
   }
 
-let shape_428 () =
+let shape_433 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13859,7 +13974,7 @@ let shape_428 () =
       ];
   }
 
-let shape_429 () =
+let shape_434 () =
   {
     any with
     kinds = Some [ Object ];
@@ -13992,7 +14107,7 @@ let shape_429 () =
     closed = Some [ "$comment"; "clients"; "scopes" ];
   }
 
-let shape_430 () =
+let shape_435 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14021,7 +14136,7 @@ let shape_430 () =
       Some [ "appliesTo"; "changedBy"; "default"; "name"; "settable"; "values" ];
   }
 
-let shape_431 () =
+let shape_436 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14034,7 +14149,7 @@ let shape_431 () =
     closed = Some [ "source"; "value" ];
   }
 
-let shape_432 () =
+let shape_437 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14049,7 +14164,7 @@ let shape_432 () =
     closed = Some [ "apiVersion"; "default"; "name"; "root" ];
   }
 
-let shape_433 () =
+let shape_438 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14057,7 +14172,7 @@ let shape_433 () =
     members = [ ("hoverDelayMs", { any with kinds = Some [ Integer ] }) ];
   }
 
-let shape_434 () =
+let shape_439 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14070,7 +14185,7 @@ let shape_434 () =
     closed = Some [ "apiVersion"; "root" ];
   }
 
-let shape_435 () =
+let shape_440 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14089,7 +14204,7 @@ let shape_435 () =
     closed = Some [ "root"; "settings"; "unresolved" ];
   }
 
-let shape_436 () =
+let shape_441 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14097,7 +14212,7 @@ let shape_436 () =
     members = [ ("locale", { any with kinds = Some [ String ] }) ];
   }
 
-let shape_437 () =
+let shape_442 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14122,7 +14237,7 @@ let shape_437 () =
     closed = Some [ "apiVersion"; "document" ];
   }
 
-let shape_438 () =
+let shape_443 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14131,7 +14246,7 @@ let shape_438 () =
     closed = Some [ "path" ];
   }
 
-let shape_439 () =
+let shape_444 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14147,7 +14262,7 @@ let shape_439 () =
     closed = Some [ "apiVersion"; "default"; "name"; "root"; "value" ];
   }
 
-let shape_440 () =
+let shape_445 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14169,7 +14284,7 @@ let shape_440 () =
       ];
   }
 
-let shape_441 () =
+let shape_446 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14184,7 +14299,7 @@ let shape_441 () =
     closed = Some [ "apiVersion"; "default"; "name"; "root" ];
   }
 
-let shape_442 () =
+let shape_447 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14197,7 +14312,7 @@ let shape_442 () =
     closed = Some [ "expected"; "kb" ];
   }
 
-let shape_443 () =
+let shape_448 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14474,7 +14589,7 @@ let shape_443 () =
         ];
   }
 
-let shape_444 () =
+let shape_449 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14500,7 +14615,7 @@ let shape_444 () =
         ];
   }
 
-let shape_445 () =
+let shape_450 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14511,7 +14626,7 @@ let shape_445 () =
       ];
   }
 
-let shape_446 () =
+let shape_451 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14544,7 +14659,7 @@ let shape_446 () =
       ];
   }
 
-let shape_447 () =
+let shape_452 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14557,7 +14672,7 @@ let shape_447 () =
     closed = Some [ "chunkSize"; "overlap" ];
   }
 
-let shape_448 () =
+let shape_453 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14615,7 +14730,7 @@ let shape_448 () =
         ];
   }
 
-let shape_449 () =
+let shape_454 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14727,7 +14842,7 @@ let shape_449 () =
         ];
   }
 
-let shape_450 () =
+let shape_455 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14796,7 +14911,7 @@ let shape_450 () =
         ];
   }
 
-let shape_451 () =
+let shape_456 () =
   {
     any with
     kinds = Some [ Object ];
@@ -14814,14 +14929,14 @@ let shape_451 () =
       ];
   }
 
-let shape_452 () =
+let shape_457 () =
   {
     any with
     kinds = Some [ String ];
     enum = Some [ `Stringlit "\"xynolog.org/v1alpha1\"" ];
   }
 
-let shape_453 () =
+let shape_458 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15052,7 +15167,7 @@ let shape_453 () =
     closed = Some [ "apiVersion"; "kind"; "metadata"; "spec" ];
   }
 
-let shape_454 () =
+let shape_459 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15100,7 +15215,7 @@ let shape_454 () =
         ];
   }
 
-let shape_455 () =
+let shape_460 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15119,7 +15234,7 @@ let shape_455 () =
     closed = Some [ "dryRun"; "knowledgeBase"; "shared" ];
   }
 
-let shape_456 () =
+let shape_461 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15149,7 +15264,7 @@ let shape_456 () =
         ];
   }
 
-let shape_457 () =
+let shape_462 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15173,7 +15288,7 @@ let shape_457 () =
     closed = Some [ "dryRun"; "knowledgeBases"; "shared" ];
   }
 
-let shape_458 () =
+let shape_463 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15198,7 +15313,7 @@ let shape_458 () =
       ];
   }
 
-let shape_459 () =
+let shape_464 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15212,7 +15327,7 @@ let shape_459 () =
     closed = Some [ "apiVersion"; "runtime"; "target" ];
   }
 
-let shape_460 () =
+let shape_465 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15235,7 +15350,7 @@ let shape_460 () =
     closed = Some [ "knowledgeBases"; "shared" ];
   }
 
-let shape_461 () =
+let shape_466 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15248,7 +15363,7 @@ let shape_461 () =
     closed = Some [ "resourceId"; "uri" ];
   }
 
-let shape_462 () =
+let shape_467 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15267,14 +15382,14 @@ let shape_462 () =
       ];
   }
 
-let shape_463 () =
+let shape_468 () =
   {
     any with
     kinds = Some [ Object ];
     required = [ "access"; "refresh"; "clientId"; "tokenEndpoint" ];
     members =
       [
-        ("access", { any with kinds = Some [ String ] });
+        ("access", { any with reference = Some "AccessToken" });
         ("clientId", { any with kinds = Some [ String ] });
         ("personKey", { any with kinds = Some [ String ] });
         ("refresh", { any with kinds = Some [ String ] });
@@ -15283,7 +15398,7 @@ let shape_463 () =
       ];
   }
 
-let shape_464 () =
+let shape_469 () =
   {
     any with
     kinds = Some [ String ];
@@ -15359,7 +15474,7 @@ let shape_464 () =
         ];
   }
 
-let shape_465 () =
+let shape_470 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15376,7 +15491,7 @@ let shape_465 () =
       ];
   }
 
-let shape_466 () =
+let shape_471 () =
   {
     any with
     kinds = Some [ String ];
@@ -15389,7 +15504,7 @@ let shape_466 () =
         ];
   }
 
-let shape_467 () =
+let shape_472 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15450,7 +15565,7 @@ let shape_467 () =
       Some ("verdict", [ ("gone", 0); ("ready", 1); ("unknown", 2) ]);
   }
 
-let shape_468 () =
+let shape_473 () =
   {
     any with
     kinds = Some [ String ];
@@ -15463,7 +15578,7 @@ let shape_468 () =
         ];
   }
 
-let shape_469 () =
+let shape_474 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15481,7 +15596,7 @@ let shape_469 () =
       ];
   }
 
-let shape_470 () =
+let shape_475 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15501,7 +15616,7 @@ let shape_470 () =
       ];
   }
 
-let shape_471 () =
+let shape_476 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15509,7 +15624,7 @@ let shape_471 () =
     members = [ ("schema", { any with reference = Some "TagSchema" }) ];
   }
 
-let shape_472 () =
+let shape_477 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15526,7 +15641,7 @@ let shape_472 () =
     closed = Some [ "tagSchemas" ];
   }
 
-let shape_473 () =
+let shape_478 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15555,7 +15670,7 @@ let shape_473 () =
         [ "categories"; "language"; "motivation"; "schemaId"; "sourceLanguage" ];
   }
 
-let shape_474 () =
+let shape_479 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15644,7 +15759,7 @@ let shape_474 () =
       ];
   }
 
-let shape_475 () =
+let shape_480 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15662,7 +15777,7 @@ let shape_475 () =
       ];
   }
 
-let shape_476 () =
+let shape_481 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15681,7 +15796,7 @@ let shape_476 () =
       ];
   }
 
-let shape_477 () =
+let shape_482 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15697,7 +15812,7 @@ let shape_477 () =
     closed = Some [ "end"; "exact"; "prefix"; "start"; "suffix" ];
   }
 
-let shape_478 () =
+let shape_483 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15717,7 +15832,7 @@ let shape_478 () =
       ];
   }
 
-let shape_479 () =
+let shape_484 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15731,7 +15846,7 @@ let shape_479 () =
     closed = Some [ "traceparent"; "tracestate" ];
   }
 
-let shape_480 () =
+let shape_485 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15746,7 +15861,7 @@ let shape_480 () =
       ];
   }
 
-let shape_481 () =
+let shape_486 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15764,7 +15879,7 @@ let shape_481 () =
       ];
   }
 
-let shape_482 () =
+let shape_487 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15773,7 +15888,7 @@ let shape_482 () =
         {
           any with
           kinds = Some [ Object ];
-          required = [ "phase"; "totalBytes" ];
+          required = [ "phase" ];
           members =
             [
               ( "phase",
@@ -15790,7 +15905,7 @@ let shape_482 () =
         {
           any with
           kinds = Some [ Object ];
-          required = [ "phase"; "bytesUploaded"; "totalBytes" ];
+          required = [ "phase"; "bytesUploaded" ];
           members =
             [
               ( "bytesUploaded",
@@ -15827,7 +15942,7 @@ let shape_482 () =
       Some ("phase", [ ("started", 0); ("progress", 1); ("finished", 2) ]);
   }
 
-let shape_483 () =
+let shape_488 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15853,7 +15968,7 @@ let shape_483 () =
         ];
   }
 
-let shape_484 () =
+let shape_489 () =
   {
     any with
     kinds = Some [ String ];
@@ -15883,7 +15998,7 @@ let shape_484 () =
         ];
   }
 
-let shape_485 () =
+let shape_490 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15898,7 +16013,7 @@ let shape_485 () =
       ];
   }
 
-let shape_486 () =
+let shape_491 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15938,7 +16053,7 @@ let shape_486 () =
     closed = Some [ "apiVersion"; "kind"; "metadata"; "spec" ];
   }
 
-let shape_487 () =
+let shape_492 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15950,7 +16065,7 @@ let shape_487 () =
     discriminator = Some ("type", [ ("qdrant", 0); ("memory", 1) ]);
   }
 
-let shape_488 () =
+let shape_493 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15970,7 +16085,7 @@ let shape_488 () =
     closed = Some [ "apiKeyEnv"; "endpoint"; "model"; "type" ];
   }
 
-let shape_489 () =
+let shape_494 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15982,7 +16097,7 @@ let shape_489 () =
       ];
   }
 
-let shape_490 () =
+let shape_495 () =
   {
     any with
     kinds = Some [ Object ];
@@ -15993,7 +16108,7 @@ let shape_490 () =
       ];
   }
 
-let shape_491 () =
+let shape_496 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16042,7 +16157,7 @@ let shape_491 () =
         ];
   }
 
-let shape_492 () =
+let shape_497 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16140,7 +16255,7 @@ let shape_492 () =
     closed = Some [ "following"; "kb"; "reconcile"; "status" ];
   }
 
-let shape_493 () =
+let shape_498 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16154,7 +16269,7 @@ let shape_493 () =
     closed = Some [ "jobId"; "since"; "type" ];
   }
 
-let shape_494 () =
+let shape_499 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16187,7 +16302,7 @@ let shape_494 () =
         [ "knowledgeBases"; "logFormat"; "logLevel"; "modelCatalogue"; "port" ];
   }
 
-let shape_495 () =
+let shape_500 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16208,7 +16323,7 @@ let shape_495 () =
     closed = Some [ "apiKeyEnv"; "baseUrl"; "engine"; "jobs" ];
   }
 
-let shape_496 () =
+let shape_501 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16264,7 +16379,7 @@ let shape_496 () =
         ];
   }
 
-let shape_497 () =
+let shape_502 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16289,7 +16404,7 @@ let shape_497 () =
     closed = Some [ "knowledgeBases"; "status" ];
   }
 
-let shape_498 () =
+let shape_503 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16323,7 +16438,7 @@ let shape_498 () =
     closed = Some [ "domain"; "engines"; "gatewayUrl"; "identity" ];
   }
 
-let shape_499 () =
+let shape_504 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16355,7 +16470,7 @@ let shape_499 () =
     closed = Some [ "did"; "domain"; "engines"; "state" ];
   }
 
-let shape_500 () =
+let shape_505 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16397,7 +16512,7 @@ let shape_500 () =
     closed = Some [ "apiVersion"; "kind"; "metadata"; "spec" ];
   }
 
-let shape_501 () =
+let shape_506 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16441,7 +16556,7 @@ let shape_501 () =
         ];
   }
 
-let shape_502 () =
+let shape_507 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16483,7 +16598,7 @@ let shape_502 () =
     closed = Some [ "ledger"; "queue" ];
   }
 
-let shape_503 () =
+let shape_508 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16502,7 +16617,7 @@ let shape_503 () =
       ];
   }
 
-let shape_504 () =
+let shape_509 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16510,7 +16625,7 @@ let shape_504 () =
     members = [ ("response", { any with reference = Some "YieldedResource" }) ];
   }
 
-let shape_505 () =
+let shape_510 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16542,7 +16657,7 @@ let shape_505 () =
       ];
   }
 
-let shape_506 () =
+let shape_511 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16550,7 +16665,7 @@ let shape_506 () =
     members = [ ("response", { any with reference = Some "YieldedResource" }) ];
   }
 
-let shape_507 () =
+let shape_512 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16558,7 +16673,7 @@ let shape_507 () =
     members = [ ("token", { any with kinds = Some [ String ] }) ];
   }
 
-let shape_508 () =
+let shape_513 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16566,7 +16681,7 @@ let shape_508 () =
     members = [ ("resourceId", { any with reference = Some "ResourceId" }) ];
   }
 
-let shape_509 () =
+let shape_514 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16609,7 +16724,7 @@ let shape_509 () =
       ];
   }
 
-let shape_510 () =
+let shape_515 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16617,7 +16732,7 @@ let shape_510 () =
     members = [ ("response", { any with reference = Some "YieldedResource" }) ];
   }
 
-let shape_511 () =
+let shape_516 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16640,7 +16755,7 @@ let shape_511 () =
       ];
   }
 
-let shape_512 () =
+let shape_517 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16665,7 +16780,7 @@ let shape_512 () =
     closed = Some [ "_roles"; "_userId"; "jobType"; "params" ];
   }
 
-let shape_513 () =
+let shape_518 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16679,7 +16794,7 @@ let shape_513 () =
     closed = Some [ "resourceId"; "resourceName"; "truncated" ];
   }
 
-let shape_514 () =
+let shape_519 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16696,7 +16811,7 @@ let shape_514 () =
     closed = Some [ "jobType" ];
   }
 
-let shape_515 () =
+let shape_520 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16716,7 +16831,7 @@ let shape_515 () =
       ];
   }
 
-let shape_516 () =
+let shape_521 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16727,7 +16842,7 @@ let shape_516 () =
       ];
   }
 
-let shape_517 () =
+let shape_522 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16742,7 +16857,7 @@ let shape_517 () =
       ];
   }
 
-let shape_518 () =
+let shape_523 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16750,7 +16865,7 @@ let shape_518 () =
     members = [ ("response", { any with reference = Some "YieldedResource" }) ];
   }
 
-let shape_519 () =
+let shape_524 () =
   {
     any with
     kinds = Some [ Object ];
@@ -16859,425 +16974,430 @@ let all =
     ("BusResumeGap", shape_96);
     ("BusStreamMessage", shape_97);
     ("BusSubscribeRequest", shape_98);
-    ("CacheStatus", shape_99);
-    ("Cancelled", shape_100);
-    ("ClaimOptions", shape_101);
-    ("ClaimRefusal", shape_102);
-    ("ClientConnectionStates", shape_103);
-    ("ClientDiscoveryAbsent", shape_104);
-    ("ClientOptionDefaults", shape_105);
-    ("ClientRefresh", shape_106);
-    ("ClientSecretForm", shape_107);
-    ("ClientTesting", shape_108);
-    ("CloneResourceWithTokenResponse", shape_109);
-    ("CommandError", shape_110);
-    ("CommentingJobParams", shape_111);
-    ("ConformanceBusFetch", shape_112);
-    ("ConformanceCase", shape_113);
-    ("ConformanceDriverLine", shape_114);
-    ("ConformanceFailure", shape_115);
-    ("ConformanceHttpFetch", shape_116);
-    ("ConformanceImplementations", shape_117);
-    ("ConformanceStep", shape_118);
-    ("ConnectionIdentity", shape_119);
-    ("ConnectionState", shape_120);
-    ("ContentFormat", shape_121);
-    ("ContextualSummaryResponse", shape_122);
-    ("ControlCli", shape_123);
-    ("ControlRpcCodes", shape_124);
-    ("ControlSender", shape_125);
-    ("CreateAnnotationRequest", shape_126);
-    ("CreateFromTokenOptions", shape_127);
-    ("CreateResourceResponse", shape_128);
-    ("CursorsPath", shape_129);
-    ("DeviceCode", shape_130);
-    ("DirEntry", shape_131);
-    ("DirectoryEntry", shape_132);
-    ("DiscoveredKB", shape_133);
-    ("DiscoveryAbsentReason", shape_134);
-    ("DiscoveryDiff", shape_135);
-    ("DiscoveryDocument", shape_136);
-    ("DiscoveryRead", shape_137);
-    ("DispatcherConfig", shape_138);
-    ("DispatcherHealth", shape_139);
-    ("DurabilityEvidence", shape_140);
-    ("EmbeddingConfig", shape_141);
-    ("Engine", shape_142);
-    ("EngineEntry", shape_143);
-    ("EngineLimits", shape_144);
-    ("EngineWithLimits", shape_145);
-    ("EnginesWithLimits", shape_146);
-    ("EnrichedResourceEvent", shape_147);
-    ("EntityTagChangedPayload", shape_148);
-    ("EntityTypeAddedPayload", shape_149);
-    ("EntityTypesProjection", shape_150);
-    ("EphemeralEventId", shape_151);
-    ("ErrorData", shape_152);
-    ("ErrorResponse", shape_153);
-    ("ErrorsCodes", shape_154);
-    ("EventMetadata", shape_155);
-    ("Expected", shape_156);
-    ("ExtractedText", shape_157);
-    ("ExtractionDeclined", shape_158);
-    ("ExtractionDeclinedReason", shape_159);
-    ("ExtractionMethod", shape_160);
-    ("ExtractionOutcome", shape_161);
-    ("FailureClass", shape_162);
-    ("Fault", shape_163);
-    ("FieldFault", shape_164);
-    ("FileEntry", shape_165);
-    ("FollowerFollowing", shape_166);
-    ("FragmentSelector", shape_167);
-    ("FrameAddEntityTypeCommand", shape_168);
-    ("FrameAddTagSchemaCommand", shape_169);
-    ("FrameRefusal", shape_170);
-    ("FrameRefusalReason", shape_171);
-    ("GatewayConfig", shape_172);
-    ("GatherAnnotationComplete", shape_173);
-    ("GatherAnnotationOptions", shape_174);
-    ("GatherAnnotationRequest", shape_175);
-    ("GatherFailed", shape_176);
-    ("GatherReferencedByRequest", shape_177);
-    ("GatherReferencedByResult", shape_178);
-    ("GatherResourceComplete", shape_179);
-    ("GatherResourceFailed", shape_180);
-    ("GatherResourceOptions", shape_181);
-    ("GatherResourceRequest", shape_182);
-    ("GatherResourceRequestOptions", shape_183);
-    ("GatherSummaryRequest", shape_184);
-    ("GatheredContext", shape_185);
-    ("GenerationJobParams", shape_186);
-    ("GenerationJobRequest", shape_187);
-    ("GetAnnotationHistoryResponse", shape_188);
-    ("GetAnnotationResponse", shape_189);
-    ("GetAnnotationsResponse", shape_190);
-    ("GetEntityTypesResponse", shape_191);
-    ("GetEventsResponse", shape_192);
-    ("GetReferencedByResponse", shape_193);
-    ("GetReferencedByResponseReferencedByItem", shape_194);
-    ("GetResourceByTokenResponse", shape_195);
-    ("GetResourceResponse", shape_196);
-    ("GetTagSchemasResponse", shape_197);
-    ("GraphAnnotationNode", shape_198);
-    ("GraphConfig", shape_199);
-    ("GraphResourceNode", shape_200);
-    ("HealthResponse", shape_201);
-    ("HeldJobRecord", shape_202);
-    ("HeldJobStall", shape_203);
-    ("HighlightingJobParams", shape_204);
-    ("HostPort", shape_205);
-    ("HttpEndpoint", shape_206);
-    ("HttpStatus", shape_207);
-    ("IdentifiersKinds", shape_208);
-    ("IdentityUser", shape_209);
-    ("IdentityUseraddParams", shape_210);
-    ("IdentityUseraddResult", shape_211);
-    ("IdentityUsersListParams", shape_212);
-    ("IdentityUsersListResult", shape_213);
-    ("Image", shape_214);
-    ("Inference", shape_215);
-    ("InferenceLimits", shape_216);
-    ("InferenceLimitsRequest", shape_217);
-    ("InferenceLimitsResult", shape_218);
-    ("InferenceProvider", shape_219);
-    ("IssuedTokens", shape_220);
-    ("Issuer", shape_221);
-    ("JanusGraphConfig", shape_222);
-    ("Job", shape_223);
-    ("JobAssignCommand", shape_224);
-    ("JobAssignedPayload", shape_225);
-    ("JobCancelCommand", shape_226);
-    ("JobCancelRequest", shape_227);
-    ("JobCancelResult", shape_228);
-    ("JobCancelled", shape_229);
-    ("JobCheckpoint", shape_230);
-    ("JobCheckpointCommand", shape_231);
-    ("JobClaimCommand", shape_232);
-    ("JobClaimedResult", shape_233);
-    ("JobComplete", shape_234);
-    ("JobCompleteCommand", shape_235);
-    ("JobCompletedPayload", shape_236);
-    ("JobCreateCommand", shape_237);
-    ("JobCreatedResult", shape_238);
-    ("JobCreatedResultResponse", shape_239);
-    ("JobDeclined", shape_240);
-    ("JobFailCommand", shape_241);
-    ("JobFailed", shape_242);
-    ("JobFailedPayload", shape_243);
-    ("JobFailure", shape_244);
-    ("JobFilter", shape_245);
-    ("JobId", shape_246);
-    ("JobMetadata", shape_247);
-    ("JobParams", shape_248);
-    ("JobPending", shape_249);
-    ("JobPollOptions", shape_250);
-    ("JobProgress", shape_251);
-    ("JobProgressAnalyzing", shape_252);
-    ("JobProgressAnalyzingTags", shape_253);
-    ("JobProgressCompleteCreated", shape_254);
-    ("JobProgressCompleteGenerated", shape_255);
-    ("JobProgressCreatingAnnotations", shape_256);
-    ("JobProgressCreatingResource", shape_257);
-    ("JobProgressCreatingTagAnnotations", shape_258);
-    ("JobProgressDetectingEntities", shape_259);
-    ("JobProgressGeneratingResource", shape_260);
-    ("JobProgressLoading", shape_261);
-    ("JobProgressMessage", shape_262);
-    ("JobQueuedEvent", shape_263);
-    ("JobReached", shape_264);
-    ("JobRecord", shape_265);
-    ("JobReportProgressCommand", shape_266);
-    ("JobResult", shape_267);
-    ("JobRunning", shape_268);
-    ("JobStartCommand", shape_269);
-    ("JobStartedPayload", shape_270);
-    ("JobStatusRequest", shape_271);
-    ("JobStatusResponse", shape_272);
-    ("JobStatusResult", shape_273);
-    ("JobStoredProgress", shape_274);
-    ("JobStoredResult", shape_275);
-    ("JobType", shape_276);
-    ("KbDescription", shape_277);
-    ("KbDid", shape_278);
-    ("KbEndpoint", shape_279);
-    ("KbIdentity", shape_280);
-    ("KbIdentityConflict", shape_281);
-    ("KbPlacement", shape_282);
-    ("KbRead", shape_283);
-    ("KbReadKind", shape_284);
-    ("KbReadVerdict", shape_285);
-    ("KbSessionStatus", shape_286);
-    ("KbTarget", shape_287);
-    ("KnowledgeBase", shape_288);
-    ("KnowledgeBaseStatus", shape_289);
-    ("KnowledgeGraph", shape_290);
-    ("KnowledgeIndex", shape_291);
-    ("LastEventIds", shape_292);
-    ("LibrarianConfig", shape_293);
-    ("LibrarianEngineConfig", shape_294);
-    ("LibrarianHealth", shape_295);
-    ("LibrarianPromptScore", shape_296);
-    ("LimitRefusal", shape_297);
-    ("LinkingJobParams", shape_298);
-    ("ListResourcesResponse", shape_299);
-    ("LocalEndpoint", shape_300);
-    ("LocalTarget", shape_301);
-    ("LogFormat", shape_302);
-    ("LogLevel", shape_303);
-    ("LogRecord", shape_304);
-    ("LogsFollowParams", shape_305);
-    ("LogsFollowResult", shape_306);
-    ("MarkArchiveCommand", shape_307);
-    ("MarkCommitCommand", shape_308);
-    ("MarkCommitOk", shape_309);
-    ("MarkCreateOk", shape_310);
-    ("MarkCreateOkResponse", shape_311);
-    ("MarkCreateRequest", shape_312);
-    ("MarkDelegateTimeoutEvent", shape_313);
-    ("MarkDeleteCommand", shape_314);
-    ("MarkDeleteOk", shape_315);
-    ("MarkJobCompleteCommand", shape_316);
-    ("MarkJobCreateCommand", shape_317);
-    ("MarkJobDone", shape_318);
-    ("MarkJobFilter", shape_319);
-    ("MarkJobParams", shape_320);
-    ("MarkJobQueuedEvent", shape_321);
-    ("MarkJobResult", shape_322);
-    ("MarkRequestedEvent", shape_323);
-    ("MarkSubmitEvent", shape_324);
-    ("MarkUnarchiveCommand", shape_325);
-    ("MarkUpdateBodyCommand", shape_326);
-    ("MarkUpdateEntityTypesCommand", shape_327);
-    ("MatchQuality", shape_328);
-    ("MatchResourcesRequest", shape_329);
-    ("MatchResourcesResponse", shape_330);
-    ("MatchResourcesResult", shape_331);
-    ("MatchSearchFailed", shape_332);
-    ("MatchSearchOptions", shape_333);
-    ("MatchSearchRequest", shape_334);
-    ("MatchSearchResult", shape_335);
-    ("MediaTokenRequest", shape_336);
-    ("MediaTokenResponse", shape_337);
-    ("MediaTypesRegistry", shape_338);
-    ("MemoryGraphConfig", shape_339);
-    ("MemoryVectorsConfig", shape_340);
-    ("Metadata", shape_341);
-    ("Motivation", shape_342);
-    ("Neo4jGraphConfig", shape_343);
-    ("NeptuneGraphConfig", shape_344);
-    ("NewKnowledgeBase", shape_345);
-    ("OcrConfidence", shape_346);
-    ("OllamaEmbeddingConfig", shape_347);
-    ("OneOrMoreAgents", shape_348);
-    ("OneOrMoreStrings", shape_349);
-    ("OneOrMoreUris", shape_350);
-    ("OpenResource", shape_351);
-    ("OutputStream", shape_352);
-    ("PdfClass", shape_353);
-    ("PdfCoordinate", shape_354);
-    ("PdfTextItem", shape_355);
-    ("PendingAnnotation", shape_356);
-    ("PendingAuthorization", shape_357);
-    ("PermissionDenied", shape_358);
-    ("PersistedEventId", shape_359);
-    ("PrincipalProfileCommand", shape_360);
-    ("PrincipalProfiledPayload", shape_361);
-    ("PrincipalsRoles", shape_362);
-    ("Profile", shape_363);
-    ("ProfilesProjection", shape_364);
-    ("Progress", shape_365);
-    ("ProjectConfig", shape_366);
-    ("ProtectedResourceMetadata", shape_367);
-    ("Provider", shape_368);
-    ("PutBinaryRequest", shape_369);
-    ("QdrantVectorsConfig", shape_370);
-    ("QuotedText", shape_371);
-    ("ReconciledSpan", shape_372);
-    ("ReplyEventId", shape_373);
-    ("Representation", shape_374);
-    ("RepresentationAddedPayload", shape_375);
-    ("RepresentationNotFound", shape_376);
-    ("RepresentationRemovedPayload", shape_377);
-    ("RequestId", shape_378);
-    ("ResourceAnnotations", shape_379);
-    ("ResourceArchivedPayload", shape_380);
-    ("ResourceClonedPayload", shape_381);
-    ("ResourceCreatedPayload", shape_382);
-    ("ResourceDescriptor", shape_383);
-    ("ResourceErrorEvent", shape_384);
-    ("ResourceId", shape_385);
-    ("ResourceMovedPayload", shape_386);
-    ("ResourceRepresentation", shape_387);
-    ("ResourceSearchFilters", shape_388);
-    ("ResourceUnarchivedPayload", shape_389);
-    ("ResourceUpdatedPayload", shape_390);
-    ("ResourceUpload", shape_391);
-    ("ResourceView", shape_392);
-    ("Resources", shape_393);
-    ("RetryBudget", shape_394);
-    ("Root", shape_395);
-    ("RootsForgetParams", shape_396);
-    ("RootsForgetResult", shape_397);
-    ("RootsInitParams", shape_398);
-    ("RootsInitResult", shape_399);
-    ("RootsListParams", shape_400);
-    ("RootsListResult", shape_401);
-    ("RunInstance", shape_402);
-    ("RunService", shape_403);
-    ("Runner", shape_404);
-    ("Runtime", shape_405);
-    ("RuntimeState", shape_406);
-    ("ScoredResource", shape_407);
-    ("SdkTelemetryTelemetry", shape_408);
-    ("SecretRef", shape_409);
-    ("Selector", shape_410);
-    ("SemanticMatch", shape_411);
-    ("ServiceAddress", shape_412);
-    ("ServiceGroup", shape_413);
-    ("ServiceHostParams", shape_414);
-    ("ServiceHostResult", shape_415);
-    ("ServiceIdentity", shape_416);
-    ("ServiceOutput", shape_417);
-    ("ServiceRunParams", shape_418);
-    ("ServiceRunResult", shape_419);
-    ("ServiceSignalParams", shape_420);
-    ("ServiceSignalResult", shape_421);
-    ("ServiceStarted", shape_422);
-    ("ServiceStatus", shape_423);
-    ("Session", shape_424);
-    ("SessionEndReason", shape_425);
-    ("SessionEnded", shape_426);
-    ("SessionJoinedEvent", shape_427);
-    ("SessionLeftEvent", shape_428);
-    ("SessionOauth", shape_429);
-    ("Setting", shape_430);
-    ("SettingLine", shape_431);
-    ("SettingsGetParams", shape_432);
-    ("SettingsHoverDelayChangedEvent", shape_433);
-    ("SettingsListParams", shape_434);
-    ("SettingsListResult", shape_435);
-    ("SettingsLocaleChangedEvent", shape_436);
-    ("SettingsPathParams", shape_437);
-    ("SettingsPathResult", shape_438);
-    ("SettingsSetParams", shape_439);
-    ("SettingsThemeChangedEvent", shape_440);
-    ("SettingsUnsetParams", shape_441);
-    ("SignInOutcome", shape_442);
-    ("SignInStoreOwnerOnly", shape_443);
-    ("SignedIn", shape_444);
-    ("SmeltRebuildAnchorsCommand", shape_445);
-    ("SmeltSettled", shape_446);
-    ("SmelterChunking", shape_447);
-    ("SmelterConfig", shape_448);
-    ("SmelterHealth", shape_449);
-    ("SmelterReconcileSummary", shape_450);
-    ("SpecificResource", shape_451);
-    ("StackApiVersion", shape_452);
-    ("StackKnowledgeBase", shape_453);
-    ("StackStartParams", shape_454);
-    ("StackStartResult", shape_455);
-    ("StackStopParams", shape_456);
-    ("StackStopResult", shape_457);
-    ("StatusResponse", shape_458);
-    ("StatusSnapshotParams", shape_459);
-    ("StatusSnapshotResult", shape_460);
-    ("StorageUriEntry", shape_461);
-    ("StoredEventResponse", shape_462);
-    ("StoredSession", shape_463);
-    ("SupportedMediaType", shape_464);
-    ("SvgSelector", shape_465);
-    ("System", shape_466);
-    ("TabCheck", shape_467);
-    ("TabVerdict", shape_468);
-    ("TagCategory", shape_469);
-    ("TagSchema", shape_470);
-    ("TagSchemaAddedPayload", shape_471);
-    ("TagSchemasProjection", shape_472);
-    ("TaggingJobParams", shape_473);
-    ("Target", shape_474);
-    ("TextPositionSelector", shape_475);
-    ("TextQuoteSelector", shape_476);
-    ("TextSpan", shape_477);
-    ("TextualBody", shape_478);
-    ("TraceCarrier", shape_479);
-    ("UnitCursor", shape_480);
-    ("UpdateAnnotationBodyRequest", shape_481);
-    ("UploadProgress", shape_482);
-    ("UserAction", shape_483);
-    ("UserId", shape_484);
-    ("UserResponse", shape_485);
-    ("VectorStore", shape_486);
-    ("VectorsConfig", shape_487);
-    ("VoyageEmbeddingConfig", shape_488);
-    ("WeaveApplied", shape_489);
-    ("WeaveRebuildCommand", shape_490);
-    ("WeaverConfig", shape_491);
-    ("WeaverHealth", shape_492);
-    ("WorkerActiveJob", shape_493);
-    ("WorkerConfig", shape_494);
-    ("WorkerEngineConfig", shape_495);
-    ("WorkerEngineHealth", shape_496);
-    ("WorkerHealth", shape_497);
-    ("WorkerKnowledgeBaseConfig", shape_498);
-    ("WorkerKnowledgeBaseHealth", shape_499);
-    ("WorkerPool", shape_500);
-    ("WorkerVitals", shape_501);
-    ("WorkloadStatus", shape_502);
-    ("YieldCloneCreateCommand", shape_503);
-    ("YieldCloneCreated", shape_504);
-    ("YieldClonePersistCommand", shape_505);
-    ("YieldClonePersistOk", shape_506);
-    ("YieldCloneResourceRequest", shape_507);
-    ("YieldCloneTokenRequest", shape_508);
-    ("YieldCreateCommand", shape_509);
-    ("YieldCreateOk", shape_510);
-    ("YieldJobCompleteCommand", shape_511);
-    ("YieldJobCreateCommand", shape_512);
-    ("YieldJobDone", shape_513);
-    ("YieldJobFilter", shape_514);
-    ("YieldJobQueuedEvent", shape_515);
-    ("YieldJobResult", shape_516);
-    ("YieldUpdateCommand", shape_517);
-    ("YieldUpdateOk", shape_518);
-    ("YieldedResource", shape_519);
+    ("ByteSource", shape_99);
+    ("CacheStatus", shape_100);
+    ("Cancelled", shape_101);
+    ("ClaimOptions", shape_102);
+    ("ClaimRefusal", shape_103);
+    ("ClientConnectionStates", shape_104);
+    ("ClientDiscoveryAbsent", shape_105);
+    ("ClientOptionDefaults", shape_106);
+    ("ClientRefresh", shape_107);
+    ("ClientSecretForm", shape_108);
+    ("ClientTesting", shape_109);
+    ("CloneResourceWithTokenResponse", shape_110);
+    ("CommandError", shape_111);
+    ("CommentingJobParams", shape_112);
+    ("ConformanceBusFetch", shape_113);
+    ("ConformanceCase", shape_114);
+    ("ConformanceDriverLine", shape_115);
+    ("ConformanceFailure", shape_116);
+    ("ConformanceHttpFetch", shape_117);
+    ("ConformanceImplementations", shape_118);
+    ("ConformanceStep", shape_119);
+    ("ConnectionIdentity", shape_120);
+    ("ConnectionState", shape_121);
+    ("ContentFormat", shape_122);
+    ("ContextualSummaryResponse", shape_123);
+    ("ControlCli", shape_124);
+    ("ControlRpcCodes", shape_125);
+    ("ControlSender", shape_126);
+    ("CreateAnnotationRequest", shape_127);
+    ("CreateFromTokenOptions", shape_128);
+    ("CreateResourceResponse", shape_129);
+    ("CursorsPath", shape_130);
+    ("DeviceCode", shape_131);
+    ("DirEntry", shape_132);
+    ("DirectoryEntry", shape_133);
+    ("DiscoveredKB", shape_134);
+    ("DiscoveryAbsent", shape_135);
+    ("DiscoveryAbsentReason", shape_136);
+    ("DiscoveryDiff", shape_137);
+    ("DiscoveryDocument", shape_138);
+    ("DiscoveryManaged", shape_139);
+    ("DiscoveryRead", shape_140);
+    ("DiscoveryState", shape_141);
+    ("DiscoveryUnchanged", shape_142);
+    ("DispatcherConfig", shape_143);
+    ("DispatcherHealth", shape_144);
+    ("DurabilityEvidence", shape_145);
+    ("EmbeddingConfig", shape_146);
+    ("Engine", shape_147);
+    ("EngineEntry", shape_148);
+    ("EngineLimits", shape_149);
+    ("EngineWithLimits", shape_150);
+    ("EnginesWithLimits", shape_151);
+    ("EnrichedResourceEvent", shape_152);
+    ("EntityTagChangedPayload", shape_153);
+    ("EntityTypeAddedPayload", shape_154);
+    ("EntityTypesProjection", shape_155);
+    ("EphemeralEventId", shape_156);
+    ("ErrorData", shape_157);
+    ("ErrorResponse", shape_158);
+    ("ErrorsCodes", shape_159);
+    ("EventMetadata", shape_160);
+    ("Expected", shape_161);
+    ("ExtractedText", shape_162);
+    ("ExtractionDeclined", shape_163);
+    ("ExtractionDeclinedReason", shape_164);
+    ("ExtractionMethod", shape_165);
+    ("ExtractionOutcome", shape_166);
+    ("FailureClass", shape_167);
+    ("Fault", shape_168);
+    ("FieldFault", shape_169);
+    ("FileEntry", shape_170);
+    ("FollowerFollowing", shape_171);
+    ("FragmentSelector", shape_172);
+    ("FrameAddEntityTypeCommand", shape_173);
+    ("FrameAddTagSchemaCommand", shape_174);
+    ("FrameRefusal", shape_175);
+    ("FrameRefusalReason", shape_176);
+    ("GatewayConfig", shape_177);
+    ("GatherAnnotationComplete", shape_178);
+    ("GatherAnnotationOptions", shape_179);
+    ("GatherAnnotationRequest", shape_180);
+    ("GatherFailed", shape_181);
+    ("GatherReferencedByRequest", shape_182);
+    ("GatherReferencedByResult", shape_183);
+    ("GatherResourceComplete", shape_184);
+    ("GatherResourceFailed", shape_185);
+    ("GatherResourceOptions", shape_186);
+    ("GatherResourceRequest", shape_187);
+    ("GatherResourceRequestOptions", shape_188);
+    ("GatherSummaryRequest", shape_189);
+    ("GatheredContext", shape_190);
+    ("GenerationJobParams", shape_191);
+    ("GenerationJobRequest", shape_192);
+    ("GetAnnotationHistoryResponse", shape_193);
+    ("GetAnnotationResponse", shape_194);
+    ("GetAnnotationsResponse", shape_195);
+    ("GetEntityTypesResponse", shape_196);
+    ("GetEventsResponse", shape_197);
+    ("GetReferencedByResponse", shape_198);
+    ("GetReferencedByResponseReferencedByItem", shape_199);
+    ("GetResourceByTokenResponse", shape_200);
+    ("GetResourceResponse", shape_201);
+    ("GetTagSchemasResponse", shape_202);
+    ("GraphAnnotationNode", shape_203);
+    ("GraphConfig", shape_204);
+    ("GraphResourceNode", shape_205);
+    ("HealthResponse", shape_206);
+    ("HeldJobRecord", shape_207);
+    ("HeldJobStall", shape_208);
+    ("HighlightingJobParams", shape_209);
+    ("HostPort", shape_210);
+    ("HttpEndpoint", shape_211);
+    ("HttpStatus", shape_212);
+    ("IdentifiersKinds", shape_213);
+    ("IdentityUser", shape_214);
+    ("IdentityUseraddParams", shape_215);
+    ("IdentityUseraddResult", shape_216);
+    ("IdentityUsersListParams", shape_217);
+    ("IdentityUsersListResult", shape_218);
+    ("Image", shape_219);
+    ("Inference", shape_220);
+    ("InferenceLimits", shape_221);
+    ("InferenceLimitsRequest", shape_222);
+    ("InferenceLimitsResult", shape_223);
+    ("InferenceProvider", shape_224);
+    ("IssuedTokens", shape_225);
+    ("Issuer", shape_226);
+    ("JanusGraphConfig", shape_227);
+    ("Job", shape_228);
+    ("JobAssignCommand", shape_229);
+    ("JobAssignedPayload", shape_230);
+    ("JobCancelCommand", shape_231);
+    ("JobCancelRequest", shape_232);
+    ("JobCancelResult", shape_233);
+    ("JobCancelled", shape_234);
+    ("JobCheckpoint", shape_235);
+    ("JobCheckpointCommand", shape_236);
+    ("JobClaimCommand", shape_237);
+    ("JobClaimedResult", shape_238);
+    ("JobComplete", shape_239);
+    ("JobCompleteCommand", shape_240);
+    ("JobCompletedPayload", shape_241);
+    ("JobCreateCommand", shape_242);
+    ("JobCreatedResult", shape_243);
+    ("JobCreatedResultResponse", shape_244);
+    ("JobDeclined", shape_245);
+    ("JobFailCommand", shape_246);
+    ("JobFailed", shape_247);
+    ("JobFailedPayload", shape_248);
+    ("JobFailure", shape_249);
+    ("JobFilter", shape_250);
+    ("JobId", shape_251);
+    ("JobMetadata", shape_252);
+    ("JobParams", shape_253);
+    ("JobPending", shape_254);
+    ("JobPollOptions", shape_255);
+    ("JobProgress", shape_256);
+    ("JobProgressAnalyzing", shape_257);
+    ("JobProgressAnalyzingTags", shape_258);
+    ("JobProgressCompleteCreated", shape_259);
+    ("JobProgressCompleteGenerated", shape_260);
+    ("JobProgressCreatingAnnotations", shape_261);
+    ("JobProgressCreatingResource", shape_262);
+    ("JobProgressCreatingTagAnnotations", shape_263);
+    ("JobProgressDetectingEntities", shape_264);
+    ("JobProgressGeneratingResource", shape_265);
+    ("JobProgressLoading", shape_266);
+    ("JobProgressMessage", shape_267);
+    ("JobQueuedEvent", shape_268);
+    ("JobReached", shape_269);
+    ("JobRecord", shape_270);
+    ("JobReportProgressCommand", shape_271);
+    ("JobResult", shape_272);
+    ("JobRunning", shape_273);
+    ("JobStartCommand", shape_274);
+    ("JobStartedPayload", shape_275);
+    ("JobStatusRequest", shape_276);
+    ("JobStatusResponse", shape_277);
+    ("JobStatusResult", shape_278);
+    ("JobStoredProgress", shape_279);
+    ("JobStoredResult", shape_280);
+    ("JobType", shape_281);
+    ("KbDescription", shape_282);
+    ("KbDid", shape_283);
+    ("KbEndpoint", shape_284);
+    ("KbIdentity", shape_285);
+    ("KbIdentityConflict", shape_286);
+    ("KbPlacement", shape_287);
+    ("KbRead", shape_288);
+    ("KbReadKind", shape_289);
+    ("KbReadVerdict", shape_290);
+    ("KbSessionStatus", shape_291);
+    ("KbTarget", shape_292);
+    ("KnowledgeBase", shape_293);
+    ("KnowledgeBaseStatus", shape_294);
+    ("KnowledgeGraph", shape_295);
+    ("KnowledgeIndex", shape_296);
+    ("LastEventIds", shape_297);
+    ("LibrarianConfig", shape_298);
+    ("LibrarianEngineConfig", shape_299);
+    ("LibrarianHealth", shape_300);
+    ("LibrarianPromptScore", shape_301);
+    ("LimitRefusal", shape_302);
+    ("LinkingJobParams", shape_303);
+    ("ListResourcesResponse", shape_304);
+    ("LocalEndpoint", shape_305);
+    ("LocalTarget", shape_306);
+    ("LogFormat", shape_307);
+    ("LogLevel", shape_308);
+    ("LogRecord", shape_309);
+    ("LogsFollowParams", shape_310);
+    ("LogsFollowResult", shape_311);
+    ("MarkArchiveCommand", shape_312);
+    ("MarkCommitCommand", shape_313);
+    ("MarkCommitOk", shape_314);
+    ("MarkCreateOk", shape_315);
+    ("MarkCreateOkResponse", shape_316);
+    ("MarkCreateRequest", shape_317);
+    ("MarkDelegateTimeoutEvent", shape_318);
+    ("MarkDeleteCommand", shape_319);
+    ("MarkDeleteOk", shape_320);
+    ("MarkJobCompleteCommand", shape_321);
+    ("MarkJobCreateCommand", shape_322);
+    ("MarkJobDone", shape_323);
+    ("MarkJobFilter", shape_324);
+    ("MarkJobParams", shape_325);
+    ("MarkJobQueuedEvent", shape_326);
+    ("MarkJobResult", shape_327);
+    ("MarkRequestedEvent", shape_328);
+    ("MarkSubmitEvent", shape_329);
+    ("MarkUnarchiveCommand", shape_330);
+    ("MarkUpdateBodyCommand", shape_331);
+    ("MarkUpdateEntityTypesCommand", shape_332);
+    ("MatchQuality", shape_333);
+    ("MatchResourcesRequest", shape_334);
+    ("MatchResourcesResponse", shape_335);
+    ("MatchResourcesResult", shape_336);
+    ("MatchSearchFailed", shape_337);
+    ("MatchSearchOptions", shape_338);
+    ("MatchSearchRequest", shape_339);
+    ("MatchSearchResult", shape_340);
+    ("MediaTokenRequest", shape_341);
+    ("MediaTokenResponse", shape_342);
+    ("MediaTypesRegistry", shape_343);
+    ("MemoryGraphConfig", shape_344);
+    ("MemoryVectorsConfig", shape_345);
+    ("Metadata", shape_346);
+    ("Motivation", shape_347);
+    ("Neo4jGraphConfig", shape_348);
+    ("NeptuneGraphConfig", shape_349);
+    ("NewKnowledgeBase", shape_350);
+    ("OcrConfidence", shape_351);
+    ("OllamaEmbeddingConfig", shape_352);
+    ("OneOrMoreAgents", shape_353);
+    ("OneOrMoreStrings", shape_354);
+    ("OneOrMoreUris", shape_355);
+    ("OpenResource", shape_356);
+    ("OutputStream", shape_357);
+    ("PdfClass", shape_358);
+    ("PdfCoordinate", shape_359);
+    ("PdfTextItem", shape_360);
+    ("PendingAnnotation", shape_361);
+    ("PendingAuthorization", shape_362);
+    ("PermissionDenied", shape_363);
+    ("PersistedEventId", shape_364);
+    ("PrincipalProfileCommand", shape_365);
+    ("PrincipalProfiledPayload", shape_366);
+    ("PrincipalsRoles", shape_367);
+    ("Profile", shape_368);
+    ("ProfilesProjection", shape_369);
+    ("Progress", shape_370);
+    ("ProjectConfig", shape_371);
+    ("ProtectedResourceMetadata", shape_372);
+    ("Provider", shape_373);
+    ("PutBinaryRequest", shape_374);
+    ("QdrantVectorsConfig", shape_375);
+    ("QuotedText", shape_376);
+    ("ReconciledSpan", shape_377);
+    ("ReplyEventId", shape_378);
+    ("Representation", shape_379);
+    ("RepresentationAddedPayload", shape_380);
+    ("RepresentationNotFound", shape_381);
+    ("RepresentationRemovedPayload", shape_382);
+    ("RequestId", shape_383);
+    ("ResourceAnnotations", shape_384);
+    ("ResourceArchivedPayload", shape_385);
+    ("ResourceClonedPayload", shape_386);
+    ("ResourceCreatedPayload", shape_387);
+    ("ResourceDescriptor", shape_388);
+    ("ResourceErrorEvent", shape_389);
+    ("ResourceId", shape_390);
+    ("ResourceMovedPayload", shape_391);
+    ("ResourceRepresentation", shape_392);
+    ("ResourceSearchFilters", shape_393);
+    ("ResourceUnarchivedPayload", shape_394);
+    ("ResourceUpdatedPayload", shape_395);
+    ("ResourceUpload", shape_396);
+    ("ResourceView", shape_397);
+    ("Resources", shape_398);
+    ("RetryBudget", shape_399);
+    ("Root", shape_400);
+    ("RootsForgetParams", shape_401);
+    ("RootsForgetResult", shape_402);
+    ("RootsInitParams", shape_403);
+    ("RootsInitResult", shape_404);
+    ("RootsListParams", shape_405);
+    ("RootsListResult", shape_406);
+    ("RunInstance", shape_407);
+    ("RunService", shape_408);
+    ("Runner", shape_409);
+    ("Runtime", shape_410);
+    ("RuntimeState", shape_411);
+    ("ScoredResource", shape_412);
+    ("SdkTelemetryTelemetry", shape_413);
+    ("SecretRef", shape_414);
+    ("Selector", shape_415);
+    ("SemanticMatch", shape_416);
+    ("ServiceAddress", shape_417);
+    ("ServiceGroup", shape_418);
+    ("ServiceHostParams", shape_419);
+    ("ServiceHostResult", shape_420);
+    ("ServiceIdentity", shape_421);
+    ("ServiceOutput", shape_422);
+    ("ServiceRunParams", shape_423);
+    ("ServiceRunResult", shape_424);
+    ("ServiceSignalParams", shape_425);
+    ("ServiceSignalResult", shape_426);
+    ("ServiceStarted", shape_427);
+    ("ServiceStatus", shape_428);
+    ("Session", shape_429);
+    ("SessionEndReason", shape_430);
+    ("SessionEnded", shape_431);
+    ("SessionJoinedEvent", shape_432);
+    ("SessionLeftEvent", shape_433);
+    ("SessionOauth", shape_434);
+    ("Setting", shape_435);
+    ("SettingLine", shape_436);
+    ("SettingsGetParams", shape_437);
+    ("SettingsHoverDelayChangedEvent", shape_438);
+    ("SettingsListParams", shape_439);
+    ("SettingsListResult", shape_440);
+    ("SettingsLocaleChangedEvent", shape_441);
+    ("SettingsPathParams", shape_442);
+    ("SettingsPathResult", shape_443);
+    ("SettingsSetParams", shape_444);
+    ("SettingsThemeChangedEvent", shape_445);
+    ("SettingsUnsetParams", shape_446);
+    ("SignInOutcome", shape_447);
+    ("SignInStoreOwnerOnly", shape_448);
+    ("SignedIn", shape_449);
+    ("SmeltRebuildAnchorsCommand", shape_450);
+    ("SmeltSettled", shape_451);
+    ("SmelterChunking", shape_452);
+    ("SmelterConfig", shape_453);
+    ("SmelterHealth", shape_454);
+    ("SmelterReconcileSummary", shape_455);
+    ("SpecificResource", shape_456);
+    ("StackApiVersion", shape_457);
+    ("StackKnowledgeBase", shape_458);
+    ("StackStartParams", shape_459);
+    ("StackStartResult", shape_460);
+    ("StackStopParams", shape_461);
+    ("StackStopResult", shape_462);
+    ("StatusResponse", shape_463);
+    ("StatusSnapshotParams", shape_464);
+    ("StatusSnapshotResult", shape_465);
+    ("StorageUriEntry", shape_466);
+    ("StoredEventResponse", shape_467);
+    ("StoredSession", shape_468);
+    ("SupportedMediaType", shape_469);
+    ("SvgSelector", shape_470);
+    ("System", shape_471);
+    ("TabCheck", shape_472);
+    ("TabVerdict", shape_473);
+    ("TagCategory", shape_474);
+    ("TagSchema", shape_475);
+    ("TagSchemaAddedPayload", shape_476);
+    ("TagSchemasProjection", shape_477);
+    ("TaggingJobParams", shape_478);
+    ("Target", shape_479);
+    ("TextPositionSelector", shape_480);
+    ("TextQuoteSelector", shape_481);
+    ("TextSpan", shape_482);
+    ("TextualBody", shape_483);
+    ("TraceCarrier", shape_484);
+    ("UnitCursor", shape_485);
+    ("UpdateAnnotationBodyRequest", shape_486);
+    ("UploadProgress", shape_487);
+    ("UserAction", shape_488);
+    ("UserId", shape_489);
+    ("UserResponse", shape_490);
+    ("VectorStore", shape_491);
+    ("VectorsConfig", shape_492);
+    ("VoyageEmbeddingConfig", shape_493);
+    ("WeaveApplied", shape_494);
+    ("WeaveRebuildCommand", shape_495);
+    ("WeaverConfig", shape_496);
+    ("WeaverHealth", shape_497);
+    ("WorkerActiveJob", shape_498);
+    ("WorkerConfig", shape_499);
+    ("WorkerEngineConfig", shape_500);
+    ("WorkerEngineHealth", shape_501);
+    ("WorkerHealth", shape_502);
+    ("WorkerKnowledgeBaseConfig", shape_503);
+    ("WorkerKnowledgeBaseHealth", shape_504);
+    ("WorkerPool", shape_505);
+    ("WorkerVitals", shape_506);
+    ("WorkloadStatus", shape_507);
+    ("YieldCloneCreateCommand", shape_508);
+    ("YieldCloneCreated", shape_509);
+    ("YieldClonePersistCommand", shape_510);
+    ("YieldClonePersistOk", shape_511);
+    ("YieldCloneResourceRequest", shape_512);
+    ("YieldCloneTokenRequest", shape_513);
+    ("YieldCreateCommand", shape_514);
+    ("YieldCreateOk", shape_515);
+    ("YieldJobCompleteCommand", shape_516);
+    ("YieldJobCreateCommand", shape_517);
+    ("YieldJobDone", shape_518);
+    ("YieldJobFilter", shape_519);
+    ("YieldJobQueuedEvent", shape_520);
+    ("YieldJobResult", shape_521);
+    ("YieldUpdateCommand", shape_522);
+    ("YieldUpdateOk", shape_523);
+    ("YieldedResource", shape_524);
   ]

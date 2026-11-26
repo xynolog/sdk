@@ -148,7 +148,10 @@ async fn an_upload_sent_again_with_a_renewed_token_never_reports_less_than_it_la
     let (finished, sent) = rest.split_last().expect("a last report");
     assert_eq!(
         started,
-        &UploadProgress::Started(UploadProgressStarted::new(total))
+        &UploadProgress::Started(UploadProgressStarted {
+            total_bytes: Some(total),
+            ..UploadProgressStarted::new()
+        })
     );
     assert_eq!(
         finished,
@@ -159,7 +162,7 @@ async fn an_upload_sent_again_with_a_renewed_token_never_reports_less_than_it_la
         let UploadProgress::Progress(report) = report else {
             panic!("between its start and its end, an upload reports what is sent: {report:?}");
         };
-        assert_eq!(report.total_bytes, total);
+        assert_eq!(report.total_bytes, Some(total));
         assert!(
             report.bytes_uploaded >= before,
             "reported {} of {total} after {before}",

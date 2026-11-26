@@ -49,7 +49,7 @@ import Xynolog.Internal.NativeStore qualified as Native
 import Xynolog.Internal.SignIn qualified as SignIn
 import Xynolog.Retry qualified as Retry
 import Xynolog.Tokens qualified as Tokens
-import Xynolog.Types (SignIn (..), StoredSession (..), System (..))
+import Xynolog.Types (AccessToken (..), SignIn (..), StoredSession (..), System (..))
 
 data SignInStoreOptions = SignInStoreOptions
   { signInStoreTime :: Retry.RetryOptions,
@@ -160,7 +160,7 @@ writtenTimes options access = do
 stamp :: SignInStoreOptions -> SignIn -> Text -> Text -> IO SignIn
 stamp options before access refresh = do
   (obtained, expiry) <- writtenTimes options access
-  pure before {signInToken = access, signInRefreshToken = Just refresh, signInObtainedAt = obtained, signInExpiresAt = expiry}
+  pure before {signInToken = AccessToken access, signInRefreshToken = Just refresh, signInObtainedAt = obtained, signInExpiresAt = expiry}
 
 entry :: SignInStore -> Text -> SignIn.KeptSignIn
 entry store@(SignInStore options _ _) identity =
@@ -170,13 +170,13 @@ entry store@(SignInStore options _ _) identity =
         unless
           (storedSessionClientId held == OAuth.scriptClientId)
           (throwIO (SignInError SignInExchange "The launcher store keeps only grants of the script client" Nothing))
-        issuer <- case Tokens.textClaim (storedSessionAccess held) "iss" of
+        issuer <- case Tokens.textClaim (accessTokenValue (storedSessionAccess held)) "iss" of
           Just value | not (Text.null value) -> pure value
           _ -> throwIO (SignInError SignInExchange "The sign-in was not kept: its token names no issuer" Nothing)
         change store $ \document -> do
-          (obtained, expiry) <- writtenTimes options (storedSessionAccess held)
+          (obtained, expiry) <- writtenTimes options (accessTokenValue (storedSessionAccess held))
           let written =
-                SignIn {signInEmail = (Tokens.textClaim (storedSessionAccess held) "email"), signInExpiresAt = expiry, signInIssuer = issuer, signInObtainedAt = obtained, signInRefreshToken = (Just (storedSessionRefresh held)), signInRevocationEndpoint = (storedSessionRevocationEndpoint held), signInToken = (storedSessionAccess held), signInTokenEndpoint = (storedSessionTokenEndpoint held)}
+                SignIn {signInEmail = (Tokens.textClaim (accessTokenValue (storedSessionAccess held)) "email"), signInExpiresAt = expiry, signInIssuer = issuer, signInObtainedAt = obtained, signInRefreshToken = (Just (storedSessionRefresh held)), signInRevocationEndpoint = (storedSessionRevocationEndpoint held), signInToken = (storedSessionAccess held), signInTokenEndpoint = (storedSessionTokenEndpoint held)}
           pure (Just (KM.insert (Key.fromText identity) (toJSON written) document), ())
     )
     ( \before issued -> change store $ \document -> do
@@ -187,8 +187,8 @@ entry store@(SignInStore options _ _) identity =
             SignIn.Gone -> pure (Nothing, Nothing)
             SignIn.AlreadyRenewed access -> pure (Nothing, Just access)
             SignIn.WriteTokens next -> do
-              written <- stamp options original (storedSessionAccess next) (storedSessionRefresh next)
-              pure (Just (KM.insert (Key.fromText identity) (toJSON written) document), Just (storedSessionAccess next))
+              written <- stamp options original (accessTokenValue (storedSessionAccess next)) (storedSessionRefresh next)
+              pure (Just (KM.insert (Key.fromText identity) (toJSON written) document), Just (accessTokenValue (storedSessionAccess next)))
     )
     ( change store $ \document ->
         pure

@@ -34,34 +34,16 @@ import {
 import type {
   DiscoveredKB,
   DiscoveryAbsentReason,
+  DiscoveryDiff,
   DiscoveryDocument,
+  DiscoveryRead,
+  DiscoveryState,
 } from '@xynolog/core';
 import { fetchOf } from './fetch-of';
 
-/**
- * The typed absent-vs-managed distinction: `absent` is
- * "no launcher detected"; `managed` with an empty list is "the launcher is
- * here and manages nothing". Consumers render these differently and must
- * never have to re-derive the difference.
- */
-export type DiscoveryState =
-  | { kind: 'absent'; reason: DiscoveryAbsentReason; diagnostic?: string }
-  | { kind: 'managed'; kbs: DiscoveredKB[] };
-
-/** A transport read: a state, or "same as last time" (http 304). */
-export type DiscoveryReadResult = DiscoveryState | { kind: 'unchanged' };
-
 /** The two-transports-one-interface seam consumers and tests script against. */
 export interface DiscoveryTransport {
-  read(): Promise<DiscoveryReadResult>;
-}
-
-/** One poll's outcome: the current state plus the delta since the last emission. */
-export interface DiscoveryDiff {
-  state: DiscoveryState;
-  added: DiscoveredKB[];
-  updated: DiscoveredKB[];
-  removed: DiscoveredKB[];
+  read(): Promise<DiscoveryRead>;
 }
 
 const absent = (
@@ -118,7 +100,7 @@ export function textDiscovery(
   read: () => Promise<string | null>,
 ): DiscoveryTransport {
   return {
-    async read(): Promise<DiscoveryReadResult> {
+    async read(): Promise<DiscoveryRead> {
       let text: string | null;
       try {
         text = await read();
@@ -150,7 +132,7 @@ export function httpDiscovery(
     read: () =>
       withinDeadline(
         HTTP_REQUEST_TIMEOUT_MS,
-        async (signal): Promise<DiscoveryReadResult> => {
+        async (signal): Promise<DiscoveryRead> => {
           let response: Response;
           try {
             response = await fetchOf(fetch)(url, {
@@ -247,13 +229,13 @@ export function subscribeDiscovery(
         // symptom. Every entry reaches the subscriber in `state.kbs` — the
         // diff is what collapses, so the panel can render all claimants and
         // say so.
-        if (next.size !== nextKbs.length) {
-          const seen = new Set<string>();
-          const duplicated = [
-            ...new Set(
-              nextKbs.map(keyOf).filter((k) => seen.size === seen.add(k).size),
-            ),
-          ];
+        const seen = new Set<string>();
+        const duplicated = [
+          ...new Set(
+            nextKbs.map(keyOf).filter((k) => seen.size === seen.add(k).size),
+          ),
+        ];
+        if (duplicated.length > 0) {
           // eslint-disable-next-line no-console
           console.warn(
             `[discovery DUPLICATE] ${nextKbs.length - next.size} entr${nextKbs.length - next.size === 1 ? 'y' : 'ies'} share a merge key ` +
@@ -283,7 +265,13 @@ export function subscribeDiscovery(
           removed.length > 0
         ) {
           last = result;
-          subscriber.next({ state: result, added, updated, removed });
+          subscriber.next({
+            state: result,
+            added,
+            updated,
+            removed,
+            duplicated,
+          });
         }
       } finally {
         inflight = false;

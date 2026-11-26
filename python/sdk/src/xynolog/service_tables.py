@@ -602,71 +602,75 @@ SERVICE_ENVIRONMENT_VARIABLES: Final = ServiceEnvironmentVariables.model_validat
     "tor it links (jemalloc's _RJEM_MALLOC_CONF, which it reads before any of its cod"
     "e runs), which the table neither promises nor refuses. `services` names the serv"
     "ices that read each. `readBy` says what reads it: `service`, the service's own c"
-    "ode, Xynolog's SDK and libraries among it; `opentelemetry`, the OpenTelemetry SD"
-    "K. `providedBy` says what sets each where the launcher runs the service: `launch"
-    "er`, `image` (the image or its supervisor sets it; checked there), or `operator`"
-    " (nothing sets it; an operator may). A service's conformance suite sets only the"
-    " rows that list it, and exercises each by name; one gateway case also sets a var"
-    "iable a runtime would read for itself (TOKIO_WORKER_THREADS), to show that it ch"
-    'anges nothing.","variables":[{"name":"JWT_SECRET","services":["gateway"],"readBy'
-    '":"service","providedBy":"launcher","required":true,"effect":"The gateway\'s sign'
-    "ing key ring: comma-separated keys of at least 32 characters, whitespace around "
-    "each ignored. Media tokens are signed with the first key, and a media token sign"
-    "ed with any key is accepted. Unset, or with a key shorter than 32 characters, th"
-    'e gateway refuses to start."},{"name":"XYNOLOG_OIDC_CLIENT_ID","services":["gate'
-    'way","dispatcher","archivist","librarian","weaver","smelter"],"readBy":"service"'
-    ',"providedBy":"launcher","required":true,"effect":"The client id of the service\''
-    "s own account at the issuer, whose token the service signs in with: the gateway'"
-    "s reaches the Archivist, and every other service's is its bearer at the bus. Uns"
-    'et, the service refuses to start."},{"name":"XYNOLOG_OIDC_CLIENT_SECRET","servic'
-    'es":["gateway","dispatcher","archivist","librarian","weaver","smelter"],"readBy"'
-    ':"service","providedBy":"launcher","required":true,"effect":"That account\'s secr'
-    "et. Unset, the service refuses to start, and its output never carries the value."
-    '"},{"name":"XYNOLOG_OIDC_CLIENT_KEY","services":["worker"],"readBy":"service","p'
-    'rovidedBy":"launcher","required":true,"effect":"The worker\'s key: an RSA private'
-    " key, PEM and unencrypted, whose public half each knowledge base's issuer holds "
-    "on the client the worker's document names there. Each sign-in carries an asserti"
-    "on signed with it (private_key_jwt), and no secret. Unset or empty, a key it can"
-    "not read, or one that is not RSA, the worker refuses to start (WORKER-SERVICE.md"
-    ' B3)."},{"name":"OTEL_EXPORTER_OTLP_ENDPOINT","services":["gateway","dispatcher"'
-    ',"archivist","librarian","weaver","smelter","worker"],"readBy":"service","provid'
-    'edBy":"launcher","required":false,"effect":"The OTLP/HTTP collector spans and me'
-    "trics are exported to. Unset, with OTEL_CONSOLE_EXPORTER not `true`, nothing is "
-    'exported."},{"name":"OTEL_SERVICE_NAME","services":["gateway","dispatcher","arch'
-    'ivist","librarian","weaver","smelter","worker"],"readBy":"service","providedBy":'
-    '"operator","required":false,"effect":"The `service.name` exported spans and metr'
-    "ics carry; `xynolog-` and the service's name, such as `xynolog-gateway`, when un"
-    'set."},{"name":"OTEL_SDK_DISABLED","services":["gateway","dispatcher","archivist'
-    '","librarian","weaver","smelter","worker"],"readBy":"service","providedBy":"oper'
-    'ator","required":false,"effect":"`true` exports nothing, whatever else is set."}'
-    ',{"name":"OTEL_CONSOLE_EXPORTER","services":["gateway","dispatcher","archivist",'
-    '"librarian","weaver","smelter","worker"],"readBy":"service","providedBy":"operat'
-    'or","required":false,"effect":"`true`, with no OTEL_EXPORTER_OTLP_ENDPOINT, writ'
-    'es spans and metrics to the service\'s output instead of exporting them."},{"name'
-    '":"OTEL_METRICS_EXPORTER","services":["gateway","dispatcher","archivist","librar'
-    'ian","weaver","smelter","worker"],"readBy":"service","providedBy":"operator","re'
-    'quired":false,"effect":"`console` writes metrics to the service\'s output, while '
-    'spans still go to OTEL_EXPORTER_OTLP_ENDPOINT."},{"name":"OTEL_METRIC_EXPORT_INT'
-    'ERVAL","services":["gateway","dispatcher","archivist","librarian","weaver","smel'
-    'ter","worker"],"readBy":"service","providedBy":"operator","required":false,"effe'
-    'ct":"Milliseconds between metric exports; 30000 when unset or not a positive int'
-    'eger."},{"name":"OTEL_BSP_SCHEDULE_DELAY","services":["gateway","dispatcher","ar'
-    'chivist","librarian","weaver","smelter","worker"],"readBy":"opentelemetry","prov'
-    'idedBy":"operator","required":false,"effect":"Milliseconds a finished span waits'
-    ' to be exported in a batch; 5000 when unset."},{"name":"XYNOLOG_BUS_LOG","servic'
-    'es":["gateway","dispatcher","archivist","librarian","weaver","smelter","worker"]'
-    ',"readBy":"service","providedBy":"operator","required":false,"effect":"Any non-e'
-    "mpty value writes one `[bus <op>] <channel> \\u2026` line to the service's output"
-    ' for each frame it sends, accepts, receives or delivers, and each content read."'
-    '},{"name":"SUPERVISE_EVENTS","services":["gateway","dispatcher","archivist","lib'
-    'rarian","weaver","smelter","worker"],"readBy":"service","providedBy":"image","re'
-    'quired":false,"effect":"The supervisor\'s events log, one `starting <SUPERVISE_NA'
-    "ME>` line per life of the process. With SUPERVISE_NAME, the service reports `xyn"
-    "olog.process.restarts` from it: its lives, less one. Without either, the metric "
-    'does not exist."},{"name":"SUPERVISE_NAME","services":["gateway","dispatcher","a'
-    'rchivist","librarian","weaver","smelter","worker"],"readBy":"service","providedB'
-    'y":"image","required":false,"effect":"The name the supervisor records each life '
-    'under, in SUPERVISE_EVENTS."}]}'
+    "ode, Xynolog's SDK and libraries among it \\u2014 which, for a service written in"
+    " Rust, the images repository's `scripts/check-service-environment.mjs`, which it"
+    "s CI runs, scans in both directions, over its crate and every workspace and SDK "
+    "crate it links: a read not listed for that service fails it, and so does a row n"
+    "othing in it reads; `opentelemetry`, the OpenTelemetry SDK. `providedBy` says wh"
+    "at sets each where the launcher runs the service: `launcher`, `image` (the image"
+    " or its supervisor sets it; checked there), or `operator` (nothing sets it; an o"
+    "perator may). A service's conformance suite sets only the rows that list it, and"
+    " exercises each by name; one gateway case also sets a variable a runtime would r"
+    'ead for itself (TOKIO_WORKER_THREADS), to show that it changes nothing.","variab'
+    'les":[{"name":"JWT_SECRET","services":["gateway"],"readBy":"service","providedBy'
+    '":"launcher","required":true,"effect":"The gateway\'s signing key ring: comma-sep'
+    "arated keys of at least 32 characters, whitespace around each ignored. Media tok"
+    "ens are signed with the first key, and a media token signed with any key is acce"
+    "pted. Unset, or with a key shorter than 32 characters, the gateway refuses to st"
+    'art."},{"name":"XYNOLOG_OIDC_CLIENT_ID","services":["gateway","dispatcher","arch'
+    'ivist","librarian","weaver","smelter"],"readBy":"service","providedBy":"launcher'
+    '","required":true,"effect":"The client id of the service\'s own account at the is'
+    "suer, whose token the service signs in with: the gateway's reaches the Archivist"
+    ", and every other service's is its bearer at the bus. Unset, the service refuses"
+    ' to start."},{"name":"XYNOLOG_OIDC_CLIENT_SECRET","services":["gateway","dispatc'
+    'her","archivist","librarian","weaver","smelter"],"readBy":"service","providedBy"'
+    ':"launcher","required":true,"effect":"That account\'s secret. Unset, the service '
+    'refuses to start, and its output never carries the value."},{"name":"XYNOLOG_OID'
+    'C_CLIENT_KEY","services":["worker"],"readBy":"service","providedBy":"launcher","'
+    'required":true,"effect":"The worker\'s key: an RSA private key, PEM and unencrypt'
+    "ed, whose public half each knowledge base's issuer holds on the client the worke"
+    "r's document names there. Each sign-in carries an assertion signed with it (priv"
+    "ate_key_jwt), and no secret. Unset or empty, a key it cannot read, or one that i"
+    's not RSA, the worker refuses to start (WORKER-SERVICE.md B3)."},{"name":"OTEL_E'
+    'XPORTER_OTLP_ENDPOINT","services":["gateway","dispatcher","archivist","librarian'
+    '","weaver","smelter","worker"],"readBy":"service","providedBy":"launcher","requi'
+    'red":false,"effect":"The OTLP/HTTP collector spans and metrics are exported to. '
+    'Unset, with OTEL_CONSOLE_EXPORTER not `true`, nothing is exported."},{"name":"OT'
+    'EL_SERVICE_NAME","services":["gateway","dispatcher","archivist","librarian","wea'
+    'ver","smelter","worker"],"readBy":"service","providedBy":"operator","required":f'
+    'alse,"effect":"The `service.name` exported spans and metrics carry; `xynolog-` a'
+    'nd the service\'s name, such as `xynolog-gateway`, when unset."},{"name":"OTEL_SD'
+    'K_DISABLED","services":["gateway","dispatcher","archivist","librarian","weaver",'
+    '"smelter","worker"],"readBy":"service","providedBy":"operator","required":false,'
+    '"effect":"`true` exports nothing, whatever else is set."},{"name":"OTEL_CONSOLE_'
+    'EXPORTER","services":["gateway","dispatcher","archivist","librarian","weaver","s'
+    'melter","worker"],"readBy":"service","providedBy":"operator","required":false,"e'
+    'ffect":"`true`, with no OTEL_EXPORTER_OTLP_ENDPOINT, writes spans and metrics to'
+    ' the service\'s output instead of exporting them."},{"name":"OTEL_METRICS_EXPORTE'
+    'R","services":["gateway","dispatcher","archivist","librarian","weaver","smelter"'
+    ',"worker"],"readBy":"service","providedBy":"operator","required":false,"effect":'
+    "\"`console` writes metrics to the service's output, while spans still go to OTEL_"
+    'EXPORTER_OTLP_ENDPOINT."},{"name":"OTEL_METRIC_EXPORT_INTERVAL","services":["gat'
+    'eway","dispatcher","archivist","librarian","weaver","smelter","worker"],"readBy"'
+    ':"service","providedBy":"operator","required":false,"effect":"Milliseconds betwe'
+    'en metric exports; 30000 when unset or not a positive integer."},{"name":"OTEL_B'
+    'SP_SCHEDULE_DELAY","services":["gateway","dispatcher","archivist","librarian","w'
+    'eaver","smelter","worker"],"readBy":"opentelemetry","providedBy":"operator","req'
+    'uired":false,"effect":"Milliseconds a finished span waits to be exported in a ba'
+    'tch; 5000 when unset."},{"name":"XYNOLOG_BUS_LOG","services":["gateway","dispatc'
+    'her","archivist","librarian","weaver","smelter","worker"],"readBy":"service","pr'
+    'ovidedBy":"operator","required":false,"effect":"Any non-empty value writes one `'
+    "[bus <op>] <channel> \\u2026` line to the service's output for each frame it send"
+    's, accepts, receives or delivers, and each content read."},{"name":"SUPERVISE_EV'
+    'ENTS","services":["gateway","dispatcher","archivist","librarian","weaver","smelt'
+    'er","worker"],"readBy":"service","providedBy":"image","required":false,"effect":'
+    "\"The supervisor's events log, one `starting <SUPERVISE_NAME>` line per life of t"
+    "he process. With SUPERVISE_NAME, the service reports `xynolog.process.restarts` "
+    'from it: its lives, less one. Without either, the metric does not exist."},{"nam'
+    'e":"SUPERVISE_NAME","services":["gateway","dispatcher","archivist","librarian","'
+    'weaver","smelter","worker"],"readBy":"service","providedBy":"image","required":f'
+    'alse,"effect":"The name the supervisor records each life under, in SUPERVISE_EVE'
+    'NTS."}]}'
 )
 """protocol/specs/src/service-environment/variables.json, read as `ServiceEnvironmentVariables`."""
 

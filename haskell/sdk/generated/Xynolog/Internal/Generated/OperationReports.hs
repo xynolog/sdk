@@ -19,9 +19,9 @@ instance (ToJSON completion) => ToJSON (JobEvent completion) where
   toJSON (Refused value0) = object ["kind" .= ("refused" :: Text), "data" .= object ["channel" .= refusedChannel value0, "member" .= member (fault value0), "reason" .= reason (fault value0)]]
   toJSON (Complete value0) = object ["kind" .= ("complete" :: Text), "data" .= value0]
 
-data UploadEvent = UploadStarted Integer | UploadProgress Integer Integer | UploadFinished ResourceId deriving (Eq, Show)
+data UploadEvent = UploadStarted (Maybe Integer) | UploadProgress Integer (Maybe Integer) | UploadFinished ResourceId deriving (Eq, Show)
 
 instance ToJSON UploadEvent where
-  toJSON (UploadStarted value0) = object ["phase" .= ("started" :: Text), "totalBytes" .= value0]
-  toJSON (UploadProgress value0 value1) = object ["phase" .= ("progress" :: Text), "bytesUploaded" .= value0, "totalBytes" .= value1]
+  toJSON (UploadStarted value0) = object (["phase" .= ("started" :: Text)] ++ maybe [] (\stated -> ["totalBytes" .= stated]) value0)
+  toJSON (UploadProgress value0 value1) = object (["phase" .= ("progress" :: Text), "bytesUploaded" .= value0] ++ maybe [] (\stated -> ["totalBytes" .= stated]) value1)
   toJSON (UploadFinished value0) = object ["phase" .= ("finished" :: Text), "resourceId" .= value0]

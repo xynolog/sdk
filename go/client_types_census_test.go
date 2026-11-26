@@ -1,11 +1,12 @@
 package xynolog_test
 
-// SearchState and JobEvent are generic, so they are written by hand; this
-// census holds each to its schema in protocol/specs/src/client/types.
-// SearchState's members and a refusal's are read off the types, so a member
-// either side gains or loses fails. JobEvent's branches are the list below,
-// since nothing names every type of an interface: a branch the schema gains
-// fails, and one the SDK gains is caught only by its listing here.
+// SearchState, JobEvent and CacheState are generic, so they are written by
+// hand; this census holds each to its schema in
+// protocol/specs/src/client/types. SearchState's members and a refusal's are
+// read off the types, so a member either side gains or loses fails.
+// JobEvent's and CacheState's branches are the lists below, since nothing
+// names every type of an interface: a branch the schema gains fails, and one
+// the SDK gains is caught only by its listing here.
 
 import (
 	"encoding/json"
@@ -122,5 +123,43 @@ func TestJobEventHasTheSchemasBranchesEachOfItsMembers(t *testing.T) {
 	got := jsonMembers(reflect.TypeFor[xynolog.JobRefused]().Field(0).Type)
 	if want := sortedKeys(branches["refused"].Properties["data"].Properties); !slices.Equal(got, want) {
 		t.Fatalf("a refusal's data is written with %v, and the schema states %v", got, want)
+	}
+}
+
+// cacheStates is one of each CacheState, by the status the schema tells it
+// apart by.
+var cacheStates = map[string]xynolog.CacheState{
+	"pending": xynolog.Pending{},
+	"ready":   xynolog.Ready[any]{},
+	"failed":  xynolog.Failed{},
+}
+
+// cacheMembers is the schema's name for each field of a CacheState, which
+// has no JSON form to read it by.
+var cacheMembers = map[string]string{"Value": "value", "Err": "error"}
+
+func TestCacheStateHasTheSchemasBranchesEachOfItsMembers(t *testing.T) {
+	schema := clientType[struct{ OneOf []objectSchema }](t, "CacheState")
+	branches := map[string]objectSchema{}
+	for _, branch := range schema.OneOf {
+		branches[branch.Properties["status"].Enum[0]] = branch
+	}
+	if got, want := sortedKeys(cacheStates), sortedKeys(branches); !slices.Equal(got, want) {
+		t.Fatalf("CacheState is of the statuses %v, and the schema states %v", got, want)
+	}
+	for status, state := range cacheStates {
+		typ := reflect.TypeOf(state)
+		members := []string{"status"}
+		for i := range typ.NumField() {
+			member, ok := cacheMembers[typ.Field(i).Name]
+			if !ok {
+				t.Fatalf("%v holds %s, which the census names no member of the schema", typ, typ.Field(i).Name)
+			}
+			members = append(members, member)
+		}
+		slices.Sort(members)
+		if want := sortedKeys(branches[status].Properties); !slices.Equal(members, want) {
+			t.Errorf("a %s state holds %v, and the schema states %v", status, members, want)
+		}
 	}
 }

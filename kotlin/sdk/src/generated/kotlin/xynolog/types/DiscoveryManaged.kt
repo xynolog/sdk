@@ -9,21 +9,22 @@ import kotlinx.serialization.Serializable
 
 /** The knowledge bases a launcher manages: none is a launcher that manages nothing. */
 @Serializable
-public data class DiscoveryReadManaged(
+public data class DiscoveryManaged(
     @EncodeDefault
-    public val kind: DiscoveryReadManagedKind = DiscoveryReadManagedKind.Managed,
+    public val kind: DiscoveryManagedKind = DiscoveryManagedKind.Managed,
     /** Each knowledge base, as the document lists it. */
     public val kbs: kotlin.collections.List<DiscoveredKB>,
-) : DiscoveryRead {
-    /** How Java makes a `DiscoveryReadManaged`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
+) : DiscoveryRead,
+    DiscoveryState {
+    /** How Java makes a `DiscoveryManaged`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val kbs: kotlin.collections.List<DiscoveredKB>,
     ) {
-        public fun build(): DiscoveryReadManaged = DiscoveryReadManaged(kbs = kbs)
+        public fun build(): DiscoveryManaged = DiscoveryManaged(kbs = kbs)
     }
 
     public companion object {
-        /** A builder of a `DiscoveryReadManaged` that states these, and what its setters add. */
+        /** A builder of a `DiscoveryManaged` that states these, and what its setters add. */
         @JvmStatic
         public fun builder(kbs: kotlin.collections.List<DiscoveredKB>): Builder = Builder(kbs)
     }

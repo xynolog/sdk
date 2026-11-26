@@ -292,9 +292,9 @@ httpCases root fixtures = do
           let total = fromIntegral (Bytes.length bytes)
               sending reports = [report | report@(UploadProgress _ _) <- reports]
               sent reports = [done | UploadProgress done _ <- reports]
-          require "upload reports are not its size, its progress and its resource" (notices == [UploadStarted total] ++ sending notices ++ [UploadFinished (createResourceResponseResourceId uploaded)])
+          require "upload reports are not its size, its progress and its resource" (notices == [UploadStarted (Just total)] ++ sending notices ++ [UploadFinished (createResourceResponseResourceId uploaded)])
           require "upload progress decreased across replay" (and (zipWith (<=) (sent notices) (drop 1 (sent notices))))
-          require "upload progress lost its total" (drop (length (sending notices) - 1) (sending notices) == [UploadProgress total total])
+          require "upload progress lost its total" (drop (length (sending notices) - 1) (sending notices) == [UploadProgress total (Just total)])
           state <- readState peer
           let uploads = values "uploads" state
           case uploads of

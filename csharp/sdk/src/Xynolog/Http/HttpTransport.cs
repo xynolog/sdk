@@ -316,7 +316,7 @@ public sealed partial class HttpTransport : IDisposable
             var frame = await Spawning.WaitAsync(reply.Completion.Task, linked.Token).ConfigureAwait(Spawning.Captures) switch
             {
                 FrameRefusal refusal => throw new TransportError(TransportErrorCode.Error,
-                    "a frame on " + refusal.Channel + " is not that channel's: " + new Fault(refusal.Member, refusal.Reason)),
+                    "a frame on " + refusal.Channel + " is not that channel's: " + Required.At(refusal.Member, refusal.Reason).Said()),
                 ReceivedBusFrame received => received,
             };
             if (frame.Frame.Channel == replies.Failure) throw Answered(replies.Failure, frame.Frame.Payload);
@@ -340,7 +340,7 @@ public sealed partial class HttpTransport : IDisposable
     private XynologError Answered(string channel, JsonElement failure)
     {
         if (Required.FaultOf(failureSchemas[channel], failure, out var read) is { } fault)
-            return new TransportError(TransportErrorCode.Error, $"a payload on {channel} is not that channel's: {fault}");
+            return new TransportError(TransportErrorCode.Error, $"a payload on {channel} is not that channel's: {fault.Said()}");
         var answered = read.Deserialize<CommandError>()
             ?? throw new InvalidOperationException($"The schema of {channel} let a failure be null.");
         return new BusRequestError(FailureCodes.Of(answered.Code), answered.Message);
@@ -491,7 +491,7 @@ public sealed partial class HttpTransport : IDisposable
                                     break;
                                 case Line.Unaddressed(var fault):
                                     // What names no reader is told to the failure report.
-                                    failures.Publish(new TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: " + fault));
+                                    failures.Publish(new TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: " + fault.Said()));
                                     break;
                             }
                         }
@@ -550,7 +550,7 @@ public sealed partial class HttpTransport : IDisposable
     {
         JsonElement value;
         try { value = JsonSerializer.Deserialize<JsonElement>(data); }
-        catch (JsonException) { return new Line.Unaddressed(Fault.Undecoded); }
+        catch (JsonException) { return new Line.Unaddressed(Required.Undecoded); }
         if (TryFrame(value, out var frame, out var fault)) return new Line.Framed(frame);
         if (value.ValueKind != JsonValueKind.Object) return new Line.Unaddressed(fault);
         // Its channel and scope name its readers when a frame of them alone is one BusFrame allows.
@@ -588,7 +588,7 @@ public sealed partial class HttpTransport : IDisposable
         try { frame = carried.Deserialize<BusFrame>() ?? throw new JsonException("A frame is null."); }
         catch (JsonException)
         {
-            fault = Fault.Undecoded;
+            fault = Required.Undecoded;
             return false;
         }
         return true;

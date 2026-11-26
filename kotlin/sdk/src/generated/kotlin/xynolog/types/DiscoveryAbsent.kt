@@ -9,28 +9,29 @@ import kotlinx.serialization.Serializable
 
 /** No launcher was found, and why. */
 @Serializable
-public data class DiscoveryReadAbsent(
+public data class DiscoveryAbsent(
     @EncodeDefault
-    public val kind: DiscoveryReadAbsentKind = DiscoveryReadAbsentKind.Absent,
-    /** Why: one of client/discovery-absent.json's reasons. */
-    public val reason: String,
+    public val kind: DiscoveryAbsentKind = DiscoveryAbsentKind.Absent,
+    /** Why. */
+    public val reason: DiscoveryAbsentReason,
     /** What was wrong, in words, when there is more to say. */
     public val diagnostic: String? = null,
-) : DiscoveryRead {
-    /** How Java makes a `DiscoveryReadAbsent`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
+) : DiscoveryRead,
+    DiscoveryState {
+    /** How Java makes a `DiscoveryAbsent`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val reason: String,
+        private val reason: DiscoveryAbsentReason,
     ) {
         private var diagnostic: String? = null
 
         public fun diagnostic(diagnostic: String?): Builder = apply { this.diagnostic = diagnostic }
 
-        public fun build(): DiscoveryReadAbsent = DiscoveryReadAbsent(reason = reason, diagnostic = diagnostic)
+        public fun build(): DiscoveryAbsent = DiscoveryAbsent(reason = reason, diagnostic = diagnostic)
     }
 
     public companion object {
-        /** A builder of a `DiscoveryReadAbsent` that states these, and what its setters add. */
+        /** A builder of a `DiscoveryAbsent` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(reason: String): Builder = Builder(reason)
+        public fun builder(reason: DiscoveryAbsentReason): Builder = Builder(reason)
     }
 }

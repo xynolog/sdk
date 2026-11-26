@@ -63,7 +63,7 @@ import Xynolog.SignIn qualified as SignIn
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Tokens qualified as Tokens
 import Xynolog.Transport qualified as Transport
-import Xynolog.Types (DeviceCode, HttpEndpoint, IssuedTokens (..), KbEndpoint (..), KbTarget (..), PendingAuthorizationIssuer (..), SessionEndReason (..), StoredSession (..), UserResponse (..), userIdValue)
+import Xynolog.Types (AccessToken (..), DeviceCode, HttpEndpoint, IssuedTokens (..), KbEndpoint (..), KbTarget (..), PendingAuthorizationIssuer (..), SessionEndReason (..), StoredSession (..), UserResponse (..), userIdValue)
 import Prelude hiding (id)
 import Prelude qualified
 
@@ -184,7 +184,7 @@ seed options stored = do
   pure $ case sessionInitialToken options of
     Just value -> Just value
     Nothing -> case stored of
-      Just value | not (Tokens.isTokenExpired (storedSessionAccess value) now) -> Just (storedSessionAccess value)
+      Just value | not (Tokens.isTokenExpired (accessTokenValue (storedSessionAccess value)) now) -> Just (accessTokenValue (storedSessionAccess value))
       _ -> Nothing
 
 -- | The transport reads the session's actual token cell. Its renewal callback
@@ -344,7 +344,7 @@ tell keeper code message = atomically (Broadcast.publish (keeperSaid keeper) (Le
 fromIssuedSession :: Http.HttpOptions -> Maybe Storage.SessionStorage -> SessionOptions -> StoredSession -> IO OpenedSession
 fromIssuedSession http storage options issued = do
   SignIn.keep (sessionKept options) issued
-  openKept http storage options (Just (storedSessionAccess issued))
+  openKept http storage options (Just (accessTokenValue (storedSessionAccess issued)))
 
 -- | Open the actual kept grant, renewing it only when due or refused. An
 -- absent grant opens a signed-out session without manufacturing credentials.
@@ -385,7 +385,7 @@ signInDevice http storage options onCode = do
   let issuerOptions = Issuer.IssuerOptions (Http.httpClient http) (Http.httpTime http) (Http.httpTiming http)
   (issuer, issued) <- Issuer.signInWithDeviceGrant issuerOptions endpoint onCode
   let stored =
-        StoredSession {storedSessionAccess = (issuedTokensAccess issued), storedSessionClientId = Issuer.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = (issuedTokensRefresh issued), storedSessionRevocationEndpoint = (pendingAuthorizationIssuerRevocation issuer), storedSessionTokenEndpoint = (pendingAuthorizationIssuerToken issuer)}
+        StoredSession {storedSessionAccess = AccessToken (issuedTokensAccess issued), storedSessionClientId = Issuer.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = (issuedTokensRefresh issued), storedSessionRevocationEndpoint = (pendingAuthorizationIssuerRevocation issuer), storedSessionTokenEndpoint = (pendingAuthorizationIssuerToken issuer)}
   fromIssuedSession http storage options stored
 
 -- | An account proves itself to its issuer, and the gateway names that account.
@@ -466,7 +466,7 @@ construct owned options time settings shared stream unrelay = mask $ \restore ->
           unless closed $ do
             modifyTVar' generation (+ 1)
             version <- readTVar generation
-            State.update shared (storedSessionAccess <$> stored)
+            State.update shared (accessTokenValue . storedSessionAccess <$> stored)
             writeTVar handed Nothing
             when (stored == Nothing) (State.update person Nothing)
             writeTQueue queue (Changed version stored)
@@ -550,7 +550,7 @@ loop session schedule = do
       current <- readTVarIO (revision session)
       when (current == version) $ do
         clear session schedule
-        forM_ stored (scheduleToken session schedule . storedSessionAccess)
+        forM_ stored (scheduleToken session schedule . accessTokenValue . storedSessionAccess)
     Right kind -> do
       modifyIORef' schedule (\(Schedule _ step) -> Schedule Nothing step)
       ask <- case kind of Scheduled -> pure False; Unanswered -> (== Nothing) <$> atomically (State.current (user session))
@@ -598,11 +598,11 @@ startup session schedule = do
     Nothing -> forM_ current (\access -> validate session schedule access True True)
     Just value -> do
       now <- sessionWallNow (configuration session)
-      let expired = Tokens.isTokenExpired (storedSessionAccess value) now
+      let expired = Tokens.isTokenExpired (accessTokenValue (storedSessionAccess value)) now
       if not expired
-        then validate session schedule (storedSessionAccess value) False True
+        then validate session schedule (accessTokenValue (storedSessionAccess value)) False True
         else do
-          atomically (writeTVar (renewing session) (Just (storedSessionAccess value)))
+          atomically (writeTVar (renewing session) (Just (accessTokenValue (storedSessionAccess value))))
           outcome <- attempt session
           case outcome of
             Renewed access -> accept session schedule access >> validate session schedule access True True

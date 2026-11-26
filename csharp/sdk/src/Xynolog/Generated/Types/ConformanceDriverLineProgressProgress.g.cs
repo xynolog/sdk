@@ -9,5 +9,5 @@ public sealed record ConformanceDriverLineProgressProgress
 {
     [global::Xynolog.Serialization.Wire("upload")] public required long Upload { get; init; }
     [global::Xynolog.Serialization.Wire("bytesUploaded")] public required long BytesUploaded { get; init; }
-    [global::Xynolog.Serialization.Wire("totalBytes")] public required long TotalBytes { get; init; }
+    [global::Xynolog.Serialization.Wire("totalBytes")] public long? TotalBytes { get; init; }
 }

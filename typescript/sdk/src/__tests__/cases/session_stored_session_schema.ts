@@ -12,7 +12,7 @@ export const schema = {
     "What is kept of a sign-in: the tokens an issuer issued, the client they were issued to, and the issuer's endpoints a renewal and a sign-out need, learned once at sign-in so no session asks again. TOKENS, never a password. A stored value that lacks a member it requires is no session.",
   properties: {
     access: {
-      type: 'string',
+      $ref: 'https://xynolog.org/protocol/AccessToken.json',
       description: 'The access token: short-lived, sent as a Bearer token.',
     },
     refresh: {

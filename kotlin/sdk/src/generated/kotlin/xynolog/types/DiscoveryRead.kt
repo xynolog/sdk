@@ -5,7 +5,7 @@ package xynolog.types
 
 import kotlinx.serialization.Serializable
 
-/** What one read of a launcher's discovery document gave, told apart by `kind`: no launcher was found, the knowledge bases one manages, or nothing changed since the last read. A launcher that manages none is not an absent one. */
+/** What one read of a launcher's discovery document gave: a DiscoveryState's absent or managed, or that nothing changed since the last read. Told apart by `kind`, as DiscoveryState's are. */
 @Serializable(with = DiscoveryReadSerializer::class)
 public sealed interface DiscoveryRead
 
@@ -17,7 +17,7 @@ internal object DiscoveryReadSerializer : SignatureUnionSerializer<DiscoveryRead
                 kind = Kind.OBJECT,
                 required = listOf("kind", "reason"),
                 allowed = listOf("kind", "reason", "diagnostic"),
-                fixed = listOf("kind" to listOf(Literal.Text("absent"))),
+                fixed = listOf("kind" to listOf(Literal.Text("absent")), "reason" to listOf(Literal.Text("not-found"), Literal.Text("not-json"), Literal.Text("invalid"), Literal.Text("unsupported-version"), Literal.Text("unreadable"))),
                 values = null,
             ),
         ),
@@ -42,9 +42,9 @@ internal object DiscoveryReadSerializer : SignatureUnionSerializer<DiscoveryRead
     ),
     variants = {
         listOf(
-            DiscoveryReadAbsent.serializer(),
-            DiscoveryReadManaged.serializer(),
-            DiscoveryReadUnchanged.serializer(),
+            DiscoveryAbsent.serializer(),
+            DiscoveryManaged.serializer(),
+            DiscoveryUnchanged.serializer(),
         )
     },
 )

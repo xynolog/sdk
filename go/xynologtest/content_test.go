@@ -2,7 +2,7 @@ package xynologtest_test
 
 import (
 	"context"
-	"slices"
+	"reflect"
 	"testing"
 
 	"github.com/xynolog/sdk/go/api"
@@ -32,11 +32,11 @@ func TestAnUploadInMemoryReportsItsSizeThatAllOfItWasSentAndTheResourceMade(t *t
 		t.Errorf("the upload is kept as %s", created.ResourceId)
 	}
 	want := []any{
-		api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: 10},
-		api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: 10, TotalBytes: 10},
+		api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: new(10)},
+		api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: 10, TotalBytes: new(10)},
 		api.UploadProgressFinished{Phase: api.UploadProgressFinishedPhaseFinished, ResourceId: created.ResourceId},
 	}
-	if !slices.Equal(reports, want) {
+	if !reflect.DeepEqual(reports, want) {
 		t.Errorf("the upload reported %+v, want %+v", reports, want)
 	}
 }

@@ -24,9 +24,11 @@ func Store(ctx context.Context, content xynolog.ContentTransport, gateway xynolo
 		}
 		switch reported := member.(type) {
 		case api.UploadProgressStarted:
-			fmt.Println("sending", reported.TotalBytes)
+			if reported.TotalBytes != nil {
+				fmt.Println("sending", *reported.TotalBytes)
+			}
 		case api.UploadProgressProgress:
-			fmt.Println(reported.BytesUploaded, "of", reported.TotalBytes)
+			fmt.Println(reported.BytesUploaded, "sent")
 		case api.UploadProgressFinished:
 			fmt.Println("made", reported.ResourceId)
 		}

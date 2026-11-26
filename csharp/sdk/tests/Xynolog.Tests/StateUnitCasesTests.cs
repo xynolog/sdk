@@ -305,12 +305,7 @@ public sealed partial class TransportTests
                 case (SearchPipeline<string> one, "setQuery"): one.SetQuery(Text(args, "value")); break;
                 case (GatherStateUnit one, "gatherAnnotation"):
                     one.GatherAnnotation(Read<AnnotationId>(args, "annotationId"),
-                    new GatherAnnotationOptions
-                    {
-                        ContextWindow = args.TryGetProperty("contextWindow", out var window) ? window.GetInt64() : null,
-                        IncludeSourceContext = args.TryGetProperty("includeSourceContext", out var source) ? source.GetBoolean() : null,
-                        IncludeTargetContext = args.TryGetProperty("includeTargetContext", out var target) ? target.GetBoolean() : null,
-                    }); break;
+                    args.TryGetProperty("options", out _) ? Read<GatherAnnotationOptions>(args, "options") : null); break;
                 case (GatherStateUnit one, "gatherResource"): one.GatherResource(Read<ResourceId>(args, "resourceId")); break;
                 case (YieldStateUnit one, "generate"):
                     one.Generate(Read<GenerationJobParams>(args, "params"),

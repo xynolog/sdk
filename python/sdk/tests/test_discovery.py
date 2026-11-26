@@ -14,21 +14,23 @@ from spec import JsonObject
 from xynolog.discovery import (
     DISCOVERY_INTERVAL,
     DISCOVERY_URL_PATH,
-    Absent,
     DiscoveryAbsentReason,
-    DiscoveryDiff,
-    DiscoveryRead,
-    DiscoveryState,
     DiscoveryTransport,
-    Managed,
-    Unchanged,
     parse_discovery_document,
     subscribe_discovery,
     text_discovery,
 )
 from xynolog.http.discovery import http_discovery
 from xynolog.timing import HTTP_REQUEST_TIMEOUT_MS
-from xynolog.types import DiscoveredKB
+from xynolog.types import (
+    DiscoveredKB,
+    DiscoveryAbsent,
+    DiscoveryDiff,
+    DiscoveryManaged,
+    DiscoveryRead,
+    DiscoveryState,
+    DiscoveryUnchanged,
+)
 
 _JSON: Final = TypeAdapter[JsonValue](JsonValue)
 
@@ -67,11 +69,11 @@ CODESPACE: Final[JsonObject] = {
 
 
 def test_a_document_of_knowledge_bases_is_managed_and_one_of_none_is_managed_too() -> None:
-    assert parse_discovery_document(document(entry("localhost", 4000, A), CODESPACE)) == Managed(
-        kbs=(kb(entry("localhost", 4000, A)), kb(CODESPACE))
+    assert parse_discovery_document(document(entry("localhost", 4000, A), CODESPACE)) == DiscoveryManaged(
+        kind="managed", kbs=[kb(entry("localhost", 4000, A)), kb(CODESPACE)]
     )
     # A launcher that manages nothing is there. It is not absent.
-    assert parse_discovery_document(document()) == Managed(kbs=())
+    assert parse_discovery_document(document()) == DiscoveryManaged(kind="managed", kbs=[])
 
 
 @pytest.mark.parametrize(
@@ -93,14 +95,14 @@ def test_a_document_of_knowledge_bases_is_managed_and_one_of_none_is_managed_too
 )
 def test_what_is_not_a_document_is_absent_and_says_why(text: str, expected: DiscoveryAbsentReason) -> None:
     state = parse_discovery_document(text)
-    assert isinstance(state, Absent), f"read {state}"
+    assert isinstance(state, DiscoveryAbsent), f"read {state}"
     assert state.reason == expected
     assert state.diagnostic
 
 
 def test_a_document_of_another_version_is_not_read_in_part() -> None:
     state = parse_discovery_document(written({"version": 2, "kbs": [entry("localhost", 4000, A)]}))
-    assert isinstance(state, Absent)
+    assert isinstance(state, DiscoveryAbsent)
     assert state.reason == "unsupported-version"
     assert state.diagnostic is not None
     assert "version 2" in state.diagnostic
@@ -110,7 +112,7 @@ def test_one_entry_that_is_not_one_makes_the_whole_document_absent() -> None:
     # A reading of the good entry alone would hide a running knowledge base.
     without_a_did: JsonObject = {"host": "localhost", "port": 4100, "placement": "local", "managedBy": "x"}
     state = parse_discovery_document(document(entry("localhost", 4000, A), without_a_did))
-    assert isinstance(state, Absent)
+    assert isinstance(state, DiscoveryAbsent)
     assert state.reason == "invalid"
     assert state.diagnostic is not None
     assert "did" in state.diagnostic
@@ -130,9 +132,11 @@ def read_of(text: str | None = None, failure: OSError | None = None) -> Discover
 
 
 def test_text_is_read_through_the_one_validator() -> None:
-    assert read_of(document(entry("localhost", 4000, A))) == Managed(kbs=(kb(entry("localhost", 4000, A)),))
-    assert read_of(failure=FileNotFoundError("no such file")) == Absent(reason="not-found")
-    assert read_of(failure=PermissionError("permission denied")) == Absent(reason="unreadable", diagnostic="permission denied")
+    assert read_of(document(entry("localhost", 4000, A))) == DiscoveryManaged(kind="managed", kbs=[kb(entry("localhost", 4000, A))])
+    assert read_of(failure=FileNotFoundError("no such file")) == DiscoveryAbsent(kind="absent", reason="not-found")
+    assert read_of(failure=PermissionError("permission denied")) == DiscoveryAbsent(
+        kind="absent", reason="unreadable", diagnostic="permission denied"
+    )
 
 
 # ── What changed ────────────────────────────────────────────────────────
@@ -149,7 +153,7 @@ class Script(DiscoveryTransport):
     @override
     async def read(self) -> DiscoveryRead:
         self.asked += 1
-        return self._reads.pop(0) if self._reads else Unchanged()
+        return self._reads.pop(0) if self._reads else DiscoveryUnchanged(kind="unchanged")
 
 
 async def changes(script: Script, polls: int) -> list[DiscoveryDiff]:
@@ -180,7 +184,7 @@ def summary(diff: DiscoveryDiff) -> Summary:
 
 
 def reason(state: DiscoveryState) -> DiscoveryAbsentReason | None:
-    return state.reason if isinstance(state, Absent) else None
+    return state.reason if isinstance(state, DiscoveryAbsent) else None
 
 
 def test_the_first_reading_is_told_whole_and_each_one_after_by_what_changed() -> None:
@@ -214,7 +218,7 @@ def test_a_knowledge_base_that_moves_port_is_removed_and_added() -> None:
 
 def test_a_reading_that_changed_nothing_is_not_told() -> None:
     same = parse_discovery_document(document(entry("localhost", 4000, A)))
-    script = Script(same, Unchanged(), same, parse_discovery_document(document(entry("localhost", 4000, A))))
+    script = Script(same, DiscoveryUnchanged(kind="unchanged"), same, parse_discovery_document(document(entry("localhost", 4000, A))))
     told = run_still(changes(script, 5))
 
     assert len(told) == 1
@@ -255,7 +259,7 @@ def test_one_knowledge_base_in_two_places_is_two_entries_and_each_is_its_own() -
         (["localhost:4000", "localhost:4100"], [], []),
         ([], [], ["localhost:4000"]),
     ]
-    assert [diff.duplicated for diff in told] == [(), ()]
+    assert [diff.duplicated for diff in told] == [[], []]
 
 
 def test_two_entries_at_one_address_are_named_and_neither_is_dropped_from_the_state() -> None:
@@ -265,9 +269,9 @@ def test_two_entries_at_one_address_are_named_and_neither_is_dropped_from_the_st
     told = run_still(changes(script, 1))
 
     assert len(told) == 1
-    assert told[0].duplicated == ("localhost:4000",)
+    assert told[0].duplicated == ["localhost:4000"]
     state = told[0].state
-    assert isinstance(state, Managed)
+    assert isinstance(state, DiscoveryManaged)
     assert len(state.kbs) == 3
 
 
@@ -315,9 +319,9 @@ def test_a_document_that_has_not_changed_is_not_read_again() -> None:
             return *reads, [asked.headers.get("if-none-match") for asked in gateway.of("GET", DISCOVERY_URL_PATH)]
 
     first, second, third, tags = run(scenario())
-    assert first == Managed(kbs=(kb(entry("localhost", 4000, A)),))
-    assert second == Unchanged()
-    assert third == Managed(kbs=())
+    assert first == DiscoveryManaged(kind="managed", kbs=[kb(entry("localhost", 4000, A))])
+    assert second == DiscoveryUnchanged(kind="unchanged")
+    assert third == DiscoveryManaged(kind="managed", kbs=[])
     assert tags == [None, '"v1"', '"v1"']
 
 
@@ -339,7 +343,7 @@ def test_what_is_not_a_document_at_the_address_is_absent() -> None:
         return reads, tags, nowhere
 
     reads, tags, nowhere = run(scenario())
-    assert [read.reason if isinstance(read, Absent) else read for read in reads] == [
+    assert [read.reason if isinstance(read, DiscoveryAbsent) else read for read in reads] == [
         "not-found",
         "not-found",
         "not-found",
@@ -348,7 +352,7 @@ def test_what_is_not_a_document_at_the_address_is_absent() -> None:
     ]
     # The tag of a document that did not read was not kept: it is not believed the next time.
     assert tags == [None, None, None, None, None]
-    assert isinstance(nowhere, Absent)
+    assert isinstance(nowhere, DiscoveryAbsent)
     assert nowhere.reason == "unreadable"
 
 
@@ -365,7 +369,7 @@ def test_a_launchers_document_that_is_never_served_is_unreadable_at_the_deadline
     read, took = run(scenario())
     deadline = HTTP_REQUEST_TIMEOUT_MS / 1000
     assert deadline <= took < deadline + 2, f"took {took}s"
-    assert read == Absent(reason="unreadable", diagnostic="the document was not served within 30s")
+    assert read == DiscoveryAbsent(kind="absent", reason="unreadable", diagnostic="the document was not served within 30s")
 
 
 def test_a_reader_given_a_client_reads_through_it_follows_a_redirect_whatever_the_client_says_and_leaves_it_open() -> None:
@@ -384,6 +388,6 @@ def test_a_reader_given_a_client_reads_through_it_follows_a_redirect_whatever_th
             return read, http.is_closed
 
     read, closed = run(scenario())
-    assert read == Managed(kbs=(kb(entry("localhost", 4000, A)),))
+    assert read == DiscoveryManaged(kind="managed", kbs=[kb(entry("localhost", 4000, A))])
     assert asked == ["/moved", DISCOVERY_URL_PATH]
     assert not closed

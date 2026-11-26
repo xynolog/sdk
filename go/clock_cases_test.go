@@ -28,6 +28,7 @@ import (
 	"maps"
 	"math"
 	"math/rand/v2"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -62,6 +63,7 @@ type clockGiven struct {
 	LifetimeSeconds   *int     `json:"lifetimeSeconds"`
 	IntervalSeconds   *int     `json:"intervalSeconds"`
 	Answers           []string `json:"answers"`
+	Status            *int     `json:"status"`
 }
 
 func readClockCases(t *testing.T) []clockCase {
@@ -493,9 +495,9 @@ type fakeIssuer struct {
 func (i *fakeIssuer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch where := "http://" + r.Host + r.URL.Path; where {
 	case gatewayOrigin + "/.well-known/oauth-protected-resource":
-		i.answer(w, http.StatusOK, map[string]any{"resource": gatewayOrigin, "authorization_servers": []string{issuerOrigin}, "bearer_methods_supported": []string{"header"}})
+		answerJSON(i.t, w, http.StatusOK, map[string]any{"resource": gatewayOrigin, "authorization_servers": []string{issuerOrigin}, "bearer_methods_supported": []string{"header"}})
 	case issuerOrigin + "/.well-known/openid-configuration":
-		i.answer(w, http.StatusOK, map[string]any{
+		answerJSON(i.t, w, http.StatusOK, map[string]any{
 			"issuer":                        issuerOrigin,
 			"authorization_endpoint":        issuerOrigin + "/auth",
 			"token_endpoint":                issuerOrigin + "/token",
@@ -506,29 +508,30 @@ func (i *fakeIssuer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if i.interval != nil {
 			minted["interval"] = *i.interval
 		}
-		i.answer(w, http.StatusOK, minted)
+		answerJSON(i.t, w, http.StatusOK, minted)
 	case issuerOrigin + "/token":
 		i.mu.Lock()
 		said := i.answers[min(i.tokenAsks, len(i.answers)-1)]
 		i.tokenAsks++
 		i.mu.Unlock()
-		i.answer(w, http.StatusBadRequest, map[string]any{"error": said})
+		answerJSON(i.t, w, http.StatusBadRequest, map[string]any{"error": said})
 	default:
 		i.t.Errorf("the issuer was asked %s %s, which a device grant does not ask", r.Method, where)
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
-func (i *fakeIssuer) answer(w http.ResponseWriter, status int, document map[string]any) {
+// answerJSON answers with status and document, in JSON.
+func answerJSON(t *testing.T, w http.ResponseWriter, status int, document map[string]any) {
 	encoded, err := json.Marshal(document)
 	if err != nil {
-		i.t.Errorf("the issuer's answer does not encode: %v", err)
+		t.Errorf("the answer does not encode: %v", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if _, err := w.Write(encoded); err != nil {
-		i.t.Errorf("the issuer could not answer: %v", err)
+		t.Errorf("the answer could not be written: %v", err)
 	}
 }
 
@@ -551,6 +554,105 @@ func deviceGrant(t *testing.T, given clockGiven) clockSubject {
 		}
 	})
 	return clockSubject{counted: issuer.asked}
+}
+
+// ── An agent's sign-in ──────────────────────────────────────────────────
+
+// agentServers is an agent's issuer and gateway in the bubble. The issuer
+// answers the grant with a token that lives an hour, or with grantStatus when
+// there is one; the gateway answers the naming request with namingStatus. It
+// counts the grants and the naming requests it is asked.
+type agentServers struct {
+	t            *testing.T
+	grantStatus  *int
+	namingStatus *int
+
+	mu    sync.Mutex
+	asked int
+}
+
+func (a *agentServers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	switch where := "http://" + r.Host + r.URL.Path; where {
+	case issuerOrigin + "/.well-known/openid-configuration":
+		answerJSON(a.t, w, http.StatusOK, map[string]any{"issuer": issuerOrigin, "token_endpoint": issuerOrigin + "/token"})
+	case issuerOrigin + "/token":
+		n := a.ask()
+		if a.grantStatus != nil {
+			answerJSON(a.t, w, *a.grantStatus, map[string]any{"error": "temporarily_unavailable"})
+			return
+		}
+		answerJSON(a.t, w, http.StatusOK, map[string]any{"access_token": tokenFor(time.Hour, n), "token_type": "Bearer", "expires_in": 3600})
+	case gatewayOrigin + xynolog.RouteGetCurrentUser.Path:
+		a.ask()
+		if a.namingStatus == nil {
+			a.t.Errorf("the gateway was asked after a refused grant")
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		answerJSON(a.t, w, *a.namingStatus, map[string]any{})
+	default:
+		a.t.Errorf("%s %s was asked, which an agent's sign-in does not ask", r.Method, where)
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+// ask counts one request, and is how many there have been.
+func (a *agentServers) ask() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.asked++
+	return a.asked
+}
+
+func (a *agentServers) requests() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.asked
+}
+
+// agentSignIn is an agent's sign-in at servers, set going as the case begins.
+// Over a gateway that is unreachable, every connection to it fails as it is
+// made, and each is counted with what servers count.
+func agentSignIn(t *testing.T, servers *agentServers, unreachable bool) clockSubject {
+	client := httptest.NewTestServer(t, servers).Client()
+	var tried atomic.Int64
+	gateway := client
+	if unreachable {
+		gateway = &http.Client{Transport: &http.Transport{DialContext: func(context.Context, string, string) (net.Conn, error) {
+			tried.Add(1)
+			return nil, errors.New("the gateway cannot be reached")
+		}}}
+	}
+	service := xynolog.NewServiceToken(
+		xynolog.SecretCredential{Issuer: issuerOrigin, ClientID: "smelter", ClientSecret: "a-client-secret"},
+		xynolog.Issuer{HTTP: client, Timing: xynolog.DefaultTiming(), Random: lowest},
+	)
+	background(t, func(ctx context.Context) {
+		agent, err := xynolog.SignInAgent(ctx, xynolog.AgentConfig{Gateway: gatewayOrigin, Service: service, HTTP: gateway, Timing: xynolog.DefaultTiming(), Random: lowest})
+		if err == nil {
+			agent.Close()
+			t.Error("the agent signed in")
+		}
+	})
+	return clockSubject{counted: func() int { return servers.requests() + int(tried.Load()) }}
+}
+
+func refusedAgentSignIn(t *testing.T, given clockGiven) clockSubject {
+	if given.Status == nil {
+		t.Fatal("a refused sign-in's case states the gateway's status")
+	}
+	return agentSignIn(t, &agentServers{t: t, namingStatus: given.Status}, false)
+}
+
+func unreachableAgentSignIn(t *testing.T, _ clockGiven) clockSubject {
+	return agentSignIn(t, &agentServers{t: t}, true)
+}
+
+func refusedAgentGrant(t *testing.T, given clockGiven) clockSubject {
+	if given.Status == nil {
+		t.Fatal("a refused grant's case states the issuer's status")
+	}
+	return agentSignIn(t, &agentServers{t: t, grantStatus: given.Status}, false)
 }
 
 // ── A session ───────────────────────────────────────────────────────────
@@ -655,19 +757,28 @@ func heldJobStall(t *testing.T, _ clockGiven) clockSubject {
 
 // launcherDocument is a launcher's document: one managed knowledge base at
 // the first read, and unchanged at every read after it.
-type launcherDocument struct{ reads atomic.Int64 }
+type launcherDocument struct {
+	reads        atomic.Int64
+	first, after api.DiscoveryRead
+}
 
-func (d *launcherDocument) Read(context.Context) discovery.DiscoveryRead {
+func (d *launcherDocument) Read(context.Context) api.DiscoveryRead {
 	if d.reads.Add(1) == 1 {
-		return discovery.Managed{KBs: []api.DiscoveredKB{{
-			Host: "localhost", Port: 4000, Placement: api.KbPlacementLocal, ManagedBy: "xynolog-launcher", Did: "did:web:example.org:kb-a",
-		}}}
+		return d.first
 	}
-	return discovery.Unchanged{}
+	return d.after
 }
 
 func discoverySubject(t *testing.T, _ clockGiven) clockSubject {
 	document := &launcherDocument{}
+	if err := document.first.From(api.DiscoveryManaged{Kbs: []api.DiscoveredKB{{
+		Host: "localhost", Port: 4000, Placement: api.KbPlacementLocal, ManagedBy: "xynolog-launcher", Did: "did:web:example.org:kb-a",
+	}}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := document.after.From(api.DiscoveryUnchanged{}); err != nil {
+		t.Fatal(err)
+	}
 	background(t, func(ctx context.Context) {
 		for range discovery.SubscribeDiscovery(ctx, document, xynolog.DefaultTiming().DiscoveryInterval) {
 		}
@@ -806,25 +917,28 @@ func jobPollTimeout(t *testing.T, _ clockGiven) clockSubject {
 // clockSubjects is how this SDK builds each subject the table names, with
 // what is to be closed once the case is over left to t's cleanup.
 var clockSubjects = map[string]func(t *testing.T, given clockGiven) clockSubject{
-	"refusedStream":      refusedStream,
-	"unansweredStream":   unansweredStream,
-	"degradedStream":     degradedStream,
-	"scopeTaken":         scopeTaken,
-	"scopeLetGo":         scopeLetGo,
-	"handoffLinger":      handoffLinger,
-	"renewal":            renewalSubject,
-	"deviceGrant":        deviceGrant,
-	"heldJobStall":       heldJobStall,
-	"discovery":          discoverySubject,
-	"invalidationWindow": invalidationWindow,
-	"saveDebounce":       saveDebounce,
-	"jobFollower":        jobFollower,
-	"unansweredRequest":  unansweredRequest,
-	"unansweredEmit":     unansweredEmit,
-	"refusedBusRequest":  refusedBusRequest,
-	"timedOutBusRequest": timedOutBusRequest,
-	"jobPoll":            jobPoll,
-	"jobPollTimeout":     jobPollTimeout,
+	"refusedStream":          refusedStream,
+	"unansweredStream":       unansweredStream,
+	"degradedStream":         degradedStream,
+	"scopeTaken":             scopeTaken,
+	"scopeLetGo":             scopeLetGo,
+	"handoffLinger":          handoffLinger,
+	"renewal":                renewalSubject,
+	"deviceGrant":            deviceGrant,
+	"heldJobStall":           heldJobStall,
+	"discovery":              discoverySubject,
+	"invalidationWindow":     invalidationWindow,
+	"saveDebounce":           saveDebounce,
+	"jobFollower":            jobFollower,
+	"unansweredRequest":      unansweredRequest,
+	"unansweredEmit":         unansweredEmit,
+	"refusedBusRequest":      refusedBusRequest,
+	"timedOutBusRequest":     timedOutBusRequest,
+	"jobPoll":                jobPoll,
+	"jobPollTimeout":         jobPollTimeout,
+	"refusedAgentSignIn":     refusedAgentSignIn,
+	"unreachableAgentSignIn": unreachableAgentSignIn,
+	"refusedAgentGrant":      refusedAgentGrant,
 }
 
 // ── A case, played ──────────────────────────────────────────────────────

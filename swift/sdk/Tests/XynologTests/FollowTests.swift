@@ -50,8 +50,7 @@ private func refused(
 ) -> Carried {
   .refused(
     FrameRefusal(
-      channel: channel, member: member, reason: reason, payload: .object(payload),
-      correlationId: nil, scope: nil))
+      channel: channel, member: member, reason: reason, payload: .object(payload)))
 }
 private func eventName<Value>(_ event: JobEvent<Value>) -> String {
   switch event {

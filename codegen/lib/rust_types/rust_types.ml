@@ -186,11 +186,7 @@ let service_tables ~root (spec : Spec.t) =
   }
 
 let sign_in (spec : Spec.t) =
-  let schema =
-    match List.assoc_opt Roots.sign_in_entry spec.schemas with
-    | Some s -> s
-    | None -> Definitions.refuse "Protocol has no %s" Roots.sign_in_entry
-  in
+  let schema = Definitions.sign_in spec in
   {
     Output.path = "rust/sdk/src/generated/sign_in.rs";
     text =
@@ -201,23 +197,6 @@ let sign_in (spec : Spec.t) =
               (Definitions.alone ~ids:spec.ids ~name:"SignIn" schema)
               ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[])
            ~accessors:[]);
-  }
-
-(* Why a client that read a launcher's discovery document found no launcher
-   (rust/sdk/src/discovery.rs): an enumeration of the reasons. *)
-let discovery_absent (spec : Spec.t) =
-  let reasons =
-    List.map
-      (fun (r : Tables.Client_discovery_absent.reasons_item) -> r.reason)
-      spec.tables.client_discovery_absent.reasons
-  in
-  {
-    Output.path = "rust/sdk/src/generated/discovery_absent.rs";
-    text =
-      Rust_syntax.text
-        ~header:(regenerate "protocol/specs/src/client/discovery-absent.json")
-        (Generate.enumeration "DiscoveryAbsentReason" reasons
-           [ "Why no launcher was found." ]);
   }
 
 (* What an issuer stamps on a token for the gateway to read
@@ -381,7 +360,6 @@ let files ~root (spec : Spec.t) =
     [
       types spec;
       sign_in spec;
-      discovery_absent spec;
       roles spec;
       control spec;
       service_tables ~root spec;

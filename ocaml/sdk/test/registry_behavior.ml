@@ -52,14 +52,20 @@ let gateway_urls () =
 
 let discovery () =
   let parse = D.parse_discovery_document in
-  assert (parse {|{"version":1,"kbs":[]}|} = D.Managed []);
+  let absent reason =
+    Records.Discovery_state.Absent
+      { Records.Discovery_absent.reason; diagnostic = None }
+  in
+  assert (
+    parse {|{"version":1,"kbs":[]}|}
+    = Records.Discovery_state.Managed { kbs = [] });
   assert (
     parse {|{"version":2,"kbs":[]}|}
-    = D.Absent Enums.Discovery_absent_reason.Unsupported_version);
-  assert (parse "html" = D.Absent Enums.Discovery_absent_reason.Not_json);
+    = absent Enums.Discovery_absent_reason.Unsupported_version);
+  assert (parse "html" = absent Enums.Discovery_absent_reason.Not_json);
   assert (
     parse {|{"version":1,"kbs":[{}]}|}
-    = D.Absent Enums.Discovery_absent_reason.Invalid);
+    = absent Enums.Discovery_absent_reason.Invalid);
   let entry port name =
     Printf.sprintf
       {|{"host":"localhost","port":%d,"did":"did:web:kb.example","managedBy":"xynolog-launcher","placement":"local","siteName":"%s"}|}
@@ -78,10 +84,11 @@ let discovery () =
   in
   assert (List.length changed.updated = 2);
   assert (List.length changed.removed = 1);
-  assert (changed.duplicated = [ ("localhost", 4010) ]);
+  assert (changed.duplicated = [ "localhost:4010" ]);
   assert (
     D.text_discovery (fun () -> None) ()
-    = D.Read (D.Absent Enums.Discovery_absent_reason.Not_found))
+    = Records.Discovery_read.Absent
+        { reason = Enums.Discovery_absent_reason.Not_found; diagnostic = None })
 
 (* Discovery and deviceGrant rows from client/clock-cases.json. *)
 let controlled () =
@@ -128,7 +135,8 @@ let controlled () =
             D.subscribe_discovery ~sw ~clock
               (fun () ->
                 incr count;
-                if !count = 1 then D.Read (D.Managed []) else D.Unchanged)
+                if !count = 1 then Records.Discovery_read.Managed { kbs = [] }
+                else Unchanged)
               ~on_change:ignore
           in
           ()
@@ -525,6 +533,51 @@ let controlled () =
                        Yojson.Safe.to_string (`Assoc [ ("error", text code) ])
                      ))
                    issuer device);
+              `Stop_daemon)
+      | ( Clock_cases.Refused_agent_sign_in
+        | Clock_cases.Unreachable_agent_sign_in
+        | Clock_cases.Refused_agent_grant ) as subject ->
+          (* The sign-in is given its issuer discovered, so the discovery is
+             none of the requests it sends. *)
+          let endpoint = "https://issuer.example/token" in
+          let issuer =
+            Result.get_ok
+              (OAuth.discover ~issuer:"https://issuer.example" (fun _ ->
+                   ( 200,
+                     {|{"issuer":"https://issuer.example","authorization_endpoint":"https://issuer.example/auth","token_endpoint":"https://issuer.example/token"}|}
+                   )))
+          in
+          let http (request : OAuth.request) =
+            assert (request.url = endpoint);
+            incr count;
+            match subject with
+            | Clock_cases.Refused_agent_grant ->
+                ( Option.get (given ()).status,
+                  {|{"error":"temporarily_unavailable"}|} )
+            | _ ->
+                ( 200,
+                  {|{"access_token":"agent-token","token_type":"Bearer","expires_in":3600}|}
+                )
+          in
+          let call ~sw:_ ~meth:_ ~path ~headers:_ ~body:_ ~progress:_ =
+            assert (path = "/api/users/me");
+            incr count;
+            match subject with
+            | Clock_cases.Unreachable_agent_sign_in -> raise End_of_file
+            | _ ->
+                (Option.get (given ()).status, [], Eio.Flow.string_source "{}")
+          in
+          Fiber.fork_daemon ~sw (fun () ->
+              (match
+                 Agent.sign_in ~sw ~clock ~issuer ~http ~client_id:"smelter"
+                   ~proof:(Agent.Secret "a-client-secret")
+                   ~key:(fun () -> "agent-key")
+                   ~call ()
+               with
+              | Ok agent ->
+                  Agent.close agent;
+                  Alcotest.fail "the agent signed in"
+              | Error _ -> ());
               `Stop_daemon));
       let settle () =
         for _ = 1 to 20 do

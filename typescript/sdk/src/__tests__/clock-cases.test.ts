@@ -20,27 +20,26 @@ import {
   BRIDGED_CHANNELS,
   Bus,
   BusRequestError,
+  gatewayRoutes,
   jobId,
   resourceId,
+  ServiceToken,
   userId,
   watched,
   type AccessToken,
   type BusOperationKey,
   type DiscoveredKB,
+  type DiscoveryRead,
   type EventMap,
   type HttpEndpoint,
   type JobFilter,
 } from '@xynolog/core';
-import { APIError, HttpTransport } from '@xynolog/http-transport';
+import { agentToken, APIError, HttpTransport } from '@xynolog/http-transport';
 import { createCache, type CachePersister } from '../cache';
 import type { HeldJob } from '../claims';
 import { JOB_CLAIM_CHANNELS } from '../worker-channels';
 import { XynologClient } from '../client';
-import {
-  subscribeDiscovery,
-  type DiscoveryReadResult,
-  type DiscoveryTransport,
-} from '../discovery';
+import { subscribeDiscovery, type DiscoveryTransport } from '../discovery';
 import { httpKb } from '../session/knowledge-base';
 import { signInWithDeviceGrant } from '../session/oauth';
 import { XynologSession, type UserInfo } from '../session/xynolog-session';
@@ -652,6 +651,108 @@ async function renewal(given: Given | undefined, held: Held): Promise<Subject> {
   return { counted: () => renewals };
 }
 
+// ── An agent's sign-in ──────────────────────────────────────────────────
+
+const NAMING = `${KB_GATEWAY}${gatewayRoutes.getCurrentUser.path}`;
+
+/**
+ * An agent's sign-in at an issuer, in this process, that grants a token that
+ * lives an hour, or answers the grant with `grantStatus` when it states one,
+ * and at a gateway that names the agent, or answers its naming request with
+ * `namingStatus` when it states one, or fails each connection as it is made
+ * when `unreachable`. It counts the requests the sign-in has sent: its
+ * grants, its naming requests, and each connection to the gateway it tried.
+ * Every subject fails the sign-in, so one that ends signed in is wrong.
+ */
+async function agentSignIn(
+  held: Held,
+  {
+    grantStatus,
+    namingStatus,
+    unreachable,
+  }: { grantStatus?: number; namingStatus?: number; unreachable: boolean },
+): Promise<Subject> {
+  let sent = 0;
+  const answer = async (
+    input: Parameters<typeof fetch>[0],
+    init?: Parameters<typeof fetch>[1],
+  ): Promise<Response> => {
+    const { url, signal } = requestOf(input, init);
+    const where = `${url.origin}${url.pathname}`;
+    switch (where) {
+      case `${ISSUER}/.well-known/openid-configuration`:
+        return json(200, { issuer: ISSUER, token_endpoint: `${ISSUER}/token` });
+      case `${ISSUER}/token`:
+        sent += 1;
+        return grantStatus === undefined
+          ? json(200, {
+              access_token: token(3600, sent),
+              token_type: 'Bearer',
+              expires_in: 3600,
+            })
+          : json(grantStatus, { error: 'temporarily_unavailable' });
+      case NAMING:
+        sent += 1;
+        if (unreachable)
+          throw new TypeError('fetch failed: connection refused');
+        return namingStatus === undefined
+          ? json(200, {
+              did: 'did:web:example.org:agents:smelter',
+              email: null,
+              name: 'Smelter',
+              image: null,
+              domain: 'example.org',
+            })
+          : json(namingStatus, {});
+      default:
+        held.wrong.push(
+          `the sign-in asked ${where}, which an agent's sign-in does not ask`,
+        );
+        return neverAnswered(signal);
+    }
+  };
+  const service = new ServiceToken(
+    { issuer: ISSUER, clientId: 'smelter', clientSecret: 'a-client-secret' },
+    answer,
+  );
+  agentToken({ baseUrl: KB_GATEWAY, service, fetch: answer }).then(
+    () => held.wrong.push('the agent signed in'),
+    () => {},
+  );
+  return { counted: () => sent };
+}
+
+function givenStatus(given: Given | undefined): number {
+  return count(given?.status, 'given.status');
+}
+
+async function refusedAgentSignIn(
+  given: Given | undefined,
+  held: Held,
+): Promise<Subject> {
+  return agentSignIn(held, {
+    namingStatus: givenStatus(given),
+    unreachable: false,
+  });
+}
+
+async function unreachableAgentSignIn(
+  _given: Given | undefined,
+  held: Held,
+): Promise<Subject> {
+  return agentSignIn(held, { unreachable: true });
+}
+
+async function refusedAgentGrant(
+  given: Given | undefined,
+  held: Held,
+): Promise<Subject> {
+  return agentSignIn(held, {
+    grantStatus: givenStatus(given),
+    unreachable: false,
+  });
+}
+
 // ── A worker's claims ───────────────────────────────────────────────────
 
 const MARK_JOBS: JobFilter[] = [
@@ -738,7 +839,7 @@ const MANAGED: DiscoveredKB = {
 class LauncherDocument implements DiscoveryTransport {
   reads = 0;
 
-  async read(): Promise<DiscoveryReadResult> {
+  async read(): Promise<DiscoveryRead> {
     this.reads += 1;
     return this.reads === 1
       ? { kind: 'managed', kbs: [MANAGED] }
@@ -951,6 +1052,9 @@ const SUBJECTS: Record<string, Build> = {
   timedOutBusRequest,
   jobPoll,
   jobPollTimeout,
+  refusedAgentSignIn,
+  unreachableAgentSignIn,
+  refusedAgentGrant,
 };
 
 // ── A case, played ──────────────────────────────────────────────────────

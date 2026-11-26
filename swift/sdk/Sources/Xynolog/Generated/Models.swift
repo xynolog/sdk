@@ -3474,6 +3474,8 @@ public struct BusSubscribeRequestScopedItem: Codable, Sendable, Hashable {
   }
 }
 
+public typealias ByteSource = Data
+
 public enum CacheStatus: String, Codable, Sendable, CaseIterable {
   case pending = "pending"
   case ready = "ready"
@@ -3624,9 +3626,9 @@ public struct ClientDiscoveryAbsent: Codable, Sendable, Hashable {
 }
 
 public struct ClientDiscoveryAbsentReasonsItem: Codable, Sendable, Hashable {
-  public var reason: String
+  public var reason: DiscoveryAbsentReason
   public var docs: String
-  public init(reason: String, docs: String) {
+  public init(reason: DiscoveryAbsentReason, docs: String) {
     self.reason = reason
     self.docs = docs
   }
@@ -3711,9 +3713,13 @@ public struct ClientOptionDefaultsDefaultsItem: Codable, Sendable, Hashable {
 public indirect enum ClientOptionDefaultsDefaultsItemSchema: Codable, Sendable, Hashable {
   case reference(ClientOptionDefaultsDefaultsItemSchemaReference)
   case dateTime(ClientOptionDefaultsDefaultsItemSchemaDateTime)
+  case typeParameter(ClientOptionDefaultsDefaultsItemSchemaTypeParameter)
+  case decided(ClientOptionDefaultsDefaultsItemSchemaDecided)
   static let members: [[UnionSignature]] = [
     [
-      UnionSignature(kind: .object, required: ["$ref"], allowed: ["$ref"], fixed: [], values: nil)
+      UnionSignature(
+        kind: .object, required: ["$ref"], allowed: ["$ref", "typeArguments"], fixed: [],
+        values: nil)
     ],
     [
       UnionSignature(
@@ -3723,6 +3729,15 @@ public indirect enum ClientOptionDefaultsDefaultsItemSchema: Codable, Sendable, 
           .init(property: "type", values: [.text("integer"), .text("string"), .text("boolean")]),
           .init(property: "format", values: [.text("date-time")]),
         ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["typeParameter"], allowed: ["typeParameter"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["decided"], allowed: ["decided"], fixed: [], values: nil)
     ],
   ]
   public init(from decoder: any Decoder) throws {
@@ -3741,12 +3756,27 @@ public indirect enum ClientOptionDefaultsDefaultsItemSchema: Codable, Sendable, 
             try Self.dateTime(ClientOptionDefaultsDefaultsItemSchemaDateTime(from: decoder))
           }
         ),
+        (
+          "typeParameter",
+          { decoder in
+            try Self.typeParameter(
+              ClientOptionDefaultsDefaultsItemSchemaTypeParameter(from: decoder))
+          }
+        ),
+        (
+          "decided",
+          { decoder in
+            try Self.decided(ClientOptionDefaultsDefaultsItemSchemaDecided(from: decoder))
+          }
+        ),
       ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
     case .reference(let value): try value.encode(to: encoder)
     case .dateTime(let value): try value.encode(to: encoder)
+    case .typeParameter(let value): try value.encode(to: encoder)
+    case .decided(let value): try value.encode(to: encoder)
     }
   }
 }
@@ -3798,19 +3828,123 @@ public enum ClientOptionDefaultsDefaultsItemSchemaDateTimeType: String, Codable,
   case boolean = "boolean"
 }
 
-public struct ClientOptionDefaultsDefaultsItemSchemaReference: Codable, Sendable, Hashable {
-  public var ref: String
-  public init(ref: String) {
-    self.ref = ref
+public struct ClientOptionDefaultsDefaultsItemSchemaDecided: Codable, Sendable, Hashable {
+  public var decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided
+  public init(decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided) {
+    self.decided = decided
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["$ref"], in: "ClientOptionDefaultsDefaultsItemSchemaReference")
+    try c.refuseUnknown(["decided"], in: "ClientOptionDefaultsDefaultsItemSchemaDecided")
+    self.decided = try c.value("decided")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.decided, as: "decided")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaDecidedDecided: Codable, Sendable, Hashable {
+  public var by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy
+  public let `in`: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn
+  public init(by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy) {
+    self.by = by
+    self.`in` = .takes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["by", "in"], in: "ClientOptionDefaultsDefaultsItemSchemaDecidedDecided")
+    self.by = try c.value("by")
+    self.`in` = try c.value("in")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.by, as: "by")
+    try c.encode(self.`in`, as: "in")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy: Codable, Sendable, Hashable {
+  public var member: String
+  public init(member: String) {
+    self.member = member
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["member"], in: "ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy")
+    self.member = try c.value("member")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.member, as: "member")
+  }
+}
+
+public enum ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn: String, Codable, Sendable,
+  CaseIterable
+{
+  case takes = "takes"
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaReference: Codable, Sendable, Hashable {
+  public var ref: String
+  public var typeArguments:
+    [String: ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue]?
+  public init(
+    ref: String,
+    typeArguments: [String: ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue]? =
+      nil
+  ) {
+    self.ref = ref
+    self.typeArguments = typeArguments
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$ref", "typeArguments"], in: "ClientOptionDefaultsDefaultsItemSchemaReference")
     self.ref = try c.value("$ref")
+    self.typeArguments = try c.ifPresent("typeArguments")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.ref, as: "$ref")
+    try c.encodeIfPresent(self.typeArguments, as: "typeArguments")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue: Codable, Sendable,
+  Hashable
+{
+  public var typeParameter: String
+  public init(typeParameter: String) {
+    self.typeParameter = typeParameter
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["typeParameter"], in: "ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue")
+    self.typeParameter = try c.value("typeParameter")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.typeParameter, as: "typeParameter")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaTypeParameter: Codable, Sendable, Hashable {
+  public var typeParameter: String
+  public init(typeParameter: String) {
+    self.typeParameter = typeParameter
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["typeParameter"], in: "ClientOptionDefaultsDefaultsItemSchemaTypeParameter")
+    self.typeParameter = try c.value("typeParameter")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.typeParameter, as: "typeParameter")
   }
 }
 
@@ -5138,8 +5272,8 @@ public struct ConformanceDriverLineProgress: Codable, Sendable, Hashable {
 public struct ConformanceDriverLineProgressProgress: Codable, Sendable, Hashable {
   public var upload: Int
   public var bytesUploaded: Int
-  public var totalBytes: Int
-  public init(upload: Int, bytesUploaded: Int, totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(upload: Int, bytesUploaded: Int, totalBytes: Int? = nil) {
     self.upload = upload
     self.bytesUploaded = bytesUploaded
     self.totalBytes = totalBytes
@@ -5150,13 +5284,13 @@ public struct ConformanceDriverLineProgressProgress: Codable, Sendable, Hashable
       ["upload", "bytesUploaded", "totalBytes"], in: "ConformanceDriverLineProgressProgress")
     self.upload = try c.value("upload")
     self.bytesUploaded = try c.value("bytesUploaded")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.upload, as: "upload")
     try c.encode(self.bytesUploaded, as: "bytesUploaded")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -6926,27 +7060,75 @@ public struct DiscoveredKB: Codable, Sendable, Hashable {
   }
 }
 
-public struct DiscoveryDiff: Codable, Sendable, Hashable {
-  public var added: [DiscoveredKB]
-  public var updated: [DiscoveredKB]
-  public var removed: [DiscoveredKB]
-  public init(added: [DiscoveredKB], updated: [DiscoveredKB], removed: [DiscoveredKB]) {
-    self.added = added
-    self.updated = updated
-    self.removed = removed
+public struct DiscoveryAbsent: Codable, Sendable, Hashable {
+  public let kind: DiscoveryAbsentKind
+  public var reason: DiscoveryAbsentReason
+  public var diagnostic: String?
+  public init(reason: DiscoveryAbsentReason, diagnostic: String? = nil) {
+    self.kind = .absent
+    self.reason = reason
+    self.diagnostic = diagnostic
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["added", "updated", "removed"], in: "DiscoveryDiff")
-    self.added = try c.value("added")
-    self.updated = try c.value("updated")
-    self.removed = try c.value("removed")
+    try c.refuseUnknown(["kind", "reason", "diagnostic"], in: "DiscoveryAbsent")
+    self.kind = try c.value("kind")
+    self.reason = try c.value("reason")
+    self.diagnostic = try c.ifPresent("diagnostic")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.reason, as: "reason")
+    try c.encodeIfPresent(self.diagnostic, as: "diagnostic")
+  }
+}
+
+public enum DiscoveryAbsentKind: String, Codable, Sendable, CaseIterable {
+  case absent = "absent"
+}
+
+public enum DiscoveryAbsentReason: String, Codable, Sendable, CaseIterable {
+  case notFound = "not-found"
+  case notJson = "not-json"
+  case invalid = "invalid"
+  case unsupportedVersion = "unsupported-version"
+  case unreadable = "unreadable"
+}
+
+public struct DiscoveryDiff: Codable, Sendable, Hashable {
+  public var state: DiscoveryState
+  public var added: [DiscoveredKB]
+  public var updated: [DiscoveredKB]
+  public var removed: [DiscoveredKB]
+  public var duplicated: [String]
+  public init(
+    state: DiscoveryState, added: [DiscoveredKB], updated: [DiscoveredKB], removed: [DiscoveredKB],
+    duplicated: [String]
+  ) {
+    self.state = state
+    self.added = added
+    self.updated = updated
+    self.removed = removed
+    self.duplicated = duplicated
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["state", "added", "updated", "removed", "duplicated"], in: "DiscoveryDiff")
+    self.state = try c.value("state")
+    self.added = try c.value("added")
+    self.updated = try c.value("updated")
+    self.removed = try c.value("removed")
+    self.duplicated = try c.value("duplicated")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.state, as: "state")
     try c.encode(self.added, as: "added")
     try c.encode(self.updated, as: "updated")
     try c.encode(self.removed, as: "removed")
+    try c.encode(self.duplicated, as: "duplicated")
   }
 }
 
@@ -6984,15 +7166,47 @@ public enum DiscoveryDocumentVersion: Codable, Sendable, Hashable {
   }
 }
 
+public struct DiscoveryManaged: Codable, Sendable, Hashable {
+  public let kind: DiscoveryManagedKind
+  public var kbs: [DiscoveredKB]
+  public init(kbs: [DiscoveredKB]) {
+    self.kind = .managed
+    self.kbs = kbs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "kbs"], in: "DiscoveryManaged")
+    self.kind = try c.value("kind")
+    self.kbs = try c.value("kbs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.kbs, as: "kbs")
+  }
+}
+
+public enum DiscoveryManagedKind: String, Codable, Sendable, CaseIterable {
+  case managed = "managed"
+}
+
 public indirect enum DiscoveryRead: Codable, Sendable, Hashable {
-  case absent(DiscoveryReadAbsent)
-  case managed(DiscoveryReadManaged)
-  case unchanged(DiscoveryReadUnchanged)
+  case discoveryAbsent(DiscoveryAbsent)
+  case discoveryManaged(DiscoveryManaged)
+  case discoveryUnchanged(DiscoveryUnchanged)
   static let members: [[UnionSignature]] = [
     [
       UnionSignature(
         kind: .object, required: ["kind", "reason"], allowed: ["kind", "reason", "diagnostic"],
-        fixed: [.init(property: "kind", values: [.text("absent")])], values: nil)
+        fixed: [
+          .init(property: "kind", values: [.text("absent")]),
+          .init(
+            property: "reason",
+            values: [
+              .text("not-found"), .text("not-json"), .text("invalid"), .text("unsupported-version"),
+              .text("unreadable"),
+            ]),
+        ], values: nil)
     ],
     [
       UnionSignature(
@@ -7009,80 +7223,80 @@ public indirect enum DiscoveryRead: Codable, Sendable, Hashable {
     self = try UnionSignature.decode(
       from: decoder, union: "DiscoveryRead", members: Self.members,
       variants: [
-        ("absent", { decoder in try Self.absent(DiscoveryReadAbsent(from: decoder)) }),
-        ("managed", { decoder in try Self.managed(DiscoveryReadManaged(from: decoder)) }),
-        ("unchanged", { decoder in try Self.unchanged(DiscoveryReadUnchanged(from: decoder)) }),
+        (
+          "discoveryAbsent", { decoder in try Self.discoveryAbsent(DiscoveryAbsent(from: decoder)) }
+        ),
+        (
+          "discoveryManaged",
+          { decoder in try Self.discoveryManaged(DiscoveryManaged(from: decoder)) }
+        ),
+        (
+          "discoveryUnchanged",
+          { decoder in try Self.discoveryUnchanged(DiscoveryUnchanged(from: decoder)) }
+        ),
       ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
-    case .absent(let value): try value.encode(to: encoder)
-    case .managed(let value): try value.encode(to: encoder)
-    case .unchanged(let value): try value.encode(to: encoder)
+    case .discoveryAbsent(let value): try value.encode(to: encoder)
+    case .discoveryManaged(let value): try value.encode(to: encoder)
+    case .discoveryUnchanged(let value): try value.encode(to: encoder)
     }
   }
 }
 
-public struct DiscoveryReadAbsent: Codable, Sendable, Hashable {
-  public let kind: DiscoveryReadAbsentKind
-  public var reason: String
-  public var diagnostic: String?
-  public init(reason: String, diagnostic: String? = nil) {
-    self.kind = .absent
-    self.reason = reason
-    self.diagnostic = diagnostic
-  }
+public indirect enum DiscoveryState: Codable, Sendable, Hashable {
+  case discoveryAbsent(DiscoveryAbsent)
+  case discoveryManaged(DiscoveryManaged)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "reason"], allowed: ["kind", "reason", "diagnostic"],
+        fixed: [
+          .init(property: "kind", values: [.text("absent")]),
+          .init(
+            property: "reason",
+            values: [
+              .text("not-found"), .text("not-json"), .text("invalid"), .text("unsupported-version"),
+              .text("unreadable"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "kbs"], allowed: ["kind", "kbs"],
+        fixed: [.init(property: "kind", values: [.text("managed")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["kind", "reason", "diagnostic"], in: "DiscoveryReadAbsent")
-    self.kind = try c.value("kind")
-    self.reason = try c.value("reason")
-    self.diagnostic = try c.ifPresent("diagnostic")
+    self = try UnionSignature.decode(
+      from: decoder, union: "DiscoveryState", members: Self.members,
+      variants: [
+        (
+          "discoveryAbsent", { decoder in try Self.discoveryAbsent(DiscoveryAbsent(from: decoder)) }
+        ),
+        (
+          "discoveryManaged",
+          { decoder in try Self.discoveryManaged(DiscoveryManaged(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.kind, as: "kind")
-    try c.encode(self.reason, as: "reason")
-    try c.encodeIfPresent(self.diagnostic, as: "diagnostic")
+    switch self {
+    case .discoveryAbsent(let value): try value.encode(to: encoder)
+    case .discoveryManaged(let value): try value.encode(to: encoder)
+    }
   }
 }
 
-public enum DiscoveryReadAbsentKind: String, Codable, Sendable, CaseIterable {
-  case absent = "absent"
-}
-
-public struct DiscoveryReadManaged: Codable, Sendable, Hashable {
-  public let kind: DiscoveryReadManagedKind
-  public var kbs: [DiscoveredKB]
-  public init(kbs: [DiscoveredKB]) {
-    self.kind = .managed
-    self.kbs = kbs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["kind", "kbs"], in: "DiscoveryReadManaged")
-    self.kind = try c.value("kind")
-    self.kbs = try c.value("kbs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.kind, as: "kind")
-    try c.encode(self.kbs, as: "kbs")
-  }
-}
-
-public enum DiscoveryReadManagedKind: String, Codable, Sendable, CaseIterable {
-  case managed = "managed"
-}
-
-public struct DiscoveryReadUnchanged: Codable, Sendable, Hashable {
-  public let kind: DiscoveryReadUnchangedKind
+public struct DiscoveryUnchanged: Codable, Sendable, Hashable {
+  public let kind: DiscoveryUnchangedKind
   public init() {
     self.kind = .unchanged
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["kind"], in: "DiscoveryReadUnchanged")
+    try c.refuseUnknown(["kind"], in: "DiscoveryUnchanged")
     self.kind = try c.value("kind")
   }
   public func encode(to encoder: any Encoder) throws {
@@ -7091,7 +7305,7 @@ public struct DiscoveryReadUnchanged: Codable, Sendable, Hashable {
   }
 }
 
-public enum DiscoveryReadUnchangedKind: String, Codable, Sendable, CaseIterable {
+public enum DiscoveryUnchangedKind: String, Codable, Sendable, CaseIterable {
   case unchanged = "unchanged"
 }
 
@@ -16527,7 +16741,7 @@ public struct Provider: Codable, Sendable, Hashable {
 
 public struct PutBinaryRequest: Codable, Sendable, Hashable {
   public var name: String
-  public var file: Binary
+  public var file: ByteSource
   public var format: String
   public var storageUri: String
   public var language: String?
@@ -16541,7 +16755,7 @@ public struct PutBinaryRequest: Codable, Sendable, Hashable {
   public var cloneToken: String?
   public var archiveOriginal: Bool?
   public init(
-    name: String, file: Binary, format: String, storageUri: String, language: String? = nil,
+    name: String, file: ByteSource, format: String, storageUri: String, language: String? = nil,
     entityTypes: [String]? = nil, sourceAnnotationId: AnnotationId? = nil,
     sourceResourceId: ResourceId? = nil, generationPrompt: String? = nil,
     generator: OneOrMoreAgents? = nil, jobId: JobId? = nil, isDraft: Bool? = nil,
@@ -22072,14 +22286,14 @@ public struct StoredEventResponse: Codable, Sendable, Hashable {
 }
 
 public struct StoredSession: Codable, Sendable, Hashable {
-  public var access: String
+  public var access: AccessToken
   public var refresh: String
   public var clientId: String
   public var tokenEndpoint: String
   public var revocationEndpoint: String?
   public var personKey: String?
   public init(
-    access: String, refresh: String, clientId: String, tokenEndpoint: String,
+    access: AccessToken, refresh: String, clientId: String, tokenEndpoint: String,
     revocationEndpoint: String? = nil, personKey: String? = nil
   ) {
     self.access = access
@@ -22667,12 +22881,12 @@ public indirect enum UploadProgress: Codable, Sendable, Hashable {
   static let members: [[UnionSignature]] = [
     [
       UnionSignature(
-        kind: .object, required: ["phase", "totalBytes"], allowed: ["phase", "totalBytes"],
+        kind: .object, required: ["phase"], allowed: ["phase", "totalBytes"],
         fixed: [.init(property: "phase", values: [.text("started")])], values: nil)
     ],
     [
       UnionSignature(
-        kind: .object, required: ["phase", "bytesUploaded", "totalBytes"],
+        kind: .object, required: ["phase", "bytesUploaded"],
         allowed: ["phase", "bytesUploaded", "totalBytes"],
         fixed: [.init(property: "phase", values: [.text("progress")])], values: nil)
     ],
@@ -22727,8 +22941,8 @@ public enum UploadProgressFinishedPhase: String, Codable, Sendable, CaseIterable
 public struct UploadProgressProgress: Codable, Sendable, Hashable {
   public let phase: UploadProgressProgressPhase
   public var bytesUploaded: Int
-  public var totalBytes: Int
-  public init(bytesUploaded: Int, totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(bytesUploaded: Int, totalBytes: Int? = nil) {
     self.phase = .progress
     self.bytesUploaded = bytesUploaded
     self.totalBytes = totalBytes
@@ -22738,13 +22952,13 @@ public struct UploadProgressProgress: Codable, Sendable, Hashable {
     try c.refuseUnknown(["phase", "bytesUploaded", "totalBytes"], in: "UploadProgressProgress")
     self.phase = try c.value("phase")
     self.bytesUploaded = try c.value("bytesUploaded")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.phase, as: "phase")
     try c.encode(self.bytesUploaded, as: "bytesUploaded")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -22754,8 +22968,8 @@ public enum UploadProgressProgressPhase: String, Codable, Sendable, CaseIterable
 
 public struct UploadProgressStarted: Codable, Sendable, Hashable {
   public let phase: UploadProgressStartedPhase
-  public var totalBytes: Int
-  public init(totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(totalBytes: Int? = nil) {
     self.phase = .started
     self.totalBytes = totalBytes
   }
@@ -22763,12 +22977,12 @@ public struct UploadProgressStarted: Codable, Sendable, Hashable {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(["phase", "totalBytes"], in: "UploadProgressStarted")
     self.phase = try c.value("phase")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.phase, as: "phase")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -24512,24 +24726,6 @@ public struct YieldedResource: Codable, Sendable, Hashable {
   }
 }
 
-/// Why a client that read a launcher's discovery document found no launcher.
-public enum DiscoveryAbsentReason: String, Codable, Sendable, CaseIterable {
-  /// There is no document where it was looked for: no file, an HTTP status that is not success, or
-  /// a page that is not JSON.
-  case notFound = "not-found"
-  /// There is a document, and it is not JSON.
-  case notJson = "not-json"
-  /// It is JSON, and not a discovery document: one entry that is not what the schema says makes the
-  /// whole document invalid, since a partial reading would hide a running knowledge base without a
-  /// trace.
-  case invalid = "invalid"
-  /// It is a discovery document of a version this client does not speak, and is not read in part.
-  case unsupportedVersion = "unsupported-version"
-  /// It could not be read at all: the file could not be opened or decoded, or the request got no
-  /// answer by its deadline.
-  case unreadable = "unreadable"
-}
-
 extension ReceivedFrame {
   internal init(_ frame: BusFrame, trace: TraceCarrier?, eventId: String?) {
     self.init(
@@ -24674,58 +24870,6 @@ public enum TransportErrorCode: String, Codable, Sendable, CaseIterable {
   case rateLimited = "rate-limited"
   case unavailable = "unavailable"
   case error = "error"
-}
-/// Each JSON-RPC error code the launcher's control API answers with (control/rpc-codes.json).
-public enum ControlRpcCode {
-  /// The line is not JSON, or holds more than one JSON value. Answered under a null id (F2).
-  public static let parseError = -32700
-  /// The message is a batch, does not state `"jsonrpc": "2.0"` and a method, has a member JSON-RPC
-  /// does not define, or its id is null, a fraction or one in flight. Answered under a null id (F2,
-  /// F3).
-  public static let invalidRequest = -32600
-  /// The API has no method of the request's name (F4).
-  public static let methodNotFound = -32601
-  /// The request's params are not what its method's schema admits, or are written to a version of
-  /// the API this launcher does not speak (V1, P1).
-  public static let invalidParams = -32602
-  /// The launcher would send a result or error data that does not hold to its schema, or the
-  /// handler panicked. Never retryable: the same request fails the same way (E4).
-  public static let internalError = -32603
-  /// The operation the request ran failed. The data's code says why, and whether the request is
-  /// retryable (E2).
-  public static let operationFailed = -32000
-}
-extension ControlErrorCode {
-  /// The JSON-RPC code of control/rpc-codes.json an answer carries the code under.
-  public var rpc: Int {
-    switch self {
-    case .controlInvalidParams, .controlUnsupportedApiVersion: return ControlRpcCode.invalidParams
-    case .controlInvalidRequest, .controlInvalidService, .controlInvalidValue,
-      .controlUnknownSetting, .controlTargetRequired, .controlTargetAmbiguous, .controlRootNotFound,
-      .controlRootNotRegistered, .controlStackNotRunning, .controlStackRunning,
-      .controlStartInProgress, .controlRuntimeUnavailable, .controlDependencyUnavailable,
-      .controlUnreachable, .controlInstanceInUse, .controlInstanceNotFound,
-      .controlConfirmationRequired, .controlUnreadableState, .controlAlreadySignedIn,
-      .controlSignInFailed, .controlCancelled, .controlFailed:
-      return ControlRpcCode.operationFailed
-    }
-  }
-  /// Whether the same request can succeed sent again unchanged, once something outside it changes:
-  /// what `ErrorData.retryable` says of the code.
-  public var retryable: Bool {
-    switch self {
-    case .controlInvalidParams, .controlUnsupportedApiVersion, .controlInvalidRequest,
-      .controlInvalidService, .controlInvalidValue, .controlUnknownSetting, .controlTargetRequired,
-      .controlTargetAmbiguous, .controlRootNotFound, .controlRootNotRegistered,
-      .controlInstanceInUse, .controlInstanceNotFound, .controlConfirmationRequired,
-      .controlAlreadySignedIn, .controlCancelled:
-      return false
-    case .controlStackNotRunning, .controlStackRunning, .controlStartInProgress,
-      .controlRuntimeUnavailable, .controlDependencyUnavailable, .controlUnreachable,
-      .controlUnreadableState, .controlSignInFailed, .controlFailed:
-      return true
-    }
-  }
 }
 internal func transportErrorCode(for status: Int) -> TransportErrorCode {
   if status == 401 { return .unauthorized }
@@ -26972,6 +27116,7 @@ internal let requiredSchemas: [String: Shape] = {
             "lastEventId": Shape(kinds: [.string]), "scope": Shape(ref: "ResourceId"),
           ], closed: ["channels", "lastEventId", "scope"])),
     ], closed: ["clientId", "global", "pendingReplies", "scoped"])
+  shapes["ByteSource"] = Shape(kinds: [.string])
   shapes["CacheStatus"] = Shape(
     kinds: [.string], enumeration: [.string("pending"), .string("ready"), .string("failed")])
   shapes["Cancelled"] = Shape(
@@ -27052,19 +27197,7 @@ internal let requiredSchemas: [String: Shape] = {
           kinds: [.object], required: ["reason", "docs"],
           members: [
             "docs": Shape(kinds: [.string], minLength: 1),
-            "reason": Shape(
-              kinds: [.string],
-              pattern: [
-                .step(Step(of: [97...122], min: 1, max: nil)),
-                .group(
-                  Group(
-                    either: [
-                      [
-                        .step(Step(of: [45...45], min: 1, max: 1)),
-                        .step(Step(of: [97...122], min: 1, max: nil)),
-                      ]
-                    ], min: 0, max: nil)),
-              ]),
+            "reason": Shape(ref: "DiscoveryAbsentReason"),
           ], closed: ["docs", "reason"])),
     ], closed: ["$comment", "reasons"])
   shapes["ClientOptionDefaults"] = Shape(
@@ -27169,8 +27302,20 @@ internal let requiredSchemas: [String: Shape] = {
                                     ], min: 1, max: nil)),
                               ]
                             ], min: 0, max: 1)),
-                      ])
-                  ], closed: ["$ref"]),
+                      ]),
+                    "typeArguments": Shape(
+                      kinds: [.object],
+                      values: Shape(
+                        kinds: [.object], required: ["typeParameter"],
+                        members: [
+                          "typeParameter": Shape(
+                            kinds: [.string],
+                            pattern: [
+                              .step(Step(of: [65...90], min: 1, max: 1)),
+                              .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                            ])
+                        ], closed: ["typeParameter"]), minMembers: 1),
+                  ], closed: ["$ref", "typeArguments"]),
                 Shape(
                   kinds: [.object], required: ["type", "description"],
                   members: [
@@ -27191,6 +27336,29 @@ internal let requiredSchemas: [String: Shape] = {
                       kinds: [.string],
                       enumeration: [.string("integer"), .string("string"), .string("boolean")]),
                   ], closed: ["description", "format", "minimum", "type"]),
+                Shape(
+                  kinds: [.object], required: ["typeParameter"],
+                  members: [
+                    "typeParameter": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [65...90], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                      ])
+                  ], closed: ["typeParameter"]),
+                Shape(
+                  kinds: [.object], required: ["decided"],
+                  members: [
+                    "decided": Shape(
+                      kinds: [.object], required: ["by", "in"],
+                      members: [
+                        "by": Shape(
+                          kinds: [.object], required: ["member"],
+                          members: ["member": Shape(kinds: [.string], minLength: 1)],
+                          closed: ["member"]),
+                        "in": Shape(kinds: [.string], enumeration: [.string("takes")]),
+                      ], closed: ["by", "in"])
+                  ], closed: ["decided"]),
               ]),
             "sends": Shape(
               kinds: [.string],
@@ -27762,7 +27930,7 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["progress"],
         members: [
           "progress": Shape(
-            kinds: [.object], required: ["upload", "bytesUploaded", "totalBytes"],
+            kinds: [.object], required: ["upload", "bytesUploaded"],
             members: [
               "bytesUploaded": Shape(kinds: [.integer], minimum: 0.0),
               "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
@@ -28332,6 +28500,13 @@ internal let requiredSchemas: [String: Shape] = {
       "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
       "repo": Shape(kinds: [.string]), "siteName": Shape(kinds: [.string]),
     ])
+  shapes["DiscoveryAbsent"] = Shape(
+    kinds: [.object], required: ["kind", "reason"],
+    members: [
+      "diagnostic": Shape(kinds: [.string], minLength: 1),
+      "kind": Shape(kinds: [.string], enumeration: [.string("absent")]),
+      "reason": Shape(ref: "DiscoveryAbsentReason"),
+    ], closed: ["diagnostic", "kind", "reason"])
   shapes["DiscoveryAbsentReason"] = Shape(
     kinds: [.string],
     enumeration: [
@@ -28339,41 +28514,41 @@ internal let requiredSchemas: [String: Shape] = {
       .string("unreadable"),
     ])
   shapes["DiscoveryDiff"] = Shape(
-    kinds: [.object], required: ["added", "updated", "removed"],
+    kinds: [.object], required: ["state", "added", "updated", "removed", "duplicated"],
     members: [
       "added": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "duplicated": Shape(kinds: [.array], items: Shape(kinds: [.string], minLength: 1)),
       "removed": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "state": Shape(ref: "DiscoveryState"),
       "updated": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
-    ], closed: ["added", "removed", "updated"])
+    ], closed: ["added", "duplicated", "removed", "state", "updated"])
   shapes["DiscoveryDocument"] = Shape(
     kinds: [.object], required: ["version", "kbs"],
     members: [
       "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
       "version": Shape(kinds: [.integer], enumeration: [.number(1.0)]),
     ])
+  shapes["DiscoveryManaged"] = Shape(
+    kinds: [.object], required: ["kind", "kbs"],
+    members: [
+      "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "kind": Shape(kinds: [.string], enumeration: [.string("managed")]),
+    ], closed: ["kbs", "kind"])
   shapes["DiscoveryRead"] = Shape(
     kinds: [.object],
     oneOf: [
-      Shape(
-        kinds: [.object], required: ["kind", "reason"],
-        members: [
-          "diagnostic": Shape(kinds: [.string], minLength: 1),
-          "kind": Shape(kinds: [.string], enumeration: [.string("absent")]),
-          "reason": Shape(kinds: [.string], minLength: 1),
-        ], closed: ["diagnostic", "kind", "reason"]),
-      Shape(
-        kinds: [.object], required: ["kind", "kbs"],
-        members: [
-          "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
-          "kind": Shape(kinds: [.string], enumeration: [.string("managed")]),
-        ], closed: ["kbs", "kind"]),
-      Shape(
-        kinds: [.object], required: ["kind"],
-        members: ["kind": Shape(kinds: [.string], enumeration: [.string("unchanged")])],
-        closed: ["kind"]),
+      Shape(ref: "DiscoveryAbsent"), Shape(ref: "DiscoveryManaged"),
+      Shape(ref: "DiscoveryUnchanged"),
     ],
     discriminator: Discriminator(
       property: "kind", mapping: ["absent": 0, "managed": 1, "unchanged": 2]))
+  shapes["DiscoveryState"] = Shape(
+    kinds: [.object], oneOf: [Shape(ref: "DiscoveryAbsent"), Shape(ref: "DiscoveryManaged")],
+    discriminator: Discriminator(property: "kind", mapping: ["absent": 0, "managed": 1]))
+  shapes["DiscoveryUnchanged"] = Shape(
+    kinds: [.object], required: ["kind"],
+    members: ["kind": Shape(kinds: [.string], enumeration: [.string("unchanged")])],
+    closed: ["kind"])
   shapes["DispatcherConfig"] = Shape(
     kinds: [.object],
     required: ["kb", "gatewayUrl", "identity", "queue", "port", "timing", "logLevel", "logFormat"],
@@ -30918,7 +31093,7 @@ internal let requiredSchemas: [String: Shape] = {
     members: [
       "archiveOriginal": Shape(kinds: [.boolean]), "cloneToken": Shape(kinds: [.string]),
       "entityTypes": Shape(kinds: [.array], items: Shape(kinds: [.string])),
-      "file": Shape(ref: "Binary"), "format": Shape(kinds: [.string]),
+      "file": Shape(ref: "ByteSource"), "format": Shape(kinds: [.string]),
       "generationPrompt": Shape(kinds: [.string]), "generator": Shape(ref: "OneOrMoreAgents"),
       "isDraft": Shape(kinds: [.boolean]), "jobId": Shape(ref: "JobId"),
       "language": Shape(kinds: [.string]), "name": Shape(kinds: [.string]),
@@ -32030,7 +32205,7 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["StoredSession"] = Shape(
     kinds: [.object], required: ["access", "refresh", "clientId", "tokenEndpoint"],
     members: [
-      "access": Shape(kinds: [.string]), "clientId": Shape(kinds: [.string]),
+      "access": Shape(ref: "AccessToken"), "clientId": Shape(kinds: [.string]),
       "personKey": Shape(kinds: [.string]), "refresh": Shape(kinds: [.string]),
       "revocationEndpoint": Shape(kinds: [.string]), "tokenEndpoint": Shape(kinds: [.string]),
     ])
@@ -32209,13 +32384,13 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object],
     oneOf: [
       Shape(
-        kinds: [.object], required: ["phase", "totalBytes"],
+        kinds: [.object], required: ["phase"],
         members: [
           "phase": Shape(kinds: [.string], enumeration: [.string("started")]),
           "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
         ], closed: ["phase", "totalBytes"]),
       Shape(
-        kinds: [.object], required: ["phase", "bytesUploaded", "totalBytes"],
+        kinds: [.object], required: ["phase", "bytesUploaded"],
         members: [
           "bytesUploaded": Shape(kinds: [.integer], minimum: 0.0),
           "phase": Shape(kinds: [.string], enumeration: [.string("progress")]),
@@ -32927,9 +33102,13 @@ public struct ControlMethod<Params: Codable & Sendable, Result: Codable & Sendab
   public let exclusive: Bool
   public let sends: [String]
 }
+public enum ControlParty: String, Codable, Sendable, CaseIterable {
+  case client = "client"
+  case launcher = "launcher"
+}
 public struct ControlNotification<Params: Codable & Sendable>: Sendable {
   public let name: String
-  public let from: ControlSender
+  public let from: ControlParty
 }
 public enum Control {
   /// What the launcher is: its version, the API versions it speaks, the runtimes it detects. It

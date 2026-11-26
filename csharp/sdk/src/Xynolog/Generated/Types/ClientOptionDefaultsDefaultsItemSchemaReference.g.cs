@@ -8,4 +8,5 @@ namespace Xynolog.Types;
 public sealed record ClientOptionDefaultsDefaultsItemSchemaReference
 {
     [global::Xynolog.Serialization.Wire("$ref")] public required string Ref { get; init; }
+    [global::Xynolog.Serialization.Wire("typeArguments")] public global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue>? TypeArguments { get; init; }
 }

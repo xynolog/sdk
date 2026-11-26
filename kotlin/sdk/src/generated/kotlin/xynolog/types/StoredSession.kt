@@ -12,7 +12,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 public data class StoredSession(
     /** The access token: short-lived, sent as a Bearer token. */
-    public val access: String,
+    public val access: AccessToken,
     /** The refresh token: what renews the access token at the issuer without another sign-in. */
     public val refresh: String,
     /** The client the tokens were issued to, which a renewal and a revocation name. */
@@ -26,7 +26,7 @@ public data class StoredSession(
 ) {
     /** How Java makes a `StoredSession`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val access: String,
+        private val access: AccessToken,
         private val refresh: String,
         private val clientId: String,
         private val tokenEndpoint: String,
@@ -43,6 +43,6 @@ public data class StoredSession(
     public companion object {
         /** A builder of a `StoredSession` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(access: String, refresh: String, clientId: String, tokenEndpoint: String): Builder = Builder(access, refresh, clientId, tokenEndpoint)
+        public fun builder(access: AccessToken, refresh: String, clientId: String, tokenEndpoint: String): Builder = Builder(access, refresh, clientId, tokenEndpoint)
     }
 }

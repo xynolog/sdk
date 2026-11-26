@@ -15,7 +15,7 @@ public data class ClientOptionDefaultsDefaultsItem(
     /** The member of the parameter it is, where the parameter is an object of options. Absent: the parameter itself. */
     public val option: String? = null,
     public val value: JsonElement,
-    /** What the parameter is. */
+    /** What the parameter is. Left out where it is the SDK's own: its error, which no schema states. */
     public val schema: ClientOptionDefaultsDefaultsItemSchema? = null,
     /** Where in the request the method sends it, as a JSON Pointer into a case's `sends`. Absent: the option is not sent, and only changes what the client does. */
     public val sends: String? = null,

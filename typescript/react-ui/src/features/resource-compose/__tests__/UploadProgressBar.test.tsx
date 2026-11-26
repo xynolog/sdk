@@ -143,6 +143,16 @@ describe('UploadProgressBar', () => {
   });
 
   describe('phase: progress (indeterminate)', () => {
+    it('renders bytesUploaded only when totalBytes is absent', () => {
+      const progress: UploadProgress = {
+        phase: 'progress',
+        bytesUploaded: 2048,
+      };
+      render(<UploadProgressBar progress={progress} label="Upload" />);
+      expect(screen.getByText('Upload: 2.0 KB…')).toBeInTheDocument();
+      expect(screen.queryByText(/%/)).not.toBeInTheDocument();
+    });
+
     it('renders bytesUploaded only when totalBytes is 0', () => {
       const progress: UploadProgress = {
         phase: 'progress',

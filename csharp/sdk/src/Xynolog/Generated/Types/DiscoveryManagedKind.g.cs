@@ -5,7 +5,7 @@
 namespace Xynolog.Types;
 
 [global::Xynolog.Serialization.WireEnum]
-public enum DiscoveryReadManagedKind
+public enum DiscoveryManagedKind
 {
     [global::System.Text.Json.Serialization.JsonStringEnumMemberName("managed")] Managed,
 }

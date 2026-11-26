@@ -12,19 +12,21 @@ import kotlinx.serialization.Serializable
 public data class UploadProgressStarted(
     @EncodeDefault
     public val phase: UploadProgressStartedPhase = UploadProgressStartedPhase.Started,
-    /** How many bytes the upload is. */
-    public val totalBytes: Long,
+    /** How many bytes the upload is: its ByteSource's length. Absent when the source states none. */
+    public val totalBytes: Long? = null,
 ) : UploadProgress {
     /** How Java makes a `UploadProgressStarted`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
-    public class Builder internal constructor(
-        private val totalBytes: Long,
-    ) {
+    public class Builder internal constructor() {
+        private var totalBytes: Long? = null
+
+        public fun totalBytes(totalBytes: Long?): Builder = apply { this.totalBytes = totalBytes }
+
         public fun build(): UploadProgressStarted = UploadProgressStarted(totalBytes = totalBytes)
     }
 
     public companion object {
         /** A builder of a `UploadProgressStarted` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(totalBytes: Long): Builder = Builder(totalBytes)
+        public fun builder(): Builder = Builder()
     }
 }

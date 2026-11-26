@@ -4,7 +4,6 @@
 //              the records Protocol states in its tables (codegen/lib/table_records.ml)
 //              the client types it names, of protocol/specs/src/client/types
 //              the schemas of the tables it carries as values (codegen/lib/typescript_types/table_modules.ml)
-//              protocol/specs/src/client/discovery-absent.json
 //              protocol/specs/src/identifiers/kinds.json, for the brands
 // Regenerate:  make generate  (codegen/lib/typescript_types/typescript_types.ml)
 
@@ -637,10 +636,7 @@ export interface components {
     BeckonSparkleEvent: {
       annotationId: components['schemas']['AnnotationId'];
     };
-    /**
-     * Bytes held whole. They can be read more than once, and sent again when an
-     * upload is retried.
-     */
+    /** Bytes held whole: all of them at once, read as often as wanted. */
     Binary: Blob;
     /**
      * One edit to a linking annotation's body list: add or remove a body item,
@@ -1144,7 +1140,7 @@ export interface components {
     ClientDiscoveryAbsent: {
       /** The rule the table states, in prose. */
       $comment: string;
-      /** Each reason, and what it means. */
+      /** Each reason, in DiscoveryAbsentReason's order, and what it means. */
       reasons: ClientDiscoveryAbsentReasonsItem[];
     };
     /**
@@ -1582,6 +1578,17 @@ export interface components {
        */
       managedBy: string;
     };
+    /**
+     * Why a client that read a launcher's discovery document found no launcher:
+     * one of the reasons of client/discovery-absent.json, which says what each
+     * means.
+     */
+    DiscoveryAbsentReason:
+      | 'not-found'
+      | 'not-json'
+      | 'invalid'
+      | 'unsupported-version'
+      | 'unreadable';
     /**
      * The launcher's KB discovery document — the schema authority for
      * <stateDir>/discovery/kbs.json, which the Xynolog CLI (xynolog/cli)
@@ -4935,7 +4942,7 @@ export interface components {
     ResourceUpload: {
       /** Human-readable resource name */
       name: string;
-      /** Binary content */
+      /** The bytes, as the part carries them. */
       file: components['schemas']['Binary'];
       /**
        * Media type of the content (e.g. text/plain, text/markdown, image/png)
@@ -7119,6 +7126,16 @@ export interface records {
     expectedName?: string;
   };
   /**
+   * Bytes opened afresh each time they are to be sent. Each opening reads them
+   * from the first byte, in order, once, and gives the same bytes as every
+   * other; whoever opened them releases what they opened. Their length is
+   * stated when it is known and stated by nothing when it is not. An upload
+   * takes its bytes so: held whole, a file larger than memory could not be sent
+   * at all, and read once, as a ByteStream is, an upload sent again would have
+   * nothing left to send.
+   */
+  ByteSource: Blob;
+  /**
    * Where a live query's key stands (contract/CACHE-SEMANTICS.md): pending,
    * with no value yet; ready, with a stored value; or failed, a value-less
    * key's failure, which is an emission and not the stream's end.
@@ -7207,8 +7224,18 @@ export interface records {
     /** How many seconds the code stays good for. */
     expiresIn: number;
   };
+  /** No launcher was found, and why. */
+  DiscoveryAbsent: {
+    kind: 'absent';
+    /** Why. */
+    reason: components['schemas']['DiscoveryAbsentReason'];
+    /** What was wrong, in words, when there is more to say. */
+    diagnostic?: string;
+  };
   /** How one poll's knowledge bases changed since the last state it gave. */
   DiscoveryDiff: {
+    /** The state the poll found. */
+    state: records['DiscoveryState'];
     /** Each knowledge base the last state did not have. */
     added: components['schemas']['DiscoveredKB'][];
     /**
@@ -7218,15 +7245,41 @@ export interface records {
     updated: components['schemas']['DiscoveredKB'][];
     /** Each knowledge base the last state had, and this one does not. */
     removed: components['schemas']['DiscoveredKB'][];
+    /**
+     * Each address, as host:port, that more than one of the state's knowledge
+     * bases is at. At most one of them is true: `added` and `removed` count
+     * each address once, and every one is in `state`.
+     */
+    duplicated: string[];
   };
   /**
-   * What one read of a launcher's discovery document gave, told apart by
-   * `kind`: no launcher was found, the knowledge bases one manages, or nothing
-   * changed since the last read. A launcher that manages none is not an absent
-   * one.
+   * The knowledge bases a launcher manages: none is a launcher that manages
+   * nothing.
+   */
+  DiscoveryManaged: {
+    kind: 'managed';
+    /** Each knowledge base, as the document lists it. */
+    kbs: components['schemas']['DiscoveredKB'][];
+  };
+  /**
+   * What one read of a launcher's discovery document gave: a DiscoveryState's
+   * absent or managed, or that nothing changed since the last read. Told apart
+   * by `kind`, as DiscoveryState's are.
    */
   DiscoveryRead:
-    DiscoveryReadAbsent | DiscoveryReadManaged | DiscoveryReadUnchanged;
+    | records['DiscoveryAbsent']
+    | records['DiscoveryManaged']
+    | records['DiscoveryUnchanged'];
+  /**
+   * What a launcher's discovery document says, told apart by `kind`: no
+   * launcher was found, or the knowledge bases one manages. A launcher that
+   * manages none is not an absent one.
+   */
+  DiscoveryState: records['DiscoveryAbsent'] | records['DiscoveryManaged'];
+  /** Nothing changed since the last read of a launcher's discovery document. */
+  DiscoveryUnchanged: {
+    kind: 'unchanged';
+  };
   /**
    * One of the knowledge base's engines as a client joins it: the entry
    * `browse:engines-result` names, with the inference limits the service
@@ -7580,8 +7633,11 @@ export interface records {
   PutBinaryRequest: {
     /** Human-readable resource name */
     name: string;
-    /** Binary content */
-    file: components['schemas']['Binary'];
+    /**
+     * The bytes, opened for each sending of the upload: the multipart body's
+     * `file` part each time.
+     */
+    file: records['ByteSource'];
     /** Media type of the content (e.g. text/plain, text/markdown, image/png) */
     format: string;
     /**
@@ -7726,7 +7782,7 @@ export interface records {
    */
   StoredSession: {
     /** The access token: short-lived, sent as a Bearer token. */
-    access: string;
+    access: records['AccessToken'];
     /**
      * The refresh token: what renews the access token at the issuer without
      * another sign-in.
@@ -7801,8 +7857,11 @@ export interface records {
     tracestate?: string;
   };
   /**
-   * What an upload reports as it goes, told apart by `phase`: its size first,
-   * then the bytes sent so far, then the resource made.
+   * What an upload reports as it goes, told apart by `phase`: that it began,
+   * with its size when its ByteSource states one, then the bytes sent so far,
+   * then the resource made. An upload whose source states no length reports
+   * none: a size it made up would be a size the caller could not tell from a
+   * true one.
    */
   UploadProgress:
     UploadProgressStarted | UploadProgressProgress | UploadProgressFinished;
@@ -7829,31 +7888,6 @@ export interface records {
     /** How many jobs it has completed since the service started. */
     jobsCompleted: number;
   };
-  /** Why no launcher was found. */
-  DiscoveryAbsentReason:
-    /**
-     * There is no document where it was looked for: no file, an HTTP status
-     * that is not success, or a page that is not JSON.
-     */
-    | 'not-found'
-    /** There is a document, and it is not JSON. */
-    | 'not-json'
-    /**
-     * It is JSON, and not a discovery document: one entry that is not what the
-     * schema says makes the whole document invalid, since a partial reading
-     * would hide a running knowledge base without a trace.
-     */
-    | 'invalid'
-    /**
-     * It is a discovery document of a version this client does not speak, and
-     * is not read in part.
-     */
-    | 'unsupported-version'
-    /**
-     * It could not be read at all: the file could not be opened or decoded, or
-     * the request got no answer by its deadline.
-     */
-    | 'unreadable';
 }
 
 /** The tables the SDK carries as values, and what only they reach. */
@@ -9448,30 +9482,6 @@ export type WorkerMessagesLoggedItem = {
   carries: string[];
 };
 
-/** No launcher was found, and why. */
-export type DiscoveryReadAbsent = {
-  kind: 'absent';
-  /** Why: one of client/discovery-absent.json's reasons. */
-  reason: string;
-  /** What was wrong, in words, when there is more to say. */
-  diagnostic?: string;
-};
-
-/**
- * The knowledge bases a launcher manages: none is a launcher that manages
- * nothing.
- */
-export type DiscoveryReadManaged = {
-  kind: 'managed';
-  /** Each knowledge base, as the document lists it. */
-  kbs: components['schemas']['DiscoveredKB'][];
-};
-
-/** Nothing changed since the last read. */
-export type DiscoveryReadUnchanged = {
-  kind: 'unchanged';
-};
-
 /** It answered as that entry, and its name and branch are on the entry now. */
 export type KbReadVerdictRecorded = {
   kind: KbReadVerdictRecordedKind;
@@ -9644,8 +9654,11 @@ export type TabCheckUnknownVerdict = records['TabVerdict'] & 'unknown';
 /** The upload began. */
 export type UploadProgressStarted = {
   phase: 'started';
-  /** How many bytes the upload is. */
-  totalBytes: number;
+  /**
+   * How many bytes the upload is: its ByteSource's length. Absent when the
+   * source states none.
+   */
+  totalBytes?: number;
 };
 
 /** Bytes were sent. */
@@ -9653,8 +9666,11 @@ export type UploadProgressProgress = {
   phase: 'progress';
   /** How many bytes are sent so far. */
   bytesUploaded: number;
-  /** How many bytes the upload is. */
-  totalBytes: number;
+  /**
+   * How many bytes the upload is: its ByteSource's length. Absent when the
+   * source states none.
+   */
+  totalBytes?: number;
 };
 
 /** The upload ended, and the resource is made. */
@@ -9844,8 +9860,7 @@ export type ClientConnectionStatesStatesItem = {
 };
 
 export type ClientDiscoveryAbsentReasonsItem = {
-  /** The reason, as every SDK spells it. */
-  reason: string;
+  reason: components['schemas']['DiscoveryAbsentReason'];
   /** What it is, in prose. */
   docs: string;
 };
@@ -9864,7 +9879,10 @@ export type ClientOptionDefaultsDefaultsItem = {
    */
   option?: string;
   value: unknown;
-  /** What the parameter is. */
+  /**
+   * What the parameter is. Left out where it is the SDK's own: its error, which
+   * no schema states.
+   */
   schema?: ClientOptionDefaultsDefaultsItemSchema;
   /**
    * Where in the request the method sends it, as a JSON Pointer into a case's
@@ -9876,10 +9894,15 @@ export type ClientOptionDefaultsDefaultsItem = {
   docs: string;
 };
 
-/** What the parameter is. */
+/**
+ * What the parameter is. Left out where it is the SDK's own: its error, which
+ * no schema states.
+ */
 export type ClientOptionDefaultsDefaultsItemSchema =
   | ClientOptionDefaultsDefaultsItemSchemaReference
-  | ClientOptionDefaultsDefaultsItemSchemaDateTime;
+  | ClientOptionDefaultsDefaultsItemSchemaDateTime
+  | ClientOptionDefaultsDefaultsItemSchemaTypeParameter
+  | ClientOptionDefaultsDefaultsItemSchemaDecided;
 
 export type ClientOptionDefaultsDefaultsItemSchemaReference = {
   /**
@@ -9888,7 +9911,26 @@ export type ClientOptionDefaultsDefaultsItemSchemaReference = {
    * named.
    */
   $ref: string;
+  /**
+   * What each of the client type's type parameters is here, by its name: a type
+   * parameter of the unit it is given in, one for each the client type's
+   * x-xynolog-typeParameters states, and only where it states any.
+   */
+  typeArguments?: {
+    [
+      key: string
+    ]: ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue;
+  };
 };
+
+export type ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue =
+  {
+    /**
+     * A type parameter of the state unit the member is of, by its name: what it
+     * is, the unit's maker says.
+     */
+    typeParameter: string;
+  };
 
 export type ClientOptionDefaultsDefaultsItemSchemaDateTime = {
   /** The value's type, where no component states one. */
@@ -9904,6 +9946,36 @@ export type ClientOptionDefaultsDefaultsItemSchemaDateTime = {
 /** The value's type, where no component states one. */
 export type ClientOptionDefaultsDefaultsItemSchemaDateTimeType =
   'integer' | 'string' | 'boolean';
+
+export type ClientOptionDefaultsDefaultsItemSchemaTypeParameter = {
+  /**
+   * A type parameter of the state unit the member is of, by its name: what it
+   * is, the unit's maker says.
+   */
+  typeParameter: string;
+};
+
+export type ClientOptionDefaultsDefaultsItemSchemaDecided = {
+  /** What a value decides: the schema a table names for it. */
+  decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided;
+};
+
+/** What a value decides: the schema a table names for it. */
+export type ClientOptionDefaultsDefaultsItemSchemaDecidedDecided = {
+  /** What decides it. */
+  by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy;
+  /**
+   * The table that names the schema: `takes`, the function's own, by each of
+   * the enum's values in its order.
+   */
+  in: 'takes';
+};
+
+/** What decides it. */
+export type ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy = {
+  /** A member beside the function, whose value is of an enum. */
+  member: string;
+};
 
 export type ClientRefreshQueriesItem =
   ClientRefreshQueriesItemAsks | ClientRefreshQueriesItemReads;
@@ -10236,8 +10308,10 @@ export type ConformanceDriverLineProgressProgress = {
   upload: number;
   /** How many bytes it has sent. */
   bytesUploaded: number;
-  /** How many it will send. */
-  totalBytes: number;
+  /**
+   * How many it will send. Absent for an upload whose source states no length.
+   */
+  totalBytes?: number;
 };
 
 /** The live driver: an observer was given a state. */

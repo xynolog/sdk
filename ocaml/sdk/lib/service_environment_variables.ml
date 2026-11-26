@@ -93,14 +93,19 @@ let table : t =
         (jemalloc's _RJEM_MALLOC_CONF, which it reads before any of its code \
         runs), which the table neither promises nor refuses. `services` names \
         the services that read each. `readBy` says what reads it: `service`, \
-        the service's own code, Xynolog's SDK and libraries among it; \
-        `opentelemetry`, the OpenTelemetry SDK. `providedBy` says what sets \
-        each where the launcher runs the service: `launcher`, `image` (the \
-        image or its supervisor sets it; checked there), or `operator` \
-        (nothing sets it; an operator may). A service's conformance suite sets \
-        only the rows that list it, and exercises each by name; one gateway \
-        case also sets a variable a runtime would read for itself \
-        (TOKIO_WORKER_THREADS), to show that it changes nothing.";
+        the service's own code, Xynolog's SDK and libraries among it \
+        \226\128\148 which, for a service written in Rust, the images \
+        repository's `scripts/check-service-environment.mjs`, which its CI \
+        runs, scans in both directions, over its crate and every workspace and \
+        SDK crate it links: a read not listed for that service fails it, and \
+        so does a row nothing in it reads; `opentelemetry`, the OpenTelemetry \
+        SDK. `providedBy` says what sets each where the launcher runs the \
+        service: `launcher`, `image` (the image or its supervisor sets it; \
+        checked there), or `operator` (nothing sets it; an operator may). A \
+        service's conformance suite sets only the rows that list it, and \
+        exercises each by name; one gateway case also sets a variable a \
+        runtime would read for itself (TOKIO_WORKER_THREADS), to show that it \
+        changes nothing.";
      variables =
        [
          ({

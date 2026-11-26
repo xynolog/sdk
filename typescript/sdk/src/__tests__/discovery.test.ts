@@ -14,13 +14,13 @@ import {
   DISCOVERY_URL_PATH,
   HTTP_REQUEST_TIMEOUT_MS,
   type DiscoveredKB,
+  type DiscoveryDiff,
 } from '@xynolog/core';
 import {
   parseDiscoveryDocument,
   httpDiscovery,
   textDiscovery,
   subscribeDiscovery,
-  type DiscoveryDiff,
   type DiscoveryTransport,
 } from '../discovery';
 

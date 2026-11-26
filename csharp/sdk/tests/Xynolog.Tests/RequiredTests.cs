@@ -92,9 +92,9 @@ public sealed class RequiredTests
         FaultsAs("""{"kinds":["object"],"required":["a"],"minMembers":1}""", "{}", Malformed(""));
     }
 
-    private static Fault Lacks(string member) => new(member, FrameRefusalReason.Lacks);
+    private static Fault Lacks(string member) => At(member, FrameRefusalReason.Lacks);
 
-    private static Fault Malformed(string member) => new(member, FrameRefusalReason.Malformed);
+    private static Fault Malformed(string member) => At(member, FrameRefusalReason.Malformed);
 
     private static JsonElement Value(string text)
     {

@@ -163,6 +163,17 @@ the coming release's, and gathers its changes as they land.
 - `DISCOVERY_URL_PATH` is generated from `client/surface.json`.
 - `@xynolog/sdk` no longer exports `System`: `stateDir` takes Protocol's
   `components['schemas']['System']`.
+- Discovery's types are the ones Protocol states, which `@xynolog/core` and
+  `@xynolog/sdk` export: `DiscoveryState`, `DiscoveryRead` (in place of
+  `DiscoveryReadResult`) and `DiscoveryDiff`, with their members
+  `DiscoveryAbsent`, `DiscoveryManaged` and `DiscoveryUnchanged`. A
+  `DiscoveryDiff` names in `duplicated` each address more than one of its
+  state's knowledge bases is at.
+- `UploadProgress`'s `started` and `progress` reports state `totalBytes`
+  only when the upload's source states its length (protocol#121), so it is
+  optional. Every upload holds its bytes whole and still reports it.
+  `UploadProgressBar` shows a `progress` report with no `totalBytes` as it
+  shows one whose total is unknown.
 
 ### Removed
 

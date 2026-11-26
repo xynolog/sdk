@@ -356,10 +356,13 @@ export {
   textDiscovery,
   subscribeDiscovery,
 } from './discovery';
+export type { DiscoveryTransport } from './discovery';
 export type {
+  DiscoveryAbsentReason,
+  DiscoveryAbsent,
+  DiscoveryManaged,
+  DiscoveryUnchanged,
   DiscoveryState,
-  DiscoveryReadResult,
-  DiscoveryTransport,
+  DiscoveryRead,
   DiscoveryDiff,
-} from './discovery';
-export type { DiscoveryAbsentReason } from '@xynolog/core';
+} from '@xynolog/core';

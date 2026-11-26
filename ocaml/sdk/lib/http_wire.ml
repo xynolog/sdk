@@ -452,9 +452,10 @@ let put t (request : Records.Put_binary_request.t) ~on_progress =
           reported := sent;
           on_progress
             (Records.Upload_progress.Progress
-               { bytes_uploaded = sent; total_bytes }))
+               { bytes_uploaded = sent; total_bytes = Some total_bytes }))
       in
-      on_progress (Records.Upload_progress.Started { total_bytes });
+      on_progress
+        (Records.Upload_progress.Started { total_bytes = Some total_bytes });
       let answer =
         exchange t ~auth:true ~body ~progress:report
           ~headers:

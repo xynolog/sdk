@@ -619,8 +619,14 @@ async fn an_upload_to_the_content_double_reports_its_size_its_bytes_and_the_reso
     assert_eq!(
         reports,
         [
-            UploadProgress::Started(UploadProgressStarted::new(10)),
-            UploadProgress::Progress(UploadProgressProgress::new(10, 10)),
+            UploadProgress::Started(UploadProgressStarted {
+                total_bytes: Some(10),
+                ..UploadProgressStarted::new()
+            }),
+            UploadProgress::Progress(UploadProgressProgress {
+                total_bytes: Some(10),
+                ..UploadProgressProgress::new(10)
+            }),
             UploadProgress::Finished(UploadProgressFinished::new(created.resource_id)),
         ]
     );

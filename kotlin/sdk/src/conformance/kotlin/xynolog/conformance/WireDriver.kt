@@ -216,7 +216,8 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
                 upload.progress.collect { progress ->
                     // The driver protocol reports the bytes sent: the upload's start and its end are its answer's.
                     if (progress is UploadProgressProgress) {
-                        Say.line(Say.of("progress" to Say.of("upload" to JsonPrimitive(id), "bytesUploaded" to JsonPrimitive(progress.bytesUploaded), "totalBytes" to JsonPrimitive(progress.totalBytes))))
+                        val report = listOfNotNull("upload" to JsonPrimitive(id), "bytesUploaded" to JsonPrimitive(progress.bytesUploaded), progress.totalBytes?.let { "totalBytes" to JsonPrimitive(it) })
+                        Say.line(Say.of("progress" to JsonObject(report.toMap())))
                     }
                 }
             }

@@ -42,7 +42,7 @@ public sealed partial class HttpTransport
             var reply = await response.Content.ReadFromJsonAsync<JsonElement>(linked.Token).ConfigureAwait(Spawning.Captures);
             return Required.TryRead<T>(reply, out var decoded, out var fault)
                 ? decoded
-                : throw Report(new TransportError(TransportErrorCode.Error, $"{path}: the reply is not a {typeof(T).Name}: {fault}", (int)response.StatusCode));
+                : throw Report(new TransportError(TransportErrorCode.Error, $"{path}: the reply is not a {typeof(T).Name}: {fault.Said()}", (int)response.StatusCode));
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
         {

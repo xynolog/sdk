@@ -10,15 +10,16 @@ let form = "session/ClientSecretForm.json"
 
 (* What a member holds: a scalar by its JSON Schema type, a file's bytes, one
    of some words, another schema by its name (and whether that is a union of
-   branches), a list whose items the schema leaves open or states, or an object
-   stated in place. A member a schema states elsewhere ([$ref] to a member of
+   branches), a value of one of the type parameters its type is generic over,
+   by its name, a list of what each item holds, or an object stated in
+   place. A member a schema states elsewhere ([$ref] to a member of
    another schema) holds what that member holds. *)
 type held =
   | Scalar of Schema.type_name
   | Binary
   | Word of string list
   | Named of { name : string; union : bool }
-  | Open_list
+  | Parameter of string
   | List of held
   | Inline of member list
 
@@ -98,9 +99,9 @@ let derive (spec : Spec.t) =
                     refuse file pointer
                       ("refers to " ^ ref_.target ^ ", which is no schema");
                     None))
-        | { type_ = Some [ Array ]; items = None; _ }
-          when described l = [ "type" ] ->
-            Some Open_list
+        | { type_parameter = Some parameter; _ }
+          when described l = [ "x-xynolog-typeParameter" ] ->
+            Some (Parameter parameter)
         | { type_ = Some [ Array ]; items = Some (_, items); _ }
           when List.for_all
                  (fun k -> List.mem k [ "type"; "items"; "minItems" ])
@@ -157,6 +158,7 @@ let derive (spec : Spec.t) =
                       "properties";
                       "required";
                       "additionalProperties";
+                      "x-xynolog-typeParameters";
                     ])
                 keywords ->
         let required = Option.value s.required ~default:[] in

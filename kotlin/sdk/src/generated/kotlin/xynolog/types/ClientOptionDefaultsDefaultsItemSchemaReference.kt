@@ -11,12 +11,18 @@ public data class ClientOptionDefaultsDefaultsItemSchemaReference(
     /** The $id of a component, a member within one, or a client type of specs/src/client/types: an object is always one of these, so that it is named. */
     @SerialName("\$ref")
     public val ref: String,
+    /** What each of the client type's type parameters is here, by its name: a type parameter of the unit it is given in, one for each the client type's x-xynolog-typeParameters states, and only where it states any. */
+    public val typeArguments: kotlin.collections.Map<String, ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue>? = null,
 ) : ClientOptionDefaultsDefaultsItemSchema {
     /** How Java makes a `ClientOptionDefaultsDefaultsItemSchemaReference`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val ref: String,
     ) {
-        public fun build(): ClientOptionDefaultsDefaultsItemSchemaReference = ClientOptionDefaultsDefaultsItemSchemaReference(ref = ref)
+        private var typeArguments: kotlin.collections.Map<String, ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue>? = null
+
+        public fun typeArguments(typeArguments: kotlin.collections.Map<String, ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue>?): Builder = apply { this.typeArguments = typeArguments }
+
+        public fun build(): ClientOptionDefaultsDefaultsItemSchemaReference = ClientOptionDefaultsDefaultsItemSchemaReference(ref = ref, typeArguments = typeArguments)
     }
 
     public companion object {

@@ -34,8 +34,10 @@ from xynolog.cache import Cache, CachePersister
 from xynolog.channels import BRIDGED_CHANNELS
 from xynolog.claims import JOB_CLAIM_CHANNELS
 from xynolog.client import XynologClient
-from xynolog.discovery import DiscoveryRead, DiscoveryTransport, Managed, Unchanged, subscribe_discovery
-from xynolog.errors import BusRequestError, TransportError
+from xynolog.discovery import DiscoveryTransport, subscribe_discovery
+from xynolog.errors import BusRequestError, SignInError, TransportError
+from xynolog.http.agent import AgentToken, SecretCredential, ServiceToken
+from xynolog.http.gateway_http import GET_CURRENT_USER
 from xynolog.http.oauth import sign_in_with_device_grant
 from xynolog.http.transport import HttpTransport
 from xynolog.identifiers import JobId
@@ -47,6 +49,9 @@ from xynolog.types import (
     ClaimOptions,
     ClaimRefusal,
     DiscoveredKB,
+    DiscoveryManaged,
+    DiscoveryRead,
+    DiscoveryUnchanged,
     HighlightingJobParams,
     HttpEndpoint,
     JobFilter,
@@ -477,6 +482,96 @@ async def device_grant(given: JsonObject, held: AsyncExitStack) -> Subject:
     return Subject(counted=lambda: issuer.token_asks, act=None)
 
 
+# ── An agent's sign-in ──────────────────────────────────────────────────
+
+SMELTER: Final[JsonObject] = {
+    "did": "did:web:example.org:agents:smelter",
+    "email": None,
+    "name": "Smelter",
+    "image": None,
+    "domain": "example.org",
+}
+"""The agent, as its gateway names it."""
+
+
+@final
+class AgentServers:
+    """An agent's issuer and its gateway, in this process: what an agent's sign-in asks.
+
+    The issuer grants a token that lives an hour each time it is asked, or
+    answers the grant with `grant_status` when it states one. The gateway
+    names the agent, or answers the naming request with `naming_status` when
+    it states one, or fails every connection to it as it is made when
+    `unreachable`. It counts the grants and the naming requests it is asked,
+    and each connection to the gateway tried. The issuer's discovery is none
+    of them.
+    """
+
+    def __init__(self, *, grant_status: int | None, naming_status: int | None, unreachable: bool) -> None:
+        self._grant_status: Final = grant_status
+        self._naming_status: Final = naming_status
+        self._unreachable: Final = unreachable
+        self.asked = 0
+
+    async def answer(self, request: httpx.Request) -> httpx.Response:
+        where = f"{request.url.scheme}://{request.url.host}{request.url.path}"
+        if where.startswith(GATEWAY):
+            self.asked += 1
+            if self._unreachable:
+                raise httpx.ConnectError("the gateway cannot be reached", request=request)
+            if where != f"{GATEWAY}{GET_CURRENT_USER.path}":
+                raise AssertionError(f"the gateway was asked {request.method} {where}, which an agent's sign-in does not ask")
+            if self._naming_status is not None:
+                return httpx.Response(self._naming_status, json={"error": "The gateway does not name the agent"})
+            return httpx.Response(200, json=SMELTER)
+        if where == f"{ISSUER}/.well-known/openid-configuration":
+            return httpx.Response(200, json={"issuer": ISSUER, "token_endpoint": f"{ISSUER}/token"})
+        if where == f"{ISSUER}/token":
+            self.asked += 1
+            if self._grant_status is not None:
+                return httpx.Response(self._grant_status, json={"error": "temporarily_unavailable"})
+            return httpx.Response(200, json={"access_token": token(3600, self.asked), "token_type": "Bearer", "expires_in": 3600})
+        raise AssertionError(f"the issuer was asked {request.method} {where}, which an agent's sign-in does not ask")
+
+
+async def agent_sign_in(held: AsyncExitStack, servers: AgentServers) -> Subject:
+    """An agent's sign-in at `servers`, set going as the case begins. It fails, as each of these subjects has it fail."""
+    http = await held.enter_async_context(httpx.AsyncClient(transport=httpx.MockTransport(servers.answer), trust_env=False))
+    service = ServiceToken(SecretCredential(issuer=ISSUER, client_id="smelter", client_secret="a-client-secret"), http=http)
+
+    async def sign_in() -> None:
+        async with AgentToken(GATEWAY, service=service, http=http):
+            raise AssertionError("the agent signed in")
+
+    signing_in = running(held, sign_in())
+
+    def requests() -> int:
+        if signing_in.done() and not signing_in.cancelled():
+            error = signing_in.exception()
+            assert isinstance(error, SignInError | TransportError), f"the sign-in ended otherwise: {signing_in!r}"
+        return servers.asked
+
+    return Subject(counted=requests, act=None)
+
+
+def given_status(given: JsonObject) -> int:
+    status = given["status"]
+    assert isinstance(status, int), "given.status is a status"
+    return status
+
+
+async def refused_agent_sign_in(given: JsonObject, held: AsyncExitStack) -> Subject:
+    return await agent_sign_in(held, AgentServers(grant_status=None, naming_status=given_status(given), unreachable=False))
+
+
+async def unreachable_agent_sign_in(given: JsonObject, held: AsyncExitStack) -> Subject:
+    return await agent_sign_in(held, AgentServers(grant_status=None, naming_status=None, unreachable=True))
+
+
+async def refused_agent_grant(given: JsonObject, held: AsyncExitStack) -> Subject:
+    return await agent_sign_in(held, AgentServers(grant_status=given_status(given), naming_status=None, unreachable=False))
+
+
 # ── A session ───────────────────────────────────────────────────────────
 
 KB: Final = KbTarget(id="kb-alpha", label="Alpha", endpoint=HttpEndpoint(kind="http", host="localhost", port=4000, protocol="http"))
@@ -553,12 +648,13 @@ async def held_job_stall(given: JsonObject, held: AsyncExitStack) -> Subject:
 
 # ── Discovery ───────────────────────────────────────────────────────────
 
-MANAGED: Final = Managed(
-    kbs=(
+MANAGED: Final = DiscoveryManaged(
+    kind="managed",
+    kbs=[
         DiscoveredKB.model_validate(
             {"host": "localhost", "port": 4000, "placement": "local", "managedBy": "xynolog-launcher", "did": "did:web:example.org:kb-a"}
-        ),
-    )
+        )
+    ],
 )
 
 
@@ -572,7 +668,7 @@ class LauncherDocument(DiscoveryTransport):
     @override
     async def read(self) -> DiscoveryRead:
         self.reads += 1
-        return MANAGED if self.reads == 1 else Unchanged()
+        return MANAGED if self.reads == 1 else DiscoveryUnchanged(kind="unchanged")
 
 
 async def discovery(given: JsonObject, held: AsyncExitStack) -> Subject:
@@ -721,6 +817,9 @@ SUBJECTS: Final[Mapping[str, Build]] = {
     "timedOutBusRequest": timed_out_bus_request,
     "jobPoll": job_poll,
     "jobPollTimeout": job_poll_timeout,
+    "refusedAgentSignIn": refused_agent_sign_in,
+    "unreachableAgentSignIn": unreachable_agent_sign_in,
+    "refusedAgentGrant": refused_agent_grant,
 }
 """How this SDK builds each subject the table names."""
 

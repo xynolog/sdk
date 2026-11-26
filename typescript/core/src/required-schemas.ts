@@ -1050,6 +1050,7 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['clientId', 'global', 'pendingReplies', 'scoped'],
   },
+  ByteSource: { kinds: ['string'] },
   CacheStatus: { kinds: ['string'], enum: ['pending', 'ready', 'failed'] },
   Cancelled: {
     kinds: ['object'],
@@ -1183,21 +1184,7 @@ export const REQUIRED_SCHEMAS: {
           required: ['reason', 'docs'],
           members: {
             docs: { kinds: ['string'], minLength: 1 },
-            reason: {
-              kinds: ['string'],
-              pattern: [
-                { of: [[97, 122]], min: 1 },
-                {
-                  either: [
-                    [
-                      { of: [[45, 45]], min: 1, max: 1 },
-                      { of: [[97, 122]], min: 1 },
-                    ],
-                  ],
-                  min: 0,
-                },
-              ],
-            },
+            reason: { ref: 'DiscoveryAbsentReason' },
           },
           closed: ['docs', 'reason'],
         },
@@ -1355,8 +1342,32 @@ export const REQUIRED_SCHEMAS: {
                         },
                       ],
                     },
+                    typeArguments: {
+                      kinds: ['object'],
+                      values: {
+                        kinds: ['object'],
+                        required: ['typeParameter'],
+                        members: {
+                          typeParameter: {
+                            kinds: ['string'],
+                            pattern: [
+                              { of: [[65, 90]], min: 1, max: 1 },
+                              {
+                                of: [
+                                  [65, 90],
+                                  [97, 122],
+                                ],
+                                min: 0,
+                              },
+                            ],
+                          },
+                        },
+                        closed: ['typeParameter'],
+                      },
+                      minMembers: 1,
+                    },
                   },
-                  closed: ['$ref'],
+                  closed: ['$ref', 'typeArguments'],
                 },
                 {
                   kinds: ['object'],
@@ -1394,6 +1405,49 @@ export const REQUIRED_SCHEMAS: {
                     },
                   },
                   closed: ['description', 'format', 'minimum', 'type'],
+                },
+                {
+                  kinds: ['object'],
+                  required: ['typeParameter'],
+                  members: {
+                    typeParameter: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[65, 90]], min: 1, max: 1 },
+                        {
+                          of: [
+                            [65, 90],
+                            [97, 122],
+                          ],
+                          min: 0,
+                        },
+                      ],
+                    },
+                  },
+                  closed: ['typeParameter'],
+                },
+                {
+                  kinds: ['object'],
+                  required: ['decided'],
+                  members: {
+                    decided: {
+                      kinds: ['object'],
+                      required: ['by', 'in'],
+                      members: {
+                        by: {
+                          kinds: ['object'],
+                          required: ['member'],
+                          members: {
+                            member: { kinds: ['string'], minLength: 1 },
+                          },
+                          closed: ['member'],
+                        },
+                        in: { kinds: ['string'], enum: ['takes'] },
+                      },
+                      closed: ['by', 'in'],
+                    },
+                  },
+                  closed: ['decided'],
                 },
               ],
             },
@@ -2352,7 +2406,7 @@ export const REQUIRED_SCHEMAS: {
         members: {
           progress: {
             kinds: ['object'],
-            required: ['upload', 'bytesUploaded', 'totalBytes'],
+            required: ['upload', 'bytesUploaded'],
             members: {
               bytesUploaded: { kinds: ['integer'], minimum: 0 },
               totalBytes: { kinds: ['integer'], minimum: 0 },
@@ -3509,6 +3563,16 @@ export const REQUIRED_SCHEMAS: {
       siteName: { kinds: ['string'] },
     },
   },
+  DiscoveryAbsent: {
+    kinds: ['object'],
+    required: ['kind', 'reason'],
+    members: {
+      diagnostic: { kinds: ['string'], minLength: 1 },
+      kind: { kinds: ['string'], enum: ['absent'] },
+      reason: { ref: 'DiscoveryAbsentReason' },
+    },
+    closed: ['diagnostic', 'kind', 'reason'],
+  },
   DiscoveryAbsentReason: {
     kinds: ['string'],
     enum: [
@@ -3521,13 +3585,18 @@ export const REQUIRED_SCHEMAS: {
   },
   DiscoveryDiff: {
     kinds: ['object'],
-    required: ['added', 'updated', 'removed'],
+    required: ['state', 'added', 'updated', 'removed', 'duplicated'],
     members: {
       added: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      duplicated: {
+        kinds: ['array'],
+        items: { kinds: ['string'], minLength: 1 },
+      },
       removed: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      state: { ref: 'DiscoveryState' },
       updated: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
     },
-    closed: ['added', 'removed', 'updated'],
+    closed: ['added', 'duplicated', 'removed', 'state', 'updated'],
   },
   DiscoveryDocument: {
     kinds: ['object'],
@@ -3537,39 +3606,37 @@ export const REQUIRED_SCHEMAS: {
       version: { kinds: ['integer'], enum: [1] },
     },
   },
+  DiscoveryManaged: {
+    kinds: ['object'],
+    required: ['kind', 'kbs'],
+    members: {
+      kbs: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      kind: { kinds: ['string'], enum: ['managed'] },
+    },
+    closed: ['kbs', 'kind'],
+  },
   DiscoveryRead: {
     kinds: ['object'],
     oneOf: [
-      {
-        kinds: ['object'],
-        required: ['kind', 'reason'],
-        members: {
-          diagnostic: { kinds: ['string'], minLength: 1 },
-          kind: { kinds: ['string'], enum: ['absent'] },
-          reason: { kinds: ['string'], minLength: 1 },
-        },
-        closed: ['diagnostic', 'kind', 'reason'],
-      },
-      {
-        kinds: ['object'],
-        required: ['kind', 'kbs'],
-        members: {
-          kbs: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
-          kind: { kinds: ['string'], enum: ['managed'] },
-        },
-        closed: ['kbs', 'kind'],
-      },
-      {
-        kinds: ['object'],
-        required: ['kind'],
-        members: { kind: { kinds: ['string'], enum: ['unchanged'] } },
-        closed: ['kind'],
-      },
+      { ref: 'DiscoveryAbsent' },
+      { ref: 'DiscoveryManaged' },
+      { ref: 'DiscoveryUnchanged' },
     ],
     discriminator: {
       property: 'kind',
       mapping: { absent: 0, managed: 1, unchanged: 2 },
     },
+  },
+  DiscoveryState: {
+    kinds: ['object'],
+    oneOf: [{ ref: 'DiscoveryAbsent' }, { ref: 'DiscoveryManaged' }],
+    discriminator: { property: 'kind', mapping: { absent: 0, managed: 1 } },
+  },
+  DiscoveryUnchanged: {
+    kinds: ['object'],
+    required: ['kind'],
+    members: { kind: { kinds: ['string'], enum: ['unchanged'] } },
+    closed: ['kind'],
   },
   DispatcherConfig: {
     kinds: ['object'],
@@ -8069,7 +8136,7 @@ export const REQUIRED_SCHEMAS: {
       archiveOriginal: { kinds: ['boolean'] },
       cloneToken: { kinds: ['string'] },
       entityTypes: { kinds: ['array'], items: { kinds: ['string'] } },
-      file: { ref: 'Binary' },
+      file: { ref: 'ByteSource' },
       format: { kinds: ['string'] },
       generationPrompt: { kinds: ['string'] },
       generator: { ref: 'OneOrMoreAgents' },
@@ -10136,7 +10203,7 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['access', 'refresh', 'clientId', 'tokenEndpoint'],
     members: {
-      access: { kinds: ['string'] },
+      access: { ref: 'AccessToken' },
       clientId: { kinds: ['string'] },
       personKey: { kinds: ['string'] },
       refresh: { kinds: ['string'] },
@@ -10463,7 +10530,7 @@ export const REQUIRED_SCHEMAS: {
     oneOf: [
       {
         kinds: ['object'],
-        required: ['phase', 'totalBytes'],
+        required: ['phase'],
         members: {
           phase: { kinds: ['string'], enum: ['started'] },
           totalBytes: { kinds: ['integer'], minimum: 0 },
@@ -10472,7 +10539,7 @@ export const REQUIRED_SCHEMAS: {
       },
       {
         kinds: ['object'],
-        required: ['phase', 'bytesUploaded', 'totalBytes'],
+        required: ['phase', 'bytesUploaded'],
         members: {
           bytesUploaded: { kinds: ['integer'], minimum: 0 },
           phase: { kinds: ['string'], enum: ['progress'] },

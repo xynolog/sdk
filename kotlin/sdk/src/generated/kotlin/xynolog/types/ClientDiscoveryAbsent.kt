@@ -12,7 +12,7 @@ public data class ClientDiscoveryAbsent(
     /** The rule the table states, in prose. */
     @SerialName("\$comment")
     public val comment: String,
-    /** Each reason, and what it means. */
+    /** Each reason, in DiscoveryAbsentReason's order, and what it means. */
     public val reasons: kotlin.collections.List<ClientDiscoveryAbsentReasonsItem>,
 ) {
     /** How Java makes a `ClientDiscoveryAbsent`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */

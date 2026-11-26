@@ -206,6 +206,19 @@ the coming release's, and gathers its changes as they land.
   state nothing are not sent.
 - `SignInStore.StateDirectory` takes Protocol's `Xynolog.Types.System`, where
   it took the system's name as a string.
+- The discovery types are Protocol's (protocol#126), in `Xynolog.Types`,
+  where they were hand-written in `Xynolog.Discovery`: `DiscoveryState` is a
+  `DiscoveryState.DiscoveryAbsent` or a `DiscoveryState.DiscoveryManaged`,
+  `DiscoveryRead` is a `DiscoveryRead.DiscoveryAbsent`,
+  `DiscoveryRead.DiscoveryManaged` or `DiscoveryRead.DiscoveryUnchanged`,
+  each holding its `Value`, and `DiscoveryDiff` is the type of
+  `client/types/DiscoveryDiff.json`, built with an initializer. `Absent`,
+  `Managed` and `Unchanged` are removed, and a `DiscoveryState` is no longer
+  a `DiscoveryRead`.
+- `UploadProgressStarted.TotalBytes` and `UploadProgressProgress.TotalBytes`
+  are a `long?`, which an initializer need not set (protocol#121): a source
+  of unstated length states none. Every upload today holds its bytes whole,
+  and states its total.
 
 ### Removed
 

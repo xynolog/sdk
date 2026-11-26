@@ -466,7 +466,7 @@ let identifier (typing : T.t) name =
 
 (* The module for [typing]'s generation, whose kinds of id are
    xynolog.identifiers'. *)
-let module_ ~also (typing : T.t) =
+let module_ (typing : T.t) =
   let kinds = List.filter (identifier typing) typing.names in
   let st = { typing; tagged = tagged typing; declared = [] } in
   let decls =
@@ -485,7 +485,6 @@ let module_ ~also (typing : T.t) =
           in
           (component, decl) :: placed)
       typing.names
-    @ also
   in
   let names = List.sort compare (List.map fst decls) in
   P.text
@@ -530,28 +529,6 @@ let module_ ~also (typing : T.t) =
         :: List.map snd (ordered decls);
     }
 
-(* Why a client that read a launcher's discovery document found no launcher
-   (protocol/specs/src/client/discovery-absent.json): a word a reason, each
-   reason's meaning in the docstring. *)
-let discovery_absent (spec : Spec.t) =
-  let reasons = spec.tables.client_discovery_absent.reasons in
-  ( "DiscoveryAbsentReason",
-    P.alias
-      ~doc:
-        (As_is
-           (String.concat "\n\n"
-              ("Why no launcher was found."
-              :: List.map
-                   (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                     Printf.sprintf "`%s`: %s" r.reason r.docs)
-                   reasons)))
-      "DiscoveryAbsentReason"
-      (P.sub "Literal"
-         (List.map
-            (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-              P.item (P.Str r.reason))
-            reasons)) )
-
 (* Each service table ([Roots.service_tables]) is read as its schema's model
    of types.py, named as its file is, and is that model's value in
    service_tables.py. *)
@@ -580,9 +557,7 @@ let home (spec : Spec.t) name =
   if identifier typing name then "xynolog.identifiers" else "xynolog.types"
 
 let text (spec : Spec.t) =
-  module_
-    ~also:[ discovery_absent spec ]
-    (Typing.of_spec spec ~tables:(Roots.service_tables spec))
+  module_ (Typing.of_spec spec ~tables:(Roots.service_tables spec))
 
 (* The launcher's control API as the Python SDK reads it
    (python/sdk/src/xynolog/control_methods.py, from

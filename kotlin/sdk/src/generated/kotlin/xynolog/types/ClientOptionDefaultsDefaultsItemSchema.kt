@@ -5,7 +5,7 @@ package xynolog.types
 
 import kotlinx.serialization.Serializable
 
-/** What the parameter is. */
+/** What the parameter is. Left out where it is the SDK's own: its error, which no schema states. */
 @Serializable(with = ClientOptionDefaultsDefaultsItemSchemaSerializer::class)
 public sealed interface ClientOptionDefaultsDefaultsItemSchema
 
@@ -16,7 +16,7 @@ internal object ClientOptionDefaultsDefaultsItemSchemaSerializer : SignatureUnio
             Signature(
                 kind = Kind.OBJECT,
                 required = listOf("\$ref"),
-                allowed = listOf("\$ref"),
+                allowed = listOf("\$ref", "typeArguments"),
                 fixed = emptyList(),
                 values = null,
             ),
@@ -30,11 +30,31 @@ internal object ClientOptionDefaultsDefaultsItemSchemaSerializer : SignatureUnio
                 values = null,
             ),
         ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("typeParameter"),
+                allowed = listOf("typeParameter"),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
+        listOf(
+            Signature(
+                kind = Kind.OBJECT,
+                required = listOf("decided"),
+                allowed = listOf("decided"),
+                fixed = emptyList(),
+                values = null,
+            ),
+        ),
     ),
     variants = {
         listOf(
             ClientOptionDefaultsDefaultsItemSchemaReference.serializer(),
             ClientOptionDefaultsDefaultsItemSchemaDateTime.serializer(),
+            ClientOptionDefaultsDefaultsItemSchemaTypeParameter.serializer(),
+            ClientOptionDefaultsDefaultsItemSchemaDecided.serializer(),
         )
     },
 )

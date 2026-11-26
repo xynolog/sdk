@@ -41,7 +41,7 @@ internal static class Lines
     internal static ConformanceDriverLine ErrorStream(Exception error) =>
         new ConformanceDriverLine.ErrorStream(new() { Error = Failure(error) });
 
-    internal static ConformanceDriverLine Progress(long upload, long bytesUploaded, long totalBytes) =>
+    internal static ConformanceDriverLine Progress(long upload, long bytesUploaded, long? totalBytes) =>
         new ConformanceDriverLine.Progress(new() { Progress = new() { Upload = upload, BytesUploaded = bytesUploaded, TotalBytes = totalBytes } });
 
     internal static ConformanceDriverLine Pending(string observer) =>
