@@ -1,11 +1,12 @@
 /**
  * The client types the generator leaves to each SDK (protocol/specs/src/client/types):
- * SearchState and JobEvent, which are generic, and EngineWithLimits,
- * PutBinaryRequest, ResourceRepresentation and ResourceRepresentationStream,
- * which hold bytes or join what two answers say. This census holds each to
- * its schema. The compiler holds each list below to the type's members (and
- * which it requires) and branches, and the test holds the list to the
- * schema's, so a member or a branch either side gains or loses fails.
+ * SearchState, JobEvent and CacheState, which are generic, and
+ * EngineWithLimits, PutBinaryRequest, ResourceRepresentation and
+ * ResourceRepresentationStream, which hold bytes or join what two answers
+ * say. This census holds each to its schema. The compiler holds each list
+ * below to the type's members (and which it requires) and branches, and the
+ * test holds the list to the schema's, so a member or a branch either side
+ * gains or loses fails.
  */
 
 import { describe, expect, expectTypeOf, it } from 'vitest';
@@ -16,8 +17,10 @@ import type {
   ResourceRepresentationStream,
 } from '@xynolog/core';
 import type { JobEvent } from '../awaitable';
+import type { CacheState } from '../cache';
 import type { SearchState } from '../state/lib/search-pipeline';
 import { schema as jobEvent } from './cases/client_types_job_event_schema';
+import { schema as cacheState } from './cases/client_types_cache_state_schema';
 import { schema as searchState } from './cases/client_types_search_state_schema';
 import { schema as engineWithLimits } from './cases/client_types_engine_with_limits_schema';
 import { schema as putBinaryRequest } from './cases/client_types_put_binary_request_schema';
@@ -46,6 +49,16 @@ const REFUSED_DATA = [
   'member',
   'reason',
 ] as const satisfies readonly (keyof Branch<'refused'>['data'])[];
+
+type CacheBranch<S> = Extract<CacheState<unknown>, { status: S }>;
+
+const CACHE_STATE = {
+  pending: ['status'],
+  ready: ['status', 'value'],
+  failed: ['status', 'error'],
+} as const satisfies {
+  [S in CacheState<unknown>['status']]: readonly (keyof CacheBranch<S>)[];
+};
 
 describe('the generic client types (protocol/specs/src/client/types)', () => {
   it('SearchState has the schema’s members', () => {
@@ -94,6 +107,36 @@ describe('the generic client types (protocol/specs/src/client/types)', () => {
     expect(sorted(Object.keys(refused.properties))).toEqual(
       sorted(REFUSED_DATA),
     );
+  });
+
+  it('CacheState has the schema’s branches, each of its members', () => {
+    expectTypeOf<
+      Exclude<
+        keyof CacheBranch<'pending'>,
+        (typeof CACHE_STATE.pending)[number]
+      >
+    >().toBeNever();
+    expectTypeOf<
+      Exclude<keyof CacheBranch<'ready'>, (typeof CACHE_STATE.ready)[number]>
+    >().toBeNever();
+    expectTypeOf<
+      Exclude<keyof CacheBranch<'failed'>, (typeof CACHE_STATE.failed)[number]>
+    >().toBeNever();
+
+    const branches = new Map<string, (typeof cacheState.oneOf)[number]>(
+      cacheState.oneOf.map((branch) => [
+        branch.properties.status.enum[0],
+        branch,
+      ]),
+    );
+    expect(sorted([...branches.keys()])).toEqual(
+      sorted(Object.keys(CACHE_STATE)),
+    );
+    for (const [status, members] of Object.entries(CACHE_STATE)) {
+      expect(sorted(Object.keys(branches.get(status)!.properties))).toEqual(
+        sorted(members),
+      );
+    }
   });
 });
 

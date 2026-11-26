@@ -23,6 +23,8 @@ let reads : Coverage_sdk.t -> (read * string list) list = function
           [ "ocaml/sdk/test/client_types_census.ml" ] );
         ( Schema "client/types/JobEvent.json",
           [ "ocaml/sdk/test/client_types_census.ml" ] );
+        ( Schema "client/types/CacheState.json",
+          [ "ocaml/sdk/test/client_types_census.ml" ] );
         ( Schema "session/StoredSession.json",
           [ "ocaml/sdk/test/registry_behavior.ml" ] );
         ( Schema "session/OpenResource.json",
@@ -62,6 +64,8 @@ let reads : Coverage_sdk.t -> (read * string list) list = function
         ( Schema "client/types/JobEvent.json",
           [ "typescript/sdk/src/__tests__/client-types-census.test.ts" ] );
         ( Schema "client/types/SearchState.json",
+          [ "typescript/sdk/src/__tests__/client-types-census.test.ts" ] );
+        ( Schema "client/types/CacheState.json",
           [ "typescript/sdk/src/__tests__/client-types-census.test.ts" ] );
         ( Schema "client/types/EngineWithLimits.json",
           [ "typescript/sdk/src/__tests__/client-types-census.test.ts" ] );

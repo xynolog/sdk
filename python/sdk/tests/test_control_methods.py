@@ -58,4 +58,6 @@ def test_the_senders_are_those_the_tables_schema_admits() -> None:
     assert isinstance(members, dict)
     sender = members["from"]
     assert isinstance(sender, dict)
-    assert list(get_args(ControlSender.__value__)) == sender["enum"]
+    assert sender["$ref"] == "https://xynolog.org/protocol/ControlSender.json"
+    senders = read(SPEC / "control/ControlSender.json")
+    assert list(get_args(ControlSender.__value__)) == senders["enum"]

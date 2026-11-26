@@ -141,12 +141,31 @@ let item_via_json = function
   | (Gateway v : item_via) -> gateway_json v
   | (Observes v : item_via) -> observes_json v
 
-type reference = { ref : string }
+type value_schema = { type_parameter : string }
+
+let value_schema_json (r : value_schema) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("typeParameter", (fun s -> `String s) r.type_parameter) ])
+
+type reference = {
+  ref : string;
+  type_arguments : (string * value_schema) list option;
+}
 
 let reference_json (r : reference) =
   `Assoc
     (List.filter_map Fun.id
-       [ Option.Some ("$ref", (fun s -> `String s) r.ref) ])
+       [
+         Option.Some ("$ref", (fun s -> `String s) r.ref);
+         Option.map
+           (fun v ->
+             ( "typeArguments",
+               (fun l ->
+                 `Assoc (List.map (fun (k, v) -> (k, value_schema_json v)) l))
+                 v ))
+           r.type_arguments;
+       ])
 
 type type_ = Integer | String | Boolean
 
@@ -174,15 +193,45 @@ let scalar_json (r : scalar) =
          Option.Some ("description", (fun s -> `String s) r.description);
        ])
 
-type schema = Reference of reference | Scalar of scalar
+type by = { member : string }
+
+let by_json (r : by) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("member", (fun s -> `String s) r.member) ])
+
+type decided_decided = { by : by; in_ : string }
+
+let decided_decided_json (r : decided_decided) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("by", by_json r.by);
+         Option.Some ("in", (fun s -> `String s) r.in_);
+       ])
+
+type decided = { decided : decided_decided }
+
+let decided_json (r : decided) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("decided", decided_decided_json r.decided) ])
+
+type schema =
+  | Reference of reference
+  | Scalar of scalar
+  | Type_parameter of value_schema
+  | Decided of decided
 
 let schema_json = function
   | (Reference v : schema) -> reference_json v
   | (Scalar v : schema) -> scalar_json v
+  | (Type_parameter v : schema) -> value_schema_json v
+  | (Decided v : schema) -> decided_json v
 
 type value = {
   parameter : string;
-  schema : schema;
+  schema : schema option;
   required : bool;
   absent : bool option;
 }
@@ -192,12 +241,17 @@ let value_json (r : value) =
     (List.filter_map Fun.id
        [
          Option.Some ("parameter", (fun s -> `String s) r.parameter);
-         Option.Some ("schema", schema_json r.schema);
+         Option.map (fun v -> ("schema", schema_json v)) r.schema;
          Option.Some ("required", (fun b -> `Bool b) r.required);
          Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
        ])
 
-type callback = { parameter : string; calls : schema; required : bool }
+type callback = {
+  parameter : string;
+  calls : schema;
+  required : bool;
+  returns : schema option;
+}
 
 let callback_json (r : callback) =
   `Assoc
@@ -206,6 +260,10 @@ let callback_json (r : callback) =
          Option.Some ("parameter", (fun s -> `String s) r.parameter);
          Option.Some ("calls", schema_json r.calls);
          Option.Some ("required", (fun b -> `Bool b) r.required);
+         Option.Some
+           ( "returns",
+             (function Option.None -> `Null | Option.Some v -> schema_json v)
+               r.returns );
        ])
 
 type parameters_item = Value of value | Callback of callback
@@ -382,17 +440,34 @@ let returns_function_json (r : returns_function) =
     (List.filter_map Fun.id
        [ Option.Some ("function", (fun s -> `String s) r.function_) ])
 
+type returns_stream = { stream : schema }
+
+let returns_stream_json (r : returns_stream) =
+  `Assoc
+    (List.filter_map Fun.id [ Option.Some ("stream", schema_json r.stream) ])
+
+type items = { list : schema }
+
+let items_json (r : items) =
+  `Assoc (List.filter_map Fun.id [ Option.Some ("list", schema_json r.list) ])
+
 type returns =
   | Reference of reference
   | Scalar of scalar
+  | Type_parameter of value_schema
   | Handed of handed
   | Function of returns_function
+  | Stream of returns_stream
+  | Items of items
 
 let returns_json = function
   | (Reference v : returns) -> reference_json v
   | (Scalar v : returns) -> scalar_json v
+  | (Type_parameter v : returns) -> value_schema_json v
   | (Handed v : returns) -> handed_json v
   | (Function v : returns) -> returns_function_json v
+  | (Stream v : returns) -> returns_stream_json v
+  | (Items v : returns) -> items_json v
 
 type signature = {
   parameters : parameters_item list;
@@ -487,6 +562,16 @@ let worker_item_json (r : worker_item) =
            ("members", (fun l -> `List (List.map members_item_json l)) r.members);
        ])
 
+type type_parameters_item = { name : string; docs : string }
+
+let type_parameters_item_json (r : type_parameters_item) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("name", (fun s -> `String s) r.name);
+         Option.Some ("docs", (fun s -> `String s) r.docs);
+       ])
+
 type item_members_item = { member : string; gives : gives }
 
 let item_members_item_json (r : item_members_item) =
@@ -502,6 +587,7 @@ type state_units_item = {
   docs : string;
   made : (string * string) list;
   made_by : (string * string) list;
+  type_parameters : type_parameters_item list option;
   members : item_members_item list;
 }
 
@@ -521,6 +607,11 @@ let state_units_item_json (r : state_units_item) =
              (fun l ->
                `Assoc (List.map (fun (k, v) -> (k, (fun s -> `String s) v)) l))
                r.made_by );
+         Option.map
+           (fun v ->
+             ( "typeParameters",
+               (fun l -> `List (List.map type_parameters_item_json l)) v ))
+           r.type_parameters;
          Option.Some
            ( "members",
              (fun l -> `List (List.map item_members_item_json l)) r.members );
@@ -1038,13 +1129,15 @@ let table : t =
                           ({
                              parameter = "type";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/FrameAddEntityTypeCommand.json#/properties/tag";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/FrameAddEntityTypeCommand.json#/properties/tag";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1078,13 +1171,15 @@ let table : t =
                           ({
                              parameter = "types";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/GetEntityTypesResponse.json#/properties/entityTypes";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/GetEntityTypesResponse.json#/properties/entityTypes";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1135,13 +1230,15 @@ let table : t =
                           ({
                              parameter = "schema";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/TagSchema.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/TagSchema.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1212,13 +1309,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1231,6 +1330,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ResourceDescriptor.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1261,13 +1361,15 @@ let table : t =
                           ({
                              parameter = "filters";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BrowseResourcesRequest.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BrowseResourcesRequest.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -1280,6 +1382,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ListResourcesResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1354,13 +1457,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1373,6 +1478,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetAnnotationsResponse.json#/properties/annotations";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1403,13 +1509,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1419,13 +1527,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1438,6 +1548,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/Annotation.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1480,6 +1591,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetEntityTypesResponse.json#/properties/entityTypes";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1511,6 +1623,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetTagSchemasResponse.json#/properties/tagSchemas";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1542,6 +1655,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/EnginesWithLimits.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1575,13 +1689,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1594,6 +1710,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetEventsResponse.json#/properties/events";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1622,13 +1739,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1677,13 +1796,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1696,6 +1817,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetResourceResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1725,13 +1847,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1744,6 +1868,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/AnchoredTextAnswer.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1772,13 +1897,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1791,6 +1918,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ResourceRepresentation.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1820,13 +1948,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1839,6 +1969,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ResourceRepresentationStream.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1869,13 +2000,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1888,6 +2021,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetEventsResponse.json#/properties/events";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1919,13 +2053,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1935,13 +2071,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -1954,6 +2092,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetAnnotationHistoryResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1994,13 +2133,15 @@ let table : t =
                           ({
                              parameter = "dirPath";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BrowseDirectoryRequest.json#/properties/path";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BrowseDirectoryRequest.json#/properties/path";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -2010,13 +2151,15 @@ let table : t =
                           ({
                              parameter = "sort";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BrowseDirectoryRequest.json#/properties/sort";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BrowseDirectoryRequest.json#/properties/sort";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -2029,6 +2172,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/BrowseDirectoryResultResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -2082,6 +2226,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/KbDescription.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -2109,13 +2254,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2125,13 +2272,15 @@ let table : t =
                           ({
                              parameter = "anchorRect";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BrowseClickEvent.json#/properties/anchorRect";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BrowseClickEvent.json#/properties/anchorRect";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -2210,13 +2359,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2250,13 +2401,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2300,13 +2453,15 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/CreateAnnotationRequest.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/CreateAnnotationRequest.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2319,6 +2474,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MarkCreateOkResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -2371,13 +2527,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2387,13 +2545,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2437,13 +2597,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2477,13 +2639,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2518,13 +2682,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2534,13 +2700,15 @@ let table : t =
                           ({
                              parameter = "current";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkUpdateEntityTypesCommand.json#/properties/currentEntityTypes";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkUpdateEntityTypesCommand.json#/properties/currentEntityTypes";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2550,13 +2718,15 @@ let table : t =
                           ({
                              parameter = "updated";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkUpdateEntityTypesCommand.json#/properties/updatedEntityTypes";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkUpdateEntityTypesCommand.json#/properties/updatedEntityTypes";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2604,13 +2774,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2620,13 +2792,15 @@ let table : t =
                           ({
                              parameter = "params";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkJobParams.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkJobParams.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2639,6 +2813,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MarkJobCompleteCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -2831,13 +3006,15 @@ let table : t =
                           ({
                              parameter = "source";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/source";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/source";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2847,13 +3024,15 @@ let table : t =
                           ({
                              parameter = "selector";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/selector";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/selector";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2863,13 +3042,15 @@ let table : t =
                           ({
                              parameter = "motivation";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/motivation";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/motivation";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2915,13 +3096,15 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkSubmitEvent.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkSubmitEvent.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -2975,13 +3158,15 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceErrorEvent.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceErrorEvent.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3038,13 +3223,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3054,13 +3241,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3070,13 +3259,15 @@ let table : t =
                           ({
                              parameter = "operations";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BindUpdateBodyCommand.json#/properties/operations";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BindUpdateBodyCommand.json#/properties/operations";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3125,13 +3316,15 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BindInitiateCommand.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BindInitiateCommand.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3182,13 +3375,15 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceErrorEvent.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceErrorEvent.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3246,13 +3441,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3262,13 +3459,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3278,13 +3477,15 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/GatherAnnotationOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/GatherAnnotationOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -3297,6 +3498,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GatherAnnotationComplete.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3398,13 +3600,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3414,13 +3618,15 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/GatherResourceOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/GatherResourceOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -3433,6 +3639,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GatheredContext.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3546,13 +3753,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3565,6 +3774,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetReferencedByResponse.json#/properties/referencedBy";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3604,13 +3814,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3620,13 +3832,15 @@ let table : t =
                           ({
                              parameter = "referenceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchSearchRequest.json#/properties/referenceId";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchSearchRequest.json#/properties/referenceId";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3636,13 +3850,15 @@ let table : t =
                           ({
                              parameter = "context";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchSearchRequest.json#/properties/context";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchSearchRequest.json#/properties/context";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3652,13 +3868,15 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchSearchOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchSearchOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -3671,6 +3889,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MatchSearchResult.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3749,13 +3968,15 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchSearchRequest.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchSearchRequest.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3765,13 +3986,15 @@ let table : t =
                           ({
                              parameter = "correlationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BusFrame.json#/properties/correlationId";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BusFrame.json#/properties/correlationId";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3829,13 +4052,15 @@ let table : t =
                           ({
                              parameter = "search";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchResourcesRequest.json#/properties/search";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchResourcesRequest.json#/properties/search";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3845,13 +4070,15 @@ let table : t =
                           ({
                              parameter = "filters";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceSearchFilters.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceSearchFilters.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -3864,6 +4091,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MatchResourcesResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3955,13 +4183,15 @@ let table : t =
                           ({
                              parameter = "data";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/PutBinaryRequest.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/PutBinaryRequest.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -3974,6 +4204,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/CreateResourceResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4020,13 +4251,15 @@ let table : t =
                           ({
                              parameter = "params";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/GenerationJobParams.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/GenerationJobParams.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4036,22 +4269,23 @@ let table : t =
                           ({
                              parameter = "stallDeadlineMs";
                              schema =
-                               (Scalar
-                                  ({
-                                     type_ = (Integer : type_);
-                                     minimum = Some 0;
-                                     format = None;
-                                     description =
-                                       "How long the followed generation may \
-                                        say nothing, in milliseconds, before \
-                                        it is given up on. The follower's own, \
-                                        never sent: left out, it grows with \
-                                        the generation's `maxTokens` as \
-                                        client/timing.json's generationStall \
-                                        timings say.";
-                                   }
-                                    : scalar)
-                                 : schema);
+                               Some
+                                 (Scalar
+                                    ({
+                                       type_ = (Integer : type_);
+                                       minimum = Some 0;
+                                       format = None;
+                                       description =
+                                         "How long the followed generation may \
+                                          say nothing, in milliseconds, before \
+                                          it is given up on. The follower's \
+                                          own, never sent: left out, it grows \
+                                          with the generation's `maxTokens` as \
+                                          client/timing.json's generationStall \
+                                          timings say.";
+                                     }
+                                      : scalar)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -4064,6 +4298,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/YieldJobCompleteCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4170,13 +4405,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4189,6 +4426,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/CloneResourceWithTokenResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4220,13 +4458,15 @@ let table : t =
                           ({
                              parameter = "token";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/YieldCloneResourceRequest.json#/properties/token";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/YieldCloneResourceRequest.json#/properties/token";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4239,6 +4479,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ResourceDescriptor.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4270,13 +4511,15 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/CreateFromTokenOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/CreateFromTokenOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4289,6 +4532,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/CreateResourceResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4467,13 +4711,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4483,13 +4729,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BeckonFocusEvent.json#/properties/annotationId";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BeckonFocusEvent.json#/properties/annotationId";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -4543,13 +4791,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4583,13 +4833,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4621,13 +4873,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4659,13 +4913,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BeckonHoverEvent.json#/properties/annotationId";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BeckonHoverEvent.json#/properties/annotationId";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4707,13 +4963,15 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4758,6 +5016,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobQueuedEvent.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4833,6 +5092,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobReportProgressCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4870,6 +5130,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobCompleteCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4906,6 +5167,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobFailCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4942,13 +5204,15 @@ let table : t =
                           ({
                              parameter = "jobId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/JobId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/JobId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -4961,6 +5225,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobStatusResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4990,13 +5255,15 @@ let table : t =
                           ({
                              parameter = "jobId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/JobId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/JobId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -5006,13 +5273,15 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/JobPollOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/JobPollOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
                              absent = None;
                            }
@@ -5026,10 +5295,12 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/JobStatusResponse.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
                              required = false;
+                             returns = None;
                            }
                             : callback)
                          : parameters_item);
@@ -5040,6 +5311,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobStatusResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5069,13 +5341,15 @@ let table : t =
                           ({
                              parameter = "jobId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/JobId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/JobId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -5088,6 +5362,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobCancelResult.json#/properties/cancelled";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5116,13 +5391,15 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ClaimOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ClaimOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -5135,6 +5412,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobRunning.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5218,6 +5496,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/UserResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5247,13 +5526,15 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
                              absent = None;
                            }
@@ -5266,6 +5547,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MediaTokenResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5297,6 +5579,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ProtectedResourceMetadata.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5337,6 +5620,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/HealthResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5366,6 +5650,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/StatusResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5452,6 +5737,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/ClaimRefusal.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5474,6 +5760,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobStall.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5496,6 +5783,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/WorkerVitals.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5577,6 +5865,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobId";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5600,6 +5889,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobType";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5623,6 +5913,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobRecord.json#/properties/resourceId";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5646,6 +5937,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobRecord.json#/properties/params";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5669,6 +5961,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobRecord.json#/properties/completedUnits";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5692,6 +5985,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobRecord.json#/properties/unitCursors";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5715,6 +6009,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobRecord.json#/properties/retryCount";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5738,6 +6033,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/HeldJobRecord.json#/properties/maxRetries";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5761,6 +6057,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/JobStartCommand.json#/properties/attempt";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5784,6 +6081,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5807,6 +6105,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/TraceCarrier.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -5888,13 +6187,15 @@ let table : t =
                                          ({
                                             parameter = "progress";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/JobProgress.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobProgress.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -5927,13 +6228,15 @@ let table : t =
                                          ({
                                             parameter = "checkpoint";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/JobCheckpoint.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobCheckpoint.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -5966,13 +6269,15 @@ let table : t =
                                          ({
                                             parameter = "resourceId";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/resourceId";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/resourceId";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -5982,13 +6287,15 @@ let table : t =
                                          ({
                                             parameter = "annotations";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/annotations";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/annotations";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -6014,7 +6321,46 @@ let table : t =
                        ];
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "result";
+                                            schema =
+                                              Some
+                                                (Decided
+                                                   ({
+                                                      decided =
+                                                        ({
+                                                           by =
+                                                             ({
+                                                                member =
+                                                                  "jobType";
+                                                              }
+                                                               : by);
+                                                           in_ = "takes";
+                                                         }
+                                                          : decided_decided);
+                                                    }
+                                                     : decided)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : members_item);
@@ -6035,13 +6381,15 @@ let table : t =
                                          ({
                                             parameter = "error";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/JobFailCommand.json#/properties/error";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobFailCommand.json#/properties/error";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -6051,13 +6399,15 @@ let table : t =
                                          ({
                                             parameter = "failure";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/JobFailure.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobFailure.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = false;
                                             absent = None;
                                           }
@@ -6090,13 +6440,15 @@ let table : t =
                                          ({
                                             parameter = "reached";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/JobReached.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobReached.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = false;
                                             absent = None;
                                           }
@@ -6148,6 +6500,7 @@ let table : t =
                 ("go", "NewMarkStateUnit");
                 ("haskell", "newMarkStateUnit");
               ];
+            type_parameters = None;
             members =
               [
                 ({
@@ -6162,6 +6515,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/PendingAnnotation.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6183,6 +6537,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/Motivation.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6204,6 +6559,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/JobProgress.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6225,6 +6581,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/Motivation.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6255,6 +6612,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/JobId.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6279,13 +6637,15 @@ let table : t =
                                          ({
                                             parameter = "params";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/MarkJobParams.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/MarkJobParams.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -6366,6 +6726,7 @@ let table : t =
                 ("go", "NewYieldStateUnit");
                 ("haskell", "newYieldStateUnit");
               ];
+            type_parameters = None;
             members =
               [
                 ({
@@ -6404,6 +6765,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/JobProgress.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6425,6 +6787,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/YieldJobDone.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6455,6 +6818,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/JobId.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6479,13 +6843,15 @@ let table : t =
                                          ({
                                             parameter = "params";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/GenerationJobParams.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/GenerationJobParams.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -6495,28 +6861,29 @@ let table : t =
                                          ({
                                             parameter = "stallDeadlineMs";
                                             schema =
-                                              (Scalar
-                                                 ({
-                                                    type_ = (Integer : type_);
-                                                    minimum = Some 0;
-                                                    format = None;
-                                                    description =
-                                                      "How long the followed \
-                                                       generation may say \
-                                                       nothing, in \
-                                                       milliseconds, before it \
-                                                       is given up on. The \
-                                                       follower's own, never \
-                                                       sent: left out, it \
-                                                       grows with the \
-                                                       generation's \
-                                                       `maxTokens` as \
-                                                       client/timing.json's \
-                                                       generationStall timings \
-                                                       say.";
-                                                  }
-                                                   : scalar)
-                                                : schema);
+                                              Some
+                                                (Scalar
+                                                   ({
+                                                      type_ = (Integer : type_);
+                                                      minimum = Some 0;
+                                                      format = None;
+                                                      description =
+                                                        "How long the followed \
+                                                         generation may say \
+                                                         nothing, in \
+                                                         milliseconds, before \
+                                                         it is given up on. \
+                                                         The follower's own, \
+                                                         never sent: left out, \
+                                                         it grows with the \
+                                                         generation's \
+                                                         `maxTokens` as \
+                                                         client/timing.json's \
+                                                         generationStall \
+                                                         timings say.";
+                                                    }
+                                                     : scalar)
+                                                  : schema);
                                             required = false;
                                             absent = None;
                                           }
@@ -6580,6 +6947,7 @@ let table : t =
                 ("go", "NewGatherStateUnit");
                 ("haskell", "newGatherStateUnit");
               ];
+            type_parameters = None;
             members =
               [
                 ({
@@ -6594,6 +6962,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/GatheredContext.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6649,6 +7018,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6670,6 +7040,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/GatheredContext.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6728,13 +7099,15 @@ let table : t =
                                          ({
                                             parameter = "annotationId";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/AnnotationId.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -6744,13 +7117,15 @@ let table : t =
                                          ({
                                             parameter = "options";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/GatherAnnotationOptions.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/GatherAnnotationOptions.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = false;
                                             absent = None;
                                           }
@@ -6781,13 +7156,15 @@ let table : t =
                                          ({
                                             parameter = "resourceId";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/ResourceId.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/ResourceId.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -6797,13 +7174,15 @@ let table : t =
                                          ({
                                             parameter = "options";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/GatherResourceOptions.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/GatherResourceOptions.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = false;
                                             absent = None;
                                           }
@@ -6847,6 +7226,7 @@ let table : t =
                 ("go", "NewMatchStateUnit");
                 ("haskell", "newMatchStateUnit");
               ];
+            type_parameters = None;
             members = [];
           }
            : state_units_item);
@@ -6875,6 +7255,7 @@ let table : t =
                 ("go", "NewBeckonStateUnit");
                 ("haskell", "newBeckonStateUnit");
               ];
+            type_parameters = None;
             members =
               [
                 ({
@@ -6889,6 +7270,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -6913,13 +7295,15 @@ let table : t =
                                          ({
                                             parameter = "annotationId";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/AnnotationId.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -6962,6 +7346,7 @@ let table : t =
                 ("go", "NewHoverDwell");
                 ("haskell", "newHoverDwell");
               ];
+            type_parameters = None;
             members =
               [
                 ({
@@ -6979,13 +7364,15 @@ let table : t =
                                          ({
                                             parameter = "annotationId";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/AnnotationId.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -7047,6 +7434,17 @@ let table : t =
                 ("go", "NewSearchPipeline");
                 ("haskell", "newSearchPipeline");
               ];
+            type_parameters =
+              Some
+                [
+                  ({
+                     name = "R";
+                     docs =
+                       "What one result is: what the search the unit is made \
+                        with gives.";
+                   }
+                    : type_parameters_item);
+                ];
             members =
               [
                 ({
@@ -7084,6 +7482,13 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/SearchState.json";
+                                     type_arguments =
+                                       Some
+                                         [
+                                           ( "R",
+                                             ({ type_parameter = "R" }
+                                               : value_schema) );
+                                         ];
                                    }
                                     : reference)
                                  : schema);
@@ -7108,15 +7513,16 @@ let table : t =
                                          ({
                                             parameter = "value";
                                             schema =
-                                              (Scalar
-                                                 ({
-                                                    type_ = (String : type_);
-                                                    minimum = None;
-                                                    format = None;
-                                                    description = "The query.";
-                                                  }
-                                                   : scalar)
-                                                : schema);
+                                              Some
+                                                (Scalar
+                                                   ({
+                                                      type_ = (String : type_);
+                                                      minimum = None;
+                                                      format = None;
+                                                      description = "The query.";
+                                                    }
+                                                     : scalar)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -7164,6 +7570,7 @@ let table : t =
                 ("go", "NewSessionSignals");
                 ("haskell", "newSessionSignals");
               ];
+            type_parameters = None;
             members =
               [
                 ({
@@ -7178,6 +7585,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/SessionEnded.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -7199,6 +7607,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/PermissionDenied.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -7220,6 +7629,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/KbIdentityConflict.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -7244,13 +7654,15 @@ let table : t =
                                          ({
                                             parameter = "reason";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/SessionEnded.json#/properties/reason";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/SessionEnded.json#/properties/reason";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -7281,13 +7693,15 @@ let table : t =
                                          ({
                                             parameter = "detail";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/PermissionDenied.json#/properties/detail";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/PermissionDenied.json#/properties/detail";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -7318,13 +7732,15 @@ let table : t =
                                          ({
                                             parameter = "conflict";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/KbIdentityConflict.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/KbIdentityConflict.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = None;
                                           }
@@ -7428,13 +7844,80 @@ let table : t =
                 ("go", "NewCache");
                 ("haskell", "newCache");
               ];
+            type_parameters =
+              Some
+                [
+                  ({
+                     name = "K";
+                     docs =
+                       "What a query is keyed by: the parameters of the method \
+                        it is made for, together.";
+                   }
+                    : type_parameters_item);
+                  ({
+                     name = "V";
+                     docs = "What the query holds: what that method returns.";
+                   }
+                    : type_parameters_item);
+                ];
             members =
               [
                 ({
                    member = "observe";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Stream
+                                         ({
+                                            stream =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/CacheState.json";
+                                                    type_arguments =
+                                                      Some
+                                                        [
+                                                          ( "V",
+                                                            ({
+                                                               type_parameter =
+                                                                 "V";
+                                                             }
+                                                              : value_schema) );
+                                                        ];
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                          }
+                                           : returns_stream)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7442,7 +7925,39 @@ let table : t =
                    member = "fetch";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Type_parameter
+                                         ({ type_parameter = "V" }
+                                           : value_schema)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7450,7 +7965,39 @@ let table : t =
                    member = "get";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Type_parameter
+                                         ({ type_parameter = "V" }
+                                           : value_schema)
+                                        : returns);
+                                  absent = Some true;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7458,7 +8005,49 @@ let table : t =
                    member = "known";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Scalar
+                                         ({
+                                            type_ = (Boolean : type_);
+                                            minimum = None;
+                                            format = None;
+                                            description =
+                                              "Whether anything has asked for \
+                                               the key and not let go of it: \
+                                               it holds a value or a failure, \
+                                               or a fetch for it is on its \
+                                               way.";
+                                          }
+                                           : scalar)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7466,7 +8055,29 @@ let table : t =
                    member = "keys";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns =
+                                    Some
+                                      (Items
+                                         ({
+                                            list =
+                                              (Type_parameter
+                                                 ({ type_parameter = "K" }
+                                                   : value_schema)
+                                                : schema);
+                                          }
+                                           : items)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7474,7 +8085,34 @@ let table : t =
                    member = "invalidate";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7482,7 +8120,18 @@ let table : t =
                    member = "invalidateAll";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7490,7 +8139,43 @@ let table : t =
                    member = "remove";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "gone";
+                                            schema = None;
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7498,7 +8183,48 @@ let table : t =
                    member = "set";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "value";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "V" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7506,7 +8232,52 @@ let table : t =
                    member = "patch";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Callback
+                                         ({
+                                            parameter = "change";
+                                            calls =
+                                              (Type_parameter
+                                                 ({ type_parameter = "V" }
+                                                   : value_schema)
+                                                : schema);
+                                            required = true;
+                                            returns =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "V" }
+                                                     : value_schema)
+                                                  : schema);
+                                          }
+                                           : callback)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7514,7 +8285,32 @@ let table : t =
                    member = "persistencePending";
                    gives =
                      (Function
-                        ({ form = "function"; signature = None } : function_)
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns =
+                                    Some
+                                      (Scalar
+                                         ({
+                                            type_ = (Boolean : type_);
+                                            minimum = None;
+                                            format = None;
+                                            description =
+                                              "Whether the cache's content may \
+                                               be ahead of what it has \
+                                               persisted: a fetch on its way, \
+                                               or a save owed.";
+                                          }
+                                           : scalar)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7585,6 +8381,7 @@ let table : t =
                 ("csharp", "FromKeptAsync");
                 ("haskell", "newSession");
               ];
+            type_parameters = None;
             members =
               [
                 ({
@@ -7625,6 +8422,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/KbTarget.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -7655,6 +8453,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/AccessToken.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -7676,6 +8475,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/UserResponse.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -7697,6 +8497,7 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/ConnectionState.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
@@ -7758,13 +8559,15 @@ let table : t =
                                          ({
                                             parameter = "refused";
                                             schema =
-                                              (Reference
-                                                 ({
-                                                    ref =
-                                                      "https://xynolog.org/protocol/AccessToken.json";
-                                                  }
-                                                   : reference)
-                                                : schema);
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/AccessToken.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
                                             required = true;
                                             absent = Some true;
                                           }
@@ -7777,6 +8580,7 @@ let table : t =
                                          ({
                                             ref =
                                               "https://xynolog.org/protocol/AccessToken.json";
+                                            type_arguments = None;
                                           }
                                            : reference)
                                         : returns);

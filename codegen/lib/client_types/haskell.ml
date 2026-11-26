@@ -52,7 +52,7 @@ let adapter ~whole name =
         Ok
           (Schema.Schema
              { Schema.empty with type_ = Some [ Array ]; items = Some items })
-    | Binary | Word _ | Named { union = true; _ } | Open_list | Inline _ ->
+    | Binary | Word _ | Named { union = true; _ } | Parameter _ | Inline _ ->
         Error
           [ refusal name (member ^ " is no scalar, type, or list of either") ]
   in
@@ -187,7 +187,8 @@ let aeson_records =
   H.import "Data.Aeson" ~items:[ All "ToJSON"; Plain "object"; Op ".=" ]
 
 (* A record of a client type, written to its JSON: every member required,
-   and an open list's items the record's one type variable. *)
+   and each type parameter its members hold a type variable of the record,
+   named in lower case. *)
 let record_module ~shape name =
   let* s = found ~shape name in
   let* members =
@@ -195,7 +196,18 @@ let record_module ~shape name =
     | Fields members -> Ok members
     | _ -> Error [ refusal name "is no record" ]
   in
-  let variable = "value" in
+  let rec parameters = function
+    | Parameter p -> [ String.uncapitalize_ascii p ]
+    | List held -> parameters held
+    | _ -> []
+  in
+  let rec type_of = function
+    | Scalar t -> scalar name t
+    | Named { name = n; _ } -> Ok (H.T_name n)
+    | Parameter p -> Ok (H.T_name (String.uncapitalize_ascii p))
+    | List held -> Result.map (fun t -> H.T_list t) (type_of held)
+    | _ -> Error [ refusal name "holds no scalar, type, type parameter or list" ]
+  in
   let* fields =
     Spec.all
       (List.map
@@ -205,17 +217,15 @@ let record_module ~shape name =
              Error
                [ refusal name (m.name ^ " is optional, and a record's is not") ]
            else
-             match m.held with
-             | Scalar t -> Result.bind (scalar name t) field
-             | Named { name = n; _ } -> field (H.T_name n)
-             | Open_list -> field (H.T_list (H.T_name variable))
-             | _ ->
-                 Error [ refusal name (m.name ^ " is no scalar, type or list") ])
+             Result.bind (type_of m.held) field)
          members)
   in
   let params =
-    if List.exists (fun m -> m.held = Open_list) members then [ variable ]
-    else []
+    List.fold_left
+      (fun params m ->
+        params
+        @ List.filter (fun p -> not (List.mem p params)) (parameters m.held))
+      [] members
   in
   let instance class_ =
     H.instance class_
@@ -224,12 +234,13 @@ let record_module ~shape name =
       | [] -> H.T_name name
       | vs -> H.T_apply (name, List.map (fun v -> H.T_name v) vs))
   in
+  let rec names = function
+    | Named { name = n; _ } -> [ n ]
+    | List held -> names held
+    | _ -> []
+  in
   let named =
-    List.sort_uniq compare
-      (List.filter_map
-         (fun m ->
-           match m.held with Named { name = n; _ } -> Some n | _ -> None)
-         members)
+    List.sort_uniq compare (List.concat_map (fun m -> names m.held) members)
   in
   let module_ = "Xynolog.Internal.Generated." ^ name in
   Ok

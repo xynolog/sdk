@@ -213,6 +213,8 @@ let rec merge ids (old : Schema.schema) (next : Schema.schema) :
   let* description = last old.description next.description in
   let* format = last old.format next.format in
   let* codes = last old.codes next.codes in
+  let* type_parameters = last old.type_parameters next.type_parameters in
+  let* type_parameter = last old.type_parameter next.type_parameter in
   let* const = merge_option (agree "\"const\"" ( = )) old.const next.const in
   let* default = last old.default next.default in
   let* examples = last old.examples next.examples in
@@ -283,6 +285,8 @@ let rec merge ids (old : Schema.schema) (next : Schema.schema) :
       not_;
       discriminator;
       defs;
+      type_parameters;
+      type_parameter;
     }
 
 (* A schema a part refers to, as the part takes it: its keywords, without

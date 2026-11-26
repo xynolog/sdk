@@ -563,10 +563,7 @@ let controlled () =
             assert (path = "/api/users/me");
             incr count;
             match subject with
-            | Clock_cases.Unreachable_agent_sign_in ->
-                raise
-                  (Eio.Net.err
-                     (Eio.Net.Connection_failure Eio.Net.No_matching_addresses))
+            | Clock_cases.Unreachable_agent_sign_in -> raise End_of_file
             | _ ->
                 ( Option.get (given ()).status,
                   [],

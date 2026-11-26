@@ -72,7 +72,7 @@ public sealed class GenerationTests
     public void ANullForAnOptionalMemberThatMayNotBeNullIsRefused()
     {
         using var document = JsonDocument.Parse("{\"annotations\":[],\"total\":0,\"motivation\":null}");
-        Assert.Equal(new Fault("motivation", FrameRefusalReason.Malformed),
+        Assert.Equal(Required.At("motivation", FrameRefusalReason.Malformed),
             Required.FaultOf("GetAnnotationsResponse", document.RootElement, out _));
     }
 

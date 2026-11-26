@@ -22,10 +22,10 @@ public sealed partial class TransportTests
             var schema = Text(row, "schema");
             var value = row.GetProperty("value");
             var expected = row.TryGetProperty("refused", out var refused) && refused.GetBoolean()
-                ? new Fault(Text(row, "member"), row.GetProperty("reason").Deserialize<FrameRefusalReason>())
+                ? At(Text(row, "member"), row.GetProperty("reason").Deserialize<FrameRefusalReason>())
                 : null;
             var fault = FaultOf(schema, value, out _);
-            Assert.True(fault == expected, why + ": " + value.GetRawText() + " as " + schema + " has the fault " + fault + ", not " + expected);
+            Assert.True(fault == expected, why + ": " + value.GetRawText() + " as " + schema + " has the fault " + fault?.Said() + ", not " + expected?.Said());
         }
     }
 }

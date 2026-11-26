@@ -199,8 +199,9 @@ let typed (spec : Spec.t) =
   let whole = whole spec in
   fun s -> Result.map Normalize.shape_only (whole s)
 
-(* The client types each SDK writes by hand: SearchState and JobEvent, each
-   held to its schema by a census in every SDK; PutBinaryRequest, whose file
+(* The client types each SDK writes by hand: SearchState, CacheState and
+   JobEvent, each held to its schema by a census in every SDK, CacheState
+   because its failure is the SDK's own error, which no schema states; PutBinaryRequest, whose file
    is bytes, which the Swift, Kotlin and Haskell writers state as text;
    what the engines and content methods return, which waits on each SDK's
    methods returning what client/surface.json says they return; and
@@ -211,6 +212,7 @@ let typed (spec : Spec.t) =
 let hand_written_client_types =
   [
     "SearchState";
+    "CacheState";
     "JobEvent";
     "PutBinaryRequest";
     "EngineWithLimits";

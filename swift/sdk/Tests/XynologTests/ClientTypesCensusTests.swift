@@ -3,7 +3,7 @@ import Testing
 
 @testable import Xynolog
 
-// SearchState and JobEvent, generic and written by hand, held to their schemas in
+// SearchState, JobEvent and CacheState, generic and written by hand, held to their schemas in
 // protocol/specs/src/client/types: a member or a branch either side gains or loses fails.
 
 private func properties(_ schema: JSONValue) throws -> Set<String> {
@@ -54,4 +54,27 @@ private func events() throws -> [JobEvent<Int>] {
   let data = try required(required(#require(told["refused"]).object, "properties").object, "data")
   let refused = RefusedFrame(channel: "", member: "", reason: .lacks)
   #expect(Set(Mirror(reflecting: refused).children.compactMap(\.label)) == (try properties(data)))
+}
+
+private struct CacheFailure: Error {}
+
+/// Each state's status and the members it holds. A payload-less case has no label to read, so the
+/// switch names each, and fails to compile on a case CacheState gains.
+private func told(_ state: CacheState<Int>) -> (status: String, members: Set<String>) {
+  switch state {
+  case .pending: ("pending", ["status"])
+  case .ready: ("ready", ["status", "value"])
+  case .failed: ("failed", ["status", "error"])
+  }
+}
+
+@Test func cacheStateHasTheSchemasBranchesEachOfItsMembers() throws {
+  let branches = try required(Spec.read("client/types/CacheState.json").object, "oneOf").array
+  var held: [String: Set<String>] = [:]
+  for branch in branches {
+    let status = try required(required(branch.object, "properties").object, "status")
+    held[try required(status.object, "enum").array[0].text] = try properties(branch)
+  }
+  let written = [CacheState<Int>.pending, .ready(0), .failed(CacheFailure())].map(told)
+  #expect(Dictionary(uniqueKeysWithValues: written.map { ($0.status, $0.members) }) == held)
 }

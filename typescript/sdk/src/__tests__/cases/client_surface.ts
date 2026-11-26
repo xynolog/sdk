@@ -69,8 +69,13 @@ export type Observes = {
 
 export type ItemVia = Request | Emit | Local | Content | Gateway | Observes;
 
+export type ValueSchema = {
+  typeParameter: string;
+};
+
 export type Reference = {
   $ref: string;
+  typeArguments?: { [key: string]: ValueSchema };
 };
 
 export type Type = 'integer' | 'string' | 'boolean';
@@ -82,11 +87,24 @@ export type Scalar = {
   description: string;
 };
 
-export type Schema = Reference | Scalar;
+export type By = {
+  member: string;
+};
+
+export type DecidedDecided = {
+  by: By;
+  in: 'takes';
+};
+
+export type Decided = {
+  decided: DecidedDecided;
+};
+
+export type Schema = Reference | Scalar | ValueSchema | Decided;
 
 export type Value = {
   parameter: string;
-  schema: Schema;
+  schema?: Schema;
   required: boolean;
   absent?: boolean;
 };
@@ -95,6 +113,7 @@ export type Callback = {
   parameter: string;
   calls: Schema;
   required: boolean;
+  returns: Schema | null;
 };
 
 export type ParametersItem = Value | Callback;
@@ -173,7 +192,22 @@ export type ReturnsFunction = {
   function: string;
 };
 
-export type Returns = Reference | Scalar | Handed | ReturnsFunction;
+export type ReturnsStream = {
+  stream: Schema;
+};
+
+export type Items = {
+  list: Schema;
+};
+
+export type Returns =
+  | Reference
+  | Scalar
+  | ValueSchema
+  | Handed
+  | ReturnsFunction
+  | ReturnsStream
+  | Items;
 
 export type Signature = {
   parameters: ParametersItem[];
@@ -203,6 +237,11 @@ export type WorkerItem = {
   members: MembersItem[];
 };
 
+export type TypeParametersItem = {
+  name: string;
+  docs: string;
+};
+
 export type ItemMembersItem = {
   member: string;
   gives: Gives;
@@ -213,6 +252,7 @@ export type StateUnitsItem = {
   docs: string;
   made: { [key: string]: string };
   madeBy: { [key: string]: string };
+  typeParameters?: TypeParametersItem[];
   members: ItemMembersItem[];
 };
 
@@ -2713,6 +2753,7 @@ export const table: Table = {
                 $ref: 'https://xynolog.org/protocol/JobStatusResponse.json',
               },
               required: false,
+              returns: null,
             },
           ],
           returns: {
@@ -3197,6 +3238,23 @@ export const table: Table = {
           },
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'result',
+                  schema: {
+                    decided: {
+                      by: {
+                        member: 'jobType',
+                      },
+                      in: 'takes',
+                    },
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
           },
         },
         {
@@ -3746,6 +3804,12 @@ export const table: Table = {
         go: 'NewSearchPipeline',
         haskell: 'newSearchPipeline',
       },
+      typeParameters: [
+        {
+          name: 'R',
+          docs: 'What one result is: what the search the unit is made with gives.',
+        },
+      ],
       members: [
         {
           member: 'query',
@@ -3763,6 +3827,11 @@ export const table: Table = {
             form: 'watched',
             schema: {
               $ref: 'https://xynolog.org/protocol/SearchState.json',
+              typeArguments: {
+                R: {
+                  typeParameter: 'R',
+                },
+              },
             },
           },
         },
@@ -3942,71 +4011,236 @@ export const table: Table = {
         go: 'NewCache',
         haskell: 'newCache',
       },
+      typeParameters: [
+        {
+          name: 'K',
+          docs: 'What a query is keyed by: the parameters of the method it is made for, together.',
+        },
+        {
+          name: 'V',
+          docs: 'What the query holds: what that method returns.',
+        },
+      ],
       members: [
         {
           member: 'observe',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: {
+                stream: {
+                  $ref: 'https://xynolog.org/protocol/CacheState.json',
+                  typeArguments: {
+                    V: {
+                      typeParameter: 'V',
+                    },
+                  },
+                },
+              },
+            },
           },
         },
         {
           member: 'fetch',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: {
+                typeParameter: 'V',
+              },
+            },
           },
         },
         {
           member: 'get',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: {
+                typeParameter: 'V',
+              },
+              absent: true,
+            },
           },
         },
         {
           member: 'known',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: {
+                type: 'boolean',
+                description:
+                  'Whether anything has asked for the key and not let go of it: it holds a value or a failure, or a fetch for it is on its way.',
+              },
+            },
           },
         },
         {
           member: 'keys',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [],
+              returns: {
+                list: {
+                  typeParameter: 'K',
+                },
+              },
+            },
           },
         },
         {
           member: 'invalidate',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
           },
         },
         {
           member: 'invalidateAll',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
           },
         },
         {
           member: 'remove',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'gone',
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
           },
         },
         {
           member: 'set',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'value',
+                  schema: {
+                    typeParameter: 'V',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
           },
         },
         {
           member: 'patch',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'change',
+                  calls: {
+                    typeParameter: 'V',
+                  },
+                  required: true,
+                  returns: {
+                    typeParameter: 'V',
+                  },
+                },
+              ],
+              returns: null,
+            },
           },
         },
         {
           member: 'persistencePending',
           gives: {
             form: 'function',
+            signature: {
+              parameters: [],
+              returns: {
+                type: 'boolean',
+                description:
+                  "Whether the cache's content may be ahead of what it has persisted: a fetch on its way, or a save owed.",
+              },
+            },
           },
         },
         {
