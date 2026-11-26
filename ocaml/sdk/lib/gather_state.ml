@@ -99,9 +99,11 @@ let gather_annotation t ?context_window ?include_source_context
     in
     let options =
       optional "contextWindow" (fun value -> `Int value) context_window
-      @ optional "includeSourceContext" (fun value -> `Bool value)
+      @ optional "includeSourceContext"
+          (fun value -> `Bool value)
           include_source_context
-      @ optional "includeTargetContext" (fun value -> `Bool value)
+      @ optional "includeTargetContext"
+          (fun value -> `Bool value)
           include_target_context
     in
     run t t.annotation B.Operations.gather_requested

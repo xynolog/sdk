@@ -271,57 +271,58 @@ let record_sign_in browser (signed : Records.Signed_in.t) =
       Error (Identity Error_codes.Kb_identity.Not_reported)
   | Error _ -> Error (Identity Error_codes.Kb_identity.Not_reported)
   | Ok reported ->
-    let identity =
-      {
-        Records.Connection_identity.did = reported;
-        description = signed.description;
-      }
-    in
-    locked browser (fun () ->
-        let values = knowledge_bases browser in
-        let verified =
-          List.filter
-            (fun kb ->
-              same_place (endpoint kb) signed.endpoint
-              && did kb = Identifiers.User_id.to_string identity.did)
-            values
-        in
-        let prior =
-          match
-            List.find_opt (fun kb -> Some (id kb) = signed.kb_id) verified
-          with
-          | Some _ as match_ -> match_
-          | None -> List.nth_opt verified 0
-        in
-        let key =
-          match prior with
-          | Some kb -> id kb
-          | None -> browser.config.fresh_id ()
-        in
-        if prior = None && List.exists (fun kb -> id kb = key) values then
-          Error Id_conflict
-        else
-          let kb = with_identity ~id:key ~endpoint:signed.endpoint identity in
-          let values =
+      let identity =
+        {
+          Records.Connection_identity.did = reported;
+          description = signed.description;
+        }
+      in
+      locked browser (fun () ->
+          let values = knowledge_bases browser in
+          let verified =
+            List.filter
+              (fun kb ->
+                same_place (endpoint kb) signed.endpoint
+                && did kb = Identifiers.User_id.to_string identity.did)
+              values
+          in
+          let prior =
+            match
+              List.find_opt (fun kb -> Some (id kb) = signed.kb_id) verified
+            with
+            | Some _ as match_ -> match_
+            | None -> List.nth_opt verified 0
+          in
+          let key =
             match prior with
-            | None -> values @ [ kb ]
-            | Some _ ->
-                List.map
-                  (fun prior -> if id prior = key then kb else prior)
-                  values
+            | Some kb -> id kb
+            | None -> browser.config.fresh_id ()
           in
-          let storage = browser.config.storage in
-          store_session storage key signed.session;
-          save_knowledge_bases storage values;
-          storage.write active_key key;
-          browser.generation <- ref ();
-          disconnect browser;
-          let expected =
-            Option.map
-              (fun did -> { Records.Expected.did; name = signed.expected_name })
-              signed.expected_did
-          in
-          Ok { Records.Sign_in_outcome.kb; expected })
+          if prior = None && List.exists (fun kb -> id kb = key) values then
+            Error Id_conflict
+          else
+            let kb = with_identity ~id:key ~endpoint:signed.endpoint identity in
+            let values =
+              match prior with
+              | None -> values @ [ kb ]
+              | Some _ ->
+                  List.map
+                    (fun prior -> if id prior = key then kb else prior)
+                    values
+            in
+            let storage = browser.config.storage in
+            store_session storage key signed.session;
+            save_knowledge_bases storage values;
+            storage.write active_key key;
+            browser.generation <- ref ();
+            disconnect browser;
+            let expected =
+              Option.map
+                (fun did ->
+                  { Records.Expected.did; name = signed.expected_name })
+                signed.expected_did
+            in
+            Ok { Records.Sign_in_outcome.kb; expected })
 
 let activate browser key =
   let begun =

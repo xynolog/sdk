@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import xynolog.control.ControlMethods;
-import xynolog.control.ControlSender;
 import xynolog.services.ArchivistRoute;
 import xynolog.services.ServiceTables;
+import xynolog.types.ControlSender;
 
 /** The service tables and the control API's table, as Java reads them: each a static field. */
 class TablesTest {

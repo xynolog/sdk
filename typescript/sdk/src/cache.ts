@@ -61,7 +61,7 @@ import {
   BusRequestError,
   SAVE_DEBOUNCE_MS,
   type StateUnit,
-  type components,
+  type records,
 } from '@xynolog/core';
 import {
   BehaviorSubject,
@@ -100,7 +100,7 @@ export type CacheState<T> =
   | { status: Status<'failed'>; error: Error };
 
 /** The one of Protocol's `CacheStatus` a state is. */
-type Status<S extends components['schemas']['CacheStatus']> = S;
+type Status<S extends records['CacheStatus']> = S;
 
 /** Type guard for the settled-with-value state — the paved path for
  * `pipe(filter(isReady), map((s) => s.value))`. */

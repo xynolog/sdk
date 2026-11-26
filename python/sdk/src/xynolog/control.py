@@ -13,6 +13,7 @@ from xynolog.types import ControlSender
 
 __all__ = ["AnyControlMethod", "AnyControlNotification", "ControlMethod", "ControlNotification"]
 
+
 class AnyControlNotification(Protocol):
     """A notification, whatever it carries: what code that treats every notification alike reads of one."""
 
