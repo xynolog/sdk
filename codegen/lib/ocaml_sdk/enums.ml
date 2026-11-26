@@ -157,7 +157,7 @@ let derive (spec : Spec.t) table =
       (client_types spec)
   in
   let discovery_absent =
-    enum ~file:"client/discovery-absent.json" ~pointer:"/reasons"
+    enum ~file:Word_tables.discovery_absent.file ~pointer:"/reasons"
       "Discovery_absent_reason"
       (List.map
          (fun (r : Tables.Client_discovery_absent.reasons_item) ->

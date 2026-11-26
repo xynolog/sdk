@@ -245,13 +245,14 @@ __all__ = [
     "DirEntry",
     "DirectoryEntry",
     "DiscoveredKB",
+    "DiscoveryAbsent",
     "DiscoveryAbsentReason",
     "DiscoveryDiff",
     "DiscoveryDocument",
+    "DiscoveryManaged",
     "DiscoveryRead",
-    "DiscoveryReadAbsent",
-    "DiscoveryReadManaged",
-    "DiscoveryReadUnchanged",
+    "DiscoveryState",
+    "DiscoveryUnchanged",
     "DispatcherConfig",
     "DispatcherConfigQueue",
     "DispatcherConfigTiming",
@@ -4096,14 +4097,63 @@ class DiscoveredKB(WireModel, frozen=True):
     ]
 
 
+type DiscoveryAbsentReason = Literal["not-found", "not-json", "invalid", "unsupported-version", "unreadable"]
+"""Why no launcher was found.
+
+`not-found`: There is no document where it was looked for: no file, an HTTP status that is not success, or a page that is not JSON.
+
+`not-json`: There is a document, and it is not JSON.
+
+`invalid`: It is JSON, and not a discovery document: one entry that is not what the schema says makes the whole document invalid, since a partial reading would hide a running knowledge base without a trace.
+
+`unsupported-version`: It is a discovery document of a version this client does not speak, and is not read in part.
+
+`unreadable`: It could not be read at all: the file could not be opened or decoded, or the request got no answer by its deadline."""
+
+
+class DiscoveryAbsent(WireModel, frozen=True, extra="forbid"):
+    """
+    No launcher was found, and why.
+    """
+
+    kind: Literal["absent"]
+    reason: Annotated[DiscoveryAbsentReason, Field(description="Why: one of client/discovery-absent.json's reasons.")]
+    diagnostic: Annotated[str | None, Field(description="What was wrong, in words, when there is more to say.")] = None
+
+
+class DiscoveryManaged(WireModel, frozen=True, extra="forbid"):
+    """
+    The knowledge bases a launcher manages: none is a launcher that manages nothing.
+    """
+
+    kind: Literal["managed"]
+    kbs: Annotated[list[DiscoveredKB], Field(description="Each knowledge base, as the document lists it.")]
+
+
+type DiscoveryState = Annotated[
+    DiscoveryAbsent | DiscoveryManaged,
+    Field(
+        description="What a launcher's discovery document says, told apart by `kind`: no launcher was found, or the knowledge bases one manages. A launcher that manages none is not an absent one.",
+        discriminator="kind",
+    ),
+]
+
+
 class DiscoveryDiff(WireModel, frozen=True, extra="forbid"):
     """
     How one poll's knowledge bases changed since the last state it gave.
     """
 
+    state: Annotated[DiscoveryState, Field(description="The state the poll found.")]
     added: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state did not have.")]
     updated: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state had at the same address, now otherwise.")]
     removed: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state had, and this one does not.")]
+    duplicated: Annotated[
+        list[str],
+        Field(
+            description="Each address, as host:port, that more than one of the state's knowledge bases is at. At most one of them is true: `added` and `removed` count each address once, and every one is in `state`."
+        ),
+    ]
 
 
 class DiscoveryDocument(WireModel, frozen=True):
@@ -4117,37 +4167,18 @@ class DiscoveryDocument(WireModel, frozen=True):
     kbs: Annotated[list[DiscoveredKB], Field(description="Every KB the launcher currently manages, local and forwarded")]
 
 
-class DiscoveryReadAbsent(WireModel, frozen=True, extra="forbid"):
+class DiscoveryUnchanged(WireModel, frozen=True, extra="forbid"):
     """
-    No launcher was found, and why.
-    """
-
-    kind: Literal["absent"]
-    reason: Annotated[str, Field(description="Why: one of client/discovery-absent.json's reasons.")]
-    diagnostic: Annotated[str | None, Field(description="What was wrong, in words, when there is more to say.")] = None
-
-
-class DiscoveryReadManaged(WireModel, frozen=True, extra="forbid"):
-    """
-    The knowledge bases a launcher manages: none is a launcher that manages nothing.
-    """
-
-    kind: Literal["managed"]
-    kbs: Annotated[list[DiscoveredKB], Field(description="Each knowledge base, as the document lists it.")]
-
-
-class DiscoveryReadUnchanged(WireModel, frozen=True, extra="forbid"):
-    """
-    Nothing changed since the last read.
+    Nothing changed since the last read of a launcher's discovery document.
     """
 
     kind: Literal["unchanged"]
 
 
 type DiscoveryRead = Annotated[
-    DiscoveryReadAbsent | DiscoveryReadManaged | DiscoveryReadUnchanged,
+    DiscoveryAbsent | DiscoveryManaged | DiscoveryUnchanged,
     Field(
-        description="What one read of a launcher's discovery document gave, told apart by `kind`: no launcher was found, the knowledge bases one manages, or nothing changed since the last read. A launcher that manages none is not an absent one.",
+        description="What one read of a launcher's discovery document gave: a DiscoveryState's absent or managed, or that nothing changed since the last read. Told apart by `kind`, as DiscoveryState's are.",
         discriminator="kind",
     ),
 ]
@@ -10839,17 +10870,3 @@ class YieldUpdateOk(WireModel, frozen=True):
     """
 
     response: Annotated[YieldedResource, Field(description="The updated resource's identity.")]
-
-
-type DiscoveryAbsentReason = Literal["not-found", "not-json", "invalid", "unsupported-version", "unreadable"]
-"""Why no launcher was found.
-
-`not-found`: There is no document where it was looked for: no file, an HTTP status that is not success, or a page that is not JSON.
-
-`not-json`: There is a document, and it is not JSON.
-
-`invalid`: It is JSON, and not a discovery document: one entry that is not what the schema says makes the whole document invalid, since a partial reading would hide a running knowledge base without a trace.
-
-`unsupported-version`: It is a discovery document of a version this client does not speak, and is not read in part.
-
-`unreadable`: It could not be read at all: the file could not be opened or decoded, or the request got no answer by its deadline."""

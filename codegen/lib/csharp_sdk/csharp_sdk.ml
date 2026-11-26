@@ -165,10 +165,10 @@ let model_file (name, decls) =
    (protocol/specs/src/client/discovery-absent.json): a constant a reason,
    written as the reason's word. *)
 let discovery_absent (spec : Spec.t) =
-  let name = "DiscoveryAbsentReason" in
+  let name = Word_tables.discovery_absent.name in
   let serialization = "global::System.Text.Json.Serialization." in
   file ~nullable:true ~namespace:"Xynolog.Types"
-    ~from_:"protocol/specs/src/client/discovery-absent.json"
+    ~from_:("protocol/specs/src/" ^ Word_tables.discovery_absent.file)
     (types ^ "/" ^ name ^ ".g.cs")
     [
       C.Enum

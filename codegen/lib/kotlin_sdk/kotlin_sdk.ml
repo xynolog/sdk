@@ -139,7 +139,7 @@ let stale ~root ~directory written =
    (protocol/specs/src/client/discovery-absent.json): an entry a reason, its
    value the reason's word. *)
 let discovery_absent (spec : Spec.t) =
-  let name = "DiscoveryAbsentReason" in
+  let name = Word_tables.discovery_absent.name in
   {
     Output.path = path Types.types_package name;
     text =

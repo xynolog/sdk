@@ -397,27 +397,24 @@ module Device_code = struct
         ]
 end
 
-module Discovery_diff = struct
+module Discovery_absent = struct
   type t = {
-    added : [ `DiscoveredKB ] Models.t list;
-    updated : [ `DiscoveredKB ] Models.t list;
-    removed : [ `DiscoveredKB ] Models.t list;
+    reason : Enums.Discovery_absent_reason.t;
+    diagnostic : string option;
   }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
     let open Table_codec in
     function
     | `Assoc members ->
-        let* added =
-          required (list (model Models.discovered_kb)) "added" members
+        let* () = required (fixed "absent") "kind" members in
+        let* reason =
+          required
+            (enum Enums.Discovery_absent_reason.of_string)
+            "reason" members
         in
-        let* updated =
-          required (list (model Models.discovered_kb)) "updated" members
-        in
-        let* removed =
-          required (list (model Models.discovered_kb)) "removed" members
-        in
-        Ok { added; updated; removed }
+        let* diagnostic = optional string "diagnostic" members in
+        Ok { reason; diagnostic }
     | _ -> malformed ""
 
   let to_json : t -> Yojson.Safe.t =
@@ -425,54 +422,51 @@ module Discovery_diff = struct
     fun value ->
       write
         [
-          ("added", Some ((json_list json_model) value.added));
-          ("updated", Some ((json_list json_model) value.updated));
-          ("removed", Some ((json_list json_model) value.removed));
+          ("kind", Some (json_string "absent"));
+          ( "reason",
+            Some
+              ((json_enum Enums.Discovery_absent_reason.to_string) value.reason)
+          );
+          ("diagnostic", Option.map json_string value.diagnostic);
         ]
 end
 
-module Discovery_read = struct
-  type t =
-    | Absent of { reason : string; diagnostic : string option }
-    | Managed of { kbs : [ `DiscoveredKB ] Models.t list }
-    | Unchanged
+module Discovery_managed = struct
+  type t = { kbs : [ `DiscoveredKB ] Models.t list }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
     let open Table_codec in
     function
-    | `Assoc members -> (
-        let* tag = required string "kind" members in
-        match tag with
-        | "absent" ->
-            let* reason = required string "reason" members in
-            let* diagnostic = optional string "diagnostic" members in
-            Ok (Absent { reason; diagnostic })
-        | "managed" ->
-            let* kbs =
-              required (list (model Models.discovered_kb)) "kbs" members
-            in
-            Ok (Managed { kbs })
-        | "unchanged" -> Ok Unchanged
-        | _ -> malformed "kind")
+    | `Assoc members ->
+        let* () = required (fixed "managed") "kind" members in
+        let* kbs = required (list (model Models.discovered_kb)) "kbs" members in
+        Ok { kbs }
     | _ -> malformed ""
 
   let to_json : t -> Yojson.Safe.t =
     let open Table_codec in
+    fun value ->
+      write
+        [
+          ("kind", Some (json_string "managed"));
+          ("kbs", Some ((json_list json_model) value.kbs));
+        ]
+end
+
+module Discovery_unchanged = struct
+  type t = unit
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
     function
-    | Absent value ->
-        write
-          [
-            ("kind", Some (json_string "absent"));
-            ("reason", Some (json_string value.reason));
-            ("diagnostic", Option.map json_string value.diagnostic);
-          ]
-    | Managed value ->
-        write
-          [
-            ("kind", Some (json_string "managed"));
-            ("kbs", Some ((json_list json_model) value.kbs));
-          ]
-    | Unchanged -> write [ ("kind", Some (json_string "unchanged")) ]
+    | `Assoc members ->
+        let* () = required (fixed "unchanged") "kind" members in
+        Ok ()
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun () -> write [ ("kind", Some (json_string "unchanged")) ]
 end
 
 module Fault = struct
@@ -1465,6 +1459,110 @@ module Pending_authorization = struct
           ("kbId", Option.map json_string value.kb_id);
           ("expectedDid", Option.map json_string value.expected_did);
           ("expectedName", Option.map json_string value.expected_name);
+        ]
+end
+
+module Discovery_read = struct
+  type t =
+    | Absent of Discovery_absent.t
+    | Managed of Discovery_managed.t
+    | Unchanged
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members -> (
+        let* tag = required string "kind" members in
+        match tag with
+        | "absent" ->
+            Result.map
+              (fun value -> Absent value)
+              (Discovery_absent.of_json (`Assoc members))
+        | "managed" ->
+            Result.map
+              (fun value -> Managed value)
+              (Discovery_managed.of_json (`Assoc members))
+        | "unchanged" ->
+            Result.map
+              (fun () -> Unchanged)
+              (Discovery_unchanged.of_json (`Assoc members))
+        | _ -> malformed "kind")
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    function
+    | Absent value -> Discovery_absent.to_json value
+    | Managed value -> Discovery_managed.to_json value
+    | Unchanged -> Discovery_unchanged.to_json ()
+end
+
+module Discovery_state = struct
+  type t = Absent of Discovery_absent.t | Managed of Discovery_managed.t
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members -> (
+        let* tag = required string "kind" members in
+        match tag with
+        | "absent" ->
+            Result.map
+              (fun value -> Absent value)
+              (Discovery_absent.of_json (`Assoc members))
+        | "managed" ->
+            Result.map
+              (fun value -> Managed value)
+              (Discovery_managed.of_json (`Assoc members))
+        | _ -> malformed "kind")
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    function
+    | Absent value -> Discovery_absent.to_json value
+    | Managed value -> Discovery_managed.to_json value
+end
+
+module Discovery_diff = struct
+  type t = {
+    state : Discovery_state.t;
+    added : [ `DiscoveredKB ] Models.t list;
+    updated : [ `DiscoveredKB ] Models.t list;
+    removed : [ `DiscoveredKB ] Models.t list;
+    duplicated : string list;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* state =
+          required (record Discovery_state.of_json) "state" members
+        in
+        let* added =
+          required (list (model Models.discovered_kb)) "added" members
+        in
+        let* updated =
+          required (list (model Models.discovered_kb)) "updated" members
+        in
+        let* removed =
+          required (list (model Models.discovered_kb)) "removed" members
+        in
+        let* duplicated = required (list string) "duplicated" members in
+        Ok { state; added; updated; removed; duplicated }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("state", Some (Discovery_state.to_json value.state));
+          ("added", Some ((json_list json_model) value.added));
+          ("updated", Some ((json_list json_model) value.updated));
+          ("removed", Some ((json_list json_model) value.removed));
+          ("duplicated", Some ((json_list json_string) value.duplicated));
         ]
 end
 

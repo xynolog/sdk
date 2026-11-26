@@ -465,9 +465,11 @@ let member_sets file at (negated : Schema.t) =
 
 (* [components] are each component's name, its file and its schema.
    [unrecognized] is the failure codes.json reads an unrecognized code as,
-   and [vocabularies] are errors/codes.json's. *)
+   [vocabularies] are errors/codes.json's, and [words] each table of words
+   ([Word_tables]) by its file. *)
 let derive ~ids ~unrecognized
-    ~(vocabularies : Error_codes.Table.vocabulary list) components =
+    ~(vocabularies : Error_codes.Table.vocabulary list)
+    ~(words : (string * Schema.literal list) list) components =
   try
     let command_error =
       match
@@ -728,11 +730,17 @@ let derive ~ids ~unrecognized
         | Some _, Some _, None ->
             refuse file (at ^ "/const") "is none of the values its enum states"
         | None, None, Some member -> (
-            match Error_codes.Table.enum vocabularies member with
+            match
+              Word_tables.enum
+                ~codes:(Error_codes.Table.enum vocabularies)
+                ~words member
+            with
             | Some _ as codes -> codes
             | None ->
                 refuse file (at ^ "/x-xynolog-codes")
-                  "is %s, which errors/codes.json has no vocabulary of" member)
+                  "is %s, which is neither a vocabulary of errors/codes.json \
+                   nor a table of words"
+                  member)
         | _, _, Some _ ->
             refuse file (at ^ "/x-xynolog-codes")
               "is beside a const or an enum, which the codes already state"

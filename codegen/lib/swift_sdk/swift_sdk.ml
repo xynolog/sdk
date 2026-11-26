@@ -32,7 +32,7 @@ let discovery_absent (spec : Spec.t) =
     body =
       S.Enum
         {
-          name = "DiscoveryAbsentReason";
+          name = Word_tables.discovery_absent.name;
           inherits =
             [
               S.Named "String";

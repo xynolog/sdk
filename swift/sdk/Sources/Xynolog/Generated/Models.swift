@@ -5815,27 +5815,67 @@ public struct DiscoveredKB: Codable, Sendable, Hashable {
   }
 }
 
-public struct DiscoveryDiff: Codable, Sendable, Hashable {
-  public var added: [DiscoveredKB]
-  public var updated: [DiscoveredKB]
-  public var removed: [DiscoveredKB]
-  public init(added: [DiscoveredKB], updated: [DiscoveredKB], removed: [DiscoveredKB]) {
-    self.added = added
-    self.updated = updated
-    self.removed = removed
+public struct DiscoveryAbsent: Codable, Sendable, Hashable {
+  public let kind: DiscoveryAbsentKind
+  public var reason: DiscoveryAbsentReason
+  public var diagnostic: String?
+  public init(reason: DiscoveryAbsentReason, diagnostic: String? = nil) {
+    self.kind = .absent
+    self.reason = reason
+    self.diagnostic = diagnostic
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["added", "updated", "removed"], in: "DiscoveryDiff")
-    self.added = try c.value("added")
-    self.updated = try c.value("updated")
-    self.removed = try c.value("removed")
+    try c.refuseUnknown(["kind", "reason", "diagnostic"], in: "DiscoveryAbsent")
+    self.kind = try c.value("kind")
+    self.reason = try c.value("reason")
+    self.diagnostic = try c.ifPresent("diagnostic")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.reason, as: "reason")
+    try c.encodeIfPresent(self.diagnostic, as: "diagnostic")
+  }
+}
+
+public enum DiscoveryAbsentKind: String, Codable, Sendable, CaseIterable {
+  case absent = "absent"
+}
+
+public struct DiscoveryDiff: Codable, Sendable, Hashable {
+  public var state: DiscoveryState
+  public var added: [DiscoveredKB]
+  public var updated: [DiscoveredKB]
+  public var removed: [DiscoveredKB]
+  public var duplicated: [String]
+  public init(
+    state: DiscoveryState, added: [DiscoveredKB], updated: [DiscoveredKB], removed: [DiscoveredKB],
+    duplicated: [String]
+  ) {
+    self.state = state
+    self.added = added
+    self.updated = updated
+    self.removed = removed
+    self.duplicated = duplicated
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["state", "added", "updated", "removed", "duplicated"], in: "DiscoveryDiff")
+    self.state = try c.value("state")
+    self.added = try c.value("added")
+    self.updated = try c.value("updated")
+    self.removed = try c.value("removed")
+    self.duplicated = try c.value("duplicated")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.state, as: "state")
     try c.encode(self.added, as: "added")
     try c.encode(self.updated, as: "updated")
     try c.encode(self.removed, as: "removed")
+    try c.encode(self.duplicated, as: "duplicated")
   }
 }
 
@@ -5873,10 +5913,34 @@ public enum DiscoveryDocumentVersion: Codable, Sendable, Hashable {
   }
 }
 
+public struct DiscoveryManaged: Codable, Sendable, Hashable {
+  public let kind: DiscoveryManagedKind
+  public var kbs: [DiscoveredKB]
+  public init(kbs: [DiscoveredKB]) {
+    self.kind = .managed
+    self.kbs = kbs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "kbs"], in: "DiscoveryManaged")
+    self.kind = try c.value("kind")
+    self.kbs = try c.value("kbs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.kbs, as: "kbs")
+  }
+}
+
+public enum DiscoveryManagedKind: String, Codable, Sendable, CaseIterable {
+  case managed = "managed"
+}
+
 public indirect enum DiscoveryRead: Codable, Sendable, Hashable {
-  case absent(DiscoveryReadAbsent)
-  case managed(DiscoveryReadManaged)
-  case unchanged(DiscoveryReadUnchanged)
+  case discoveryAbsent(DiscoveryAbsent)
+  case discoveryManaged(DiscoveryManaged)
+  case discoveryUnchanged(DiscoveryUnchanged)
   static let members: [[UnionSignature]] = [
     [
       UnionSignature(
@@ -5898,80 +5962,72 @@ public indirect enum DiscoveryRead: Codable, Sendable, Hashable {
     self = try UnionSignature.decode(
       from: decoder, union: "DiscoveryRead", members: Self.members,
       variants: [
-        ("absent", { decoder in try Self.absent(DiscoveryReadAbsent(from: decoder)) }),
-        ("managed", { decoder in try Self.managed(DiscoveryReadManaged(from: decoder)) }),
-        ("unchanged", { decoder in try Self.unchanged(DiscoveryReadUnchanged(from: decoder)) }),
+        (
+          "discoveryAbsent", { decoder in try Self.discoveryAbsent(DiscoveryAbsent(from: decoder)) }
+        ),
+        (
+          "discoveryManaged",
+          { decoder in try Self.discoveryManaged(DiscoveryManaged(from: decoder)) }
+        ),
+        (
+          "discoveryUnchanged",
+          { decoder in try Self.discoveryUnchanged(DiscoveryUnchanged(from: decoder)) }
+        ),
       ])
   }
   public func encode(to encoder: any Encoder) throws {
     switch self {
-    case .absent(let value): try value.encode(to: encoder)
-    case .managed(let value): try value.encode(to: encoder)
-    case .unchanged(let value): try value.encode(to: encoder)
+    case .discoveryAbsent(let value): try value.encode(to: encoder)
+    case .discoveryManaged(let value): try value.encode(to: encoder)
+    case .discoveryUnchanged(let value): try value.encode(to: encoder)
     }
   }
 }
 
-public struct DiscoveryReadAbsent: Codable, Sendable, Hashable {
-  public let kind: DiscoveryReadAbsentKind
-  public var reason: String
-  public var diagnostic: String?
-  public init(reason: String, diagnostic: String? = nil) {
-    self.kind = .absent
-    self.reason = reason
-    self.diagnostic = diagnostic
-  }
+public indirect enum DiscoveryState: Codable, Sendable, Hashable {
+  case discoveryAbsent(DiscoveryAbsent)
+  case discoveryManaged(DiscoveryManaged)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "reason"], allowed: ["kind", "reason", "diagnostic"],
+        fixed: [.init(property: "kind", values: [.text("absent")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "kbs"], allowed: ["kind", "kbs"],
+        fixed: [.init(property: "kind", values: [.text("managed")])], values: nil)
+    ],
+  ]
   public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["kind", "reason", "diagnostic"], in: "DiscoveryReadAbsent")
-    self.kind = try c.value("kind")
-    self.reason = try c.value("reason")
-    self.diagnostic = try c.ifPresent("diagnostic")
+    self = try UnionSignature.decode(
+      from: decoder, union: "DiscoveryState", members: Self.members,
+      variants: [
+        (
+          "discoveryAbsent", { decoder in try Self.discoveryAbsent(DiscoveryAbsent(from: decoder)) }
+        ),
+        (
+          "discoveryManaged",
+          { decoder in try Self.discoveryManaged(DiscoveryManaged(from: decoder)) }
+        ),
+      ])
   }
   public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.kind, as: "kind")
-    try c.encode(self.reason, as: "reason")
-    try c.encodeIfPresent(self.diagnostic, as: "diagnostic")
+    switch self {
+    case .discoveryAbsent(let value): try value.encode(to: encoder)
+    case .discoveryManaged(let value): try value.encode(to: encoder)
+    }
   }
 }
 
-public enum DiscoveryReadAbsentKind: String, Codable, Sendable, CaseIterable {
-  case absent = "absent"
-}
-
-public struct DiscoveryReadManaged: Codable, Sendable, Hashable {
-  public let kind: DiscoveryReadManagedKind
-  public var kbs: [DiscoveredKB]
-  public init(kbs: [DiscoveredKB]) {
-    self.kind = .managed
-    self.kbs = kbs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["kind", "kbs"], in: "DiscoveryReadManaged")
-    self.kind = try c.value("kind")
-    self.kbs = try c.value("kbs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.kind, as: "kind")
-    try c.encode(self.kbs, as: "kbs")
-  }
-}
-
-public enum DiscoveryReadManagedKind: String, Codable, Sendable, CaseIterable {
-  case managed = "managed"
-}
-
-public struct DiscoveryReadUnchanged: Codable, Sendable, Hashable {
-  public let kind: DiscoveryReadUnchangedKind
+public struct DiscoveryUnchanged: Codable, Sendable, Hashable {
+  public let kind: DiscoveryUnchangedKind
   public init() {
     self.kind = .unchanged
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["kind"], in: "DiscoveryReadUnchanged")
+    try c.refuseUnknown(["kind"], in: "DiscoveryUnchanged")
     self.kind = try c.value("kind")
   }
   public func encode(to encoder: any Encoder) throws {
@@ -5980,7 +6036,7 @@ public struct DiscoveryReadUnchanged: Codable, Sendable, Hashable {
   }
 }
 
-public enum DiscoveryReadUnchangedKind: String, Codable, Sendable, CaseIterable {
+public enum DiscoveryUnchangedKind: String, Codable, Sendable, CaseIterable {
   case unchanged = "unchanged"
 }
 
@@ -24995,6 +25051,18 @@ internal let requiredSchemas: [String: Shape] = {
       "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
       "repo": Shape(kinds: [.string]), "siteName": Shape(kinds: [.string]),
     ])
+  shapes["DiscoveryAbsent"] = Shape(
+    kinds: [.object], required: ["kind", "reason"],
+    members: [
+      "diagnostic": Shape(kinds: [.string], minLength: 1),
+      "kind": Shape(kinds: [.string], enumeration: [.string("absent")]),
+      "reason": Shape(
+        kinds: [.string],
+        enumeration: [
+          .string("not-found"), .string("not-json"), .string("invalid"),
+          .string("unsupported-version"), .string("unreadable"),
+        ]),
+    ], closed: ["diagnostic", "kind", "reason"])
   shapes["DiscoveryAbsentReason"] = Shape(
     kinds: [.string],
     enumeration: [
@@ -25002,41 +25070,41 @@ internal let requiredSchemas: [String: Shape] = {
       .string("unreadable"),
     ])
   shapes["DiscoveryDiff"] = Shape(
-    kinds: [.object], required: ["added", "updated", "removed"],
+    kinds: [.object], required: ["state", "added", "updated", "removed", "duplicated"],
     members: [
       "added": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "duplicated": Shape(kinds: [.array], items: Shape(kinds: [.string], minLength: 1)),
       "removed": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "state": Shape(ref: "DiscoveryState"),
       "updated": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
-    ], closed: ["added", "removed", "updated"])
+    ], closed: ["added", "duplicated", "removed", "state", "updated"])
   shapes["DiscoveryDocument"] = Shape(
     kinds: [.object], required: ["version", "kbs"],
     members: [
       "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
       "version": Shape(kinds: [.integer], enumeration: [.number(1.0)]),
     ])
+  shapes["DiscoveryManaged"] = Shape(
+    kinds: [.object], required: ["kind", "kbs"],
+    members: [
+      "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "kind": Shape(kinds: [.string], enumeration: [.string("managed")]),
+    ], closed: ["kbs", "kind"])
   shapes["DiscoveryRead"] = Shape(
     kinds: [.object],
     oneOf: [
-      Shape(
-        kinds: [.object], required: ["kind", "reason"],
-        members: [
-          "diagnostic": Shape(kinds: [.string], minLength: 1),
-          "kind": Shape(kinds: [.string], enumeration: [.string("absent")]),
-          "reason": Shape(kinds: [.string], minLength: 1),
-        ], closed: ["diagnostic", "kind", "reason"]),
-      Shape(
-        kinds: [.object], required: ["kind", "kbs"],
-        members: [
-          "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
-          "kind": Shape(kinds: [.string], enumeration: [.string("managed")]),
-        ], closed: ["kbs", "kind"]),
-      Shape(
-        kinds: [.object], required: ["kind"],
-        members: ["kind": Shape(kinds: [.string], enumeration: [.string("unchanged")])],
-        closed: ["kind"]),
+      Shape(ref: "DiscoveryAbsent"), Shape(ref: "DiscoveryManaged"),
+      Shape(ref: "DiscoveryUnchanged"),
     ],
     discriminator: Discriminator(
       property: "kind", mapping: ["absent": 0, "managed": 1, "unchanged": 2]))
+  shapes["DiscoveryState"] = Shape(
+    kinds: [.object], oneOf: [Shape(ref: "DiscoveryAbsent"), Shape(ref: "DiscoveryManaged")],
+    discriminator: Discriminator(property: "kind", mapping: ["absent": 0, "managed": 1]))
+  shapes["DiscoveryUnchanged"] = Shape(
+    kinds: [.object], required: ["kind"],
+    members: ["kind": Shape(kinds: [.string], enumeration: [.string("unchanged")])],
+    closed: ["kind"])
   shapes["DispatcherConfig"] = Shape(
     kinds: [.object],
     required: ["kb", "gatewayUrl", "identity", "queue", "port", "timing", "logLevel", "logFormat"],

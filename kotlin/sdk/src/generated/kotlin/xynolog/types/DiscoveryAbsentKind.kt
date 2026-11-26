@@ -7,10 +7,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-public enum class DiscoveryReadUnchangedKind(
+public enum class DiscoveryAbsentKind(
     /** The value as the wire spells it. */
     public val value: String,
 ) {
-    @SerialName("unchanged")
-    Unchanged("unchanged"),
+    @SerialName("absent")
+    Absent("absent"),
 }

@@ -51,6 +51,9 @@ let own_names =
   ]
 
 let ty name = R.Named ([ name ], [])
+
+(* The type of a table of words' words, in the module that declares it. *)
+let word_ty (w : Word_tables.t) = R.named (w.rust_module ^ "::" ^ w.name)
 let string_ty = ty "String"
 let generic name args = R.Named ([ name ], args)
 let path segments = R.Path segments
@@ -349,6 +352,7 @@ and type_of st what (ty_ : T.ty) =
   | T.Scalar (T.Text _) -> string_ty
   | T.Scalar (T.Code vocabulary) ->
       R.named ("crate::errors::" ^ snd (Code_names.named vocabulary))
+  | T.Scalar (T.Word table) -> word_ty (Word_tables.find table)
   | T.Scalar T.Boolean -> ty "bool"
   | T.Scalar T.Number -> ty "f64"
   | T.Scalar (T.Integer { minimum; maximum }) -> integer_ty ~minimum ~maximum
@@ -1041,6 +1045,8 @@ let hashable st names =
         (not (Hashtbl.mem excluded name)) && List.for_all admits args
     (* An error code, which [Error_codes.Rust] derives Eq and Hash of. *)
     | R.Named ([ "crate"; "errors"; _ ], []) -> true
+    (* A table of words' type, which Rust_types derives Eq and Hash of. *)
+    | ty when List.exists (fun w -> ty = word_ty w) Word_tables.tables -> true
     | R.Named
         ( ( [
               ( "String" | "bool" | "u16" | "u64" | "i64" | "Vec" | "Option"

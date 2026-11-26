@@ -167,6 +167,7 @@ let rec placed st ~what ?(tag = false) (ty : T.ty) : P.expr =
   | T.Nothing -> refuse "%s: a schema that admits nothing" what
   | T.Scalar (T.Text { binary; _ }) -> name (if binary then "bytes" else "str")
   | T.Scalar (T.Code vocabulary) -> name (fst (Code_names.named vocabulary))
+  | T.Scalar (T.Word table) -> name (Word_tables.type_name table)
   | T.Scalar (T.Integer _) -> name "int"
   | T.Scalar T.Number -> name "float"
   | T.Scalar T.Boolean -> name "bool"
@@ -535,7 +536,7 @@ let module_ ~also (typing : T.t) =
    reason's meaning in the docstring. *)
 let discovery_absent (spec : Spec.t) =
   let reasons = spec.tables.client_discovery_absent.reasons in
-  ( "DiscoveryAbsentReason",
+  ( Word_tables.discovery_absent.name,
     P.alias
       ~doc:
         (As_is
@@ -545,7 +546,7 @@ let discovery_absent (spec : Spec.t) =
                    (fun (r : Tables.Client_discovery_absent.reasons_item) ->
                      Printf.sprintf "`%s`: %s" r.reason r.docs)
                    reasons)))
-      "DiscoveryAbsentReason"
+      Word_tables.discovery_absent.name
       (P.sub "Literal"
          (List.map
             (fun (r : Tables.Client_discovery_absent.reasons_item) ->

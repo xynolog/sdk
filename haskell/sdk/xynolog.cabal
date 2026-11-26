@@ -345,12 +345,13 @@ library internal
     Xynolog.Internal.Generated.Models.DirEntry
     Xynolog.Internal.Generated.Models.DirectoryEntry
     Xynolog.Internal.Generated.Models.DiscoveredKB
+    Xynolog.Internal.Generated.Models.DiscoveryAbsent
     Xynolog.Internal.Generated.Models.DiscoveryDiff
     Xynolog.Internal.Generated.Models.DiscoveryDocument
+    Xynolog.Internal.Generated.Models.DiscoveryManaged
     Xynolog.Internal.Generated.Models.DiscoveryRead
-    Xynolog.Internal.Generated.Models.DiscoveryReadAbsent
-    Xynolog.Internal.Generated.Models.DiscoveryReadManaged
-    Xynolog.Internal.Generated.Models.DiscoveryReadUnchanged
+    Xynolog.Internal.Generated.Models.DiscoveryState
+    Xynolog.Internal.Generated.Models.DiscoveryUnchanged
     Xynolog.Internal.Generated.Models.DispatcherConfig
     Xynolog.Internal.Generated.Models.DispatcherHealth
     Xynolog.Internal.Generated.Models.DispatcherMessages

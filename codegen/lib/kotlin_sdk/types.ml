@@ -214,6 +214,7 @@ and type_of st what (ty : T.ty) =
   | T.Scalar (T.Text _) -> t "String"
   | T.Scalar (T.Code vocabulary) ->
       t ("xynolog.errors." ^ snd (Code_names.named vocabulary))
+  | T.Scalar (T.Word table) -> t (Word_tables.type_name table)
   | T.Scalar T.Boolean -> t "Boolean"
   | T.Scalar T.Number -> t "Double"
   | T.Scalar (T.Integer _) -> t "Long"
@@ -234,7 +235,7 @@ and in_place st what (i : T.inline) =
   | (T.Empty _ as form), None when T.holds_none form -> the_empty_object st
   | T.Empty _, None -> t "JsonObject"
   | T.Map { key; value }, None -> map_of st what key value
-  | ( ( T.Enum { base = None | Some (T.Code _); _ }
+  | ( ( T.Enum { base = None | Some (T.Code _ | T.Word _); _ }
       | T.Alias _ | T.Identifier _ | T.Json ),
       None ) ->
       refuse "%s: a schema shape the generator does not know" what

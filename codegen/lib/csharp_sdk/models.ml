@@ -114,7 +114,7 @@ let rec plain state (form : T.form) =
   | T.Alias (T.Named name) -> plain state (state.find name).form
   | T.Alias (T.Scalar (T.Text { binary = true; _ })) ->
       Some (C.Array (T "byte"))
-  | T.Alias (T.Scalar (T.Text _ | T.Code _)) | T.Identifier _ ->
+  | T.Alias (T.Scalar (T.Text _ | T.Code _ | T.Word _)) | T.Identifier _ ->
       Some (C.T "string")
   | T.Alias (T.Scalar (T.Integer _)) -> Some (C.T "long")
   | T.Alias (T.Scalar T.Number) -> Some (C.T "double")
@@ -171,6 +171,7 @@ and type_of state owner property ((ty : T.ty), validated) =
   | T.Inline i -> in_place state owner property i validated
   | T.Scalar (T.Text { binary = true; _ }) -> C.Array (T "byte")
   | T.Scalar (T.Text _ | T.Code _) -> T "string"
+  | T.Scalar (T.Word table) -> T (Word_tables.type_name table)
   | T.Scalar (T.Integer _) -> T "long"
   | T.Scalar T.Number -> T "double"
   | T.Scalar T.Boolean -> T "bool"
@@ -198,7 +199,7 @@ and in_place state owner property (i : T.inline) validated =
           T "string";
           type_of state owner (property ^ "Value") (value, values_of validated);
         ]
-  | ( ( T.Enum { base = None | Some (T.Code _); _ }
+  | ( ( T.Enum { base = None | Some (T.Code _ | T.Word _); _ }
       | T.Alias _ | T.Identifier _ | T.Json ),
       None ) ->
       refuse "%s.%s has an unsupported type shape." owner property

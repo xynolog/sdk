@@ -26,6 +26,11 @@ let identifier of_string member json =
   match of_string text with Ok value -> Ok value | Error _ -> malformed member
 
 let any _member json = Ok json
+
+let fixed value member json =
+  let* text = string member json in
+  if text = value then Ok () else malformed member
+
 let record of_json member json = Result.map_error (within member) (of_json json)
 
 let model descriptor member json =

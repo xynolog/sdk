@@ -4133,9 +4133,40 @@ type DiscoveredKB struct {
 	ManagedBy string `json:"managedBy"`
 }
 
+// DiscoveryAbsent No launcher was found, and why.
+type DiscoveryAbsent struct {
+	Kind DiscoveryAbsentKind `json:"kind"`
+	// Reason Why: one of client/discovery-absent.json's reasons.
+	Reason DiscoveryAbsentReason `json:"reason"`
+	// Diagnostic What was wrong, in words, when there is more to say.
+	Diagnostic *string `json:"diagnostic,omitempty"`
+}
+
+func (DiscoveryAbsent) memberOfDiscoveryState() {}
+func (DiscoveryAbsent) memberOfDiscoveryRead()  {}
+func (DiscoveryAbsent) told() (string, string)  { return "kind", "absent" }
+
+type DiscoveryAbsentKind string
+
+// The values of DiscoveryAbsentKind.
+const (
+	DiscoveryAbsentKindAbsent DiscoveryAbsentKind = "absent"
+)
+
+// Valid is whether e is one of DiscoveryAbsentKind's values.
+func (e DiscoveryAbsentKind) Valid() bool {
+	switch e {
+	case DiscoveryAbsentKindAbsent:
+		return true
+	}
+	return false
+}
+
 // DiscoveryDiff How one poll's knowledge bases changed since the last state
 // it gave.
 type DiscoveryDiff struct {
+	// State The state the poll found.
+	State DiscoveryState `json:"state"`
 	// Added Each knowledge base the last state did not have.
 	Added []DiscoveredKB `json:"added"`
 	// Updated Each knowledge base the last state had at the same address, now
@@ -4143,6 +4174,10 @@ type DiscoveryDiff struct {
 	Updated []DiscoveredKB `json:"updated"`
 	// Removed Each knowledge base the last state had, and this one does not.
 	Removed []DiscoveredKB `json:"removed"`
+	// Duplicated Each address, as host:port, that more than one of the state's
+	// knowledge bases is at. At most one of them is true: `added` and `removed`
+	// count each address once, and every one is in `state`.
+	Duplicated []string `json:"duplicated"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -4152,6 +4187,7 @@ func (v DiscoveryDiff) MarshalJSON() ([]byte, error) {
 	v.Added = listOf(v.Added)
 	v.Updated = listOf(v.Updated)
 	v.Removed = listOf(v.Removed)
+	v.Duplicated = listOf(v.Duplicated)
 	return json.Marshal(written(v))
 }
 
@@ -4196,16 +4232,51 @@ func (e DiscoveryDocumentVersion) Valid() bool {
 	return false
 }
 
-// DiscoveryRead What one read of a launcher's discovery document gave, told
-// apart by `kind`: no launcher was found, the knowledge bases one manages, or
-// nothing changed since the last read. A launcher that manages none is not an
-// absent one.
+// DiscoveryManaged The knowledge bases a launcher manages: none is a launcher
+// that manages nothing.
+type DiscoveryManaged struct {
+	Kind DiscoveryManagedKind `json:"kind"`
+	// Kbs Each knowledge base, as the document lists it.
+	Kbs []DiscoveredKB `json:"kbs"`
+}
+
+func (DiscoveryManaged) memberOfDiscoveryState() {}
+func (DiscoveryManaged) memberOfDiscoveryRead()  {}
+func (DiscoveryManaged) told() (string, string)  { return "kind", "managed" }
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v DiscoveryManaged) MarshalJSON() ([]byte, error) {
+	type written DiscoveryManaged
+	v.Kbs = listOf(v.Kbs)
+	return json.Marshal(written(v))
+}
+
+type DiscoveryManagedKind string
+
+// The values of DiscoveryManagedKind.
+const (
+	DiscoveryManagedKindManaged DiscoveryManagedKind = "managed"
+)
+
+// Valid is whether e is one of DiscoveryManagedKind's values.
+func (e DiscoveryManagedKind) Valid() bool {
+	switch e {
+	case DiscoveryManagedKindManaged:
+		return true
+	}
+	return false
+}
+
+// DiscoveryRead What one read of a launcher's discovery document gave: a
+// DiscoveryState's absent or managed, or that nothing changed since the last
+// read. Told apart by `kind`, as DiscoveryState's are.
 type DiscoveryRead struct {
 	union[DiscoveryReadMember]
 }
 
-// DiscoveryReadMember is a member of DiscoveryRead: DiscoveryReadAbsent,
-// DiscoveryReadManaged, DiscoveryReadUnchanged.
+// DiscoveryReadMember is a member of DiscoveryRead: DiscoveryAbsent,
+// DiscoveryManaged, DiscoveryUnchanged.
 type DiscoveryReadMember interface {
 	memberOfDiscoveryRead()
 }
@@ -4219,93 +4290,59 @@ func (u DiscoveryRead) Member() (any, error) { return u.member("DiscoveryRead", 
 // discoveryReadMembers is what each member of DiscoveryRead admits, and how a
 // value of it is read.
 var discoveryReadMembers = []unionMember{
-	{"DiscoveryReadAbsent", readAs[DiscoveryReadAbsent], []signature{{kind: objectKind, required: []string{"kind", "reason"}, allowed: []string{"kind", "reason", "diagnostic"}, fixed: []fixedValues{{"kind", []any{"absent"}}}}}},
-	{"DiscoveryReadManaged", readAs[DiscoveryReadManaged], []signature{{kind: objectKind, required: []string{"kind", "kbs"}, allowed: []string{"kind", "kbs"}, fixed: []fixedValues{{"kind", []any{"managed"}}}}}},
-	{"DiscoveryReadUnchanged", readAs[DiscoveryReadUnchanged], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, fixed: []fixedValues{{"kind", []any{"unchanged"}}}}}},
+	{"DiscoveryAbsent", readAs[DiscoveryAbsent], []signature{{kind: objectKind, required: []string{"kind", "reason"}, allowed: []string{"kind", "reason", "diagnostic"}, fixed: []fixedValues{{"kind", []any{"absent"}}}}}},
+	{"DiscoveryManaged", readAs[DiscoveryManaged], []signature{{kind: objectKind, required: []string{"kind", "kbs"}, allowed: []string{"kind", "kbs"}, fixed: []fixedValues{{"kind", []any{"managed"}}}}}},
+	{"DiscoveryUnchanged", readAs[DiscoveryUnchanged], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, fixed: []fixedValues{{"kind", []any{"unchanged"}}}}}},
 }
 
-// DiscoveryReadAbsent No launcher was found, and why.
-type DiscoveryReadAbsent struct {
-	Kind DiscoveryReadAbsentKind `json:"kind"`
-	// Reason Why: one of client/discovery-absent.json's reasons.
-	Reason string `json:"reason"`
-	// Diagnostic What was wrong, in words, when there is more to say.
-	Diagnostic *string `json:"diagnostic,omitempty"`
+// DiscoveryState What a launcher's discovery document says, told apart by
+// `kind`: no launcher was found, or the knowledge bases one manages. A
+// launcher that manages none is not an absent one.
+type DiscoveryState struct {
+	union[DiscoveryStateMember]
 }
 
-func (DiscoveryReadAbsent) memberOfDiscoveryRead() {}
-func (DiscoveryReadAbsent) told() (string, string) { return "kind", "absent" }
+// DiscoveryStateMember is a member of DiscoveryState: DiscoveryAbsent,
+// DiscoveryManaged.
+type DiscoveryStateMember interface {
+	memberOfDiscoveryState()
+}
 
-type DiscoveryReadAbsentKind string
+// Discriminator is the `kind` this value states.
+func (u DiscoveryState) Discriminator() (string, error) { return u.stated("kind") }
 
-// The values of DiscoveryReadAbsentKind.
+// Member is the member this value is: the one whose schema admits it.
+func (u DiscoveryState) Member() (any, error) {
+	return u.member("DiscoveryState", discoveryStateMembers)
+}
+
+// discoveryStateMembers is what each member of DiscoveryState admits, and how
+// a value of it is read.
+var discoveryStateMembers = []unionMember{
+	{"DiscoveryAbsent", readAs[DiscoveryAbsent], []signature{{kind: objectKind, required: []string{"kind", "reason"}, allowed: []string{"kind", "reason", "diagnostic"}, fixed: []fixedValues{{"kind", []any{"absent"}}}}}},
+	{"DiscoveryManaged", readAs[DiscoveryManaged], []signature{{kind: objectKind, required: []string{"kind", "kbs"}, allowed: []string{"kind", "kbs"}, fixed: []fixedValues{{"kind", []any{"managed"}}}}}},
+}
+
+// DiscoveryUnchanged Nothing changed since the last read of a launcher's
+// discovery document.
+type DiscoveryUnchanged struct {
+	Kind DiscoveryUnchangedKind `json:"kind"`
+}
+
+func (DiscoveryUnchanged) memberOfDiscoveryRead() {}
+func (DiscoveryUnchanged) told() (string, string) { return "kind", "unchanged" }
+
+type DiscoveryUnchangedKind string
+
+// The values of DiscoveryUnchangedKind.
 const (
-	DiscoveryReadAbsentKindAbsent DiscoveryReadAbsentKind = "absent"
+	DiscoveryUnchangedKindUnchanged DiscoveryUnchangedKind = "unchanged"
 )
 
-// Valid is whether e is one of DiscoveryReadAbsentKind's values.
-func (e DiscoveryReadAbsentKind) Valid() bool {
+// Valid is whether e is one of DiscoveryUnchangedKind's values.
+func (e DiscoveryUnchangedKind) Valid() bool {
 	switch e {
-	case DiscoveryReadAbsentKindAbsent:
-		return true
-	}
-	return false
-}
-
-// DiscoveryReadManaged The knowledge bases a launcher manages: none is a
-// launcher that manages nothing.
-type DiscoveryReadManaged struct {
-	Kind DiscoveryReadManagedKind `json:"kind"`
-	// Kbs Each knowledge base, as the document lists it.
-	Kbs []DiscoveredKB `json:"kbs"`
-}
-
-func (DiscoveryReadManaged) memberOfDiscoveryRead() {}
-func (DiscoveryReadManaged) told() (string, string) { return "kind", "managed" }
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v DiscoveryReadManaged) MarshalJSON() ([]byte, error) {
-	type written DiscoveryReadManaged
-	v.Kbs = listOf(v.Kbs)
-	return json.Marshal(written(v))
-}
-
-type DiscoveryReadManagedKind string
-
-// The values of DiscoveryReadManagedKind.
-const (
-	DiscoveryReadManagedKindManaged DiscoveryReadManagedKind = "managed"
-)
-
-// Valid is whether e is one of DiscoveryReadManagedKind's values.
-func (e DiscoveryReadManagedKind) Valid() bool {
-	switch e {
-	case DiscoveryReadManagedKindManaged:
-		return true
-	}
-	return false
-}
-
-// DiscoveryReadUnchanged Nothing changed since the last read.
-type DiscoveryReadUnchanged struct {
-	Kind DiscoveryReadUnchangedKind `json:"kind"`
-}
-
-func (DiscoveryReadUnchanged) memberOfDiscoveryRead() {}
-func (DiscoveryReadUnchanged) told() (string, string) { return "kind", "unchanged" }
-
-type DiscoveryReadUnchangedKind string
-
-// The values of DiscoveryReadUnchangedKind.
-const (
-	DiscoveryReadUnchangedKindUnchanged DiscoveryReadUnchangedKind = "unchanged"
-)
-
-// Valid is whether e is one of DiscoveryReadUnchangedKind's values.
-func (e DiscoveryReadUnchangedKind) Valid() bool {
-	switch e {
-	case DiscoveryReadUnchangedKindUnchanged:
+	case DiscoveryUnchangedKindUnchanged:
 		return true
 	}
 	return false

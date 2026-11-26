@@ -7,7 +7,9 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record DiscoveryDiff
 {
+    [global::Xynolog.Serialization.Wire("state")] public required global::Xynolog.Types.DiscoveryState State { get; init; }
     [global::Xynolog.Serialization.Wire("added")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DiscoveredKB> Added { get; init; }
     [global::Xynolog.Serialization.Wire("updated")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DiscoveredKB> Updated { get; init; }
     [global::Xynolog.Serialization.Wire("removed")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.DiscoveredKB> Removed { get; init; }
+    [global::Xynolog.Serialization.Wire("duplicated")] public required global::System.Collections.Generic.IReadOnlyList<string> Duplicated { get; init; }
 }

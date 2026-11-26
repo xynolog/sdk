@@ -3710,6 +3710,47 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "DiscoveryAbsent",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kind", "reason"],
+            members: &[
+                (
+                    "diagnostic",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("absent")]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "reason",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[
+                            Listed::Text("not-found"),
+                            Listed::Text("not-json"),
+                            Listed::Text("invalid"),
+                            Listed::Text("unsupported-version"),
+                            Listed::Text("unreadable"),
+                        ]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["diagnostic", "kind", "reason"]),
+            ..NONE
+        },
+    ),
+    (
         "DiscoveryAbsentReason",
         Shape {
             kinds: Some(&[Kind::String]),
@@ -3727,13 +3768,25 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         "DiscoveryDiff",
         Shape {
             kinds: Some(&[Kind::Object]),
-            required: &["added", "updated", "removed"],
+            required: &["state", "added", "updated", "removed", "duplicated"],
             members: &[
                 (
                     "added",
                     Shape {
                         kinds: Some(&[Kind::Array]),
                         items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "duplicated",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            min_length: Some(1),
+                            ..NONE
+                        }),
                         ..NONE
                     },
                 ),
@@ -3745,6 +3798,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
+                ("state", reference("DiscoveryState")),
                 (
                     "updated",
                     Shape {
@@ -3754,7 +3808,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     },
                 ),
             ],
-            closed: Some(&["added", "removed", "updated"]),
+            closed: Some(&["added", "duplicated", "removed", "state", "updated"]),
             ..NONE
         },
     ),
@@ -3785,85 +3839,74 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "DiscoveryManaged",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kind", "kbs"],
+            members: &[
+                (
+                    "kbs",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("managed")]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["kbs", "kind"]),
+            ..NONE
+        },
+    ),
+    (
         "DiscoveryRead",
         Shape {
             kinds: Some(&[Kind::Object]),
             one_of: &[
-                Shape {
-                    kinds: Some(&[Kind::Object]),
-                    required: &["kind", "reason"],
-                    members: &[
-                        (
-                            "diagnostic",
-                            Shape {
-                                kinds: Some(&[Kind::String]),
-                                min_length: Some(1),
-                                ..NONE
-                            },
-                        ),
-                        (
-                            "kind",
-                            Shape {
-                                kinds: Some(&[Kind::String]),
-                                enumeration: Some(&[Listed::Text("absent")]),
-                                ..NONE
-                            },
-                        ),
-                        (
-                            "reason",
-                            Shape {
-                                kinds: Some(&[Kind::String]),
-                                min_length: Some(1),
-                                ..NONE
-                            },
-                        ),
-                    ],
-                    closed: Some(&["diagnostic", "kind", "reason"]),
-                    ..NONE
-                },
-                Shape {
-                    kinds: Some(&[Kind::Object]),
-                    required: &["kind", "kbs"],
-                    members: &[
-                        (
-                            "kbs",
-                            Shape {
-                                kinds: Some(&[Kind::Array]),
-                                items: Some(&reference("DiscoveredKB")),
-                                ..NONE
-                            },
-                        ),
-                        (
-                            "kind",
-                            Shape {
-                                kinds: Some(&[Kind::String]),
-                                enumeration: Some(&[Listed::Text("managed")]),
-                                ..NONE
-                            },
-                        ),
-                    ],
-                    closed: Some(&["kbs", "kind"]),
-                    ..NONE
-                },
-                Shape {
-                    kinds: Some(&[Kind::Object]),
-                    required: &["kind"],
-                    members: &[(
-                        "kind",
-                        Shape {
-                            kinds: Some(&[Kind::String]),
-                            enumeration: Some(&[Listed::Text("unchanged")]),
-                            ..NONE
-                        },
-                    )],
-                    closed: Some(&["kind"]),
-                    ..NONE
-                },
+                reference("DiscoveryAbsent"),
+                reference("DiscoveryManaged"),
+                reference("DiscoveryUnchanged"),
             ],
             discriminator: Some(Discriminator {
                 property: "kind",
                 mapping: &[("absent", 0), ("managed", 1), ("unchanged", 2)],
             }),
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryState",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[reference("DiscoveryAbsent"), reference("DiscoveryManaged")],
+            discriminator: Some(Discriminator {
+                property: "kind",
+                mapping: &[("absent", 0), ("managed", 1)],
+            }),
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryUnchanged",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kind"],
+            members: &[(
+                "kind",
+                Shape {
+                    kinds: Some(&[Kind::String]),
+                    enumeration: Some(&[Listed::Text("unchanged")]),
+                    ..NONE
+                },
+            )],
+            closed: Some(&["kind"]),
             ..NONE
         },
     ),

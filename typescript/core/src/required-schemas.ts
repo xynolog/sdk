@@ -2151,6 +2151,25 @@ export const REQUIRED_SCHEMAS: {
       siteName: { kinds: ['string'] },
     },
   },
+  DiscoveryAbsent: {
+    kinds: ['object'],
+    required: ['kind', 'reason'],
+    members: {
+      diagnostic: { kinds: ['string'], minLength: 1 },
+      kind: { kinds: ['string'], enum: ['absent'] },
+      reason: {
+        kinds: ['string'],
+        enum: [
+          'not-found',
+          'not-json',
+          'invalid',
+          'unsupported-version',
+          'unreadable',
+        ],
+      },
+    },
+    closed: ['diagnostic', 'kind', 'reason'],
+  },
   DiscoveryAbsentReason: {
     kinds: ['string'],
     enum: [
@@ -2163,13 +2182,18 @@ export const REQUIRED_SCHEMAS: {
   },
   DiscoveryDiff: {
     kinds: ['object'],
-    required: ['added', 'updated', 'removed'],
+    required: ['state', 'added', 'updated', 'removed', 'duplicated'],
     members: {
       added: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      duplicated: {
+        kinds: ['array'],
+        items: { kinds: ['string'], minLength: 1 },
+      },
       removed: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      state: { ref: 'DiscoveryState' },
       updated: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
     },
-    closed: ['added', 'removed', 'updated'],
+    closed: ['added', 'duplicated', 'removed', 'state', 'updated'],
   },
   DiscoveryDocument: {
     kinds: ['object'],
@@ -2179,39 +2203,37 @@ export const REQUIRED_SCHEMAS: {
       version: { kinds: ['integer'], enum: [1] },
     },
   },
+  DiscoveryManaged: {
+    kinds: ['object'],
+    required: ['kind', 'kbs'],
+    members: {
+      kbs: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      kind: { kinds: ['string'], enum: ['managed'] },
+    },
+    closed: ['kbs', 'kind'],
+  },
   DiscoveryRead: {
     kinds: ['object'],
     oneOf: [
-      {
-        kinds: ['object'],
-        required: ['kind', 'reason'],
-        members: {
-          diagnostic: { kinds: ['string'], minLength: 1 },
-          kind: { kinds: ['string'], enum: ['absent'] },
-          reason: { kinds: ['string'], minLength: 1 },
-        },
-        closed: ['diagnostic', 'kind', 'reason'],
-      },
-      {
-        kinds: ['object'],
-        required: ['kind', 'kbs'],
-        members: {
-          kbs: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
-          kind: { kinds: ['string'], enum: ['managed'] },
-        },
-        closed: ['kbs', 'kind'],
-      },
-      {
-        kinds: ['object'],
-        required: ['kind'],
-        members: { kind: { kinds: ['string'], enum: ['unchanged'] } },
-        closed: ['kind'],
-      },
+      { ref: 'DiscoveryAbsent' },
+      { ref: 'DiscoveryManaged' },
+      { ref: 'DiscoveryUnchanged' },
     ],
     discriminator: {
       property: 'kind',
       mapping: { absent: 0, managed: 1, unchanged: 2 },
     },
+  },
+  DiscoveryState: {
+    kinds: ['object'],
+    oneOf: [{ ref: 'DiscoveryAbsent' }, { ref: 'DiscoveryManaged' }],
+    discriminator: { property: 'kind', mapping: { absent: 0, managed: 1 } },
+  },
+  DiscoveryUnchanged: {
+    kinds: ['object'],
+    required: ['kind'],
+    members: { kind: { kinds: ['string'], enum: ['unchanged'] } },
+    closed: ['kind'],
   },
   DispatcherConfig: {
     kinds: ['object'],

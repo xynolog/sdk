@@ -15,7 +15,7 @@ module Environment = Environment
 module Archivist_http = Archivist_http
 module G = Go_syntax
 
-let discovery_absent_type = "DiscoveryAbsentReason"
+let discovery_absent_type = Word_tables.discovery_absent.name
 
 let discovery_absent_constant reason =
   discovery_absent_type ^ Naming.variant reason
@@ -77,7 +77,8 @@ let fields spec name =
    one: the generated types, the kinds of id and why no launcher was found. *)
 let declared spec =
   let generated, identifiers = generated spec in
-  generated.declared @ identifiers @ [ ("DiscoveryAbsentReason", None) ]
+  generated.declared @ identifiers
+  @ [ (Word_tables.discovery_absent.name, None) ]
 
 let file spec =
   let generated, _ = generated spec in

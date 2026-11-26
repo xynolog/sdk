@@ -18,10 +18,7 @@ module Control = Control
 module H = Haskell_syntax
 
 let ( let* ) = Result.bind
-
-(* The member Xynolog.Discovery.Reasons names its type and constructors by,
-   as a failure vocabulary's are. *)
-let discovery_absent_member = "discoveryAbsent"
+let discovery_absent_member = Word_tables.discovery_absent.haskell_member
 
 let path ~under name =
   "haskell/sdk/" ^ under ^ "/"
@@ -251,7 +248,7 @@ let files ~root (spec : Spec.t) =
           (Companions.schemas_module
              ~banner:(banner "protocol/specs/src")
              ~vocabularies:(Error_codes.Table.vocabularies codes)
-             validated);
+             ~words:(Required.words spec) validated);
         file ~under:"test" round_trip;
         file ~under:"src"
           (Http.file
@@ -293,8 +290,8 @@ let files ~root (spec : Spec.t) =
       ]
     @ manifest
     @ Error_codes.Haskell.modules
-        ~from_:"protocol/specs/src/client/discovery-absent.json"
-        ~module_name:"Xynolog.Discovery.Reasons"
+        ~from_:("protocol/specs/src/" ^ Word_tables.discovery_absent.file)
+        ~module_name:Word_tables.discovery_absent.haskell_module
         ~test_name:"DiscoveryReasonRoundTrip"
         [
           {

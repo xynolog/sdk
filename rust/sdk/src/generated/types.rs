@@ -5734,16 +5734,62 @@ impl DiscoveredKB {
 
 schema!(DiscoveredKB);
 
+/// No launcher was found, and why.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DiscoveryAbsent {
+    pub kind: DiscoveryAbsentKind,
+    /// Why: one of client/discovery-absent.json's reasons.
+    pub reason: crate::discovery::DiscoveryAbsentReason,
+    /// What was wrong, in words, when there is more to say.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diagnostic: Option<String>,
+}
+
+impl DiscoveryAbsent {
+    /// The `DiscoveryAbsent` that states these and nothing else.
+    pub fn new(reason: crate::discovery::DiscoveryAbsentReason) -> Self {
+        Self {
+            kind: DiscoveryAbsentKind::Absent,
+            reason,
+            diagnostic: None,
+        }
+    }
+}
+
+schema!(DiscoveryAbsent);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryAbsentKind {
+    #[serde(rename = "absent")]
+    Absent,
+}
+
+impl DiscoveryAbsentKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryAbsentKind::Absent => "absent",
+        }
+    }
+}
+
 /// How one poll's knowledge bases changed since the last state it gave.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DiscoveryDiff {
+    /// The state the poll found.
+    pub state: DiscoveryState,
     /// Each knowledge base the last state did not have.
     pub added: Vec<DiscoveredKB>,
     /// Each knowledge base the last state had at the same address, now otherwise.
     pub updated: Vec<DiscoveredKB>,
     /// Each knowledge base the last state had, and this one does not.
     pub removed: Vec<DiscoveredKB>,
+    /// Each address, as host:port, that more than one of the state's knowledge bases is at. At most one of them is true: `added` and `removed` count each address once, and every one is in `state`.
+    pub duplicated: Vec<String>,
 }
 
 schema!(DiscoveryDiff);
@@ -5775,13 +5821,51 @@ pub struct DiscoveryDocumentVersion;
 
 constant!(DiscoveryDocumentVersion, i64, 1);
 
-/// What one read of a launcher's discovery document gave, told apart by `kind`: no launcher was found, the knowledge bases one manages, or nothing changed since the last read. A launcher that manages none is not an absent one.
+/// The knowledge bases a launcher manages: none is a launcher that manages nothing.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DiscoveryManaged {
+    pub kind: DiscoveryManagedKind,
+    /// Each knowledge base, as the document lists it.
+    pub kbs: Vec<DiscoveredKB>,
+}
+
+impl DiscoveryManaged {
+    /// The `DiscoveryManaged` that states these and nothing else.
+    pub fn new(kbs: Vec<DiscoveredKB>) -> Self {
+        Self {
+            kind: DiscoveryManagedKind::Managed,
+            kbs,
+        }
+    }
+}
+
+schema!(DiscoveryManaged);
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryManagedKind {
+    #[serde(rename = "managed")]
+    Managed,
+}
+
+impl DiscoveryManagedKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryManagedKind::Managed => "managed",
+        }
+    }
+}
+
+/// What one read of a launcher's discovery document gave: a DiscoveryState's absent or managed, or that nothing changed since the last read. Told apart by `kind`, as DiscoveryState's are.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum DiscoveryRead {
-    Absent(DiscoveryReadAbsent),
-    Managed(DiscoveryReadManaged),
-    Unchanged(DiscoveryReadUnchanged),
+    DiscoveryAbsent(DiscoveryAbsent),
+    DiscoveryManaged(DiscoveryManaged),
+    DiscoveryUnchanged(DiscoveryUnchanged),
 }
 
 impl DiscoveryRead {
@@ -5811,120 +5895,87 @@ impl DiscoveryRead {
     ];
 }
 
-union!(DiscoveryRead, Absent, Managed, Unchanged);
+union!(
+    DiscoveryRead,
+    DiscoveryAbsent,
+    DiscoveryManaged,
+    DiscoveryUnchanged,
+);
+member!(DiscoveryRead::DiscoveryAbsent(DiscoveryAbsent));
+member!(DiscoveryRead::DiscoveryManaged(DiscoveryManaged));
+member!(DiscoveryRead::DiscoveryUnchanged(DiscoveryUnchanged));
 schema!(DiscoveryRead);
 
-/// No launcher was found, and why.
+/// What a launcher's discovery document says, told apart by `kind`: no launcher was found, or the knowledge bases one manages. A launcher that manages none is not an absent one.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum DiscoveryState {
+    DiscoveryAbsent(DiscoveryAbsent),
+    DiscoveryManaged(DiscoveryManaged),
+}
+
+impl DiscoveryState {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "reason"],
+            allowed: Some(&["kind", "reason", "diagnostic"]),
+            fixed: &[("kind", &[Literal::Text("absent")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "kbs"],
+            allowed: Some(&["kind", "kbs"]),
+            fixed: &[("kind", &[Literal::Text("managed")])],
+            values: None,
+        }],
+    ];
+}
+
+union!(DiscoveryState, DiscoveryAbsent, DiscoveryManaged);
+member!(DiscoveryState::DiscoveryAbsent(DiscoveryAbsent));
+member!(DiscoveryState::DiscoveryManaged(DiscoveryManaged));
+schema!(DiscoveryState);
+
+/// Nothing changed since the last read of a launcher's discovery document.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct DiscoveryReadAbsent {
-    pub kind: DiscoveryReadAbsentKind,
-    /// Why: one of client/discovery-absent.json's reasons.
-    pub reason: String,
-    /// What was wrong, in words, when there is more to say.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub diagnostic: Option<String>,
+pub struct DiscoveryUnchanged {
+    pub kind: DiscoveryUnchangedKind,
 }
 
-impl DiscoveryReadAbsent {
-    /// The `DiscoveryReadAbsent` that states these and nothing else.
-    pub fn new(reason: impl Into<String>) -> Self {
-        Self {
-            kind: DiscoveryReadAbsentKind::Absent,
-            reason: reason.into(),
-            diagnostic: None,
-        }
-    }
-}
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum DiscoveryReadAbsentKind {
-    #[serde(rename = "absent")]
-    Absent,
-}
-
-impl DiscoveryReadAbsentKind {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            DiscoveryReadAbsentKind::Absent => "absent",
-        }
-    }
-}
-
-/// The knowledge bases a launcher manages: none is a launcher that manages nothing.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct DiscoveryReadManaged {
-    pub kind: DiscoveryReadManagedKind,
-    /// Each knowledge base, as the document lists it.
-    pub kbs: Vec<DiscoveredKB>,
-}
-
-impl DiscoveryReadManaged {
-    /// The `DiscoveryReadManaged` that states these and nothing else.
-    pub fn new(kbs: Vec<DiscoveredKB>) -> Self {
-        Self {
-            kind: DiscoveryReadManagedKind::Managed,
-            kbs,
-        }
-    }
-}
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum DiscoveryReadManagedKind {
-    #[serde(rename = "managed")]
-    Managed,
-}
-
-impl DiscoveryReadManagedKind {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            DiscoveryReadManagedKind::Managed => "managed",
-        }
-    }
-}
-
-/// Nothing changed since the last read.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct DiscoveryReadUnchanged {
-    pub kind: DiscoveryReadUnchangedKind,
-}
-
-impl Default for DiscoveryReadUnchanged {
+impl Default for DiscoveryUnchanged {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl DiscoveryReadUnchanged {
-    /// The `DiscoveryReadUnchanged` that states what it must and nothing else.
+impl DiscoveryUnchanged {
+    /// The `DiscoveryUnchanged` that states what it must and nothing else.
     pub fn new() -> Self {
         Self {
-            kind: DiscoveryReadUnchangedKind::Unchanged,
+            kind: DiscoveryUnchangedKind::Unchanged,
         }
     }
 }
 
+schema!(DiscoveryUnchanged);
+
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
 )]
-pub enum DiscoveryReadUnchangedKind {
+pub enum DiscoveryUnchangedKind {
     #[serde(rename = "unchanged")]
     Unchanged,
 }
 
-impl DiscoveryReadUnchangedKind {
+impl DiscoveryUnchangedKind {
     /// The value as the wire spells it.
     pub const fn as_str(&self) -> &'static str {
         match self {
-            DiscoveryReadUnchangedKind::Unchanged => "unchanged",
+            DiscoveryUnchangedKind::Unchanged => "unchanged",
         }
     }
 }

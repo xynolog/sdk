@@ -88,6 +88,7 @@ let rec type_of ~(names : names) (ty : Typing.ty) : T.type_ =
   | Nullable ty -> union [ type_of ~names ty; T_name "null" ]
   | Scalar (Text _) -> T_name "string"
   | Scalar (Code vocabulary) -> T_name (fst (Code_names.named vocabulary))
+  | Scalar (Word table) -> T_name (Word_tables.type_name table)
   | Scalar (Integer _ | Number) -> T_name "number"
   | Scalar Boolean -> T_name "boolean"
   | List items ->
@@ -174,7 +175,7 @@ let declared ~names (d : Typing.declaration) =
 (* Why a client that read a launcher's discovery document found no launcher
    (protocol/specs/src/client/discovery-absent.json): a reason a case. *)
 let discovery_absent (spec : Spec.t) =
-  T.member (Ident "DiscoveryAbsentReason")
+  T.member (Ident Word_tables.discovery_absent.name)
     ~about:[ Doc "Why no launcher was found." ]
     (T_cases
        (List.map
@@ -280,7 +281,7 @@ let text (spec : Spec.t) =
               "the client types it names, of protocol/specs/src/client/types";
               "the schemas of the tables it carries as values \
                (codegen/lib/typescript_types/table_modules.ml)";
-              "protocol/specs/src/client/discovery-absent.json";
+              "protocol/specs/src/" ^ Word_tables.discovery_absent.file;
               "protocol/specs/src/identifiers/kinds.json, for the brands";
             ]
           __FILE__;

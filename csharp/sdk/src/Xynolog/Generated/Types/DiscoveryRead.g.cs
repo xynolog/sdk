@@ -4,11 +4,11 @@
 #nullable enable
 namespace Xynolog.Types;
 
-[global::Xynolog.Serialization.WireUnion(typeof(DiscoveryRead.Absent), typeof(DiscoveryRead.Managed), typeof(DiscoveryRead.Unchanged))]
+[global::Xynolog.Serialization.WireUnion(typeof(DiscoveryRead.DiscoveryAbsent), typeof(DiscoveryRead.DiscoveryManaged), typeof(DiscoveryRead.DiscoveryUnchanged))]
 public closed record DiscoveryRead
 {
     internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["kind", "reason"], ["kind", "reason", "diagnostic"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("absent")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind", "kbs"], ["kind", "kbs"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("managed")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind"], ["kind"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("unchanged")])], null)]];
-    public sealed record Absent(global::Xynolog.Types.DiscoveryReadAbsent Value) : DiscoveryRead;
-    public sealed record Managed(global::Xynolog.Types.DiscoveryReadManaged Value) : DiscoveryRead;
-    public sealed record Unchanged(global::Xynolog.Types.DiscoveryReadUnchanged Value) : DiscoveryRead;
+    public sealed record DiscoveryAbsent(global::Xynolog.Types.DiscoveryAbsent Value) : DiscoveryRead;
+    public sealed record DiscoveryManaged(global::Xynolog.Types.DiscoveryManaged Value) : DiscoveryRead;
+    public sealed record DiscoveryUnchanged(global::Xynolog.Types.DiscoveryUnchanged Value) : DiscoveryRead;
 }

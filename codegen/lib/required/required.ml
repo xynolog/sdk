@@ -58,6 +58,16 @@ let components (spec : Spec.t) =
                   reference.target)))
     (Roots.all spec)
 
+(* The words of each table of words ([Word_tables]), by its file. *)
+let words (spec : Spec.t) =
+  [
+    ( Word_tables.discovery_absent.file,
+      List.map
+        (fun (r : Tables.Client_discovery_absent.reasons_item) ->
+          Schema.String_literal r.reason)
+        spec.tables.client_discovery_absent.reasons );
+  ]
+
 (* Each table record ([Table_records]), by its title, read where the table
    states it; each client type every SDK generates
    ([Definitions.generated_client_types]), by its file's stem; and why a
@@ -85,18 +95,14 @@ let records (spec : Spec.t) =
   in
   let discovery_absent =
     Ok
-      ( "DiscoveryAbsentReason",
-        "client/discovery-absent.json",
+      ( Word_tables.discovery_absent.name,
+        Word_tables.discovery_absent.file,
         Schema.Schema
           {
             Schema.empty with
             type_ = Some [ Schema.String ];
             enum =
-              Some
-                (List.map
-                   (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                     Schema.String_literal r.reason)
-                   spec.tables.client_discovery_absent.reasons);
+              Some (List.assoc Word_tables.discovery_absent.file (words spec));
           } )
   in
   match Table_records.all spec with
@@ -174,7 +180,7 @@ let derive_roots (spec : Spec.t) roots =
       Shape.derive ~ids:spec.ids
         ~unrecognized:spec.tables.errors_codes.bus_request.unrecognized_failure
         ~vocabularies:(Error_codes.Table.vocabularies codes)
-        roots)
+        ~words:(words spec) roots)
 
 (* What each root schema and each table record requires, by its name. *)
 let derive (spec : Spec.t) = Result.bind (roots spec) (derive_roots spec)

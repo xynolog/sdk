@@ -756,7 +756,7 @@ let discovery_absent t (spec : Spec.t) =
             (block
                ~opening:
                  ("module "
-                 ^ Ocaml_sdk.Enums.module_name "DiscoveryAbsentReason"
+                 ^ Ocaml_sdk.Enums.module_name Word_tables.discovery_absent.name
                  ^ " = struct")
                ~closing:"\n\n"
                (t.generated "ocaml/sdk/lib/enums.ml"))

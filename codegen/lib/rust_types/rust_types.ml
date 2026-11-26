@@ -215,8 +215,10 @@ let discovery_absent (spec : Spec.t) =
     Output.path = "rust/sdk/src/generated/discovery_absent.rs";
     text =
       Rust_syntax.text
-        ~header:(regenerate "protocol/specs/src/client/discovery-absent.json")
-        (Generate.enumeration "DiscoveryAbsentReason" reasons
+        ~header:
+          (regenerate
+             ("protocol/specs/src/" ^ Word_tables.discovery_absent.file))
+        (Generate.enumeration Word_tables.discovery_absent.name reasons
            [ "Why no launcher was found." ]);
   }
 

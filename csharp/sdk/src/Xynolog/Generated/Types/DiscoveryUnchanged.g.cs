@@ -5,7 +5,7 @@
 namespace Xynolog.Types;
 
 [global::Xynolog.Serialization.WireObject]
-public sealed record DiscoveryReadUnchanged
+public sealed record DiscoveryUnchanged
 {
-    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.DiscoveryReadUnchangedKind Kind => global::Xynolog.Types.DiscoveryReadUnchangedKind.Unchanged;
+    [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.DiscoveryUnchangedKind Kind => global::Xynolog.Types.DiscoveryUnchangedKind.Unchanged;
 }

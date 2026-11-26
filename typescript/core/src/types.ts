@@ -7000,8 +7000,18 @@ export interface records {
     /** How many seconds the code stays good for. */
     expiresIn: number;
   };
+  /** No launcher was found, and why. */
+  DiscoveryAbsent: {
+    kind: 'absent';
+    /** Why: one of client/discovery-absent.json's reasons. */
+    reason: DiscoveryAbsentReason;
+    /** What was wrong, in words, when there is more to say. */
+    diagnostic?: string;
+  };
   /** How one poll's knowledge bases changed since the last state it gave. */
   DiscoveryDiff: {
+    /** The state the poll found. */
+    state: records['DiscoveryState'];
     /** Each knowledge base the last state did not have. */
     added: components['schemas']['DiscoveredKB'][];
     /**
@@ -7011,15 +7021,41 @@ export interface records {
     updated: components['schemas']['DiscoveredKB'][];
     /** Each knowledge base the last state had, and this one does not. */
     removed: components['schemas']['DiscoveredKB'][];
+    /**
+     * Each address, as host:port, that more than one of the state's knowledge
+     * bases is at. At most one of them is true: `added` and `removed` count
+     * each address once, and every one is in `state`.
+     */
+    duplicated: string[];
   };
   /**
-   * What one read of a launcher's discovery document gave, told apart by
-   * `kind`: no launcher was found, the knowledge bases one manages, or nothing
-   * changed since the last read. A launcher that manages none is not an absent
-   * one.
+   * The knowledge bases a launcher manages: none is a launcher that manages
+   * nothing.
+   */
+  DiscoveryManaged: {
+    kind: 'managed';
+    /** Each knowledge base, as the document lists it. */
+    kbs: components['schemas']['DiscoveredKB'][];
+  };
+  /**
+   * What one read of a launcher's discovery document gave: a DiscoveryState's
+   * absent or managed, or that nothing changed since the last read. Told apart
+   * by `kind`, as DiscoveryState's are.
    */
   DiscoveryRead:
-    DiscoveryReadAbsent | DiscoveryReadManaged | DiscoveryReadUnchanged;
+    | records['DiscoveryAbsent']
+    | records['DiscoveryManaged']
+    | records['DiscoveryUnchanged'];
+  /**
+   * What a launcher's discovery document says, told apart by `kind`: no
+   * launcher was found, or the knowledge bases one manages. A launcher that
+   * manages none is not an absent one.
+   */
+  DiscoveryState: records['DiscoveryAbsent'] | records['DiscoveryManaged'];
+  /** Nothing changed since the last read of a launcher's discovery document. */
+  DiscoveryUnchanged: {
+    kind: 'unchanged';
+  };
   /**
    * What a person believed they were signing in to: the did and the name of the
    * row they clicked, or of the entry they signed in to again.
@@ -9166,30 +9202,6 @@ export type WorkerMessagesLoggedItem = {
    * `situation` says and whose form is not stated. The line may carry others.
    */
   carries: string[];
-};
-
-/** No launcher was found, and why. */
-export type DiscoveryReadAbsent = {
-  kind: 'absent';
-  /** Why: one of client/discovery-absent.json's reasons. */
-  reason: string;
-  /** What was wrong, in words, when there is more to say. */
-  diagnostic?: string;
-};
-
-/**
- * The knowledge bases a launcher manages: none is a launcher that manages
- * nothing.
- */
-export type DiscoveryReadManaged = {
-  kind: 'managed';
-  /** Each knowledge base, as the document lists it. */
-  kbs: components['schemas']['DiscoveredKB'][];
-};
-
-/** Nothing changed since the last read. */
-export type DiscoveryReadUnchanged = {
-  kind: 'unchanged';
 };
 
 /** It answered as that entry, and its name and branch are on the entry now. */
