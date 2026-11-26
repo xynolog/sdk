@@ -60,7 +60,9 @@ let run t side operation payload =
     State_value.set side.error_writer None;
     State_value.set side.loading_writer true;
     State_task.replace side.task ~sw:(Client.switch t.client) (fun current ->
-        let code value = `Assoc [ ("code", text value) ] in
+        let code value =
+          `Assoc [ ("code", text (Http_wire.request_code value)) ]
+        in
         let decoded value = Yojson.Safe.from_string (B.encode value) in
         let result =
           try
@@ -76,9 +78,11 @@ let run t side operation payload =
                         (fun (name, _) -> name = "message" || name = "code")
                         (J.to_assoc (decoded payload))))
             | Error Subscription.Timeout ->
-                Error (code Error_codes.Bus_request.timeout)
-            | Error _ -> Error (code Error_codes.Bus_request.closed)
-          with Http_wire.Failed failure -> Error (code failure.code)
+                Error (code (Http_wire.Bus Error_codes.Bus_request.Timeout))
+            | Error _ ->
+                Error (code (Http_wire.Bus Error_codes.Bus_request.Closed))
+          with Http_wire.Failed failure ->
+            Error (code (Http_wire.Transport failure.code))
         in
         if current () then (
           (match result with

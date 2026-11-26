@@ -157,7 +157,12 @@ let type__value = function
 
 let type__json v = `String (type__value v)
 
-type scalar = { type_ : type_; minimum : int option; description : string }
+type scalar = {
+  type_ : type_;
+  minimum : int option;
+  format : string option;
+  description : string;
+}
 
 let scalar_json (r : scalar) =
   `Assoc
@@ -165,6 +170,7 @@ let scalar_json (r : scalar) =
        [
          Option.Some ("type", type__json r.type_);
          Option.map (fun v -> ("minimum", (fun n -> `Int n) v)) r.minimum;
+         Option.map (fun v -> ("format", (fun s -> `String s) v)) r.format;
          Option.Some ("description", (fun s -> `String s) r.description);
        ])
 
@@ -306,10 +312,101 @@ let named_value_json (r : named_value) =
          Option.Some ("why", (fun s -> `String s) r.why);
        ])
 
+type gives_value = {
+  form : string;
+  schema : schema option;
+  absent : bool option;
+}
+
+let gives_value_json (r : gives_value) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("form", (fun s -> `String s) r.form);
+         Option.map (fun v -> ("schema", schema_json v)) r.schema;
+         Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
+       ])
+
+type watched = { form : string; schema : schema option; absent : bool option }
+
+let watched_json (r : watched) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("form", (fun s -> `String s) r.form);
+         Option.map (fun v -> ("schema", schema_json v)) r.schema;
+         Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
+       ])
+
+type stream = { form : string; schema : schema option }
+
+let stream_json (r : stream) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("form", (fun s -> `String s) r.form);
+         Option.map (fun v -> ("schema", schema_json v)) r.schema;
+       ])
+
+type settles = { form : string }
+
+let settles_json (r : settles) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("form", (fun s -> `String s) r.form) ])
+
+type cancels = { form : string }
+
+let cancels_json (r : cancels) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("form", (fun s -> `String s) r.form) ])
+
+type function_ = {
+  form : string;
+  parameters : parameters_item list option;
+  returns : schema option option;
+}
+
+let function__json (r : function_) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("form", (fun s -> `String s) r.form);
+         Option.map
+           (fun v ->
+             ("parameters", (fun l -> `List (List.map parameters_item_json l)) v))
+           r.parameters;
+         Option.map
+           (fun v ->
+             ( "returns",
+               (function
+                 | Option.None -> `Null | Option.Some v -> schema_json v)
+                 v ))
+           r.returns;
+       ])
+
+type gives =
+  | Value of gives_value
+  | Watched of watched
+  | Stream of stream
+  | Settles of settles
+  | Cancels of cancels
+  | Function of function_
+
+let gives_json = function
+  | (Value v : gives) -> gives_value_json v
+  | (Watched v : gives) -> watched_json v
+  | (Stream v : gives) -> stream_json v
+  | (Settles v : gives) -> settles_json v
+  | (Cancels v : gives) -> cancels_json v
+  | (Function v : gives) -> function__json v
+
 type members_item = {
   member : string;
   named : (string * named_value) list option;
   takes : (string * string) list option;
+  gives : gives;
 }
 
 let members_item_json (r : members_item) =
@@ -331,6 +428,7 @@ let members_item_json (r : members_item) =
                  `Assoc (List.map (fun (k, v) -> (k, (fun s -> `String s) v)) l))
                  v ))
            r.takes;
+         Option.Some ("gives", gives_json r.gives);
        ])
 
 type worker_item = {
@@ -351,12 +449,15 @@ let worker_item_json (r : worker_item) =
            ("members", (fun l -> `List (List.map members_item_json l)) r.members);
        ])
 
-type item_members_item = { member : string }
+type item_members_item = { member : string; gives : gives }
 
 let item_members_item_json (r : item_members_item) =
   `Assoc
     (List.filter_map Fun.id
-       [ Option.Some ("member", (fun s -> `String s) r.member) ])
+       [
+         Option.Some ("member", (fun s -> `String s) r.member);
+         Option.Some ("gives", gives_json r.gives);
+       ])
 
 type state_units_item = {
   unit : string;
@@ -387,12 +488,15 @@ let state_units_item_json (r : state_units_item) =
              (fun l -> `List (List.map item_members_item_json l)) r.members );
        ])
 
-type wire_members_item = { member : string }
+type wire_members_item = { member : string; gives : gives }
 
 let wire_members_item_json (r : wire_members_item) =
   `Assoc
     (List.filter_map Fun.id
-       [ Option.Some ("member", (fun s -> `String s) r.member) ])
+       [
+         Option.Some ("member", (fun s -> `String s) r.member);
+         Option.Some ("gives", gives_json r.gives);
+       ])
 
 type wire = {
   docs : string;
@@ -454,13 +558,14 @@ let reader_json (r : reader) =
          Option.Some ("kind", (fun s -> `String s) r.kind);
        ])
 
-type function_ = {
+type modules_item_members_item_function = {
   member : string;
   kind : string;
   named : (string * string) list option;
 }
 
-let function__json (r : function_) =
+let modules_item_members_item_function_json
+    (r : modules_item_members_item_function) =
   `Assoc
     (List.filter_map Fun.id
        [
@@ -538,6 +643,7 @@ type constant = {
   kind : string;
   named : (string * string) list option;
   names : names option;
+  value : Yojson.Safe.t option;
 }
 
 let constant_json (r : constant) =
@@ -554,17 +660,19 @@ let constant_json (r : constant) =
                  v ))
            r.named;
          Option.map (fun v -> ("names", names_json v)) r.names;
+         Option.map (fun v -> ("value", Fun.id v)) r.value;
        ])
 
 type modules_item_members_item =
   | Reader of reader
-  | Function of function_
+  | Function of modules_item_members_item_function
   | Type of modules_item_members_item_type
   | Constant of constant
 
 let modules_item_members_item_json = function
   | (Reader v : modules_item_members_item) -> reader_json v
-  | (Function v : modules_item_members_item) -> function__json v
+  | (Function v : modules_item_members_item) ->
+      modules_item_members_item_function_json v
   | (Type v : modules_item_members_item) ->
       modules_item_members_item_type_json v
   | (Constant v : modules_item_members_item) -> constant_json v
@@ -1152,10 +1260,9 @@ let table : t =
                    cases =
                      [
                        ({
-                          why = Some "no filters: the first hundred";
+                          why = Some "no filters: the page is the Archivist's";
                           args = `Assoc [];
-                          sends =
-                            `Assoc [ ("limit", `Int 100); ("offset", `Int 0) ];
+                          sends = `Assoc [];
                           answers = None;
                           then_ = None;
                           correlation_id = None;
@@ -1180,7 +1287,6 @@ let table : t =
                                 ("archived", `Bool false);
                                 ("entityType", `String "Person");
                                 ("limit", `Int 5);
-                                ("offset", `Int 0);
                               ];
                           answers = None;
                           then_ = None;
@@ -1504,6 +1610,7 @@ let table : t =
                           ({
                              type_ = (String : type_);
                              minimum = None;
+                             format = None;
                              description =
                                "The resource's text: its bytes decoded as \
                                 contract/W3C-SELECTORS.md states, a byte-order \
@@ -3131,7 +3238,8 @@ let table : t =
                        ({
                           why =
                             Some
-                              "no options: a window of two thousand characters";
+                              "no options: the window and the contexts are the \
+                               Librarian's";
                           args =
                             `Assoc
                               [
@@ -3143,8 +3251,6 @@ let table : t =
                               [
                                 ("annotationId", `String "ann-1");
                                 ("resourceId", `String "res-1");
-                                ( "options",
-                                  `Assoc [ ("contextWindow", `Int 2000) ] );
                               ];
                           answers = None;
                           then_ = None;
@@ -3179,7 +3285,7 @@ let table : t =
                             Some
                               "a context asked for or left out is sent as \
                                stated, false as well as true; the window not \
-                               stated is two thousand";
+                               stated is not sent";
                           args =
                             `Assoc
                               [
@@ -3202,7 +3308,6 @@ let table : t =
                                     [
                                       ("includeSourceContext", `Bool false);
                                       ("includeTargetContext", `Bool true);
-                                      ("contextWindow", `Int 2000);
                                     ] );
                               ];
                           answers = None;
@@ -3500,7 +3605,8 @@ let table : t =
                        ({
                           why =
                             Some
-                              "no options: ten candidates, scored semantically";
+                              "no options: ten candidates, scored as the \
+                               Librarian scores unasked";
                           args =
                             `Assoc
                               [
@@ -3517,7 +3623,6 @@ let table : t =
                                 ( "context",
                                   `Assoc [ ("$fixture", `String "context") ] );
                                 ("limit", `Int 10);
-                                ("useSemanticScoring", `Bool true);
                               ];
                           answers = None;
                           then_ = None;
@@ -3687,15 +3792,9 @@ let table : t =
                    cases =
                      [
                        ({
-                          why = Some "no filters: the first hundred";
+                          why = Some "no filters: the page is the Librarian's";
                           args = `Assoc [ ("search", `String "cat") ];
-                          sends =
-                            `Assoc
-                              [
-                                ("search", `String "cat");
-                                ("limit", `Int 100);
-                                ("offset", `Int 0);
-                              ];
+                          sends = `Assoc [ ("search", `String "cat") ];
                           answers = None;
                           then_ = None;
                           correlation_id = None;
@@ -3722,7 +3821,6 @@ let table : t =
                                 ("archived", `Bool false);
                                 ("entityType", `String "Person");
                                 ("limit", `Int 5);
-                                ("offset", `Int 0);
                               ];
                           answers = None;
                           then_ = None;
@@ -3862,6 +3960,7 @@ let table : t =
                                   ({
                                      type_ = (Integer : type_);
                                      minimum = Some 0;
+                                     format = None;
                                      description =
                                        "How long the followed generation may \
                                         say nothing, in milliseconds, before \
@@ -5222,13 +5321,83 @@ let table : t =
                              : named_value) );
                        ];
                    takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
                  }
                   : members_item);
-                ({ member = "refused"; named = None; takes = None }
+                ({
+                   member = "refused";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Stream
+                        ({
+                           form = "stream";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/ClaimRefusal.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                         }
+                          : stream)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "stalled"; named = None; takes = None }
+                ({
+                   member = "stalled";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Stream
+                        ({
+                           form = "stream";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobStall.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                         }
+                          : stream)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "vitals"; named = None; takes = None }
+                ({
+                   member = "vitals";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/WorkerVitals.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
                 ({
                    member = "stop";
@@ -5256,6 +5425,15 @@ let table : t =
                              : named_value) );
                        ];
                    takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
                  }
                   : members_item);
               ];
@@ -5273,39 +5451,403 @@ let table : t =
             record = Some "HeldJobRecord";
             members =
               [
-                ({ member = "jobId"; named = None; takes = None }
+                ({
+                   member = "jobId";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobId";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "jobType"; named = None; takes = None }
+                ({
+                   member = "jobType";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobType";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "resourceId"; named = None; takes = None }
+                ({
+                   member = "resourceId";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/resourceId";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "params"; named = None; takes = None }
+                ({
+                   member = "params";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/params";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "completedUnits"; named = None; takes = None }
+                ({
+                   member = "completedUnits";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/completedUnits";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "unitCursors"; named = None; takes = None }
+                ({
+                   member = "unitCursors";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/unitCursors";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "retryCount"; named = None; takes = None }
+                ({
+                   member = "retryCount";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/retryCount";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "maxRetries"; named = None; takes = None }
+                ({
+                   member = "maxRetries";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/maxRetries";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "attempt"; named = None; takes = None }
+                ({
+                   member = "attempt";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobStartCommand.json#/properties/attempt";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "annotationId"; named = None; takes = None }
+                ({
+                   member = "annotationId";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/AnnotationId.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "trace"; named = None; takes = None }
+                ({
+                   member = "trace";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/TraceCarrier.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "cancelled"; named = None; takes = None }
+                ({
+                   member = "cancelled";
+                   named = None;
+                   takes = None;
+                   gives = (Cancels ({ form = "cancels" } : cancels) : gives);
+                 }
                   : members_item);
-                ({ member = "settled"; named = None; takes = None }
+                ({
+                   member = "settled";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (Boolean : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "Whether the job has settled: \
+                                        completed, failed or cancelled.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "start"; named = None; takes = None }
+                ({
+                   member = "start";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "progress"; named = None; takes = None }
+                ({
+                   member = "progress";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "progress";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/JobProgress.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "checkpoint"; named = None; takes = None }
+                ({
+                   member = "checkpoint";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "commit"; named = None; takes = None }
+                ({
+                   member = "commit";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "resourceId";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/resourceId";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                                 (Value
+                                    ({
+                                       parameter = "annotations";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/annotations";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
                 ({
                    member = "complete";
@@ -5315,10 +5857,79 @@ let table : t =
                        [
                          ("mark", "MarkJobResult"); ("yield", "YieldJobResult");
                        ];
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
                  }
                   : members_item);
-                ({ member = "fail"; named = None; takes = None } : members_item);
-                ({ member = "cancel"; named = None; takes = None }
+                ({
+                   member = "fail";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "error";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/JobFailCommand.json#/properties/error";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                                 (Value
+                                    ({
+                                       parameter = "failure";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/JobFailure.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = false;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : members_item);
+                ({
+                   member = "cancel";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
               ];
           }
@@ -5358,15 +5969,177 @@ let table : t =
               ];
             members =
               [
-                ({ member = "pendingAnnotation" } : item_members_item);
-                ({ member = "delegatingMotivation" } : item_members_item);
-                ({ member = "progress" } : item_members_item);
-                ({ member = "progressMotivation" } : item_members_item);
-                ({ member = "failure" } : item_members_item);
-                ({ member = "jobId" } : item_members_item);
-                ({ member = "requestDelegate" } : item_members_item);
-                ({ member = "cancelPending" } : item_members_item);
-                ({ member = "dismissProgress" } : item_members_item);
+                ({
+                   member = "pendingAnnotation";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/PendingAnnotation.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "delegatingMotivation";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/Motivation.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "progress";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobProgress.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "progressMotivation";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/Motivation.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "failure";
+                   gives =
+                     (Watched
+                        ({ form = "watched"; schema = None; absent = Some true }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "jobId";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobId.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "requestDelegate";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "params";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/MarkJobParams.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "cancelPending";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "dismissProgress";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5396,13 +6169,172 @@ let table : t =
               ];
             members =
               [
-                ({ member = "isGenerating" } : item_members_item);
-                ({ member = "progress" } : item_members_item);
-                ({ member = "outcome" } : item_members_item);
-                ({ member = "failure" } : item_members_item);
-                ({ member = "jobId" } : item_members_item);
-                ({ member = "generate" } : item_members_item);
-                ({ member = "dismissProgress" } : item_members_item);
+                ({
+                   member = "isGenerating";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (Boolean : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "Whether a generation is on its way.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "progress";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobProgress.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "outcome";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/YieldJobDone.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "failure";
+                   gives =
+                     (Watched
+                        ({ form = "watched"; schema = None; absent = Some true }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "jobId";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobId.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "generate";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "params";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/GenerationJobParams.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                                 (Value
+                                    ({
+                                       parameter = "stallDeadlineMs";
+                                       schema =
+                                         (Scalar
+                                            ({
+                                               type_ = (Integer : type_);
+                                               minimum = Some 0;
+                                               format = None;
+                                               description =
+                                                 "How long the followed \
+                                                  generation may say nothing, \
+                                                  in milliseconds, before it \
+                                                  is given up on. The \
+                                                  follower's own, never sent: \
+                                                  left out, it grows with the \
+                                                  generation's `maxTokens` as \
+                                                  client/timing.json's \
+                                                  generationStall timings say.";
+                                             }
+                                              : scalar)
+                                           : schema);
+                                       required = false;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "dismissProgress";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5434,15 +6366,229 @@ let table : t =
               ];
             members =
               [
-                ({ member = "context" } : item_members_item);
-                ({ member = "loading" } : item_members_item);
-                ({ member = "error" } : item_members_item);
-                ({ member = "annotationId" } : item_members_item);
-                ({ member = "resourceContext" } : item_members_item);
-                ({ member = "resourceLoading" } : item_members_item);
-                ({ member = "resourceError" } : item_members_item);
-                ({ member = "gatherAnnotation" } : item_members_item);
-                ({ member = "gatherResource" } : item_members_item);
+                ({
+                   member = "context";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/GatheredContext.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "loading";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (Boolean : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "Whether an annotation's gather is on \
+                                        its way.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "error";
+                   gives =
+                     (Watched
+                        ({ form = "watched"; schema = None; absent = Some true }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "annotationId";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/AnnotationId.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "resourceContext";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/GatheredContext.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "resourceLoading";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (Boolean : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "Whether a resource's gather is on its \
+                                        way.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "resourceError";
+                   gives =
+                     (Watched
+                        ({ form = "watched"; schema = None; absent = Some true }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "gatherAnnotation";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "annotationId";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/AnnotationId.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                                 (Value
+                                    ({
+                                       parameter = "options";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/GatherAnnotationOptions.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = false;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "gatherResource";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "resourceId";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/ResourceId.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                                 (Value
+                                    ({
+                                       parameter = "options";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/GatherResourceOptions.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = false;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5501,8 +6647,58 @@ let table : t =
               ];
             members =
               [
-                ({ member = "hoveredAnnotationId" } : item_members_item);
-                ({ member = "focus" } : item_members_item);
+                ({
+                   member = "hoveredAnnotationId";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/AnnotationId.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "focus";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "annotationId";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/AnnotationId.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5532,8 +6728,50 @@ let table : t =
               ];
             members =
               [
-                ({ member = "enter" } : item_members_item);
-                ({ member = "leave" } : item_members_item);
+                ({
+                   member = "enter";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "annotationId";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/AnnotationId.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "leave";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5563,9 +6801,83 @@ let table : t =
               ];
             members =
               [
-                ({ member = "query" } : item_members_item);
-                ({ member = "state" } : item_members_item);
-                ({ member = "setQuery" } : item_members_item);
+                ({
+                   member = "query";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (String : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description = "The query as last set.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "state";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/SearchState.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "setQuery";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "value";
+                                       schema =
+                                         (Scalar
+                                            ({
+                                               type_ = (String : type_);
+                                               minimum = None;
+                                               format = None;
+                                               description = "The query.";
+                                             }
+                                              : scalar)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5600,15 +6912,200 @@ let table : t =
               ];
             members =
               [
-                ({ member = "sessionEnded" } : item_members_item);
-                ({ member = "permissionDenied" } : item_members_item);
-                ({ member = "kbIdentityConflict" } : item_members_item);
-                ({ member = "notifySessionEnded" } : item_members_item);
-                ({ member = "notifyPermissionDenied" } : item_members_item);
-                ({ member = "notifyKbIdentityConflict" } : item_members_item);
-                ({ member = "acknowledgeSessionEnded" } : item_members_item);
-                ({ member = "acknowledgePermissionDenied" } : item_members_item);
-                ({ member = "acknowledgeKbIdentityConflict" }
+                ({
+                   member = "sessionEnded";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/SessionEnded.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "permissionDenied";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/PermissionDenied.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "kbIdentityConflict";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/KbIdentityConflict.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "notifySessionEnded";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "reason";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/SessionEnded.json#/properties/reason";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "notifyPermissionDenied";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "detail";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/PermissionDenied.json#/properties/detail";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "notifyKbIdentityConflict";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters =
+                             Some
+                               [
+                                 (Value
+                                    ({
+                                       parameter = "conflict";
+                                       schema =
+                                         (Reference
+                                            ({
+                                               ref =
+                                                 "https://xynolog.org/protocol/KbIdentityConflict.json";
+                                             }
+                                              : reference)
+                                           : schema);
+                                       required = true;
+                                     }
+                                      : value)
+                                   : parameters_item);
+                               ];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "acknowledgeSessionEnded";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "acknowledgePermissionDenied";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "acknowledgeKbIdentityConflict";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = Some [];
+                           returns = Some None;
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : item_members_item);
               ];
           }
@@ -5643,20 +7140,188 @@ let table : t =
               ];
             members =
               [
-                ({ member = "observe" } : item_members_item);
-                ({ member = "fetch" } : item_members_item);
-                ({ member = "get" } : item_members_item);
-                ({ member = "known" } : item_members_item);
-                ({ member = "keys" } : item_members_item);
-                ({ member = "invalidate" } : item_members_item);
-                ({ member = "invalidateAll" } : item_members_item);
-                ({ member = "remove" } : item_members_item);
-                ({ member = "set" } : item_members_item);
-                ({ member = "patch" } : item_members_item);
-                ({ member = "persistencePending" } : item_members_item);
-                ({ member = "keptFetching" } : item_members_item);
-                ({ member = "attach" } : item_members_item);
-                ({ member = "query" } : item_members_item);
+                ({
+                   member = "observe";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "fetch";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "get";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "known";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "keys";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "invalidate";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "invalidateAll";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "remove";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "set";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "patch";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "persistencePending";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "keptFetching";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "attach";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "query";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5702,17 +7367,188 @@ let table : t =
               ];
             members =
               [
-                ({ member = "id" } : item_members_item);
-                ({ member = "kb" } : item_members_item);
-                ({ member = "client" } : item_members_item);
-                ({ member = "token" } : item_members_item);
-                ({ member = "user" } : item_members_item);
-                ({ member = "streamState" } : item_members_item);
-                ({ member = "errors" } : item_members_item);
-                ({ member = "ready" } : item_members_item);
-                ({ member = "expiresAt" } : item_members_item);
-                ({ member = "refresh" } : item_members_item);
-                ({ member = "renewer" } : item_members_item);
+                ({
+                   member = "id";
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (String : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "The session's own id: a session made \
+                                        again for the same knowledge base has \
+                                        another.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "kb";
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/KbTarget.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "client";
+                   gives =
+                     (Value
+                        ({ form = "value"; schema = None; absent = None }
+                          : gives_value)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "token";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/AccessToken.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "user";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/UserResponse.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "streamState";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/ConnectionState.json";
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "errors";
+                   gives =
+                     (Stream ({ form = "stream"; schema = None } : stream)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "ready";
+                   gives = (Settles ({ form = "settles" } : settles) : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "expiresAt";
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (String : type_);
+                                     minimum = None;
+                                     format = Some "date-time";
+                                     description =
+                                       "When the session's token stops \
+                                        working, as the token states it.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "refresh";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "renewer";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           parameters = None;
+                           returns = None;
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5743,13 +7579,69 @@ let table : t =
             ];
           members =
             [
-              ({ member = "emit" } : wire_members_item);
-              ({ member = "frames" } : wire_members_item);
-              ({ member = "framesOf" } : wire_members_item);
-              ({ member = "request" } : wire_members_item);
-              ({ member = "emitOn" } : wire_members_item);
-              ({ member = "framesOn" } : wire_members_item);
-              ({ member = "requestOf" } : wire_members_item);
+              ({
+                 member = "emit";
+                 gives =
+                   (Function
+                      ({ form = "function"; parameters = None; returns = None }
+                        : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "frames";
+                 gives =
+                   (Function
+                      ({ form = "function"; parameters = None; returns = None }
+                        : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "framesOf";
+                 gives =
+                   (Function
+                      ({ form = "function"; parameters = None; returns = None }
+                        : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "request";
+                 gives =
+                   (Function
+                      ({ form = "function"; parameters = None; returns = None }
+                        : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "emitOn";
+                 gives =
+                   (Function
+                      ({ form = "function"; parameters = None; returns = None }
+                        : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "framesOn";
+                 gives =
+                   (Function
+                      ({ form = "function"; parameters = None; returns = None }
+                        : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "requestOf";
+                 gives =
+                   (Function
+                      ({ form = "function"; parameters = None; returns = None }
+                        : function_)
+                     : gives);
+               }
+                : wire_members_item);
             ];
         }
          : wire);
@@ -5852,27 +7744,27 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isHighlight"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isReference"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isAssessment"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isComment"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isTag"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -5880,7 +7772,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -5888,7 +7780,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Reader
                    ({ member = "textPositionSelector"; kind = "reader" }
@@ -5901,7 +7793,7 @@ let table : t =
                   : modules_item_members_item);
                 (Function
                    ({ member = "reconcile"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -5909,7 +7801,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -5917,7 +7809,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6051,7 +7943,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6119,6 +8011,7 @@ let table : t =
                              channels = [ "job:queued"; "job:cancel-requested" ];
                            }
                             : names);
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6135,6 +8028,7 @@ let table : t =
                              channels = [];
                            }
                             : names);
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6144,7 +8038,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6176,7 +8070,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6208,7 +8102,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6241,7 +8135,7 @@ let table : t =
               [
                 (Function
                    ({ member = "textClaim"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6249,7 +8143,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "parseJwtExpiry") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6257,11 +8151,11 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "isJwtExpired") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "renewalDelay"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6269,7 +8163,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "refreshDelayMs") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6364,11 +8258,11 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "unsubscribed"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Constant
                    ({
@@ -6376,6 +8270,7 @@ let table : t =
                       kind = "constant";
                       named = None;
                       names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6494,7 +8389,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6637,7 +8532,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6645,7 +8540,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6663,6 +8558,7 @@ let table : t =
                       kind = "constant";
                       named = Some [ ("typescript", "STORAGE_KEY") ];
                       names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6672,6 +8568,7 @@ let table : t =
                       kind = "constant";
                       named = None;
                       names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6681,6 +8578,7 @@ let table : t =
                       kind = "constant";
                       named = None;
                       names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6690,12 +8588,13 @@ let table : t =
                       kind = "constant";
                       named = None;
                       names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
                 (Function
                    ({ member = "sessionKey"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6703,7 +8602,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6716,7 +8615,7 @@ let table : t =
                             ("go", "StoredSessionOf");
                           ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6724,7 +8623,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "setStoredSession") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6732,7 +8631,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6740,7 +8639,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6748,15 +8647,15 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "keptIn"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "beginSignIn"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6764,7 +8663,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6774,8 +8673,8 @@ let table : t =
             docs =
               "What a session's signals raise: that a session ended and why, \
                that a request was refused for lack of permission, and that a \
-               different knowledge base answers at a registered address. \
-               specs/src/client/state-units.json's `notices` states each one.";
+               different knowledge base answers at a registered address. Each \
+               is a client type of specs/src/client/types.";
             where =
               [
                 ("ocaml", [ "sdk/ocaml/sdk/lib/session_notices.ml" ]);
@@ -6885,7 +8784,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6903,6 +8802,7 @@ let table : t =
                       kind = "constant";
                       named = None;
                       names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6922,7 +8822,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6930,7 +8830,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6938,7 +8838,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7050,7 +8950,7 @@ let table : t =
                             ("ocaml", "state_directory");
                           ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7074,7 +8974,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("kotlin", "thisPlatform") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Constant
                    ({
@@ -7086,6 +8986,7 @@ let table : t =
                             ("go", "SignInFile"); ("haskell", "signInFileName");
                           ];
                       names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -7189,7 +9090,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("go", "SignInWithDevice") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7197,15 +9098,15 @@ let table : t =
                       kind = "function";
                       named = Some [ ("haskell", "fromKeptSession") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "renewKept"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "signOut"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -7256,6 +9157,17 @@ let table : t =
                       kind = "constant";
                       named = None;
                       names = None;
+                      value = None;
+                    }
+                     : constant)
+                  : modules_item_members_item);
+                (Constant
+                   ({
+                      member = "discoveryUrlPath";
+                      kind = "constant";
+                      named = None;
+                      names = None;
+                      value = Some (`String "/discovery/kbs.json");
                     }
                      : constant)
                   : modules_item_members_item);
@@ -7335,7 +9247,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7343,7 +9255,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7351,7 +9263,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7369,7 +9281,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -7457,7 +9369,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "arbFaultAction") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7465,7 +9377,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "arbFaultSchedule") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7473,7 +9385,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7501,7 +9413,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "arbDeliveryOps") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7509,7 +9421,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7517,7 +9429,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("go", "NewTestSession") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7598,15 +9510,15 @@ let table : t =
               [
                 (Function
                    ({ member = "faultSaid"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "faultOf"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "said"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({

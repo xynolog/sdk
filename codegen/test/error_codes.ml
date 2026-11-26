@@ -73,7 +73,10 @@ let table ?(bus = bus_codes) ?(unrecognized = "bus.rejected")
        [ entry ~docs:"Unreachable." "unreachable" ])
     (plain "Why a span was refused."
        [ entry ~docs:"Out of range." "span-out-of-range" ])
-    (plain "Control." [ entry ~docs:"Failed." "control.failed" ])
+    (plain "Control."
+       [
+         {|{"code":"control.failed","docs":"Failed.","rpc":-32603,"retryable":false}|};
+       ])
 
 let decode text =
   Decode.run ~file (Yojson.Safe.from_string text) Tables.Errors_codes.decode

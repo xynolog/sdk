@@ -26,7 +26,7 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
     | Error { route = None; _ } ->
         report
           {
-            Http_wire.code = Error_codes.Transport.error;
+            Http_wire.code = Error_codes.Transport.Error;
             status = None;
             message = "The stream carried a line that names no reader";
           }
@@ -41,7 +41,7 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
       ~on_refused:(fun status ->
         report
           {
-            Http_wire.code = Error_codes.Transport.unauthorized;
+            Http_wire.code = Error_codes.Transport.Unauthorized;
             status = Some status;
             message = "The gateway refused the stream's credential";
           })
@@ -99,7 +99,7 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
                   Kept_for_first_reader.say said
                     (Own
                        {
-                         code = Error_codes.Session.save_refused;
+                         code = Error_codes.Session.Save_refused;
                          message =
                            "The storage refused a write of what the client \
                             keeps: " ^ Printexc.to_string refusal;
@@ -196,7 +196,7 @@ let await_closed t = Subscription.await_closed t.bus
 
 type error =
   | Transport of Subscription.request_error
-  | Refused of string
+  | Refused of Http_wire.request_code
   | Http of Http_wire.failure
 
 let ask t operation payload =
@@ -204,7 +204,7 @@ let ask t operation payload =
     match request t operation (Bus_registry.encode payload) with
     | Ok (Subscription.Result reply) -> Ok reply
     | Ok (Subscription.Failure failure) ->
-        Error (Refused (Http_wire.bus_failure failure))
+        Error (Refused (Http_wire.Bus (Http_wire.bus_failure failure)))
     | Error error -> Error (Transport error)
   with Http_wire.Failed failure -> Error (Http failure)
 

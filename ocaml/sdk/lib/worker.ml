@@ -77,13 +77,16 @@ let claim subscription http ~client_id ~correlation_id ?trace
       Refused { code = None; message = "The claim ended with no answer." }
   | Ok (Subscription.Failure payload) -> (
       match
-        ( Error_codes.Bus_request.of_code (Http_wire.bus_failure payload),
+        ( Http_wire.bus_failure payload,
           Models.decode Models.command_error (B.encode payload) )
       with
-      | Some Error_codes.Bus_request.None_pending, _ -> Empty
+      | Error_codes.Bus_request.None_pending, _ -> Empty
       | code, Ok failure ->
           Refused
-            { code; message = (Records.Command_error.of_model failure).message }
+            {
+              code = Some code;
+              message = (Records.Command_error.of_model failure).message;
+            }
       | _, Error _ ->
           Refused
             {
@@ -206,7 +209,7 @@ let commit job subscription ~correlation_id
     | _ -> job.durability <- Some (rank, evidence)
   in
   locked job (fun () ->
-      if job.phase = Settled then Error Error_codes.Bus_request.closed
+      if job.phase = Settled then Error Error_codes.Bus_request.Closed
       else
         match List.rev annotations with
         | [] -> Ok ()
@@ -245,8 +248,8 @@ let commit job subscription ~correlation_id
                 let rank, label = evidence in
                 record rank label;
                 if rank = 0 then Ok ()
-                else Error Error_codes.Bus_request.timeout
-            | Error _ -> Error Error_codes.Bus_request.closed))
+                else Error Error_codes.Bus_request.Timeout
+            | Error _ -> Error Error_codes.Bus_request.Closed))
 
 let durability job =
   Option.to_list

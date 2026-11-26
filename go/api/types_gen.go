@@ -44,6 +44,13 @@ func (v AboutResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(written(v))
 }
 
+// AccessToken An access token, as its issuer issued it: short-lived, and what
+// a session's transport sends as a Bearer token. Opaque to a client, which
+// reads nothing in it but its expiry.
+type (
+	AccessToken = string
+)
+
 // Agent Web Annotation / W3C PROV Agent. Discriminated by @type — Person,
 // Organization, or Software (named member schemas: AgentPerson,
 // AgentOrganization, AgentSoftware). Software peers are first-class
@@ -2559,6 +2566,27 @@ func (v BusSubscribeRequestScopedItem) MarshalJSON() ([]byte, error) {
 	return json.Marshal(written(v))
 }
 
+// CacheStatus Where a live query's key stands (contract/CACHE-SEMANTICS.md):
+// pending, with no value yet; ready, with a stored value; or failed, a
+// value-less key's failure, which is an emission and not the stream's end.
+type CacheStatus string
+
+// The values of CacheStatus.
+const (
+	CacheStatusPending CacheStatus = "pending"
+	CacheStatusReady   CacheStatus = "ready"
+	CacheStatusFailed  CacheStatus = "failed"
+)
+
+// Valid is whether e is one of CacheStatus's values.
+func (e CacheStatus) Valid() bool {
+	switch e {
+	case CacheStatusPending, CacheStatusReady, CacheStatusFailed:
+		return true
+	}
+	return false
+}
+
 // Cancelled The client gives up on one of its requests. The launcher answers
 // that request with control.cancelled, unless it has answered it already; a
 // cancellation of a request it does not know is ignored.
@@ -3935,6 +3963,26 @@ func (v ContextualSummaryResponseRelevantFields) MarshalJSON() ([]byte, error) {
 	return json.Marshal(written(v))
 }
 
+// ControlSender Which side of the control API sends a message: the client,
+// whose notifications arrive on the launcher's stdin, or the launcher, whose
+// notifications leave on its stdout (LAUNCHER-CONTROL.md F1).
+type ControlSender string
+
+// The values of ControlSender.
+const (
+	ControlSenderClient   ControlSender = "client"
+	ControlSenderLauncher ControlSender = "launcher"
+)
+
+// Valid is whether e is one of ControlSender's values.
+func (e ControlSender) Valid() bool {
+	switch e {
+	case ControlSenderClient, ControlSenderLauncher:
+		return true
+	}
+	return false
+}
+
 type CreateAnnotationRequest struct {
 	Motivation Motivation       `json:"motivation"`
 	Target     AnnotationTarget `json:"target"`
@@ -4085,6 +4133,28 @@ type DiscoveredKB struct {
 	ManagedBy string `json:"managedBy"`
 }
 
+// DiscoveryDiff How one poll's knowledge bases changed since the last state
+// it gave.
+type DiscoveryDiff struct {
+	// Added Each knowledge base the last state did not have.
+	Added []DiscoveredKB `json:"added"`
+	// Updated Each knowledge base the last state had at the same address, now
+	// otherwise.
+	Updated []DiscoveredKB `json:"updated"`
+	// Removed Each knowledge base the last state had, and this one does not.
+	Removed []DiscoveredKB `json:"removed"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v DiscoveryDiff) MarshalJSON() ([]byte, error) {
+	type written DiscoveryDiff
+	v.Added = listOf(v.Added)
+	v.Updated = listOf(v.Updated)
+	v.Removed = listOf(v.Removed)
+	return json.Marshal(written(v))
+}
+
 // DiscoveryDocument The launcher's KB discovery document — the schema
 // authority for <stateDir>/discovery/kbs.json, which the Xynolog CLI
 // (xynolog/cli) regenerates on every stack mutation and the Browser container
@@ -4121,6 +4191,121 @@ const (
 func (e DiscoveryDocumentVersion) Valid() bool {
 	switch e {
 	case DiscoveryDocumentVersion1:
+		return true
+	}
+	return false
+}
+
+// DiscoveryRead What one read of a launcher's discovery document gave, told
+// apart by `kind`: no launcher was found, the knowledge bases one manages, or
+// nothing changed since the last read. A launcher that manages none is not an
+// absent one.
+type DiscoveryRead struct {
+	union[DiscoveryReadMember]
+}
+
+// DiscoveryReadMember is a member of DiscoveryRead: DiscoveryReadAbsent,
+// DiscoveryReadManaged, DiscoveryReadUnchanged.
+type DiscoveryReadMember interface {
+	memberOfDiscoveryRead()
+}
+
+// Discriminator is the `kind` this value states.
+func (u DiscoveryRead) Discriminator() (string, error) { return u.stated("kind") }
+
+// Member is the member this value is: the one whose schema admits it.
+func (u DiscoveryRead) Member() (any, error) { return u.member("DiscoveryRead", discoveryReadMembers) }
+
+// discoveryReadMembers is what each member of DiscoveryRead admits, and how a
+// value of it is read.
+var discoveryReadMembers = []unionMember{
+	{"DiscoveryReadAbsent", readAs[DiscoveryReadAbsent], []signature{{kind: objectKind, required: []string{"kind", "reason"}, allowed: []string{"kind", "reason", "diagnostic"}, fixed: []fixedValues{{"kind", []any{"absent"}}}}}},
+	{"DiscoveryReadManaged", readAs[DiscoveryReadManaged], []signature{{kind: objectKind, required: []string{"kind", "kbs"}, allowed: []string{"kind", "kbs"}, fixed: []fixedValues{{"kind", []any{"managed"}}}}}},
+	{"DiscoveryReadUnchanged", readAs[DiscoveryReadUnchanged], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, fixed: []fixedValues{{"kind", []any{"unchanged"}}}}}},
+}
+
+// DiscoveryReadAbsent No launcher was found, and why.
+type DiscoveryReadAbsent struct {
+	Kind DiscoveryReadAbsentKind `json:"kind"`
+	// Reason Why: one of client/discovery-absent.json's reasons.
+	Reason string `json:"reason"`
+	// Diagnostic What was wrong, in words, when there is more to say.
+	Diagnostic *string `json:"diagnostic,omitempty"`
+}
+
+func (DiscoveryReadAbsent) memberOfDiscoveryRead() {}
+func (DiscoveryReadAbsent) told() (string, string) { return "kind", "absent" }
+
+type DiscoveryReadAbsentKind string
+
+// The values of DiscoveryReadAbsentKind.
+const (
+	DiscoveryReadAbsentKindAbsent DiscoveryReadAbsentKind = "absent"
+)
+
+// Valid is whether e is one of DiscoveryReadAbsentKind's values.
+func (e DiscoveryReadAbsentKind) Valid() bool {
+	switch e {
+	case DiscoveryReadAbsentKindAbsent:
+		return true
+	}
+	return false
+}
+
+// DiscoveryReadManaged The knowledge bases a launcher manages: none is a
+// launcher that manages nothing.
+type DiscoveryReadManaged struct {
+	Kind DiscoveryReadManagedKind `json:"kind"`
+	// Kbs Each knowledge base, as the document lists it.
+	Kbs []DiscoveredKB `json:"kbs"`
+}
+
+func (DiscoveryReadManaged) memberOfDiscoveryRead() {}
+func (DiscoveryReadManaged) told() (string, string) { return "kind", "managed" }
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v DiscoveryReadManaged) MarshalJSON() ([]byte, error) {
+	type written DiscoveryReadManaged
+	v.Kbs = listOf(v.Kbs)
+	return json.Marshal(written(v))
+}
+
+type DiscoveryReadManagedKind string
+
+// The values of DiscoveryReadManagedKind.
+const (
+	DiscoveryReadManagedKindManaged DiscoveryReadManagedKind = "managed"
+)
+
+// Valid is whether e is one of DiscoveryReadManagedKind's values.
+func (e DiscoveryReadManagedKind) Valid() bool {
+	switch e {
+	case DiscoveryReadManagedKindManaged:
+		return true
+	}
+	return false
+}
+
+// DiscoveryReadUnchanged Nothing changed since the last read.
+type DiscoveryReadUnchanged struct {
+	Kind DiscoveryReadUnchangedKind `json:"kind"`
+}
+
+func (DiscoveryReadUnchanged) memberOfDiscoveryRead() {}
+func (DiscoveryReadUnchanged) told() (string, string) { return "kind", "unchanged" }
+
+type DiscoveryReadUnchangedKind string
+
+// The values of DiscoveryReadUnchangedKind.
+const (
+	DiscoveryReadUnchangedKindUnchanged DiscoveryReadUnchangedKind = "unchanged"
+)
+
+// Valid is whether e is one of DiscoveryReadUnchangedKind's values.
+func (e DiscoveryReadUnchangedKind) Valid() bool {
+	switch e {
+	case DiscoveryReadUnchangedKindUnchanged:
 		return true
 	}
 	return false
@@ -4821,6 +5006,17 @@ func (e FailureClass) Valid() bool {
 	return false
 }
 
+// Fault The first fault a value has as its schema allows: where it is, and
+// why (contract/TRANSPORT-CONTRACT.md § Identity). What a refusal of a frame,
+// a payload or an answer names.
+type Fault struct {
+	// Member The way from the value to its first fault: the names of the members
+	// it is within, and its own, joined by dots; empty for the value itself.
+	Member string `json:"member"`
+	// Reason Why it is at fault.
+	Reason FrameRefusalReason `json:"reason"`
+}
+
 // FieldFault One fault in a request's params, named where it is.
 type FieldFault struct {
 	// Field Where in the params the fault is, as a JSON pointer (RFC 6901);
@@ -4965,6 +5161,29 @@ type FrameAddTagSchemaCommand struct {
 	// UserId Authenticated user's DID, injected by the /bus/emit gateway.
 	// Clients do not set this.
 	UserId *UserId `json:"_userId,omitempty"`
+}
+
+// FrameRefusal A frame refused, given to its readers in its place: by its
+// transport, for its first fault as BusFrame, or by its channel's typed read,
+// for its payload's first fault as its channel's
+// (contract/TRANSPORT-CONTRACT.md § Frames). A transport's own, never on the
+// wire.
+type FrameRefusal struct {
+	// Channel The channel the frame names.
+	Channel string `json:"channel"`
+	// Member The way from the frame to its first fault; a fault of its payload
+	// is within `payload`.
+	Member string `json:"member"`
+	// Reason Why it is at fault.
+	Reason  FrameRefusalReason `json:"reason"`
+	Payload any                `json:"payload,omitempty"`
+	// Scope The resource whose scope it was delivered on; absent when it names
+	// none.
+	Scope *ResourceId `json:"scope,omitempty"`
+	// CorrelationId The frame's correlation id, when it carries one BusFrame
+	// allows: a request awaiting the reply it names is told of the refusal at
+	// once.
+	CorrelationId *string `json:"correlationId,omitempty"`
 }
 
 // FrameRefusalReason Why a reader refused a frame, for its first fault:
@@ -8225,7 +8444,8 @@ type KbIdentity struct {
 
 // KbIdentityConflict A different knowledge base answers at a registered
 // address. Both dids, because neither alone says what to do: a person has to
-// recognise which knowledge base they registered and which one answers.
+// recognise which knowledge base they registered and which one answers. What
+// the session's signals raise (client/surface.json's `sessionSignals`).
 type KbIdentityConflict struct {
 	// ExpectedDid The did the entry records.
 	ExpectedDid string `json:"expectedDid"`
@@ -10239,7 +10459,8 @@ type PendingAuthorizationIssuer struct {
 	Revocation *string `json:"revocation,omitempty"`
 }
 
-// PermissionDenied A request was refused for lack of permission.
+// PermissionDenied A request was refused for lack of permission. What the
+// session's signals raise (client/surface.json's `sessionSignals`).
 type PermissionDenied struct {
 	// Detail The refusal's own message, untranslated; null when it gave none.
 	Detail *string `json:"detail"`
@@ -12710,7 +12931,8 @@ func (e SessionEndReason) Valid() bool {
 	return false
 }
 
-// SessionEnded A session ended, and why.
+// SessionEnded A session ended, and why. What the session's signals raise
+// (client/surface.json's `sessionSignals`).
 type SessionEnded struct {
 	// Reason Why it ended.
 	Reason SessionEndReason `json:"reason"`
@@ -13837,6 +14059,26 @@ const (
 func (e SvgSelectorType) Valid() bool {
 	switch e {
 	case SvgSelectorTypeSvgSelector:
+		return true
+	}
+	return false
+}
+
+// System What a state home differs by (sign-in-store/README.md): macOS,
+// Windows, and every other system.
+type System string
+
+// The values of System.
+const (
+	SystemMacos   System = "macos"
+	SystemWindows System = "windows"
+	SystemOther   System = "other"
+)
+
+// Valid is whether e is one of System's values.
+func (e System) Valid() bool {
+	switch e {
+	case SystemMacos, SystemWindows, SystemOther:
 		return true
 	}
 	return false

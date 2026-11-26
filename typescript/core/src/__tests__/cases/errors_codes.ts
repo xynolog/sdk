@@ -62,6 +62,18 @@ export type Job = {
   codes: JobCodesItem[];
 };
 
+export type ControlCodesItem = {
+  code: string;
+  docs: string;
+  rpc: number;
+  retryable: boolean;
+};
+
+export type Control = {
+  docs: string;
+  codes: ControlCodesItem[];
+};
+
 export type Table = {
   $comment: string;
   busRequest: BusRequest;
@@ -71,7 +83,7 @@ export type Table = {
   signIn: Job;
   kbIdentity: Job;
   spanRefusal: Job;
-  control: Job;
+  control: Control;
 };
 
 export const table: Table = {
@@ -309,99 +321,147 @@ export const table: Table = {
     codes: [
       {
         code: 'control.invalid-params',
-        docs: "The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it.",
+        docs: "The request's params are not what its method's schema admits. The error's fields name each fault.",
+        rpc: -32602,
+        retryable: false,
       },
       {
         code: 'control.unsupported-api-version',
         docs: "The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does.",
+        rpc: -32602,
+        retryable: false,
       },
       {
         code: 'control.invalid-request',
         docs: 'The launcher refuses the request as the command line refuses the same options: they contradict each other, or do not apply to what they name.',
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.invalid-service',
         docs: 'The request names a service or a group the launcher has none of.',
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.invalid-value',
         docs: "The launcher refuses a setting's value, as a start would refuse it. The previous value is kept.",
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.unknown-setting',
         docs: 'The request names a setting the launcher does not keep.',
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.target-required',
         docs: "Several stacks could be meant and the request names none of them. The error's choices name each; nothing was done.",
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.target-ambiguous',
         docs: "The root the request names is the basename of several registered roots. The error's choices name each by its path; nothing was done.",
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.root-not-found',
         docs: "The root the request names is not a knowledge base's clone: no such directory, no .xynolog/ in it, or a project file the launcher refuses.",
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.root-not-registered',
         docs: 'The root the request names is not in the registry.',
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.stack-not-running',
         docs: 'The request needs a stack of its target recorded on this machine, and none is.',
+        rpc: -32000,
+        retryable: true,
       },
       {
         code: 'control.stack-running',
         docs: 'The request would change what a recorded stack depends on: stop the stack first.',
+        rpc: -32000,
+        retryable: true,
       },
       {
         code: 'control.start-in-progress',
         docs: 'Another xynolog start of the same knowledge base holds its start lock.',
+        rpc: -32000,
+        retryable: true,
       },
       {
         code: 'control.runtime-unavailable',
         docs: "No container runtime the request can use is on the launcher's PATH.",
+        rpc: -32000,
+        retryable: true,
       },
       {
         code: 'control.dependency-unavailable',
         docs: "A program the request needs besides a container runtime (gh, for a codespace) is not on the launcher's PATH.",
+        rpc: -32000,
+        retryable: true,
       },
       {
         code: 'control.unreachable',
         docs: "What the request needs to reach did not answer: the knowledge base, its issuer, or a codespace's forward.",
+        rpc: -32000,
+        retryable: true,
       },
       {
         code: 'control.instance-in-use',
         docs: 'An instance of the name the run gives already runs on this machine for its target, whichever control server or command started it. Nothing was started.',
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.instance-not-found',
         docs: 'No run of an instance of the name the request gives is in flight on this machine for its target: none was started, or its run has been answered.',
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.confirmation-required',
         docs: 'The request would destroy something, and does not state that a person confirmed it.',
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.unreadable-state',
         docs: "The launcher's own record of this machine (the stack record, the registry, the sign-in store) cannot be read. Nothing was assumed in its place.",
+        rpc: -32000,
+        retryable: true,
       },
       {
         code: 'control.already-signed-in',
         docs: "The launcher's stored session for the target is valid: there is nothing to sign in to.",
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.sign-in-failed',
         docs: 'The person was not signed in: the issuer refused or the code expired, the gateway refused the token, or the session could not be kept. Nothing was stored.',
+        rpc: -32000,
+        retryable: true,
       },
       {
         code: 'control.cancelled',
         docs: 'The client cancelled the request before it ended.',
+        rpc: -32000,
+        retryable: false,
       },
       {
         code: 'control.failed',
         docs: 'The request failed for a reason no other code names. Its message says why, as the command line would.',
+        rpc: -32000,
+        retryable: true,
       },
     ],
   },

@@ -158,69 +158,6 @@ module Tab_check = struct
     | Unknown -> write [ ("verdict", Some (json_string "unknown")) ]
 end
 
-module Session_ended = struct
-  type t = { reason : Enums.Session_end_reason.t }
-
-  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
-    let open Table_codec in
-    function
-    | `Assoc members ->
-        let* reason =
-          required (enum Enums.Session_end_reason.of_string) "reason" members
-        in
-        Ok { reason }
-    | _ -> malformed ""
-
-  let to_json : t -> Yojson.Safe.t =
-    let open Table_codec in
-    fun value ->
-      write
-        [
-          ( "reason",
-            Some ((json_enum Enums.Session_end_reason.to_string) value.reason)
-          );
-        ]
-end
-
-module Permission_denied = struct
-  type t = { detail : string option }
-
-  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
-    let open Table_codec in
-    function
-    | `Assoc members ->
-        let* detail = required (nullable string) "detail" members in
-        Ok { detail }
-    | _ -> malformed ""
-
-  let to_json : t -> Yojson.Safe.t =
-    let open Table_codec in
-    fun value ->
-      write [ ("detail", Some (json_nullable json_string value.detail)) ]
-end
-
-module Kb_identity_conflict = struct
-  type t = { expected_did : string; observed_did : string }
-
-  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
-    let open Table_codec in
-    function
-    | `Assoc members ->
-        let* expected_did = required string "expectedDid" members in
-        let* observed_did = required string "observedDid" members in
-        Ok { expected_did; observed_did }
-    | _ -> malformed ""
-
-  let to_json : t -> Yojson.Safe.t =
-    let open Table_codec in
-    fun value ->
-      write
-        [
-          ("expectedDid", Some (json_string value.expected_did));
-          ("observedDid", Some (json_string value.observed_did));
-        ]
-end
-
 module Stored_session = struct
   type t = {
     access : string;
@@ -457,6 +394,157 @@ module Device_code = struct
           ( "verificationUriComplete",
             Option.map json_string value.verification_uri_complete );
           ("expiresIn", Some (json_int value.expires_in));
+        ]
+end
+
+module Discovery_diff = struct
+  type t = {
+    added : [ `DiscoveredKB ] Models.t list;
+    updated : [ `DiscoveredKB ] Models.t list;
+    removed : [ `DiscoveredKB ] Models.t list;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* added =
+          required (list (model Models.discovered_kb)) "added" members
+        in
+        let* updated =
+          required (list (model Models.discovered_kb)) "updated" members
+        in
+        let* removed =
+          required (list (model Models.discovered_kb)) "removed" members
+        in
+        Ok { added; updated; removed }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("added", Some ((json_list json_model) value.added));
+          ("updated", Some ((json_list json_model) value.updated));
+          ("removed", Some ((json_list json_model) value.removed));
+        ]
+end
+
+module Discovery_read = struct
+  type t =
+    | Absent of { reason : string; diagnostic : string option }
+    | Managed of { kbs : [ `DiscoveredKB ] Models.t list }
+    | Unchanged
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members -> (
+        let* tag = required string "kind" members in
+        match tag with
+        | "absent" ->
+            let* reason = required string "reason" members in
+            let* diagnostic = optional string "diagnostic" members in
+            Ok (Absent { reason; diagnostic })
+        | "managed" ->
+            let* kbs =
+              required (list (model Models.discovered_kb)) "kbs" members
+            in
+            Ok (Managed { kbs })
+        | "unchanged" -> Ok Unchanged
+        | _ -> malformed "kind")
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    function
+    | Absent value ->
+        write
+          [
+            ("kind", Some (json_string "absent"));
+            ("reason", Some (json_string value.reason));
+            ("diagnostic", Option.map json_string value.diagnostic);
+          ]
+    | Managed value ->
+        write
+          [
+            ("kind", Some (json_string "managed"));
+            ("kbs", Some ((json_list json_model) value.kbs));
+          ]
+    | Unchanged -> write [ ("kind", Some (json_string "unchanged")) ]
+end
+
+module Fault = struct
+  type t = { member : string; reason : Enums.Frame_refusal_reason.t }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* member = required string "member" members in
+        let* reason =
+          required (enum Enums.Frame_refusal_reason.of_string) "reason" members
+        in
+        Ok { member; reason }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("member", Some (json_string value.member));
+          ( "reason",
+            Some ((json_enum Enums.Frame_refusal_reason.to_string) value.reason)
+          );
+        ]
+end
+
+module Frame_refusal = struct
+  type t = {
+    channel : string;
+    member : string;
+    reason : Enums.Frame_refusal_reason.t;
+    payload : Yojson.Safe.t option;
+    scope : Identifiers.Resource_id.t option;
+    correlation_id : string option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* channel = required string "channel" members in
+        let* member = required string "member" members in
+        let* reason =
+          required (enum Enums.Frame_refusal_reason.of_string) "reason" members
+        in
+        let* payload = optional any "payload" members in
+        let* scope =
+          optional
+            (identifier Identifiers.Resource_id.of_string)
+            "scope" members
+        in
+        let* correlation_id = optional string "correlationId" members in
+        Ok { channel; member; reason; payload; scope; correlation_id }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("channel", Some (json_string value.channel));
+          ("member", Some (json_string value.member));
+          ( "reason",
+            Some ((json_enum Enums.Frame_refusal_reason.to_string) value.reason)
+          );
+          ("payload", Option.map json_any value.payload);
+          ( "scope",
+            Option.map (json_id Identifiers.Resource_id.to_string) value.scope
+          );
+          ("correlationId", Option.map json_string value.correlation_id);
         ]
 end
 
@@ -763,6 +851,28 @@ module Job_reached = struct
         ]
 end
 
+module Kb_identity_conflict = struct
+  type t = { expected_did : string; observed_did : string }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* expected_did = required string "expectedDid" members in
+        let* observed_did = required string "observedDid" members in
+        Ok { expected_did; observed_did }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("expectedDid", Some (json_string value.expected_did));
+          ("observedDid", Some (json_string value.observed_did));
+        ]
+end
+
 module Match_search_options = struct
   type t = { limit : int option; use_semantic_scoring : bool option }
 
@@ -843,6 +953,23 @@ module Pending_annotation = struct
           ( "motivation",
             Some ((json_enum Enums.Motivation.to_string) value.motivation) );
         ]
+end
+
+module Permission_denied = struct
+  type t = { detail : string option }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* detail = required (nullable string) "detail" members in
+        Ok { detail }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write [ ("detail", Some (json_nullable json_string value.detail)) ]
 end
 
 module Quoted_text = struct
@@ -1021,6 +1148,30 @@ module Resource_search_filters = struct
           ("entityType", Option.map json_string value.entity_type);
           ("offset", Option.map json_int value.offset);
           ("limit", Option.map json_int value.limit);
+        ]
+end
+
+module Session_ended = struct
+  type t = { reason : Enums.Session_end_reason.t }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* reason =
+          required (enum Enums.Session_end_reason.of_string) "reason" members
+        in
+        Ok { reason }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ( "reason",
+            Some ((json_enum Enums.Session_end_reason.to_string) value.reason)
+          );
         ]
 end
 

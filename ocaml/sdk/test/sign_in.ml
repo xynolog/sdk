@@ -59,16 +59,16 @@ let pkce () =
   in
   let refused code = Error { O.code; status = None } in
   let finish callback = O.finish_redirect http redirect ~callback in
-  assert (finish (callback "wrong") = refused Error_codes.Sign_in.state);
+  assert (finish (callback "wrong") = refused Error_codes.Sign_in.State);
   assert (
     finish (redirect_uri ^ "?error=access_denied&state=" ^ param "state")
-    = refused Error_codes.Sign_in.denied);
+    = refused Error_codes.Sign_in.Denied);
   assert (
     finish (redirect_uri ^ "?error=server_error&state=" ^ param "state")
-    = refused Error_codes.Sign_in.exchange);
+    = refused Error_codes.Sign_in.Exchange);
   assert (
     finish (redirect_uri ^ "?state=" ^ param "state")
-    = refused Error_codes.Sign_in.exchange);
+    = refused Error_codes.Sign_in.Exchange);
   assert (!calls = 0);
   assert (
     (get (O.finish_redirect http redirect ~callback:(callback (param "state"))))
@@ -164,7 +164,7 @@ let store () =
             assert (Store.find store ~key = None);
             assert (List.assoc "token" request.O.form = "refresh-for-revocation");
             (500, ""))
-        = Error { O.code = Error_codes.Sign_in.exchange; status = Some 500 });
+        = Error { O.code = Error_codes.Sign_in.Exchange; status = Some 500 });
       assert (Store.find store ~key = None);
       assert (
         Yojson.Safe.from_file path
@@ -456,11 +456,11 @@ let refusals () =
   assert (not (refused (429, {|{"error":"slow_down"}|})));
   assert (
     renewal (503, "")
-    = Error { O.code = Error_codes.Sign_in.exchange; status = Some 503 });
+    = Error { O.code = Error_codes.Sign_in.Exchange; status = Some 503 });
   assert (
     not
       (O.refresh_refused
-         { O.code = Error_codes.Sign_in.exchange; status = None }))
+         { O.code = Error_codes.Sign_in.Exchange; status = None }))
 
 let revoke () =
   let http (request : O.request) =

@@ -129,7 +129,12 @@ let derived =
                 [
                   value ~required:false "ms"
                     (Scalar
-                       { type_ = Integer; minimum = Some 0; description = "d" });
+                       {
+                         type_ = Integer;
+                         minimum = Some 0;
+                         format = None;
+                         description = "d";
+                       });
                 ];
             ]
         with

@@ -382,7 +382,7 @@ impl SpanRefusal {
 /// Why a request of the launcher's control API (`xynolog control`, contract/LAUNCHER-CONTROL.md) failed. The launcher sends one in each error's data, and Desktop reads it. A knowledge base never sends one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum ControlErrorCode {
-    /// The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it.
+    /// The request's params are not what its method's schema admits. The error's fields name each fault.
     #[serde(rename = "control.invalid-params")]
     InvalidParams,
     /// The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does.

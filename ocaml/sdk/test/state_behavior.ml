@@ -271,7 +271,7 @@ let run_case ~fixture (row : Units.cases_item) =
         in
         let failure (value : Delegation.failure) =
           assoc
-            ([ ("code", text value.code) ]
+            ([ ("code", text (Delegation.failure_code value.code)) ]
             @ Option.to_list
                 (Option.map
                    (fun message -> ("message", text message))
@@ -319,7 +319,7 @@ let run_case ~fixture (row : Units.cases_item) =
         in
         let failure (value : Delegation.failure) =
           assoc
-            ([ ("code", text value.code) ]
+            ([ ("code", text (Delegation.failure_code value.code)) ]
             @ Option.to_list
                 (Option.map
                    (fun message -> ("message", text message))

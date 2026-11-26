@@ -5,7 +5,7 @@ package xynolog.types
 
 import kotlinx.serialization.Serializable
 
-/** A request was refused for lack of permission. */
+/** A request was refused for lack of permission. What the session's signals raise (client/surface.json's `sessionSignals`). */
 @Serializable
 public data class PermissionDenied(
     /** The refusal's own message, untranslated; null when it gave none. */

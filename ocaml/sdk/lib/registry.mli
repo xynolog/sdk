@@ -18,7 +18,9 @@ type session_factory_options = {
 
 type session_factory =
   session_factory_options ->
-  (State_units.Session.t * Records.Connection_identity.t, string) result
+  ( State_units.Session.t * Records.Connection_identity.t,
+    Client.session_error )
+  result
 (** Builds the knowledge base's session, and reads none of its errors: the
     registry reads them from the first thing the session said. The registry
     makes the [signals] it is handed for the session. *)
@@ -33,9 +35,24 @@ type xynolog_browser_config = {
 type xynolog_browser
 
 type activation_error =
-  | Unavailable of string
+  | Unknown_kb  (** The registry holds no knowledge base of the id. *)
+  | Unavailable of Client.session_error
+      (** The factory could not build the session, for its reason. *)
   | Identity_conflict of string
   | Superseded
+
+(** Why a connection's identity could not be verified: the knowledge base gave
+    none, or its request could not be made. *)
+type identity_unverifiable_error =
+  | Kb_identity of Error_codes.Kb_identity.t
+  | Transport of Error_codes.Transport.t
+
+(** Why a sign-in was not recorded: the exchange's own code, the identity the
+    knowledge base gave none of, or an id another knowledge base holds. *)
+type sign_in_error =
+  | Sign_in of Error_codes.Sign_in.t
+  | Identity of Error_codes.Kb_identity.t
+  | Id_conflict
 
 val new_xynolog_browser :
   ?storage:Storage.t -> xynolog_browser_config -> xynolog_browser
@@ -48,10 +65,11 @@ val active_client : xynolog_browser -> Client.t option
 val record_sign_in :
   xynolog_browser ->
   Records.Signed_in.t ->
-  (Records.Sign_in_outcome.t, string) result
+  (Records.Sign_in_outcome.t, sign_in_error) result
 
 val describe_connection :
-  Client.t -> (Records.Connection_identity.t, string) result
+  Client.t ->
+  (Records.Connection_identity.t, identity_unverifiable_error) result
 
 val activate :
   xynolog_browser -> string -> (State_units.Session.t, activation_error) result
@@ -86,7 +104,8 @@ val sign_out : xynolog_browser -> string -> unit
 val session_status : xynolog_browser -> string -> Enums.Kb_session_status.t
 
 val http_session_factory :
-  (session_factory_options -> (State_units.Session.t, string) result) ->
+  (session_factory_options ->
+  (State_units.Session.t, Client.session_error) result) ->
   session_factory
 
 val sort_open_resources :
@@ -163,7 +182,9 @@ val complete_sign_in :
   http:Oauth.http ->
   callback:string ->
   describe:
-    (endpoint -> access:string -> ([ `KbDescription ] Models.t, string) result) ->
-  (Records.Sign_in_outcome.t, string) result
+    (endpoint ->
+    access:string ->
+    ([ `KbDescription ] Models.t, Error_codes.Kb_identity.t) result) ->
+  (Records.Sign_in_outcome.t, sign_in_error) result
 (** Consumes the pending sign-in before exchanging the code. [describe] reads
     the verified knowledge-base description using the new credentials. *)

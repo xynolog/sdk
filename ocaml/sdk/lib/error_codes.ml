@@ -32,15 +32,6 @@ module Bus_request = struct
     | "bus.unauthorized" -> Some Unauthorized
     | "bus.none-pending" -> Some None_pending
     | _ -> None
-
-  let timeout = "bus.timeout"
-  let rejected = "bus.rejected"
-  let closed = "bus.closed"
-  let not_found = "bus.not-found"
-  let unsubscribed = "bus.unsubscribed"
-  let peer_unavailable = "bus.peer-unavailable"
-  let unauthorized = "bus.unauthorized"
-  let none_pending = "bus.none-pending"
 end
 
 module Transport = struct
@@ -77,16 +68,6 @@ module Transport = struct
     | "unavailable" -> Some Unavailable
     | "error" -> Some Error
     | _ -> None
-
-  let unauthorized = "unauthorized"
-  let forbidden = "forbidden"
-  let not_found = "not-found"
-  let conflict = "conflict"
-  let bad_request = "bad-request"
-  let unprocessable = "unprocessable"
-  let rate_limited = "rate-limited"
-  let unavailable = "unavailable"
-  let error = "error"
 end
 
 module Job = struct
@@ -102,10 +83,6 @@ module Job = struct
     | "job.cancelled" -> Some Cancelled
     | "job.stalled" -> Some Stalled
     | _ -> None
-
-  let failed = "job.failed"
-  let cancelled = "job.cancelled"
-  let stalled = "job.stalled"
 end
 
 module Session = struct
@@ -133,13 +110,6 @@ module Session = struct
     | "session.keep-failed" -> Some Keep_failed
     | "session.save-refused" -> Some Save_refused
     | _ -> None
-
-  let construct_failed = "session.construct-failed"
-  let auth_failed = "session.auth-failed"
-  let refresh_exhausted = "session.refresh-exhausted"
-  let credential_refused = "session.credential-refused"
-  let keep_failed = "session.keep-failed"
-  let save_refused = "session.save-refused"
 end
 
 module Sign_in = struct
@@ -173,15 +143,6 @@ module Sign_in = struct
     | "aborted" -> Some Aborted
     | "exchange" -> Some Exchange
     | _ -> None
-
-  let no_issuer = "no-issuer"
-  let discovery = "discovery"
-  let no_pending = "no-pending"
-  let state = "state"
-  let denied = "denied"
-  let expired = "expired"
-  let aborted = "aborted"
-  let exchange = "exchange"
 end
 
 module Kb_identity = struct
@@ -195,9 +156,6 @@ module Kb_identity = struct
     | "unreachable" -> Some Unreachable
     | "not-reported" -> Some Not_reported
     | _ -> None
-
-  let unreachable = "unreachable"
-  let not_reported = "not-reported"
 end
 
 module Span_refusal = struct
@@ -228,14 +186,6 @@ module Span_refusal = struct
     | "exact-not-covered" -> Some Exact_not_covered
     | "item-out-of-range" -> Some Item_out_of_range
     | _ -> None
-
-  let span_out_of_range = "span-out-of-range"
-  let exact_mismatch = "exact-mismatch"
-  let prefix_mismatch = "prefix-mismatch"
-  let suffix_mismatch = "suffix-mismatch"
-  let nothing_located = "nothing-located"
-  let exact_not_covered = "exact-not-covered"
-  let item_out_of_range = "item-out-of-range"
 end
 
 module Control = struct
@@ -317,31 +267,6 @@ module Control = struct
     | "control.cancelled" -> Some Cancelled
     | "control.failed" -> Some Failed
     | _ -> None
-
-  let invalid_params = "control.invalid-params"
-  let unsupported_api_version = "control.unsupported-api-version"
-  let invalid_request = "control.invalid-request"
-  let invalid_service = "control.invalid-service"
-  let invalid_value = "control.invalid-value"
-  let unknown_setting = "control.unknown-setting"
-  let target_required = "control.target-required"
-  let target_ambiguous = "control.target-ambiguous"
-  let root_not_found = "control.root-not-found"
-  let root_not_registered = "control.root-not-registered"
-  let stack_not_running = "control.stack-not-running"
-  let stack_running = "control.stack-running"
-  let start_in_progress = "control.start-in-progress"
-  let runtime_unavailable = "control.runtime-unavailable"
-  let dependency_unavailable = "control.dependency-unavailable"
-  let unreachable = "control.unreachable"
-  let instance_in_use = "control.instance-in-use"
-  let instance_not_found = "control.instance-not-found"
-  let confirmation_required = "control.confirmation-required"
-  let unreadable_state = "control.unreadable-state"
-  let already_signed_in = "control.already-signed-in"
-  let sign_in_failed = "control.sign-in-failed"
-  let cancelled = "control.cancelled"
-  let failed = "control.failed"
 end
 
 let limit_refusal_transport_codes =

@@ -146,6 +146,27 @@ the coming release's, and gathers its changes as they land.
   out, no `contextWindow` is sent, nor an `options` member when no option is
   given, and the Librarian's own default applies (protocol#109), where it
   sent 2000. Its type is the same.
+- An error code is a constructor of its vocabulary's `t`
+  (`Error_codes.Bus_request.Timeout`), never a string. Each module of
+  `Error_codes` holds `t`, `code` (its text) and `of_code` (the constructor a
+  text is), and no string constants. `Oauth.error`, `Http_wire.failure`,
+  `Client.session_error` and `Worker.commit`'s error carry their
+  vocabulary's `t`. A holder of codes of more than one vocabulary carries a
+  sum: `Http_wire.request_code` (`Bus | Transport`) for a live query's and
+  `Cache_state`'s loads and states, `Client.fresh`, `Client.Refused`,
+  `Worker.Refused` and `Claims.refused`; `Delegation.failure_code`
+  (`Job | Request`) for a delegation's failure;
+  `Registry.identity_unverifiable_error` (`Kb_identity | Transport`) for
+  `Registry.describe_connection` and
+  `Redirect_sign_in.identity_unverifiable_error`, which was a `string`; and
+  `Registry.sign_in_error` (`Sign_in | Identity | Id_conflict`) for
+  `Registry.record_sign_in` and `Registry.complete_sign_in`, whose
+  `describe` refuses with a `Kb_identity.t`.
+- A session factory refuses with a `Client.session_error`, where it gave a
+  `string`, and `Registry.Unavailable` carries it. An activation of a
+  knowledge base the registry does not hold is `Registry.Unknown_kb`, and a
+  sign-in whose id another knowledge base holds is `Id_conflict`, where each
+  was a code Protocol does not state (`kb.not-found`, `kb.id-conflict`).
 
 ## 0.8.1
 

@@ -35,7 +35,7 @@ val commit :
   resource:Identifiers.Resource_id.t ->
   annotations:Yojson.Safe.t list ->
   unit ->
-  (unit, string) result
+  (unit, Error_codes.Bus_request.t) result
 
 val complete : held -> Yojson.Safe.t -> unit
 

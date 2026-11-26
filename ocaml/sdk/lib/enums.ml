@@ -60,6 +60,17 @@ module Body_purpose = struct
     | _ -> None
 end
 
+module Control_sender = struct
+  type t = Client | Launcher
+
+  let to_string = function Client -> "client" | Launcher -> "launcher"
+
+  let of_string = function
+    | "client" -> Some Client
+    | "launcher" -> Some Launcher
+    | _ -> None
+end
+
 module Durability_evidence = struct
   type t = Acknowledged | Probe_confirmed | Probe_refused | Probe_unreachable
 
@@ -541,6 +552,21 @@ module Supported_media_type = struct
     | _ -> None
 end
 
+module System = struct
+  type t = Macos | Windows | Other
+
+  let to_string = function
+    | Macos -> "macos"
+    | Windows -> "windows"
+    | Other -> "other"
+
+  let of_string = function
+    | "macos" -> Some Macos
+    | "windows" -> Some Windows
+    | "other" -> Some Other
+    | _ -> None
+end
+
 module Anchor_method = struct
   type t = Unique_match | Context_recovered | First_of_many | Fuzzy_match
 
@@ -555,6 +581,21 @@ module Anchor_method = struct
     | "context-recovered" -> Some Context_recovered
     | "first-of-many" -> Some First_of_many
     | "fuzzy-match" -> Some Fuzzy_match
+    | _ -> None
+end
+
+module Cache_status = struct
+  type t = Pending | Ready | Failed
+
+  let to_string = function
+    | Pending -> "pending"
+    | Ready -> "ready"
+    | Failed -> "failed"
+
+  let of_string = function
+    | "pending" -> Some Pending
+    | "ready" -> Some Ready
+    | "failed" -> Some Failed
     | _ -> None
 end
 

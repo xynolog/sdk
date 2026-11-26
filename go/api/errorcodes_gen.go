@@ -282,8 +282,7 @@ type ControlErrorCode string
 
 const (
 	// The request's params are not what its method's schema admits. The error's
-	// fields name each fault; JSON-RPC's own invalid-params code (-32602)
-	// carries it.
+	// fields name each fault.
 	ControlErrorCodeInvalidParams ControlErrorCode = "control.invalid-params"
 	// The request is written to a version of the control API this launcher does
 	// not speak. The error's supported field names the ones it does.

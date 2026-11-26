@@ -34,7 +34,9 @@ let types =
     O.type_item
       (O.type_declaration "sender"
          (Variant
-            (List.map (fun from -> O.constructor (sender from)) C.control_sender_all)));
+            (List.map
+               (fun from -> O.constructor (sender from))
+               C.control_sender_all)));
     record "Method" [ "params"; "result" ]
       [
         ("name", O.type_ "string");

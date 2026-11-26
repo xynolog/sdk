@@ -56,7 +56,7 @@ let derive (spec : Spec.t) =
   in
   let schema file = List.assoc_opt file spec.schemas in
   (* The keywords a member's schema may state beyond what it holds: what is
-     said of it. A scalar's bounds and a list's least length no writer reads. *)
+     said of it. A scalar's bounds and pattern and a list's least length no writer reads. *)
   let described s =
     List.filter (fun k -> k <> "description") (Schema.keywords s)
   in
@@ -122,7 +122,14 @@ let derive (spec : Spec.t) =
           when List.for_all
                  (fun k ->
                    List.mem k
-                     [ "type"; "minimum"; "maximum"; "minLength"; "maxLength" ])
+                     [
+                       "type";
+                       "minimum";
+                       "maximum";
+                       "minLength";
+                       "maxLength";
+                       "pattern";
+                     ])
                  (described l)
                && t <> Schema.Array ->
             Some (Scalar t)

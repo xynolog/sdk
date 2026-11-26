@@ -364,6 +364,7 @@ type base =
   | Model_base of string  (** its component *)
   | List_base of base
   | Map_base of base  (** an object of no named member, each of [base] *)
+  | Json_base  (** any value, as it is given *)
 
 type field = {
   json : string;
@@ -435,6 +436,7 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
         let fields, needs = members key at ~owner:named ms in
         stated := { module_ = named; form = Fields fields; needs } :: !stated;
         (Record_base named, Some named)
+    | T.Any -> (Json_base, None)
     | _ -> refuse key at "is no member the OCaml SDK has a type for"
   (* A member, and the module of the table record it names. *)
   and member key at ~owner (m : T.member) =
@@ -560,18 +562,23 @@ let derive (spec : Spec.t) (typing : T.t) table =
           if List.mem name client_enums then Some (Enums.module_name name)
           else None
     in
-    let is_enum name =
-      match (typing.find name).form with T.Enum _ -> true | _ -> false
+    (* A string enum is its Enums type, and a scalar its OCaml one: neither
+       is a record. *)
+    let is_record name =
+      match (typing.find name).form with
+      | T.Enum _ | T.Alias (T.Scalar _) -> false
+      | _ -> true
     in
     let written =
       List.filter_map
         (fun (key, title, _) ->
-          if is_enum title then None else Some (key, title))
+          if is_record title then Some (key, title) else None)
         table
       @ List.filter_map
           (fun name ->
-            if is_enum name then None
-            else Some (Roots.client_types ^ name ^ ".json", name))
+            if is_record name then
+              Some (Roots.client_types ^ name ^ ".json", name)
+            else None)
           (Definitions.generated_client_types spec)
     in
     let tabled_records = tabled typing ~written ~enum_of ~rooted in
@@ -870,6 +877,7 @@ let rec base_type = function
   | List_base b -> O.type_ "list" ~args:[ base_type b ]
   | Map_base b ->
       O.type_ "list" ~args:[ O.type_tuple [ O.type_ "string"; base_type b ] ]
+  | Json_base -> O.type_ "Yojson.Safe.t"
 
 let rec base_reader = function
   | Text_base -> O.ident "string"
@@ -884,6 +892,7 @@ let rec base_reader = function
   | Model_base c -> O.call "model" [ descriptor c ]
   | List_base b -> O.call "list" [ base_reader b ]
   | Map_base b -> O.call "assoc" [ base_reader b ]
+  | Json_base -> O.ident "any"
 
 let rec base_writer = function
   | Text_base -> O.ident "json_string"
@@ -898,6 +907,7 @@ let rec base_writer = function
   | Model_base _ -> O.ident "json_model"
   | List_base b -> O.call "json_list" [ base_writer b ]
   | Map_base b -> O.call "json_map" [ base_writer b ]
+  | Json_base -> O.ident "json_any"
 
 let field_type f =
   if f.required && not f.nullable then base_type f.base

@@ -47,7 +47,9 @@ let api_type (spec : Spec.t) ~declared target =
               table target))
 
 let sender = "Sender"
-let sender_constant from = sender ^ String.capitalize_ascii (T.control_sender_value from)
+
+let sender_constant from =
+  sender ^ String.capitalize_ascii (T.control_sender_value from)
 
 let text (spec : Spec.t) ~declared =
   let t : T.t = spec.tables.control_methods in

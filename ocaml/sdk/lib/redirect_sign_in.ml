@@ -1,4 +1,6 @@
-type identity_unverifiable_error = string
+type identity_unverifiable_error = Registry.identity_unverifiable_error =
+  | Kb_identity of Error_codes.Kb_identity.t
+  | Transport of Error_codes.Transport.t
 
 let code_challenge = Oauth.code_challenge
 let pending_authorization_key = Registry.pending_authorization_key

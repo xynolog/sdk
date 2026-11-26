@@ -63,6 +63,8 @@ public struct AboutResult: Codable, Sendable, Hashable {
   }
 }
 
+public typealias AccessToken = String
+
 public indirect enum Agent: Codable, Sendable, Hashable {
   case agentPerson(AgentPerson)
   case agentOrganization(AgentOrganization)
@@ -3472,6 +3474,12 @@ public struct BusSubscribeRequestScopedItem: Codable, Sendable, Hashable {
   }
 }
 
+public enum CacheStatus: String, Codable, Sendable, CaseIterable {
+  case pending = "pending"
+  case ready = "ready"
+  case failed = "failed"
+}
+
 public struct Cancelled: Codable, Sendable, Hashable {
   public var requestId: RequestId
   public var reason: String?
@@ -5592,6 +5600,11 @@ public struct ContextualSummaryResponseRelevantFields: Codable, Sendable, Hashab
   }
 }
 
+public enum ControlSender: String, Codable, Sendable, CaseIterable {
+  case client = "client"
+  case launcher = "launcher"
+}
+
 public struct CreateAnnotationRequest: Codable, Sendable, Hashable {
   public var motivation: Motivation
   public var target: AnnotationTarget
@@ -5802,6 +5815,30 @@ public struct DiscoveredKB: Codable, Sendable, Hashable {
   }
 }
 
+public struct DiscoveryDiff: Codable, Sendable, Hashable {
+  public var added: [DiscoveredKB]
+  public var updated: [DiscoveredKB]
+  public var removed: [DiscoveredKB]
+  public init(added: [DiscoveredKB], updated: [DiscoveredKB], removed: [DiscoveredKB]) {
+    self.added = added
+    self.updated = updated
+    self.removed = removed
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["added", "updated", "removed"], in: "DiscoveryDiff")
+    self.added = try c.value("added")
+    self.updated = try c.value("updated")
+    self.removed = try c.value("removed")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.added, as: "added")
+    try c.encode(self.updated, as: "updated")
+    try c.encode(self.removed, as: "removed")
+  }
+}
+
 public struct DiscoveryDocument: Codable, Sendable, Hashable {
   public let version: DiscoveryDocumentVersion
   public var kbs: [DiscoveredKB]
@@ -5834,6 +5871,117 @@ public enum DiscoveryDocumentVersion: Codable, Sendable, Hashable {
     var c = encoder.singleValueContainer()
     try c.encode(1)
   }
+}
+
+public indirect enum DiscoveryRead: Codable, Sendable, Hashable {
+  case absent(DiscoveryReadAbsent)
+  case managed(DiscoveryReadManaged)
+  case unchanged(DiscoveryReadUnchanged)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "reason"], allowed: ["kind", "reason", "diagnostic"],
+        fixed: [.init(property: "kind", values: [.text("absent")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "kbs"], allowed: ["kind", "kbs"],
+        fixed: [.init(property: "kind", values: [.text("managed")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind"], allowed: ["kind"],
+        fixed: [.init(property: "kind", values: [.text("unchanged")])], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "DiscoveryRead", members: Self.members,
+      variants: [
+        ("absent", { decoder in try Self.absent(DiscoveryReadAbsent(from: decoder)) }),
+        ("managed", { decoder in try Self.managed(DiscoveryReadManaged(from: decoder)) }),
+        ("unchanged", { decoder in try Self.unchanged(DiscoveryReadUnchanged(from: decoder)) }),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .absent(let value): try value.encode(to: encoder)
+    case .managed(let value): try value.encode(to: encoder)
+    case .unchanged(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct DiscoveryReadAbsent: Codable, Sendable, Hashable {
+  public let kind: DiscoveryReadAbsentKind
+  public var reason: String
+  public var diagnostic: String?
+  public init(reason: String, diagnostic: String? = nil) {
+    self.kind = .absent
+    self.reason = reason
+    self.diagnostic = diagnostic
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "reason", "diagnostic"], in: "DiscoveryReadAbsent")
+    self.kind = try c.value("kind")
+    self.reason = try c.value("reason")
+    self.diagnostic = try c.ifPresent("diagnostic")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.reason, as: "reason")
+    try c.encodeIfPresent(self.diagnostic, as: "diagnostic")
+  }
+}
+
+public enum DiscoveryReadAbsentKind: String, Codable, Sendable, CaseIterable {
+  case absent = "absent"
+}
+
+public struct DiscoveryReadManaged: Codable, Sendable, Hashable {
+  public let kind: DiscoveryReadManagedKind
+  public var kbs: [DiscoveredKB]
+  public init(kbs: [DiscoveredKB]) {
+    self.kind = .managed
+    self.kbs = kbs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "kbs"], in: "DiscoveryReadManaged")
+    self.kind = try c.value("kind")
+    self.kbs = try c.value("kbs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.kbs, as: "kbs")
+  }
+}
+
+public enum DiscoveryReadManagedKind: String, Codable, Sendable, CaseIterable {
+  case managed = "managed"
+}
+
+public struct DiscoveryReadUnchanged: Codable, Sendable, Hashable {
+  public let kind: DiscoveryReadUnchangedKind
+  public init() {
+    self.kind = .unchanged
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind"], in: "DiscoveryReadUnchanged")
+    self.kind = try c.value("kind")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+  }
+}
+
+public enum DiscoveryReadUnchangedKind: String, Codable, Sendable, CaseIterable {
+  case unchanged = "unchanged"
 }
 
 public struct DispatcherConfig: Codable, Sendable, Hashable {
@@ -6610,6 +6758,26 @@ public enum FailureClass: String, Codable, Sendable, CaseIterable {
   case withheld = "withheld"
 }
 
+public struct Fault: Codable, Sendable, Hashable {
+  public var member: String
+  public var reason: FrameRefusalReason
+  public init(member: String, reason: FrameRefusalReason) {
+    self.member = member
+    self.reason = reason
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["member", "reason"], in: "Fault")
+    self.member = try c.value("member")
+    self.reason = try c.value("reason")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.member, as: "member")
+    try c.encode(self.reason, as: "reason")
+  }
+}
+
 public struct FieldFault: Codable, Sendable, Hashable {
   public var field: String
   public var message: String
@@ -6791,6 +6959,46 @@ public struct FrameAddTagSchemaCommand: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.schema, as: "schema")
     try c.encodeIfPresent(self._userId, as: "_userId")
+  }
+}
+
+public struct FrameRefusal: Codable, Sendable, Hashable {
+  public var channel: String
+  public var member: String
+  public var reason: FrameRefusalReason
+  public var payload: JSONValue?
+  public var scope: ResourceId?
+  public var correlationId: String?
+  public init(
+    channel: String, member: String, reason: FrameRefusalReason, payload: JSONValue? = nil,
+    scope: ResourceId? = nil, correlationId: String? = nil
+  ) {
+    self.channel = channel
+    self.member = member
+    self.reason = reason
+    self.payload = payload
+    self.scope = scope
+    self.correlationId = correlationId
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["channel", "member", "reason", "payload", "scope", "correlationId"], in: "FrameRefusal")
+    self.channel = try c.value("channel")
+    self.member = try c.value("member")
+    self.reason = try c.value("reason")
+    self.payload = try c.ifPresent("payload")
+    self.scope = try c.ifPresent("scope")
+    self.correlationId = try c.ifPresent("correlationId")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.channel, as: "channel")
+    try c.encode(self.member, as: "member")
+    try c.encode(self.reason, as: "reason")
+    try c.encodeIfPresent(self.payload, as: "payload")
+    try c.encodeIfPresent(self.scope, as: "scope")
+    try c.encodeIfPresent(self.correlationId, as: "correlationId")
   }
 }
 
@@ -19517,6 +19725,12 @@ public enum SvgSelectorType: String, Codable, Sendable, CaseIterable {
   case svgSelector = "SvgSelector"
 }
 
+public enum System: String, Codable, Sendable, CaseIterable {
+  case macos = "macos"
+  case windows = "windows"
+  case other = "other"
+}
+
 public indirect enum TabCheck: Codable, Sendable, Hashable {
   case gone(TabCheckGone)
   case ready(TabCheckReady)
@@ -23650,6 +23864,7 @@ internal let requiredSchemas: [String: Shape] = {
     closed: [
       "apiVersions", "built", "commit", "development", "imageRegistry", "runtimes", "version",
     ])
+  shapes["AccessToken"] = Shape(kinds: [.string], minLength: 1)
   shapes["Agent"] = Shape(
     kinds: [.object],
     oneOf: [
@@ -24229,6 +24444,8 @@ internal let requiredSchemas: [String: Shape] = {
             "lastEventId": Shape(kinds: [.string]), "scope": Shape(ref: "ResourceId"),
           ], closed: ["channels", "lastEventId", "scope"])),
     ], closed: ["clientId", "global", "pendingReplies", "scoped"])
+  shapes["CacheStatus"] = Shape(
+    kinds: [.string], enumeration: [.string("pending"), .string("ready"), .string("failed")])
   shapes["Cancelled"] = Shape(
     kinds: [.object], required: ["requestId"],
     members: ["reason": Shape(kinds: [.string]), "requestId": Shape(ref: "RequestId")],
@@ -24736,6 +24953,8 @@ internal let requiredSchemas: [String: Shape] = {
         ], closed: ["entityTypes", "resourceId", "resourceName"]),
       "summary": Shape(kinds: [.string]),
     ])
+  shapes["ControlSender"] = Shape(
+    kinds: [.string], enumeration: [.string("client"), .string("launcher")])
   shapes["CreateAnnotationRequest"] = Shape(
     kinds: [.object], required: ["target", "motivation"],
     members: [
@@ -24773,8 +24992,8 @@ internal let requiredSchemas: [String: Shape] = {
     members: [
       "did": Shape(kinds: [.string]), "host": Shape(kinds: [.string]),
       "managedBy": Shape(kinds: [.string]), "placement": Shape(ref: "KbPlacement"),
-      "port": Shape(kinds: [.integer]), "repo": Shape(kinds: [.string]),
-      "siteName": Shape(kinds: [.string]),
+      "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+      "repo": Shape(kinds: [.string]), "siteName": Shape(kinds: [.string]),
     ])
   shapes["DiscoveryAbsentReason"] = Shape(
     kinds: [.string],
@@ -24782,12 +25001,42 @@ internal let requiredSchemas: [String: Shape] = {
       .string("not-found"), .string("not-json"), .string("invalid"), .string("unsupported-version"),
       .string("unreadable"),
     ])
+  shapes["DiscoveryDiff"] = Shape(
+    kinds: [.object], required: ["added", "updated", "removed"],
+    members: [
+      "added": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "removed": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "updated": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+    ], closed: ["added", "removed", "updated"])
   shapes["DiscoveryDocument"] = Shape(
     kinds: [.object], required: ["version", "kbs"],
     members: [
       "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
       "version": Shape(kinds: [.integer], enumeration: [.number(1.0)]),
     ])
+  shapes["DiscoveryRead"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(
+        kinds: [.object], required: ["kind", "reason"],
+        members: [
+          "diagnostic": Shape(kinds: [.string], minLength: 1),
+          "kind": Shape(kinds: [.string], enumeration: [.string("absent")]),
+          "reason": Shape(kinds: [.string], minLength: 1),
+        ], closed: ["diagnostic", "kind", "reason"]),
+      Shape(
+        kinds: [.object], required: ["kind", "kbs"],
+        members: [
+          "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+          "kind": Shape(kinds: [.string], enumeration: [.string("managed")]),
+        ], closed: ["kbs", "kind"]),
+      Shape(
+        kinds: [.object], required: ["kind"],
+        members: ["kind": Shape(kinds: [.string], enumeration: [.string("unchanged")])],
+        closed: ["kind"]),
+    ],
+    discriminator: Discriminator(
+      property: "kind", mapping: ["absent": 0, "managed": 1, "unchanged": 2]))
   shapes["DispatcherConfig"] = Shape(
     kinds: [.object],
     required: ["kb", "gatewayUrl", "identity", "queue", "port", "timing", "logLevel", "logFormat"],
@@ -24946,6 +25195,29 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["FailureClass"] = Shape(
     kinds: [.string],
     enumeration: [.string("transient"), .string("deterministic"), .string("withheld")])
+  shapes["Fault"] = Shape(
+    kinds: [.object], required: ["member", "reason"],
+    members: [
+      "member": Shape(
+        kinds: [.string],
+        pattern: [
+          .group(
+            Group(
+              either: [
+                [
+                  .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
+                  .group(
+                    Group(
+                      either: [
+                        [
+                          .step(Step(of: [46...46], min: 1, max: 1)),
+                          .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
+                        ]
+                      ], min: 0, max: nil)),
+                ]
+              ], min: 0, max: 1))
+        ]), "reason": Shape(ref: "FrameRefusalReason"),
+    ], closed: ["member", "reason"])
   shapes["FieldFault"] = Shape(
     kinds: [.object], required: ["field", "message"],
     members: ["field": Shape(kinds: [.string]), "message": Shape(kinds: [.string])],
@@ -24987,6 +25259,31 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["FrameAddTagSchemaCommand"] = Shape(
     kinds: [.object], required: ["schema"],
     members: ["_userId": Shape(ref: "UserId"), "schema": Shape(ref: "TagSchema")])
+  shapes["FrameRefusal"] = Shape(
+    kinds: [.object], required: ["channel", "member", "reason"],
+    members: [
+      "channel": Shape(kinds: [.string], minLength: 1),
+      "correlationId": Shape(kinds: [.string], minLength: 1),
+      "member": Shape(
+        kinds: [.string],
+        pattern: [
+          .group(
+            Group(
+              either: [
+                [
+                  .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
+                  .group(
+                    Group(
+                      either: [
+                        [
+                          .step(Step(of: [46...46], min: 1, max: 1)),
+                          .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
+                        ]
+                      ], min: 0, max: nil)),
+                ]
+              ], min: 0, max: 1))
+        ]), "reason": Shape(ref: "FrameRefusalReason"), "scope": Shape(ref: "ResourceId"),
+    ], closed: ["channel", "correlationId", "member", "payload", "reason", "scope"])
   shapes["FrameRefusalReason"] = Shape(
     kinds: [.string], enumeration: [.string("lacks"), .string("malformed")])
   shapes["GatewayConfig"] = Shape(
@@ -27411,6 +27708,8 @@ internal let requiredSchemas: [String: Shape] = {
       "type": Shape(kinds: [.string], enumeration: [.string("SvgSelector")]),
       "value": Shape(kinds: [.string]),
     ])
+  shapes["System"] = Shape(
+    kinds: [.string], enumeration: [.string("macos"), .string("windows"), .string("other")])
   shapes["TabCheck"] = Shape(
     kinds: [.object],
     oneOf: [

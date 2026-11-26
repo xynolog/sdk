@@ -52,6 +52,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "AccessToken",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            min_length: Some(1),
+            ..NONE
+        },
+    ),
+    (
         "Agent",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -1920,6 +1928,18 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "CacheStatus",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("pending"),
+                Listed::Text("ready"),
+                Listed::Text("failed"),
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "Cancelled",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -3551,6 +3571,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "ControlSender",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("client"), Listed::Text("launcher")]),
+            ..NONE
+        },
+    ),
+    (
         "CreateAnnotationRequest",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -3666,7 +3694,15 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("host", of(&[Kind::String])),
                 ("managedBy", of(&[Kind::String])),
                 ("placement", reference("KbPlacement")),
-                ("port", of(&[Kind::Integer])),
+                (
+                    "port",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        maximum: Some(65535.0),
+                        ..NONE
+                    },
+                ),
                 ("repo", of(&[Kind::String])),
                 ("siteName", of(&[Kind::String])),
             ],
@@ -3684,6 +3720,41 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 Listed::Text("unsupported-version"),
                 Listed::Text("unreadable"),
             ]),
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryDiff",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["added", "updated", "removed"],
+            members: &[
+                (
+                    "added",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "removed",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "updated",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["added", "removed", "updated"]),
             ..NONE
         },
     ),
@@ -3710,6 +3781,89 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     },
                 ),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryRead",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["kind", "reason"],
+                    members: &[
+                        (
+                            "diagnostic",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                min_length: Some(1),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "kind",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("absent")]),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "reason",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                min_length: Some(1),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["diagnostic", "kind", "reason"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["kind", "kbs"],
+                    members: &[
+                        (
+                            "kbs",
+                            Shape {
+                                kinds: Some(&[Kind::Array]),
+                                items: Some(&reference("DiscoveredKB")),
+                                ..NONE
+                            },
+                        ),
+                        (
+                            "kind",
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[Listed::Text("managed")]),
+                                ..NONE
+                            },
+                        ),
+                    ],
+                    closed: Some(&["kbs", "kind"]),
+                    ..NONE
+                },
+                Shape {
+                    kinds: Some(&[Kind::Object]),
+                    required: &["kind"],
+                    members: &[(
+                        "kind",
+                        Shape {
+                            kinds: Some(&[Kind::String]),
+                            enumeration: Some(&[Listed::Text("unchanged")]),
+                            ..NONE
+                        },
+                    )],
+                    closed: Some(&["kind"]),
+                    ..NONE
+                },
+            ],
+            discriminator: Some(Discriminator {
+                property: "kind",
+                mapping: &[("absent", 0), ("managed", 1), ("unchanged", 2)],
+            }),
             ..NONE
         },
     ),
@@ -4279,6 +4433,52 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Fault",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["member", "reason"],
+            members: &[
+                (
+                    "member",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[Term::Group(Group {
+                            either: &[&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: None,
+                                }),
+                                Term::Group(Group {
+                                    either: &[&[
+                                        Term::Step(Step {
+                                            of: &[(46, 46)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(65, 90), (97, 122)],
+                                            min: 1,
+                                            max: None,
+                                        }),
+                                    ]],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]],
+                            min: 0,
+                            max: Some(1),
+                        })]),
+                        ..NONE
+                    },
+                ),
+                ("reason", reference("FrameRefusalReason")),
+            ],
+            closed: Some(&["member", "reason"]),
+            ..NONE
+        },
+    ),
+    (
         "FieldFault",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -4426,6 +4626,76 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("_userId", reference("UserId")),
                 ("schema", reference("TagSchema")),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "FrameRefusal",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["channel", "member", "reason"],
+            members: &[
+                (
+                    "channel",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "correlationId",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "member",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[Term::Group(Group {
+                            either: &[&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: None,
+                                }),
+                                Term::Group(Group {
+                                    either: &[&[
+                                        Term::Step(Step {
+                                            of: &[(46, 46)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(65, 90), (97, 122)],
+                                            min: 1,
+                                            max: None,
+                                        }),
+                                    ]],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]],
+                            min: 0,
+                            max: Some(1),
+                        })]),
+                        ..NONE
+                    },
+                ),
+                ("reason", reference("FrameRefusalReason")),
+                ("scope", reference("ResourceId")),
+            ],
+            closed: Some(&[
+                "channel",
+                "correlationId",
+                "member",
+                "payload",
+                "reason",
+                "scope",
+            ]),
             ..NONE
         },
     ),
@@ -12817,6 +13087,18 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
                 ("value", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "System",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("macos"),
+                Listed::Text("windows"),
+                Listed::Text("other"),
+            ]),
             ..NONE
         },
     ),

@@ -835,7 +835,7 @@ let replay_waits_for_every_key () =
    the states one observer saw and the saves the query made. *)
 type asked = {
   query : (unit, int) Live_query.t;
-  asks : (int, string) result Promise.u Queue.t;
+  asks : (int, Http_wire.request_code) result Promise.u Queue.t;
   states : int Live_query.state list ref;
   saves : int option list ref;
 }
@@ -952,7 +952,8 @@ let removal_lets_go () =
       in
       let release = watched asked in
       Fun.protect ~finally:release (fun () ->
-          Live_query.remove asked.query () "bus.not-found";
+          Live_query.remove asked.query ()
+            (Http_wire.Bus Error_codes.Bus_request.Not_found);
           check
             (quiet asked (fun () -> answer asked (Ok 0)))
             "a let-go fetch's reply emitted or saved";
@@ -960,7 +961,9 @@ let removal_lets_go () =
             (Promise.await_exn older = Ok 0)
             "a fetch a removal let go of did not answer its own read";
           check
-            (List.hd !(asked.states) = Live_query.Failed "bus.not-found")
+            (List.hd !(asked.states)
+           = Live_query.Failed (Http_wire.Bus Error_codes.Bus_request.Not_found)
+            )
             "a let-go fetch's reply undid the removal";
           check
             (Live_query.get asked.query () = None)
@@ -1079,7 +1082,9 @@ let let_go_failure () =
           settle ();
           Live_query.set asked.query () 5;
           check
-            (quiet asked (fun () -> answer asked (Error "bus.timeout")))
+            (quiet asked (fun () ->
+                 answer asked
+                   (Error (Http_wire.Bus Error_codes.Bus_request.Timeout))))
             "a let-go fetch's failure emitted or saved";
           check
             (Queue.is_empty asked.asks)
@@ -1098,7 +1103,7 @@ let failed_ask_patches_go () =
           Live_query.invalidate asked.query ();
           settle ();
           Live_query.patch asked.query () (fun value -> value + 10);
-          answer asked (Error "bus.timeout");
+          answer asked (Error (Http_wire.Bus Error_codes.Bus_request.Timeout));
           check
             (Queue.length asked.asks = 1)
             "a failed ask was not asked once more";
@@ -1214,7 +1219,7 @@ let observe_during_invalidation () =
             Promise.resolve send_reply "value";
             Promise.await ready
         | Ready _ -> Promise.resolve mark_ready ()
-        | Failed reason -> Alcotest.fail reason)
+        | Failed reason -> Alcotest.fail (Http_wire.request_code reason))
       ~on_close:ignore
   in
   let duplicate = !requests > 1 || Live_query.in_flight query in

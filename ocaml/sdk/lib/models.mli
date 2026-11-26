@@ -11,6 +11,7 @@ val encode : 'schema t -> string
 val json : 'schema t -> Yojson.Raw.t
 val about_params : [ `AboutParams ] descriptor
 val about_result : [ `AboutResult ] descriptor
+val access_token : [ `AccessToken ] descriptor
 val agent : [ `Agent ] descriptor
 val agent_organization : [ `AgentOrganization ] descriptor
 val agent_person : [ `AgentPerson ] descriptor
@@ -121,6 +122,7 @@ val bus_ping_message : [ `BusPingMessage ] descriptor
 val bus_resume_gap : [ `BusResumeGap ] descriptor
 val bus_stream_message : [ `BusStreamMessage ] descriptor
 val bus_subscribe_request : [ `BusSubscribeRequest ] descriptor
+val cache_status : [ `CacheStatus ] descriptor
 val cancelled : [ `Cancelled ] descriptor
 val claim_options : [ `ClaimOptions ] descriptor
 val claim_refusal : [ `ClaimRefusal ] descriptor
@@ -142,6 +144,7 @@ val connection_identity : [ `ConnectionIdentity ] descriptor
 val connection_state : [ `ConnectionState ] descriptor
 val content_format : [ `ContentFormat ] descriptor
 val contextual_summary_response : [ `ContextualSummaryResponse ] descriptor
+val control_sender : [ `ControlSender ] descriptor
 val create_annotation_request : [ `CreateAnnotationRequest ] descriptor
 val create_from_token_options : [ `CreateFromTokenOptions ] descriptor
 val create_resource_response : [ `CreateResourceResponse ] descriptor
@@ -151,7 +154,9 @@ val dir_entry : [ `DirEntry ] descriptor
 val directory_entry : [ `DirectoryEntry ] descriptor
 val discovered_kb : [ `DiscoveredKB ] descriptor
 val discovery_absent_reason : [ `DiscoveryAbsentReason ] descriptor
+val discovery_diff : [ `DiscoveryDiff ] descriptor
 val discovery_document : [ `DiscoveryDocument ] descriptor
+val discovery_read : [ `DiscoveryRead ] descriptor
 val dispatcher_config : [ `DispatcherConfig ] descriptor
 val dispatcher_health : [ `DispatcherHealth ] descriptor
 val durability_evidence : [ `DurabilityEvidence ] descriptor
@@ -174,12 +179,14 @@ val extraction_declined_reason : [ `ExtractionDeclinedReason ] descriptor
 val extraction_method : [ `ExtractionMethod ] descriptor
 val extraction_outcome : [ `ExtractionOutcome ] descriptor
 val failure_class : [ `FailureClass ] descriptor
+val fault : [ `Fault ] descriptor
 val field_fault : [ `FieldFault ] descriptor
 val file_entry : [ `FileEntry ] descriptor
 val follower_following : [ `FollowerFollowing ] descriptor
 val fragment_selector : [ `FragmentSelector ] descriptor
 val frame_add_entity_type_command : [ `FrameAddEntityTypeCommand ] descriptor
 val frame_add_tag_schema_command : [ `FrameAddTagSchemaCommand ] descriptor
+val frame_refusal : [ `FrameRefusal ] descriptor
 val frame_refusal_reason : [ `FrameRefusalReason ] descriptor
 val gateway_config : [ `GatewayConfig ] descriptor
 val gather_annotation_complete : [ `GatherAnnotationComplete ] descriptor
@@ -497,6 +504,7 @@ val stored_event_response : [ `StoredEventResponse ] descriptor
 val stored_session : [ `StoredSession ] descriptor
 val supported_media_type : [ `SupportedMediaType ] descriptor
 val svg_selector : [ `SvgSelector ] descriptor
+val system : [ `System ] descriptor
 val tab_check : [ `TabCheck ] descriptor
 val tab_verdict : [ `TabVerdict ] descriptor
 val tag_category : [ `TagCategory ] descriptor

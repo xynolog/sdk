@@ -372,8 +372,8 @@ let error_codes t (spec : Spec.t) =
                  ("module " ^ Error_codes.Ocaml.module_name v ^ " = struct")
                ~closing:"\nend"
                (t.generated "ocaml/sdk/lib/error_codes.ml"))
-            ("\n  let ", " =")
-            (Error_codes.Ocaml.value_name c.code))
+            ("\n    | ", " -> ")
+            (Error_codes.Ocaml.constructor c.code))
 
 let identifier_kinds t (spec : Spec.t) =
   kind "identifier kinds"

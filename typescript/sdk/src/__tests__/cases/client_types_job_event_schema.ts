@@ -68,16 +68,16 @@ export const schema = {
           type: 'object',
           properties: {
             channel: {
-              type: 'string',
+              $ref: 'https://xynolog.org/protocol/FrameRefusal.json#/properties/channel',
               description: 'The channel the frame came on.',
             },
             member: {
-              type: 'string',
+              $ref: 'https://xynolog.org/protocol/FrameRefusal.json#/properties/member',
               description:
                 'The member at fault, named by its way from the frame.',
             },
             reason: {
-              $ref: 'https://xynolog.org/protocol/FrameRefusalReason.json',
+              $ref: 'https://xynolog.org/protocol/FrameRefusal.json#/properties/reason',
             },
           },
           required: ['channel', 'member', 'reason'],

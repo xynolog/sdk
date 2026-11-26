@@ -129,8 +129,8 @@
     "lib/clock.ml": "71063b036aa3069ad2ed649ba8a73505b4eb4a00631c48af43a01f732c6623ab",
     "lib/clock.mli": "5333b1d2447f81415c54bfc99d87ae98362a4ce249695d7783c35df41cdab364",
     "lib/control.ml": "e59aa7ab3626e5093d2414f08bfd9625b383a2a675ca6e32c1276d6c8c6a4562",
-    "lib/delegation.ml": "2f8e25d3394c90ee761dd5e79a45f389cc0316b5cb20051170c4ee90c8046cf0",
-    "lib/delegation.mli": "36f45f6d1caa39e7eda0024d666bb32e2cd21346343e1dc9946bf5789ec67e23",
+    "lib/delegation.ml": "86867a17f93d178c52b52e5dc0f3d5c1bee05f636b58f484411df48ff4cb53dd",
+    "lib/delegation.mli": "acf0397656d1185b5f3308a9e9858cf967a3630c52500957c3aeb109a1cf0838",
     "lib/discovery.ml": "030f2dc4fdb85017b8c810053e2c851eae68a4ae575167e6f3ed3008fa085b06",
     "lib/discovery.mli": "965ec952d3195c633ee3b4c5f262a6feb3ab62d44467908da0037cbfbedfd080",
     "lib/dispatcher_messages.ml": "de3216f424fe297f08f80696f2aa490f004c8995568fca13ee3f3bdccd5065d8",
@@ -145,7 +145,7 @@
     "lib/gateway_messages.ml": "25f713862810dc3325fd6068e96c752bc0765e6eaa4ca8956cbe012a22764765",
     "lib/gateway_response_headers.ml": "ec26450be954b4758c1ac2d5e0568cc0d89feb3fecde9097a33c254b32ed6275",
     "lib/gather.ml": "79ce316d7cb74f60d07da80acbf3570d57ba949e4a3fbec81e4da34a6ca9ce6f",
-    "lib/gather_state.ml": "a05e57b36c0b128cb30f94f70432582326b186f8cebb3e52de37de585f0f3954",
+    "lib/gather_state.ml": "f2600f1104077a6df23fadaf662d715026732537af6eb8d216f0a4f6b97127d7",
     "lib/gather_state.mli": "f5da939b80588f462f13befe2c6974e46448be17e64bb43bfaabfaf848cfe6ae",
     "lib/graph_schema.ml": "60629639fec1c9666f455a28e28eb511500f519c604d138363bd3b6246837c40",
     "lib/held_job_members.ml": "956498482537e526b9c0a187437d0c7342ac30423088d882eff2600fc46d097f",
@@ -167,8 +167,8 @@
     "lib/kept_for_first_reader.ml": "6f853f2a44415317489ea3e910cbab9aaf6df0ba1960bed261f3503332f341ae",
     "lib/kept_renewal.ml": "3c69043d8304fa35dcbe80e5322ea71bb0f39d7ee57e4d772cc789b1de36ddee",
     "lib/live_facts.ml": "9f647efbe44a37bc76eb655ce6cbd34bd7f1ce8ea14e1fbf197bd5fc23e0411c",
-    "lib/live_query.ml": "d18d1511566a0e208ee14fb1fdfe0c737c8edee66dc1137636d3f54c8cf78418",
-    "lib/live_query.mli": "f18de5f9c81f1c3a92b247ef50fd8df03bc558c1fea3878fbeba4e01d01f6c18",
+    "lib/live_query.ml": "337bb3af5c7656bb4fed114100b015f41d190b795d867b16086e04ea70bf0df5",
+    "lib/live_query.mli": "88416dae432b7e62f8a851812a40885477a8872652ce1798fa2c7dea9266d579",
     "lib/log_facts.ml": "1bf6dc1bb379d78ebf88e28eaad640364552b8f2f469926f7f62333313d04d97",
     "lib/mark.ml": "7bb5dc6de229d81c29c5349f719a2902263b1026d02a10e274facc4781d82b82",
     "lib/mark.mli": "daa70a35284997cf8b5796bda5f3262c19e8690a40090dc415729c4e3dddbbb3",
@@ -176,7 +176,7 @@
     "lib/mark_state.mli": "bf975ad19fabb066cc94f6815911fe1fd39c7fcfd8274525a97539af770e5afb",
     "lib/match.ml": "688566865cf768c0b4bfb6cddeda957366e7dedce57ddd19d8a2588927f821e6",
     "lib/match.mli": "54ac094a6a9f8e8a09b7bc5f175ae198788c3d82b9b80a1f7efc9014fd135179",
-    "lib/match_state.ml": "6667b713046ac9f3c41da077bdf1d6502b72aa51b188f6c86294fcdfa0eaf678",
+    "lib/match_state.ml": "8d3d588b7ab99009b18a659570975d30f14c349e9c6aedd145e84333c7720107",
     "lib/match_state.mli": "8d03f88a685f32af82e994b883611746f9775689e61a7a455009be21e03d6f54",
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
@@ -184,8 +184,8 @@
     "lib/models.ml": "59f56fabfdce135b6919970b493176555c76816e050e3ecab2291655c70c9bdf",
     "lib/models.mli": "676382e154fc02a0486802fd0d0cd55ed37fecc1610fbce4111652c33047e152",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
-    "lib/oauth.ml": "83e3a22603a7623efa040692be2134de278c2b08a8d1d9a74e077fcb2c039f58",
-    "lib/oauth.mli": "e553d7b097ce242bcb9309a2bf829c6c2611d1fad4a335a69ef91164668ca088",
+    "lib/oauth.ml": "d908e2497f7a14f92a98e35cd9be8b92f717faaa2e20480e703efd6fb8ef09a0",
+    "lib/oauth.mli": "b535175120377dd42d5d60ce71dbf893b51839f4fe61db06135f6f525728543d",
     "lib/oauth_facts.ml": "8d318f922bc93b766445f8e0f3f0fc2deb2e9a78244e7553f717d620d69127b2",
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
@@ -216,7 +216,7 @@
     "lib/service_tables.ml": "15c15003c3f7582e961bb16753426919a1e8ab0ade52e84d11553ab5fd6496cb",
     "lib/service_telemetry_log_lines.ml": "5085a4d7b17f1418801858c14ab1cd3ae756d4c3991b7f98310a68b551c29733",
     "lib/service_telemetry_telemetry.ml": "334813031472f0949a1bc90ead76a0b60a226d423752a68e0dd388b771590a31",
-    "lib/service_token.ml": "dc29461fa6098785f39958f3b73a795e1649a8b177aed200666787c4580609e0",
+    "lib/service_token.ml": "f5a274595c4eb592637554b24805463917e2d02d0398996db3055d1d9f3365f0",
     "lib/service_token.mli": "13a8e5cc144c1c8d5b1280725d3830aa55deb7ba26db37a7bdf7a582f73ef15c",
     "lib/session.ml": "9c113a57dca817eda4ef9e843ee120bf8aa489bd7c541d11cbb14ed0f85af0cf",
     "lib/session.mli": "de5dbaf4f50a8e948c17af22ce15078074b6e570440459429ffbeee93fbe0ba7",
@@ -249,7 +249,7 @@
     "lib/telemetry.ml": "34a37e065b0e01d85e631334204d4f6df3432544a3909227ee3e9722841c6e61",
     "lib/telemetry.mli": "621a2b22cc1c772d6759995561e88c666d566da26e7fdfc026459912b0b5d6db",
     "lib/telemetry_facts.ml": "abd1ec8dd54a246db71223dcf1cb7b4085df79c48de53dca7a36f5a747ee0f83",
-    "lib/testing.ml": "7d1faff8a4e38bcc2a0baf33348f2a64b36ed2ce9ae49ad1576179260081c4ee",
+    "lib/testing.ml": "b90696bcd2d0ac07d1ef843acb29fe9a93c30f2a8af9239286af3b1e0af392af",
     "lib/testing.mli": "237bd3501f8d626c1048c23e024e513f87203449d6e9ad3a98e9300aa7b3c73a",
     "lib/testing_facts.ml": "2ba49cf9d14b0c4b9d55874193f0d622513ec6265c55c4171430551361883113",
     "lib/text_encoding.ml": "905bc2c16c4fc1416236a3e2751e5d61627d6dddf431941e36e8f233f5589dad",
@@ -269,9 +269,9 @@
     "lib/worker_messages.ml": "f1afd7b85f6a93528e39a878d15d51c8047c00320f07417fd85ccef28554cfc7",
     "lib/xynolog.ml": "ccc4740213b707ba9592ad6a22806169da7e100b90ed81840a1cb5d74976476d",
     "lib/xynolog.mli": "b0e32d5d046398887addfbf5fa70cc028a1ecc8d19156fe6d088c3d96c6652a8",
-    "lib/yield.ml": "a81d8371500764779dcb553a99deaa5d3855b84b77f860aa251b269e6f61732b",
+    "lib/yield.ml": "76f76577b4dcba8b4b9d94367e11179a430b5d3187d2d378f0854a684ddbeac4",
     "lib/yield.mli": "da4db7e1cc2177b532bf7e95c864e3e636e911d31fe86763235a25373930a744",
-    "lib/yield_state.ml": "964626f32956299da2c452708bd8be0e9c69017c7c98b8cef2a96cbfae777cf0",
+    "lib/yield_state.ml": "a309edbd34cbc30d13e6d4475e0e8f8ee7c8d025ff851e76daa4e3e03dc72472",
     "lib/yield_state.mli": "fe746d0f5b1657d53c8a2856e1ee7b0626dd570e0c855ba57fe502958686b978",
     "probes/api_inventory.ml": "97b819335b2d6d55f2f4a7c73422ad4df34ca5e459fe4df300f01a0ff5efb36a",
     "probes/dune": "a6dfea54d41769a2f81ab943f4e8d1ce3588830d6bf690ce9d8248cba9abe4d3",
@@ -32340,13 +32340,40 @@
     {
       "kind": "type",
       "path": "Xynolog.Http_wire.failure",
-      "declaration": "type failure = { code : string; status : int option; message : string; }",
+      "declaration": "type failure = {\n  code : Xynolog__.Error_codes.Transport.t;\n  status : int option;\n  message : string;\n}",
       "representation": "record",
       "fields": [
         "code",
         "status",
         "message"
       ]
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Http_wire.request_code",
+      "declaration": "type request_code =\n    Bus of Xynolog__.Error_codes.Bus_request.t\n  | Transport of Xynolog__.Error_codes.Transport.t",
+      "representation": "variant",
+      "constructors": [
+        "Bus",
+        "Transport"
+      ],
+      "variants": [
+        {
+          "name": "Bus",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Transport",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Http_wire.request_code",
+      "declaration": "val request_code : request_code -> string"
     },
     {
       "kind": "extension",
@@ -32376,7 +32403,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Http_wire.bus_failure",
-      "declaration": "val bus_failure : 'a Xynolog__.Bus_registry.decoded -> string"
+      "declaration": "val bus_failure :\n  'a Xynolog__.Bus_registry.decoded -> Xynolog__.Error_codes.Bus_request.t"
     },
     {
       "kind": "value",
@@ -33498,7 +33525,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Live_query.state",
-      "declaration": "type 'value state = Pending | Ready of 'value | Failed of string",
+      "declaration": "type 'value state =\n    Pending\n  | Ready of 'value\n  | Failed of Xynolog__.Http_wire.request_code",
       "representation": "variant",
       "constructors": [
         "Pending",
@@ -33526,7 +33553,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Live_query.make",
-      "declaration": "val make :\n  ?window_ms:int ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  load:('key -> ('value, string) result) ->\n  ?restore:('key -> 'value option) ->\n  ?save:('key -> 'value option -> unit) ->\n  hold:('key -> unit -> unit) -> unit -> ('key, 'value) t"
+      "declaration": "val make :\n  ?window_ms:int ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  load:('key -> ('value, Xynolog__.Http_wire.request_code) result) ->\n  ?restore:('key -> 'value option) ->\n  ?save:('key -> 'value option -> unit) ->\n  hold:('key -> unit -> unit) -> unit -> ('key, 'value) t"
     },
     {
       "kind": "value",
@@ -33536,7 +33563,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Live_query.fresh",
-      "declaration": "val fresh : ('key, 'value) t -> 'key -> ('value, string) result"
+      "declaration": "val fresh :\n  ('key, 'value) t ->\n  'key -> ('value, Xynolog__.Http_wire.request_code) result"
     },
     {
       "kind": "value",
@@ -33597,7 +33624,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Live_query.remove",
-      "declaration": "val remove : ('key, 'value) t -> 'key -> string -> unit"
+      "declaration": "val remove :\n  ('key, 'value) t -> 'key -> Xynolog__.Http_wire.request_code -> unit"
     },
     {
       "kind": "value",
@@ -33732,7 +33759,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Worker.commit",
-      "declaration": "val commit :\n  held ->\n  Xynolog__.Subscription.t ->\n  correlation_id:(unit -> string) ->\n  ?timeout_ms:int ->\n  resource:Xynolog__.Identifiers.Resource_id.t ->\n  annotations:Yojson.Safe.t list -> unit -> (unit, string) result"
+      "declaration": "val commit :\n  held ->\n  Xynolog__.Subscription.t ->\n  correlation_id:(unit -> string) ->\n  ?timeout_ms:int ->\n  resource:Xynolog__.Identifiers.Resource_id.t ->\n  annotations:Yojson.Safe.t list ->\n  unit -> (unit, Xynolog__.Error_codes.Bus_request.t) result"
     },
     {
       "kind": "value",
@@ -33879,8 +33906,35 @@
     },
     {
       "kind": "type",
+      "path": "Xynolog.Delegation.failure_code",
+      "declaration": "type failure_code =\n    Job of Xynolog__.Error_codes.Job.t\n  | Request of Xynolog__.Http_wire.request_code",
+      "representation": "variant",
+      "constructors": [
+        "Job",
+        "Request"
+      ],
+      "variants": [
+        {
+          "name": "Job",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Request",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Delegation.failure_code",
+      "declaration": "val failure_code : failure_code -> string"
+    },
+    {
+      "kind": "type",
       "path": "Xynolog.Delegation.failure",
-      "declaration": "type failure = {\n  code : string;\n  message : string option;\n  failure_class : Xynolog__.Enums.Failure_class.t option;\n}",
+      "declaration": "type failure = {\n  code : failure_code;\n  message : string option;\n  failure_class : Xynolog__.Enums.Failure_class.t option;\n}",
       "representation": "record",
       "fields": [
         "code",
@@ -34004,7 +34058,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Client.session_error",
-      "declaration": "type session_error =\n  Xynolog__.Client_record.session_error = {\n  code : string;\n  message : string;\n}",
+      "declaration": "type session_error =\n  Xynolog__.Client_record.session_error = {\n  code : Xynolog__.Error_codes.Session.t;\n  message : string;\n}",
       "representation": "record",
       "fields": [
         "code",
@@ -34112,7 +34166,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Client.error",
-      "declaration": "type error =\n  Xynolog__Client_core.error =\n    Transport of Xynolog__.Subscription.request_error\n  | Refused of string\n  | Http of Xynolog__.Http_wire.failure",
+      "declaration": "type error =\n  Xynolog__Client_core.error =\n    Transport of Xynolog__.Subscription.request_error\n  | Refused of Xynolog__.Http_wire.request_code\n  | Http of Xynolog__.Http_wire.failure",
       "representation": "variant",
       "constructors": [
         "Transport",
@@ -34176,7 +34230,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client.fresh",
-      "declaration": "val fresh : query -> (Yojson.Safe.t, string) result"
+      "declaration": "val fresh : query -> (Yojson.Safe.t, Xynolog__.Http_wire.request_code) result"
     },
     {
       "kind": "value",
@@ -36120,7 +36174,7 @@
     {
       "kind": "type",
       "path": "Xynolog.OAuth.error",
-      "declaration": "type error = { code : string; status : int option; }",
+      "declaration": "type error = { code : Xynolog__.Error_codes.Sign_in.t; status : int option; }",
       "representation": "record",
       "fields": [
         "code",
@@ -38510,7 +38564,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Registry.session_factory",
-      "declaration": "type session_factory =\n    session_factory_options ->\n    (Xynolog__.State_units.Session.t *\n     Xynolog__.Records.Connection_identity.t, string)\n    result",
+      "declaration": "type session_factory =\n    session_factory_options ->\n    (Xynolog__.State_units.Session.t *\n     Xynolog__.Records.Connection_identity.t, Xynolog__.Client.session_error)\n    result",
       "representation": "abstract"
     },
     {
@@ -38534,14 +38588,20 @@
     {
       "kind": "type",
       "path": "Xynolog.Registry.activation_error",
-      "declaration": "type activation_error =\n    Unavailable of string\n  | Identity_conflict of string\n  | Superseded",
+      "declaration": "type activation_error =\n    Unknown_kb\n  | Unavailable of Xynolog__.Client.session_error\n  | Identity_conflict of string\n  | Superseded",
       "representation": "variant",
       "constructors": [
+        "Unknown_kb",
         "Unavailable",
         "Identity_conflict",
         "Superseded"
       ],
       "variants": [
+        {
+          "name": "Unknown_kb",
+          "fields": [],
+          "unit": true
+        },
         {
           "name": "Unavailable",
           "fields": [],
@@ -38554,6 +38614,56 @@
         },
         {
           "name": "Superseded",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Registry.identity_unverifiable_error",
+      "declaration": "type identity_unverifiable_error =\n    Kb_identity of Xynolog__.Error_codes.Kb_identity.t\n  | Transport of Xynolog__.Error_codes.Transport.t",
+      "representation": "variant",
+      "constructors": [
+        "Kb_identity",
+        "Transport"
+      ],
+      "variants": [
+        {
+          "name": "Kb_identity",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Transport",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Registry.sign_in_error",
+      "declaration": "type sign_in_error =\n    Sign_in of Xynolog__.Error_codes.Sign_in.t\n  | Identity of Xynolog__.Error_codes.Kb_identity.t\n  | Id_conflict",
+      "representation": "variant",
+      "constructors": [
+        "Sign_in",
+        "Identity",
+        "Id_conflict"
+      ],
+      "variants": [
+        {
+          "name": "Sign_in",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Identity",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Id_conflict",
           "fields": [],
           "unit": true
         }
@@ -38587,12 +38697,12 @@
     {
       "kind": "value",
       "path": "Xynolog.Registry.record_sign_in",
-      "declaration": "val record_sign_in :\n  xynolog_browser ->\n  Xynolog__.Records.Signed_in.t ->\n  (Xynolog__.Records.Sign_in_outcome.t, string) result"
+      "declaration": "val record_sign_in :\n  xynolog_browser ->\n  Xynolog__.Records.Signed_in.t ->\n  (Xynolog__.Records.Sign_in_outcome.t, sign_in_error) result"
     },
     {
       "kind": "value",
       "path": "Xynolog.Registry.describe_connection",
-      "declaration": "val describe_connection :\n  Xynolog__.Client.t ->\n  (Xynolog__.Records.Connection_identity.t, string) result"
+      "declaration": "val describe_connection :\n  Xynolog__.Client.t ->\n  (Xynolog__.Records.Connection_identity.t, identity_unverifiable_error)\n  result"
     },
     {
       "kind": "value",
@@ -38622,7 +38732,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Registry.http_session_factory",
-      "declaration": "val http_session_factory :\n  (session_factory_options ->\n   (Xynolog__.State_units.Session.t, string) result) ->\n  session_factory"
+      "declaration": "val http_session_factory :\n  (session_factory_options ->\n   (Xynolog__.State_units.Session.t, Xynolog__.Client.session_error) result) ->\n  session_factory"
     },
     {
       "kind": "value",
@@ -38753,7 +38863,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Registry.complete_sign_in",
-      "declaration": "val complete_sign_in :\n  xynolog_browser ->\n  http:Xynolog__.Oauth.http ->\n  callback:string ->\n  describe:(endpoint ->\n            access:string ->\n            ([ `KbDescription ] Xynolog__.Models.t, string) result) ->\n  (Xynolog__.Records.Sign_in_outcome.t, string) result"
+      "declaration": "val complete_sign_in :\n  xynolog_browser ->\n  http:Xynolog__.Oauth.http ->\n  callback:string ->\n  describe:(endpoint ->\n            access:string ->\n            ([ `KbDescription ] Xynolog__.Models.t,\n             Xynolog__.Error_codes.Kb_identity.t)\n            result) ->\n  (Xynolog__.Records.Sign_in_outcome.t, sign_in_error) result"
     },
     {
       "kind": "module",
@@ -39092,7 +39202,7 @@
     {
       "kind": "value",
       "path": "Xynolog.State_units.Cache.make",
-      "declaration": "val make :\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  load:(string -> (Yojson.Safe.t, string) result) ->\n  ?restore:(string -> Yojson.Safe.t option) ->\n  ?save:((string * Yojson.Safe.t option) list -> unit) -> unit -> t"
+      "declaration": "val make :\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  load:(string -> (Yojson.Safe.t, Xynolog__.Http_wire.request_code) result) ->\n  ?restore:(string -> Yojson.Safe.t option) ->\n  ?save:((string * Yojson.Safe.t option) list -> unit) -> unit -> t"
     },
     {
       "kind": "value",
@@ -39102,7 +39212,7 @@
     {
       "kind": "value",
       "path": "Xynolog.State_units.Cache.fetch",
-      "declaration": "val fetch : t -> string -> (Yojson.Safe.t, string) result"
+      "declaration": "val fetch :\n  t -> string -> (Yojson.Safe.t, Xynolog__.Http_wire.request_code) result"
     },
     {
       "kind": "value",
@@ -39132,7 +39242,7 @@
     {
       "kind": "value",
       "path": "Xynolog.State_units.Cache.remove",
-      "declaration": "val remove : t -> string -> string -> unit"
+      "declaration": "val remove : t -> string -> Xynolog__.Http_wire.request_code -> unit"
     },
     {
       "kind": "value",
@@ -40220,8 +40330,24 @@
     {
       "kind": "type",
       "path": "Xynolog.Redirect_sign_in.identity_unverifiable_error",
-      "declaration": "type identity_unverifiable_error = string",
-      "representation": "abstract"
+      "declaration": "type identity_unverifiable_error =\n  Xynolog__.Registry.identity_unverifiable_error =\n    Kb_identity of Xynolog__.Error_codes.Kb_identity.t\n  | Transport of Xynolog__.Error_codes.Transport.t",
+      "representation": "variant",
+      "constructors": [
+        "Kb_identity",
+        "Transport"
+      ],
+      "variants": [
+        {
+          "name": "Kb_identity",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Transport",
+          "fields": [],
+          "unit": false
+        }
+      ]
     },
     {
       "kind": "value",
@@ -40246,7 +40372,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Redirect_sign_in.describe_connection",
-      "declaration": "val describe_connection :\n  Xynolog__.Client.t ->\n  (Xynolog__.Records.Connection_identity.t, string) result"
+      "declaration": "val describe_connection :\n  Xynolog__.Client.t ->\n  (Xynolog__.Records.Connection_identity.t,\n   Xynolog__.Registry.identity_unverifiable_error)\n  result"
     },
     {
       "kind": "value",

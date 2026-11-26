@@ -46,7 +46,7 @@ let value ~ids ~view (schema : S.schema) =
                 D.refuse "$ref %s points at no member of its schema" ref.target)
       in
       { view = view (Schema.Schema { Schema.empty with ref_ = Some ref }); at }
-  | Scalar { type_; minimum; description } ->
+  | Scalar { type_; minimum; format; description } ->
       let type_ : Schema.type_name =
         match type_ with
         | Integer -> Integer
@@ -61,6 +61,16 @@ let value ~ids ~view (schema : S.schema) =
                  Schema.empty with
                  type_ = Some [ type_ ];
                  minimum = Option.map float_of_int minimum;
+                 format =
+                   Option.map
+                     (fun word ->
+                       match
+                         Decode.run ~file:"client/surface.json" (`String word)
+                           Schema.format
+                       with
+                       | Ok (format, _) -> format
+                       | Error e -> D.refuse "%s" (Decode.error_to_string e))
+                     format;
                  description = Some description;
                });
         at = None;

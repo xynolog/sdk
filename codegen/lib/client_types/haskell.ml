@@ -33,34 +33,36 @@ let found ~shape name =
 (* A client type as the haskell-sdk group models one, beside the types it
    brings: words; an object, as [whole] reads it; or a union of its
    branches, each its own type named for the word that tags it, an object of
-   that word and its members, each a scalar or another type's schema. Each
+   that word and its members, each a scalar, another type's schema, or a
+   list of either. Each
    branch states no member but its own. *)
 let adapter ~whole name =
+  let rec held member = function
+    | Scalar t -> Ok (Schema.Schema { Schema.empty with type_ = Some [ t ] })
+    | Named { name = n; union = false } ->
+        Ok
+          (Schema.Schema
+             {
+               Schema.empty with
+               ref_ =
+                 Some { Decode.target = n ^ ".json"; file = ""; pointer = "" };
+             })
+    | List items ->
+        let* items = held member items in
+        Ok
+          (Schema.Schema
+             { Schema.empty with type_ = Some [ Array ]; items = Some items })
+    | Binary | Word _ | Named { union = true; _ } | Open_list | Inline _ ->
+        Error
+          [ refusal name (member ^ " is no scalar, type, or list of either") ]
+  in
   let object_ members =
     let* properties =
       Spec.all
         (List.map
            (fun m ->
-             match m.held with
-             | Scalar t ->
-                 Ok
-                   ( m.name,
-                     Schema.Schema { Schema.empty with type_ = Some [ t ] } )
-             | Named { name = n; union = false } ->
-                 Ok
-                   ( m.name,
-                     Schema.Schema
-                       {
-                         Schema.empty with
-                         ref_ =
-                           Some
-                             {
-                               Decode.target = n ^ ".json";
-                               file = "";
-                               pointer = "";
-                             };
-                       } )
-             | _ -> Error [ refusal name (m.name ^ " is no scalar or type") ])
+             let* s = held m.name m.held in
+             Ok (m.name, s))
            members)
     in
     Ok

@@ -15,6 +15,7 @@ from xynolog.error_codes import BusRequestErrorCode, ControlErrorCode
 __all__ = [
     "AboutParams",
     "AboutResult",
+    "AccessToken",
     "Agent",
     "AgentOrganization",
     "AgentPerson",
@@ -155,6 +156,7 @@ __all__ = [
     "BusStreamMessage",
     "BusSubscribeRequest",
     "BusSubscribeRequestScopedItem",
+    "CacheStatus",
     "Cancelled",
     "ClaimOptions",
     "ClaimRefusal",
@@ -234,6 +236,7 @@ __all__ = [
     "ContextualSummaryResponse",
     "ContextualSummaryResponseContext",
     "ContextualSummaryResponseRelevantFields",
+    "ControlSender",
     "CreateAnnotationRequest",
     "CreateFromTokenOptions",
     "CreateResourceResponse",
@@ -243,7 +246,12 @@ __all__ = [
     "DirectoryEntry",
     "DiscoveredKB",
     "DiscoveryAbsentReason",
+    "DiscoveryDiff",
     "DiscoveryDocument",
+    "DiscoveryRead",
+    "DiscoveryReadAbsent",
+    "DiscoveryReadManaged",
+    "DiscoveryReadUnchanged",
     "DispatcherConfig",
     "DispatcherConfigQueue",
     "DispatcherConfigTiming",
@@ -275,6 +283,7 @@ __all__ = [
     "ExtractionMethod",
     "ExtractionOutcome",
     "FailureClass",
+    "Fault",
     "FieldFault",
     "FileEntry",
     "FollowerFollowing",
@@ -282,6 +291,7 @@ __all__ = [
     "FragmentSelector",
     "FrameAddEntityTypeCommand",
     "FrameAddTagSchemaCommand",
+    "FrameRefusal",
     "FrameRefusalReason",
     "GatewayConfig",
     "GatewayConfigCapacity",
@@ -728,6 +738,7 @@ __all__ = [
     "StoredSession",
     "SupportedMediaType",
     "SvgSelector",
+    "System",
     "TabCheck",
     "TabCheckGone",
     "TabCheckReady",
@@ -862,6 +873,14 @@ class AboutResult(WireModel, frozen=True, extra="forbid"):
         list[RuntimeState],
         Field(description="Each container runtime it drives, in the order it prefers them, and whether this machine has it."),
     ]
+
+
+type AccessToken = Annotated[
+    str,
+    Field(
+        description="An access token, as its issuer issued it: short-lived, and what a session's transport sends as a Bearer token. Opaque to a client, which reads nothing in it but its expiry."
+    ),
+]
 
 
 class AgentPerson(WireModel, frozen=True, extra="allow"):
@@ -3037,6 +3056,13 @@ class BusSubscribeRequest(WireModel, frozen=True, extra="forbid"):
     ]
 
 
+type CacheStatus = Annotated[
+    Literal["pending", "ready", "failed"],
+    Field(
+        description="Where a live query's key stands (contract/CACHE-SEMANTICS.md): pending, with no value yet; ready, with a stored value; or failed, a value-less key's failure, which is an emission and not the stream's end."
+    ),
+]
+
 type RequestId = Annotated[
     str | int, Field(description="The request a notification is about: the JSON-RPC id its client gave it, as the client gave it.")
 ]
@@ -3960,6 +3986,14 @@ class ContextualSummaryResponse(WireModel, frozen=True):
     context: ContextualSummaryResponseContext
 
 
+type ControlSender = Annotated[
+    Literal["client", "launcher"],
+    Field(
+        description="Which side of the control API sends a message: the client, whose notifications arrive on the launcher's stdin, or the launcher, whose notifications leave on its stdout (LAUNCHER-CONTROL.md F1)."
+    ),
+]
+
+
 class CreateAnnotationRequest(WireModel, frozen=True):
     motivation: Motivation
     target: AnnotationTarget
@@ -4062,6 +4096,16 @@ class DiscoveredKB(WireModel, frozen=True):
     ]
 
 
+class DiscoveryDiff(WireModel, frozen=True, extra="forbid"):
+    """
+    How one poll's knowledge bases changed since the last state it gave.
+    """
+
+    added: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state did not have.")]
+    updated: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state had at the same address, now otherwise.")]
+    removed: Annotated[list[DiscoveredKB], Field(description="Each knowledge base the last state had, and this one does not.")]
+
+
 class DiscoveryDocument(WireModel, frozen=True):
     """
     The launcher's KB discovery document — the schema authority for <stateDir>/discovery/kbs.json, which the Xynolog CLI (xynolog/cli) regenerates on every stack mutation and the Browser container mounts read-only at /discovery. NOT an API endpoint: a static document fetched same-origin by browsers (via the Browser's static server). An empty kbs list is meaningful ("the launcher manages nothing right now") and distinct from an absent file.
@@ -4071,6 +4115,42 @@ class DiscoveryDocument(WireModel, frozen=True):
         Literal[1], Field(description="Document schema version. Consumers MUST check it and ignore documents they do not understand.")
     ]
     kbs: Annotated[list[DiscoveredKB], Field(description="Every KB the launcher currently manages, local and forwarded")]
+
+
+class DiscoveryReadAbsent(WireModel, frozen=True, extra="forbid"):
+    """
+    No launcher was found, and why.
+    """
+
+    kind: Literal["absent"]
+    reason: Annotated[str, Field(description="Why: one of client/discovery-absent.json's reasons.")]
+    diagnostic: Annotated[str | None, Field(description="What was wrong, in words, when there is more to say.")] = None
+
+
+class DiscoveryReadManaged(WireModel, frozen=True, extra="forbid"):
+    """
+    The knowledge bases a launcher manages: none is a launcher that manages nothing.
+    """
+
+    kind: Literal["managed"]
+    kbs: Annotated[list[DiscoveredKB], Field(description="Each knowledge base, as the document lists it.")]
+
+
+class DiscoveryReadUnchanged(WireModel, frozen=True, extra="forbid"):
+    """
+    Nothing changed since the last read.
+    """
+
+    kind: Literal["unchanged"]
+
+
+type DiscoveryRead = Annotated[
+    DiscoveryReadAbsent | DiscoveryReadManaged | DiscoveryReadUnchanged,
+    Field(
+        description="What one read of a launcher's discovery document gave, told apart by `kind`: no launcher was found, the knowledge bases one manages, or nothing changed since the last read. A launcher that manages none is not an absent one.",
+        discriminator="kind",
+    ),
+]
 
 
 class KbIdentity(WireModel, frozen=True, extra="forbid"):
@@ -4461,6 +4541,28 @@ type ExtractionOutcome = Annotated[
     ),
 ]
 
+type FrameRefusalReason = Annotated[
+    Literal["lacks", "malformed"],
+    Field(
+        description="Why a reader refused a frame, for its first fault: `lacks`, a member it lacks; `malformed`, a member that is not of its shape. A reader's rule (specs/src/bus/frame-cases.json)."
+    ),
+]
+
+
+class Fault(WireModel, frozen=True, extra="forbid"):
+    """
+    The first fault a value has as its schema allows: where it is, and why (contract/TRANSPORT-CONTRACT.md § Identity). What a refusal of a frame, a payload or an answer names.
+    """
+
+    member: Annotated[
+        str,
+        Field(
+            description="The way from the value to its first fault: the names of the members it is within, and its own, joined by dots; empty for the value itself."
+        ),
+    ]
+    reason: Annotated[FrameRefusalReason, Field(description="Why it is at fault.")]
+
+
 type FollowerFollowingSweep = Annotated[
     Literal["pending", "running", "done", "due"],
     Field(
@@ -4504,12 +4606,25 @@ class FrameAddTagSchemaCommand(WireModel, frozen=True):
     ] = None
 
 
-type FrameRefusalReason = Annotated[
-    Literal["lacks", "malformed"],
-    Field(
-        description="Why a reader refused a frame, for its first fault: `lacks`, a member it lacks; `malformed`, a member that is not of its shape. A reader's rule (specs/src/bus/frame-cases.json)."
-    ),
-]
+class FrameRefusal(WireModel, frozen=True, extra="forbid"):
+    """
+    A frame refused, given to its readers in its place: by its transport, for its first fault as BusFrame, or by its channel's typed read, for its payload's first fault as its channel's (contract/TRANSPORT-CONTRACT.md § Frames). A transport's own, never on the wire.
+    """
+
+    channel: Annotated[str, Field(description="The channel the frame names.")]
+    member: Annotated[str, Field(description="The way from the frame to its first fault; a fault of its payload is within `payload`.")]
+    reason: Annotated[FrameRefusalReason, Field(description="Why it is at fault.")]
+    payload: JsonValue | None = None
+    scope: Annotated[ResourceId | None, Field(description="The resource whose scope it was delivered on; absent when it names none.")] = (
+        None
+    )
+    correlation_id: Annotated[
+        str | None,
+        Field(
+            alias="correlationId",
+            description="The frame's correlation id, when it carries one BusFrame allows: a request awaiting the reply it names is told of the refusal at once.",
+        ),
+    ] = None
 
 
 class GatewayConfigIdentity(WireModel, frozen=True, extra="forbid"):
@@ -6917,7 +7032,7 @@ type KbEndpoint = Annotated[
 
 class KbIdentityConflict(WireModel, frozen=True, extra="forbid"):
     """
-    A different knowledge base answers at a registered address. Both dids, because neither alone says what to do: a person has to recognise which knowledge base they registered and which one answers.
+    A different knowledge base answers at a registered address. Both dids, because neither alone says what to do: a person has to recognise which knowledge base they registered and which one answers. What the session's signals raise (client/surface.json's `sessionSignals`).
     """
 
     expected_did: Annotated[str, Field(alias="expectedDid", description="The did the entry records.")]
@@ -7997,7 +8112,7 @@ class PendingAuthorization(WireModel, frozen=True):
 
 class PermissionDenied(WireModel, frozen=True, extra="forbid"):
     """
-    A request was refused for lack of permission.
+    A request was refused for lack of permission. What the session's signals raise (client/surface.json's `sessionSignals`).
     """
 
     detail: Annotated[str | None, Field(description="The refusal's own message, untranslated; null when it gave none.")]
@@ -9072,7 +9187,7 @@ type SessionEndReason = Annotated[
 
 class SessionEnded(WireModel, frozen=True, extra="forbid"):
     """
-    A session ended, and why.
+    A session ended, and why. What the session's signals raise (client/surface.json's `sessionSignals`).
     """
 
     reason: Annotated[SessionEndReason, Field(description="Why it ended.")]
@@ -9903,6 +10018,12 @@ class StorageUriEntry(WireModel, frozen=True, extra="forbid"):
 
     uri: Annotated[str, Field(description="The `file://` URI of a place in the working tree, relative to the knowledge base's root.")]
     resource_id: Annotated[ResourceId, Field(alias="resourceId")]
+
+
+type System = Annotated[
+    Literal["macos", "windows", "other"],
+    Field(description="What a state home differs by (sign-in-store/README.md): macOS, Windows, and every other system."),
+]
 
 
 class TabCheckGone(WireModel, frozen=True, extra="forbid"):

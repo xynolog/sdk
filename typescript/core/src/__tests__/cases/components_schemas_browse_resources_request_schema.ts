@@ -19,12 +19,14 @@ export const schema = {
     offset: {
       type: 'integer',
       minimum: 0,
+      default: 0,
       description:
         'How many of the resources the filters admit are passed over before the page begins.',
     },
     limit: {
       type: 'integer',
       minimum: 1,
+      default: 50,
       description: 'The most resources a page has.',
     },
   },

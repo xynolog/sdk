@@ -12,7 +12,10 @@ module C = Tables.Control_methods
 (* The type a row names by its [$id], by its file's stem. *)
 let component id = Filename.remove_extension (Filename.basename id)
 let value_name name = String.uncapitalize_ascii (Text.pascal name)
-let sender from = "ControlSender" ^ String.capitalize_ascii (C.control_sender_value from)
+
+let sender from =
+  "ControlSender" ^ String.capitalize_ascii (C.control_sender_value from)
+
 let text = H.T_name "Text"
 
 let module_ ~banner (t : C.t) =
@@ -80,7 +83,9 @@ let module_ ~banner (t : C.t) =
               H.data
                 ~about:[ "Which side of the control API sends a notification." ]
                 ~deriving:[ "Eq"; "Show" ] "ControlSender"
-                (List.map (fun from -> H.constructor (sender from)) C.control_sender_all);
+                (List.map
+                   (fun from -> H.constructor (sender from))
+                   C.control_sender_all);
               H.record
                 ~about:
                   [

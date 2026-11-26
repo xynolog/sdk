@@ -330,7 +330,7 @@ public enum class ControlErrorCode(
     public val code: String,
 ) {
     /**
-     * The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it.
+     * The request's params are not what its method's schema admits. The error's fields name each fault.
      */
     @SerialName("control.invalid-params")
     InvalidParams("control.invalid-params"),

@@ -212,6 +212,7 @@ library internal
     Xynolog.Internal.Generated.WorkerChannels
     Xynolog.Internal.Generated.Models.AboutParams
     Xynolog.Internal.Generated.Models.AboutResult
+    Xynolog.Internal.Generated.Models.AccessToken
     Xynolog.Internal.Generated.Models.Agent
     Xynolog.Internal.Generated.Models.AgentOrganization
     Xynolog.Internal.Generated.Models.AgentPerson
@@ -314,6 +315,7 @@ library internal
     Xynolog.Internal.Generated.Models.BusResumeGap
     Xynolog.Internal.Generated.Models.BusStreamMessage
     Xynolog.Internal.Generated.Models.BusSubscribeRequest
+    Xynolog.Internal.Generated.Models.CacheStatus
     Xynolog.Internal.Generated.Models.Cancelled
     Xynolog.Internal.Generated.Models.ClaimOptions
     Xynolog.Internal.Generated.Models.ClaimRefusal
@@ -334,6 +336,7 @@ library internal
     Xynolog.Internal.Generated.Models.ContentFormat
     Xynolog.Internal.Generated.Models.ContextualSummaryResponse
     Xynolog.Internal.Generated.Models.ContextualSummaryResponseBusEnvelope
+    Xynolog.Internal.Generated.Models.ControlSender
     Xynolog.Internal.Generated.Models.CreateAnnotationRequest
     Xynolog.Internal.Generated.Models.CreateFromTokenOptions
     Xynolog.Internal.Generated.Models.CreateResourceResponse
@@ -342,7 +345,12 @@ library internal
     Xynolog.Internal.Generated.Models.DirEntry
     Xynolog.Internal.Generated.Models.DirectoryEntry
     Xynolog.Internal.Generated.Models.DiscoveredKB
+    Xynolog.Internal.Generated.Models.DiscoveryDiff
     Xynolog.Internal.Generated.Models.DiscoveryDocument
+    Xynolog.Internal.Generated.Models.DiscoveryRead
+    Xynolog.Internal.Generated.Models.DiscoveryReadAbsent
+    Xynolog.Internal.Generated.Models.DiscoveryReadManaged
+    Xynolog.Internal.Generated.Models.DiscoveryReadUnchanged
     Xynolog.Internal.Generated.Models.DispatcherConfig
     Xynolog.Internal.Generated.Models.DispatcherHealth
     Xynolog.Internal.Generated.Models.DispatcherMessages
@@ -370,12 +378,14 @@ library internal
     Xynolog.Internal.Generated.Models.ExtractionMethod
     Xynolog.Internal.Generated.Models.ExtractionOutcome
     Xynolog.Internal.Generated.Models.FailureClass
+    Xynolog.Internal.Generated.Models.Fault
     Xynolog.Internal.Generated.Models.FieldFault
     Xynolog.Internal.Generated.Models.FileEntry
     Xynolog.Internal.Generated.Models.FollowerFollowing
     Xynolog.Internal.Generated.Models.FragmentSelector
     Xynolog.Internal.Generated.Models.FrameAddEntityTypeCommand
     Xynolog.Internal.Generated.Models.FrameAddTagSchemaCommand
+    Xynolog.Internal.Generated.Models.FrameRefusal
     Xynolog.Internal.Generated.Models.FrameRefusalReason
     Xynolog.Internal.Generated.Models.GatewayConfig
     Xynolog.Internal.Generated.Models.GatewayMediaToken
@@ -684,6 +694,7 @@ library internal
     Xynolog.Internal.Generated.Models.StoredSession
     Xynolog.Internal.Generated.Models.SupportedMediaType
     Xynolog.Internal.Generated.Models.SvgSelector
+    Xynolog.Internal.Generated.Models.System
     Xynolog.Internal.Generated.Models.TabCheck
     Xynolog.Internal.Generated.Models.TabVerdict
     Xynolog.Internal.Generated.Models.TagCategory

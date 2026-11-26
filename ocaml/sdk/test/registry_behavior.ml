@@ -358,7 +358,8 @@ let controlled () =
                 Client.Mark.delegate (Client.delegation client) ~resource
                   ~params
                   ~on_report:(fun _ _ -> ())
-                  ~on_failure:(fun failure -> failwith failure.Delegation.code)
+                  ~on_failure:(fun failure ->
+                    failwith (Delegation.failure_code failure.Delegation.code))
                   ~on_close:ignore ()
               in
               act :=
@@ -476,7 +477,7 @@ let controlled () =
                         {|{"annotationId":"ann-1"}|})
                  else ignore (Http_wire.health http)
                with Http_wire.Failed failure ->
-                 assert (failure.code = "unavailable");
+                 assert (failure.code = Error_codes.Transport.Unavailable);
                  if not emit then (
                    assert (!attempts = 1);
                    incr count));
@@ -713,8 +714,9 @@ let redirect () =
   let location = begin_ () in
   let state = Option.get (Uri.get_query_param location "state") in
   let callback = origin ^ "?code=one&state=" ^ state in
-  assert (complete (callback ^ "bad") = Error Error_codes.Sign_in.state);
-  assert (complete callback = Error Error_codes.Sign_in.no_pending);
+  assert (
+    complete (callback ^ "bad") = Error (R.Sign_in Error_codes.Sign_in.State));
+  assert (complete callback = Error (R.Sign_in Error_codes.Sign_in.No_pending));
   assert (!exchanges = 0);
   ignore (begin_ ());
   let outcome = Result.get_ok (complete callback) in
@@ -723,7 +725,7 @@ let redirect () =
   let kept = Option.get ((R.kept_in storage "kb-redirect").held ()) in
   assert (kept.access = "access" && kept.refresh = "refresh");
   assert (kept.revocation_endpoint = Some "https://issuer.example/revoke");
-  assert (complete callback = Error Error_codes.Sign_in.no_pending);
+  assert (complete callback = Error (R.Sign_in Error_codes.Sign_in.No_pending));
   assert (!discovery = 2 && !exchanges = 1 && !takes = 4)
 
 (* A writer held to [schema] both ways: what it wrote, [written], holds
@@ -1394,9 +1396,19 @@ let scripted_session ~sw ~clock ~handed ?persister
   State_units.Session.make ~id:"session-a" ~kb:options.kb client
 
 let saying : Errors_cases.said_item -> Client.said = function
-  | Own { own = code } -> Own { code; message = "the session says " ^ code }
+  | Own { own = code } ->
+      Own
+        {
+          code = Option.get (Error_codes.Session.of_code code);
+          message = "the session says " ^ code;
+        }
   | Transport { transport = code; message } ->
-      Transport_failure { code; status = None; message }
+      Transport_failure
+        {
+          code = Option.get (Error_codes.Transport.of_code code);
+          status = None;
+          message;
+        }
 
 let registry_errors_case (row : Errors_cases.cases_item) () =
   Eio_mock.Backend.run @@ fun () ->
@@ -1418,7 +1430,8 @@ let registry_errors_case (row : Errors_cases.cases_item) () =
   let _release =
     R.errors browser
       ~on_value:(fun (error : Client.session_error) ->
-        registry_said := !registry_said @ [ error.code ])
+        registry_said :=
+          !registry_said @ [ Error_codes.Session.code error.code ])
       ~on_close:ignore
   in
   (match R.activate browser "kb-a" with
@@ -1473,7 +1486,8 @@ let registry_closing (row : Errors_cases.closing_item) () =
   let _release =
     R.errors browser
       ~on_value:(fun (error : Client.session_error) ->
-        registry_said := !registry_said @ [ error.code ])
+        registry_said :=
+          !registry_said @ [ Error_codes.Session.code error.code ])
       ~on_close:(fun () -> ended := true)
   in
   (match R.activate browser "kb-a" with
@@ -1503,25 +1517,30 @@ let registry_construct_failed () =
   Eio_mock.Backend.run @@ fun () ->
   let _, clock = mock_clock () in
   let script = Testing.scripted_sessions () in
-  Testing.queue_session script "kb-a" (fun _ ->
-      Error Error_codes.Transport.unavailable);
+  let unavailable =
+    {
+      Client.code = Error_codes.Session.Construct_failed;
+      message = "The knowledge base is unavailable";
+    }
+  in
+  Testing.queue_session script "kb-a" (fun _ -> Error unavailable);
   let browser = errors_browser ~clock (Testing.factory script) in
   let registry_said = ref [] in
   let _release =
     R.errors browser
       ~on_value:(fun (error : Client.session_error) ->
-        registry_said := !registry_said @ [ error.code ])
+        registry_said :=
+          !registry_said @ [ Error_codes.Session.code error.code ])
       ~on_close:ignore
   in
   (match R.activate browser "kb-a" with
-  | Error (R.Unavailable code) when code = Error_codes.Transport.unavailable ->
-      ()
+  | Error (R.Unavailable refused) when refused = unavailable -> ()
   | _ ->
       Alcotest.fail
         "an activation whose factory failed was not unavailable for its reason");
   Alcotest.(check (list string))
     "said on the registry's errors"
-    [ Error_codes.Session.construct_failed ]
+    [ Error_codes.Session.(code Construct_failed) ]
     !registry_said;
   R.close browser
 
@@ -1533,7 +1552,11 @@ let registry_closed_activation () =
   let browser =
     errors_browser ~clock (fun _ ->
         built := true;
-        Error Error_codes.Session.construct_failed)
+        Error
+          {
+            Client.code = Error_codes.Session.Construct_failed;
+            message = "A session built after the close";
+          })
   in
   R.close browser;
   (match R.activate browser "kb-a" with
@@ -1586,7 +1609,9 @@ let client_errors_kept () =
   done;
   let heard said =
     match (said : Client.said) with
-    | Transport_failure { code = "forbidden"; status = Some 403; message } ->
+    | Transport_failure
+        { code = Error_codes.Transport.Forbidden; status = Some 403; message }
+      ->
         message
     | Transport_failure _ ->
         Alcotest.fail "a refusal was said as other than a lack of permission"
@@ -1651,7 +1676,7 @@ let registry_errors_kept () =
   let say () =
     incr said;
     Testing.say_on session
-      (Own { code = "session.save-refused"; message = refusal !said })
+      (Own { code = Error_codes.Session.Save_refused; message = refusal !said })
   in
   for _ = 1 to kept + 3 do
     say ()

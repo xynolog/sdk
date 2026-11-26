@@ -385,22 +385,13 @@ let cases_item_json (r : cases_item) =
            ("steps", (fun l -> `List (List.map steps_item_json l)) r.steps);
        ])
 
-type t = {
-  comment : string;
-  notices : (string * Yojson.Safe.t) list;
-  fixtures : fixtures;
-  cases : cases_item list;
-}
+type t = { comment : string; fixtures : fixtures; cases : cases_item list }
 
 let t_json (r : t) =
   `Assoc
     (List.filter_map Fun.id
        [
          Option.Some ("$comment", (fun s -> `String s) r.comment);
-         Option.Some
-           ( "notices",
-             (fun l -> `Assoc (List.map (fun (k, v) -> (k, Fun.id v)) l))
-               r.notices );
          Option.Some ("fixtures", fixtures_json r.fixtures);
          Option.Some
            ("cases", (fun l -> `List (List.map cases_item_json l)) r.cases);
@@ -469,101 +460,17 @@ let table : t =
         the frame carries none, or `{\"sent\": <channel>, \"nth\": <n>}` for \
         the id a request carried. What a case cannot state stays a test of the \
         SDK's own: the axioms, which each SDK's harness checks, and how often \
-        a state wakes its readers, which differs by language. `notices` states \
-        each notice the session's signals raise, as a case gives it and \
-        expects it: SessionEnded, PermissionDenied and KbIdentityConflict, \
-        each a record with no member it does not state. \
-        specs/src/client/surface.json's `sessionNotices` module says where \
-        each SDK declares them. The consumer-owned generator writes them for \
-        every SDK it has a writer of them for; an SDK that states them by hand \
-        is held to them only by value, through the cases it runs. Nothing \
-        holds this table yet to client/surface.json, the bus registry or the \
-        timing table: that a case's `unit` is a row of `stateUnits`, that each \
-        channel it names is the bus registry's, that each `timing` is a name \
-        of the timing table, and that every notice a case gives or expects is \
-        one of `notices`, no check reads.";
-     notices =
-       [
-         ( "SessionEnded",
-           `Assoc
-             [
-               ("title", `String "SessionEnded");
-               ("type", `String "object");
-               ("description", `String "A session ended, and why.");
-               ("additionalProperties", `Bool false);
-               ( "properties",
-                 `Assoc
-                   [
-                     ( "reason",
-                       `Assoc
-                         [
-                           ( "$ref",
-                             `String
-                               "https://xynolog.org/protocol/SessionEndReason.json"
-                           );
-                           ("description", `String "Why it ended.");
-                         ] );
-                   ] );
-               ("required", `List [ `String "reason" ]);
-             ] );
-         ( "PermissionDenied",
-           `Assoc
-             [
-               ("title", `String "PermissionDenied");
-               ("type", `String "object");
-               ( "description",
-                 `String "A request was refused for lack of permission." );
-               ("additionalProperties", `Bool false);
-               ( "properties",
-                 `Assoc
-                   [
-                     ( "detail",
-                       `Assoc
-                         [
-                           ("type", `List [ `String "string"; `String "null" ]);
-                           ( "description",
-                             `String
-                               "The refusal's own message, untranslated; null \
-                                when it gave none." );
-                         ] );
-                   ] );
-               ("required", `List [ `String "detail" ]);
-             ] );
-         ( "KbIdentityConflict",
-           `Assoc
-             [
-               ("title", `String "KbIdentityConflict");
-               ("type", `String "object");
-               ( "description",
-                 `String
-                   "A different knowledge base answers at a registered \
-                    address. Both dids, because neither alone says what to do: \
-                    a person has to recognise which knowledge base they \
-                    registered and which one answers." );
-               ("additionalProperties", `Bool false);
-               ( "properties",
-                 `Assoc
-                   [
-                     ( "expectedDid",
-                       `Assoc
-                         [
-                           ("type", `String "string");
-                           ("description", `String "The did the entry records.");
-                         ] );
-                     ( "observedDid",
-                       `Assoc
-                         [
-                           ("type", `String "string");
-                           ( "description",
-                             `String
-                               "The did the knowledge base that answered \
-                                reported." );
-                         ] );
-                   ] );
-               ( "required",
-                 `List [ `String "expectedDid"; `String "observedDid" ] );
-             ] );
-       ];
+        a state wakes its readers, which differs by language. The notices the \
+        session's signals raise are client types: \
+        client/types/SessionEnded.json, PermissionDenied.json and \
+        KbIdentityConflict.json. specs/src/client/surface.json's \
+        `sessionNotices` module says where each SDK declares them. The reader \
+        holds each `expect` to client/surface.json: each value a unit's member \
+        holds is what the member's `gives` says, and null only where the \
+        member may hold nothing. Nothing holds this table yet to the bus \
+        registry or the timing table: that each channel a case names is the \
+        bus registry's and that each `timing` is a name of the timing table, \
+        no check reads.";
      fixtures =
        ({
           context =
@@ -1901,8 +1808,6 @@ let table : t =
                             [
                               ("annotationId", `String "ann-1");
                               ("resourceId", `String "res-1");
-                              ( "options",
-                                `Assoc [ ("contextWindow", `Int 2000) ] );
                             ];
                         ];
                     }
@@ -2053,7 +1958,6 @@ let table : t =
                                         [
                                           ("includeSourceContext", `Bool false);
                                           ("includeTargetContext", `Bool true);
-                                          ("contextWindow", `Int 2000);
                                         ] );
                                   ] );
                             ];

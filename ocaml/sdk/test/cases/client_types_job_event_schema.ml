@@ -118,7 +118,10 @@ let schema : Yojson.Safe.t =
                                   ( "channel",
                                     `Assoc
                                       [
-                                        ("type", `String "string");
+                                        ( "$ref",
+                                          `String
+                                            "https://xynolog.org/protocol/FrameRefusal.json#/properties/channel"
+                                        );
                                         ( "description",
                                           `String
                                             "The channel the frame came on." );
@@ -126,7 +129,10 @@ let schema : Yojson.Safe.t =
                                   ( "member",
                                     `Assoc
                                       [
-                                        ("type", `String "string");
+                                        ( "$ref",
+                                          `String
+                                            "https://xynolog.org/protocol/FrameRefusal.json#/properties/member"
+                                        );
                                         ( "description",
                                           `String
                                             "The member at fault, named by its \
@@ -137,7 +143,7 @@ let schema : Yojson.Safe.t =
                                       [
                                         ( "$ref",
                                           `String
-                                            "https://xynolog.org/protocol/FrameRefusalReason.json"
+                                            "https://xynolog.org/protocol/FrameRefusal.json#/properties/reason"
                                         );
                                       ] );
                                 ] );

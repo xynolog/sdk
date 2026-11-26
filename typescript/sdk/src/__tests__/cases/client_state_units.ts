@@ -155,61 +155,13 @@ export type CasesItem = {
 
 export type Table = {
   $comment: string;
-  notices: { [key: string]: Json };
   fixtures: Fixtures;
   cases: CasesItem[];
 };
 
 export const table: Table = {
   $comment:
-    "AUTHORITY for what a client's state units do: each case builds units over a scripted transport, drives them, and states what they hold and what they said. Every SDK runs these cases against its own units, so a unit means one thing in every SDK; specs/src/client/surface.json's `stateUnits` names the units and their members, and this table holds what they do. A case names its `unit` (a row of `stateUnits`) and what it is (`case`); an SDK that lacks the unit, as its own repository records, does not run its cases. `transport` is what answers the client's requests: `answers` is `refuses` (every request is refused at once), `never` (every request reaches the gateway and is answered only by an `answer` step) or `jobs` (`job:create` is answered `{\"jobId\": \"job-1\"}`, `job:status-requested` with job-1 running, and anything else is refused at once); `replies` queues responses by operation, each given before the rule; `delayMs` holds every reply that long. The client's stream carries the replies and the broadcasts, never the requests it sent. `made` names each unit the case builds, with what it is built from: a gather, mark or beckon unit its `resourceId`, a yield unit its `locale`, a hover dwell its `delayMs`, saying what is hovered through the client's `beckon.hover`, and a search pipeline its `debounceMs` and `initialQuery`, each the pipeline's own when the case states none, searching with the case's search, which records each query it is asked and gives its answers when a step says. The session's signals are made from nothing. `listen` names channels of the client's bus read from the moment the units are made. `steps` run in order. Driving: `say` publishes on the client's own bus, as a signal or a job event is; `deliver` gives the client a frame from the wire, as another participant's is; `answer` replies to the `nth` request sent on a channel, on `reply`, under that request's correlation id; `queueReply` queues the next response to an operation; `invoke` calls a method of the unit `of` names, with `args` by the method's parameter names; `\"settle\"` lets what is ready run, and what that makes ready, until nothing more is, and moves no time; `pass` settles, then moves the clock, letting what falls due run to its end as it does; `dispose` disposes the named unit; `answerSearch` gives the `nth` query the case's search was asked an answer: its `results`, or null for one still on its way (a query that was abandoned has nobody to give it to). Checking: `expect` states, for each named unit, what members hold now (it lets nothing run first); `sent` lists every request sent on a channel so far, or gives their `count`; `nothingSent` says no request was sent; `heard` lists exactly what the `listen` channels carried since the units were made or since the last `heard`, once what is ready has run; `ended` names members whose readers have ended; `busDestroyed` says whether the client's bus has ended; `searched` lists every query the case's search has been asked so far. A duration is milliseconds, or `{\"timing\": <a name of specs/src/client/timing.json>}` with `times` and `plusMs` to scale and move it. Values are as the wire writes them, compared exactly: a state holding a wire model is written as the wire writes it, ids are strings, none is null, and a search pipeline's state is `{\"results\": […], \"isSearching\": …}`. Two forms compare less: `{\"$has\": {…}}` matches an object holding at least those members, and a state holding an error is written `{\"code\": …}`, `{\"message\": …}` or both, and compared on those; a case states a message only where the wire wrote it, never one an SDK or its test double writes. `{\"$fixture\": name}` is the table's fixture of that name. A `heard` entry gives the frame's `channel`, its `payload` and its `correlationId`, which is absent when the frame carries none, or `{\"sent\": <channel>, \"nth\": <n>}` for the id a request carried. What a case cannot state stays a test of the SDK's own: the axioms, which each SDK's harness checks, and how often a state wakes its readers, which differs by language. `notices` states each notice the session's signals raise, as a case gives it and expects it: SessionEnded, PermissionDenied and KbIdentityConflict, each a record with no member it does not state. specs/src/client/surface.json's `sessionNotices` module says where each SDK declares them. The consumer-owned generator writes them for every SDK it has a writer of them for; an SDK that states them by hand is held to them only by value, through the cases it runs. Nothing holds this table yet to client/surface.json, the bus registry or the timing table: that a case's `unit` is a row of `stateUnits`, that each channel it names is the bus registry's, that each `timing` is a name of the timing table, and that every notice a case gives or expects is one of `notices`, no check reads.",
-  notices: {
-    SessionEnded: {
-      title: 'SessionEnded',
-      type: 'object',
-      description: 'A session ended, and why.',
-      additionalProperties: false,
-      properties: {
-        reason: {
-          $ref: 'https://xynolog.org/protocol/SessionEndReason.json',
-          description: 'Why it ended.',
-        },
-      },
-      required: ['reason'],
-    },
-    PermissionDenied: {
-      title: 'PermissionDenied',
-      type: 'object',
-      description: 'A request was refused for lack of permission.',
-      additionalProperties: false,
-      properties: {
-        detail: {
-          type: ['string', 'null'],
-          description:
-            "The refusal's own message, untranslated; null when it gave none.",
-        },
-      },
-      required: ['detail'],
-    },
-    KbIdentityConflict: {
-      title: 'KbIdentityConflict',
-      type: 'object',
-      description:
-        'A different knowledge base answers at a registered address. Both dids, because neither alone says what to do: a person has to recognise which knowledge base they registered and which one answers.',
-      additionalProperties: false,
-      properties: {
-        expectedDid: {
-          type: 'string',
-          description: 'The did the entry records.',
-        },
-        observedDid: {
-          type: 'string',
-          description: 'The did the knowledge base that answered reported.',
-        },
-      },
-      required: ['expectedDid', 'observedDid'],
-    },
-  },
+    "AUTHORITY for what a client's state units do: each case builds units over a scripted transport, drives them, and states what they hold and what they said. Every SDK runs these cases against its own units, so a unit means one thing in every SDK; specs/src/client/surface.json's `stateUnits` names the units and their members, and this table holds what they do. A case names its `unit` (a row of `stateUnits`) and what it is (`case`); an SDK that lacks the unit, as its own repository records, does not run its cases. `transport` is what answers the client's requests: `answers` is `refuses` (every request is refused at once), `never` (every request reaches the gateway and is answered only by an `answer` step) or `jobs` (`job:create` is answered `{\"jobId\": \"job-1\"}`, `job:status-requested` with job-1 running, and anything else is refused at once); `replies` queues responses by operation, each given before the rule; `delayMs` holds every reply that long. The client's stream carries the replies and the broadcasts, never the requests it sent. `made` names each unit the case builds, with what it is built from: a gather, mark or beckon unit its `resourceId`, a yield unit its `locale`, a hover dwell its `delayMs`, saying what is hovered through the client's `beckon.hover`, and a search pipeline its `debounceMs` and `initialQuery`, each the pipeline's own when the case states none, searching with the case's search, which records each query it is asked and gives its answers when a step says. The session's signals are made from nothing. `listen` names channels of the client's bus read from the moment the units are made. `steps` run in order. Driving: `say` publishes on the client's own bus, as a signal or a job event is; `deliver` gives the client a frame from the wire, as another participant's is; `answer` replies to the `nth` request sent on a channel, on `reply`, under that request's correlation id; `queueReply` queues the next response to an operation; `invoke` calls a method of the unit `of` names, with `args` by the method's parameter names; `\"settle\"` lets what is ready run, and what that makes ready, until nothing more is, and moves no time; `pass` settles, then moves the clock, letting what falls due run to its end as it does; `dispose` disposes the named unit; `answerSearch` gives the `nth` query the case's search was asked an answer: its `results`, or null for one still on its way (a query that was abandoned has nobody to give it to). Checking: `expect` states, for each named unit, what members hold now (it lets nothing run first); `sent` lists every request sent on a channel so far, or gives their `count`; `nothingSent` says no request was sent; `heard` lists exactly what the `listen` channels carried since the units were made or since the last `heard`, once what is ready has run; `ended` names members whose readers have ended; `busDestroyed` says whether the client's bus has ended; `searched` lists every query the case's search has been asked so far. A duration is milliseconds, or `{\"timing\": <a name of specs/src/client/timing.json>}` with `times` and `plusMs` to scale and move it. Values are as the wire writes them, compared exactly: a state holding a wire model is written as the wire writes it, ids are strings, none is null, and a search pipeline's state is `{\"results\": […], \"isSearching\": …}`. Two forms compare less: `{\"$has\": {…}}` matches an object holding at least those members, and a state holding an error is written `{\"code\": …}`, `{\"message\": …}` or both, and compared on those; a case states a message only where the wire wrote it, never one an SDK or its test double writes. `{\"$fixture\": name}` is the table's fixture of that name. A `heard` entry gives the frame's `channel`, its `payload` and its `correlationId`, which is absent when the frame carries none, or `{\"sent\": <channel>, \"nth\": <n>}` for the id a request carried. What a case cannot state stays a test of the SDK's own: the axioms, which each SDK's harness checks, and how often a state wakes its readers, which differs by language. The notices the session's signals raise are client types: client/types/SessionEnded.json, PermissionDenied.json and KbIdentityConflict.json. specs/src/client/surface.json's `sessionNotices` module says where each SDK declares them. The reader holds each `expect` to client/surface.json: each value a unit's member holds is what the member's `gives` says, and null only where the member may hold nothing. Nothing holds this table yet to the bus registry or the timing table: that each channel a case names is the bus registry's and that each `timing` is a name of the timing table, no check reads.",
   fixtures: {
     context: {
       focus: {
@@ -1062,9 +1014,6 @@ export const table: Table = {
             {
               annotationId: 'ann-1',
               resourceId: 'res-1',
-              options: {
-                contextWindow: 2000,
-              },
             },
           ],
         },
@@ -1162,7 +1111,6 @@ export const table: Table = {
                 options: {
                   includeSourceContext: false,
                   includeTargetContext: true,
-                  contextWindow: 2000,
                 },
               },
             },

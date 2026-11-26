@@ -165,7 +165,7 @@ public static class SpanRefusal
 
 public static class ControlErrorCode
 {
-    /// <summary>The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it.</summary>
+    /// <summary>The request's params are not what its method's schema admits. The error's fields name each fault.</summary>
     public const string InvalidParams = "control.invalid-params";
     /// <summary>The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does.</summary>
     public const string UnsupportedApiVersion = "control.unsupported-api-version";

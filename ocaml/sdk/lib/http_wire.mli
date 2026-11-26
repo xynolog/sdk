@@ -8,10 +8,22 @@ type timing = {
   request_timeout_ms : int;
 }
 
-type failure = { code : string; status : int option; message : string }
-(** A failure of the transport: its code in the transport group of
-    protocol/specs/src/errors/codes.json, the status it was answered with, and
+type failure = {
+  code : Error_codes.Transport.t;
+  status : int option;
+  message : string;
+}
+(** A failure of the transport: its code, the status it was answered with, and
     what went wrong, in the gateway's own words when its answer states them. *)
+
+(** What a request over the bus fails with: the bus request's code, or the
+    transport's when the request never reached the bus. *)
+type request_code =
+  | Bus of Error_codes.Bus_request.t
+  | Transport of Error_codes.Transport.t
+
+val request_code : request_code -> string
+(** The code, as protocol/specs/src/errors/codes.json states it. *)
 
 exception Failed of failure
 
@@ -52,7 +64,7 @@ val emit :
   string ->
   string
 
-val bus_failure : 'a Bus_registry.decoded -> string
+val bus_failure : 'a Bus_registry.decoded -> Error_codes.Bus_request.t
 val health : t -> string
 val status : t -> string
 val current_user : t -> string

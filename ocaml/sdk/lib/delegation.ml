@@ -6,9 +6,14 @@ module J = Yojson.Safe.Util
 
 type release = unit -> unit
 type report_kind = Created | Progress | Complete | Retrying | Refused
+type failure_code = Job of Error_codes.Job.t | Request of H.request_code
+
+let failure_code = function
+  | Job code -> Error_codes.Job.code code
+  | Request code -> H.request_code code
 
 type failure = {
-  code : string;
+  code : failure_code;
   message : string option;
   failure_class : Enums.Failure_class.t option;
 }
@@ -94,13 +99,14 @@ let request t operation payload =
     match S.request t.subscription ~correlation_id operation ~send with
     | Ok (S.Result value) ->
         Ok (Yojson.Safe.from_string (B.encode value) |> field "response")
-    | Ok (S.Failure value) -> Error (H.bus_failure value)
-    | Error S.Timeout -> Error Error_codes.Bus_request.timeout
-    | Error S.Transport_closed -> Error Error_codes.Bus_request.closed
-    | Error S.Unsubscribed -> Error Error_codes.Bus_request.unsubscribed
-    | Error S.Unrecognized_failure -> Error Error_codes.Bus_request.rejected
-    | Error _ -> Error Error_codes.Transport.error
-  with H.Failed failure -> Error failure.code
+    | Ok (S.Failure value) -> Error (H.Bus (H.bus_failure value))
+    | Error S.Timeout -> Error (H.Bus Error_codes.Bus_request.Timeout)
+    | Error S.Transport_closed -> Error (H.Bus Error_codes.Bus_request.Closed)
+    | Error S.Unsubscribed -> Error (H.Bus Error_codes.Bus_request.Unsubscribed)
+    | Error S.Unrecognized_failure ->
+        Error (H.Bus Error_codes.Bus_request.Rejected)
+    | Error _ -> Error (H.Transport Error_codes.Transport.Error)
+  with H.Failed failure -> Error (H.Transport failure.code)
 
 let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
     ~on_close () =
@@ -155,7 +161,7 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
             if field "willRetry" payload = `Bool true then (
               retrying := true;
               on_report Retrying payload)
-            else fail Error_codes.Job.failed payload
+            else fail (Job Error_codes.Job.Failed) payload
       | _ -> ()
   in
 
@@ -181,7 +187,7 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                      resource))
           in
           match request t B.Operations.job_create payload with
-          | Error code -> if not !finished then fail code (`Assoc [])
+          | Error code -> if not !finished then fail (Request code) (`Assoc [])
           | Ok created when not !finished ->
               let id = string "jobId" created in
               job_id := Some id;
@@ -226,7 +232,7 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                               B.Channels.job_cancel_requested cancel)
                        with H.Failed _ -> ());
                       if not !finished then
-                        fail Error_codes.Job.stalled (`Assoc []))
+                        fail (Job Error_codes.Job.Stalled) (`Assoc []))
                     else if
                       Mtime.Span.compare elapsed (span (poll_delay ())) < 0
                     then monitor ()
@@ -261,8 +267,9 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                                               ("resourceId", text value))
                                             resource)));
                                 finish ()
-                            | Failed -> fail Error_codes.Job.failed value
-                            | Cancelled -> fail Error_codes.Job.cancelled value
+                            | Failed -> fail (Job Error_codes.Job.Failed) value
+                            | Cancelled ->
+                                fail (Job Error_codes.Job.Cancelled) value
                             | Pending | Running -> ())
                         | Error _ -> ());
                         if Mtime.equal !last_seen previous_activity then (
@@ -281,7 +288,7 @@ let start t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure ~on_close
   if t.closed then (
     on_failure
       {
-        code = Error_codes.Bus_request.closed;
+        code = Request (H.Bus Error_codes.Bus_request.Closed);
         message = None;
         failure_class = None;
       };

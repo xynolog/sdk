@@ -5,7 +5,7 @@ package xynolog.types
 
 import kotlinx.serialization.Serializable
 
-/** A different knowledge base answers at a registered address. Both dids, because neither alone says what to do: a person has to recognise which knowledge base they registered and which one answers. */
+/** A different knowledge base answers at a registered address. Both dids, because neither alone says what to do: a person has to recognise which knowledge base they registered and which one answers. What the session's signals raise (client/surface.json's `sessionSignals`). */
 @Serializable
 public data class KbIdentityConflict(
     /** The did the entry records. */

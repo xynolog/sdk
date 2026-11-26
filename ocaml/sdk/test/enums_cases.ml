@@ -66,6 +66,17 @@ let () =
     (Model.of_string "tagging" = Some Model.Tagging);
   Alcotest.check Alcotest.bool "Body_purpose rejects unknown values" true
     (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Control_sender in
+  Alcotest.check Alcotest.string "Control_sender encode" "client"
+    (Model.to_string Model.Client);
+  Alcotest.check Alcotest.bool "Control_sender decode" true
+    (Model.of_string "client" = Some Model.Client);
+  Alcotest.check Alcotest.string "Control_sender encode" "launcher"
+    (Model.to_string Model.Launcher);
+  Alcotest.check Alcotest.bool "Control_sender decode" true
+    (Model.of_string "launcher" = Some Model.Launcher);
+  Alcotest.check Alcotest.bool "Control_sender rejects unknown values" true
+    (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Durability_evidence in
   Alcotest.check Alcotest.string "Durability_evidence encode" "acknowledged"
     (Model.to_string Model.Acknowledged);
@@ -676,6 +687,21 @@ let () =
   Alcotest.check Alcotest.bool "Supported_media_type rejects unknown values"
     true
     (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.System in
+  Alcotest.check Alcotest.string "System encode" "macos"
+    (Model.to_string Model.Macos);
+  Alcotest.check Alcotest.bool "System decode" true
+    (Model.of_string "macos" = Some Model.Macos);
+  Alcotest.check Alcotest.string "System encode" "windows"
+    (Model.to_string Model.Windows);
+  Alcotest.check Alcotest.bool "System decode" true
+    (Model.of_string "windows" = Some Model.Windows);
+  Alcotest.check Alcotest.string "System encode" "other"
+    (Model.to_string Model.Other);
+  Alcotest.check Alcotest.bool "System decode" true
+    (Model.of_string "other" = Some Model.Other);
+  Alcotest.check Alcotest.bool "System rejects unknown values" true
+    (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Anchor_method in
   Alcotest.check Alcotest.string "Anchor_method encode" "unique-match"
     (Model.to_string Model.Unique_match);
@@ -694,6 +720,21 @@ let () =
   Alcotest.check Alcotest.bool "Anchor_method decode" true
     (Model.of_string "fuzzy-match" = Some Model.Fuzzy_match);
   Alcotest.check Alcotest.bool "Anchor_method rejects unknown values" true
+    (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Cache_status in
+  Alcotest.check Alcotest.string "Cache_status encode" "pending"
+    (Model.to_string Model.Pending);
+  Alcotest.check Alcotest.bool "Cache_status decode" true
+    (Model.of_string "pending" = Some Model.Pending);
+  Alcotest.check Alcotest.string "Cache_status encode" "ready"
+    (Model.to_string Model.Ready);
+  Alcotest.check Alcotest.bool "Cache_status decode" true
+    (Model.of_string "ready" = Some Model.Ready);
+  Alcotest.check Alcotest.string "Cache_status encode" "failed"
+    (Model.to_string Model.Failed);
+  Alcotest.check Alcotest.bool "Cache_status decode" true
+    (Model.of_string "failed" = Some Model.Failed);
+  Alcotest.check Alcotest.bool "Cache_status rejects unknown values" true
     (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Connection_state in
   Alcotest.check Alcotest.string "Connection_state encode" "initial"

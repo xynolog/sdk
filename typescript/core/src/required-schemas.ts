@@ -39,6 +39,7 @@ export const REQUIRED_SCHEMAS: {
       'version',
     ],
   },
+  AccessToken: { kinds: ['string'], minLength: 1 },
   Agent: {
     kinds: ['object'],
     oneOf: [
@@ -1049,6 +1050,7 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['clientId', 'global', 'pendingReplies', 'scoped'],
   },
+  CacheStatus: { kinds: ['string'], enum: ['pending', 'ready', 'failed'] },
   Cancelled: {
     kinds: ['object'],
     required: ['requestId'],
@@ -2077,6 +2079,7 @@ export const REQUIRED_SCHEMAS: {
       summary: { kinds: ['string'] },
     },
   },
+  ControlSender: { kinds: ['string'], enum: ['client', 'launcher'] },
   CreateAnnotationRequest: {
     kinds: ['object'],
     required: ['target', 'motivation'],
@@ -2143,7 +2146,7 @@ export const REQUIRED_SCHEMAS: {
       host: { kinds: ['string'] },
       managedBy: { kinds: ['string'] },
       placement: { ref: 'KbPlacement' },
-      port: { kinds: ['integer'] },
+      port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
       repo: { kinds: ['string'] },
       siteName: { kinds: ['string'] },
     },
@@ -2158,12 +2161,56 @@ export const REQUIRED_SCHEMAS: {
       'unreadable',
     ],
   },
+  DiscoveryDiff: {
+    kinds: ['object'],
+    required: ['added', 'updated', 'removed'],
+    members: {
+      added: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      removed: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      updated: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+    },
+    closed: ['added', 'removed', 'updated'],
+  },
   DiscoveryDocument: {
     kinds: ['object'],
     required: ['version', 'kbs'],
     members: {
       kbs: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
       version: { kinds: ['integer'], enum: [1] },
+    },
+  },
+  DiscoveryRead: {
+    kinds: ['object'],
+    oneOf: [
+      {
+        kinds: ['object'],
+        required: ['kind', 'reason'],
+        members: {
+          diagnostic: { kinds: ['string'], minLength: 1 },
+          kind: { kinds: ['string'], enum: ['absent'] },
+          reason: { kinds: ['string'], minLength: 1 },
+        },
+        closed: ['diagnostic', 'kind', 'reason'],
+      },
+      {
+        kinds: ['object'],
+        required: ['kind', 'kbs'],
+        members: {
+          kbs: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+          kind: { kinds: ['string'], enum: ['managed'] },
+        },
+        closed: ['kbs', 'kind'],
+      },
+      {
+        kinds: ['object'],
+        required: ['kind'],
+        members: { kind: { kinds: ['string'], enum: ['unchanged'] } },
+        closed: ['kind'],
+      },
+    ],
+    discriminator: {
+      property: 'kind',
+      mapping: { absent: 0, managed: 1, unchanged: 2 },
     },
   },
   DispatcherConfig: {
@@ -2433,6 +2480,49 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['string'],
     enum: ['transient', 'deterministic', 'withheld'],
   },
+  Fault: {
+    kinds: ['object'],
+    required: ['member', 'reason'],
+    members: {
+      member: {
+        kinds: ['string'],
+        pattern: [
+          {
+            either: [
+              [
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 1,
+                },
+                {
+                  either: [
+                    [
+                      { of: [[46, 46]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 1,
+                      },
+                    ],
+                  ],
+                  min: 0,
+                },
+              ],
+            ],
+            min: 0,
+            max: 1,
+          },
+        ],
+      },
+      reason: { ref: 'FrameRefusalReason' },
+    },
+    closed: ['member', 'reason'],
+  },
   FieldFault: {
     kinds: ['object'],
     required: ['field', 'message'],
@@ -2496,6 +2586,59 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['schema'],
     members: { _userId: { ref: 'UserId' }, schema: { ref: 'TagSchema' } },
+  },
+  FrameRefusal: {
+    kinds: ['object'],
+    required: ['channel', 'member', 'reason'],
+    members: {
+      channel: { kinds: ['string'], minLength: 1 },
+      correlationId: { kinds: ['string'], minLength: 1 },
+      member: {
+        kinds: ['string'],
+        pattern: [
+          {
+            either: [
+              [
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 1,
+                },
+                {
+                  either: [
+                    [
+                      { of: [[46, 46]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 1,
+                      },
+                    ],
+                  ],
+                  min: 0,
+                },
+              ],
+            ],
+            min: 0,
+            max: 1,
+          },
+        ],
+      },
+      reason: { ref: 'FrameRefusalReason' },
+      scope: { ref: 'ResourceId' },
+    },
+    closed: [
+      'channel',
+      'correlationId',
+      'member',
+      'payload',
+      'reason',
+      'scope',
+    ],
   },
   FrameRefusalReason: { kinds: ['string'], enum: ['lacks', 'malformed'] },
   GatewayConfig: {
@@ -6787,6 +6930,7 @@ export const REQUIRED_SCHEMAS: {
       value: { kinds: ['string'] },
     },
   },
+  System: { kinds: ['string'], enum: ['macos', 'windows', 'other'] },
   TabCheck: {
     kinds: ['object'],
     oneOf: [

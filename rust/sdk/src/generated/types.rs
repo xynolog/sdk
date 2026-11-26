@@ -58,6 +58,9 @@ impl AboutResult {
 
 schema!(AboutResult);
 
+/// An access token, as its issuer issued it: short-lived, and what a session's transport sends as a Bearer token. Opaque to a client, which reads nothing in it but its expiry.
+pub type AccessToken = String;
+
 /// Web Annotation / W3C PROV Agent. Discriminated by @type — Person, Organization, or Software (named member schemas: AgentPerson, AgentOrganization, AgentSoftware). Software peers are first-class participants, not a sub-class of Person.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
@@ -3463,6 +3466,32 @@ impl BusSubscribeRequestScopedItem {
     }
 }
 
+/// Where a live query's key stands (contract/CACHE-SEMANTICS.md): pending, with no value yet; ready, with a stored value; or failed, a value-less key's failure, which is an emission and not the stream's end.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum CacheStatus {
+    #[serde(rename = "pending")]
+    Pending,
+    #[serde(rename = "ready")]
+    Ready,
+    #[serde(rename = "failed")]
+    Failed,
+}
+
+impl CacheStatus {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            CacheStatus::Pending => "pending",
+            CacheStatus::Ready => "ready",
+            CacheStatus::Failed => "failed",
+        }
+    }
+}
+
+schema!(CacheStatus);
+
 /// The client gives up on one of its requests. The launcher answers that request with control.cancelled, unless it has answered it already; a cancellation of a request it does not know is ignored.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -5446,6 +5475,29 @@ pub struct ContextualSummaryResponseRelevantFields {
     pub entity_types: Vec<String>,
 }
 
+/// Which side of the control API sends a message: the client, whose notifications arrive on the launcher's stdin, or the launcher, whose notifications leave on its stdout (LAUNCHER-CONTROL.md F1).
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ControlSender {
+    #[serde(rename = "client")]
+    Client,
+    #[serde(rename = "launcher")]
+    Launcher,
+}
+
+impl ControlSender {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ControlSender::Client => "client",
+            ControlSender::Launcher => "launcher",
+        }
+    }
+}
+
+schema!(ControlSender);
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct CreateAnnotationRequest {
     pub motivation: Motivation,
@@ -5642,7 +5694,7 @@ pub struct DiscoveredKB {
     /// Hostname the KB is reachable on from this machine (always "localhost" — local stacks bind locally and codespace KBs arrive through a local port forward)
     pub host: String,
     /// Local TCP port of the KB's API (the gateway port for a local stack; the allocated forward port for a codespace stack)
-    pub port: i64,
+    pub port: u16,
     /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
     pub placement: KbPlacement,
     /// owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity
@@ -5663,7 +5715,7 @@ impl DiscoveredKB {
     /// The `DiscoveredKB` that states these and nothing else.
     pub fn new(
         host: impl Into<String>,
-        port: i64,
+        port: u16,
         placement: KbPlacement,
         did: impl Into<String>,
         managed_by: impl Into<String>,
@@ -5681,6 +5733,20 @@ impl DiscoveredKB {
 }
 
 schema!(DiscoveredKB);
+
+/// How one poll's knowledge bases changed since the last state it gave.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DiscoveryDiff {
+    /// Each knowledge base the last state did not have.
+    pub added: Vec<DiscoveredKB>,
+    /// Each knowledge base the last state had at the same address, now otherwise.
+    pub updated: Vec<DiscoveredKB>,
+    /// Each knowledge base the last state had, and this one does not.
+    pub removed: Vec<DiscoveredKB>,
+}
+
+schema!(DiscoveryDiff);
 
 /// The launcher's KB discovery document — the schema authority for <stateDir>/discovery/kbs.json, which the Xynolog CLI (xynolog/cli) regenerates on every stack mutation and the Browser container mounts read-only at /discovery. NOT an API endpoint: a static document fetched same-origin by browsers (via the Browser's static server). An empty kbs list is meaningful ("the launcher manages nothing right now") and distinct from an absent file.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -5708,6 +5774,160 @@ schema!(DiscoveryDocument);
 pub struct DiscoveryDocumentVersion;
 
 constant!(DiscoveryDocumentVersion, i64, 1);
+
+/// What one read of a launcher's discovery document gave, told apart by `kind`: no launcher was found, the knowledge bases one manages, or nothing changed since the last read. A launcher that manages none is not an absent one.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum DiscoveryRead {
+    Absent(DiscoveryReadAbsent),
+    Managed(DiscoveryReadManaged),
+    Unchanged(DiscoveryReadUnchanged),
+}
+
+impl DiscoveryRead {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "reason"],
+            allowed: Some(&["kind", "reason", "diagnostic"]),
+            fixed: &[("kind", &[Literal::Text("absent")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind", "kbs"],
+            allowed: Some(&["kind", "kbs"]),
+            fixed: &[("kind", &[Literal::Text("managed")])],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["kind"],
+            allowed: Some(&["kind"]),
+            fixed: &[("kind", &[Literal::Text("unchanged")])],
+            values: None,
+        }],
+    ];
+}
+
+union!(DiscoveryRead, Absent, Managed, Unchanged);
+schema!(DiscoveryRead);
+
+/// No launcher was found, and why.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DiscoveryReadAbsent {
+    pub kind: DiscoveryReadAbsentKind,
+    /// Why: one of client/discovery-absent.json's reasons.
+    pub reason: String,
+    /// What was wrong, in words, when there is more to say.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diagnostic: Option<String>,
+}
+
+impl DiscoveryReadAbsent {
+    /// The `DiscoveryReadAbsent` that states these and nothing else.
+    pub fn new(reason: impl Into<String>) -> Self {
+        Self {
+            kind: DiscoveryReadAbsentKind::Absent,
+            reason: reason.into(),
+            diagnostic: None,
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryReadAbsentKind {
+    #[serde(rename = "absent")]
+    Absent,
+}
+
+impl DiscoveryReadAbsentKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryReadAbsentKind::Absent => "absent",
+        }
+    }
+}
+
+/// The knowledge bases a launcher manages: none is a launcher that manages nothing.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DiscoveryReadManaged {
+    pub kind: DiscoveryReadManagedKind,
+    /// Each knowledge base, as the document lists it.
+    pub kbs: Vec<DiscoveredKB>,
+}
+
+impl DiscoveryReadManaged {
+    /// The `DiscoveryReadManaged` that states these and nothing else.
+    pub fn new(kbs: Vec<DiscoveredKB>) -> Self {
+        Self {
+            kind: DiscoveryReadManagedKind::Managed,
+            kbs,
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryReadManagedKind {
+    #[serde(rename = "managed")]
+    Managed,
+}
+
+impl DiscoveryReadManagedKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryReadManagedKind::Managed => "managed",
+        }
+    }
+}
+
+/// Nothing changed since the last read.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DiscoveryReadUnchanged {
+    pub kind: DiscoveryReadUnchangedKind,
+}
+
+impl Default for DiscoveryReadUnchanged {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl DiscoveryReadUnchanged {
+    /// The `DiscoveryReadUnchanged` that states what it must and nothing else.
+    pub fn new() -> Self {
+        Self {
+            kind: DiscoveryReadUnchangedKind::Unchanged,
+        }
+    }
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryReadUnchangedKind {
+    #[serde(rename = "unchanged")]
+    Unchanged,
+}
+
+impl DiscoveryReadUnchangedKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryReadUnchangedKind::Unchanged => "unchanged",
+        }
+    }
+}
 
 /// Everything the dispatcher reads at boot: nothing in it is defaulted by the dispatcher. The launcher writes it for the dispatcher it starts, from the knowledge base's stack documents, and the dispatcher reads it from the path its `--config` flag names (its image passes `/etc/xynolog/dispatcher.json`). Started without `--config`, or with a path that names no file, the dispatcher refuses to start and says which. Secrets are never values here: a field that needs one names the environment variable holding it. The dispatcher's other inputs are the environment variables specs/src/service-environment/variables.json lists for it, and the ones this document names. A document that does not validate is refused at boot, naming each failing field.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -6538,6 +6758,18 @@ impl FailureClass {
 
 schema!(FailureClass);
 
+/// The first fault a value has as its schema allows: where it is, and why (contract/TRANSPORT-CONTRACT.md § Identity). What a refusal of a frame, a payload or an answer names.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Fault {
+    /// The way from the value to its first fault: the names of the members it is within, and its own, joined by dots; empty for the value itself.
+    pub member: String,
+    /// Why it is at fault.
+    pub reason: FrameRefusalReason,
+}
+
+schema!(Fault);
+
 /// One fault in a request's params, named where it is.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -6753,6 +6985,47 @@ impl FrameAddTagSchemaCommand {
 }
 
 schema!(FrameAddTagSchemaCommand);
+
+/// A frame refused, given to its readers in its place: by its transport, for its first fault as BusFrame, or by its channel's typed read, for its payload's first fault as its channel's (contract/TRANSPORT-CONTRACT.md § Frames). A transport's own, never on the wire.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FrameRefusal {
+    /// The channel the frame names.
+    pub channel: String,
+    /// The way from the frame to its first fault; a fault of its payload is within `payload`.
+    pub member: String,
+    /// Why it is at fault.
+    pub reason: FrameRefusalReason,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payload: Option<serde_json::Value>,
+    /// The resource whose scope it was delivered on; absent when it names none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scope: Option<ResourceId>,
+    /// The frame's correlation id, when it carries one BusFrame allows: a request awaiting the reply it names is told of the refusal at once.
+    #[serde(rename = "correlationId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub correlation_id: Option<String>,
+}
+
+impl FrameRefusal {
+    /// The `FrameRefusal` that states these and nothing else.
+    pub fn new(
+        channel: impl Into<String>,
+        member: impl Into<String>,
+        reason: FrameRefusalReason,
+    ) -> Self {
+        Self {
+            channel: channel.into(),
+            member: member.into(),
+            reason,
+            payload: None,
+            scope: None,
+            correlation_id: None,
+        }
+    }
+}
+
+schema!(FrameRefusal);
 
 /// Why a reader refused a frame, for its first fault: `lacks`, a member it lacks; `malformed`, a member that is not of its shape. A reader's rule (specs/src/bus/frame-cases.json).
 #[derive(
@@ -11340,7 +11613,7 @@ pub struct KbIdentity {
 
 schema!(KbIdentity);
 
-/// A different knowledge base answers at a registered address. Both dids, because neither alone says what to do: a person has to recognise which knowledge base they registered and which one answers.
+/// A different knowledge base answers at a registered address. Both dids, because neither alone says what to do: a person has to recognise which knowledge base they registered and which one answers. What the session's signals raise (client/surface.json's `sessionSignals`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KbIdentityConflict {
@@ -14175,7 +14448,7 @@ impl PendingAuthorizationIssuer {
     }
 }
 
-/// A request was refused for lack of permission.
+/// A request was refused for lack of permission. What the session's signals raise (client/surface.json's `sessionSignals`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PermissionDenied {
@@ -17617,7 +17890,7 @@ impl SessionEndReason {
 
 schema!(SessionEndReason);
 
-/// A session ended, and why.
+/// A session ended, and why. What the session's signals raise (client/surface.json's `sessionSignals`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SessionEnded {
@@ -19329,6 +19602,32 @@ impl SvgSelectorType {
         }
     }
 }
+
+/// What a state home differs by (sign-in-store/README.md): macOS, Windows, and every other system.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum System {
+    #[serde(rename = "macos")]
+    Macos,
+    #[serde(rename = "windows")]
+    Windows,
+    #[serde(rename = "other")]
+    Other,
+}
+
+impl System {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            System::Macos => "macos",
+            System::Windows => "windows",
+            System::Other => "other",
+        }
+    }
+}
+
+schema!(System);
 
 /// What checking one open resource against its knowledge base concluded. `gone` is the only verdict that closes it, and it means the knowledge base said the resource does not exist, not that the check failed: a failed transport, a timeout and a peer that is down are each `unknown`, and an unknown resource stays open.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]

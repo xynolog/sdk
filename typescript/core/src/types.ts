@@ -1400,6 +1400,12 @@ export interface components {
       relevantFields: ContextualSummaryResponseRelevantFields;
       context: ContextualSummaryResponseContext;
     };
+    /**
+     * Which side of the control API sends a message: the client, whose
+     * notifications arrive on the launcher's stdin, or the launcher, whose
+     * notifications leave on its stdout (LAUNCHER-CONTROL.md F1).
+     */
+    ControlSender: 'client' | 'launcher';
     CreateAnnotationRequest: {
       motivation: components['schemas']['Motivation'];
       target: components['schemas']['AnnotationTarget'];
@@ -6017,6 +6023,11 @@ export interface components {
       value: string;
     };
     /**
+     * What a state home differs by (sign-in-store/README.md): macOS, Windows,
+     * and every other system.
+     */
+    System: 'macos' | 'windows' | 'other';
+    /**
      * A single category within a tag schema (e.g. 'Issue' in IRAC,
      * 'distinguished' in legal-citation-treatment). Each category carries
      * methodology-bound semantics: a name, a description, and examples used in
@@ -6863,6 +6874,12 @@ export interface components {
  */
 export interface records {
   /**
+   * An access token, as its issuer issued it: short-lived, and what a session's
+   * transport sends as a Bearer token. Opaque to a client, which reads nothing
+   * in it but its expiry.
+   */
+  AccessToken: string;
+  /**
    * How a quoted selection was found in a text. Which word a span is found by
    * is reconcile's rule (specs/src/annotations/reconcile-cases.json).
    */
@@ -6894,6 +6911,12 @@ export interface records {
      */
     expectedName?: string;
   };
+  /**
+   * Where a live query's key stands (contract/CACHE-SEMANTICS.md): pending,
+   * with no value yet; ready, with a stored value; or failed, a value-less
+   * key's failure, which is an emission and not the stream's end.
+   */
+  CacheStatus: 'pending' | 'ready' | 'failed';
   /**
    * What a worker's claiming of jobs is told: the jobs it takes, and how long
    * it waits for what it waits on. A wait left out is client/timing.json's of
@@ -6977,6 +7000,26 @@ export interface records {
     /** How many seconds the code stays good for. */
     expiresIn: number;
   };
+  /** How one poll's knowledge bases changed since the last state it gave. */
+  DiscoveryDiff: {
+    /** Each knowledge base the last state did not have. */
+    added: components['schemas']['DiscoveredKB'][];
+    /**
+     * Each knowledge base the last state had at the same address, now
+     * otherwise.
+     */
+    updated: components['schemas']['DiscoveredKB'][];
+    /** Each knowledge base the last state had, and this one does not. */
+    removed: components['schemas']['DiscoveredKB'][];
+  };
+  /**
+   * What one read of a launcher's discovery document gave, told apart by
+   * `kind`: no launcher was found, the knowledge bases one manages, or nothing
+   * changed since the last read. A launcher that manages none is not an absent
+   * one.
+   */
+  DiscoveryRead:
+    DiscoveryReadAbsent | DiscoveryReadManaged | DiscoveryReadUnchanged;
   /**
    * What a person believed they were signing in to: the did and the name of the
    * row they clicked, or of the entry they signed in to again.
@@ -6986,6 +7029,47 @@ export interface records {
     did: string;
     /** The name they believed it has. Absent when they had none. */
     name?: string;
+  };
+  /**
+   * The first fault a value has as its schema allows: where it is, and why
+   * (contract/TRANSPORT-CONTRACT.md § Identity). What a refusal of a frame, a
+   * payload or an answer names.
+   */
+  Fault: {
+    /**
+     * The way from the value to its first fault: the names of the members it is
+     * within, and its own, joined by dots; empty for the value itself.
+     */
+    member: string;
+    /** Why it is at fault. */
+    reason: records['FrameRefusalReason'];
+  };
+  /**
+   * A frame refused, given to its readers in its place: by its transport, for
+   * its first fault as BusFrame, or by its channel's typed read, for its
+   * payload's first fault as its channel's (contract/TRANSPORT-CONTRACT.md §
+   * Frames). A transport's own, never on the wire.
+   */
+  FrameRefusal: {
+    /** The channel the frame names. */
+    channel: string;
+    /**
+     * The way from the frame to its first fault; a fault of its payload is
+     * within `payload`.
+     */
+    member: string;
+    /** Why it is at fault. */
+    reason: records['FrameRefusalReason'];
+    payload?: unknown;
+    /**
+     * The resource whose scope it was delivered on; absent when it names none.
+     */
+    scope?: components['schemas']['ResourceId'];
+    /**
+     * The frame's correlation id, when it carries one BusFrame allows: a
+     * request awaiting the reply it names is told of the refusal at once.
+     */
+    correlationId?: string;
   };
   /**
    * Why a reader refused a frame, for its first fault: `lacks`, a member it
@@ -7134,7 +7218,8 @@ export interface records {
   /**
    * A different knowledge base answers at a registered address. Both dids,
    * because neither alone says what to do: a person has to recognise which
-   * knowledge base they registered and which one answers.
+   * knowledge base they registered and which one answers. What the session's
+   * signals raise (client/surface.json's `sessionSignals`).
    */
   KbIdentityConflict: {
     /** The did the entry records. */
@@ -7251,7 +7336,10 @@ export interface records {
      */
     expectedName?: string;
   };
-  /** A request was refused for lack of permission. */
+  /**
+   * A request was refused for lack of permission. What the session's signals
+   * raise (client/surface.json's `sessionSignals`).
+   */
   PermissionDenied: {
     /** The refusal's own message, untranslated; null when it gave none. */
     detail: string | null;
@@ -7300,7 +7388,10 @@ export interface records {
    * `refused`, the gateway refused a token its issuer had just issued.
    */
   SessionEndReason: 'expired' | 'refused';
-  /** A session ended, and why. */
+  /**
+   * A session ended, and why. What the session's signals raise
+   * (client/surface.json's `sessionSignals`).
+   */
   SessionEnded: {
     /** Why it ended. */
     reason: records['SessionEndReason'];
@@ -9075,6 +9166,30 @@ export type WorkerMessagesLoggedItem = {
    * `situation` says and whose form is not stated. The line may carry others.
    */
   carries: string[];
+};
+
+/** No launcher was found, and why. */
+export type DiscoveryReadAbsent = {
+  kind: 'absent';
+  /** Why: one of client/discovery-absent.json's reasons. */
+  reason: string;
+  /** What was wrong, in words, when there is more to say. */
+  diagnostic?: string;
+};
+
+/**
+ * The knowledge bases a launcher manages: none is a launcher that manages
+ * nothing.
+ */
+export type DiscoveryReadManaged = {
+  kind: 'managed';
+  /** Each knowledge base, as the document lists it. */
+  kbs: components['schemas']['DiscoveredKB'][];
+};
+
+/** Nothing changed since the last read. */
+export type DiscoveryReadUnchanged = {
+  kind: 'unchanged';
 };
 
 /** It answered as that entry, and its name and branch are on the entry now. */

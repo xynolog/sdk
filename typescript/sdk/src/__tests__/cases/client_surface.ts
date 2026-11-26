@@ -78,6 +78,7 @@ export type Type = 'integer' | 'string' | 'boolean';
 export type Scalar = {
   type: Type;
   minimum?: number;
+  format?: 'date-time';
   description: string;
 };
 
@@ -138,10 +139,45 @@ export type NamedValue = {
   why: string;
 };
 
+export type GivesValue = {
+  form: 'value';
+  schema?: Schema;
+  absent?: boolean;
+};
+
+export type Watched = {
+  form: 'watched';
+  schema?: Schema;
+  absent?: boolean;
+};
+
+export type Stream = {
+  form: 'stream';
+  schema?: Schema;
+};
+
+export type Settles = {
+  form: 'settles';
+};
+
+export type Cancels = {
+  form: 'cancels';
+};
+
+export type Function = {
+  form: 'function';
+  parameters?: ParametersItem[];
+  returns?: Schema | null;
+};
+
+export type Gives =
+  GivesValue | Watched | Stream | Settles | Cancels | Function;
+
 export type MembersItem = {
   member: string;
   named?: { [key: string]: NamedValue };
   takes?: { [key: string]: string };
+  gives: Gives;
 };
 
 export type WorkerItem = {
@@ -153,6 +189,7 @@ export type WorkerItem = {
 
 export type ItemMembersItem = {
   member: string;
+  gives: Gives;
 };
 
 export type StateUnitsItem = {
@@ -165,6 +202,7 @@ export type StateUnitsItem = {
 
 export type WireMembersItem = {
   member: string;
+  gives: Gives;
 };
 
 export type Wire = {
@@ -188,7 +226,7 @@ export type Reader = {
   kind: 'reader';
 };
 
-export type Function = {
+export type ModulesItemMembersItemFunction = {
   member: string;
   kind: 'function';
   named?: { [key: string]: string };
@@ -212,10 +250,14 @@ export type Constant = {
   kind: 'constant';
   named?: { [key: string]: string };
   names?: Names;
+  value?: Json;
 };
 
 export type ModulesItemMembersItem =
-  Reader | Function | ModulesItemMembersItemType | Constant;
+  | Reader
+  | ModulesItemMembersItemFunction
+  | ModulesItemMembersItemType
+  | Constant;
 
 export type ModulesItem = {
   module: string;
@@ -468,12 +510,9 @@ export const table: Table = {
           },
           cases: [
             {
-              why: 'no filters: the first hundred',
+              why: "no filters: the page is the Archivist's",
               args: {},
-              sends: {
-                limit: 100,
-                offset: 0,
-              },
+              sends: {},
             },
             {
               args: {
@@ -487,7 +526,6 @@ export const table: Table = {
                 archived: false,
                 entityType: 'Person',
                 limit: 5,
-                offset: 0,
               },
             },
             {
@@ -1642,7 +1680,7 @@ export const table: Table = {
           },
           cases: [
             {
-              why: 'no options: a window of two thousand characters',
+              why: "no options: the window and the contexts are the Librarian's",
               args: {
                 resourceId: 'res-1',
                 annotationId: 'ann-1',
@@ -1650,9 +1688,6 @@ export const table: Table = {
               sends: {
                 annotationId: 'ann-1',
                 resourceId: 'res-1',
-                options: {
-                  contextWindow: 2000,
-                },
               },
             },
             {
@@ -1672,7 +1707,7 @@ export const table: Table = {
               },
             },
             {
-              why: 'a context asked for or left out is sent as stated, false as well as true; the window not stated is two thousand',
+              why: 'a context asked for or left out is sent as stated, false as well as true; the window not stated is not sent',
               args: {
                 resourceId: 'res-1',
                 annotationId: 'ann-1',
@@ -1687,7 +1722,6 @@ export const table: Table = {
                 options: {
                   includeSourceContext: false,
                   includeTargetContext: true,
-                  contextWindow: 2000,
                 },
               },
             },
@@ -1852,7 +1886,7 @@ export const table: Table = {
           },
           cases: [
             {
-              why: 'no options: ten candidates, scored semantically',
+              why: 'no options: ten candidates, scored as the Librarian scores unasked',
               args: {
                 resourceId: 'res-1',
                 referenceId: 'ann-1',
@@ -1867,7 +1901,6 @@ export const table: Table = {
                   $fixture: 'context',
                 },
                 limit: 10,
-                useSemanticScoring: true,
               },
             },
             {
@@ -1968,14 +2001,12 @@ export const table: Table = {
           },
           cases: [
             {
-              why: 'no filters: the first hundred',
+              why: "no filters: the page is the Librarian's",
               args: {
                 search: 'cat',
               },
               sends: {
                 search: 'cat',
-                limit: 100,
-                offset: 0,
               },
             },
             {
@@ -1992,7 +2023,6 @@ export const table: Table = {
                 archived: false,
                 entityType: 'Person',
                 limit: 5,
-                offset: 0,
               },
             },
             {
@@ -2891,15 +2921,36 @@ export const table: Table = {
               why: "The claims are ranged over, `for job, err := range claims.All()`, and Go's standard library names the method that gives a sequence of every element `All` (`maps.All`, `slices.All`).",
             },
           },
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'refused',
+          gives: {
+            form: 'stream',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/ClaimRefusal.json',
+            },
+          },
         },
         {
           member: 'stalled',
+          gives: {
+            form: 'stream',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobStall.json',
+            },
+          },
         },
         {
           member: 'vitals',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/WorkerVitals.json',
+            },
+          },
         },
         {
           member: 'stop',
@@ -2913,6 +2964,11 @@ export const table: Table = {
               why: 'Go stops what is held with `Close`, the name `io.Closer` gives it and what a `defer` calls.',
             },
           },
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
       ],
     },
@@ -2923,54 +2979,174 @@ export const table: Table = {
       members: [
         {
           member: 'jobId',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobId',
+            },
+          },
         },
         {
           member: 'jobType',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobType',
+            },
+          },
         },
         {
           member: 'resourceId',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/resourceId',
+            },
+          },
         },
         {
           member: 'params',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/params',
+            },
+          },
         },
         {
           member: 'completedUnits',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/completedUnits',
+            },
+          },
         },
         {
           member: 'unitCursors',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/unitCursors',
+            },
+          },
         },
         {
           member: 'retryCount',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/retryCount',
+            },
+          },
         },
         {
           member: 'maxRetries',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/maxRetries',
+            },
+          },
         },
         {
           member: 'attempt',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobStartCommand.json#/properties/attempt',
+            },
+          },
         },
         {
           member: 'annotationId',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'trace',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/TraceCarrier.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'cancelled',
+          gives: {
+            form: 'cancels',
+          },
         },
         {
           member: 'settled',
+          gives: {
+            form: 'value',
+            schema: {
+              type: 'boolean',
+              description:
+                'Whether the job has settled: completed, failed or cancelled.',
+            },
+          },
         },
         {
           member: 'start',
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
         {
           member: 'progress',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'progress',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/JobProgress.json',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'checkpoint',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'commit',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'resourceId',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/MarkCommitCommand.json#/properties/resourceId',
+                },
+                required: true,
+              },
+              {
+                parameter: 'annotations',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/MarkCommitCommand.json#/properties/annotations',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'complete',
@@ -2978,12 +3154,38 @@ export const table: Table = {
             mark: 'MarkJobResult',
             yield: 'YieldJobResult',
           },
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'fail',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'error',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/JobFailCommand.json#/properties/error',
+                },
+                required: true,
+              },
+              {
+                parameter: 'failure',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/JobFailure.json',
+                },
+                required: false,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'cancel',
+          gives: {
+            form: 'function',
+          },
         },
       ],
     },
@@ -3011,30 +3213,92 @@ export const table: Table = {
       members: [
         {
           member: 'pendingAnnotation',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/PendingAnnotation.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'delegatingMotivation',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/Motivation.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'progress',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobProgress.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'progressMotivation',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/Motivation.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'failure',
+          gives: {
+            form: 'watched',
+            absent: true,
+          },
         },
         {
           member: 'jobId',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'requestDelegate',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'params',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/MarkJobParams.json',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'cancelPending',
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
         {
           member: 'dismissProgress',
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
       ],
     },
@@ -3060,24 +3324,84 @@ export const table: Table = {
       members: [
         {
           member: 'isGenerating',
+          gives: {
+            form: 'watched',
+            schema: {
+              type: 'boolean',
+              description: 'Whether a generation is on its way.',
+            },
+          },
         },
         {
           member: 'progress',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobProgress.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'outcome',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/YieldJobDone.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'failure',
+          gives: {
+            form: 'watched',
+            absent: true,
+          },
         },
         {
           member: 'jobId',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'generate',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'params',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/GenerationJobParams.json',
+                },
+                required: true,
+              },
+              {
+                parameter: 'stallDeadlineMs',
+                schema: {
+                  type: 'integer',
+                  minimum: 0,
+                  description:
+                    "How long the followed generation may say nothing, in milliseconds, before it is given up on. The follower's own, never sent: left out, it grows with the generation's `maxTokens` as client/timing.json's generationStall timings say.",
+                },
+                required: false,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'dismissProgress',
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
       ],
     },
@@ -3103,30 +3427,113 @@ export const table: Table = {
       members: [
         {
           member: 'context',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/GatheredContext.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'loading',
+          gives: {
+            form: 'watched',
+            schema: {
+              type: 'boolean',
+              description: "Whether an annotation's gather is on its way.",
+            },
+          },
         },
         {
           member: 'error',
+          gives: {
+            form: 'watched',
+            absent: true,
+          },
         },
         {
           member: 'annotationId',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'resourceContext',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/GatheredContext.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'resourceLoading',
+          gives: {
+            form: 'watched',
+            schema: {
+              type: 'boolean',
+              description: "Whether a resource's gather is on its way.",
+            },
+          },
         },
         {
           member: 'resourceError',
+          gives: {
+            form: 'watched',
+            absent: true,
+          },
         },
         {
           member: 'gatherAnnotation',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'annotationId',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+                },
+                required: true,
+              },
+              {
+                parameter: 'options',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/GatherAnnotationOptions.json',
+                },
+                required: false,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'gatherResource',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'resourceId',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/ResourceId.json',
+                },
+                required: true,
+              },
+              {
+                parameter: 'options',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/GatherResourceOptions.json',
+                },
+                required: false,
+              },
+            ],
+            returns: null,
+          },
         },
       ],
     },
@@ -3173,9 +3580,29 @@ export const table: Table = {
       members: [
         {
           member: 'hoveredAnnotationId',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'focus',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'annotationId',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
       ],
     },
@@ -3201,9 +3628,27 @@ export const table: Table = {
       members: [
         {
           member: 'enter',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'annotationId',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'leave',
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
       ],
     },
@@ -3229,12 +3674,39 @@ export const table: Table = {
       members: [
         {
           member: 'query',
+          gives: {
+            form: 'watched',
+            schema: {
+              type: 'string',
+              description: 'The query as last set.',
+            },
+          },
         },
         {
           member: 'state',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/SearchState.json',
+            },
+          },
         },
         {
           member: 'setQuery',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'value',
+                schema: {
+                  type: 'string',
+                  description: 'The query.',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
       ],
     },
@@ -3260,30 +3732,105 @@ export const table: Table = {
       members: [
         {
           member: 'sessionEnded',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/SessionEnded.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'permissionDenied',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/PermissionDenied.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'kbIdentityConflict',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/KbIdentityConflict.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'notifySessionEnded',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'reason',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/SessionEnded.json#/properties/reason',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'notifyPermissionDenied',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'detail',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/PermissionDenied.json#/properties/detail',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'notifyKbIdentityConflict',
+          gives: {
+            form: 'function',
+            parameters: [
+              {
+                parameter: 'conflict',
+                schema: {
+                  $ref: 'https://xynolog.org/protocol/KbIdentityConflict.json',
+                },
+                required: true,
+              },
+            ],
+            returns: null,
+          },
         },
         {
           member: 'acknowledgeSessionEnded',
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
         {
           member: 'acknowledgePermissionDenied',
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
         {
           member: 'acknowledgeKbIdentityConflict',
+          gives: {
+            form: 'function',
+            parameters: [],
+            returns: null,
+          },
         },
       ],
     },
@@ -3309,45 +3856,87 @@ export const table: Table = {
       members: [
         {
           member: 'observe',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'fetch',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'get',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'known',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'keys',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'invalidate',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'invalidateAll',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'remove',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'set',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'patch',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'persistencePending',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'keptFetching',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'attach',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'query',
+          gives: {
+            form: 'function',
+          },
         },
       ],
     },
@@ -3375,36 +3964,95 @@ export const table: Table = {
       members: [
         {
           member: 'id',
+          gives: {
+            form: 'value',
+            schema: {
+              type: 'string',
+              description:
+                "The session's own id: a session made again for the same knowledge base has another.",
+            },
+          },
         },
         {
           member: 'kb',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/KbTarget.json',
+            },
+          },
         },
         {
           member: 'client',
+          gives: {
+            form: 'value',
+          },
         },
         {
           member: 'token',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/AccessToken.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'user',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/UserResponse.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'streamState',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/ConnectionState.json',
+            },
+          },
         },
         {
           member: 'errors',
+          gives: {
+            form: 'stream',
+          },
         },
         {
           member: 'ready',
+          gives: {
+            form: 'settles',
+          },
         },
         {
           member: 'expiresAt',
+          gives: {
+            form: 'value',
+            schema: {
+              type: 'string',
+              format: 'date-time',
+              description:
+                "When the session's token stops working, as the token states it.",
+            },
+            absent: true,
+          },
         },
         {
           member: 'refresh',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'renewer',
+          gives: {
+            form: 'function',
+          },
         },
       ],
     },
@@ -3425,24 +4073,45 @@ export const table: Table = {
     members: [
       {
         member: 'emit',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'frames',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'framesOf',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'request',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'emitOn',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'framesOn',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'requestOf',
+        gives: {
+          form: 'function',
+        },
       },
     ],
   },
@@ -4090,7 +4759,7 @@ export const table: Table = {
     },
     {
       module: 'sessionNotices',
-      docs: "What a session's signals raise: that a session ended and why, that a request was refused for lack of permission, and that a different knowledge base answers at a registered address. specs/src/client/state-units.json's `notices` states each one.",
+      docs: "What a session's signals raise: that a session ended and why, that a request was refused for lack of permission, and that a different knowledge base answers at a registered address. Each is a client type of specs/src/client/types.",
       where: {
         ocaml: ['sdk/ocaml/sdk/lib/session_notices.ml'],
         haskell: ['sdk/haskell/sdk/src/Xynolog/State/SessionSignals.hs'],
@@ -4385,6 +5054,11 @@ export const table: Table = {
         {
           member: 'discoveryInterval',
           kind: 'constant',
+        },
+        {
+          member: 'discoveryUrlPath',
+          kind: 'constant',
+          value: '/discovery/kbs.json',
         },
         {
           member: 'DiscoveryAbsentReason',
