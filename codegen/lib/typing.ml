@@ -206,6 +206,11 @@ let keywords =
     ("discriminator", Shape);
     ("$defs", Said);
     ("x-xynolog-codes", Shape);
+    (* A client type's type parameters, and a member that holds one: a type
+       its caller decides, which only the client types each SDK writes by
+       hand state ([Definitions.hand_written_client_types]). *)
+    ("x-xynolog-typeParameters", Said);
+    ("x-xynolog-typeParameter", Said);
   ]
 
 (* A keyword that constrains nothing, so a schema of these alone, as
