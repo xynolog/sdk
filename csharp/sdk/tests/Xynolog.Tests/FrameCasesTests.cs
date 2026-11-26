@@ -89,7 +89,7 @@ public sealed partial class TransportTests
                 Assert.True(JsonElement.DeepEquals(stated.TryGetProperty("read", out var stating) ? stating : frame.GetProperty("payload"), readByType),
                     "its typed reader reads " + readByType.GetRawText());
             }
-            AssertToldNoFrame(Required.Undecoded, await failures.NextAsync());
+            AssertToldNoFrame(Xynolog.Serialization.Required.Undecoded, await failures.NextAsync());
             return;
         }
 
@@ -97,7 +97,7 @@ public sealed partial class TransportTests
         JsonNode? framed = stated.TryGetProperty("frame", out var shown) ? JsonNode.Parse(shown.GetRawText()) : null;
         Assert.Equal(new[] { "member", "reason", "refused", "told", "why", line is null ? "frame" : "data" }.Order(StringComparer.Ordinal),
             stated.EnumerateObject().Select(member => member.Name).Where(name => name is not ("correlationId" or "request")).Order(StringComparer.Ordinal));
-        var fault = Required.At(Text(stated, "member"), stated.GetProperty("reason").Deserialize<FrameRefusalReason>());
+        var fault = Xynolog.Serialization.Required.At(Text(stated, "member"), stated.GetProperty("reason").Deserialize<FrameRefusalReason>());
         var replied = framed?["channel"] is JsonValue named && named.TryGetValue<string>(out var channelNamed) && channelNamed == replies.Result.Name;
         var channel = replied ? replies.Result.Name : BusChannels.BeckonFocus.Name;
         var correlation = stated.TryGetProperty("correlationId", out var carriedId) ? carriedId.GetString() : null;
@@ -149,13 +149,13 @@ public sealed partial class TransportTests
                 {
                     Assert.Equal(refusal, Assert.Single(came));
                 }
-                AssertToldNoFrame(Required.Undecoded, await told.NextAsync());
+                AssertToldNoFrame(Xynolog.Serialization.Required.Undecoded, await told.NextAsync());
                 break;
             case "failure-report":
                 Assert.Empty(came);
                 Assert.Empty(read);
                 AssertToldNoFrame(fault, await told.NextAsync());
-                AssertToldNoFrame(Required.Undecoded, await told.NextAsync());
+                AssertToldNoFrame(Xynolog.Serialization.Required.Undecoded, await told.NextAsync());
                 break;
             case var whom:
                 throw new InvalidOperationException("told to whom the table does not give: " + whom);

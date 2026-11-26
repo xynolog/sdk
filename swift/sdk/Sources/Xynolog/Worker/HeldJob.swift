@@ -137,7 +137,9 @@ actor HeldWork<Result: Sendable>: WorkerLease {
 
   private func requireUnsettled() throws {
     try Task.checkCancellation()
-    if settled { throw BusRequestError(.busRejected, "Job \(record.jobId.value) is already settled") }
+    if settled {
+      throw BusRequestError(.busRejected, "Job \(record.jobId.value) is already settled")
+    }
   }
 
   private func say<Payload>(_ channel: Channel<Payload>, _ payload: Payload) async throws {
@@ -161,7 +163,8 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await say(
       Channels.jobStart,
       JobStartCommand(
-        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType, annotationId: annotationId,
+        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType,
+        annotationId: annotationId,
         attempt: attempt))
   }
 
@@ -176,7 +179,8 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await say(
       Channels.jobReportProgress,
       JobReportProgressCommand(
-        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType, attempt: attempt,
+        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType,
+        attempt: attempt,
         annotationId: annotationId, percentage: progress.percentage, progress: progress))
   }
 
@@ -277,7 +281,8 @@ actor HeldWork<Result: Sendable>: WorkerLease {
     try await settle(
       Channels.jobCancel,
       JobCancelCommand(
-        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType, annotationId: annotationId,
+        resourceId: record.resourceId, jobId: record.jobId, jobType: record.jobType,
+        annotationId: annotationId,
         completedUnits: reached?.completedUnits, unitCursors: reached?.unitCursors))
   }
 }
@@ -304,7 +309,8 @@ extension HeldWork: HeldYieldJob where Result == YieldJobResult {
       Channels.jobComplete,
       .yieldJobCompleteCommand(
         YieldJobCompleteCommand(
-          resourceId: record.resourceId, jobId: record.jobId, attempt: attempt, annotationId: annotationId,
+          resourceId: record.resourceId, jobId: record.jobId, attempt: attempt,
+          annotationId: annotationId,
           result: result, durability: durability)),
       completed: true)
   }
