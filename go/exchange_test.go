@@ -196,7 +196,7 @@ func TestAnUploadReportsItsSizeWhatIsSentAndTheResourceMade(t *testing.T) {
 	if len(reports) < 4 {
 		t.Fatalf("the upload reported %+v, want its size, how much is sent as it goes, and the resource made", reports)
 	}
-	if started, ok := reports[0].(api.UploadProgressStarted); !ok || started.TotalBytes != total {
+	if started, ok := reports[0].(api.UploadProgressStarted); !ok || started.TotalBytes == nil || *started.TotalBytes != total {
 		t.Errorf("the upload began by reporting %+v, want its size, %d", reports[0], total)
 	}
 	if finished, ok := reports[len(reports)-1].(api.UploadProgressFinished); !ok || finished.ResourceId != created.ResourceId {
@@ -205,7 +205,7 @@ func TestAnUploadReportsItsSizeWhatIsSentAndTheResourceMade(t *testing.T) {
 	last := 0
 	for _, report := range reports[1 : len(reports)-1] {
 		sent, ok := report.(api.UploadProgressProgress)
-		if !ok || sent.TotalBytes != total || sent.BytesUploaded < last {
+		if !ok || sent.TotalBytes == nil || *sent.TotalBytes != total || sent.BytesUploaded < last {
 			t.Fatalf("after %d bytes of %d sent, the upload reported %+v", last, total, report)
 		}
 		last = sent.BytesUploaded

@@ -13,8 +13,6 @@ exception Invalid_store
 
 external try_lock : Unix.file_descr -> bool = "xynolog_store_try_flock"
 
-type platform = Macos | Windows | Other
-
 let state_directory ~platform ~home ~xdg_state_home ~local_app_data =
   let nonempty = function
     | Some value when value <> "" -> Some value
@@ -22,7 +20,7 @@ let state_directory ~platform ~home ~xdg_state_home ~local_app_data =
   in
   Option.map
     (fun home ->
-      match platform with
+      match (platform : Enums.System.t) with
       | Macos -> Filename.concat home "Library/Application Support/xynolog"
       | Windows ->
           Option.value (nonempty local_app_data)

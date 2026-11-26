@@ -224,13 +224,13 @@ instance ToJSON ConformanceDriverLineProgress where toJSON value = Object (KM.fr
 data ConformanceDriverLineProgressProgress = ConformanceDriverLineProgressProgress
   { conformanceDriverLineProgressProgressUpload :: Integer,
     conformanceDriverLineProgressProgressBytesUploaded :: Integer,
-    conformanceDriverLineProgressProgressTotalBytes :: Integer
+    conformanceDriverLineProgressProgressTotalBytes :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceDriverLineProgressProgress where parseJSON = checked "ConformanceDriverLineProgressProgress" $ withObject "ConformanceDriverLineProgressProgress" (\fields -> ConformanceDriverLineProgressProgress <$> (fields .: "upload") <*> (fields .: "bytesUploaded") <*> (fields .: "totalBytes"))
+instance FromJSON ConformanceDriverLineProgressProgress where parseJSON = checked "ConformanceDriverLineProgressProgress" $ withObject "ConformanceDriverLineProgressProgress" (\fields -> ConformanceDriverLineProgressProgress <$> (fields .: "upload") <*> (fields .: "bytesUploaded") <*> optional fields "totalBytes")
 
-instance ToJSON ConformanceDriverLineProgressProgress where toJSON value = Object (KM.fromList (concat [[("upload", toJSON (conformanceDriverLineProgressProgressUpload value))], [("bytesUploaded", toJSON (conformanceDriverLineProgressProgressBytesUploaded value))], [("totalBytes", toJSON (conformanceDriverLineProgressProgressTotalBytes value))]]))
+instance ToJSON ConformanceDriverLineProgressProgress where toJSON value = Object (KM.fromList (concat [[("upload", toJSON (conformanceDriverLineProgressProgressUpload value))], [("bytesUploaded", toJSON (conformanceDriverLineProgressProgressBytesUploaded value))], optionalPair "totalBytes" (conformanceDriverLineProgressProgressTotalBytes value)]))
 
 data ConformanceDriverLineReady = MkConformanceDriverLineReady
   { conformanceDriverLineReadyReady :: ConformanceDriverLineReadyReady

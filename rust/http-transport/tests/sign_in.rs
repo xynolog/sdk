@@ -37,9 +37,7 @@ use xynolog::cache::CacheState;
 use xynolog::channels::{BRIDGED_CHANNELS, PrincipalProfile};
 use xynolog::claims::{HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS};
 use xynolog::client::ClientOptions;
-use xynolog::discovery::{
-    DiscoveryAbsentReason, DiscoveryRead, DiscoveryState, DiscoveryTransport,
-};
+use xynolog::discovery::DiscoveryTransport;
 use xynolog::errors::{
     BusRequestErrorCode, IdentityUnverifiable, IdentityUnverifiableReason, SessionError,
     SessionErrorCode, SignInError, SignInErrorCode, XynologError,
@@ -64,7 +62,6 @@ use xynolog::testing::as_id;
 use xynolog::testing::examples::{assert_blocks_are_examples, assert_readme_shows};
 use xynolog::timing::{DEVICE_SLOW_DOWN, HTTP_REQUEST_TIMEOUT, REFRESH_RETRY, SAVE_DEBOUNCE};
 use xynolog::transport::{BoxFuture, Envelope, Events, Lagged, PutBinaryRequest};
-use xynolog::types::JobFailure;
 use xynolog::types::{
     AgentSoftware, Annotation, BeginAuthorizationOptions, DeviceCode, FailureClass, HttpEndpoint,
     HttpEndpointProtocol, JobCompleteCommand, JobProgress, KbEndpoint, KbTarget, KnowledgeBase,
@@ -72,6 +69,8 @@ use xynolog::types::{
     PendingAuthorization, PrincipalProfileCommand, QuotedText, TextSpan,
 };
 use xynolog::types::{ClaimOptions, SessionEndReason, StoredSession};
+use xynolog::types::{DiscoveryAbsentReason, JobFailure};
+use xynolog::types::{DiscoveryManaged, DiscoveryRead, DiscoveryUnchanged};
 use xynolog_http_transport::agent::{AgentSignInError, AgentToken};
 use xynolog_http_transport::client::client;
 use xynolog_http_transport::client_assertion::{JWT_BEARER, LIFETIME_SECONDS, thumbprint};
@@ -2758,7 +2757,7 @@ fn serving(world: &World, status: u16, content_type: &str, body: &str, etag: Opt
 
 fn absent_for(read: &DiscoveryRead) -> Option<DiscoveryAbsentReason> {
     match read {
-        DiscoveryRead::State(DiscoveryState::Absent { reason, .. }) => Some(*reason),
+        DiscoveryRead::DiscoveryAbsent(absent) => Some(absent.reason),
         _ => None,
     }
 }
@@ -2778,10 +2777,13 @@ async fn a_document_that_has_not_changed_is_not_read_again() {
     );
 
     match discovery.read().await {
-        DiscoveryRead::State(DiscoveryState::Managed { kbs }) => assert_eq!(kbs.len(), 1),
+        DiscoveryRead::DiscoveryManaged(managed) => assert_eq!(managed.kbs.len(), 1),
         other => panic!("a managed state was expected, not {other:?}"),
     }
-    assert_eq!(discovery.read().await, DiscoveryRead::Unchanged);
+    assert_eq!(
+        discovery.read().await,
+        DiscoveryRead::DiscoveryUnchanged(DiscoveryUnchanged::new())
+    );
 
     // A new document has a new tag, and is read.
     serving(
@@ -2793,7 +2795,7 @@ async fn a_document_that_has_not_changed_is_not_read_again() {
     );
     assert_eq!(
         discovery.read().await,
-        DiscoveryRead::State(DiscoveryState::Managed { kbs: vec![] })
+        DiscoveryRead::DiscoveryManaged(DiscoveryManaged::new(vec![]))
     );
     assert_eq!(*world.staged.discovery_reads.lock().unwrap(), 3);
 }
@@ -3736,8 +3738,8 @@ async fn a_launchers_document_that_is_never_served_is_unreadable_at_the_deadline
     );
     assert_eq!(absent_for(&read), Some(DiscoveryAbsentReason::Unreadable));
     match read {
-        DiscoveryRead::State(DiscoveryState::Absent { diagnostic, .. }) => assert_eq!(
-            diagnostic.as_deref(),
+        DiscoveryRead::DiscoveryAbsent(absent) => assert_eq!(
+            absent.diagnostic.as_deref(),
             Some("the document was not served within 30s")
         ),
         other => panic!("{other:?}"),

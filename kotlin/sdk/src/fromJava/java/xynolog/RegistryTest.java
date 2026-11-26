@@ -17,10 +17,8 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 import org.junit.jupiter.api.Test;
-import xynolog.discovery.Absent;
 import xynolog.discovery.DiscoveryKt;
 import xynolog.discovery.DiscoveryTransport;
-import xynolog.discovery.Managed;
 import xynolog.http.AuthorizationKt;
 import xynolog.http.HttpSessionFactory;
 import xynolog.identifiers.ResourceId;
@@ -35,7 +33,9 @@ import xynolog.storage.MemoryStorage;
 import xynolog.storage.SessionStorage;
 import xynolog.testing.ScriptedSessions;
 import xynolog.testing.SharedStorage;
+import xynolog.types.DiscoveryAbsent;
 import xynolog.types.DiscoveryAbsentReason;
+import xynolog.types.DiscoveryManaged;
 import xynolog.types.KbReadVerdictNoVerdict;
 import xynolog.types.KbSessionStatus;
 import xynolog.types.KnowledgeBase;
@@ -189,12 +189,12 @@ final class RegistryTest {
 
     @Test
     void aLaunchersDocumentIsReadFromJava() throws Exception {
-        assertEquals(new Managed(List.of()), DiscoveryKt.parseDiscoveryDocument("{\"version\":1,\"kbs\":[]}"));
-        Absent absent = assertInstanceOf(Absent.class, DiscoveryKt.parseDiscoveryDocument("not json"));
+        assertEquals(DiscoveryManaged.builder(List.of()).build(), DiscoveryKt.parseDiscoveryDocument("{\"version\":1,\"kbs\":[]}"));
+        DiscoveryAbsent absent = assertInstanceOf(DiscoveryAbsent.class, DiscoveryKt.parseDiscoveryDocument("not json"));
         assertEquals(DiscoveryAbsentReason.NotJson, absent.getReason());
-        assertEquals(new Absent(DiscoveryAbsentReason.NotFound), new Absent(DiscoveryAbsentReason.NotFound, null));
+        assertEquals(DiscoveryAbsent.builder(DiscoveryAbsentReason.NotFound).build(), DiscoveryAbsent.builder(DiscoveryAbsentReason.NotFound).diagnostic(null).build());
         DiscoveryTransport text = DiscoveryKt.textDiscovery(() -> "{\"version\":1,\"kbs\":[]}");
-        assertEquals(new Managed(List.of()), text.readFuture().get(10, SECONDS));
+        assertEquals(DiscoveryManaged.builder(List.of()).build(), text.readFuture().get(10, SECONDS));
     }
 
     @Test

@@ -2,13 +2,13 @@
 //! (protocol/specs/src/discovery): what the document says, read whole or not at all,
 //! and what changed since it was last read.
 //!
-//! **Absent is not empty.** `Absent` is "no launcher was found", with why;
-//! `Managed` with no knowledge bases is "the launcher is here and manages
+//! **Absent is not empty.** `DiscoveryAbsent` is "no launcher was found", with
+//! why; `DiscoveryManaged` with no knowledge bases is "the launcher is here and manages
 //! nothing". A reader shows the two differently and never has to work out
 //! which it has.
 //!
 //! **A document is read whole.** One of a version this client does not
-//! speak, or with an entry that is not what the schema says, is `Absent`: a
+//! speak, or with an entry that is not what the schema says, is absent: a
 //! partial reading would hide a running knowledge base without a trace.
 //!
 //! **The address is the key.** Entries are told apart by host and port,
@@ -23,7 +23,10 @@
 //! it lists is a person's act.
 
 use crate::transport::BoxFuture;
-use crate::types::{DiscoveredKB, DiscoveryDocument, DiscoveryDocumentVersion};
+use crate::types::{
+    DiscoveredKB, DiscoveryAbsent, DiscoveryAbsentReason, DiscoveryDiff, DiscoveryDocument,
+    DiscoveryDocumentVersion, DiscoveryManaged, DiscoveryRead, DiscoveryState,
+};
 use futures_core::Stream;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -38,41 +41,36 @@ use tokio::task::AbortHandle;
 /// How often a launcher's document is read again, unless told otherwise.
 pub const DISCOVERY_INTERVAL: Duration = crate::timing::DISCOVERY_INTERVAL;
 
-include!("generated/discovery_absent.rs");
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum DiscoveryState {
-    Absent {
-        reason: DiscoveryAbsentReason,
-        /// What was wrong, in words, when there is more to say.
-        diagnostic: Option<String>,
-    },
-    Managed {
-        kbs: Vec<DiscoveredKB>,
-    },
+fn absent(reason: DiscoveryAbsentReason, diagnostic: impl Into<String>) -> DiscoveryState {
+    DiscoveryState::DiscoveryAbsent(DiscoveryAbsent {
+        diagnostic: Some(diagnostic.into()),
+        ..DiscoveryAbsent::new(reason)
+    })
 }
 
-impl DiscoveryState {
-    fn absent(reason: DiscoveryAbsentReason, diagnostic: impl Into<String>) -> DiscoveryState {
-        DiscoveryState::Absent {
-            reason,
-            diagnostic: Some(diagnostic.into()),
-        }
+fn kbs(state: &DiscoveryState) -> &[DiscoveredKB] {
+    match state {
+        DiscoveryState::DiscoveryManaged(managed) => &managed.kbs,
+        DiscoveryState::DiscoveryAbsent(_) => &[],
     }
+}
 
-    fn kbs(&self) -> &[DiscoveredKB] {
-        match self {
-            DiscoveryState::Managed { kbs } => kbs,
-            DiscoveryState::Absent { .. } => &[],
+impl From<DiscoveryState> for DiscoveryRead {
+    fn from(state: DiscoveryState) -> Self {
+        match state {
+            DiscoveryState::DiscoveryAbsent(absent) => DiscoveryRead::DiscoveryAbsent(absent),
+            DiscoveryState::DiscoveryManaged(managed) => DiscoveryRead::DiscoveryManaged(managed),
         }
     }
 }
 
-/// What one read gave: a state, or that nothing changed since the last.
-#[derive(Debug, Clone, PartialEq)]
-pub enum DiscoveryRead {
-    State(DiscoveryState),
-    Unchanged,
+/// The state a read found: none when it found that nothing changed.
+fn found(read: DiscoveryRead) -> Option<DiscoveryState> {
+    match read {
+        DiscoveryRead::DiscoveryAbsent(absent) => Some(DiscoveryState::DiscoveryAbsent(absent)),
+        DiscoveryRead::DiscoveryManaged(managed) => Some(DiscoveryState::DiscoveryManaged(managed)),
+        DiscoveryRead::DiscoveryUnchanged(_) => None,
+    }
 }
 
 /// Where the document is read from.
@@ -85,16 +83,16 @@ pub fn parse_discovery_document(text: &str) -> DiscoveryState {
     use DiscoveryAbsentReason::{Invalid, NotJson, UnsupportedVersion};
     let parsed: Value = match serde_json::from_str(text) {
         Ok(parsed) => parsed,
-        Err(error) => return DiscoveryState::absent(NotJson, error.to_string()),
+        Err(error) => return absent(NotJson, error.to_string()),
     };
     if !parsed.is_object() {
-        return DiscoveryState::absent(Invalid, "document is not an object");
+        return absent(Invalid, "document is not an object");
     }
     match parsed["version"].as_i64() {
-        None => return DiscoveryState::absent(Invalid, "missing numeric \"version\""),
+        None => return absent(Invalid, "missing numeric \"version\""),
         Some(DiscoveryDocumentVersion::VALUE) => {}
         Some(other) => {
-            return DiscoveryState::absent(
+            return absent(
                 UnsupportedVersion,
                 format!(
                     "discovery document version {other} is not the one this client speaks ({}); it is not read in part",
@@ -105,14 +103,14 @@ pub fn parse_discovery_document(text: &str) -> DiscoveryState {
     }
     let document: DiscoveryDocument = match serde_json::from_value(parsed) {
         Ok(document) => document,
-        Err(error) => return DiscoveryState::absent(Invalid, error.to_string()),
+        Err(error) => return absent(Invalid, error.to_string()),
     };
     if let Some(kb) = document
         .kbs
         .iter()
         .find(|kb| !(1..=65535).contains(&kb.port))
     {
-        return DiscoveryState::absent(
+        return absent(
             Invalid,
             format!(
                 "kb entry at {} has port {}, which is not a port",
@@ -120,7 +118,7 @@ pub fn parse_discovery_document(text: &str) -> DiscoveryState {
             ),
         );
     }
-    DiscoveryState::Managed { kbs: document.kbs }
+    DiscoveryState::DiscoveryManaged(DiscoveryManaged::new(document.kbs))
 }
 
 struct TextDiscovery<R> {
@@ -135,14 +133,11 @@ where
     fn read(&self) -> BoxFuture<'_, DiscoveryRead> {
         let reading = (self.read)();
         Box::pin(async move {
-            DiscoveryRead::State(match reading.await {
-                Err(why) => DiscoveryState::absent(DiscoveryAbsentReason::Unreadable, why),
-                Ok(None) => DiscoveryState::Absent {
-                    reason: DiscoveryAbsentReason::NotFound,
-                    diagnostic: None,
-                },
-                Ok(Some(text)) => parse_discovery_document(&text),
-            })
+            match reading.await {
+                Err(why) => absent(DiscoveryAbsentReason::Unreadable, why).into(),
+                Ok(None) => DiscoveryAbsent::new(DiscoveryAbsentReason::NotFound).into(),
+                Ok(Some(text)) => parse_discovery_document(&text).into(),
+            }
         })
     }
 }
@@ -158,20 +153,6 @@ where
     TextDiscovery { read }
 }
 
-/// What one read changed: the state now, and what was added, changed and
-/// removed since the last one told of.
-#[derive(Debug, Clone, PartialEq)]
-pub struct DiscoveryDiff {
-    pub state: DiscoveryState,
-    pub added: Vec<DiscoveredKB>,
-    pub updated: Vec<DiscoveredKB>,
-    pub removed: Vec<DiscoveredKB>,
-    /// The addresses more than one entry claims. At most one claim can be
-    /// true; `added` and `removed` count each address once, and every
-    /// claimant is in `state`.
-    pub duplicated: Vec<String>,
-}
-
 fn address(kb: &DiscoveredKB) -> String {
     format!("{}:{}", kb.host, kb.port)
 }
@@ -179,15 +160,15 @@ fn address(kb: &DiscoveredKB) -> String {
 /// What changed between `last`, the state last told of, and `next`: `None`
 /// when nothing did.
 fn diff(last: Option<&DiscoveryState>, next: DiscoveryState) -> Option<DiscoveryDiff> {
-    let before_kbs = last.map(DiscoveryState::kbs).unwrap_or_default();
+    let before_kbs = last.map(kbs).unwrap_or_default();
     let before: HashMap<String, &DiscoveredKB> =
         before_kbs.iter().map(|kb| (address(kb), kb)).collect();
     let after: HashMap<String, &DiscoveredKB> =
-        next.kbs().iter().map(|kb| (address(kb), kb)).collect();
+        kbs(&next).iter().map(|kb| (address(kb), kb)).collect();
 
     let mut duplicated: Vec<String> = Vec::new();
     let mut seen: Vec<String> = Vec::new();
-    for kb in next.kbs() {
+    for kb in kbs(&next) {
         let at = address(kb);
         if seen.contains(&at) && !duplicated.contains(&at) {
             duplicated.push(at.clone());
@@ -195,8 +176,7 @@ fn diff(last: Option<&DiscoveryState>, next: DiscoveryState) -> Option<Discovery
         seen.push(at);
     }
 
-    let added: Vec<DiscoveredKB> = next
-        .kbs()
+    let added: Vec<DiscoveredKB> = kbs(&next)
         .iter()
         .filter(|kb| !before.contains_key(&address(kb)))
         .cloned()
@@ -206,8 +186,7 @@ fn diff(last: Option<&DiscoveryState>, next: DiscoveryState) -> Option<Discovery
         .filter(|kb| !after.contains_key(&address(kb)))
         .cloned()
         .collect();
-    let updated: Vec<DiscoveredKB> = next
-        .kbs()
+    let updated: Vec<DiscoveredKB> = kbs(&next)
         .iter()
         .filter(|kb| before.get(&address(kb)).is_some_and(|was| was != kb))
         .cloned()
@@ -215,11 +194,10 @@ fn diff(last: Option<&DiscoveryState>, next: DiscoveryState) -> Option<Discovery
 
     let state_changed = match (last, &next) {
         (None, _) => true,
-        (Some(DiscoveryState::Managed { .. }), DiscoveryState::Managed { .. }) => false,
-        (
-            Some(DiscoveryState::Absent { reason: was, .. }),
-            DiscoveryState::Absent { reason: is, .. },
-        ) => was != is,
+        (Some(DiscoveryState::DiscoveryManaged(_)), DiscoveryState::DiscoveryManaged(_)) => false,
+        (Some(DiscoveryState::DiscoveryAbsent(was)), DiscoveryState::DiscoveryAbsent(is)) => {
+            was.reason != is.reason
+        }
         _ => true,
     };
     (state_changed || !added.is_empty() || !updated.is_empty() || !removed.is_empty()).then_some(
@@ -274,7 +252,7 @@ pub fn subscribe_discovery(
     let reading = tokio::spawn(async move {
         let mut last: Option<DiscoveryState> = None;
         loop {
-            if let DiscoveryRead::State(state) = transport.read().await
+            if let Some(state) = found(transport.read().await)
                 && let Some(change) = diff(last.as_ref(), state)
             {
                 last = Some(change.state.clone());

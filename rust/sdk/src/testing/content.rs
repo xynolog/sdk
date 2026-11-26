@@ -113,9 +113,10 @@ impl ContentTransport for InMemoryContent {
             reported,
             Box::pin(async move {
                 let total_bytes = request.bytes.len() as u64;
-                let _ = progress.send(UploadProgress::Started(UploadProgressStarted::new(
-                    total_bytes,
-                )));
+                let _ = progress.send(UploadProgress::Started(UploadProgressStarted {
+                    total_bytes: Some(total_bytes),
+                    ..UploadProgressStarted::new()
+                }));
                 let resource_id = {
                     let mut stored = locked(&inner.stored);
                     let resource_id: ResourceId =
@@ -130,10 +131,10 @@ impl ContentTransport for InMemoryContent {
                     resource_id
                 };
                 locked(&inner.calls).push(ContentCall::PutBinary(Box::new(request)));
-                let _ = progress.send(UploadProgress::Progress(UploadProgressProgress::new(
-                    total_bytes,
-                    total_bytes,
-                )));
+                let _ = progress.send(UploadProgress::Progress(UploadProgressProgress {
+                    total_bytes: Some(total_bytes),
+                    ..UploadProgressProgress::new(total_bytes)
+                }));
                 Ok(CreateResourceResponse { resource_id })
             }),
         )

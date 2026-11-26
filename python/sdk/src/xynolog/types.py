@@ -2095,9 +2095,7 @@ class BeginAuthorizationOptions(WireModel, frozen=True, extra="forbid"):
     ] = None
 
 
-type Binary = Annotated[
-    bytes, Field(description="Bytes held whole. They can be read more than once, and sent again when an upload is retried.")
-]
+type Binary = Annotated[bytes, Field(description="Bytes held whole: all of them at once, read as often as wanted.")]
 
 type BindBodyOperationOp = Annotated[Literal["add", "remove", "replace"], Field(description="The type of body operation")]
 
@@ -3653,7 +3651,9 @@ class ConformanceDriverLineProgressProgress(WireModel, frozen=True, extra="forbi
 
     upload: Annotated[int, Field(description="The `upload` operation's id.")]
     bytes_uploaded: Annotated[int, Field(alias="bytesUploaded", description="How many bytes it has sent.")]
-    total_bytes: Annotated[int, Field(alias="totalBytes", description="How many it will send.")]
+    total_bytes: Annotated[
+        int | None, Field(alias="totalBytes", description="How many it will send. Absent for an upload whose source states no length.")
+    ] = None
 
 
 class ConformanceDriverLineProgress(WireModel, frozen=True, extra="forbid"):
@@ -4097,18 +4097,12 @@ class DiscoveredKB(WireModel, frozen=True):
     ]
 
 
-type DiscoveryAbsentReason = Literal["not-found", "not-json", "invalid", "unsupported-version", "unreadable"]
-"""Why no launcher was found.
-
-`not-found`: There is no document where it was looked for: no file, an HTTP status that is not success, or a page that is not JSON.
-
-`not-json`: There is a document, and it is not JSON.
-
-`invalid`: It is JSON, and not a discovery document: one entry that is not what the schema says makes the whole document invalid, since a partial reading would hide a running knowledge base without a trace.
-
-`unsupported-version`: It is a discovery document of a version this client does not speak, and is not read in part.
-
-`unreadable`: It could not be read at all: the file could not be opened or decoded, or the request got no answer by its deadline."""
+type DiscoveryAbsentReason = Annotated[
+    Literal["not-found", "not-json", "invalid", "unsupported-version", "unreadable"],
+    Field(
+        description="Why a client that read a launcher's discovery document found no launcher: one of the reasons of client/discovery-absent.json, which says what each means."
+    ),
+]
 
 
 class DiscoveryAbsent(WireModel, frozen=True, extra="forbid"):
@@ -4117,7 +4111,7 @@ class DiscoveryAbsent(WireModel, frozen=True, extra="forbid"):
     """
 
     kind: Literal["absent"]
-    reason: Annotated[DiscoveryAbsentReason, Field(description="Why: one of client/discovery-absent.json's reasons.")]
+    reason: Annotated[DiscoveryAbsentReason, Field(description="Why.")]
     diagnostic: Annotated[str | None, Field(description="What was wrong, in words, when there is more to say.")] = None
 
 
@@ -8538,7 +8532,7 @@ class ResourceUpload(WireModel, frozen=True):
     """
 
     name: Annotated[str, Field(description="Human-readable resource name")]
-    file: Annotated[Binary, Field(description="Binary content")]
+    file: Annotated[Binary, Field(description="The bytes, as the part carries them.")]
     format: Annotated[str, Field(description="Media type of the content (e.g. text/plain, text/markdown, image/png)")]
     storage_uri: Annotated[
         str,
@@ -9423,7 +9417,7 @@ class StoredSession(WireModel, frozen=True):
     What is kept of a sign-in: the tokens an issuer issued, the client they were issued to, and the issuer's endpoints a renewal and a sign-out need, learned once at sign-in so no session asks again. TOKENS, never a password. A stored value that lacks a member it requires is no session.
     """
 
-    access: Annotated[str, Field(description="The access token: short-lived, sent as a Bearer token.")]
+    access: Annotated[AccessToken, Field(description="The access token: short-lived, sent as a Bearer token.")]
     refresh: Annotated[str, Field(description="The refresh token: what renews the access token at the issuer without another sign-in.")]
     client_id: Annotated[
         str, Field(alias="clientId", description="The client the tokens were issued to, which a renewal and a revocation name.")
@@ -10154,7 +10148,10 @@ class UploadProgressStarted(WireModel, frozen=True, extra="forbid"):
     """
 
     phase: Literal["started"]
-    total_bytes: Annotated[int, Field(alias="totalBytes", description="How many bytes the upload is.")]
+    total_bytes: Annotated[
+        int | None,
+        Field(alias="totalBytes", description="How many bytes the upload is: its ByteSource's length. Absent when the source states none."),
+    ] = None
 
 
 class UploadProgressProgress(WireModel, frozen=True, extra="forbid"):
@@ -10164,7 +10161,10 @@ class UploadProgressProgress(WireModel, frozen=True, extra="forbid"):
 
     phase: Literal["progress"]
     bytes_uploaded: Annotated[int, Field(alias="bytesUploaded", description="How many bytes are sent so far.")]
-    total_bytes: Annotated[int, Field(alias="totalBytes", description="How many bytes the upload is.")]
+    total_bytes: Annotated[
+        int | None,
+        Field(alias="totalBytes", description="How many bytes the upload is: its ByteSource's length. Absent when the source states none."),
+    ] = None
 
 
 class UploadProgressFinished(WireModel, frozen=True, extra="forbid"):
@@ -10179,7 +10179,7 @@ class UploadProgressFinished(WireModel, frozen=True, extra="forbid"):
 type UploadProgress = Annotated[
     UploadProgressStarted | UploadProgressProgress | UploadProgressFinished,
     Field(
-        description="What an upload reports as it goes, told apart by `phase`: its size first, then the bytes sent so far, then the resource made.",
+        description="What an upload reports as it goes, told apart by `phase`: that it began, with its size when its ByteSource states one, then the bytes sent so far, then the resource made. An upload whose source states no length reports none: a size it made up would be a size the caller could not tell from a true one.",
         discriminator="phase",
     ),
 ]

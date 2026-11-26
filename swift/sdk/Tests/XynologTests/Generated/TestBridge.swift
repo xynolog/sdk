@@ -150,6 +150,7 @@ func roundTripModel(_ name: String, _ value: JSONValue) throws -> JSONValue {
   case "DirectoryEntry": return try roundTrip(DirectoryEntry.self, value)
   case "DiscoveredKB": return try roundTrip(DiscoveredKB.self, value)
   case "DiscoveryAbsent": return try roundTrip(DiscoveryAbsent.self, value)
+  case "DiscoveryAbsentReason": return try roundTrip(DiscoveryAbsentReason.self, value)
   case "DiscoveryDiff": return try roundTrip(DiscoveryDiff.self, value)
   case "DiscoveryDocument": return try roundTrip(DiscoveryDocument.self, value)
   case "DiscoveryManaged": return try roundTrip(DiscoveryManaged.self, value)

@@ -137,6 +137,21 @@ the coming release's, and gathers its changes as they land.
   `match.search` no `useSemanticScoring` of true, when the caller leaves them
   out: the service's own default applies. Options to `gather.annotation` that
   state nothing are not sent.
+- The discovery types are Protocol's (protocol#126), in `xynolog.types`,
+  where they were hand-written in `xynolog.discovery`: `DiscoveryState` is a
+  `DiscoveryAbsent` or a `DiscoveryManaged`, `DiscoveryRead` is either or a
+  `DiscoveryUnchanged`, and `DiscoveryDiff` is the type of
+  `client/types/DiscoveryDiff.json`. `Absent`, `Managed` and `Unchanged` are
+  removed. A `DiscoveryState` is no longer a `DiscoveryRead`, though
+  `DiscoveryAbsent` and `DiscoveryManaged` are both. Java makes each with its
+  `builder`.
+- `DiscoveryAbsentReason` is the generated client type (protocol#124), and is
+  `@Serializable` as its wire spelling.
+- An upload's `UploadProgressStarted` and `UploadProgressProgress`, and the
+  conformance driver's `ConformanceDriverLineProgressProgress`, state
+  `totalBytes` as a `Long?` (protocol#121): a source of unstated length states
+  none. Their builders no longer take it; `totalBytes(...)` sets it. Every
+  upload today holds its bytes whole, and states its total.
 
 ### Removed
 

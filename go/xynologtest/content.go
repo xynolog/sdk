@@ -122,10 +122,10 @@ func (c *InMemoryContent) PutBinary(_ context.Context, request xynolog.PutBinary
 	return xynolog.NewUpload(func(report func(api.UploadProgress)) (api.CreateResourceResponse, error) {
 		size := len(request.Bytes)
 		var started, sent api.UploadProgress
-		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: size}); err != nil {
+		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: new(size)}); err != nil {
 			return api.CreateResourceResponse{}, err
 		}
-		if err := sent.From(api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: size, TotalBytes: size}); err != nil {
+		if err := sent.From(api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: size, TotalBytes: new(size)}); err != nil {
 			return api.CreateResourceResponse{}, err
 		}
 		report(started)

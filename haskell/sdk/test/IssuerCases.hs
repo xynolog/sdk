@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module IssuerCases (issuerCases, serviceTokenCases, deviceClockCases, peer, httpPeer, streamingPeer, jsonReply, route, bodyOf, form) where
+module IssuerCases (issuerCases, serviceTokenCases, deviceClockCases, agentClockCases, peer, httpPeer, streamingPeer, jsonReply, route, bodyOf, form) where
 
 -- Runs protocol/specs/src/client/clock-cases.json through the shared clock runner.
 import ClockCases (Scenario (..), clockCasesFor)
@@ -28,7 +28,7 @@ import Data.Text qualified as Text
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.UUID.Types qualified as UUID
 import Network.HTTP.Client (defaultManagerSettings, managerRawConnection, noProxy)
-import Network.HTTP.Client.Internal (makeConnection)
+import Network.HTTP.Client.Internal (Connection, makeConnection)
 import Network.HTTP.Types (parseQuery)
 import Streaming.Prelude qualified as Stream
 import System.FilePath ((</>))
@@ -86,26 +86,28 @@ httpPeer answer = streamingPeer (\request write _ -> answer request >>= atomical
 -- | A real http-client connection, driven byte for byte. Once the request's declared body is in, answer is handed
 -- it, what writes the reply's bytes, at once or later, and what hangs up; a connection the client closes reads no more.
 streamingPeer :: (Bytes.ByteString -> (Bytes.ByteString -> STM ()) -> STM () -> IO ()) -> IO Http.HttpClient
-streamingPeer answer = do
-  let connect _ _ _ = do
-        accumulated <- newIORef Bytes.empty
-        sent <- newIORef False
-        output <- newTQueueIO
-        closed <- newTVarIO False
-        let readBytes = atomically (readTQueue output `orElse` (readTVar closed >>= check >> pure Bytes.empty))
-            hangUp = writeTVar closed True
-            writeBytes bytes = do
-              request <- atomicModifyIORef' accumulated (\before -> let after = before <> bytes in (after, after))
-              already <- readIORef sent
-              let (headers, rest) = Bytes.breakSubstring "\r\n\r\n" request
-                  lengthHeader = find (Char8.isPrefixOf "Content-Length:") (Char8.lines headers)
-                  lengthValue = maybe 0 (fst . fromRead . Char8.readInt . Char8.dropWhile (== ' ') . Char8.drop 15) lengthHeader
-                  fromRead = maybe (error "invalid HTTP content length") Prelude.id
-              when (not already && not (Bytes.null rest) && Bytes.length (Bytes.drop 4 rest) >= lengthValue) $ do
-                writeIORef sent True
-                answer request (writeTQueue output) hangUp
-        makeConnection readBytes writeBytes (atomically hangUp)
-  Http.newHttpClient noProxy defaultManagerSettings {managerRawConnection = pure connect}
+streamingPeer answer = Http.newHttpClient noProxy defaultManagerSettings {managerRawConnection = pure (\_ _ _ -> peerConnection answer)}
+
+-- | One connection of a streaming peer.
+peerConnection :: (Bytes.ByteString -> (Bytes.ByteString -> STM ()) -> STM () -> IO ()) -> IO Connection
+peerConnection answer = do
+  accumulated <- newIORef Bytes.empty
+  sent <- newIORef False
+  output <- newTQueueIO
+  closed <- newTVarIO False
+  let readBytes = atomically (readTQueue output `orElse` (readTVar closed >>= check >> pure Bytes.empty))
+      hangUp = writeTVar closed True
+      writeBytes bytes = do
+        request <- atomicModifyIORef' accumulated (\before -> let after = before <> bytes in (after, after))
+        already <- readIORef sent
+        let (headers, rest) = Bytes.breakSubstring "\r\n\r\n" request
+            lengthHeader = find (Char8.isPrefixOf "Content-Length:") (Char8.lines headers)
+            lengthValue = maybe 0 (fst . fromRead . Char8.readInt . Char8.dropWhile (== ' ') . Char8.drop 15) lengthHeader
+            fromRead = maybe (error "invalid HTTP content length") Prelude.id
+        when (not already && not (Bytes.null rest) && Bytes.length (Bytes.drop 4 rest) >= lengthValue) $ do
+          writeIORef sent True
+          answer request (writeTQueue output) hangUp
+  makeConnection readBytes writeBytes (atomically hangUp)
 
 -- The generated endpoint's tag and protocol are explicit nominal constructors.
 endpoint :: HttpEndpoint
@@ -199,7 +201,7 @@ issuerCases fixtures = do
   atomically (writeTVar tokenBody (object ["access_token" .= String "next"]))
   issued <- Issuer.refreshAtIssuer options "http://issuer.test/token" "client" "original"
   require "nonrotating issuer lost the refresh token" (issuedTokensRefresh issued == "original")
-  let stored = StoredSession {storedSessionAccess = "before", storedSessionClientId = "client", storedSessionPersonKey = Nothing, storedSessionRefresh = "original", storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "http://issuer.test/token"}
+  let stored = StoredSession {storedSessionAccess = AccessToken "before", storedSessionClientId = "client", storedSessionPersonKey = Nothing, storedSessionRefresh = "original", storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "http://issuer.test/token"}
   Stored.storeSession storage "kb" stored
   entered <- newEmptyTMVarIO
   release <- newEmptyTMVarIO
@@ -216,7 +218,7 @@ issuerCases fixtures = do
   renewed <- Issuer.refreshSession options (Stored.keptIn storage "kb") (Just "before") (pure 1800000000)
   require "stored grant returned no access token" (renewed == Just "next")
   persisted <- Stored.storedSession storage "kb"
-  require "stored grant did not atomically keep its rotation" (fmap storedSessionAccess persisted == Just "next")
+  require "stored grant did not atomically keep its rotation" (fmap storedSessionAccess persisted == Just (AccessToken "next"))
   atomically (writeTVar status 400)
   refused <- try (Issuer.refreshSession options (Stored.keptIn storage "kb") (Just "before") (pure 1800000000))
   require "issuer refusal lost its terminal status" (case refused of Left failure -> signInStatus failure == Just 400; Right _ -> False)
@@ -391,6 +393,61 @@ deviceClockCases root = clockCasesFor root ["deviceGrant"] $ \time row -> do
     _ -> ioError (userError "unhandled device clock request")
   operation <- async (Issuer.signInWithDeviceGrant options endpoint (const (pure ())))
   pure (Scenario (pure ()) (readTVarIO calls) (cancel operation))
+
+-- | An agent's sign-in, whose issuer grants a token that lives an hour, or answers the grant with a
+-- refusedAgentGrant case's status, and whose gateway names the agent, or answers the naming request with a
+-- refusedAgentSignIn case's status, or cannot be reached in an unreachableAgentSignIn case. It counts the grants,
+-- the naming requests and each connection to the gateway tried.
+agentClockCases :: FilePath -> Map.Map Text Value -> IO [Text]
+agentClockCases root fixtures = clockCasesFor root ["refusedAgentSignIn", "unreachableAgentSignIn", "refusedAgentGrant"] $ \time row -> do
+  agent <- maybe (ioError (userError "agent clock cases have no UserResponse fixture")) pure (Map.lookup "UserResponse" fixtures)
+  asked <- newTVarIO (0 :: Integer)
+  let subject = member "subject" row
+      status = case row of
+        Object fields | Just (Object given) <- KM.lookup "given" fields, Just (Number code) <- KM.lookup "status" given -> Just (round code)
+        _ -> Nothing
+      refusedWith named = if subject == String named then status else Nothing
+      ask = atomically (modifyTVar' asked (+ 1))
+      answer request = case route request of
+        "/.well-known/openid-configuration" -> pure (jsonReply 200 discovery)
+        "/token" -> do
+          ask
+          pure $ case refusedWith "refusedAgentGrant" of
+            Just code -> jsonReply code (object ["error" .= String "temporarily_unavailable"])
+            Nothing -> jsonReply 200 (object ["access_token" .= String "agent", "token_type" .= String "Bearer", "expires_in" .= Number 3600])
+        path | path == gatewayPath GetCurrentUser -> do
+          ask
+          pure $ case refusedWith "refusedAgentSignIn" of
+            Just code -> jsonReply code (object ["error" .= String "naming refused"])
+            Nothing -> jsonReply 200 agent
+        _ -> ioError (userError "unhandled agent clock request")
+      connect _ host _
+        | subject == String "unreachableAgentSignIn" && host == "localhost" = ask >> ioError (userError "the gateway cannot be reached")
+        | otherwise = peerConnection (\request write _ -> answer request >>= atomically . write)
+  pool <- Http.newHttpClient noProxy defaultManagerSettings {managerRawConnection = pure connect}
+  kept <- SignIn.newMemorySignIn
+  let waits = Retry.RetryOptions (Time.now time) (Time.waitUntil time) (pure 0)
+      http =
+        Http.HttpOptions
+          "http://unused.test:1"
+          pool
+          (ioError (userError "the agent's sign-in did not replace the original token reader"))
+          (const (ioError (userError "the agent's sign-in did not replace the original renewer")))
+          waits
+          Timing.protocolSettings
+          (pure (UUID.fromWords 0 0 0 1))
+          Set.empty
+          (pure Map.empty)
+          (\_ _ -> pure ())
+      target = KbTarget {kbTargetEndpoint = (KbEndpointHttpEndpoint endpoint), kbTargetId = "agent-clock", kbTargetLabel = "Agent clock"}
+      options = Session.SessionOptions "agent-clock" target kept Nothing Nothing Nothing (const (pure ())) (pure 1800000000)
+  service <- Service.newServiceTokenSecret (Issuer.IssuerOptions pool waits Timing.protocolSettings) "http://issuer.test" "account" "test-only-secret"
+  signing <- async (Session.signInAgent http options service)
+  let stop = do
+        cancel signing
+        poll signing >>= mapM_ (either (const (pure ())) Session.closeOpenedSession)
+        Service.dispose service
+  pure (Scenario (pure ()) (readTVarIO asked) stop)
 
 serviceTokenCases :: FilePath -> IO ()
 serviceTokenCases root = do

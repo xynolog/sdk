@@ -15,37 +15,6 @@ module Environment = Environment
 module Archivist_http = Archivist_http
 module G = Go_syntax
 
-let discovery_absent_type = Word_tables.discovery_absent.name
-
-let discovery_absent_constant reason =
-  discovery_absent_type ^ Naming.variant reason
-
-(* Why a client that read a launcher's discovery document found no launcher
-   (protocol/specs/src/client/discovery-absent.json): a constant a reason. *)
-let discovery_absent (spec : Spec.t) =
-  let name = discovery_absent_type in
-  [
-    G.Type
-      {
-        doc = G.prose (name ^ " is why no launcher was found.");
-        name;
-        def = G.Is (G.Named "string");
-      };
-    G.Consts
-      {
-        doc = [];
-        spacing = Packed;
-        specs =
-          List.map
-            (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-              let constant = discovery_absent_constant r.reason in
-              G.spec
-                ~doc:(G.prose (constant ^ ": " ^ r.docs))
-                ~type_:(G.Named name) constant (G.Quoted r.reason))
-            spec.tables.client_discovery_absent.reasons;
-      };
-  ]
-
 let path = "go/api/types_gen.go"
 
 (* Each table the services keep to ([Roots.service_tables]) is typed by its
@@ -74,11 +43,10 @@ let fields spec name =
   | None -> Definitions.refuse "%s: package api declares no struct of it" name
 
 (* Every type package api declares, and what it is an alias of, if it is
-   one: the generated types, the kinds of id and why no launcher was found. *)
+   one: the generated types and the kinds of id. *)
 let declared spec =
   let generated, identifiers = generated spec in
   generated.declared @ identifiers
-  @ [ (Word_tables.discovery_absent.name, None) ]
 
 let file spec =
   let generated, _ = generated spec in
@@ -97,7 +65,7 @@ let file spec =
                 Regenerate: make generate (" ^ Banner.writer __FILE__ ^ ")");
           package = "api";
           imports = (match generated.imports with [] -> [] | used -> [ used ]);
-          decls = generated.decls @ discovery_absent spec;
+          decls = generated.decls;
         };
   }
 

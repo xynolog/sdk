@@ -156,16 +156,13 @@ struct StateCaseUnit {
         stallDeadlineMs: try args["stallDeadlineMs"].map(stateCaseInteger))
     case (let yield as YieldStateUnit, "dismissProgress"): yield.dismissProgress()
     case (let gather as GatherStateUnit, "gatherAnnotation"):
-      let id = try argument(AnnotationId.self, "annotationId")
-      let stated = args.filter { $0.key != "annotationId" }
-      let options =
-        try stated.isEmpty ? nil : decoded(GatherAnnotationOptions.self, .object(stated))
-      gather.gatherAnnotation(id, options: options)
+      gather.gatherAnnotation(
+        try argument(AnnotationId.self, "annotationId"),
+        options: try args["options"].map { try decoded(GatherAnnotationOptions.self, $0) })
     case (let gather as GatherStateUnit, "gatherResource"):
-      let id = try argument(ResourceId.self, "resourceId")
-      let options = try decoded(
-        GatherResourceOptions.self, .object(args.filter { $0.key != "resourceId" }))
-      gather.gatherResource(id, options: options)
+      gather.gatherResource(
+        try argument(ResourceId.self, "resourceId"),
+        options: try args["options"].map { try decoded(GatherResourceOptions.self, $0) })
     case (let beckon as BeckonStateUnit, "focus"):
       beckon.focus(try argument(AnnotationId.self, "annotationId"))
     case (let dwell as HoverDwell, "enter"):

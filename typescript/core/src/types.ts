@@ -4,7 +4,6 @@
 //              the records Protocol states in its tables (codegen/lib/table_records.ml)
 //              the client types it names, of protocol/specs/src/client/types
 //              the schemas of the tables it carries as values (codegen/lib/typescript_types/table_modules.ml)
-//              protocol/specs/src/client/discovery-absent.json
 //              protocol/specs/src/identifiers/kinds.json, for the brands
 // Regenerate:  make generate  (codegen/lib/typescript_types/typescript_types.ml)
 
@@ -637,10 +636,7 @@ export interface components {
     BeckonSparkleEvent: {
       annotationId: components['schemas']['AnnotationId'];
     };
-    /**
-     * Bytes held whole. They can be read more than once, and sent again when an
-     * upload is retried.
-     */
+    /** Bytes held whole: all of them at once, read as often as wanted. */
     Binary: string;
     /**
      * One edit to a linking annotation's body list: add or remove a body item,
@@ -4767,7 +4763,7 @@ export interface components {
     ResourceUpload: {
       /** Human-readable resource name */
       name: string;
-      /** Binary content */
+      /** The bytes, as the part carries them. */
       file: components['schemas']['Binary'];
       /**
        * Media type of the content (e.g. text/plain, text/markdown, image/png)
@@ -7003,11 +6999,18 @@ export interface records {
   /** No launcher was found, and why. */
   DiscoveryAbsent: {
     kind: 'absent';
-    /** Why: one of client/discovery-absent.json's reasons. */
-    reason: DiscoveryAbsentReason;
+    /** Why. */
+    reason: records['DiscoveryAbsentReason'];
     /** What was wrong, in words, when there is more to say. */
     diagnostic?: string;
   };
+  /**
+   * Why a client that read a launcher's discovery document found no launcher:
+   * one of the reasons of client/discovery-absent.json, which says what each
+   * means.
+   */
+  DiscoveryAbsentReason:
+    'not-found' | 'not-json' | 'invalid' | 'unsupported-version' | 'unreadable';
   /** How one poll's knowledge bases changed since the last state it gave. */
   DiscoveryDiff: {
     /** The state the poll found. */
@@ -7482,7 +7485,7 @@ export interface records {
    */
   StoredSession: {
     /** The access token: short-lived, sent as a Bearer token. */
-    access: string;
+    access: records['AccessToken'];
     /**
      * The refresh token: what renews the access token at the issuer without
      * another sign-in.
@@ -7557,8 +7560,11 @@ export interface records {
     tracestate?: string;
   };
   /**
-   * What an upload reports as it goes, told apart by `phase`: its size first,
-   * then the bytes sent so far, then the resource made.
+   * What an upload reports as it goes, told apart by `phase`: that it began,
+   * with its size when its ByteSource states one, then the bytes sent so far,
+   * then the resource made. An upload whose source states no length reports
+   * none: a size it made up would be a size the caller could not tell from a
+   * true one.
    */
   UploadProgress:
     UploadProgressStarted | UploadProgressProgress | UploadProgressFinished;
@@ -7585,31 +7591,6 @@ export interface records {
     /** How many jobs it has completed since the service started. */
     jobsCompleted: number;
   };
-  /** Why no launcher was found. */
-  DiscoveryAbsentReason:
-    /**
-     * There is no document where it was looked for: no file, an HTTP status
-     * that is not success, or a page that is not JSON.
-     */
-    | 'not-found'
-    /** There is a document, and it is not JSON. */
-    | 'not-json'
-    /**
-     * It is JSON, and not a discovery document: one entry that is not what the
-     * schema says makes the whole document invalid, since a partial reading
-     * would hide a running knowledge base without a trace.
-     */
-    | 'invalid'
-    /**
-     * It is a discovery document of a version this client does not speak, and
-     * is not read in part.
-     */
-    | 'unsupported-version'
-    /**
-     * It could not be read at all: the file could not be opened or decoded, or
-     * the request got no answer by its deadline.
-     */
-    | 'unreadable';
 }
 
 /** The tables the SDK carries as values, and what only they reach. */
@@ -9376,8 +9357,11 @@ export type TabCheckUnknownVerdict = records['TabVerdict'] & 'unknown';
 /** The upload began. */
 export type UploadProgressStarted = {
   phase: 'started';
-  /** How many bytes the upload is. */
-  totalBytes: number;
+  /**
+   * How many bytes the upload is: its ByteSource's length. Absent when the
+   * source states none.
+   */
+  totalBytes?: number;
 };
 
 /** Bytes were sent. */
@@ -9385,8 +9369,11 @@ export type UploadProgressProgress = {
   phase: 'progress';
   /** How many bytes are sent so far. */
   bytesUploaded: number;
-  /** How many bytes the upload is. */
-  totalBytes: number;
+  /**
+   * How many bytes the upload is: its ByteSource's length. Absent when the
+   * source states none.
+   */
+  totalBytes?: number;
 };
 
 /** The upload ended, and the resource is made. */
@@ -9701,8 +9688,10 @@ export type ConformanceDriverLineProgressProgress = {
   upload: number;
   /** How many bytes it has sent. */
   bytesUploaded: number;
-  /** How many it will send. */
-  totalBytes: number;
+  /**
+   * How many it will send. Absent for an upload whose source states no length.
+   */
+  totalBytes?: number;
 };
 
 /** The live driver: an observer was given a state. */

@@ -19,7 +19,6 @@ Each kind of contract the pinned Protocol states, how many items it has, and how
 | telemetry spans | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 | 7 |
 | telemetry metrics | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | refresh queries | 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10 |
-| discovery-absent reasons | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
 | testing fault actions | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
 | testing records | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
 | gateway operations | 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15 |

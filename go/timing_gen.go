@@ -67,7 +67,8 @@ type Timing struct {
 	// after a refusal's `Retry-After` when that is longer. A request whose
 	// credential was refused is renewed and sent again at once, without this
 	// wait, and one unanswered at its deadline (`httpRequestTimeoutMs`) is not
-	// made again.
+	// made again. The naming request of an agent's sign-in is made once, and is
+	// not made again (contract/TRANSPORT-HTTP.md § An agent's sign-in).
 	RequestRetryPause time.Duration
 	// StreamOpenTimeout is streamOpenTimeoutMs: How long a client waits for the
 	// gateway to answer the request that opens its stream (POST /bus/subscribe):

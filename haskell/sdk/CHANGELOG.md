@@ -150,6 +150,26 @@ the coming release's, and gathers its changes as they land.
   `Gather.annotation` no longer sends a `contextWindow` of 2000, nor an
   `options` member when it is given none, and `Match.search` no longer sends
   `useSemanticScoring` true. Its `limit` is still 10 when none is stated.
+- What discovery reads is the generated types Protocol names, in place of
+  `Xynolog.Discovery`'s own: `parseDiscoveryDocument` gives a
+  `Xynolog.Types.DiscoveryState` (`DiscoveryStateDiscoveryAbsent` of a
+  `DiscoveryAbsent`, its reason and diagnostic, or
+  `DiscoveryStateDiscoveryManaged` of a `DiscoveryManaged`), `readDiscovery`
+  a `DiscoveryRead` (either of those, or `DiscoveryReadDiscoveryUnchanged`),
+  and `discoveryDiff` and `subscribeDiscovery` a `DiscoveryDiff`, whose
+  fields are `discoveryDiffState`, `discoveryDiffAdded`,
+  `discoveryDiffUpdated`, `discoveryDiffRemoved` and
+  `discoveryDiffDuplicated`. `Xynolog.Discovery` no longer exports
+  `DiscoveryState`, `DiscoveryRead` or `DiscoveryDiff`, nor `Absent`,
+  `Managed`, `Read` and `Unchanged`.
+- `SignIn`'s `signInToken` and `StoredSession`'s `storedSessionAccess` are
+  an `AccessToken` (protocol#124), in place of `Text`: one is built
+  `AccessToken token`, and read with `accessTokenValue`.
+- `UploadStarted` and `UploadProgress`'s total, and
+  `ConformanceDriverLineProgressProgress`'s
+  `conformanceDriverLineProgressProgressTotalBytes`, are a `Maybe Integer`:
+  an upload states its total only when its source states its length
+  (protocol#121), where an unsized source reported a total of 0.
 
 ### Removed
 
@@ -160,6 +180,16 @@ the coming release's, and gathers its changes as they land.
   `signInAgent http options service`.
 - `Xynolog.Types.Presence` is removed. No member of Protocol is both optional
   and nullable, so a model's optional field is a `Maybe`.
+- `Xynolog.Discovery.Reasons` is removed, and `Xynolog.Discovery` no longer
+  exports it: an absent launcher's reason is
+  `Xynolog.Types.DiscoveryAbsentReason`, the type Protocol states
+  (protocol#124), whose constructors are
+  `DiscoveryAbsentReasonNotFound`, `DiscoveryAbsentReasonNotJson`,
+  `DiscoveryAbsentReasonInvalid`, `DiscoveryAbsentReasonUnsupportedVersion`
+  and `DiscoveryAbsentReasonUnreadable`, and whose word is
+  `discoveryAbsentReasonText`, in place of `DiscoveryAbsentCode`,
+  `DiscoveryAbsentNotFound`, …, `discoveryAbsentCode` and
+  `parseDiscoveryAbsentCode`.
 
 ## 0.8.1
 

@@ -21,7 +21,8 @@ let schema : Yojson.Safe.t =
             ( "token",
               `Assoc
                 [
-                  ("type", `String "string");
+                  ( "$ref",
+                    `String "https://xynolog.org/protocol/AccessToken.json" );
                   ( "description",
                     `String
                       "The access token: short-lived, sent as a Bearer token."

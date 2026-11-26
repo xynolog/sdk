@@ -39,28 +39,22 @@ let rec value : Yojson.Safe.t -> H.expr = function
   | `Null -> Name "Null"
   | `Intlit _ -> invalid_arg "Companions: no JSON value of this kind"
 
-(* [schema] with each text of a vocabulary of errors/codes.json or a table
-   of words ([x-xynolog-codes]) stated as an enumeration of its values,
-   which the runtime form of a schema leaves out: the code types the models
-   read it as hold it to no other, as the required table does. One that also
-   allows null is either null or one of the values. *)
-let coded (vocabularies : Error_codes.Table.vocabulary list) ~words =
+(* [schema] with each text of a vocabulary of errors/codes.json
+   ([x-xynolog-codes]) stated as an enumeration of its codes, which the
+   runtime form of a schema leaves out: the code types the models read it as
+   hold it to no other, as the required table does. One that also allows
+   null is either null or one of the codes. *)
+let coded (vocabularies : Error_codes.Table.vocabulary list) =
   Schema.cata
     ~boolean:(fun b -> Schema.Boolean_schema b)
     ~schema:(fun (layer : Schema.schema) ->
       match layer.codes with
       | None -> Schema.Schema layer
       | Some member -> (
-          match
-            Word_tables.enum
-              ~codes:(Error_codes.Table.enum vocabularies)
-              ~words member
-          with
+          match Error_codes.Table.enum vocabularies member with
           | None ->
               invalid_arg
-                ("Companions: " ^ member
-               ^ " is neither a vocabulary of errors/codes.json nor a table of \
-                  words")
+                ("Companions: errors/codes.json has no vocabulary " ^ member)
           | Some codes -> (
               let enum = Some codes in
               match layer.type_ with
@@ -88,7 +82,7 @@ let coded (vocabularies : Error_codes.Table.vocabulary list) ~words =
                     ("Companions: a code of " ^ member
                    ^ " is neither text nor text or null"))))
 
-let schemas_module ~banner ~vocabularies ~words definitions =
+let schemas_module ~banner ~vocabularies definitions =
   let body =
     [
       H.value "schemas" (T_name "Schemas")
@@ -101,8 +95,7 @@ let schemas_module ~banner ~vocabularies ~words definitions =
                       H.Tuple
                         [
                           Str name;
-                          value
-                            (Schema.runtime (coded vocabularies ~words schema));
+                          value (Schema.runtime (coded vocabularies schema));
                         ])
                     definitions);
              ] ));

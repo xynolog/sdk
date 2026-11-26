@@ -16,13 +16,8 @@ let component (name, text) =
 (* The references here name schemas by path, so they need no index of [$id]s. *)
 let ids = Result.get_ok (Decode.ids [])
 
-(* The one table of words the cases name. *)
-let words =
-  [ ("t.json", [ Schema.String_literal "a"; Schema.String_literal "b" ]) ]
-
 let derived components =
   Required.Shape.derive ~ids ~unrecognized:"Unrecognized" ~vocabularies:[]
-    ~words
     (List.map component (command_error :: components))
 
 let compact text = Yojson.Safe.to_string (Yojson.Safe.from_string text)
@@ -57,16 +52,6 @@ let kinds =
   [
     case "a type is a kind"
       (derives [ ("S", {|{"type":"string"}|}) ] "S" {|{"kinds":["string"]}|});
-    case "a code of a table of words is one of its words"
-      (derives
-         [ ("S", {|{"type":"string","x-xynolog-codes":"t.json"}|}) ]
-         "S" {|{"kinds":["string"],"enum":["a","b"]}|});
-    case "a code of no vocabulary and no table of words is refused"
-      (refuses
-         [ ("S", {|{"type":"string","x-xynolog-codes":"u.json"}|}) ]
-         (s
-        ^ ": /x-xynolog-codes: is u.json, which is neither a vocabulary of \
-           errors/codes.json nor a table of words"));
     case "a number allows an integer"
       (derives
          [ ("S", {|{"type":["integer","number"]}|}) ]
@@ -512,7 +497,7 @@ let command_errors =
     case "a CommandError that requires its code is refused" (fun () ->
         match
           Required.Shape.derive ~ids ~unrecognized:"Unrecognized"
-            ~vocabularies:[] ~words:[]
+            ~vocabularies:[]
             [
               component
                 ( "CommandError",
@@ -533,7 +518,7 @@ let command_errors =
     case "a CommandError whose code names no list is refused" (fun () ->
         match
           Required.Shape.derive ~ids ~unrecognized:"Unrecognized"
-            ~vocabularies:[] ~words:[]
+            ~vocabularies:[]
             [
               component
                 ( "CommandError",

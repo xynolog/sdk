@@ -14,20 +14,23 @@ public data class UploadProgressProgress(
     public val phase: UploadProgressProgressPhase = UploadProgressProgressPhase.Progress,
     /** How many bytes are sent so far. */
     public val bytesUploaded: Long,
-    /** How many bytes the upload is. */
-    public val totalBytes: Long,
+    /** How many bytes the upload is: its ByteSource's length. Absent when the source states none. */
+    public val totalBytes: Long? = null,
 ) : UploadProgress {
     /** How Java makes a `UploadProgressProgress`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val bytesUploaded: Long,
-        private val totalBytes: Long,
     ) {
+        private var totalBytes: Long? = null
+
+        public fun totalBytes(totalBytes: Long?): Builder = apply { this.totalBytes = totalBytes }
+
         public fun build(): UploadProgressProgress = UploadProgressProgress(bytesUploaded = bytesUploaded, totalBytes = totalBytes)
     }
 
     public companion object {
         /** A builder of a `UploadProgressProgress` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(bytesUploaded: Long, totalBytes: Long): Builder = Builder(bytesUploaded, totalBytes)
+        public fun builder(bytesUploaded: Long): Builder = Builder(bytesUploaded)
     }
 }

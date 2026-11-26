@@ -168,10 +168,10 @@ impl Form {
         reqwest::Body::wrap_stream(futures::stream::iter(pieces).map(move |piece| {
             bytes_uploaded += piece.len() as u64;
             if reported.fetch_max(bytes_uploaded, Ordering::Relaxed) < bytes_uploaded {
-                let _ = progress.send(UploadProgress::Progress(UploadProgressProgress::new(
-                    bytes_uploaded,
-                    total_bytes,
-                )));
+                let _ = progress.send(UploadProgress::Progress(UploadProgressProgress {
+                    total_bytes: Some(total_bytes),
+                    ..UploadProgressProgress::new(bytes_uploaded)
+                }));
             }
             Ok::<Bytes, std::convert::Infallible>(piece)
         }))
@@ -200,9 +200,10 @@ impl ContentTransport for HttpContentTransport {
             let form = Form::of(&request);
             // Once, before the first sending: one that repeats it does not
             // start the upload again.
-            let _ = progress.send(UploadProgress::Started(UploadProgressStarted::new(
-                form.len(),
-            )));
+            let _ = progress.send(UploadProgress::Started(UploadProgressStarted {
+                total_bytes: Some(form.len()),
+                ..UploadProgressStarted::new()
+            }));
             let key = idempotency_key();
             xynolog_telemetry::content_put(
                 &request.format,
@@ -468,7 +469,7 @@ mod tests {
             let UploadProgress::Progress(report) = report else {
                 panic!("the body reports only what it has sent: {report:?}");
             };
-            assert_eq!(report.total_bytes, form.len());
+            assert_eq!(report.total_bytes, Some(form.len()));
             assert!(last.is_none_or(|before| report.bytes_uploaded > before));
             last = Some(report.bytes_uploaded);
             reports += 1;

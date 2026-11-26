@@ -7,12 +7,12 @@ module Xynolog.Internal.Generated.Models.DiscoveryAbsent (DiscoveryAbsent (..), 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
-import Xynolog.Discovery.Reasons (DiscoveryAbsentCode (..))
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.DiscoveryAbsentReason
 
 data DiscoveryAbsent = DiscoveryAbsent
   { discoveryAbsentKind :: DiscoveryAbsentKind,
-    discoveryAbsentReason :: DiscoveryAbsentCode,
+    discoveryAbsentReason :: DiscoveryAbsentReason,
     discoveryAbsentDiagnostic :: Maybe Text
   }
   deriving (Eq, Show)

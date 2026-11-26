@@ -629,6 +629,25 @@ module Connection_state = struct
     | _ -> None
 end
 
+module Discovery_absent_reason = struct
+  type t = Not_found | Not_json | Invalid | Unsupported_version | Unreadable
+
+  let to_string = function
+    | Not_found -> "not-found"
+    | Not_json -> "not-json"
+    | Invalid -> "invalid"
+    | Unsupported_version -> "unsupported-version"
+    | Unreadable -> "unreadable"
+
+  let of_string = function
+    | "not-found" -> Some Not_found
+    | "not-json" -> Some Not_json
+    | "invalid" -> Some Invalid
+    | "unsupported-version" -> Some Unsupported_version
+    | "unreadable" -> Some Unreadable
+    | _ -> None
+end
+
 module Frame_refusal_reason = struct
   type t = Lacks | Malformed
 
@@ -652,25 +671,6 @@ module Match_quality = struct
     | "normalized" -> Some Normalized
     | "case-insensitive" -> Some Case_insensitive
     | "fuzzy" -> Some Fuzzy
-    | _ -> None
-end
-
-module Discovery_absent_reason = struct
-  type t = Not_found | Not_json | Invalid | Unsupported_version | Unreadable
-
-  let to_string = function
-    | Not_found -> "not-found"
-    | Not_json -> "not-json"
-    | Invalid -> "invalid"
-    | Unsupported_version -> "unsupported-version"
-    | Unreadable -> "unreadable"
-
-  let of_string = function
-    | "not-found" -> Some Not_found
-    | "not-json" -> Some Not_json
-    | "invalid" -> Some Invalid
-    | "unsupported-version" -> Some Unsupported_version
-    | "unreadable" -> Some Unreadable
     | _ -> None
 end
 

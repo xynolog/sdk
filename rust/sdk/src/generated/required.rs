@@ -2422,7 +2422,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         "progress",
                         Shape {
                             kinds: Some(&[Kind::Object]),
-                            required: &["upload", "bytesUploaded", "totalBytes"],
+                            required: &["upload", "bytesUploaded"],
                             members: &[
                                 (
                                     "bytesUploaded",
@@ -3731,20 +3731,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "reason",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[
-                            Listed::Text("not-found"),
-                            Listed::Text("not-json"),
-                            Listed::Text("invalid"),
-                            Listed::Text("unsupported-version"),
-                            Listed::Text("unreadable"),
-                        ]),
-                        ..NONE
-                    },
-                ),
+                ("reason", reference("DiscoveryAbsentReason")),
             ],
             closed: Some(&["diagnostic", "kind", "reason"]),
             ..NONE
@@ -13028,7 +13015,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             kinds: Some(&[Kind::Object]),
             required: &["access", "refresh", "clientId", "tokenEndpoint"],
             members: &[
-                ("access", of(&[Kind::String])),
+                ("access", reference("AccessToken")),
                 ("clientId", of(&[Kind::String])),
                 ("personKey", of(&[Kind::String])),
                 ("refresh", of(&[Kind::String])),
@@ -13641,7 +13628,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             one_of: &[
                 Shape {
                     kinds: Some(&[Kind::Object]),
-                    required: &["phase", "totalBytes"],
+                    required: &["phase"],
                     members: &[
                         (
                             "phase",
@@ -13665,7 +13652,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 },
                 Shape {
                     kinds: Some(&[Kind::Object]),
-                    required: &["phase", "bytesUploaded", "totalBytes"],
+                    required: &["phase", "bytesUploaded"],
                     members: &[
                         (
                             "bytesUploaded",

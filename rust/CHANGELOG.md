@@ -160,6 +160,18 @@ the coming release's, and gathers its changes as they land.
   `match.search` no `useSemanticScoring` of true, when the caller leaves them
   out: the service's own default applies. Options to `gather.annotation` that
   state nothing are not sent.
+- Discovery's types are the generated ones, in `xynolog::types` as Protocol
+  states them, where `discovery` declared its own: `parse_discovery_document`
+  gives `DiscoveryState` (`DiscoveryAbsent` or `DiscoveryManaged`), a
+  `DiscoveryTransport` reads a `DiscoveryRead` (those two, or
+  `DiscoveryUnchanged`, where it was `State` or `Unchanged`), and
+  `subscribe_discovery` tells of each `DiscoveryDiff`. A `DiscoveryState` is
+  a `DiscoveryRead` by `From`.
+- `DiscoveryAbsentReason` is the generated client type, in `xynolog::types`,
+  where `discovery` declared it from the table of reasons.
+- An upload's `UploadProgressStarted` and `UploadProgressProgress` state
+  `total_bytes` as an `Option<u64>`: a source of unstated length states none.
+  Every upload today holds its bytes whole, and states its total.
 
 ## 0.8.1
 

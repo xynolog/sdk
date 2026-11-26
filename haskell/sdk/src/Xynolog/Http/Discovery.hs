@@ -19,6 +19,15 @@ import Xynolog.Discovery
 import Xynolog.Internal.Http (HttpClient (..))
 import Xynolog.Retry qualified as Retry
 import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Types
+  ( DiscoveryAbsent (..),
+    DiscoveryAbsentKind (..),
+    DiscoveryAbsentReason (..),
+    DiscoveryRead (..),
+    DiscoveryState (..),
+    DiscoveryUnchanged (..),
+    DiscoveryUnchangedKind (..),
+  )
 
 -- | The caller owns its HTTP pool. Reads are serial and bounded by the
 -- caller's clock; only a complete managed document replaces the saved ETag.
@@ -45,24 +54,27 @@ httpDiscovery (HttpClient manager) time timing url = do
           let code = statusCode (responseStatus response)
               headers = responseHeaders response
               contentType = maybe "" (Text.toLower . decodeUtf8With lenientDecode) (lookup hContentType headers)
-              absent reason diagnostic = (previous, Read (Absent reason (Just diagnostic)))
+              absent reason diagnostic = (previous, absentRead reason diagnostic)
           pure $
             if code == 304
-              then (previous, Unchanged)
+              then (previous, DiscoveryReadDiscoveryUnchanged (DiscoveryUnchanged DiscoveryUnchangedKindUnchanged))
               else
                 if code < 200 || code >= 300
-                  then absent DiscoveryAbsentNotFound ("HTTP " <> Text.pack (show code))
+                  then absent DiscoveryAbsentReasonNotFound ("HTTP " <> Text.pack (show code))
                   else
                     if not ("json" `Text.isInfixOf` contentType)
-                      then absent DiscoveryAbsentNotFound ("The content type is " <> contentType)
+                      then absent DiscoveryAbsentReasonNotFound ("The content type is " <> contentType)
                       else case decodeUtf8' bytes of
-                        Left _ -> absent DiscoveryAbsentUnreadable "The discovery document is not UTF-8"
+                        Left _ -> absent DiscoveryAbsentReasonUnreadable "The discovery document is not UTF-8"
                         Right text -> case parseDiscoveryDocument text of
-                          state@(Managed _) -> (lookup hETag headers, Read state)
-                          state -> (previous, Read state)
+                          DiscoveryStateDiscoveryManaged managed -> (lookup hETag headers, DiscoveryReadDiscoveryManaged managed)
+                          DiscoveryStateDiscoveryAbsent found -> (previous, DiscoveryReadDiscoveryAbsent found)
     now <- Retry.retryNow time
     answer <- try (race readResponse (Retry.retryWaitUntil time (now + Timing.httpRequestTimeoutMs timing * 1000000)))
     case answer of
-      Left (_ :: HttpException) -> pure (previous, Read (Absent DiscoveryAbsentUnreadable (Just "The discovery request received no usable answer")))
-      Right (Right ()) -> pure (previous, Read (Absent DiscoveryAbsentUnreadable (Just "The discovery request deadline expired")))
+      Left (_ :: HttpException) -> pure (previous, absentRead DiscoveryAbsentReasonUnreadable "The discovery request received no usable answer")
+      Right (Right ()) -> pure (previous, absentRead DiscoveryAbsentReasonUnreadable "The discovery request deadline expired")
       Right (Left result) -> pure result
+
+absentRead :: DiscoveryAbsentReason -> Text -> DiscoveryRead
+absentRead reason diagnostic = DiscoveryReadDiscoveryAbsent (DiscoveryAbsent DiscoveryAbsentKindAbsent reason (Just diagnostic))

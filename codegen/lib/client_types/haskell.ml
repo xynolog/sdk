@@ -296,8 +296,9 @@ let refused_member value = function
   | _ -> None
 
 (* The reports' sums: each branch a constructor holding its members but the
-   tag, in order, and written back to the branch's JSON; and the types of
-   Xynolog.Types they hold. *)
+   tag, in order, an optional one as a Maybe, and written back to the
+   branch's JSON, which states an optional member only when it is held; and
+   the types of Xynolog.Types they hold. *)
 let report ~shape ~native ~prefix name =
   let* s = found ~shape name in
   let* tag, branches =
@@ -306,7 +307,7 @@ let report ~shape ~native ~prefix name =
     | _ -> Error [ refusal name "is no union" ]
   in
   let completion = "completion" in
-  let held branch (m : member) :
+  let stated branch (m : member) :
       (H.type_ * (H.expr -> H.expr), Decode.error list) result =
     let plain t = Ok (t, fun v -> v) in
     match m.held with
@@ -349,6 +350,12 @@ let report ~shape ~native ~prefix name =
     | _ ->
         Error
           [ refusal name (branch ^ "'s " ^ m.name ^ " is no report member") ]
+  in
+  let held branch (m : member) =
+    Result.map
+      (fun (t, encode) ->
+        ((if m.required then t else H.T_apply ("Maybe", [ t ])), encode))
+      (stated branch m)
   in
   let* rows =
     Spec.all
@@ -401,20 +408,53 @@ let report ~shape ~native ~prefix name =
                            List.mapi (fun i _ -> H.Var (value i)) fields );
                      ];
                    body =
-                     Apply
-                       ( Name "object",
-                         [
-                           List
-                             (H.Infix
-                                ( Str tag,
-                                  [ (".=", Typed (Str word, T_name "Text")) ] )
-                             :: List.mapi
-                                  (fun i ((m : member), (_, encode)) ->
-                                    H.Infix
-                                      ( Str m.name,
-                                        [ (".=", encode (H.Name (value i))) ] ))
-                                  (List.combine members fields));
-                         ] );
+                     (let pair (m : member) encode v =
+                        H.Infix (Str m.name, [ (".=", encode v) ])
+                      in
+                      let held =
+                        List.mapi
+                          (fun i ((m : member), (_, encode)) ->
+                            (m, encode, H.Name (value i)))
+                          (List.combine members fields)
+                      in
+                      let always =
+                        H.List
+                          (H.Infix
+                             ( Str tag,
+                               [ (".=", Typed (Str word, T_name "Text")) ] )
+                          :: List.filter_map
+                               (fun ((m : member), encode, v) ->
+                                 if m.required then Some (pair m encode v)
+                                 else None)
+                               held)
+                      in
+                      let when_held =
+                        List.filter_map
+                          (fun ((m : member), encode, v) ->
+                            if m.required then None
+                            else
+                              Some
+                                ( "++",
+                                  H.Apply
+                                    ( Name "maybe",
+                                      [
+                                        List [];
+                                        Lambda
+                                          ( "stated",
+                                            List
+                                              [ pair m encode (H.Name "stated") ]
+                                          );
+                                        v;
+                                      ] ) ))
+                          held
+                      in
+                      Apply
+                        ( Name "object",
+                          [
+                            (match when_held with
+                            | [] -> always
+                            | appended -> Infix (always, appended));
+                          ] ));
                  } ))
              rows);
       ] )

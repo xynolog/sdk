@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(DiscoveryState.DiscoveryAbsent), typeof(DiscoveryState.DiscoveryManaged))]
 public closed record DiscoveryState
 {
-    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["kind", "reason"], ["kind", "reason", "diagnostic"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("absent")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind", "kbs"], ["kind", "kbs"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("managed")])], null)]];
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["kind", "reason"], ["kind", "reason", "diagnostic"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("absent")]), new("reason", [new global::Xynolog.Serialization.Literal.Text("not-found"), new global::Xynolog.Serialization.Literal.Text("not-json"), new global::Xynolog.Serialization.Literal.Text("invalid"), new global::Xynolog.Serialization.Literal.Text("unsupported-version"), new global::Xynolog.Serialization.Literal.Text("unreadable")])], null)], [new(global::Xynolog.Serialization.Kind.Object, ["kind", "kbs"], ["kind", "kbs"], [new("kind", [new global::Xynolog.Serialization.Literal.Text("managed")])], null)]];
     public sealed record DiscoveryAbsent(global::Xynolog.Types.DiscoveryAbsent Value) : DiscoveryState;
     public sealed record DiscoveryManaged(global::Xynolog.Types.DiscoveryManaged Value) : DiscoveryState;
 }

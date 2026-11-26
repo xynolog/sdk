@@ -767,6 +767,31 @@ let () =
     (Model.of_string "closed" = Some Model.Closed);
   Alcotest.check Alcotest.bool "Connection_state rejects unknown values" true
     (Model.of_string "" = None);
+  let module Model = Xynolog.Enums.Discovery_absent_reason in
+  Alcotest.check Alcotest.string "Discovery_absent_reason encode" "not-found"
+    (Model.to_string Model.Not_found);
+  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
+    (Model.of_string "not-found" = Some Model.Not_found);
+  Alcotest.check Alcotest.string "Discovery_absent_reason encode" "not-json"
+    (Model.to_string Model.Not_json);
+  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
+    (Model.of_string "not-json" = Some Model.Not_json);
+  Alcotest.check Alcotest.string "Discovery_absent_reason encode" "invalid"
+    (Model.to_string Model.Invalid);
+  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
+    (Model.of_string "invalid" = Some Model.Invalid);
+  Alcotest.check Alcotest.string "Discovery_absent_reason encode"
+    "unsupported-version"
+    (Model.to_string Model.Unsupported_version);
+  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
+    (Model.of_string "unsupported-version" = Some Model.Unsupported_version);
+  Alcotest.check Alcotest.string "Discovery_absent_reason encode" "unreadable"
+    (Model.to_string Model.Unreadable);
+  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
+    (Model.of_string "unreadable" = Some Model.Unreadable);
+  Alcotest.check Alcotest.bool "Discovery_absent_reason rejects unknown values"
+    true
+    (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Frame_refusal_reason in
   Alcotest.check Alcotest.string "Frame_refusal_reason encode" "lacks"
     (Model.to_string Model.Lacks);
@@ -793,31 +818,6 @@ let () =
   Alcotest.check Alcotest.bool "Match_quality decode" true
     (Model.of_string "fuzzy" = Some Model.Fuzzy);
   Alcotest.check Alcotest.bool "Match_quality rejects unknown values" true
-    (Model.of_string "" = None);
-  let module Model = Xynolog.Enums.Discovery_absent_reason in
-  Alcotest.check Alcotest.string "Discovery_absent_reason encode" "not-found"
-    (Model.to_string Model.Not_found);
-  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
-    (Model.of_string "not-found" = Some Model.Not_found);
-  Alcotest.check Alcotest.string "Discovery_absent_reason encode" "not-json"
-    (Model.to_string Model.Not_json);
-  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
-    (Model.of_string "not-json" = Some Model.Not_json);
-  Alcotest.check Alcotest.string "Discovery_absent_reason encode" "invalid"
-    (Model.to_string Model.Invalid);
-  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
-    (Model.of_string "invalid" = Some Model.Invalid);
-  Alcotest.check Alcotest.string "Discovery_absent_reason encode"
-    "unsupported-version"
-    (Model.to_string Model.Unsupported_version);
-  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
-    (Model.of_string "unsupported-version" = Some Model.Unsupported_version);
-  Alcotest.check Alcotest.string "Discovery_absent_reason encode" "unreadable"
-    (Model.to_string Model.Unreadable);
-  Alcotest.check Alcotest.bool "Discovery_absent_reason decode" true
-    (Model.of_string "unreadable" = Some Model.Unreadable);
-  Alcotest.check Alcotest.bool "Discovery_absent_reason rejects unknown values"
-    true
     (Model.of_string "" = None);
   let module Model = Xynolog.Enums.Kb_session_status in
   Alcotest.check Alcotest.string "Kb_session_status encode" "authenticated"

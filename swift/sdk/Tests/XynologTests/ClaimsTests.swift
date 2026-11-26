@@ -22,7 +22,7 @@ private func refusedAnnouncement(_ job: String) -> Carried {
   .refused(
     FrameRefusal(
       channel: Channels.jobQueued.name, member: "payload", reason: .malformed,
-      payload: .string(job), correlationId: nil, scope: nil))
+      payload: .string(job)))
 }
 
 private func claimsAsked(_ probe: ProbeTransport) -> Int {

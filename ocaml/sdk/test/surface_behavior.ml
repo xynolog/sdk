@@ -262,7 +262,7 @@ let tests env ~name ~(via : Surface.item_via) ~(row : Surface.cases_item) =
           (C.fresh
              (C.Browse.resources client
                 (decode B.Channels.browse_resources_requested
-                   (`Assoc (filters args))))))
+                   (`Assoc (filters args)))))
     | "browse.annotations" ->
         ignore (C.fresh (C.Browse.annotations client (resource ())))
     | "browse.annotation" ->

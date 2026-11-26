@@ -7,12 +7,8 @@ import Foundation
 // codegen/lib/required/shape.ml, which states what each part of a shape means and
 // the order a reader walks them in.
 
-/// The first thing wrong with a value: the way to the member it is at (the names of the members it
-/// is within, and its own, joined by dots; empty for the value itself), and why.
-public struct Fault: Error, Equatable, Sendable {
-  public let member: String
-  public let reason: FrameRefusalReason
-
+/// The first thing wrong with a value, thrown where a value is refused.
+extension Fault: Error {
   /// The fault of a value its decoder refuses where the table finds none: the value itself.
   static let undecoded = Fault(member: "", reason: .malformed)
 

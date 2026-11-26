@@ -23,7 +23,6 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.long
 import kotlinx.serialization.serializer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -226,14 +225,13 @@ private fun Over.gather(made: JsonObject): Made {
         ),
         mapOf(
             "gatherAnnotation" to { args ->
-                unit.gatherAnnotation(
-                    AnnotationId(args.getValue("annotationId").text()),
-                    GatherAnnotationOptions(
-                        contextWindow = args["contextWindow"]?.jsonPrimitive?.long,
-                        includeSourceContext = args["includeSourceContext"]?.jsonPrimitive?.booleanOrNull,
-                        includeTargetContext = args["includeTargetContext"]?.jsonPrimitive?.booleanOrNull,
-                    ),
-                )
+                val annotationId = AnnotationId(args.getValue("annotationId").text())
+                val options = args["options"]
+                if (options == null) {
+                    unit.gatherAnnotation(annotationId)
+                } else {
+                    unit.gatherAnnotation(annotationId, wireJson.decodeFromJsonElement(GatherAnnotationOptions.serializer(), options))
+                }
             },
             "gatherResource" to { args -> unit.gatherResource(ResourceId(args.getValue("resourceId").text())) },
         ),

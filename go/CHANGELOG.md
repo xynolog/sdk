@@ -151,6 +151,25 @@ the coming release's, and gathers its changes as they land.
   when every option is nil), and `Match.Search` no longer sends
   `useSemanticScoring` true. A stated value is sent as stated, and a list or
   a search stating a limit of 100 is no longer the one stating none.
+- The discovery types are Protocol's (protocol#126), in `api`, where they
+  were hand-written in `discovery`: `ParseDiscoveryDocument` gives an
+  `api.DiscoveryState`, `DiscoveryTransport.Read` an `api.DiscoveryRead`, and
+  `SubscribeDiscovery` each `api.DiscoveryDiff`. A state and a read are
+  unions, made with `From` and read with `Member`: a state holds an
+  `api.DiscoveryAbsent` or an `api.DiscoveryManaged`, and a read either or an
+  `api.DiscoveryUnchanged`.
+  `discovery.Absent`, `Managed`, `Unchanged`, `DiscoveryState`,
+  `DiscoveryRead` and `DiscoveryDiff` are removed. An absent's `Diagnostic`
+  is a `*string`, nil when there is no more to say, and a managed's entries
+  are `Kbs`.
+- `api.DiscoveryAbsentReason` is the generated client type
+  (`client/types/DiscoveryAbsentReason.json`), with a `Valid` method; its
+  values keep their names.
+- `api.UploadProgressStarted`, `api.UploadProgressProgress` and
+  `api.ConformanceDriverLineProgressProgress` state `TotalBytes` as an
+  `*int`: a source of unstated length states none. Every upload today holds
+  its bytes whole, and states its total.
+- `api.StoredSession`'s `Access` is an `api.AccessToken`, which is a `string`.
 
 ## 0.8.1
 

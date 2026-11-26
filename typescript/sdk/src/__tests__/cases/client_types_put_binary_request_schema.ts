@@ -16,7 +16,9 @@ export const schema = {
       $ref: 'https://xynolog.org/protocol/ResourceUpload.json#/properties/name',
     },
     file: {
-      $ref: 'https://xynolog.org/protocol/ResourceUpload.json#/properties/file',
+      $ref: 'https://xynolog.org/protocol/ByteSource.json',
+      description:
+        "The bytes, opened for each sending of the upload: the multipart body's `file` part each time.",
     },
     format: {
       $ref: 'https://xynolog.org/protocol/ResourceUpload.json#/properties/format',

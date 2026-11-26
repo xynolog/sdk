@@ -855,11 +855,14 @@ let run mode env =
                    [
                      ( "progress",
                        `Assoc
-                         [
-                           ("upload", field "id" input);
-                           ("bytesUploaded", `Int bytes_uploaded);
-                           ("totalBytes", `Int total_bytes);
-                         ] );
+                         (List.filter_map Fun.id
+                            [
+                              Some ("upload", field "id" input);
+                              Some ("bytesUploaded", `Int bytes_uploaded);
+                              Option.map
+                                (fun total -> ("totalBytes", `Int total))
+                                total_bytes;
+                            ]) );
                    ])
           | Progress _ | Started _ | Finished _ -> ()
         in

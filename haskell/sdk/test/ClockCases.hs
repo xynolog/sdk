@@ -286,7 +286,11 @@ discoveryClockCases root kb = clockCasesFor root ["discovery"] $ \clock _ -> do
   let transport = Discovery.DiscoveryTransport $ atomically $ do
         count <- readTVar readCount
         writeTVar readCount (count + 1)
-        pure (if count == 0 then Discovery.Read (Discovery.Managed [kb]) else Discovery.Unchanged)
+        pure
+          ( if count == 0
+              then DiscoveryReadDiscoveryManaged (DiscoveryManaged DiscoveryManagedKindManaged [kb])
+              else DiscoveryReadDiscoveryUnchanged (DiscoveryUnchanged DiscoveryUnchangedKindUnchanged)
+          )
       options = Discovery.DiscoveryOptions (Time.now clock) (Time.waitUntil clock) (Timing.discoveryIntervalMs Timing.protocolSettings)
   worker <- async (Stream.effects (Discovery.subscribeDiscovery options transport))
   pure (Scenario (pure ()) (readTVarIO readCount) (cancel worker))

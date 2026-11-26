@@ -114,7 +114,7 @@ let variant_name tag =
 
 let scalar_of (s : T.scalar) =
   match s with
-  | Text _ | Code _ | Word _ -> Text
+  | Text _ | Code _ -> Text
   | Boolean -> Bool
   | Integer _ -> Int
   | Number -> Float
@@ -427,9 +427,13 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
         match (enum_of name, module_of name) with
         | Some m, _ -> (Enum_base m, None)
         | None, Some m -> (Record_base m, Some m)
+        | None, None
+          when match (typing.find name).form with
+               | T.Alias (T.Scalar (T.Text _)) -> true
+               | _ -> false ->
+            (Text_base, None)
         | None, None when rooted name -> (
             match (typing.find name).form with
-            | T.Alias (T.Scalar (T.Text _)) -> (Text_base, None)
             | T.Identifier _ ->
                 (Id_base (Identifiers.Ocaml.module_name name), None)
             | T.Enum { base = Some (T.Text _); _ } ->
@@ -440,8 +444,6 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
     | T.Scalar (T.Text _) -> (Text_base, None)
     | T.Scalar (T.Code vocabulary) ->
         (Code_base (Error_codes.Ocaml.module_of vocabulary), None)
-    | T.Scalar (T.Word table) ->
-        (Enum_base (Enums.module_name (Word_tables.type_name table)), None)
     | T.Scalar T.Boolean -> (Bool_base, None)
     | T.Scalar (T.Integer _) -> (Int_base, None)
     | T.Scalar T.Number -> (Float_base, None)

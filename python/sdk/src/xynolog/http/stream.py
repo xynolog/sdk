@@ -68,7 +68,15 @@ from xynolog.timing import (
     STREAM_OPEN_TIMEOUT_MS,
 )
 from xynolog.transport import CONNECTION_STATE_MAY_BECOME, ConnectionState, Frame, FrameHub, FrameRefusal, ReplyRouter
-from xynolog.types import BusEventMessage, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem, ErrorResponse, RetryBudget, TraceCarrier
+from xynolog.types import (
+    BusEventMessage,
+    BusFrame,
+    BusSubscribeRequest,
+    BusSubscribeRequestScopedItem,
+    ErrorResponse,
+    RetryBudget,
+    TraceCarrier,
+)
 from xynolog.watched import Variable, Watched
 
 __all__ = ["Bookmarks", "SeenIds", "Stream", "Timing", "backoff_cap_ms"]

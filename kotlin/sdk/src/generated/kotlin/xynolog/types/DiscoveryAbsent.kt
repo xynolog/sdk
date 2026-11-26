@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 public data class DiscoveryAbsent(
     @EncodeDefault
     public val kind: DiscoveryAbsentKind = DiscoveryAbsentKind.Absent,
-    /** Why: one of client/discovery-absent.json's reasons. */
+    /** Why. */
     public val reason: DiscoveryAbsentReason,
     /** What was wrong, in words, when there is more to say. */
     public val diagnostic: String? = null,

@@ -5,7 +5,7 @@ package xynolog.types
 
 import kotlinx.serialization.Serializable
 
-/** What an upload reports as it goes, told apart by `phase`: its size first, then the bytes sent so far, then the resource made. */
+/** What an upload reports as it goes, told apart by `phase`: that it began, with its size when its ByteSource states one, then the bytes sent so far, then the resource made. An upload whose source states no length reports none: a size it made up would be a size the caller could not tell from a true one. */
 @Serializable(with = UploadProgressSerializer::class)
 public sealed interface UploadProgress
 
@@ -15,7 +15,7 @@ internal object UploadProgressSerializer : SignatureUnionSerializer<UploadProgre
         listOf(
             Signature(
                 kind = Kind.OBJECT,
-                required = listOf("phase", "totalBytes"),
+                required = listOf("phase"),
                 allowed = listOf("phase", "totalBytes"),
                 fixed = listOf("phase" to listOf(Literal.Text("started"))),
                 values = null,
@@ -24,7 +24,7 @@ internal object UploadProgressSerializer : SignatureUnionSerializer<UploadProgre
         listOf(
             Signature(
                 kind = Kind.OBJECT,
-                required = listOf("phase", "bytesUploaded", "totalBytes"),
+                required = listOf("phase", "bytesUploaded"),
                 allowed = listOf("phase", "bytesUploaded", "totalBytes"),
                 fixed = listOf("phase" to listOf(Literal.Text("progress"))),
                 values = null,

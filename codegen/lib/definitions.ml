@@ -206,7 +206,8 @@ let typed (spec : Spec.t) =
    methods returning what client/surface.json says they return; and
    ByteStream, bytes read once as they arrive, which only the stream a
    content method returns names, and which each SDK holds as its language's
-   stream of bytes. *)
+   stream of bytes; and ByteSource, bytes opened afresh for each sending,
+   which each SDK holds as what its language opens a stream of bytes from. *)
 let hand_written_client_types =
   [
     "SearchState";
@@ -217,6 +218,7 @@ let hand_written_client_types =
     "ResourceRepresentation";
     "ResourceRepresentationStream";
     "ByteStream";
+    "ByteSource";
   ]
 
 (* The client types every SDK generates, by name: each file of
@@ -566,6 +568,22 @@ let bundle (spec : Spec.t) =
       |> List.sort_uniq String.compare;
     client = names_of (fun file -> not (Hashtbl.mem gateway file));
   }
+
+(* The sign-in store's entry ([Roots.sign_in_entry]) with each [$ref] written
+   in its place, so that it is one schema alone ([alone]): each SDK's store
+   holds it as a record of its own, beside no other generated type. *)
+let sign_in (spec : Spec.t) =
+  match List.assoc_opt Roots.sign_in_entry spec.schemas with
+  | None -> refuse "Protocol has no %s" Roots.sign_in_entry
+  | Some s -> (
+      match
+        Schema_names.files_in_place ~ids:spec.ids
+          ~schemas:(Hashtbl.of_seq (List.to_seq spec.schemas))
+          ~named:(fun _ -> None)
+          s
+      with
+      | Ok s -> s
+      | Error message -> refuse "%s: %s" Roots.sign_in_entry message)
 
 (* One schema file alone, as its own definitions: its [$ref]s are refused. *)
 let alone ~ids ~name (s : Schema.t) =

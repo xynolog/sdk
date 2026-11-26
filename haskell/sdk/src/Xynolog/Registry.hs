@@ -428,7 +428,7 @@ kbSessionStatus owner key = do
   pure $ case grant of
     Nothing -> KbSessionStatusSignedOut
     Just held
-      | Tokens.isTokenExpired (storedSessionAccess held) now -> KbSessionStatusExpired
+      | Tokens.isTokenExpired (accessTokenValue (storedSessionAccess held)) now -> KbSessionStatusExpired
       | otherwise -> KbSessionStatusAuthenticated
 
 readNow :: XynologBrowser -> KbDescription -> IO KbRead
@@ -635,7 +635,7 @@ completeSignIn owner callback = Lifetime.run (lifetime owner) $ do
   (pending, tokens) <- Issuer.completeAuthorization (issuer owner) callback (storage owner)
   identityProof <- Connection.describeConnection (registryHttp (configuration owner)) (pendingAuthorizationTarget pending) (issuedTokensAccess tokens)
   let endpoints = pendingAuthorizationIssuer pending
-      grant = StoredSession {storedSessionAccess = (issuedTokensAccess tokens), storedSessionClientId = Issuer.browserClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = (issuedTokensRefresh tokens), storedSessionRevocationEndpoint = (pendingAuthorizationIssuerRevocation endpoints), storedSessionTokenEndpoint = (pendingAuthorizationIssuerToken endpoints)}
+      grant = StoredSession {storedSessionAccess = AccessToken (issuedTokensAccess tokens), storedSessionClientId = Issuer.browserClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = (issuedTokensRefresh tokens), storedSessionRevocationEndpoint = (pendingAuthorizationIssuerRevocation endpoints), storedSessionTokenEndpoint = (pendingAuthorizationIssuerToken endpoints)}
       completed =
         SignedIn {signedInDescription = (connectionIdentityDescription identityProof), signedInEndpoint = (KbEndpointHttpEndpoint (pendingAuthorizationTarget pending)), signedInExpectedDid = (pendingAuthorizationExpectedDid pending), signedInExpectedName = (pendingAuthorizationExpectedName pending), signedInKbId = (pendingAuthorizationKbId pending), signedInSession = grant}
   signedIn owner completed

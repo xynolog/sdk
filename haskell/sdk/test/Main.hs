@@ -38,7 +38,7 @@ import HeldCases (heldCases, heldClockCases)
 import HttpCases (httpCases)
 import HttpDiscoveryCases (httpDiscoveryCases)
 import IdentityCases (identityCases)
-import IssuerCases (deviceClockCases, issuerCases, serviceTokenCases)
+import IssuerCases (agentClockCases, deviceClockCases, issuerCases, serviceTokenCases)
 import LifetimeCases (lifetimeCases)
 import OpenResourceCases (openResourceCases)
 import PersistedCases (persistedCases)
@@ -67,7 +67,6 @@ import Xynolog.Channels qualified as Channels
 import Xynolog.ErrorCodes qualified as Errors
 import Xynolog.Internal.Codec (Kind (..), Signature (..), admittedBy, readMember)
 import Xynolog.Internal.Generated.ChannelRoundTrip (channelMetadata, operationMetadata, roundTripChannel)
-import Xynolog.Internal.Generated.DiscoveryReasonRoundTrip qualified as DiscoveryReasons
 import Xynolog.Internal.Generated.ErrorRoundTrip (roundTripError)
 import Xynolog.Internal.Generated.RoundTrip (enumerationCases, roundTrip, unionMembers)
 import Xynolog.Internal.Generated.Schemas (schemas)
@@ -499,10 +498,10 @@ factCases root = do
     let reason = at "reason" row
     require
       "discovery reason differs from its authority"
-      (DiscoveryReasons.roundTripError "discoveryAbsent" reason == Right reason)
+      (roundTrip "DiscoveryAbsentReason" reason == Right reason)
   require
     "unknown discovery reason was accepted"
-    (isLeft (DiscoveryReasons.roundTripError "discoveryAbsent" (String "__unknown_test_reason")))
+    (isLeft (roundTrip "DiscoveryAbsentReason" (String "__unknown_test_reason")))
 
 retryCases :: FilePath -> IO ()
 retryCases root = do
@@ -708,6 +707,7 @@ runCases root = do
   issuerCases fixtures
   serviceTokenCases root
   deviceClock <- deviceClockCases root
+  agentClock <- agentClockCases root fixtures
   sessionCases root fixtures
   sessionClock <- sessionClockCases root fixtures
   delegationCases fixtures
@@ -718,6 +718,6 @@ runCases root = do
   refreshCases fixtures
   heldCases fixtures
   heldClock <- heldClockCases root fixtures
-  clockCensus root (concat [saveClock, httpClock, discoveryClock, deviceClock, sessionClock, followerClock, clientClock, jobPollClock, heldClock])
+  clockCensus root (concat [saveClock, httpClock, discoveryClock, deviceClock, agentClock, sessionClock, followerClock, clientClock, jobPollClock, heldClock])
   httpCases root fixtures
   corpusCases root

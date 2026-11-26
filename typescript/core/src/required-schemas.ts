@@ -1309,7 +1309,7 @@ export const REQUIRED_SCHEMAS: {
         members: {
           progress: {
             kinds: ['object'],
-            required: ['upload', 'bytesUploaded', 'totalBytes'],
+            required: ['upload', 'bytesUploaded'],
             members: {
               bytesUploaded: { kinds: ['integer'], minimum: 0 },
               totalBytes: { kinds: ['integer'], minimum: 0 },
@@ -2157,16 +2157,7 @@ export const REQUIRED_SCHEMAS: {
     members: {
       diagnostic: { kinds: ['string'], minLength: 1 },
       kind: { kinds: ['string'], enum: ['absent'] },
-      reason: {
-        kinds: ['string'],
-        enum: [
-          'not-found',
-          'not-json',
-          'invalid',
-          'unsupported-version',
-          'unreadable',
-        ],
-      },
+      reason: { ref: 'DiscoveryAbsentReason' },
     },
     closed: ['diagnostic', 'kind', 'reason'],
   },
@@ -6868,7 +6859,7 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['access', 'refresh', 'clientId', 'tokenEndpoint'],
     members: {
-      access: { kinds: ['string'] },
+      access: { ref: 'AccessToken' },
       clientId: { kinds: ['string'] },
       personKey: { kinds: ['string'] },
       refresh: { kinds: ['string'] },
@@ -7195,7 +7186,7 @@ export const REQUIRED_SCHEMAS: {
     oneOf: [
       {
         kinds: ['object'],
-        required: ['phase', 'totalBytes'],
+        required: ['phase'],
         members: {
           phase: { kinds: ['string'], enum: ['started'] },
           totalBytes: { kinds: ['integer'], minimum: 0 },
@@ -7204,7 +7195,7 @@ export const REQUIRED_SCHEMAS: {
       },
       {
         kinds: ['object'],
-        required: ['phase', 'bytesUploaded', 'totalBytes'],
+        required: ['phase', 'bytesUploaded'],
         members: {
           bytesUploaded: { kinds: ['integer'], minimum: 0 },
           phase: { kinds: ['string'], enum: ['progress'] },

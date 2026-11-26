@@ -27,17 +27,17 @@ type httpDiscovery struct {
 	etag string
 }
 
-func (h *httpDiscovery) Read(ctx context.Context) DiscoveryRead {
+func (h *httpDiscovery) Read(ctx context.Context) api.DiscoveryRead {
 	// With a deadline: a read that is never answered would hold the poll that
 	// awaits it, and every poll after it, for good.
 	deadline := xynolog.DefaultTiming().HttpRequestTimeout
 	asking, cancel := context.WithTimeout(ctx, deadline)
 	defer cancel()
-	unreadable := func(err error) Absent {
+	unreadable := func(err error) api.DiscoveryRead {
 		if errors.Is(asking.Err(), context.DeadlineExceeded) && ctx.Err() == nil {
-			return Absent{Reason: api.DiscoveryAbsentReasonUnreadable, Diagnostic: fmt.Sprintf("the document was not served within %ds", int64(deadline.Seconds()))}
+			return readOf(absent(api.DiscoveryAbsentReasonUnreadable, fmt.Sprintf("the document was not served within %ds", int64(deadline.Seconds()))))
 		}
-		return Absent{Reason: api.DiscoveryAbsentReasonUnreadable, Diagnostic: err.Error()}
+		return readOf(absent(api.DiscoveryAbsentReasonUnreadable, err.Error()))
 	}
 
 	request, err := http.NewRequestWithContext(asking, http.MethodGet, h.url, nil)
@@ -55,28 +55,28 @@ func (h *httpDiscovery) Read(ctx context.Context) DiscoveryRead {
 	}
 	defer response.Body.Close()
 	if response.StatusCode == http.StatusNotModified {
-		return Unchanged{}
+		return readOf(api.DiscoveryUnchanged{})
 	}
 	if response.StatusCode < 200 || response.StatusCode > 299 {
-		return Absent{Reason: api.DiscoveryAbsentReasonNotFound, Diagnostic: fmt.Sprintf("HTTP %d", response.StatusCode)}
+		return readOf(absent(api.DiscoveryAbsentReasonNotFound, fmt.Sprintf("HTTP %d", response.StatusCode)))
 	}
 	contentType := response.Header.Get("Content-Type")
 	if !strings.Contains(strings.ToLower(contentType), "json") {
-		return Absent{Reason: api.DiscoveryAbsentReasonNotFound, Diagnostic: fmt.Sprintf("the content type is \"%s\", not JSON", contentType)}
+		return readOf(absent(api.DiscoveryAbsentReasonNotFound, fmt.Sprintf("the content type is \"%s\", not JSON", contentType)))
 	}
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return unreadable(err)
 	}
-	state := ParseDiscoveryDocument(string(body))
+	found := parse(string(body))
 	// Only a good document's tag is kept: one kept for a document that did
 	// not read would have this believe it for good.
-	if _, isManaged := state.(Managed); isManaged {
+	if _, isManaged := found.(api.DiscoveryManaged); isManaged {
 		h.mu.Lock()
 		h.etag = response.Header.Get("ETag")
 		h.mu.Unlock()
 	}
-	return state
+	return readOf(found)
 }
 
 // HttpDiscovery is a transport that reads the discovery document at url, each

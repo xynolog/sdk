@@ -8,7 +8,7 @@ export const schema = {
   $id: 'https://xynolog.org/protocol/JobEvent.json',
   title: 'JobEvent',
   description:
-    "What a delegation reports as its job goes, told apart by `kind`: the queue's naming of the job first, its progress, and last, its failure, a frame refused, or its completion. Each operation that delegates completes with its own verb's completion, a branch of JobCompleteCommand.",
+    "What a delegation reports as its job goes, told apart by `kind`: the queue's naming of the job first, then its progress, each failure the queue will try again, and each frame of the job's that was refused, and last its completion. A failure the queue will not try again is no event: the delegation ends with it, as an error (contract/JOBS.md). Each operation that delegates completes with its own verb's completion, a branch of JobCompleteCommand.",
   oneOf: [
     {
       type: 'object',
@@ -42,7 +42,8 @@ export const schema = {
     },
     {
       type: 'object',
-      description: 'The job failed.',
+      description:
+        'The job failed, and the queue will try it again: its job:fail says `willRetry`. Any other failure ends the delegation instead, as job.failed (contract/JOBS.md).',
       properties: {
         kind: {
           type: 'string',

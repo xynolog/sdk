@@ -162,7 +162,7 @@ sessionCases fixtures = do
       contents
   user <- fixture fixtures "UserResponse"
   originalGrant <- fixture fixtures "StoredSession"
-  let grant = originalGrant {storedSessionAccess = jwt 3600 9}
+  let grant = originalGrant {storedSessionAccess = AccessToken (jwt 3600 9)}
   Sessions.saysWho scripted (Just user)
   store <- Storage.newMemoryStorage
   Stored.storeSession store "consumer-kb" grant

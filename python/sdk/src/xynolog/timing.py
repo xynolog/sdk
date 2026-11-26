@@ -101,7 +101,8 @@ HTTP_REQUEST_TIMEOUT_MS: Final = 30000
 # `Idempotency-Key`, as an upload does (`transport` in specs/src/retry/rules.json); once, after
 # this wait, or after a refusal's `Retry-After` when that is longer. A request whose credential
 # was refused is renewed and sent again at once, without this wait, and one unanswered at its
-# deadline (`httpRequestTimeoutMs`) is not made again.
+# deadline (`httpRequestTimeoutMs`) is not made again. The naming request of an agent's sign-in
+# is made once, and is not made again (contract/TRANSPORT-HTTP.md § An agent's sign-in).
 REQUEST_RETRY_PAUSE_MS: Final = 300
 
 # How long a client waits for the gateway to answer the request that opens its stream (POST

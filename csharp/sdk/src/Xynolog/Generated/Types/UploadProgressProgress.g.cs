@@ -9,5 +9,5 @@ public sealed record UploadProgressProgress
 {
     [global::Xynolog.Serialization.Wire("phase")] public global::Xynolog.Types.UploadProgressProgressPhase Phase => global::Xynolog.Types.UploadProgressProgressPhase.Progress;
     [global::Xynolog.Serialization.Wire("bytesUploaded")] public required long BytesUploaded { get; init; }
-    [global::Xynolog.Serialization.Wire("totalBytes")] public required long TotalBytes { get; init; }
+    [global::Xynolog.Serialization.Wire("totalBytes")] public long? TotalBytes { get; init; }
 }

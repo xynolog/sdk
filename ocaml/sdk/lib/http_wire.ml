@@ -306,7 +306,7 @@ let check_user t token =
                 code =
                   (if credential_refused status body then
                      Error_codes.Transport.Unauthorized
-                   else Error_codes.Transport.Unavailable);
+                   else Http_facts.status_code status);
                 status = Some status;
                 message = refusal status body;
               })
@@ -443,9 +443,10 @@ let put t ~fields ~bytes ~on_progress =
           reported := sent;
           on_progress
             (Records.Upload_progress.Progress
-               { bytes_uploaded = sent; total_bytes }))
+               { bytes_uploaded = sent; total_bytes = Some total_bytes }))
       in
-      on_progress (Records.Upload_progress.Started { total_bytes });
+      on_progress
+        (Records.Upload_progress.Started { total_bytes = Some total_bytes });
       let answer =
         exchange t ~auth:true ~body ~progress:report
           ~headers:

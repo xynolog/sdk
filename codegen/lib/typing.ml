@@ -21,8 +21,6 @@ type scalar =
   | Code of string
       (** A code of the errors/codes.json vocabulary it names, which each SDK's
           error codes declare. *)
-  | Word of string
-      (** A word of the table of words ([Word_tables]) it names by its file. *)
   | Integer of { minimum : float option; maximum : float option }
   | Number
   | Boolean
@@ -278,7 +276,6 @@ let scalar (n : D.node) (t : Schema.type_name) =
   match t with
   | String -> (
       match n.codes with
-      | Some table when Word_tables.is table -> Some (Word table)
       | Some vocabulary -> Some (Code vocabulary)
       | None ->
           Some
@@ -584,7 +581,7 @@ and signatures st seen (ty : ty) : signature list =
   | Named name -> form_signatures st (name :: seen) (declaration st name).form
   | Inline i -> form_signatures st seen i.form
   | Scalar (Text { pattern; _ }) -> one ?pattern Text_kind
-  | Scalar (Code _ | Word _) -> one Text_kind
+  | Scalar (Code _) -> one Text_kind
   | Scalar (Integer _) -> one Integer_kind
   | Scalar Number -> one Number_kind
   | Scalar Boolean -> one Boolean_kind
@@ -618,7 +615,7 @@ and form_signatures st seen (form : form) =
   | Enum { base; values } ->
       let kind =
         match base with
-        | Some (Text _ | Code _ | Word _) -> Text_kind
+        | Some (Text _ | Code _) -> Text_kind
         | Some (Integer _) -> Integer_kind
         | Some Number -> Number_kind
         | Some Boolean -> Boolean_kind

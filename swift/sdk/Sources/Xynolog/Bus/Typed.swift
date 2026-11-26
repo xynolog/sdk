@@ -36,32 +36,6 @@ public enum Carried: Sendable {
     }
   }
 }
-/// A frame refused, in its place: BusFrame does not allow it, or its payload is not its channel's.
-/// `member` is the way from the frame to the member its first fault is at, the names of the
-/// members it is within and its own joined by dots (`payload.resourceId` is within its payload, and
-/// `payload` is the payload itself); `reason` is why. `payload` is its payload as it came, the
-/// gateway's stamps and all, and nil when it carried none. `correlationId` is the frame's, when it
-/// carries one BusFrame allows: a request awaiting the reply it names fails with the refusal at
-/// once. `scope` is the resource whose scope it was delivered on.
-public struct FrameRefusal: Sendable, Equatable {
-  public let channel: String
-  public let member: String
-  public let reason: FrameRefusalReason
-  public let payload: JSONValue?
-  public let correlationId: String?
-  public let scope: ResourceId?
-  public init(
-    channel: String, member: String, reason: FrameRefusalReason, payload: JSONValue?,
-    correlationId: String?, scope: ResourceId?
-  ) {
-    self.channel = channel
-    self.member = member
-    self.reason = reason
-    self.payload = payload
-    self.correlationId = correlationId
-    self.scope = scope
-  }
-}
 public enum Heard<Payload: Sendable>: Sendable {
   case delivered(Delivered<Payload>)
   case refused(FrameRefusal)
@@ -107,7 +81,7 @@ func heard<Payload: Decodable & Sendable>(
       return .refused(
         FrameRefusal(
           channel: frame.channel, member: inPayload(error.member), reason: error.reason,
-          payload: .object(frame.payload), correlationId: frame.correlationId, scope: frame.scope))
+          payload: .object(frame.payload), scope: frame.scope, correlationId: frame.correlationId))
     }
   }
 }

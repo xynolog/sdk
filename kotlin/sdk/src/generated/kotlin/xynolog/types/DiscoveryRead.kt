@@ -17,7 +17,7 @@ internal object DiscoveryReadSerializer : SignatureUnionSerializer<DiscoveryRead
                 kind = Kind.OBJECT,
                 required = listOf("kind", "reason"),
                 allowed = listOf("kind", "reason", "diagnostic"),
-                fixed = listOf("kind" to listOf(Literal.Text("absent"))),
+                fixed = listOf("kind" to listOf(Literal.Text("absent")), "reason" to listOf(Literal.Text("not-found"), Literal.Text("not-json"), Literal.Text("invalid"), Literal.Text("unsupported-version"), Literal.Text("unreadable"))),
                 values = null,
             ),
         ),

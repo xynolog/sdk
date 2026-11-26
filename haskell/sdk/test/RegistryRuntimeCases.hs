@@ -191,7 +191,7 @@ cases fixtures = do
     require "KB switch lost its per-KB viewed bookmark" . (== Just resource) =<< atomically (State.current (Browser.lastViewedResource browser))
     Time.settle
     let description = KbDescription {kbDescriptionDomain = "another.example.test", kbDescriptionGitBranch = Nothing, kbDescriptionName = "Another"}
-        newGrant = grant {storedSessionAccess = "another-issued-access", storedSessionRefresh = "another-refresh"}
+        newGrant = grant {storedSessionAccess = AccessToken "another-issued-access", storedSessionRefresh = "another-refresh"}
         signed = SignedIn {signedInDescription = description, signedInEndpoint = (knowledgeBaseEndpoint a), signedInExpectedDid = Nothing, signedInExpectedName = Nothing, signedInKbId = Nothing, signedInSession = newGrant}
     outcome <- Browser.signedIn browser signed
     Time.settle

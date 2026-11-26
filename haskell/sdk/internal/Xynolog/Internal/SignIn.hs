@@ -13,7 +13,7 @@ import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import OpenTelemetry.Context.ThreadLocal.Propagation (tracedAsync)
 import Xynolog.Internal.Stored qualified as Stored
 import Xynolog.SessionStorage qualified as Storage
-import Xynolog.Types (IssuedTokens (..), StoredSession (..))
+import Xynolog.Types (AccessToken (..), IssuedTokens (..), StoredSession (..))
 
 data KeptSignIn = KeptSignIn
   { held :: IO (Maybe StoredSession),
@@ -32,8 +32,8 @@ data Rotation = Gone | AlreadyRenewed Text | WriteTokens StoredSession
 rotation :: Maybe StoredSession -> StoredSession -> IssuedTokens -> Rotation
 rotation Nothing _ _ = Gone
 rotation (Just current) before issued
-  | storedSessionAccess current /= storedSessionAccess before || storedSessionRefresh current /= storedSessionRefresh before = AlreadyRenewed (storedSessionAccess current)
-  | otherwise = WriteTokens current {storedSessionAccess = issuedTokensAccess issued, storedSessionRefresh = issuedTokensRefresh issued}
+  | storedSessionAccess current /= storedSessionAccess before || storedSessionRefresh current /= storedSessionRefresh before = AlreadyRenewed (accessTokenValue (storedSessionAccess current))
+  | otherwise = WriteTokens current {storedSessionAccess = AccessToken (issuedTokensAccess issued), storedSessionRefresh = issuedTokensRefresh issued}
 
 newMemorySignIn :: IO KeptSignIn
 newMemorySignIn = do
@@ -47,7 +47,7 @@ newMemorySignIn = do
             case rotation current before issued of
               Gone -> pure Nothing
               AlreadyRenewed access -> pure (Just access)
-              WriteTokens next -> writeTVar value (Just next) >> pure (Just (storedSessionAccess next))
+              WriteTokens next -> writeTVar value (Just next) >> pure (Just (accessTokenValue (storedSessionAccess next)))
         )
         (atomically (writeTVar value Nothing))
         (const (pure Nothing))
@@ -69,7 +69,7 @@ keptIn storage identity =
          in case rotation current before issued of
               Gone -> (raw, Nothing)
               AlreadyRenewed access -> (raw, Just access)
-              WriteTokens next -> (Just (decodeUtf8 (Lazy.toStrict (encode next))), Just (storedSessionAccess next))
+              WriteTokens next -> (Just (decodeUtf8 (Lazy.toStrict (encode next))), Just (accessTokenValue (storedSessionAccess next)))
     )
     (Stored.clearStoredSession storage identity)
     ( \observe -> Storage.subscribe storage $ \key raw -> when (key == Stored.sessionKey identity) $ case raw of
@@ -89,9 +89,9 @@ renewKept store holding expired issue = do
   case current of
     Nothing -> pure Nothing
     Just before -> do
-      stale <- expired (storedSessionAccess before)
-      if Just (storedSessionAccess before) /= holding && not stale
-        then pure (Just (storedSessionAccess before))
+      stale <- expired (accessTokenValue (storedSessionAccess before))
+      if Just (accessTokenValue (storedSessionAccess before)) /= holding && not stale
+        then pure (Just (accessTokenValue (storedSessionAccess before)))
         else mask $ \restore -> do
           spending <- tracedAsync (restore (issue before >>= renewed store before))
           restore (wait spending) `onException` waitCatch spending

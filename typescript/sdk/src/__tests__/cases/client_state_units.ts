@@ -1063,7 +1063,9 @@ export const table: Table = {
           of: 'unit',
           args: {
             annotationId: 'ann-1',
-            contextWindow: 500,
+            options: {
+              contextWindow: 500,
+            },
           },
         },
         'settle',
@@ -1098,8 +1100,10 @@ export const table: Table = {
           of: 'unit',
           args: {
             annotationId: 'ann-1',
-            includeSourceContext: false,
-            includeTargetContext: true,
+            options: {
+              includeSourceContext: false,
+              includeTargetContext: true,
+            },
           },
         },
         'settle',

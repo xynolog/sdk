@@ -1227,8 +1227,8 @@ end
 
 module Upload_progress = struct
   type t =
-    | Started of { total_bytes : int }
-    | Progress of { bytes_uploaded : int; total_bytes : int }
+    | Started of { total_bytes : int option }
+    | Progress of { bytes_uploaded : int; total_bytes : int option }
     | Finished of { resource_id : Identifiers.Resource_id.t }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
@@ -1238,11 +1238,11 @@ module Upload_progress = struct
         let* tag = required string "phase" members in
         match tag with
         | "started" ->
-            let* total_bytes = required int "totalBytes" members in
+            let* total_bytes = optional int "totalBytes" members in
             Ok (Started { total_bytes })
         | "progress" ->
             let* bytes_uploaded = required int "bytesUploaded" members in
-            let* total_bytes = required int "totalBytes" members in
+            let* total_bytes = optional int "totalBytes" members in
             Ok (Progress { bytes_uploaded; total_bytes })
         | "finished" ->
             let* resource_id =
@@ -1261,14 +1261,14 @@ module Upload_progress = struct
         write
           [
             ("phase", Some (json_string "started"));
-            ("totalBytes", Some (json_int value.total_bytes));
+            ("totalBytes", Option.map json_int value.total_bytes);
           ]
     | Progress value ->
         write
           [
             ("phase", Some (json_string "progress"));
             ("bytesUploaded", Some (json_int value.bytes_uploaded));
-            ("totalBytes", Some (json_int value.total_bytes));
+            ("totalBytes", Option.map json_int value.total_bytes);
           ]
     | Finished value ->
         write
@@ -9792,14 +9792,14 @@ module Conformance_driver_line_frame_frame = struct
 end
 
 module Conformance_driver_line_progress_progress = struct
-  type t = { upload : int; bytes_uploaded : int; total_bytes : int }
+  type t = { upload : int; bytes_uploaded : int; total_bytes : int option }
 
   let project fields =
     let reader = start fields in
     {
       upload = required reader int "upload";
       bytes_uploaded = required reader int "bytesUploaded";
-      total_bytes = required reader int "totalBytes";
+      total_bytes = maybe reader int "totalBytes";
     }
 
   let to_json (value : t) =
@@ -9807,7 +9807,7 @@ module Conformance_driver_line_progress_progress = struct
       [
         ("upload", Some (json_int value.upload));
         ("bytesUploaded", Some (json_int value.bytes_uploaded));
-        ("totalBytes", Some (json_int value.total_bytes));
+        ("totalBytes", Option.map json_int value.total_bytes);
       ]
 end
 

@@ -18,7 +18,6 @@ module Control = Control
 module H = Haskell_syntax
 
 let ( let* ) = Result.bind
-let discovery_absent_member = Word_tables.discovery_absent.haskell_member
 
 let path ~under name =
   "haskell/sdk/" ^ under ^ "/"
@@ -248,7 +247,7 @@ let files ~root (spec : Spec.t) =
           (Companions.schemas_module
              ~banner:(banner "protocol/specs/src")
              ~vocabularies:(Error_codes.Table.vocabularies codes)
-             ~words:(Required.words spec) validated);
+             validated);
         file ~under:"test" round_trip;
         file ~under:"src"
           (Http.file
@@ -288,19 +287,4 @@ let files ~root (spec : Spec.t) =
         file ~under:"generated" (Worker.file spec);
         file ~under:"generated" held_job;
       ]
-    @ manifest
-    @ Error_codes.Haskell.modules
-        ~from_:("protocol/specs/src/" ^ Word_tables.discovery_absent.file)
-        ~module_name:Word_tables.discovery_absent.haskell_module
-        ~test_name:"DiscoveryReasonRoundTrip"
-        [
-          {
-            Error_codes.Haskell.member = discovery_absent_member;
-            codes =
-              List.map
-                (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                  r.reason)
-                spec.tables.client_discovery_absent.reasons;
-            statuses = None;
-          };
-        ])
+    @ manifest)

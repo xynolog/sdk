@@ -1707,8 +1707,7 @@ type BeginAuthorizationOptions struct {
 	ExpectedName *string `json:"expectedName,omitempty"`
 }
 
-// Binary Bytes held whole. They can be read more than once, and sent again
-// when an upload is retried.
+// Binary Bytes held whole: all of them at once, read as often as wanted.
 type (
 	Binary = []byte
 )
@@ -3214,8 +3213,9 @@ type ConformanceDriverLineProgressProgress struct {
 	Upload int `json:"upload"`
 	// BytesUploaded How many bytes it has sent.
 	BytesUploaded int `json:"bytesUploaded"`
-	// TotalBytes How many it will send.
-	TotalBytes int `json:"totalBytes"`
+	// TotalBytes How many it will send. Absent for an upload whose source states
+	// no length.
+	TotalBytes *int `json:"totalBytes,omitempty"`
 }
 
 // ConformanceDriverLineReady The driver can take operations.
@@ -4136,7 +4136,7 @@ type DiscoveredKB struct {
 // DiscoveryAbsent No launcher was found, and why.
 type DiscoveryAbsent struct {
 	Kind DiscoveryAbsentKind `json:"kind"`
-	// Reason Why: one of client/discovery-absent.json's reasons.
+	// Reason Why.
 	Reason DiscoveryAbsentReason `json:"reason"`
 	// Diagnostic What was wrong, in words, when there is more to say.
 	Diagnostic *string `json:"diagnostic,omitempty"`
@@ -4157,6 +4157,29 @@ const (
 func (e DiscoveryAbsentKind) Valid() bool {
 	switch e {
 	case DiscoveryAbsentKindAbsent:
+		return true
+	}
+	return false
+}
+
+// DiscoveryAbsentReason Why a client that read a launcher's discovery
+// document found no launcher: one of the reasons of
+// client/discovery-absent.json, which says what each means.
+type DiscoveryAbsentReason string
+
+// The values of DiscoveryAbsentReason.
+const (
+	DiscoveryAbsentReasonNotFound           DiscoveryAbsentReason = "not-found"
+	DiscoveryAbsentReasonNotJson            DiscoveryAbsentReason = "not-json"
+	DiscoveryAbsentReasonInvalid            DiscoveryAbsentReason = "invalid"
+	DiscoveryAbsentReasonUnsupportedVersion DiscoveryAbsentReason = "unsupported-version"
+	DiscoveryAbsentReasonUnreadable         DiscoveryAbsentReason = "unreadable"
+)
+
+// Valid is whether e is one of DiscoveryAbsentReason's values.
+func (e DiscoveryAbsentReason) Valid() bool {
+	switch e {
+	case DiscoveryAbsentReasonNotFound, DiscoveryAbsentReasonNotJson, DiscoveryAbsentReasonInvalid, DiscoveryAbsentReasonUnsupportedVersion, DiscoveryAbsentReasonUnreadable:
 		return true
 	}
 	return false
@@ -4290,7 +4313,7 @@ func (u DiscoveryRead) Member() (any, error) { return u.member("DiscoveryRead", 
 // discoveryReadMembers is what each member of DiscoveryRead admits, and how a
 // value of it is read.
 var discoveryReadMembers = []unionMember{
-	{"DiscoveryAbsent", readAs[DiscoveryAbsent], []signature{{kind: objectKind, required: []string{"kind", "reason"}, allowed: []string{"kind", "reason", "diagnostic"}, fixed: []fixedValues{{"kind", []any{"absent"}}}}}},
+	{"DiscoveryAbsent", readAs[DiscoveryAbsent], []signature{{kind: objectKind, required: []string{"kind", "reason"}, allowed: []string{"kind", "reason", "diagnostic"}, fixed: []fixedValues{{"kind", []any{"absent"}}, {"reason", []any{"not-found", "not-json", "invalid", "unsupported-version", "unreadable"}}}}}},
 	{"DiscoveryManaged", readAs[DiscoveryManaged], []signature{{kind: objectKind, required: []string{"kind", "kbs"}, allowed: []string{"kind", "kbs"}, fixed: []fixedValues{{"kind", []any{"managed"}}}}}},
 	{"DiscoveryUnchanged", readAs[DiscoveryUnchanged], []signature{{kind: objectKind, required: []string{"kind"}, allowed: []string{"kind"}, fixed: []fixedValues{{"kind", []any{"unchanged"}}}}}},
 }
@@ -4319,7 +4342,7 @@ func (u DiscoveryState) Member() (any, error) {
 // discoveryStateMembers is what each member of DiscoveryState admits, and how
 // a value of it is read.
 var discoveryStateMembers = []unionMember{
-	{"DiscoveryAbsent", readAs[DiscoveryAbsent], []signature{{kind: objectKind, required: []string{"kind", "reason"}, allowed: []string{"kind", "reason", "diagnostic"}, fixed: []fixedValues{{"kind", []any{"absent"}}}}}},
+	{"DiscoveryAbsent", readAs[DiscoveryAbsent], []signature{{kind: objectKind, required: []string{"kind", "reason"}, allowed: []string{"kind", "reason", "diagnostic"}, fixed: []fixedValues{{"kind", []any{"absent"}}, {"reason", []any{"not-found", "not-json", "invalid", "unsupported-version", "unreadable"}}}}}},
 	{"DiscoveryManaged", readAs[DiscoveryManaged], []signature{{kind: objectKind, required: []string{"kind", "kbs"}, allowed: []string{"kind", "kbs"}, fixed: []fixedValues{{"kind", []any{"managed"}}}}}},
 }
 
@@ -11529,7 +11552,7 @@ type ResourceUpdatedPayload struct {
 type ResourceUpload struct {
 	// Name Human-readable resource name
 	Name string `json:"name"`
-	// File Binary content
+	// File The bytes, as the part carries them.
 	File Binary `json:"file"`
 	// Format Media type of the content (e.g. text/plain, text/markdown,
 	// image/png)
@@ -13969,7 +13992,7 @@ type StoredEventResponse struct {
 // session.
 type StoredSession struct {
 	// Access The access token: short-lived, sent as a Bearer token.
-	Access string `json:"access"`
+	Access AccessToken `json:"access"`
 	// Refresh The refresh token: what renews the access token at the issuer
 	// without another sign-in.
 	Refresh string `json:"refresh"`
@@ -14564,7 +14587,10 @@ func (v UpdateAnnotationBodyRequest) MarshalJSON() ([]byte, error) {
 }
 
 // UploadProgress What an upload reports as it goes, told apart by `phase`:
-// its size first, then the bytes sent so far, then the resource made.
+// that it began, with its size when its ByteSource states one, then the bytes
+// sent so far, then the resource made. An upload whose source states no
+// length reports none: a size it made up would be a size the caller could not
+// tell from a true one.
 type UploadProgress struct {
 	union[UploadProgressMember]
 }
@@ -14586,8 +14612,8 @@ func (u UploadProgress) Member() (any, error) {
 // uploadProgressMembers is what each member of UploadProgress admits, and how
 // a value of it is read.
 var uploadProgressMembers = []unionMember{
-	{"UploadProgressStarted", readAs[UploadProgressStarted], []signature{{kind: objectKind, required: []string{"phase", "totalBytes"}, allowed: []string{"phase", "totalBytes"}, fixed: []fixedValues{{"phase", []any{"started"}}}}}},
-	{"UploadProgressProgress", readAs[UploadProgressProgress], []signature{{kind: objectKind, required: []string{"phase", "bytesUploaded", "totalBytes"}, allowed: []string{"phase", "bytesUploaded", "totalBytes"}, fixed: []fixedValues{{"phase", []any{"progress"}}}}}},
+	{"UploadProgressStarted", readAs[UploadProgressStarted], []signature{{kind: objectKind, required: []string{"phase"}, allowed: []string{"phase", "totalBytes"}, fixed: []fixedValues{{"phase", []any{"started"}}}}}},
+	{"UploadProgressProgress", readAs[UploadProgressProgress], []signature{{kind: objectKind, required: []string{"phase", "bytesUploaded"}, allowed: []string{"phase", "bytesUploaded", "totalBytes"}, fixed: []fixedValues{{"phase", []any{"progress"}}}}}},
 	{"UploadProgressFinished", readAs[UploadProgressFinished], []signature{{kind: objectKind, required: []string{"phase", "resourceId"}, allowed: []string{"phase", "resourceId"}, fixed: []fixedValues{{"phase", []any{"finished"}}}}}},
 }
 
@@ -14621,8 +14647,9 @@ type UploadProgressProgress struct {
 	Phase UploadProgressProgressPhase `json:"phase"`
 	// BytesUploaded How many bytes are sent so far.
 	BytesUploaded int `json:"bytesUploaded"`
-	// TotalBytes How many bytes the upload is.
-	TotalBytes int `json:"totalBytes"`
+	// TotalBytes How many bytes the upload is: its ByteSource's length. Absent
+	// when the source states none.
+	TotalBytes *int `json:"totalBytes,omitempty"`
 }
 
 func (UploadProgressProgress) memberOfUploadProgress() {}
@@ -14647,8 +14674,9 @@ func (e UploadProgressProgressPhase) Valid() bool {
 // UploadProgressStarted The upload began.
 type UploadProgressStarted struct {
 	Phase UploadProgressStartedPhase `json:"phase"`
-	// TotalBytes How many bytes the upload is.
-	TotalBytes int `json:"totalBytes"`
+	// TotalBytes How many bytes the upload is: its ByteSource's length. Absent
+	// when the source states none.
+	TotalBytes *int `json:"totalBytes,omitempty"`
 }
 
 func (UploadProgressStarted) memberOfUploadProgress() {}
@@ -15782,27 +15810,3 @@ type YieldUpdateOk struct {
 type YieldedResource struct {
 	ResourceId ResourceId `json:"resourceId"`
 }
-
-// DiscoveryAbsentReason is why no launcher was found.
-type DiscoveryAbsentReason string
-
-const (
-	// DiscoveryAbsentReasonNotFound: There is no document where it was looked
-	// for: no file, an HTTP status that is not success, or a page that is not
-	// JSON.
-	DiscoveryAbsentReasonNotFound DiscoveryAbsentReason = "not-found"
-	// DiscoveryAbsentReasonNotJson: There is a document, and it is not JSON.
-	DiscoveryAbsentReasonNotJson DiscoveryAbsentReason = "not-json"
-	// DiscoveryAbsentReasonInvalid: It is JSON, and not a discovery document:
-	// one entry that is not what the schema says makes the whole document
-	// invalid, since a partial reading would hide a running knowledge base
-	// without a trace.
-	DiscoveryAbsentReasonInvalid DiscoveryAbsentReason = "invalid"
-	// DiscoveryAbsentReasonUnsupportedVersion: It is a discovery document of a
-	// version this client does not speak, and is not read in part.
-	DiscoveryAbsentReasonUnsupportedVersion DiscoveryAbsentReason = "unsupported-version"
-	// DiscoveryAbsentReasonUnreadable: It could not be read at all: the file
-	// could not be opened or decoded, or the request got no answer by its
-	// deadline.
-	DiscoveryAbsentReasonUnreadable DiscoveryAbsentReason = "unreadable"
-)

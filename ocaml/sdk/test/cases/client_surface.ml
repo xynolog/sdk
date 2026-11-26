@@ -180,7 +180,12 @@ let schema_json = function
   | (Reference v : schema) -> reference_json v
   | (Scalar v : schema) -> scalar_json v
 
-type value = { parameter : string; schema : schema; required : bool }
+type value = {
+  parameter : string;
+  schema : schema;
+  required : bool;
+  absent : bool option;
+}
 
 let value_json (r : value) =
   `Assoc
@@ -189,6 +194,7 @@ let value_json (r : value) =
          Option.Some ("parameter", (fun s -> `String s) r.parameter);
          Option.Some ("schema", schema_json r.schema);
          Option.Some ("required", (fun b -> `Bool b) r.required);
+         Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
        ])
 
 type callback = { parameter : string; calls : schema; required : bool }
@@ -362,28 +368,60 @@ let cancels_json (r : cancels) =
     (List.filter_map Fun.id
        [ Option.Some ("form", (fun s -> `String s) r.form) ])
 
-type function_ = {
-  form : string;
-  parameters : parameters_item list option;
-  returns : schema option option;
+type handed = { handed : string }
+
+let handed_json (r : handed) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("handed", (fun s -> `String s) r.handed) ])
+
+type returns_function = { function_ : string }
+
+let returns_function_json (r : returns_function) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("function", (fun s -> `String s) r.function_) ])
+
+type returns =
+  | Reference of reference
+  | Scalar of scalar
+  | Handed of handed
+  | Function of returns_function
+
+let returns_json = function
+  | (Reference v : returns) -> reference_json v
+  | (Scalar v : returns) -> scalar_json v
+  | (Handed v : returns) -> handed_json v
+  | (Function v : returns) -> returns_function_json v
+
+type signature = {
+  parameters : parameters_item list;
+  returns : returns option;
+  absent : bool option;
 }
+
+let signature_json (r : signature) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some
+           ( "parameters",
+             (fun l -> `List (List.map parameters_item_json l)) r.parameters );
+         Option.Some
+           ( "returns",
+             (function Option.None -> `Null | Option.Some v -> returns_json v)
+               r.returns );
+         Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
+       ])
+
+type function_ = { form : string; signature : signature option }
 
 let function__json (r : function_) =
   `Assoc
     (List.filter_map Fun.id
        [
          Option.Some ("form", (fun s -> `String s) r.form);
-         Option.map
-           (fun v ->
-             ("parameters", (fun l -> `List (List.map parameters_item_json l)) v))
-           r.parameters;
-         Option.map
-           (fun v ->
-             ( "returns",
-               (function
-                 | Option.None -> `Null | Option.Some v -> schema_json v)
-                 v ))
-           r.returns;
+         Option.map (fun v -> ("signature", signature_json v)) r.signature;
        ])
 
 type gives =
@@ -680,8 +718,6 @@ let modules_item_members_item_json = function
 type modules_item = {
   module_ : string;
   docs : string;
-  where : (string * string list) list;
-  whole : string list option;
   members : modules_item_members_item list;
 }
 
@@ -691,19 +727,6 @@ let modules_item_json (r : modules_item) =
        [
          Option.Some ("module", (fun s -> `String s) r.module_);
          Option.Some ("docs", (fun s -> `String s) r.docs);
-         Option.Some
-           ( "where",
-             (fun l ->
-               `Assoc
-                 (List.map
-                    (fun (k, v) ->
-                      (k, (fun l -> `List (List.map (fun s -> `String s) l)) v))
-                    l))
-               r.where );
-         Option.map
-           (fun v ->
-             ("whole", (fun l -> `List (List.map (fun s -> `String s) l)) v))
-           r.whole;
          Option.Some
            ( "members",
              (fun l -> `List (List.map modules_item_members_item_json l))
@@ -894,15 +917,13 @@ let table : t =
         by its name alone, as for `worker`. What implements a storage is not \
         read here. Add a member here before adding it to any SDK. `modules` is \
         what each SDK has beside its namespaces: the free functions, types and \
-        values of its modules, each module with where each SDK keeps it and \
-        its members. A member is named as the table spells it and matched by \
-        its `kind`: a `function` is spelled by each language's convention, a \
-        `reader` as a function but `get` and its name in TypeScript, a `type` \
-        as the table spells it, and a `constant` in capitals with underscores \
-        but in Go, as a function, and in Swift, as the table spells it. \
-        `named` gives an SDK's own name where the rule does not, and is stale \
-        once it is not so. A module whose `whole` names an SDK is that SDK's \
-        files alone, and every public member of them is listed. `clock` is \
+        values of its modules, each module with its members. A member is named \
+        as the table spells it and matched by its `kind`: a `function` is \
+        spelled by each language's convention, a `reader` as a function but \
+        `get` and its name in TypeScript, a `type` as the table spells it, and \
+        a `constant` in capitals with underscores but in Go, as a function, \
+        and in Swift, as the table spells it. `named` gives an SDK's own name \
+        where the rule does not, and is stale once it is not so. `clock` is \
         what a caller controls of an SDK's time and chance: the clock every \
         wait keeps, and the random source every jitter draws, one row each. \
         For every SDK a row says either how a caller controls the source from \
@@ -1025,6 +1046,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1064,6 +1086,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1120,6 +1143,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1196,6 +1220,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1244,6 +1269,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1336,6 +1362,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1384,6 +1411,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1399,6 +1427,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1554,6 +1583,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1600,6 +1630,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1654,6 +1685,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1701,6 +1733,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1747,6 +1780,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1794,6 +1828,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1842,6 +1877,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1891,6 +1927,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1906,6 +1943,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1964,6 +2002,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1979,6 +2018,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2077,6 +2117,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2092,6 +2133,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2176,6 +2218,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2215,6 +2258,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2264,6 +2308,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2334,6 +2379,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2349,6 +2395,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2398,6 +2445,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2437,6 +2485,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2477,6 +2526,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2492,6 +2542,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2507,6 +2558,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2560,6 +2612,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2575,6 +2628,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2785,6 +2839,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2800,6 +2855,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2815,6 +2871,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2866,6 +2923,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2925,6 +2983,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2987,6 +3046,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3002,6 +3062,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3017,6 +3078,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3071,6 +3133,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3127,6 +3190,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3190,6 +3254,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3205,6 +3270,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3220,6 +3286,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3339,6 +3406,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3354,6 +3422,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3485,6 +3554,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3542,6 +3612,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3557,6 +3628,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3572,6 +3644,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3587,6 +3660,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3683,6 +3757,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3698,6 +3773,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3761,6 +3837,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3776,6 +3853,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3885,6 +3963,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3949,6 +4028,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3973,6 +4053,7 @@ let table : t =
                                     : scalar)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4097,6 +4178,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4146,6 +4228,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4195,6 +4278,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4391,6 +4475,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4406,6 +4491,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4465,6 +4551,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4504,6 +4591,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4541,6 +4629,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4578,6 +4667,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4625,6 +4715,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4859,6 +4950,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4906,6 +4998,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4921,6 +5014,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4983,6 +5077,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -5029,6 +5124,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -5159,6 +5255,7 @@ let table : t =
                                     : reference)
                                  : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -5325,8 +5422,17 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = None;
-                           returns = None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns =
+                                    Some
+                                      (Handed ({ handed = "heldJob" } : handed)
+                                        : returns);
+                                  absent = Some true;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -5429,8 +5535,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -5746,8 +5858,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -5761,26 +5879,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "progress";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/JobProgress.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "progress";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/JobProgress.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -5794,8 +5918,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = None;
-                           returns = None;
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "checkpoint";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/JobCheckpoint.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -5809,41 +5957,48 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "resourceId";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/resourceId";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                                 (Value
-                                    ({
-                                       parameter = "annotations";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/annotations";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "resourceId";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/resourceId";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "annotations";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/annotations";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -5859,12 +6014,7 @@ let table : t =
                        ];
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : members_item);
@@ -5876,41 +6026,48 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "error";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/JobFailCommand.json#/properties/error";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                                 (Value
-                                    ({
-                                       parameter = "failure";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/JobFailure.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = false;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "error";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/JobFailCommand.json#/properties/error";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "failure";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/JobFailure.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -5924,8 +6081,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = None;
-                           returns = None;
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "reached";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/JobReached.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6089,26 +6270,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "params";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/MarkJobParams.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "params";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/MarkJobParams.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6120,8 +6307,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6133,8 +6326,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6271,52 +6470,63 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "params";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/GenerationJobParams.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                                 (Value
-                                    ({
-                                       parameter = "stallDeadlineMs";
-                                       schema =
-                                         (Scalar
-                                            ({
-                                               type_ = (Integer : type_);
-                                               minimum = Some 0;
-                                               format = None;
-                                               description =
-                                                 "How long the followed \
-                                                  generation may say nothing, \
-                                                  in milliseconds, before it \
-                                                  is given up on. The \
-                                                  follower's own, never sent: \
-                                                  left out, it grows with the \
-                                                  generation's `maxTokens` as \
-                                                  client/timing.json's \
-                                                  generationStall timings say.";
-                                             }
-                                              : scalar)
-                                           : schema);
-                                       required = false;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "params";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/GenerationJobParams.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "stallDeadlineMs";
+                                            schema =
+                                              (Scalar
+                                                 ({
+                                                    type_ = (Integer : type_);
+                                                    minimum = Some 0;
+                                                    format = None;
+                                                    description =
+                                                      "How long the followed \
+                                                       generation may say \
+                                                       nothing, in \
+                                                       milliseconds, before it \
+                                                       is given up on. The \
+                                                       follower's own, never \
+                                                       sent: left out, it \
+                                                       grows with the \
+                                                       generation's \
+                                                       `maxTokens` as \
+                                                       client/timing.json's \
+                                                       generationStall timings \
+                                                       say.";
+                                                  }
+                                                   : scalar)
+                                                : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6328,8 +6538,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6503,41 +6719,48 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "annotationId";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/AnnotationId.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                                 (Value
-                                    ({
-                                       parameter = "options";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/GatherAnnotationOptions.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = false;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "annotationId";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/AnnotationId.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "options";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/GatherAnnotationOptions.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6549,41 +6772,48 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "resourceId";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/ResourceId.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                                 (Value
-                                    ({
-                                       parameter = "options";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/GatherResourceOptions.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = false;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "resourceId";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/ResourceId.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "options";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/GatherResourceOptions.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6674,26 +6904,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "annotationId";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/AnnotationId.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "annotationId";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/AnnotationId.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6734,26 +6970,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "annotationId";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/AnnotationId.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "annotationId";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/AnnotationId.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6765,8 +7007,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6851,28 +7099,34 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "value";
-                                       schema =
-                                         (Scalar
-                                            ({
-                                               type_ = (String : type_);
-                                               minimum = None;
-                                               format = None;
-                                               description = "The query.";
-                                             }
-                                              : scalar)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "value";
+                                            schema =
+                                              (Scalar
+                                                 ({
+                                                    type_ = (String : type_);
+                                                    minimum = None;
+                                                    format = None;
+                                                    description = "The query.";
+                                                  }
+                                                   : scalar)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -6981,26 +7235,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "reason";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/SessionEnded.json#/properties/reason";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "reason";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/SessionEnded.json#/properties/reason";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -7012,26 +7272,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "detail";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/PermissionDenied.json#/properties/detail";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "detail";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/PermissionDenied.json#/properties/detail";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -7043,26 +7309,32 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters =
+                           signature =
                              Some
-                               [
-                                 (Value
-                                    ({
-                                       parameter = "conflict";
-                                       schema =
-                                         (Reference
-                                            ({
-                                               ref =
-                                                 "https://xynolog.org/protocol/KbIdentityConflict.json";
-                                             }
-                                              : reference)
-                                           : schema);
-                                       required = true;
-                                     }
-                                      : value)
-                                   : parameters_item);
-                               ];
-                           returns = Some None;
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "conflict";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/KbIdentityConflict.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -7074,8 +7346,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -7087,8 +7365,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -7100,8 +7384,14 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = Some [];
-                           returns = Some None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -7144,12 +7434,7 @@ let table : t =
                    member = "observe";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7157,12 +7442,7 @@ let table : t =
                    member = "fetch";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7170,12 +7450,7 @@ let table : t =
                    member = "get";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7183,12 +7458,7 @@ let table : t =
                    member = "known";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7196,12 +7466,7 @@ let table : t =
                    member = "keys";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7209,12 +7474,7 @@ let table : t =
                    member = "invalidate";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7222,12 +7482,7 @@ let table : t =
                    member = "invalidateAll";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7235,12 +7490,7 @@ let table : t =
                    member = "remove";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7248,12 +7498,7 @@ let table : t =
                    member = "set";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7261,12 +7506,7 @@ let table : t =
                    member = "patch";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7274,12 +7514,7 @@ let table : t =
                    member = "persistencePending";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7287,12 +7522,7 @@ let table : t =
                    member = "keptFetching";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7300,12 +7530,7 @@ let table : t =
                    member = "attach";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7313,12 +7538,7 @@ let table : t =
                    member = "query";
                    gives =
                      (Function
-                        ({
-                           form = "function";
-                           parameters = None;
-                           returns = None;
-                         }
-                          : function_)
+                        ({ form = "function"; signature = None } : function_)
                        : gives);
                  }
                   : item_members_item);
@@ -7529,8 +7749,40 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = None;
-                           returns = None;
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "refused";
+                                            schema =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/AccessToken.json";
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                            required = true;
+                                            absent = Some true;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Reference
+                                         ({
+                                            ref =
+                                              "https://xynolog.org/protocol/AccessToken.json";
+                                          }
+                                           : reference)
+                                        : returns);
+                                  absent = Some true;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -7542,8 +7794,19 @@ let table : t =
                      (Function
                         ({
                            form = "function";
-                           parameters = None;
-                           returns = None;
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns =
+                                    Some
+                                      (Function
+                                         ({ function_ = "refresh" }
+                                           : returns_function)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
                          }
                           : function_)
                        : gives);
@@ -7583,8 +7846,7 @@ let table : t =
                  member = "emit";
                  gives =
                    (Function
-                      ({ form = "function"; parameters = None; returns = None }
-                        : function_)
+                      ({ form = "function"; signature = None } : function_)
                      : gives);
                }
                 : wire_members_item);
@@ -7592,8 +7854,7 @@ let table : t =
                  member = "frames";
                  gives =
                    (Function
-                      ({ form = "function"; parameters = None; returns = None }
-                        : function_)
+                      ({ form = "function"; signature = None } : function_)
                      : gives);
                }
                 : wire_members_item);
@@ -7601,8 +7862,7 @@ let table : t =
                  member = "framesOf";
                  gives =
                    (Function
-                      ({ form = "function"; parameters = None; returns = None }
-                        : function_)
+                      ({ form = "function"; signature = None } : function_)
                      : gives);
                }
                 : wire_members_item);
@@ -7610,8 +7870,7 @@ let table : t =
                  member = "request";
                  gives =
                    (Function
-                      ({ form = "function"; parameters = None; returns = None }
-                        : function_)
+                      ({ form = "function"; signature = None } : function_)
                      : gives);
                }
                 : wire_members_item);
@@ -7619,8 +7878,7 @@ let table : t =
                  member = "emitOn";
                  gives =
                    (Function
-                      ({ form = "function"; parameters = None; returns = None }
-                        : function_)
+                      ({ form = "function"; signature = None } : function_)
                      : gives);
                }
                 : wire_members_item);
@@ -7628,8 +7886,7 @@ let table : t =
                  member = "framesOn";
                  gives =
                    (Function
-                      ({ form = "function"; parameters = None; returns = None }
-                        : function_)
+                      ({ form = "function"; signature = None } : function_)
                      : gives);
                }
                 : wire_members_item);
@@ -7637,8 +7894,7 @@ let table : t =
                  member = "requestOf";
                  gives =
                    (Function
-                      ({ form = "function"; parameters = None; returns = None }
-                        : function_)
+                      ({ form = "function"; signature = None } : function_)
                      : gives);
                }
                 : wire_members_item);
@@ -7689,29 +7945,6 @@ let table : t =
                of a quote: what a program that reads or makes annotations is \
                given, so that none parses or builds one by hand. Held by \
                specs/src/annotations's tables.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/annotations.mli" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Annotations.hs" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Annotations" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Annotations/Readers.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Annotations/Spans.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Annotations/Builders.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/core/src/web-annotation-utils.ts";
-                    "sdk/typescript/core/src/annotation-builders.ts";
-                  ] );
-                ("rust", [ "sdk/rust/sdk/src/annotations.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/annotations.py" ]);
-                ("go", [ "sdk/go/annotations" ]);
-                ( "kotlin",
-                  [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/annotations" ] );
-              ];
-            whole = Some [ "typescript"; "rust"; "python"; "go"; "kotlin" ];
             members =
               [
                 (Reader ({ member = "bodySource"; kind = "reader" } : reader)
@@ -7921,20 +8154,6 @@ let table : t =
                choosing a claim's next job, and by a worker checking an \
                announcement against its claim. Held by \
                specs/src/jobs/filter-cases.json.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/job_filter.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Jobs" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift" ] );
-                ("typescript", [ "sdk/typescript/core/src/job-filter.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/job_filter.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/job_filter.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/JobFilter.hs" ]);
-              ];
-            whole = Some [ "rust"; "python"; "haskell" ];
             members =
               [
                 (Function
@@ -7956,47 +8175,6 @@ let table : t =
                reads, each constant's `names`, and whether a failed attempt is \
                retried, which a held job reports on `job:fail`. Held by \
                specs/src/jobs/retry-cases.json.";
-            where =
-              [
-                ( "csharp",
-                  [
-                    "sdk/csharp/sdk/src/Xynolog/Jobs";
-                    "sdk/csharp/sdk/src/Xynolog/Generated/WorkerRules.g.cs";
-                  ] );
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Generated/WorkerChannels.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/sdk/src/claims.ts";
-                    "sdk/typescript/sdk/src/worker-channels.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/claims.rs";
-                    "sdk/rust/sdk/src/generated/worker_channels.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/claims.py";
-                    "sdk/python/sdk/src/xynolog/_worker_channels.py";
-                  ] );
-                ("go", [ "sdk/go" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs";
-                    "sdk/kotlin/sdk/src/generated/kotlin/xynolog/jobs/WorkerChannels.kt";
-                  ] );
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Claims.hs" ]);
-                ( "ocaml",
-                  [
-                    "sdk/ocaml/sdk/lib/claims.mli";
-                    "sdk/ocaml/sdk/lib/worker_facts.ml";
-                  ] );
-              ];
-            whole = Some [ "haskell" ];
             members =
               [
                 (Constant
@@ -8048,20 +8226,6 @@ let table : t =
             docs =
               "Doing work again by a backoff, until it succeeds, it fails as \
                nothing can mend, or the attempts run out.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/retry.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Http" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Transport/Retry.swift" ] );
-                ("typescript", [ "sdk/typescript/core/src/retry.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/retry.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/retry.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/retry" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Retry.hs" ]);
-              ];
-            whole = None;
             members =
               [
                 (Function
@@ -8080,20 +8244,6 @@ let table : t =
             docs =
               "Whether a host is one a knowledge base's HTTP endpoint may \
                name. Held by specs/src/session/gateway-url-cases.json.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/host_name.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Session" ]);
-                ("typescript", [ "sdk/typescript/sdk/src/session/storage.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/session/knowledge_base.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/http/endpoint.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/http" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Session/Identity.swift" ] );
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/HostName.hs" ]);
-              ];
-            whole = Some [ "haskell" ];
             members =
               [
                 (Function
@@ -8113,24 +8263,6 @@ let table : t =
               "What a session reads of an access token: a claim it names as \
                text, when it expires, whether it has, and when to renew it. \
                Held by specs/src/session/cases.json.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/tokens.mli" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Tokens.hs" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Session" ]);
-                ("typescript", [ "sdk/typescript/sdk/src/session/storage.ts" ]);
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/session/mod.rs";
-                    "sdk/rust/sdk/src/session/stored.rs";
-                  ] );
-                ("python", [ "sdk/python/sdk/src/xynolog/session.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/session" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Session/Tokens.swift" ] );
-              ];
-            whole = None;
             members =
               [
                 (Function
@@ -8174,21 +8306,6 @@ let table : t =
               "Where a client keeps its queries' values: a session storage, \
                one key for each query it keeps for the person signed in, each \
                kept within a size.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/storage_persister.mli" ]);
-                ( "haskell",
-                  [ "sdk/haskell/sdk/src/Xynolog/StoragePersister.hs" ] );
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/CachePersistence.swift" ] );
-                ("typescript", [ "sdk/typescript/sdk/src/cache-persister.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/cache.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/storage.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/storage" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -8217,39 +8334,6 @@ let table : t =
                request whose replies cannot arrive, and the channels whose \
                events the record keeps; and what a transport delivers in place \
                of a frame it refuses, and why it refuses it.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/bus.ml" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Bus/Bus.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Bus/Typed.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/core/src/bus.ts";
-                    "sdk/typescript/core/src/bus-request.ts";
-                    "sdk/typescript/core/src/persisted-events.ts";
-                  ] );
-                ( "rust",
-                  [ "sdk/rust/sdk/src/bus.rs"; "sdk/rust/sdk/src/transport.rs" ]
-                );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/bus.py";
-                    "sdk/python/sdk/src/xynolog/transport.py";
-                    "sdk/python/sdk/src/xynolog/channels.py";
-                  ] );
-                ("go", [ "sdk/go"; "sdk/go/bus" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/bus";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/transport";
-                  ] );
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Bus.hs" ]);
-              ];
-            whole = None;
             members =
               [
                 (Function
@@ -8326,51 +8410,6 @@ let table : t =
                token it sent (contract/TRANSPORT-CONTRACT.md \194\167 A \
                refused credential). A factory reads none of them, so a session \
                built by a factory a host writes is read the same way.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/registry.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Registry" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/OpenResources.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/XynologBrowser.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/SessionFactory.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/Stored.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Generated/Models.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/sdk/src/session/xynolog-browser.ts";
-                    "sdk/typescript/sdk/src/session/session-factory.ts";
-                    "sdk/typescript/sdk/src/session/http-session-factory.ts";
-                    "sdk/typescript/sdk/src/session/knowledge-base.ts";
-                    "sdk/typescript/sdk/src/session/open-resource.ts";
-                    "sdk/typescript/sdk/src/session/storage.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/session/browser.rs";
-                    "sdk/rust/sdk/src/session/factory.rs";
-                    "sdk/rust/sdk/src/session/knowledge_base.rs";
-                    "sdk/rust/sdk/src/session/open_resource.rs";
-                    "sdk/rust/sdk/src/session/stored.rs";
-                    "sdk/rust/http-transport/src/session.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/stored.py";
-                    "sdk/python/sdk/src/xynolog/registry.py";
-                    "sdk/python/sdk/src/xynolog/http/session.py";
-                  ] );
-                ("go", [ "sdk/go/registry" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/registry";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/http";
-                  ] );
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Registry.hs" ]);
-              ];
-            whole = Some [ "go" ];
             members =
               [
                 (Type
@@ -8675,23 +8714,6 @@ let table : t =
                that a request was refused for lack of permission, and that a \
                different knowledge base answers at a registered address. Each \
                is a client type of specs/src/client/types.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/session_notices.ml" ]);
-                ( "haskell",
-                  [ "sdk/haskell/sdk/src/Xynolog/State/SessionSignals.hs" ] );
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/State" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/State/SessionSignals.swift" ]
-                );
-                ( "typescript",
-                  [ "sdk/typescript/sdk/src/session/session-signals.ts" ] );
-                ("rust", [ "sdk/rust/sdk/src/session/signals.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/session_signals.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/session" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -8734,48 +8756,6 @@ let table : t =
                grant with PKCE, its pending record kept across the trip to the \
                issuer and back, and the question a completed sign-in asks the \
                knowledge base, who it is.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/redirect_sign_in.ml" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Authorization" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/RedirectSignIn.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/Stored.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/sdk/src/session/oauth.ts";
-                    "sdk/typescript/sdk/src/session/connect.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/http-transport/src/oauth.rs";
-                    "sdk/rust/http-transport/src/session.rs";
-                    "sdk/rust/sdk/src/errors.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/stored.py";
-                    "sdk/python/sdk/src/xynolog/http/oauth.py";
-                    "sdk/python/sdk/src/xynolog/http/session.py";
-                    "sdk/python/sdk/src/xynolog/errors.py";
-                  ] );
-                ("go", [ "sdk/go" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/registry";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/http";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/errors";
-                  ] );
-                ( "haskell",
-                  [
-                    "sdk/haskell/sdk/src/Xynolog/Issuer.hs";
-                    "sdk/haskell/sdk/src/Xynolog/Registry/Identity.hs";
-                    "sdk/haskell/sdk/src/Xynolog/Registry/Stored.hs";
-                  ] );
-              ];
-            whole = None;
             members =
               [
                 (Function
@@ -8872,21 +8852,6 @@ let table : t =
                token was made with, one client-credentials grant at a time, \
                the token held until it is due for renewal, and the \
                `Authorization` header's value it gives (`authorization`).";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/service_token.mli" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/ServiceToken.hs" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/SignIn/ServiceToken.swift" ]
-                );
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/SignIn" ]);
-                ("typescript", [ "sdk/typescript/core/src/service-account.ts" ]);
-                ("rust", [ "sdk/rust/http-transport/src/service_account.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/http/agent.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/http" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -8909,24 +8874,6 @@ let table : t =
                states them: the store, whose every change holds the lock every \
                writer takes, and where the launcher's state home is on each \
                system. Held by sign-in-store/cases.json.";
-            where =
-              [
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/SignIn" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/SignIn/SignInStore.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/SignIn/Kept.swift";
-                  ] );
-                ( "typescript",
-                  [ "sdk/typescript/sdk/src/session/sign-in-store.ts" ] );
-                ("rust", [ "sdk/rust/sdk/src/sign_in_store.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/sign_in_store.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/signin" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/SignInStore.hs" ]);
-                ("ocaml", [ "sdk/ocaml/sdk/lib/sign_in_store.mli" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -9019,45 +8966,6 @@ let table : t =
                how it learns the person when the sign-in names nobody yet, and \
                a session that does not ask then keeps for nobody. \
                docs/builder/SIGN-IN.md says which to use when.";
-            where =
-              [
-                ( "typescript",
-                  [
-                    "sdk/typescript/sdk/src/session/sign-in-kept.ts";
-                    "sdk/typescript/sdk/src/session/oauth.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/session/kept.rs";
-                    "sdk/rust/http-transport/src/session.rs";
-                    "sdk/rust/http-transport/src/oauth.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/session.py";
-                    "sdk/python/sdk/src/xynolog/http/session.py";
-                    "sdk/python/sdk/src/xynolog/http/oauth.py";
-                  ] );
-                ("go", [ "sdk/go" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/signin";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/http";
-                  ] );
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/SignIn/Kept.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/SignIn/Issuer.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Session/SessionFromKept.swift";
-                  ] );
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/SignIn" ]);
-                ( "haskell",
-                  [
-                    "sdk/haskell/sdk/src/Xynolog/SignIn.hs";
-                    "sdk/haskell/sdk/src/Xynolog/Session.hs";
-                  ] );
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -9118,37 +9026,6 @@ let table : t =
                its document read whole or not at all, absent told from empty, \
                entries told apart by address, and what changed since it was \
                last read.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/discovery.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Discovery" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Registry/Discovery.swift" ]
-                );
-                ("typescript", [ "sdk/typescript/sdk/src/discovery.ts" ]);
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/discovery.rs";
-                    "sdk/rust/http-transport/src/discovery.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/discovery.py";
-                    "sdk/python/sdk/src/xynolog/http/discovery.py";
-                  ] );
-                ("go", [ "sdk/go/discovery" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/discovery";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/http";
-                  ] );
-                ( "haskell",
-                  [
-                    "sdk/haskell/sdk/src/Xynolog/Discovery.hs";
-                    "sdk/haskell/sdk/src/Xynolog/Http/Discovery.hs";
-                  ] );
-              ];
-            whole = Some [ "go"; "python" ];
             members =
               [
                 (Constant
@@ -9295,40 +9172,6 @@ let table : t =
                exactly once; a real session over test doubles; a factory of \
                scripted sessions for a registry; and a storage several \
                contexts share.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/testing.mli" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/XynologTesting/Liveness.swift";
-                    "sdk/swift/sdk/Sources/XynologTesting/ScriptedTransport.swift";
-                    "sdk/swift/sdk/Sources/XynologTesting/Sessions.swift";
-                    "sdk/swift/sdk/Sources/XynologTesting/SharedStorage.swift";
-                    "sdk/swift/sdk/Sources/XynologTesting/TestClock.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/core/src/liveness-axioms.ts";
-                    "sdk/typescript/sdk/src/testing.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/testing/liveness.rs";
-                    "sdk/rust/sdk/src/testing/client.rs";
-                    "sdk/rust/sdk/src/testing/sessions.rs";
-                    "sdk/rust/sdk/src/testing/storage.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/testing/__init__.py";
-                    "sdk/python/sdk/src/xynolog/testing/liveness.py";
-                  ] );
-                ("go", [ "sdk/go/xynologtest" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/testing" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Testing" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Testing.hs" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -9493,19 +9336,6 @@ let table : t =
                transport is a package of its own, which reads its answers and \
                holds its stream's frames by them. Held by the table of what \
                each schema requires (the consumer-owned generator).";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/refusals.ml" ]);
-                ("typescript", [ "sdk/typescript/core/src/required.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/required.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/bus.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/bus" ]);
-                ("swift", [ "sdk/swift/sdk/Sources/Xynolog/Bus/Bus.swift" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Bus.hs" ]);
-              ];
-            whole = None;
             members =
               [
                 (Function

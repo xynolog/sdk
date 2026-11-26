@@ -458,17 +458,10 @@ let haskell (o : Owner_only.t) (names : Contract.t) =
 
 let files ~root (spec : Spec.t) =
   let entry =
-    match List.assoc_opt Roots.sign_in_entry spec.schemas with
-    | Some schema -> Flat.read ~file:Roots.sign_in_entry schema
-    | None ->
-        Error
-          [
-            {
-              Decode.file = Roots.sign_in_entry;
-              pointer = "";
-              message = "is not in the spec";
-            };
-          ]
+    match Definitions.sign_in spec with
+    | schema -> Flat.read ~file:Roots.sign_in_entry schema
+    | exception Definitions.Refused message ->
+        Error [ { Decode.file = Roots.sign_in_entry; pointer = ""; message } ]
   in
   let owner_only = Owner_only.derive spec.tables.sign_in_store_owner_only in
   let names = Contract.read ~root in

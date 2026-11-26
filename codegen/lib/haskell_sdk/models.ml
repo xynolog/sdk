@@ -425,9 +425,6 @@ let object_decls name ~constructor ~open_ ~names ~extra_type members =
 let scalar_of : T.scalar -> H.type_ = function
   | Text _ -> T_name "Text"
   | Code vocabulary -> T_name (Error_codes.Haskell.type_of vocabulary)
-  | Word table ->
-      T_name
-        (Error_codes.Haskell.type_of (Word_tables.find table).haskell_member)
   | Integer _ -> T_name "Integer"
   | Number -> T_name "Scientific"
   | Boolean -> T_name "Bool"
@@ -820,13 +817,6 @@ let imports body dependencies =
           H.import "Xynolog.ErrorCodes"
             ~items:(List.map (fun code -> H.All code) codes);
         ])
-  @ List.filter_map
-      (fun (w : Word_tables.t) ->
-        let name = Error_codes.Haskell.type_of w.haskell_member in
-        if type_ name then
-          Some (H.import w.haskell_module ~items:[ H.All name ])
-        else None)
-      Word_tables.tables
   @ List.map (fun m -> H.import m) dependencies
 
 (* What [Typing] makes of [definitions]: each schema under its name's file

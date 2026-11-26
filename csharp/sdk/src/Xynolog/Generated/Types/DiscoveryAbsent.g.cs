@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record DiscoveryAbsent
 {
     [global::Xynolog.Serialization.Wire("kind")] public global::Xynolog.Types.DiscoveryAbsentKind Kind => global::Xynolog.Types.DiscoveryAbsentKind.Absent;
-    [global::Xynolog.Serialization.Wire("reason")] public required DiscoveryAbsentReason Reason { get; init; }
+    [global::Xynolog.Serialization.Wire("reason")] public required global::Xynolog.Types.DiscoveryAbsentReason Reason { get; init; }
     [global::Xynolog.Serialization.Wire("diagnostic")] public string? Diagnostic { get; init; }
 }

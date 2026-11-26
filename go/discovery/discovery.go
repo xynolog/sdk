@@ -2,18 +2,19 @@
 // launcher publishes them (protocol/specs/src/discovery): what the document says, read
 // whole or not at all, and what changed since it was last read.
 //
-// Absent is not empty. Absent is "no launcher was found", with why; Managed
-// with no knowledge bases is "the launcher is here and manages nothing". A
-// reader shows the two differently and never has to work out which it has.
+// Absent is not empty. api.DiscoveryAbsent is "no launcher was found", with
+// why; api.DiscoveryManaged with no knowledge bases is "the launcher is here
+// and manages nothing". A reader shows the two differently and never has to
+// work out which it has.
 //
 // A document is read whole. One of a version this client does not speak, or
-// with an entry that is not what the schema says, is Absent: a partial reading
+// with an entry that is not what the schema says, is absent: a partial reading
 // would hide a running knowledge base without a trace.
 //
 // The address is the key. Entries are told apart by host and port, which the
 // launcher keeps unique. A did is not unique: one knowledge base running in
 // two places is two entries with one did, and each is its own. Two entries at
-// one address cannot both be true, and are named in DiscoveryDiff.Duplicated
+// one address cannot both be true, and are named in api.DiscoveryDiff.Duplicated
 // for a reader to show rather than merged.
 //
 // Where the document is read from is a DiscoveryTransport: TextDiscovery is
@@ -41,57 +42,75 @@ import (
 // a caller says otherwise.
 var DiscoveryInterval = xynolog.DefaultTiming().DiscoveryInterval
 
-// DiscoveryRead is what one read gave: a DiscoveryState, or Unchanged. Read
-// it with a type switch.
-type DiscoveryRead interface {
-	discoveryRead()
-}
-
-// DiscoveryState is what a launcher's document says: Managed, or Absent.
-// Read it with a type switch.
-type DiscoveryState interface {
-	DiscoveryRead
-	discoveryState()
-}
-
-// Absent is that no launcher was found, and why.
-type Absent struct {
-	Reason api.DiscoveryAbsentReason
-	// Diagnostic is what was wrong, in words; "" when there is no more to say.
-	Diagnostic string
-}
-
-// Managed is the knowledge bases a launcher manages: none is a launcher that
-// manages nothing.
-type Managed struct {
-	KBs []api.DiscoveredKB
-}
-
-// Unchanged is a read that found nothing changed since the last.
-type Unchanged struct{}
-
-func (Absent) discoveryRead()    {}
-func (Managed) discoveryRead()   {}
-func (Unchanged) discoveryRead() {}
-func (Absent) discoveryState()   {}
-func (Managed) discoveryState()  {}
-
 // DiscoveryTransport is where the document is read from.
 type DiscoveryTransport interface {
 	// Read reads the document once.
-	Read(ctx context.Context) DiscoveryRead
+	Read(ctx context.Context) api.DiscoveryRead
 }
 
-func invalid(diagnostic string) Absent {
-	return Absent{Reason: api.DiscoveryAbsentReasonInvalid, Diagnostic: diagnostic}
+// state is what a document says, a member of both api.DiscoveryState and
+// api.DiscoveryRead: api.DiscoveryAbsent or api.DiscoveryManaged.
+type state interface {
+	api.DiscoveryStateMember
+	api.DiscoveryReadMember
 }
 
-// ParseDiscoveryDocument is the document's text as a state. Every reader goes
-// through it.
-func ParseDiscoveryDocument(text string) DiscoveryState {
+// stateOf is found as an api.DiscoveryState.
+func stateOf(found state) api.DiscoveryState {
+	var held api.DiscoveryState
+	// Only a value that cannot be written as JSON fails, and no member of the
+	// union is one.
+	if err := held.From(found); err != nil {
+		panic(fmt.Sprintf("discovery: a %T that is no DiscoveryState: %v", found, err))
+	}
+	return held
+}
+
+// readOf is found as an api.DiscoveryRead.
+func readOf(found api.DiscoveryReadMember) api.DiscoveryRead {
+	var held api.DiscoveryRead
+	// Only a value that cannot be written as JSON fails, and no member of the
+	// union is one.
+	if err := held.From(found); err != nil {
+		panic(fmt.Sprintf("discovery: a %T that is no DiscoveryRead: %v", found, err))
+	}
+	return held
+}
+
+// stateIn is the state read found, and whether it found one: an
+// api.DiscoveryUnchanged is none, as is a read that holds no member.
+func stateIn(read api.DiscoveryRead) (state, bool) {
+	member, err := read.Member()
+	if err != nil {
+		return nil, false
+	}
+	switch found := member.(type) {
+	case api.DiscoveryAbsent:
+		return found, true
+	case api.DiscoveryManaged:
+		return found, true
+	}
+	return nil, false
+}
+
+func absent(reason api.DiscoveryAbsentReason, diagnostic string) api.DiscoveryAbsent {
+	return api.DiscoveryAbsent{Reason: reason, Diagnostic: &diagnostic}
+}
+
+func invalid(diagnostic string) api.DiscoveryAbsent {
+	return absent(api.DiscoveryAbsentReasonInvalid, diagnostic)
+}
+
+// ParseDiscoveryDocument is the document's text as a state. Every reader reads
+// the text as it does.
+func ParseDiscoveryDocument(text string) api.DiscoveryState {
+	return stateOf(parse(text))
+}
+
+func parse(text string) state {
 	data := []byte(text)
 	if err := json.Unmarshal(data, new(any)); err != nil {
-		return Absent{Reason: api.DiscoveryAbsentReasonNotJson, Diagnostic: err.Error()}
+		return absent(api.DiscoveryAbsentReasonNotJson, err.Error())
 	}
 	var members map[string]json.RawMessage
 	if json.Unmarshal(data, &members) != nil || members == nil {
@@ -102,13 +121,13 @@ func ParseDiscoveryDocument(text string) DiscoveryState {
 		return invalid(`missing numeric "version"`)
 	}
 	if version != int64(api.DiscoveryDocumentVersion1) {
-		return Absent{
-			Reason: api.DiscoveryAbsentReasonUnsupportedVersion,
-			Diagnostic: fmt.Sprintf(
+		return absent(
+			api.DiscoveryAbsentReasonUnsupportedVersion,
+			fmt.Sprintf(
 				"discovery document version %d is not the one this client speaks (%d); it is not read in part",
 				version, api.DiscoveryDocumentVersion1,
 			),
-		}
+		)
 	}
 	read, fault, faulty := required.Read(data, reflect.TypeFor[api.DiscoveryDocument]())
 	if faulty {
@@ -124,22 +143,22 @@ func ParseDiscoveryDocument(text string) DiscoveryState {
 			return invalid(fmt.Sprintf("kb entry at %s has port %d, which is not a port", kb.Host, kb.Port))
 		}
 	}
-	return Managed{KBs: document.Kbs}
+	return api.DiscoveryManaged{Kbs: document.Kbs}
 }
 
 type textDiscovery struct {
 	read func(ctx context.Context) (string, error)
 }
 
-func (t textDiscovery) Read(ctx context.Context) DiscoveryRead {
+func (t textDiscovery) Read(ctx context.Context) api.DiscoveryRead {
 	text, err := t.read(ctx)
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
-		return Absent{Reason: api.DiscoveryAbsentReasonNotFound}
+		return readOf(api.DiscoveryAbsent{Reason: api.DiscoveryAbsentReasonNotFound})
 	case err != nil:
-		return Absent{Reason: api.DiscoveryAbsentReasonUnreadable, Diagnostic: err.Error()}
+		return readOf(absent(api.DiscoveryAbsentReasonUnreadable, err.Error()))
 	}
-	return ParseDiscoveryDocument(text)
+	return readOf(parse(text))
 }
 
 // TextDiscovery is a transport over any way of getting the document's text:
@@ -150,34 +169,22 @@ func TextDiscovery(read func(ctx context.Context) (string, error)) DiscoveryTran
 	return textDiscovery{read: read}
 }
 
-// DiscoveryDiff is what one read changed: the state now, and what was added,
-// changed and removed since the last one told of.
-type DiscoveryDiff struct {
-	State   DiscoveryState
-	Added   []api.DiscoveredKB
-	Updated []api.DiscoveredKB
-	Removed []api.DiscoveredKB
-	// Duplicated is the addresses more than one entry claims, each once. At
-	// most one claim can be true; every claimant is in State.
-	Duplicated []string
-}
-
 func address(kb api.DiscoveredKB) string {
 	return fmt.Sprintf("%s:%d", kb.Host, kb.Port)
 }
 
-// kbsOf is the knowledge bases a state lists: none when it is Absent, or when
+// kbsOf is the knowledge bases a state lists: none when it is absent, or when
 // there is no state.
-func kbsOf(state DiscoveryState) []api.DiscoveredKB {
-	if managed, isManaged := state.(Managed); isManaged {
-		return managed.KBs
+func kbsOf(found state) []api.DiscoveredKB {
+	if managed, isManaged := found.(api.DiscoveryManaged); isManaged {
+		return managed.Kbs
 	}
 	return nil
 }
 
 // diff is what changed between last, the state last told of (nil when none
 // was), and next, and whether anything did.
-func diff(last DiscoveryState, next DiscoveryState) (DiscoveryDiff, bool) {
+func diff(last state, next state) (api.DiscoveryDiff, bool) {
 	beforeKBs, afterKBs := kbsOf(last), kbsOf(next)
 	before := make(map[string]api.DiscoveredKB, len(beforeKBs))
 	for _, kb := range beforeKBs {
@@ -188,7 +195,7 @@ func diff(last DiscoveryState, next DiscoveryState) (DiscoveryDiff, bool) {
 		after[address(kb)] = true
 	}
 
-	change := DiscoveryDiff{State: next}
+	change := api.DiscoveryDiff{State: stateOf(next)}
 	claimed := make(map[string]int, len(afterKBs))
 	for _, kb := range afterKBs {
 		at := address(kb)
@@ -211,11 +218,11 @@ func diff(last DiscoveryState, next DiscoveryState) (DiscoveryDiff, bool) {
 
 	stateChanged := true
 	switch was := last.(type) {
-	case Managed:
-		_, isManaged := next.(Managed)
+	case api.DiscoveryManaged:
+		_, isManaged := next.(api.DiscoveryManaged)
 		stateChanged = !isManaged
-	case Absent:
-		is, isAbsent := next.(Absent)
+	case api.DiscoveryAbsent:
+		is, isAbsent := next.(api.DiscoveryAbsent)
 		stateChanged = !isAbsent || is.Reason != was.Reason
 	}
 	return change, stateChanged || len(change.Added) > 0 || len(change.Updated) > 0 || len(change.Removed) > 0
@@ -227,14 +234,14 @@ func diff(last DiscoveryState, next DiscoveryState) (DiscoveryDiff, bool) {
 // and a change of state, which carries every entry it brought or took away.
 // Each range over what it gives reads on its own, and reading stops when ctx
 // is done or the range ends.
-func SubscribeDiscovery(ctx context.Context, transport DiscoveryTransport, interval time.Duration) iter.Seq[DiscoveryDiff] {
-	return func(yield func(DiscoveryDiff) bool) {
-		var last DiscoveryState
+func SubscribeDiscovery(ctx context.Context, transport DiscoveryTransport, interval time.Duration) iter.Seq[api.DiscoveryDiff] {
+	return func(yield func(api.DiscoveryDiff) bool) {
+		var last state
 		for ctx.Err() == nil {
 			// A read cut short by the end of the subscription is not told of.
-			if state, isState := transport.Read(ctx).(DiscoveryState); isState && ctx.Err() == nil {
-				if change, changed := diff(last, state); changed {
-					last = change.State
+			if found, isState := stateIn(transport.Read(ctx)); isState && ctx.Err() == nil {
+				if change, changed := diff(last, found); changed {
+					last = found
 					if !yield(change) {
 						return
 					}

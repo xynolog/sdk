@@ -101,7 +101,7 @@ newContent http = do
                   <> encodeUtf8 (resourceUploadMetadataFormat metadata)
                   <> "\r\n\r\n"
               suffix = "\r\n--" <> marker <> "--\r\n"
-              total = maybe 0 fromIntegral (Content.bodyLength source)
+              total = fromIntegral <$> Content.bodyLength source
           when
             (maybe False (\size -> toInteger size + toInteger (Bytes.length prefix + Bytes.length suffix) > toInteger (maxBound :: Int64)) (Content.bodyLength source))
             (throwIO (TransportError Code.TransportBadRequest "Upload length exceeds the HTTP body's range" Nothing Nothing))
@@ -119,14 +119,14 @@ newContent http = do
                             then do
                               actual <- readIORef count
                               when
-                                (Content.bodyLength source /= Nothing && actual /= total)
+                                (maybe False (actual /=) total)
                                 (throwIO (TransportError Code.TransportBadRequest "Upload length differs from its source" Nothing Nothing))
                               writeIORef stage 2
                               pure suffix
                             else do
                               actual <- atomicModifyIORef' count (\n -> let value = n + fromIntegral (Bytes.length chunk) in (value, value))
                               when
-                                (Content.bodyLength source /= Nothing && actual > total)
+                                (maybe False (actual >) total)
                                 (throwIO (TransportError Code.TransportBadRequest "Upload length differs from its source" Nothing Nothing))
                               previous <- readIORef high
                               when (actual > previous) (writeIORef high actual >> progress (UploadProgress actual total))

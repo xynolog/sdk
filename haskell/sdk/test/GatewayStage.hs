@@ -96,7 +96,7 @@ domainOf key = key <> ".example.test"
 -- | A sign-in of the stage's issuer, naming the person whose key is given, or nobody.
 signInOf :: Text -> Text -> Text -> Maybe Text -> StoredSession
 signInOf clientId access refresh person =
-  StoredSession {storedSessionAccess = access, storedSessionClientId = clientId, storedSessionPersonKey = person, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = (Just "http://issuer.test/revoke"), storedSessionTokenEndpoint = "http://issuer.test/token"}
+  StoredSession {storedSessionAccess = AccessToken access, storedSessionClientId = clientId, storedSessionPersonKey = person, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = (Just "http://issuer.test/revoke"), storedSessionTokenEndpoint = "http://issuer.test/token"}
 
 answer :: Stage -> Bytes.ByteString -> (Bytes.ByteString -> STM ()) -> STM () -> IO ()
 answer stage request write hangUp = dispatch (decodeUtf8 (Char8.takeWhile (/= '?') (route request)))

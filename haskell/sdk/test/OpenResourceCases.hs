@@ -149,7 +149,7 @@ runCase fixtures row = do
   Browser.saveKnowledgeBases
     store
     [KnowledgeBase {knowledgeBaseDid = (either error userIdValue (Identity.kbDid kbDomain)), knowledgeBaseEndpoint = (KbEndpointLocalEndpoint (LocalEndpoint {localEndpointKbId = kbId, localEndpointKind = LocalEndpointKindLocal})), knowledgeBaseId = kbId, knowledgeBaseLabel = "Open", knowledgeBaseLastRead = Nothing}]
-  Browser.storeSession store kbId grant {storedSessionAccess = jwt 3600 1}
+  Browser.storeSession store kbId grant {storedSessionAccess = AccessToken (jwt 3600 1)}
   tabs <- forM (zip [0 ..] open) $ \(order, resource) -> do
     identity <- either (failure why) pure (mkResourceId resource)
     pure (OpenResource {openResourceId = identity, openResourceMediaType = Nothing, openResourceName = resource, openResourceOpenedAt = 1800000000000, openResourceOrder = order, openResourceStorageUri = Nothing})

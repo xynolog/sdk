@@ -2137,7 +2137,7 @@ let shape_109 () =
                 {
                   any with
                   kinds = Some [ Object ];
-                  required = [ "upload"; "bytesUploaded"; "totalBytes" ];
+                  required = [ "upload"; "bytesUploaded" ];
                   members =
                     [
                       ( "bytesUploaded",
@@ -3183,20 +3183,7 @@ let shape_127 () =
             kinds = Some [ String ];
             enum = Some [ `Stringlit "\"absent\"" ];
           } );
-        ( "reason",
-          {
-            any with
-            kinds = Some [ String ];
-            enum =
-              Some
-                [
-                  `Stringlit "\"not-found\"";
-                  `Stringlit "\"not-json\"";
-                  `Stringlit "\"invalid\"";
-                  `Stringlit "\"unsupported-version\"";
-                  `Stringlit "\"unreadable\"";
-                ];
-          } );
+        ("reason", { any with reference = Some "DiscoveryAbsentReason" });
       ];
     closed = Some [ "diagnostic"; "kind"; "reason" ];
   }
@@ -10912,7 +10899,7 @@ let shape_449 () =
     required = [ "access"; "refresh"; "clientId"; "tokenEndpoint" ];
     members =
       [
-        ("access", { any with kinds = Some [ String ] });
+        ("access", { any with reference = Some "AccessToken" });
         ("clientId", { any with kinds = Some [ String ] });
         ("personKey", { any with kinds = Some [ String ] });
         ("refresh", { any with kinds = Some [ String ] });
@@ -11411,7 +11398,7 @@ let shape_468 () =
         {
           any with
           kinds = Some [ Object ];
-          required = [ "phase"; "totalBytes" ];
+          required = [ "phase" ];
           members =
             [
               ( "phase",
@@ -11428,7 +11415,7 @@ let shape_468 () =
         {
           any with
           kinds = Some [ Object ];
-          required = [ "phase"; "bytesUploaded"; "totalBytes" ];
+          required = [ "phase"; "bytesUploaded" ];
           members =
             [
               ( "bytesUploaded",

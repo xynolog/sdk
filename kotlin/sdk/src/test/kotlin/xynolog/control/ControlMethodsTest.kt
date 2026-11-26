@@ -42,8 +42,7 @@ class ControlMethodsTest {
 
     @Test
     fun theSidesAreTheTableSchemas() {
-        val from = Spec.read("control/ControlMethods.json").jsonObject.getValue("properties").jsonObject.getValue("notifications").jsonObject
-            .getValue("items").jsonObject.getValue("properties").jsonObject.getValue("from").jsonObject.getValue("enum").jsonArray
+        val from = Spec.read("control/ControlSender.json").jsonObject.getValue("enum").jsonArray
         assertEquals(from.map { it.jsonPrimitive.content }, ControlSender.entries.map { it.value })
     }
 }

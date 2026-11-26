@@ -4304,8 +4304,8 @@ public struct ConformanceDriverLineProgress: Codable, Sendable, Hashable {
 public struct ConformanceDriverLineProgressProgress: Codable, Sendable, Hashable {
   public var upload: Int
   public var bytesUploaded: Int
-  public var totalBytes: Int
-  public init(upload: Int, bytesUploaded: Int, totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(upload: Int, bytesUploaded: Int, totalBytes: Int? = nil) {
     self.upload = upload
     self.bytesUploaded = bytesUploaded
     self.totalBytes = totalBytes
@@ -4316,13 +4316,13 @@ public struct ConformanceDriverLineProgressProgress: Codable, Sendable, Hashable
       ["upload", "bytesUploaded", "totalBytes"], in: "ConformanceDriverLineProgressProgress")
     self.upload = try c.value("upload")
     self.bytesUploaded = try c.value("bytesUploaded")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.upload, as: "upload")
     try c.encode(self.bytesUploaded, as: "bytesUploaded")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -5843,6 +5843,14 @@ public enum DiscoveryAbsentKind: String, Codable, Sendable, CaseIterable {
   case absent = "absent"
 }
 
+public enum DiscoveryAbsentReason: String, Codable, Sendable, CaseIterable {
+  case notFound = "not-found"
+  case notJson = "not-json"
+  case invalid = "invalid"
+  case unsupportedVersion = "unsupported-version"
+  case unreadable = "unreadable"
+}
+
 public struct DiscoveryDiff: Codable, Sendable, Hashable {
   public var state: DiscoveryState
   public var added: [DiscoveredKB]
@@ -5945,7 +5953,15 @@ public indirect enum DiscoveryRead: Codable, Sendable, Hashable {
     [
       UnionSignature(
         kind: .object, required: ["kind", "reason"], allowed: ["kind", "reason", "diagnostic"],
-        fixed: [.init(property: "kind", values: [.text("absent")])], values: nil)
+        fixed: [
+          .init(property: "kind", values: [.text("absent")]),
+          .init(
+            property: "reason",
+            values: [
+              .text("not-found"), .text("not-json"), .text("invalid"), .text("unsupported-version"),
+              .text("unreadable"),
+            ]),
+        ], values: nil)
     ],
     [
       UnionSignature(
@@ -5991,7 +6007,15 @@ public indirect enum DiscoveryState: Codable, Sendable, Hashable {
     [
       UnionSignature(
         kind: .object, required: ["kind", "reason"], allowed: ["kind", "reason", "diagnostic"],
-        fixed: [.init(property: "kind", values: [.text("absent")])], values: nil)
+        fixed: [
+          .init(property: "kind", values: [.text("absent")]),
+          .init(
+            property: "reason",
+            values: [
+              .text("not-found"), .text("not-json"), .text("invalid"), .text("unsupported-version"),
+              .text("unreadable"),
+            ]),
+        ], values: nil)
     ],
     [
       UnionSignature(
@@ -19652,14 +19676,14 @@ public struct StoredEventResponse: Codable, Sendable, Hashable {
 }
 
 public struct StoredSession: Codable, Sendable, Hashable {
-  public var access: String
+  public var access: AccessToken
   public var refresh: String
   public var clientId: String
   public var tokenEndpoint: String
   public var revocationEndpoint: String?
   public var personKey: String?
   public init(
-    access: String, refresh: String, clientId: String, tokenEndpoint: String,
+    access: AccessToken, refresh: String, clientId: String, tokenEndpoint: String,
     revocationEndpoint: String? = nil, personKey: String? = nil
   ) {
     self.access = access
@@ -20247,12 +20271,12 @@ public indirect enum UploadProgress: Codable, Sendable, Hashable {
   static let members: [[UnionSignature]] = [
     [
       UnionSignature(
-        kind: .object, required: ["phase", "totalBytes"], allowed: ["phase", "totalBytes"],
+        kind: .object, required: ["phase"], allowed: ["phase", "totalBytes"],
         fixed: [.init(property: "phase", values: [.text("started")])], values: nil)
     ],
     [
       UnionSignature(
-        kind: .object, required: ["phase", "bytesUploaded", "totalBytes"],
+        kind: .object, required: ["phase", "bytesUploaded"],
         allowed: ["phase", "bytesUploaded", "totalBytes"],
         fixed: [.init(property: "phase", values: [.text("progress")])], values: nil)
     ],
@@ -20307,8 +20331,8 @@ public enum UploadProgressFinishedPhase: String, Codable, Sendable, CaseIterable
 public struct UploadProgressProgress: Codable, Sendable, Hashable {
   public let phase: UploadProgressProgressPhase
   public var bytesUploaded: Int
-  public var totalBytes: Int
-  public init(bytesUploaded: Int, totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(bytesUploaded: Int, totalBytes: Int? = nil) {
     self.phase = .progress
     self.bytesUploaded = bytesUploaded
     self.totalBytes = totalBytes
@@ -20318,13 +20342,13 @@ public struct UploadProgressProgress: Codable, Sendable, Hashable {
     try c.refuseUnknown(["phase", "bytesUploaded", "totalBytes"], in: "UploadProgressProgress")
     self.phase = try c.value("phase")
     self.bytesUploaded = try c.value("bytesUploaded")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.phase, as: "phase")
     try c.encode(self.bytesUploaded, as: "bytesUploaded")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -20334,8 +20358,8 @@ public enum UploadProgressProgressPhase: String, Codable, Sendable, CaseIterable
 
 public struct UploadProgressStarted: Codable, Sendable, Hashable {
   public let phase: UploadProgressStartedPhase
-  public var totalBytes: Int
-  public init(totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(totalBytes: Int? = nil) {
     self.phase = .started
     self.totalBytes = totalBytes
   }
@@ -20343,12 +20367,12 @@ public struct UploadProgressStarted: Codable, Sendable, Hashable {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(["phase", "totalBytes"], in: "UploadProgressStarted")
     self.phase = try c.value("phase")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.phase, as: "phase")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -22090,24 +22114,6 @@ public struct YieldedResource: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.resourceId, as: "resourceId")
   }
-}
-
-/// Why a client that read a launcher's discovery document found no launcher.
-public enum DiscoveryAbsentReason: String, Codable, Sendable, CaseIterable {
-  /// There is no document where it was looked for: no file, an HTTP status that is not success, or
-  /// a page that is not JSON.
-  case notFound = "not-found"
-  /// There is a document, and it is not JSON.
-  case notJson = "not-json"
-  /// It is JSON, and not a discovery document: one entry that is not what the schema says makes the
-  /// whole document invalid, since a partial reading would hide a running knowledge base without a
-  /// trace.
-  case invalid = "invalid"
-  /// It is a discovery document of a version this client does not speak, and is not read in part.
-  case unsupportedVersion = "unsupported-version"
-  /// It could not be read at all: the file could not be opened or decoded, or the request got no
-  /// answer by its deadline.
-  case unreadable = "unreadable"
 }
 
 extension ReceivedFrame {
@@ -24648,7 +24654,7 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["progress"],
         members: [
           "progress": Shape(
-            kinds: [.object], required: ["upload", "bytesUploaded", "totalBytes"],
+            kinds: [.object], required: ["upload", "bytesUploaded"],
             members: [
               "bytesUploaded": Shape(kinds: [.integer], minimum: 0.0),
               "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
@@ -25056,12 +25062,7 @@ internal let requiredSchemas: [String: Shape] = {
     members: [
       "diagnostic": Shape(kinds: [.string], minLength: 1),
       "kind": Shape(kinds: [.string], enumeration: [.string("absent")]),
-      "reason": Shape(
-        kinds: [.string],
-        enumeration: [
-          .string("not-found"), .string("not-json"), .string("invalid"),
-          .string("unsupported-version"), .string("unreadable"),
-        ]),
+      "reason": Shape(ref: "DiscoveryAbsentReason"),
     ], closed: ["diagnostic", "kind", "reason"])
   shapes["DiscoveryAbsentReason"] = Shape(
     kinds: [.string],
@@ -27739,7 +27740,7 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["StoredSession"] = Shape(
     kinds: [.object], required: ["access", "refresh", "clientId", "tokenEndpoint"],
     members: [
-      "access": Shape(kinds: [.string]), "clientId": Shape(kinds: [.string]),
+      "access": Shape(ref: "AccessToken"), "clientId": Shape(kinds: [.string]),
       "personKey": Shape(kinds: [.string]), "refresh": Shape(kinds: [.string]),
       "revocationEndpoint": Shape(kinds: [.string]), "tokenEndpoint": Shape(kinds: [.string]),
     ])
@@ -27918,13 +27919,13 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object],
     oneOf: [
       Shape(
-        kinds: [.object], required: ["phase", "totalBytes"],
+        kinds: [.object], required: ["phase"],
         members: [
           "phase": Shape(kinds: [.string], enumeration: [.string("started")]),
           "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
         ], closed: ["phase", "totalBytes"]),
       Shape(
-        kinds: [.object], required: ["phase", "bytesUploaded", "totalBytes"],
+        kinds: [.object], required: ["phase", "bytesUploaded"],
         members: [
           "bytesUploaded": Shape(kinds: [.integer], minimum: 0.0),
           "phase": Shape(kinds: [.string], enumeration: [.string("progress")]),

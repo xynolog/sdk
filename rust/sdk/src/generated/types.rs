@@ -2259,7 +2259,7 @@ impl BeginAuthorizationOptions {
 
 schema!(BeginAuthorizationOptions);
 
-/// Bytes held whole. They can be read more than once, and sent again when an upload is retried.
+/// Bytes held whole: all of them at once, read as often as wanted.
 pub type Binary = String;
 
 /// One edit to a linking annotation's body list: add or remove a body item, or replace an existing one.
@@ -4343,9 +4343,21 @@ pub struct ConformanceDriverLineProgressProgress {
     /// How many bytes it has sent.
     #[serde(rename = "bytesUploaded")]
     pub bytes_uploaded: u64,
-    /// How many it will send.
+    /// How many it will send. Absent for an upload whose source states no length.
     #[serde(rename = "totalBytes")]
-    pub total_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub total_bytes: Option<u64>,
+}
+
+impl ConformanceDriverLineProgressProgress {
+    /// The `ConformanceDriverLineProgressProgress` that states these and nothing else.
+    pub fn new(upload: u64, bytes_uploaded: u64) -> Self {
+        Self {
+            upload,
+            bytes_uploaded,
+            total_bytes: None,
+        }
+    }
 }
 
 /// The driver can take operations.
@@ -5739,8 +5751,8 @@ schema!(DiscoveredKB);
 #[serde(deny_unknown_fields)]
 pub struct DiscoveryAbsent {
     pub kind: DiscoveryAbsentKind,
-    /// Why: one of client/discovery-absent.json's reasons.
-    pub reason: crate::discovery::DiscoveryAbsentReason,
+    /// Why.
+    pub reason: DiscoveryAbsentReason,
     /// What was wrong, in words, when there is more to say.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub diagnostic: Option<String>,
@@ -5748,7 +5760,7 @@ pub struct DiscoveryAbsent {
 
 impl DiscoveryAbsent {
     /// The `DiscoveryAbsent` that states these and nothing else.
-    pub fn new(reason: crate::discovery::DiscoveryAbsentReason) -> Self {
+    pub fn new(reason: DiscoveryAbsentReason) -> Self {
         Self {
             kind: DiscoveryAbsentKind::Absent,
             reason,
@@ -5775,6 +5787,38 @@ impl DiscoveryAbsentKind {
         }
     }
 }
+
+/// Why a client that read a launcher's discovery document found no launcher: one of the reasons of client/discovery-absent.json, which says what each means.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum DiscoveryAbsentReason {
+    #[serde(rename = "not-found")]
+    NotFound,
+    #[serde(rename = "not-json")]
+    NotJson,
+    #[serde(rename = "invalid")]
+    Invalid,
+    #[serde(rename = "unsupported-version")]
+    UnsupportedVersion,
+    #[serde(rename = "unreadable")]
+    Unreadable,
+}
+
+impl DiscoveryAbsentReason {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            DiscoveryAbsentReason::NotFound => "not-found",
+            DiscoveryAbsentReason::NotJson => "not-json",
+            DiscoveryAbsentReason::Invalid => "invalid",
+            DiscoveryAbsentReason::UnsupportedVersion => "unsupported-version",
+            DiscoveryAbsentReason::Unreadable => "unreadable",
+        }
+    }
+}
+
+schema!(DiscoveryAbsentReason);
 
 /// How one poll's knowledge bases changed since the last state it gave.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -5875,7 +5919,19 @@ impl DiscoveryRead {
             kind: Kind::Object,
             required: &["kind", "reason"],
             allowed: Some(&["kind", "reason", "diagnostic"]),
-            fixed: &[("kind", &[Literal::Text("absent")])],
+            fixed: &[
+                ("kind", &[Literal::Text("absent")]),
+                (
+                    "reason",
+                    &[
+                        Literal::Text("not-found"),
+                        Literal::Text("not-json"),
+                        Literal::Text("invalid"),
+                        Literal::Text("unsupported-version"),
+                        Literal::Text("unreadable"),
+                    ],
+                ),
+            ],
             values: None,
         }],
         &[Signature {
@@ -5921,7 +5977,19 @@ impl DiscoveryState {
             kind: Kind::Object,
             required: &["kind", "reason"],
             allowed: Some(&["kind", "reason", "diagnostic"]),
-            fixed: &[("kind", &[Literal::Text("absent")])],
+            fixed: &[
+                ("kind", &[Literal::Text("absent")]),
+                (
+                    "reason",
+                    &[
+                        Literal::Text("not-found"),
+                        Literal::Text("not-json"),
+                        Literal::Text("invalid"),
+                        Literal::Text("unsupported-version"),
+                        Literal::Text("unreadable"),
+                    ],
+                ),
+            ],
             values: None,
         }],
         &[Signature {
@@ -15991,7 +16059,7 @@ schema!(ResourceUpdatedPayload);
 pub struct ResourceUpload {
     /// Human-readable resource name
     pub name: String,
-    /// Binary content
+    /// The bytes, as the part carries them.
     pub file: Binary,
     /// Media type of the content (e.g. text/plain, text/markdown, image/png)
     pub format: String,
@@ -19372,7 +19440,7 @@ schema!(StoredEventResponse);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct StoredSession {
     /// The access token: short-lived, sent as a Bearer token.
-    pub access: String,
+    pub access: AccessToken,
     /// The refresh token: what renews the access token at the issuer without another sign-in.
     pub refresh: String,
     /// The client the tokens were issued to, which a renewal and a revocation name.
@@ -19394,13 +19462,13 @@ pub struct StoredSession {
 impl StoredSession {
     /// The `StoredSession` that states these and nothing else.
     pub fn new(
-        access: impl Into<String>,
+        access: AccessToken,
         refresh: impl Into<String>,
         client_id: impl Into<String>,
         token_endpoint: impl Into<String>,
     ) -> Self {
         Self {
-            access: access.into(),
+            access,
             refresh: refresh.into(),
             client_id: client_id.into(),
             token_endpoint: token_endpoint.into(),
@@ -20206,7 +20274,7 @@ pub struct UpdateAnnotationBodyRequest {
 
 schema!(UpdateAnnotationBodyRequest);
 
-/// What an upload reports as it goes, told apart by `phase`: its size first, then the bytes sent so far, then the resource made.
+/// What an upload reports as it goes, told apart by `phase`: that it began, with its size when its ByteSource states one, then the bytes sent so far, then the resource made. An upload whose source states no length reports none: a size it made up would be a size the caller could not tell from a true one.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
 #[serde(untagged)]
 pub enum UploadProgress {
@@ -20220,14 +20288,14 @@ impl UploadProgress {
     pub const MEMBERS: &'static [&'static [Signature]] = &[
         &[Signature {
             kind: Kind::Object,
-            required: &["phase", "totalBytes"],
+            required: &["phase"],
             allowed: Some(&["phase", "totalBytes"]),
             fixed: &[("phase", &[Literal::Text("started")])],
             values: None,
         }],
         &[Signature {
             kind: Kind::Object,
-            required: &["phase", "bytesUploaded", "totalBytes"],
+            required: &["phase", "bytesUploaded"],
             allowed: Some(&["phase", "bytesUploaded", "totalBytes"]),
             fixed: &[("phase", &[Literal::Text("progress")])],
             values: None,
@@ -20289,18 +20357,19 @@ pub struct UploadProgressProgress {
     /// How many bytes are sent so far.
     #[serde(rename = "bytesUploaded")]
     pub bytes_uploaded: u64,
-    /// How many bytes the upload is.
+    /// How many bytes the upload is: its ByteSource's length. Absent when the source states none.
     #[serde(rename = "totalBytes")]
-    pub total_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub total_bytes: Option<u64>,
 }
 
 impl UploadProgressProgress {
     /// The `UploadProgressProgress` that states these and nothing else.
-    pub fn new(bytes_uploaded: u64, total_bytes: u64) -> Self {
+    pub fn new(bytes_uploaded: u64) -> Self {
         Self {
             phase: UploadProgressProgressPhase::Progress,
             bytes_uploaded,
-            total_bytes,
+            total_bytes: None,
         }
     }
 }
@@ -20327,17 +20396,24 @@ impl UploadProgressProgressPhase {
 #[serde(deny_unknown_fields)]
 pub struct UploadProgressStarted {
     pub phase: UploadProgressStartedPhase,
-    /// How many bytes the upload is.
+    /// How many bytes the upload is: its ByteSource's length. Absent when the source states none.
     #[serde(rename = "totalBytes")]
-    pub total_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub total_bytes: Option<u64>,
+}
+
+impl Default for UploadProgressStarted {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl UploadProgressStarted {
-    /// The `UploadProgressStarted` that states these and nothing else.
-    pub fn new(total_bytes: u64) -> Self {
+    /// The `UploadProgressStarted` that states what it must and nothing else.
+    pub fn new() -> Self {
         Self {
             phase: UploadProgressStartedPhase::Started,
-            total_bytes,
+            total_bytes: None,
         }
     }
 }

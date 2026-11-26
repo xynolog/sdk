@@ -13,6 +13,8 @@ export type Subject =
   | 'jobFollower'
   | 'jobPoll'
   | 'jobPollTimeout'
+  | 'refusedAgentGrant'
+  | 'refusedAgentSignIn'
   | 'refusedBusRequest'
   | 'refusedStream'
   | 'renewal'
@@ -22,7 +24,8 @@ export type Subject =
   | 'timedOutBusRequest'
   | 'unansweredEmit'
   | 'unansweredRequest'
-  | 'unansweredStream';
+  | 'unansweredStream'
+  | 'unreachableAgentSignIn';
 
 export type Counted = {
   counted: number;
@@ -49,6 +52,7 @@ export type Given = {
   lifetimeSeconds?: number;
   intervalSeconds?: number;
   answers?: string[];
+  status?: number;
 };
 
 export type CasesItem = {
@@ -65,7 +69,7 @@ export type Table = {
 
 export const table: Table = {
   $comment:
-    "AUTHORITY for the time a Xynolog client keeps: every wait it makes, every interval it measures and every jitter it draws follows a clock and a random source its caller controls, so a caller who moves the clock sees each wait end when this table says, and not a millisecond before. How a caller controls them is each ecosystem's own: the runtime's test clock where the runtime owns time (Go's testing/synctest, Tokio's paused clock, the running asyncio loop's clock, a JavaScript test runner's fake timers), and public parameters of the standard types where the ecosystem's waits take them (Kotlin a CoroutineContext, a TimeSource and a Random; Swift a Clock and a RandomNumberGenerator; C# a TimeProvider and a Random); specs/src/client/surface.json's `clock` section names each SDK's. What is outside it: a reading of the wall clock, which compares now with an instant a server stated (a token's `exp`) or stamps a record, reads the platform's wall clock, which moving the caller's clock need not move; and the randomness of a secret (a PKCE verifier, a nonce, a client assertion's `jti`), which stays the platform's cryptographic source. Every SDK runs these cases in its own process, on its own controlled clock, at the timings specs/src/client/timing.json states, never overridden: moving a clock an hour costs nothing. The conformance drivers, which are other processes on real time, do not run them. Every jitter a case draws is the lowest its source can give, so the equal jitter of a step is half the step. A case names its `subject`, which says what the runner builds and what it counts, and what it is (`case`); `given` states what a subject leaves open. Every network a subject speaks over is faked in the runner's process, and answers at once unless the subject says otherwise. Subjects: `refusedStream`: a transport whose gateway refuses every subscribe with 503, with a `Retry-After` of `given.retryAfterSeconds` when stated; it counts subscribe requests. `unansweredStream`: a transport whose gateway never answers a subscribe; it counts subscribe requests. `degradedStream`: as `refusedStream`; it counts the times the transport's state has become `degraded`. `scopeTaken`: a transport whose gateway answers every subscribe with a stream it holds open, carrying no resource's scope; `act` takes a resource's scope; it counts subscribe requests. `scopeLetGo`: as `scopeTaken`, taking a resource's scope once its stream is open, as the case begins; `act` lets it go; it counts subscribe requests. `handoffLinger`: as `scopeTaken`; it counts the connections the client has closed. `renewal`: a session signed in on an access token issued now, by the wall clock, that lives `given.lifetimeSeconds`, whose issuer renews it every time with a token that lives as long, issued when it renews, and whose gateway accepts every token; it counts renewals. `deviceGrant`: a sign-in by the device grant whose issuer answers the device authorization with a code that lives 900 seconds and an `interval` of `given.intervalSeconds` (none when absent), and answers each ask of its token endpoint with the next of `given.answers`, as an `error` beside a 400, the last repeating; it counts asks of the token endpoint. `heldJobStall`: a worker's claims, over a transport that answers `job:claim` with one job, claimed at the case's start; the job reports nothing but what `act` reports, a progress report of that job; it counts the stalls the claims' `stalled` says. `discovery`: `subscribeDiscovery` given `discoveryIntervalMs` as its interval, over a discovery transport that answers its first read with one managed knowledge base and every read after it as unchanged, whose changes are read as they come; it counts reads. `invalidationWindow`: a client observing the `events` query of one resource (specs/src/client/refresh.json), whose every `browse:events-requested` is answered; `act` delivers from the wire a `mark:added` frame of that resource, which refetches the key; it counts `browse:events-requested` requests sent. `saveDebounce`: a cache that keeps its values, through a storage that records each save; `act` sets a value; it counts saves. `jobFollower`: a client's `mark.delegate`, whose follower keeps no stall deadline, over a transport that answers `job:create` with a job and every `job:status-requested` with that job `running`; the job says nothing but what `act` delivers from the wire, a progress report of that job; it counts `job:status-requested` requests sent. `unansweredRequest`: the gateway's health check (`healthCheck`), over a network that never answers it; it counts the times it has failed as unanswered. `unansweredEmit`: one emit, over a network that never answers `POST /bus/emit`; it counts the emit's attempts. `refusedBusRequest`: one bus request of a resource's events (`browse:events-requested`), made with the deadline a request has unasked (`busRequestTimeoutMs`), over a transport whose gateway answers every subscribe with a stream it holds open and refuses every `POST /bus/emit` with 503, with a `Retry-After` of `given.retryAfterSeconds`; it counts the emit's attempts. `timedOutBusRequest`: as `refusedBusRequest`; it counts the times the request has failed as timed out. `jobPoll`: a client's `job.pollUntilComplete` of one job, naming no interval and no limit of its own, over a transport that answers every `job:status-requested` with that job `running`; it counts `job:status-requested` requests sent. `jobPollTimeout`: as `jobPoll`; it counts the times the poll has failed as timed out. The subject is built, and set going, as the case begins. `steps` run in order: `\"settle\"` lets what is ready run, and what that makes ready, until nothing more is, and moves no time; `pass` settles, then moves the clock, letting what falls due run as it does; `\"act\"` does the subject's action, then settles; `counted` states how many times what the subject counts has happened since the case began, once what is ready has run. A duration is milliseconds, or `{\"timing\": <a name of specs/src/client/timing.json>}` with `times` and `plusMs` to scale and move it, the name of a retry budget followed by `.` and one of its members (`emitRetry.initialDelayMs`). A case states each wait's end as a pair: nothing at a millisecond before it, and the thing counted at it.",
+    "AUTHORITY for the time a Xynolog client keeps: every wait it makes, every interval it measures and every jitter it draws follows a clock and a random source its caller controls, so a caller who moves the clock sees each wait end when this table says, and not a millisecond before. How a caller controls them is each ecosystem's own: the runtime's test clock where the runtime owns time (Go's testing/synctest, Tokio's paused clock, the running asyncio loop's clock, a JavaScript test runner's fake timers), and public parameters of the standard types where the ecosystem's waits take them (Kotlin a CoroutineContext, a TimeSource and a Random; Swift a Clock and a RandomNumberGenerator; C# a TimeProvider and a Random); specs/src/client/surface.json's `clock` section names each SDK's. What is outside it: a reading of the wall clock, which compares now with an instant a server stated (a token's `exp`) or stamps a record, reads the platform's wall clock, which moving the caller's clock need not move; and the randomness of a secret (a PKCE verifier, a nonce, a client assertion's `jti`), which stays the platform's cryptographic source. Every SDK runs these cases in its own process, on its own controlled clock, at the timings specs/src/client/timing.json states, never overridden: moving a clock an hour costs nothing. The conformance drivers, which are other processes on real time, do not run them. Every jitter a case draws is the lowest its source can give, so the equal jitter of a step is half the step. A case names its `subject`, which says what the runner builds and what it counts, and what it is (`case`); `given` states what a subject leaves open. Every network a subject speaks over is faked in the runner's process, and answers at once unless the subject says otherwise. Subjects: `refusedStream`: a transport whose gateway refuses every subscribe with 503, with a `Retry-After` of `given.retryAfterSeconds` when stated; it counts subscribe requests. `unansweredStream`: a transport whose gateway never answers a subscribe; it counts subscribe requests. `degradedStream`: as `refusedStream`; it counts the times the transport's state has become `degraded`. `scopeTaken`: a transport whose gateway answers every subscribe with a stream it holds open, carrying no resource's scope; `act` takes a resource's scope; it counts subscribe requests. `scopeLetGo`: as `scopeTaken`, taking a resource's scope once its stream is open, as the case begins; `act` lets it go; it counts subscribe requests. `handoffLinger`: as `scopeTaken`; it counts the connections the client has closed. `renewal`: a session signed in on an access token issued now, by the wall clock, that lives `given.lifetimeSeconds`, whose issuer renews it every time with a token that lives as long, issued when it renews, and whose gateway accepts every token; it counts renewals. `deviceGrant`: a sign-in by the device grant whose issuer answers the device authorization with a code that lives 900 seconds and an `interval` of `given.intervalSeconds` (none when absent), and answers each ask of its token endpoint with the next of `given.answers`, as an `error` beside a 400, the last repeating; it counts asks of the token endpoint. `heldJobStall`: a worker's claims, over a transport that answers `job:claim` with one job, claimed at the case's start; the job reports nothing but what `act` reports, a progress report of that job; it counts the stalls the claims' `stalled` says. `discovery`: `subscribeDiscovery` given `discoveryIntervalMs` as its interval, over a discovery transport that answers its first read with one managed knowledge base and every read after it as unchanged, whose changes are read as they come; it counts reads. `invalidationWindow`: a client observing the `events` query of one resource (specs/src/client/refresh.json), whose every `browse:events-requested` is answered; `act` delivers from the wire a `mark:added` frame of that resource, which refetches the key; it counts `browse:events-requested` requests sent. `saveDebounce`: a cache that keeps its values, through a storage that records each save; `act` sets a value; it counts saves. `jobFollower`: a client's `mark.delegate`, whose follower keeps no stall deadline, over a transport that answers `job:create` with a job and every `job:status-requested` with that job `running`; the job says nothing but what `act` delivers from the wire, a progress report of that job; it counts `job:status-requested` requests sent. `unansweredRequest`: the gateway's health check (`healthCheck`), over a network that never answers it; it counts the times it has failed as unanswered. `unansweredEmit`: one emit, over a network that never answers `POST /bus/emit`; it counts the emit's attempts. `refusedBusRequest`: one bus request of a resource's events (`browse:events-requested`), made with the deadline a request has unasked (`busRequestTimeoutMs`), over a transport whose gateway answers every subscribe with a stream it holds open and refuses every `POST /bus/emit` with 503, with a `Retry-After` of `given.retryAfterSeconds`; it counts the emit's attempts. `timedOutBusRequest`: as `refusedBusRequest`; it counts the times the request has failed as timed out. `jobPoll`: a client's `job.pollUntilComplete` of one job, naming no interval and no limit of its own, over a transport that answers every `job:status-requested` with that job `running`; it counts `job:status-requested` requests sent. `jobPollTimeout`: as `jobPoll`; it counts the times the poll has failed as timed out. `refusedAgentSignIn`: an agent's sign-in (contract/TRANSPORT-HTTP.md § An agent's sign-in), whose issuer grants a token that lives an hour each time it is asked, and whose gateway answers every `GET /api/users/me` with `given.status`; it counts the requests the sign-in has sent, to the issuer and to the gateway. `unreachableAgentSignIn`: as `refusedAgentSignIn`, over a network whose every connection to the gateway fails as it is made; it counts the requests the sign-in has sent, to the issuer and to the gateway, a connection it tried among them. `refusedAgentGrant`: an agent's sign-in whose issuer answers every ask of its token endpoint with `given.status`; it counts the requests the sign-in has sent, to the issuer and to the gateway. The subject is built, and set going, as the case begins. `steps` run in order: `\"settle\"` lets what is ready run, and what that makes ready, until nothing more is, and moves no time; `pass` settles, then moves the clock, letting what falls due run as it does; `\"act\"` does the subject's action, then settles; `counted` states how many times what the subject counts has happened since the case began, once what is ready has run. A duration is milliseconds, or `{\"timing\": <a name of specs/src/client/timing.json>}` with `times` and `plusMs` to scale and move it, the name of a retry budget followed by `.` and one of its members (`emitRetry.initialDelayMs`). A case states each wait's end as a pair: nothing at a millisecond before it, and the thing counted at it.",
   cases: [
     {
       subject: 'refusedStream',
@@ -1037,6 +1041,87 @@ export const table: Table = {
           counted: 1,
         },
       ],
+    },
+    {
+      subject: 'refusedAgentSignIn',
+      case: "a gateway that answers an agent's naming request with 503 is asked once, after one grant, and neither is made again after requestRetryPauseMs",
+      steps: [
+        {
+          counted: 2,
+        },
+        {
+          pass: {
+            timing: 'requestRetryPauseMs',
+            times: 10.0,
+          },
+        },
+        {
+          counted: 2,
+        },
+      ],
+      given: {
+        status: 503,
+      },
+    },
+    {
+      subject: 'refusedAgentSignIn',
+      case: 'a gateway that refuses the token an agent was just granted is asked once, and no token is granted again to ask it with',
+      steps: [
+        {
+          counted: 2,
+        },
+        {
+          pass: {
+            timing: 'requestRetryPauseMs',
+            times: 10.0,
+          },
+        },
+        {
+          counted: 2,
+        },
+      ],
+      given: {
+        status: 401,
+      },
+    },
+    {
+      subject: 'unreachableAgentSignIn',
+      case: 'a gateway an agent cannot reach is tried once, after one grant, and neither is made again after requestRetryPauseMs',
+      steps: [
+        {
+          counted: 2,
+        },
+        {
+          pass: {
+            timing: 'requestRetryPauseMs',
+            times: 10.0,
+          },
+        },
+        {
+          counted: 2,
+        },
+      ],
+    },
+    {
+      subject: 'refusedAgentGrant',
+      case: "an issuer that answers an agent's grant with 503 is asked once, and the gateway is not asked",
+      steps: [
+        {
+          counted: 1,
+        },
+        {
+          pass: {
+            timing: 'refreshRetry.maxDelayMs',
+            times: 2.0,
+          },
+        },
+        {
+          counted: 1,
+        },
+      ],
+      given: {
+        status: 503,
+      },
     },
   ],
 };
