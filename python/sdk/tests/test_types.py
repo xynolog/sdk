@@ -43,7 +43,7 @@ def test_every_schema_the_spec_names_is_a_type_here() -> None:
 
 
 def test_a_property_named_for_a_kind_of_id_is_typed_by_it() -> None:
-    """The rule `lint:spec-identifiers` holds the spec to, held of what was generated from it."""
+    """The rule Protocol's reader holds the spec to (identifiers_rules.ml), held of what was generated from it."""
     named = {
         wire: KINDS[text(kind["schema"], "a kind's schema")]
         for kind in objects(read(SPEC / "identifiers/kinds.json")["kinds"], "kinds")
