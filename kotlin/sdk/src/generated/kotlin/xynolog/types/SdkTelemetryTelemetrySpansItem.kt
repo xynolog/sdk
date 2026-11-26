@@ -12,7 +12,7 @@ public data class SdkTelemetryTelemetrySpansItem(
     /** The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads. */
     public val transport: SdkTelemetryTelemetrySpansItemTransport,
     /** The span's kind, in OTLP's words. */
-    public val kind: SdkTelemetryTelemetrySpansItemKind,
+    public val kind: ServiceTelemetryTelemetrySpansItemKind,
     /** What the row says. */
     public val meaning: String,
     /** The attributes the span carries. */
@@ -22,7 +22,7 @@ public data class SdkTelemetryTelemetrySpansItem(
     public class Builder internal constructor(
         private val name: String,
         private val transport: SdkTelemetryTelemetrySpansItemTransport,
-        private val kind: SdkTelemetryTelemetrySpansItemKind,
+        private val kind: ServiceTelemetryTelemetrySpansItemKind,
         private val meaning: String,
         private val attributes: kotlin.collections.List<SdkTelemetryTelemetrySpansItemAttributesItem>,
     ) {
@@ -32,6 +32,6 @@ public data class SdkTelemetryTelemetrySpansItem(
     public companion object {
         /** A builder of a `SdkTelemetryTelemetrySpansItem` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(name: String, transport: SdkTelemetryTelemetrySpansItemTransport, kind: SdkTelemetryTelemetrySpansItemKind, meaning: String, attributes: kotlin.collections.List<SdkTelemetryTelemetrySpansItemAttributesItem>): Builder = Builder(name, transport, kind, meaning, attributes)
+        public fun builder(name: String, transport: SdkTelemetryTelemetrySpansItemTransport, kind: ServiceTelemetryTelemetrySpansItemKind, meaning: String, attributes: kotlin.collections.List<SdkTelemetryTelemetrySpansItemAttributesItem>): Builder = Builder(name, transport, kind, meaning, attributes)
     }
 }

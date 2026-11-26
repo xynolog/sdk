@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ClientRefresh (ClientRefresh (..), ClientRefreshQueriesItem (..), ClientRefreshQueriesItemAsks (..), ClientRefreshQueriesItemAsksPer (..), clientRefreshQueriesItemAsksPerText, ClientRefreshQueriesItemAsksPersisted (..), ClientRefreshQueriesItemAsksValue (..), ClientRefreshQueriesItemReads (..), ClientRefreshQueriesItemReadsPer (..), clientRefreshQueriesItemReadsPerText, ClientRefreshQueriesItemReadsPersisted (..), ClientRefreshQueriesItemReadsValue (..), ClientRefreshRefreshItem (..), ClientRefreshRefreshItemOn (..), ClientRefreshRefreshItemOnNames (..), ClientRefreshRefreshItemOnReach (..), clientRefreshRefreshItemOnReachText, ClientRefreshRefreshItemOnWhen (..), clientRefreshRefreshItemOnWhenText, ClientRefreshRefreshItemStream (..), ClientRefreshRefreshItemStreamReach (..), clientRefreshRefreshItemStreamReachText, ClientRefreshRefreshItemStreamStream (..), clientRefreshRefreshItemStreamStreamText) where
+module Xynolog.Internal.Generated.Models.ClientRefresh (ClientRefresh (..), ClientRefreshQueriesItem (..), ClientRefreshQueriesItemAsks (..), ClientRefreshQueriesItemAsksPer (..), clientRefreshQueriesItemAsksPerText, ClientRefreshQueriesItemAsksPersisted (..), ClientRefreshQueriesItemAsksValue (..), ClientRefreshQueriesItemReads (..), ClientRefreshQueriesItemReadsPer (..), clientRefreshQueriesItemReadsPerText, ClientRefreshQueriesItemReadsPersisted (..), ClientRefreshQueriesItemReadsValue (..), ClientRefreshRefreshItem (..), ClientRefreshRefreshItemOn (..), ClientRefreshRefreshItemOnNames (..), ClientRefreshRefreshItemOnReach (..), clientRefreshRefreshItemOnReachText, ClientRefreshRefreshItemOnWhen (..), clientRefreshRefreshItemOnWhenText, ClientRefreshRefreshItemStream (..), ClientRefreshRefreshItemStreamStream (..), clientRefreshRefreshItemStreamStreamText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -175,7 +175,7 @@ clientRefreshRefreshItemOnWhenText ClientRefreshRefreshItemOnWhenUnenriched = "u
 
 data ClientRefreshRefreshItemStream = MkClientRefreshRefreshItemStream
   { clientRefreshRefreshItemStreamStream :: ClientRefreshRefreshItemStreamStream,
-    clientRefreshRefreshItemStreamReach :: Maybe ClientRefreshRefreshItemStreamReach,
+    clientRefreshRefreshItemStreamReach :: Maybe ClientRefreshRefreshItemOnReach,
     clientRefreshRefreshItemStreamRefetches :: Maybe [Text],
     clientRefreshRefreshItemStreamDocs :: Text
   }
@@ -184,18 +184,6 @@ data ClientRefreshRefreshItemStream = MkClientRefreshRefreshItemStream
 instance FromJSON ClientRefreshRefreshItemStream where parseJSON = checked "ClientRefreshRefreshItemStream" $ withObject "ClientRefreshRefreshItemStream" (\fields -> MkClientRefreshRefreshItemStream <$> (fields .: "stream") <*> optional fields "reach" <*> optional fields "refetches" <*> (fields .: "docs"))
 
 instance ToJSON ClientRefreshRefreshItemStream where toJSON value = Object (KM.fromList (concat [[("stream", toJSON (clientRefreshRefreshItemStreamStream value))], optionalPair "reach" (clientRefreshRefreshItemStreamReach value), optionalPair "refetches" (clientRefreshRefreshItemStreamRefetches value), [("docs", toJSON (clientRefreshRefreshItemStreamDocs value))]]))
-
-data ClientRefreshRefreshItemStreamReach = ClientRefreshRefreshItemStreamReachSubject | ClientRefreshRefreshItemStreamReachHeld deriving (Eq, Show)
-
-instance FromJSON ClientRefreshRefreshItemStreamReach where parseJSON = checked "ClientRefreshRefreshItemStreamReach" $ \value -> if value == String "subject" then pure ClientRefreshRefreshItemStreamReachSubject else if value == String "held" then pure ClientRefreshRefreshItemStreamReachHeld else fail "unknown enumeration member"
-
-instance ToJSON ClientRefreshRefreshItemStreamReach where
-  toJSON ClientRefreshRefreshItemStreamReachSubject = String "subject"
-  toJSON ClientRefreshRefreshItemStreamReachHeld = String "held"
-
-clientRefreshRefreshItemStreamReachText :: ClientRefreshRefreshItemStreamReach -> Text
-clientRefreshRefreshItemStreamReachText ClientRefreshRefreshItemStreamReachSubject = "subject"
-clientRefreshRefreshItemStreamReachText ClientRefreshRefreshItemStreamReachHeld = "held"
 
 data ClientRefreshRefreshItemStreamStream = ClientRefreshRefreshItemStreamStreamReopened | ClientRefreshRefreshItemStreamStreamUnreadable deriving (Eq, Show)
 

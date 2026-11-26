@@ -13,7 +13,7 @@ public data class ServiceEnvironmentBootRefusals(
     @SerialName("\$comment")
     public val comment: String,
     /** The services that refuse to start so. */
-    public val services: kotlin.collections.List<ServiceEnvironmentBootRefusalsServicesItem>,
+    public val services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>,
     /** The one line the service writes to stderr, its refusal in place of `{refusal}`, before it exits. */
     public val line: String,
     /** The status it exits with. */
@@ -26,7 +26,7 @@ public data class ServiceEnvironmentBootRefusals(
     /** How Java makes a `ServiceEnvironmentBootRefusals`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val comment: String,
-        private val services: kotlin.collections.List<ServiceEnvironmentBootRefusalsServicesItem>,
+        private val services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>,
         private val line: String,
         private val exitCode: Long,
         private val refusals: kotlin.collections.List<ServiceEnvironmentBootRefusalsRefusalsItem>,
@@ -38,6 +38,6 @@ public data class ServiceEnvironmentBootRefusals(
     public companion object {
         /** A builder of a `ServiceEnvironmentBootRefusals` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(comment: String, services: kotlin.collections.List<ServiceEnvironmentBootRefusalsServicesItem>, line: String, exitCode: Long, refusals: kotlin.collections.List<ServiceEnvironmentBootRefusalsRefusalsItem>, members: kotlin.collections.List<ServiceEnvironmentBootRefusalsMembersItem>): Builder = Builder(comment, services, line, exitCode, refusals, members)
+        public fun builder(comment: String, services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>, line: String, exitCode: Long, refusals: kotlin.collections.List<ServiceEnvironmentBootRefusalsRefusalsItem>, members: kotlin.collections.List<ServiceEnvironmentBootRefusalsMembersItem>): Builder = Builder(comment, services, line, exitCode, refusals, members)
     }
 }

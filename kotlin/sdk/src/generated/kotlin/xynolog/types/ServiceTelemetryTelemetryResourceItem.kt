@@ -11,7 +11,7 @@ public data class ServiceTelemetryTelemetryResourceItem(
     /** The attribute's key. */
     public val key: String,
     /** The services that export the row. */
-    public val services: kotlin.collections.List<ServiceTelemetryTelemetryResourceItemServicesItem>,
+    public val services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>,
     /** What the attribute says. */
     public val meaning: String,
     /** Its value when nothing says another, with `{service}` the service's name. */
@@ -20,7 +20,7 @@ public data class ServiceTelemetryTelemetryResourceItem(
     /** How Java makes a `ServiceTelemetryTelemetryResourceItem`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val key: String,
-        private val services: kotlin.collections.List<ServiceTelemetryTelemetryResourceItemServicesItem>,
+        private val services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>,
         private val meaning: String,
     ) {
         private var default: String? = null
@@ -33,6 +33,6 @@ public data class ServiceTelemetryTelemetryResourceItem(
     public companion object {
         /** A builder of a `ServiceTelemetryTelemetryResourceItem` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(key: String, services: kotlin.collections.List<ServiceTelemetryTelemetryResourceItemServicesItem>, meaning: String): Builder = Builder(key, services, meaning)
+        public fun builder(key: String, services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>, meaning: String): Builder = Builder(key, services, meaning)
     }
 }

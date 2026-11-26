@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 public data class ArchivistLayoutSystemProjections(
     /** The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store. */
-    public val tree: ArchivistLayoutSystemProjectionsTree,
+    public val tree: ArchivistLayoutEventStreamTree,
     /** The directory that holds them, in its tree, `/`-separated. */
     public val path: String,
     /** Each projection's file. */
@@ -17,7 +17,7 @@ public data class ArchivistLayoutSystemProjections(
 ) {
     /** How Java makes a `ArchivistLayoutSystemProjections`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val tree: ArchivistLayoutSystemProjectionsTree,
+        private val tree: ArchivistLayoutEventStreamTree,
         private val path: String,
         private val files: kotlin.collections.List<ArchivistLayoutSystemProjectionsFilesItem>,
     ) {
@@ -27,6 +27,6 @@ public data class ArchivistLayoutSystemProjections(
     public companion object {
         /** A builder of a `ArchivistLayoutSystemProjections` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(tree: ArchivistLayoutSystemProjectionsTree, path: String, files: kotlin.collections.List<ArchivistLayoutSystemProjectionsFilesItem>): Builder = Builder(tree, path, files)
+        public fun builder(tree: ArchivistLayoutEventStreamTree, path: String, files: kotlin.collections.List<ArchivistLayoutSystemProjectionsFilesItem>): Builder = Builder(tree, path, files)
     }
 }

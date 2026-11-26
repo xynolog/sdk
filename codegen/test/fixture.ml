@@ -30,7 +30,11 @@ let definitions_at schemas =
   let views =
     List.map
       (fun (name, place, _) ->
-        (name, D.view ~ids ~named ~schemas:decoded (Hashtbl.find decoded place)))
+        ( name,
+          D.view ~ids ~named ~schemas:decoded
+            ~referred:(fun _ -> false)
+            ~at:None
+            (Hashtbl.find decoded place) ))
       schemas
   in
   {

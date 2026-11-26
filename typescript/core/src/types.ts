@@ -1258,7 +1258,7 @@ export interface components {
       /** Where the protocol or the spec states it. */
       source: string;
       /** The signal planes the case runs on. Absent, it runs on both. */
-      planes?: ConformanceCasePlanesItem[];
+      planes?: GatewayConfigSignalType[];
       /**
        * A live case's tier: `fleet`, what every SDK with a live layer does, or
        * `parity`, what one that implements all of CACHE-SEMANTICS does.
@@ -1770,27 +1770,27 @@ export interface components {
        * A vocabulary that states nothing of its codes but each one's docs:
        * here, why a job its client follows ended without a result.
        */
-      session: ErrorsCodesSession;
+      session: ErrorsCodesJob;
       /**
        * A vocabulary that states nothing of its codes but each one's docs:
        * here, why a job its client follows ended without a result.
        */
-      signIn: ErrorsCodesSignIn;
+      signIn: ErrorsCodesJob;
       /**
        * A vocabulary that states nothing of its codes but each one's docs:
        * here, why a job its client follows ended without a result.
        */
-      kbIdentity: ErrorsCodesKbIdentity;
+      kbIdentity: ErrorsCodesJob;
       /**
        * A vocabulary that states nothing of its codes but each one's docs:
        * here, why a job its client follows ended without a result.
        */
-      spanRefusal: ErrorsCodesSpanRefusal;
+      spanRefusal: ErrorsCodesJob;
       /**
        * A vocabulary that states nothing of its codes but each one's docs:
        * here, why a job its client follows ended without a result.
        */
-      control: ErrorsCodesControl;
+      control: ErrorsCodesJob;
     };
     /**
      * Metadata added at persistence time. Part of every StoredEvent. Integrity
@@ -3483,7 +3483,7 @@ export interface components {
        * Where the stack actually runs. "local": containers on this machine.
        * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
        */
-      placement: KnowledgeBaseStatusPlacement;
+      placement: DiscoveredKBPlacement;
       /** Its clone, for a local stack. */
       root?: string;
       /**
@@ -4925,7 +4925,7 @@ export interface components {
        * Where the stack actually runs. "local": containers on this machine.
        * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
        */
-      placement: RootPlacement;
+      placement: DiscoveredKBPlacement;
       /** For a local root: the clone's path. */
       path?: string;
       /**
@@ -5641,11 +5641,11 @@ export interface components {
       /** A mode, on a system that has modes. */
       directoryMode: SignInStoreOwnerOnlyDirectoryMode;
       /** A mode, on a system that has modes. */
-      fileMode: SignInStoreOwnerOnlyFileMode;
+      fileMode: SignInStoreOwnerOnlyDirectoryMode;
       /** An access list, on Windows. */
       directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList;
       /** An access list, on Windows. */
-      fileAccessList: SignInStoreOwnerOnlyFileAccessList;
+      fileAccessList: SignInStoreOwnerOnlyDirectoryAccessList;
     };
     /**
      * Bus command to rebuild anchored-text artifacts by re-running extraction —
@@ -7699,7 +7699,7 @@ export interface tables {
     /** The rule the table states, in prose. */
     $comment: string;
     /** The services that refuse to start so. */
-    services: ServiceEnvironmentBootRefusalsServicesItem[];
+    services: ServiceTelemetryTelemetrySpansItemServicesItem[];
     /**
      * The one line the service writes to stderr, its refusal in place of
      * `{refusal}`, before it exits.
@@ -7809,7 +7809,7 @@ export interface tables {
     /**
      * Each message a Worker service logs that a reader of its output relies on.
      */
-    logged: WorkerMessagesLoggedItem[];
+    logged: SmelterMessagesLoggedItem[];
   };
 }
 
@@ -7840,17 +7840,10 @@ export type ArchivistLayoutSystemStream = {
    * The tree the file is in: `root`, the working tree, `stateHome`, the state
    * directory, or `anchoredTextDir`, the anchored-text store.
    */
-  tree: ArchivistLayoutSystemStreamTree;
+  tree: ArchivistLayoutEventStreamTree;
   /** Its path in its tree, `/`-separated. */
   path: string;
 };
-
-/**
- * The tree the file is in: `root`, the working tree, `stateHome`, the state
- * directory, or `anchoredTextDir`, the anchored-text store.
- */
-export type ArchivistLayoutSystemStreamTree =
-  'root' | 'stateHome' | 'anchoredTextDir';
 
 /** The files of a stream. */
 export type ArchivistLayoutEventFile = {
@@ -7874,18 +7867,12 @@ export type ArchivistLayoutView = {
    * The tree the file is in: `root`, the working tree, `stateHome`, the state
    * directory, or `anchoredTextDir`, the anchored-text store.
    */
-  tree: ArchivistLayoutViewTree;
+  tree: ArchivistLayoutEventStreamTree;
   /** Its path in its tree, `/`-separated. */
   path: string;
   /** The schema a view is. */
   schema: unknown;
 };
-
-/**
- * The tree the file is in: `root`, the working tree, `stateHome`, the state
- * directory, or `anchoredTextDir`, the anchored-text store.
- */
-export type ArchivistLayoutViewTree = 'root' | 'stateHome' | 'anchoredTextDir';
 
 /**
  * The projections of what the `__system__` stream adds up to, in the state
@@ -7896,19 +7883,12 @@ export type ArchivistLayoutSystemProjections = {
    * The tree the file is in: `root`, the working tree, `stateHome`, the state
    * directory, or `anchoredTextDir`, the anchored-text store.
    */
-  tree: ArchivistLayoutSystemProjectionsTree;
+  tree: ArchivistLayoutEventStreamTree;
   /** The directory that holds them, in its tree, `/`-separated. */
   path: string;
   /** Each projection's file. */
   files: ArchivistLayoutSystemProjectionsFilesItem[];
 };
-
-/**
- * The tree the file is in: `root`, the working tree, `stateHome`, the state
- * directory, or `anchoredTextDir`, the anchored-text store.
- */
-export type ArchivistLayoutSystemProjectionsTree =
-  'root' | 'stateHome' | 'anchoredTextDir';
 
 export type ArchivistLayoutSystemProjectionsFilesItem = {
   /** The file's name. */
@@ -7926,19 +7906,12 @@ export type ArchivistLayoutStorageUriIndex = {
    * The tree the file is in: `root`, the working tree, `stateHome`, the state
    * directory, or `anchoredTextDir`, the anchored-text store.
    */
-  tree: ArchivistLayoutStorageUriIndexTree;
+  tree: ArchivistLayoutEventStreamTree;
   /** Its path in its tree, `/`-separated. */
   path: string;
   /** The schema an entry is. */
   schema: unknown;
 };
-
-/**
- * The tree the file is in: `root`, the working tree, `stateHome`, the state
- * directory, or `anchoredTextDir`, the anchored-text store.
- */
-export type ArchivistLayoutStorageUriIndexTree =
-  'root' | 'stateHome' | 'anchoredTextDir';
 
 /**
  * An entry of the anchored-text store, keyed by the checksum of the content it
@@ -7949,19 +7922,12 @@ export type ArchivistLayoutAnchoredTextEntry = {
    * The tree the file is in: `root`, the working tree, `stateHome`, the state
    * directory, or `anchoredTextDir`, the anchored-text store.
    */
-  tree: ArchivistLayoutAnchoredTextEntryTree;
+  tree: ArchivistLayoutEventStreamTree;
   /** Its path in its tree, `/`-separated. */
   path: string;
   /** The schema an entry is. */
   schema: unknown;
 };
-
-/**
- * The tree the file is in: `root`, the working tree, `stateHome`, the state
- * directory, or `anchoredTextDir`, the anchored-text store.
- */
-export type ArchivistLayoutAnchoredTextEntryTree =
-  'root' | 'stateHome' | 'anchoredTextDir';
 
 /**
  * The file holding the stamp the anchored-text store's entries are taken under:
@@ -7972,17 +7938,10 @@ export type ArchivistLayoutAnchoredTextStamp = {
    * The tree the file is in: `root`, the working tree, `stateHome`, the state
    * directory, or `anchoredTextDir`, the anchored-text store.
    */
-  tree: ArchivistLayoutAnchoredTextStampTree;
+  tree: ArchivistLayoutEventStreamTree;
   /** Its path in its tree, `/`-separated. */
   path: string;
 };
-
-/**
- * The tree the file is in: `root`, the working tree, `stateHome`, the state
- * directory, or `anchoredTextDir`, the anchored-text store.
- */
-export type ArchivistLayoutAnchoredTextStampTree =
-  'root' | 'stateHome' | 'anchoredTextDir';
 
 export type ArchivistMessagesBootItem = {
   /** The situation's name. */
@@ -8045,7 +8004,7 @@ export type ArchivistMessagesRefusalsItem = {
    * neither is unclassified — a malformed record or a missing injection — and a
    * consumer treats it as 'log it, assume nothing'.
    */
-  code?: ArchivistMessagesRefusalsItemCode;
+  code?: CommandErrorCode;
   /** When it is written, and what fills each `{name}` of its text. */
   situation: string;
   /**
@@ -8083,7 +8042,7 @@ export type ArchivistMessagesRefusalsItem = {
  * is unclassified — a malformed record or a missing injection — and a consumer
  * treats it as 'log it, assume nothing'.
  */
-export type ArchivistMessagesRefusalsItemCode =
+export type CommandErrorCode =
   'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
 
 /**
@@ -8194,7 +8153,7 @@ export type DispatcherMessagesRefusalsItem = {
    * neither is unclassified — a malformed record or a missing injection — and a
    * consumer treats it as 'log it, assume nothing'.
    */
-  code?: DispatcherMessagesRefusalsItemCode;
+  code?: CommandErrorCode;
   /** When it is written, and what fills each `{name}` of its text. */
   situation: string;
   /**
@@ -8203,37 +8162,6 @@ export type DispatcherMessagesRefusalsItem = {
    */
   message: string;
 };
-
-/**
- * Machine-readable failure class, for consumers that must BRANCH on why a
- * command failed rather than log it. Optional and deliberately sparse: absent
- * means 'no class declared', and every existing failure stays that way. An enum
- * rather than a free string so the vocabulary has an owner — an unconstrained
- * code is a mirror with no gate, and adding one should be a deliberate spec
- * change. `message` remains the human-readable text and is unaffected. Members:
- * `peer-unavailable` — the channel this command was sent on has no subscriber,
- * i.e. the service that answers it has not connected yet. Transient by nature
- * (a peer still starting), which is what distinguishes it from a refusal:
- * retrying is the correct response. `not-found` — the resource this command
- * addressed does not exist in this knowledge base. A verdict, not a symptom: it
- * is emitted only where the answer comes from the event store, which is the
- * system of record, and never from a projection that may merely be lagging.
- * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
- * consumers may act destructively on it (the SDK deletes a restored tab).
- * Absence is not denial: a future 'exists, but not for you' must travel as its
- * own code, never as this one. `unauthorized` — that code: the caller is
- * authenticated but not permitted to do what it asked. A verdict about the
- * CALLER, not the resource, so retrying under the same credential cannot
- * succeed and a consumer must never spin on it; emitted by `job:claim` for a
- * caller whose token carries no worker role. `none-pending` — a declined claim,
- * not an error: the queue holds no pending job of the requested types. Nothing
- * went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
- * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither
- * is unclassified — a malformed record or a missing injection — and a consumer
- * treats it as 'log it, assume nothing'.
- */
-export type DispatcherMessagesRefusalsItemCode =
-  'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
 
 export type DispatcherMessagesErrorsItem = {
   /** The situation's name. */
@@ -8387,12 +8315,12 @@ export type GraphSchemaNodes = {
    * A kind of node: its label, the codec row it holds, the property it is one
    * of its kind by, and the properties a reader finds one by.
    */
-  annotation: GraphSchemaNodesAnnotation;
+  annotation: GraphSchemaNodesResource;
   /**
    * A kind of node: its label, the codec row it holds, the property it is one
    * of its kind by, and the properties a reader finds one by.
    */
-  entityType: GraphSchemaNodesEntityType;
+  entityType: GraphSchemaNodesResource;
 };
 
 /**
@@ -8400,48 +8328,6 @@ export type GraphSchemaNodes = {
  * its kind by, and the properties a reader finds one by.
  */
 export type GraphSchemaNodesResource = {
-  /** Its label. */
-  label: string;
-  /**
-   * The part of graph/codec-cases.json whose `properties` and `json` are the
-   * node's properties. A node without one holds its key alone.
-   */
-  row?: string;
-  /** The property no two nodes of its kind share. */
-  key: string;
-  /**
-   * The properties other than its key that a reader finds a node of its kind
-   * by.
-   */
-  lookups: string[];
-};
-
-/**
- * A kind of node: its label, the codec row it holds, the property it is one of
- * its kind by, and the properties a reader finds one by.
- */
-export type GraphSchemaNodesAnnotation = {
-  /** Its label. */
-  label: string;
-  /**
-   * The part of graph/codec-cases.json whose `properties` and `json` are the
-   * node's properties. A node without one holds its key alone.
-   */
-  row?: string;
-  /** The property no two nodes of its kind share. */
-  key: string;
-  /**
-   * The properties other than its key that a reader finds a node of its kind
-   * by.
-   */
-  lookups: string[];
-};
-
-/**
- * A kind of node: its label, the codec row it holds, the property it is one of
- * its kind by, and the properties a reader finds one by.
- */
-export type GraphSchemaNodesEntityType = {
   /** Its label. */
   label: string;
   /**
@@ -8469,12 +8355,12 @@ export type GraphSchemaRelationships = {
    * A kind of relationship: its type, the kind of node it goes from and the
    * kind it goes to, and what it says.
    */
-  references: GraphSchemaRelationshipsReferences;
+  references: GraphSchemaRelationshipsBelongsTo;
   /**
    * A kind of relationship: its type, the kind of node it goes from and the
    * kind it goes to, and what it says.
    */
-  taggedAs: GraphSchemaRelationshipsTaggedAs;
+  taggedAs: GraphSchemaRelationshipsBelongsTo;
 };
 
 /**
@@ -8482,36 +8368,6 @@ export type GraphSchemaRelationships = {
  * it goes to, and what it says.
  */
 export type GraphSchemaRelationshipsBelongsTo = {
-  /** Its type. */
-  type: string;
-  /** The kind of node it goes from, by its name under `nodes`. */
-  from: string;
-  /** The kind of node it goes to, by its name under `nodes`. */
-  to: string;
-  /** What one says. */
-  says: string;
-};
-
-/**
- * A kind of relationship: its type, the kind of node it goes from and the kind
- * it goes to, and what it says.
- */
-export type GraphSchemaRelationshipsReferences = {
-  /** Its type. */
-  type: string;
-  /** The kind of node it goes from, by its name under `nodes`. */
-  from: string;
-  /** The kind of node it goes to, by its name under `nodes`. */
-  to: string;
-  /** What one says. */
-  says: string;
-};
-
-/**
- * A kind of relationship: its type, the kind of node it goes from and the kind
- * it goes to, and what it says.
- */
-export type GraphSchemaRelationshipsTaggedAs = {
   /** Its type. */
   type: string;
   /** The kind of node it goes from, by its name under `nodes`. */
@@ -8617,7 +8473,7 @@ export type RetryRulesRefresh = {
 };
 
 /** A Xynolog service, by its name. */
-export type ServiceEnvironmentBootRefusalsServicesItem =
+export type ServiceTelemetryTelemetrySpansItemServicesItem =
   | 'archivist'
   | 'dispatcher'
   | 'gateway'
@@ -8651,7 +8507,7 @@ export type ServiceEnvironmentVariablesVariablesItem = {
   /** The variable's name. */
   name: string;
   /** The services that read it. */
-  services: ServiceEnvironmentVariablesVariablesItemServicesItem[];
+  services: ServiceTelemetryTelemetrySpansItemServicesItem[];
   /** What reads it: the service's own code, or the OpenTelemetry SDK. */
   readBy: ServiceEnvironmentVariablesVariablesItemReadBy;
   /** What sets it where the launcher runs the service. */
@@ -8661,16 +8517,6 @@ export type ServiceEnvironmentVariablesVariablesItem = {
   /** What it does. */
   effect: string;
 };
-
-/** A Xynolog service, by its name. */
-export type ServiceEnvironmentVariablesVariablesItemServicesItem =
-  | 'archivist'
-  | 'dispatcher'
-  | 'gateway'
-  | 'librarian'
-  | 'smelter'
-  | 'weaver'
-  | 'worker';
 
 /** What reads it: the service's own code, or the OpenTelemetry SDK. */
 export type ServiceEnvironmentVariablesVariablesItemReadBy =
@@ -8740,7 +8586,7 @@ export type ServiceTelemetryTelemetryResourceItem = {
   /** The attribute's key. */
   key: string;
   /** The services that export the row. */
-  services: ServiceTelemetryTelemetryResourceItemServicesItem[];
+  services: ServiceTelemetryTelemetrySpansItemServicesItem[];
   /** What the attribute says. */
   meaning: string;
   /**
@@ -8748,16 +8594,6 @@ export type ServiceTelemetryTelemetryResourceItem = {
    */
   default?: string;
 };
-
-/** A Xynolog service, by its name. */
-export type ServiceTelemetryTelemetryResourceItemServicesItem =
-  | 'archivist'
-  | 'dispatcher'
-  | 'gateway'
-  | 'librarian'
-  | 'smelter'
-  | 'weaver'
-  | 'worker';
 
 export type ServiceTelemetryTelemetrySpansItem = {
   /**
@@ -8776,16 +8612,6 @@ export type ServiceTelemetryTelemetrySpansItem = {
   /** The attributes the span carries. */
   attributes: ServiceTelemetryTelemetrySpansItemAttributesItem[];
 };
-
-/** A Xynolog service, by its name. */
-export type ServiceTelemetryTelemetrySpansItemServicesItem =
-  | 'archivist'
-  | 'dispatcher'
-  | 'gateway'
-  | 'librarian'
-  | 'smelter'
-  | 'weaver'
-  | 'worker';
 
 /** The span's kind, in OTLP's words. */
 export type ServiceTelemetryTelemetrySpansItemKind =
@@ -8821,39 +8647,24 @@ export type ServiceTelemetryTelemetryMetricsItem = {
    */
   name: string;
   /** The services that export the row. */
-  services: ServiceTelemetryTelemetryMetricsItemServicesItem[];
+  services: ServiceTelemetryTelemetrySpansItemServicesItem[];
   /** The metric's instrument. */
   instrument: ServiceTelemetryTelemetryMetricsItemInstrument;
   /** When the row arrives. */
-  when: ServiceTelemetryTelemetryMetricsItemWhen;
+  when: ServiceTelemetryTelemetrySpansItemWhen;
   /** The only signal planes a gateway row arrives on. */
-  planes?: ServiceTelemetryTelemetryMetricsItemPlanesItem[];
+  planes?: GatewayConfigSignalType[];
   /** What the row says. */
   meaning: string;
   /** The attributes the span carries. */
   attributes: ServiceTelemetryTelemetryMetricsItemAttributesItem[];
 };
 
-/** A Xynolog service, by its name. */
-export type ServiceTelemetryTelemetryMetricsItemServicesItem =
-  | 'archivist'
-  | 'dispatcher'
-  | 'gateway'
-  | 'librarian'
-  | 'smelter'
-  | 'weaver'
-  | 'worker';
-
 /** The metric's instrument. */
 export type ServiceTelemetryTelemetryMetricsItemInstrument =
   'counter' | 'up-down counter' | 'gauge' | 'histogram';
 
-/** When the row arrives. */
-export type ServiceTelemetryTelemetryMetricsItemWhen =
-  'export' | 'traffic' | 'supervised' | 'fatal';
-
-export type ServiceTelemetryTelemetryMetricsItemPlanesItem =
-  'in-process' | 'nats';
+export type GatewayConfigSignalType = 'in-process' | 'nats';
 
 /** An attribute a row carries. */
 export type ServiceTelemetryTelemetryMetricsItemAttributesItem = {
@@ -9009,30 +8820,6 @@ export type WorkerMessagesWaitsItem = {
    * row's `situation` names, and nothing else in it varies.
    */
   said: string;
-};
-
-export type WorkerMessagesLoggedItem = {
-  /** The situation's name. */
-  name: string;
-  level: components['schemas']['LogLevel'];
-  /**
-   * When it is written, what fills each `{name}` of its fields, and what each
-   * fact it carries says.
-   */
-  situation: string;
-  /** The line's message, word for word. */
-  message: string;
-  /**
-   * The facts the line is logged with whose form is stated, by name: each a
-   * text whose `{name}` is filled as the row's `situation` says. A fact that is
-   * a number is its decimal digits.
-   */
-  fields: { [key: string]: string };
-  /**
-   * The facts the line is logged with beside `fields`, whose value the row's
-   * `situation` says and whose form is not stated. The line may carry others.
-   */
-  carries: string[];
 };
 
 /** It answered as that entry, and its name and branch are on the entry now. */
@@ -9528,7 +9315,7 @@ export type ClientRefreshRefreshItemStream = {
    */
   stream: ClientRefreshRefreshItemStreamStream;
   /** Which keys the row reaches: the event's subject, or every key held. */
-  reach?: ClientRefreshRefreshItemStreamReach;
+  reach?: ClientRefreshRefreshItemOnReach;
   /** The queries asked again. */
   refetches?: string[];
   /** What it is, in prose. */
@@ -9540,9 +9327,6 @@ export type ClientRefreshRefreshItemStream = {
  * that cannot be read.
  */
 export type ClientRefreshRefreshItemStreamStream = 'reopened' | 'unreadable';
-
-/** Which keys the row reaches: the event's subject, or every key held. */
-export type ClientRefreshRefreshItemStreamReach = 'subject' | 'held';
 
 export type ClientTestingFaultActionsItem = {
   /** The fault's type's name. */
@@ -9596,42 +9380,9 @@ export type ClientTestingRecordsItem = {
   members: string[];
 };
 
-/**
- * Machine-readable failure class, for consumers that must BRANCH on why a
- * command failed rather than log it. Optional and deliberately sparse: absent
- * means 'no class declared', and every existing failure stays that way. An enum
- * rather than a free string so the vocabulary has an owner — an unconstrained
- * code is a mirror with no gate, and adding one should be a deliberate spec
- * change. `message` remains the human-readable text and is unaffected. Members:
- * `peer-unavailable` — the channel this command was sent on has no subscriber,
- * i.e. the service that answers it has not connected yet. Transient by nature
- * (a peer still starting), which is what distinguishes it from a refusal:
- * retrying is the correct response. `not-found` — the resource this command
- * addressed does not exist in this knowledge base. A verdict, not a symptom: it
- * is emitted only where the answer comes from the event store, which is the
- * system of record, and never from a projection that may merely be lagging.
- * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
- * consumers may act destructively on it (the SDK deletes a restored tab).
- * Absence is not denial: a future 'exists, but not for you' must travel as its
- * own code, never as this one. `unauthorized` — that code: the caller is
- * authenticated but not permitted to do what it asked. A verdict about the
- * CALLER, not the resource, so retrying under the same credential cannot
- * succeed and a consumer must never spin on it; emitted by `job:claim` for a
- * caller whose token carries no worker role. `none-pending` — a declined claim,
- * not an error: the queue holds no pending job of the requested types. Nothing
- * went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
- * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither
- * is unclassified — a malformed record or a missing injection — and a consumer
- * treats it as 'log it, assume nothing'.
- */
-export type CommandErrorCode =
-  'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
-
 /** The voice the comments are written in. */
 export type CommentingJobParamsTone =
   'scholarly' | 'explanatory' | 'conversational' | 'technical';
-
-export type ConformanceCasePlanesItem = 'in-process' | 'nats';
 
 /**
  * A live case's tier: `fleet`, what every SDK with a live layer does, or
@@ -9851,14 +9602,8 @@ export type ConformanceImplementationsSdksValueLive = {
    * A live case's tier: `fleet`, what every SDK with a live layer does, or
    * `parity`, what one that implements all of CACHE-SEMANTICS does.
    */
-  tier: ConformanceImplementationsSdksValueLiveTier;
+  tier: ConformanceCaseTier;
 };
-
-/**
- * A live case's tier: `fleet`, what every SDK with a live layer does, or
- * `parity`, what one that implements all of CACHE-SEMANTICS does.
- */
-export type ConformanceImplementationsSdksValueLiveTier = 'fleet' | 'parity';
 
 /** Name values for later steps. */
 export type ConformanceStepLet = {
@@ -10368,39 +10113,8 @@ export type ErrorsCodesBusRequestCodesItem = {
    * neither is unclassified — a malformed record or a missing injection — and a
    * consumer treats it as 'log it, assume nothing'.
    */
-  wire?: ErrorsCodesBusRequestCodesItemWire;
+  wire?: CommandErrorCode;
 };
-
-/**
- * Machine-readable failure class, for consumers that must BRANCH on why a
- * command failed rather than log it. Optional and deliberately sparse: absent
- * means 'no class declared', and every existing failure stays that way. An enum
- * rather than a free string so the vocabulary has an owner — an unconstrained
- * code is a mirror with no gate, and adding one should be a deliberate spec
- * change. `message` remains the human-readable text and is unaffected. Members:
- * `peer-unavailable` — the channel this command was sent on has no subscriber,
- * i.e. the service that answers it has not connected yet. Transient by nature
- * (a peer still starting), which is what distinguishes it from a refusal:
- * retrying is the correct response. `not-found` — the resource this command
- * addressed does not exist in this knowledge base. A verdict, not a symptom: it
- * is emitted only where the answer comes from the event store, which is the
- * system of record, and never from a projection that may merely be lagging.
- * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
- * consumers may act destructively on it (the SDK deletes a restored tab).
- * Absence is not denial: a future 'exists, but not for you' must travel as its
- * own code, never as this one. `unauthorized` — that code: the caller is
- * authenticated but not permitted to do what it asked. A verdict about the
- * CALLER, not the resource, so retrying under the same credential cannot
- * succeed and a consumer must never spin on it; emitted by `job:claim` for a
- * caller whose token carries no worker role. `none-pending` — a declined claim,
- * not an error: the queue holds no pending job of the requested types. Nothing
- * went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
- * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither
- * is unclassified — a malformed record or a missing injection — and a consumer
- * treats it as 'log it, assume nothing'.
- */
-export type ErrorsCodesBusRequestCodesItemWire =
-  'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
 
 /** The transport-neutral failure vocabulary. */
 export type ErrorsCodesTransport = {
@@ -10472,111 +10186,6 @@ export type ErrorsCodesJobCodesItem = {
   docs: string;
 };
 
-/**
- * A vocabulary that states nothing of its codes but each one's docs: here, why
- * a job its client follows ended without a result.
- */
-export type ErrorsCodesSession = {
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-  codes: ErrorsCodesSessionCodesItem[];
-};
-
-export type ErrorsCodesSessionCodesItem = {
-  /** The code, as every SDK names it. */
-  code: string;
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-};
-
-/**
- * A vocabulary that states nothing of its codes but each one's docs: here, why
- * a job its client follows ended without a result.
- */
-export type ErrorsCodesSignIn = {
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-  codes: ErrorsCodesSignInCodesItem[];
-};
-
-export type ErrorsCodesSignInCodesItem = {
-  /** The code, as every SDK names it. */
-  code: string;
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-};
-
-/**
- * A vocabulary that states nothing of its codes but each one's docs: here, why
- * a job its client follows ended without a result.
- */
-export type ErrorsCodesKbIdentity = {
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-  codes: ErrorsCodesKbIdentityCodesItem[];
-};
-
-export type ErrorsCodesKbIdentityCodesItem = {
-  /** The code, as every SDK names it. */
-  code: string;
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-};
-
-/**
- * A vocabulary that states nothing of its codes but each one's docs: here, why
- * a job its client follows ended without a result.
- */
-export type ErrorsCodesSpanRefusal = {
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-  codes: ErrorsCodesSpanRefusalCodesItem[];
-};
-
-export type ErrorsCodesSpanRefusalCodesItem = {
-  /** The code, as every SDK names it. */
-  code: string;
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-};
-
-/**
- * A vocabulary that states nothing of its codes but each one's docs: here, why
- * a job its client follows ended without a result.
- */
-export type ErrorsCodesControl = {
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-  codes: ErrorsCodesControlCodesItem[];
-};
-
-export type ErrorsCodesControlCodesItem = {
-  /** The code, as every SDK names it. */
-  code: string;
-  /**
-   * Its documentation, in prose: what a generated type or member says of it.
-   */
-  docs: string;
-};
-
 export type ExtractedTextValue = {
   /**
    * Discriminant — both ExtractionOutcome members carry `kind`, single-valued:
@@ -10639,8 +10248,6 @@ export type GatewayConfigSignal = {
    */
   passwordEnv?: string;
 };
-
-export type GatewayConfigSignalType = 'in-process' | 'nats';
 
 /**
  * What this gateway process can hold, from the memory its deployment gives it.
@@ -10799,17 +10406,10 @@ export type IdentifiersKindsKindsItem = {
   /** Strings the kind's rule takes. */
   accepts: IdentifiersKindsKindsItemAcceptsItem[];
   /** Strings the kind's rule does not take. */
-  refuses: IdentifiersKindsKindsItemRefusesItem[];
+  refuses: IdentifiersKindsKindsItemAcceptsItem[];
 };
 
 export type IdentifiersKindsKindsItemAcceptsItem = {
-  /** A string the kind's rule is asked about. */
-  id: string;
-  /** What the case shows, in prose. */
-  why: string;
-};
-
-export type IdentifiersKindsKindsItemRefusesItem = {
   /** A string the kind's rule is asked about. */
   id: string;
   /** What the case shows, in prose. */
@@ -10981,12 +10581,6 @@ export type JobProgressRequestParamsItemLabel =
 
 export type JobStatusResponseStatus =
   'pending' | 'running' | 'complete' | 'failed' | 'cancelled';
-
-/**
- * Where the stack actually runs. "local": containers on this machine.
- * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
- */
-export type KnowledgeBaseStatusPlacement = 'local' | 'codespace';
 
 export type KnowledgeGraphNodesItem =
   | components['schemas']['GraphResourceNode']
@@ -11390,12 +10984,6 @@ export type ResourcesLimits = {
 };
 
 /**
- * Where the stack actually runs. "local": containers on this machine.
- * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
- */
-export type RootPlacement = 'local' | 'codespace';
-
-/**
  * For a local root: how the control server's own directory selects it, when it
  * does — standing in it (cwd), or XYNOLOG_ROOT.
  */
@@ -11423,7 +11011,7 @@ export type SdkTelemetryTelemetrySpansItem = {
    */
   transport: SdkTelemetryTelemetrySpansItemTransport;
   /** The span's kind, in OTLP's words. */
-  kind: SdkTelemetryTelemetrySpansItemKind;
+  kind: ServiceTelemetryTelemetrySpansItemKind;
   /** What the row says. */
   meaning: string;
   /** The attributes the span carries. */
@@ -11435,10 +11023,6 @@ export type SdkTelemetryTelemetrySpansItem = {
  * uploads and reads.
  */
 export type SdkTelemetryTelemetrySpansItemTransport = 'bus' | 'content';
-
-/** The span's kind, in OTLP's words. */
-export type SdkTelemetryTelemetrySpansItemKind =
-  'client' | 'consumer' | 'internal' | 'producer' | 'server';
 
 /** An attribute a row carries. */
 export type SdkTelemetryTelemetrySpansItemAttributesItem = {
@@ -11469,24 +11053,14 @@ export type SdkTelemetryTelemetryMetricsItem = {
    * The transport the row comes from: `bus`, the stream and emits; `content`,
    * uploads and reads.
    */
-  transport: SdkTelemetryTelemetryMetricsItemTransport;
+  transport: SdkTelemetryTelemetrySpansItemTransport;
   /** The metric's instrument. */
-  instrument: SdkTelemetryTelemetryMetricsItemInstrument;
+  instrument: ServiceTelemetryTelemetryMetricsItemInstrument;
   /** What the row says. */
   meaning: string;
   /** The attributes the span carries. */
   attributes: SdkTelemetryTelemetryMetricsItemAttributesItem[];
 };
-
-/**
- * The transport the row comes from: `bus`, the stream and emits; `content`,
- * uploads and reads.
- */
-export type SdkTelemetryTelemetryMetricsItemTransport = 'bus' | 'content';
-
-/** The metric's instrument. */
-export type SdkTelemetryTelemetryMetricsItemInstrument =
-  'counter' | 'up-down counter' | 'gauge' | 'histogram';
 
 /** An attribute a row carries. */
 export type SdkTelemetryTelemetryMetricsItemAttributesItem = {
@@ -11570,22 +11144,8 @@ export type SignInStoreOwnerOnlyDirectoryMode = {
   docs: string;
 };
 
-/** A mode, on a system that has modes. */
-export type SignInStoreOwnerOnlyFileMode = {
-  /** The mode, in octal. */
-  value: string;
-  docs: string;
-};
-
 /** An access list, on Windows. */
 export type SignInStoreOwnerOnlyDirectoryAccessList = {
-  /** The access list in SDDL, with `{owner}` where the owner's SID goes. */
-  value: string;
-  docs: string;
-};
-
-/** An access list, on Windows. */
-export type SignInStoreOwnerOnlyFileAccessList = {
   /** The access list in SDDL, with `{owner}` where the owner's SID goes. */
   value: string;
   docs: string;

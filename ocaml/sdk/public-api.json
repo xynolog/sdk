@@ -189,7 +189,7 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "5df3cced397b84bd6d3244acaf2a527035e28bfe8ff2e483bb4bbdeab2da3bcf",
+    "lib/records.ml": "61d8fa89d4f636383111f08a5712600ef87dd4d296cb49a5ef9e69e61b02dd51",
     "lib/redirect_sign_in.ml": "80c9bafb2de127baf0cd4f7148041d5445e442b17737be235afdee854eb821e9",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "bcdbad6e3fd5d932886ce97c6dbe4b6d6c5a414e348c37bdc7adb2ec9271d788",
@@ -19624,131 +19624,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_session_codes_item",
-      "declaration": "module Errors_codes_session_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_session_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_session_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_session_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_sign_in_codes_item",
-      "declaration": "module Errors_codes_sign_in_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_sign_in_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_sign_in_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_sign_in_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_kb_identity_codes_item",
-      "declaration": "module Errors_codes_kb_identity_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_kb_identity_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_kb_identity_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_kb_identity_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_span_refusal_codes_item",
-      "declaration": "module Errors_codes_span_refusal_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_span_refusal_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_span_refusal_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_span_refusal_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_control_codes_item",
-      "declaration": "module Errors_codes_control_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_control_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_control_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_control_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Gateway_config_identity",
       "declaration": "module Gateway_config_identity :\n  sig\n    type t = { issuer : string; subject_claim : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -19884,31 +19759,6 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Identifiers_kinds_kinds_item_accepts_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Identifiers_kinds_kinds_item_refuses_item",
-      "declaration": "module Identifiers_kinds_kinds_item_refuses_item :\n  sig\n    type t = { id : string; why : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Identifiers_kinds_kinds_item_refuses_item.t",
-      "declaration": "type t = { id : string; why : string; }",
-      "representation": "record",
-      "fields": [
-        "id",
-        "why"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Identifiers_kinds_kinds_item_refuses_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Identifiers_kinds_kinds_item_refuses_item.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -20252,31 +20102,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_mode",
-      "declaration": "module Sign_in_store_owner_only_file_mode :\n  sig\n    type t = { value : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_mode.t",
-      "declaration": "type t = { value : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "value",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_mode.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_mode.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Sign_in_store_owner_only_directory_access_list",
       "declaration": "module Sign_in_store_owner_only_directory_access_list :\n  sig\n    type t = { value : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -20298,31 +20123,6 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Sign_in_store_owner_only_directory_access_list.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_access_list",
-      "declaration": "module Sign_in_store_owner_only_file_access_list :\n  sig\n    type t = { value : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_access_list.t",
-      "declaration": "type t = { value : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "value",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_access_list.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_access_list.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -23764,12 +23564,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Sign_in_store_owner_only",
-      "declaration": "module Sign_in_store_owner_only :\n  sig\n    type t = {\n      field_comment : string;\n      directory_mode : Sign_in_store_owner_only_directory_mode.t;\n      file_mode : Sign_in_store_owner_only_file_mode.t;\n      directory_access_list :\n        Sign_in_store_owner_only_directory_access_list.t;\n      file_access_list : Sign_in_store_owner_only_file_access_list.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SignInStoreOwnerOnly ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SignInStoreOwnerOnly ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Sign_in_store_owner_only :\n  sig\n    type t = {\n      field_comment : string;\n      directory_mode : Sign_in_store_owner_only_directory_mode.t;\n      file_mode : Sign_in_store_owner_only_directory_mode.t;\n      directory_access_list :\n        Sign_in_store_owner_only_directory_access_list.t;\n      file_access_list : Sign_in_store_owner_only_directory_access_list.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SignInStoreOwnerOnly ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SignInStoreOwnerOnly ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Sign_in_store_owner_only.t",
-      "declaration": "type t = {\n  field_comment : string;\n  directory_mode : Sign_in_store_owner_only_directory_mode.t;\n  file_mode : Sign_in_store_owner_only_file_mode.t;\n  directory_access_list : Sign_in_store_owner_only_directory_access_list.t;\n  file_access_list : Sign_in_store_owner_only_file_access_list.t;\n}",
+      "declaration": "type t = {\n  field_comment : string;\n  directory_mode : Sign_in_store_owner_only_directory_mode.t;\n  file_mode : Sign_in_store_owner_only_directory_mode.t;\n  directory_access_list : Sign_in_store_owner_only_directory_access_list.t;\n  file_access_list : Sign_in_store_owner_only_directory_access_list.t;\n}",
       "representation": "record",
       "fields": [
         "field_comment",
@@ -25263,138 +25063,13 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_session",
-      "declaration": "module Errors_codes_session :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_session_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_session.t",
-      "declaration": "type t = { docs : string; codes : Errors_codes_session_codes_item.t list; }",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_session.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_session.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_sign_in",
-      "declaration": "module Errors_codes_sign_in :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_sign_in_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_sign_in.t",
-      "declaration": "type t = { docs : string; codes : Errors_codes_sign_in_codes_item.t list; }",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_sign_in.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_sign_in.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_kb_identity",
-      "declaration": "module Errors_codes_kb_identity :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_kb_identity_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_kb_identity.t",
-      "declaration": "type t = {\n  docs : string;\n  codes : Errors_codes_kb_identity_codes_item.t list;\n}",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_kb_identity.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_kb_identity.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_span_refusal",
-      "declaration": "module Errors_codes_span_refusal :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_span_refusal_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_span_refusal.t",
-      "declaration": "type t = {\n  docs : string;\n  codes : Errors_codes_span_refusal_codes_item.t list;\n}",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_span_refusal.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_span_refusal.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_control",
-      "declaration": "module Errors_codes_control :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_control_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_control.t",
-      "declaration": "type t = { docs : string; codes : Errors_codes_control_codes_item.t list; }",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_control.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_control.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Identifiers_kinds_kinds_item",
-      "declaration": "module Identifiers_kinds_kinds_item :\n  sig\n    type t = {\n      schema : string;\n      properties : string list;\n      accepts : Identifiers_kinds_kinds_item_accepts_item.t list;\n      refuses : Identifiers_kinds_kinds_item_refuses_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+      "declaration": "module Identifiers_kinds_kinds_item :\n  sig\n    type t = {\n      schema : string;\n      properties : string list;\n      accepts : Identifiers_kinds_kinds_item_accepts_item.t list;\n      refuses : Identifiers_kinds_kinds_item_accepts_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Identifiers_kinds_kinds_item.t",
-      "declaration": "type t = {\n  schema : string;\n  properties : string list;\n  accepts : Identifiers_kinds_kinds_item_accepts_item.t list;\n  refuses : Identifiers_kinds_kinds_item_refuses_item.t list;\n}",
+      "declaration": "type t = {\n  schema : string;\n  properties : string list;\n  accepts : Identifiers_kinds_kinds_item_accepts_item.t list;\n  refuses : Identifiers_kinds_kinds_item_accepts_item.t list;\n}",
       "representation": "record",
       "fields": [
         "schema",
@@ -30300,12 +29975,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Errors_codes",
-      "declaration": "module Errors_codes :\n  sig\n    type t = {\n      field_comment : string;\n      bus_request : Errors_codes_bus_request.t;\n      transport : Errors_codes_transport.t;\n      job : Errors_codes_job.t;\n      session : Errors_codes_session.t;\n      sign_in : Errors_codes_sign_in.t;\n      kb_identity : Errors_codes_kb_identity.t;\n      span_refusal : Errors_codes_span_refusal.t;\n      control : Errors_codes_control.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ErrorsCodes ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ErrorsCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Errors_codes :\n  sig\n    type t = {\n      field_comment : string;\n      bus_request : Errors_codes_bus_request.t;\n      transport : Errors_codes_transport.t;\n      job : Errors_codes_job.t;\n      session : Errors_codes_job.t;\n      sign_in : Errors_codes_job.t;\n      kb_identity : Errors_codes_job.t;\n      span_refusal : Errors_codes_job.t;\n      control : Errors_codes_job.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ErrorsCodes ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ErrorsCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Errors_codes.t",
-      "declaration": "type t = {\n  field_comment : string;\n  bus_request : Errors_codes_bus_request.t;\n  transport : Errors_codes_transport.t;\n  job : Errors_codes_job.t;\n  session : Errors_codes_session.t;\n  sign_in : Errors_codes_sign_in.t;\n  kb_identity : Errors_codes_kb_identity.t;\n  span_refusal : Errors_codes_span_refusal.t;\n  control : Errors_codes_control.t;\n}",
+      "declaration": "type t = {\n  field_comment : string;\n  bus_request : Errors_codes_bus_request.t;\n  transport : Errors_codes_transport.t;\n  job : Errors_codes_job.t;\n  session : Errors_codes_job.t;\n  sign_in : Errors_codes_job.t;\n  kb_identity : Errors_codes_job.t;\n  span_refusal : Errors_codes_job.t;\n  control : Errors_codes_job.t;\n}",
       "representation": "record",
       "fields": [
         "field_comment",

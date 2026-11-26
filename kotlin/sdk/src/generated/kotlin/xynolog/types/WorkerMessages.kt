@@ -25,7 +25,7 @@ public data class WorkerMessages(
     /** Each `{said}` of `wait-stated`. */
     public val waits: kotlin.collections.List<WorkerMessagesWaitsItem>,
     /** Each message a Worker service logs that a reader of its output relies on. */
-    public val logged: kotlin.collections.List<WorkerMessagesLoggedItem>,
+    public val logged: kotlin.collections.List<SmelterMessagesLoggedItem>,
 ) {
     /** How Java makes a `WorkerMessages`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
@@ -36,7 +36,7 @@ public data class WorkerMessages(
         private val errors: kotlin.collections.List<WorkerMessagesErrorsItem>,
         private val details: kotlin.collections.List<WorkerMessagesDetailsItem>,
         private val waits: kotlin.collections.List<WorkerMessagesWaitsItem>,
-        private val logged: kotlin.collections.List<WorkerMessagesLoggedItem>,
+        private val logged: kotlin.collections.List<SmelterMessagesLoggedItem>,
     ) {
         public fun build(): WorkerMessages = WorkerMessages(comment = comment, boot = boot, reasons = reasons, job = job, errors = errors, details = details, waits = waits, logged = logged)
     }
@@ -44,6 +44,6 @@ public data class WorkerMessages(
     public companion object {
         /** A builder of a `WorkerMessages` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(comment: String, boot: kotlin.collections.List<WorkerMessagesBootItem>, reasons: kotlin.collections.List<WorkerMessagesReasonsItem>, job: WorkerMessagesJob, errors: kotlin.collections.List<WorkerMessagesErrorsItem>, details: kotlin.collections.List<WorkerMessagesDetailsItem>, waits: kotlin.collections.List<WorkerMessagesWaitsItem>, logged: kotlin.collections.List<WorkerMessagesLoggedItem>): Builder = Builder(comment, boot, reasons, job, errors, details, waits, logged)
+        public fun builder(comment: String, boot: kotlin.collections.List<WorkerMessagesBootItem>, reasons: kotlin.collections.List<WorkerMessagesReasonsItem>, job: WorkerMessagesJob, errors: kotlin.collections.List<WorkerMessagesErrorsItem>, details: kotlin.collections.List<WorkerMessagesDetailsItem>, waits: kotlin.collections.List<WorkerMessagesWaitsItem>, logged: kotlin.collections.List<SmelterMessagesLoggedItem>): Builder = Builder(comment, boot, reasons, job, errors, details, waits, logged)
     }
 }

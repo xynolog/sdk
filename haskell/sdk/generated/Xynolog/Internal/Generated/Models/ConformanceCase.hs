@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceCase (ConformanceCase (..), ConformanceCasePlanesItem (..), conformanceCasePlanesItemText, ConformanceCaseTelemetry (..), ConformanceCaseTier (..), conformanceCaseTierText) where
+module Xynolog.Internal.Generated.Models.ConformanceCase (ConformanceCase (..), ConformanceCaseTelemetry (..), ConformanceCaseTier (..), conformanceCaseTierText, GatewayConfigSignalType (..), gatewayConfigSignalTypeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -13,7 +13,7 @@ import Xynolog.Internal.Generated.Models.ConformanceStep
 data ConformanceCase = ConformanceCase
   { conformanceCaseAbout :: Text,
     conformanceCaseSource :: Text,
-    conformanceCasePlanes :: Maybe [ConformanceCasePlanesItem],
+    conformanceCasePlanes :: Maybe [GatewayConfigSignalType],
     conformanceCaseTier :: Maybe ConformanceCaseTier,
     conformanceCaseTelemetry :: Maybe ConformanceCaseTelemetry,
     conformanceCaseSteps :: [ConformanceStep]
@@ -23,18 +23,6 @@ data ConformanceCase = ConformanceCase
 instance FromJSON ConformanceCase where parseJSON = checked "ConformanceCase" $ withObject "ConformanceCase" (\fields -> ConformanceCase <$> (fields .: "about") <*> (fields .: "source") <*> optional fields "planes" <*> optional fields "tier" <*> optional fields "telemetry" <*> (fields .: "steps"))
 
 instance ToJSON ConformanceCase where toJSON value = Object (KM.fromList (concat [[("about", toJSON (conformanceCaseAbout value))], [("source", toJSON (conformanceCaseSource value))], optionalPair "planes" (conformanceCasePlanes value), optionalPair "tier" (conformanceCaseTier value), optionalPair "telemetry" (conformanceCaseTelemetry value), [("steps", toJSON (conformanceCaseSteps value))]]))
-
-data ConformanceCasePlanesItem = ConformanceCasePlanesItemInProcess | ConformanceCasePlanesItemNats deriving (Eq, Show)
-
-instance FromJSON ConformanceCasePlanesItem where parseJSON = checked "ConformanceCasePlanesItem" $ \value -> if value == String "in-process" then pure ConformanceCasePlanesItemInProcess else if value == String "nats" then pure ConformanceCasePlanesItemNats else fail "unknown enumeration member"
-
-instance ToJSON ConformanceCasePlanesItem where
-  toJSON ConformanceCasePlanesItemInProcess = String "in-process"
-  toJSON ConformanceCasePlanesItemNats = String "nats"
-
-conformanceCasePlanesItemText :: ConformanceCasePlanesItem -> Text
-conformanceCasePlanesItemText ConformanceCasePlanesItemInProcess = "in-process"
-conformanceCasePlanesItemText ConformanceCasePlanesItemNats = "nats"
 
 data ConformanceCaseTelemetry = ConformanceCaseTelemetryTrue deriving (Eq, Show)
 
@@ -53,3 +41,15 @@ instance ToJSON ConformanceCaseTier where
 conformanceCaseTierText :: ConformanceCaseTier -> Text
 conformanceCaseTierText ConformanceCaseTierFleet = "fleet"
 conformanceCaseTierText ConformanceCaseTierParity = "parity"
+
+data GatewayConfigSignalType = GatewayConfigSignalTypeInProcess | GatewayConfigSignalTypeNats deriving (Eq, Show)
+
+instance FromJSON GatewayConfigSignalType where parseJSON = checked "GatewayConfigSignalType" $ \value -> if value == String "in-process" then pure GatewayConfigSignalTypeInProcess else if value == String "nats" then pure GatewayConfigSignalTypeNats else fail "unknown enumeration member"
+
+instance ToJSON GatewayConfigSignalType where
+  toJSON GatewayConfigSignalTypeInProcess = String "in-process"
+  toJSON GatewayConfigSignalTypeNats = String "nats"
+
+gatewayConfigSignalTypeText :: GatewayConfigSignalType -> Text
+gatewayConfigSignalTypeText GatewayConfigSignalTypeInProcess = "in-process"
+gatewayConfigSignalTypeText GatewayConfigSignalTypeNats = "nats"

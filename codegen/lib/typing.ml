@@ -291,13 +291,31 @@ type state = {
   declared : (string, declaration option) Hashtbl.t;
       (** Every declaration read, by name: none while it is being read. *)
   inlines : (string, inline) Hashtbl.t;
+  stated : (string, place * D.t) Hashtbl.t;
+      (** Each place a [$ref] names ([D.origin]), by its key: where it is
+          stated, and its schema there, as a first reading found them. *)
+  found : (string, place * D.t) Hashtbl.t;
+      (** Each such place this reading finds where it is stated. *)
 }
 
 let defined st name = List.mem name st.definitions.names
+let origin = function D.Node { origin; _ } -> origin | _ -> None
 
 (* An [inline] at [place], each one a writer declares held to be the one
-   schema its name names. *)
+   schema its name names. A schema written in the place of a [$ref] to a
+   place is the inline where that place is stated, named as it is there. *)
 let rec inline st ~register (place : place) (s : D.t) =
+  match origin s with
+  | Some { key; referred = true } when Hashtbl.mem st.stated key ->
+      let place, s = Hashtbl.find st.stated key in
+      inline st ~register place s
+  | o ->
+      (match o with
+      | Some { key; referred = false } -> Hashtbl.replace st.found key (place, s)
+      | _ -> ());
+      stated_inline st ~register place s
+
+and stated_inline st ~register (place : place) (s : D.t) =
   let name = Naming.inline ~defined:(defined st) place.owner place.part in
   let form, composition = form_of st ~register ~name s in
   let i =
@@ -754,16 +772,24 @@ let reached find names =
   in
   List.sort String.compare (reach [] names)
 
+(* The generation of [roots], read twice: the first reading finds where each
+   place a [$ref] names is stated, which the second names it by, wherever
+   it reads a [$ref] to it first. *)
 let make (definitions : D.definitions) ~roots ~identifiers ~keys =
-  let st =
+  let reading stated =
     {
       definitions;
       identifiers;
       keys;
       declared = Hashtbl.create 1024;
       inlines = Hashtbl.create 512;
+      stated;
+      found = Hashtbl.create 64;
     }
   in
+  let first = reading (Hashtbl.create 0) in
+  ignore (reached (declaration first) roots);
+  let st = reading first.found in
   let names = reached (declaration st) roots in
   {
     names;
@@ -807,7 +833,7 @@ let of_spec (spec : Spec.t) ~tables =
           refuse "%s, the schema of %s, is named as a schema already is" file
             table;
         match List.assoc_opt file spec.schemas with
-        | Some s -> (name, bundle.view (Normalize.shape_only s))
+        | Some s -> (name, bundle.view ~at:(Some file) (Normalize.shape_only s))
         | None -> refuse "%s has no schema %s" table file)
       tables
   in

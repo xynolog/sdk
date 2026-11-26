@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record GraphSchemaNodes
 {
     [global::Xynolog.Serialization.Wire("resource")] public required global::Xynolog.Types.GraphSchemaNodesResource Resource { get; init; }
-    [global::Xynolog.Serialization.Wire("annotation")] public required global::Xynolog.Types.GraphSchemaNodesAnnotation Annotation { get; init; }
-    [global::Xynolog.Serialization.Wire("entityType")] public required global::Xynolog.Types.GraphSchemaNodesEntityType EntityType { get; init; }
+    [global::Xynolog.Serialization.Wire("annotation")] public required global::Xynolog.Types.GraphSchemaNodesResource Annotation { get; init; }
+    [global::Xynolog.Serialization.Wire("entityType")] public required global::Xynolog.Types.GraphSchemaNodesResource EntityType { get; init; }
 }

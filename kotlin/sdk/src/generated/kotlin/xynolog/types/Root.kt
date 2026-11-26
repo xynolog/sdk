@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 public data class Root(
     /** Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here. */
-    public val placement: RootPlacement,
+    public val placement: DiscoveredKBPlacement,
     /** For a local root: the clone's path. */
     public val path: String? = null,
     /** For a local root: whether the directory exists. A registered root whose directory is gone is kept, and says so. */
@@ -47,7 +47,7 @@ public data class Root(
 ) {
     /** How Java makes a `Root`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val placement: RootPlacement,
+        private val placement: DiscoveredKBPlacement,
         private val registered: Boolean,
         private val running: Boolean,
     ) {
@@ -89,6 +89,6 @@ public data class Root(
     public companion object {
         /** A builder of a `Root` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(placement: RootPlacement, registered: Boolean, running: Boolean): Builder = Builder(placement, registered, running)
+        public fun builder(placement: DiscoveredKBPlacement, registered: Boolean, running: Boolean): Builder = Builder(placement, registered, running)
     }
 }

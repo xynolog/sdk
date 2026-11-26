@@ -9,7 +9,7 @@ public sealed record SignInStoreOwnerOnly
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
     [global::Xynolog.Serialization.Wire("directoryMode")] public required global::Xynolog.Types.SignInStoreOwnerOnlyDirectoryMode DirectoryMode { get; init; }
-    [global::Xynolog.Serialization.Wire("fileMode")] public required global::Xynolog.Types.SignInStoreOwnerOnlyFileMode FileMode { get; init; }
+    [global::Xynolog.Serialization.Wire("fileMode")] public required global::Xynolog.Types.SignInStoreOwnerOnlyDirectoryMode FileMode { get; init; }
     [global::Xynolog.Serialization.Wire("directoryAccessList")] public required global::Xynolog.Types.SignInStoreOwnerOnlyDirectoryAccessList DirectoryAccessList { get; init; }
-    [global::Xynolog.Serialization.Wire("fileAccessList")] public required global::Xynolog.Types.SignInStoreOwnerOnlyFileAccessList FileAccessList { get; init; }
+    [global::Xynolog.Serialization.Wire("fileAccessList")] public required global::Xynolog.Types.SignInStoreOwnerOnlyDirectoryAccessList FileAccessList { get; init; }
 }

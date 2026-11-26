@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ServiceEnvironmentBootRefusals (ServiceEnvironmentBootRefusals (..), ServiceEnvironmentBootRefusalsMembersItem (..), ServiceEnvironmentBootRefusalsRefusalsItem (..), ServiceEnvironmentBootRefusalsServicesItem (..), serviceEnvironmentBootRefusalsServicesItemText) where
+module Xynolog.Internal.Generated.Models.ServiceEnvironmentBootRefusals (ServiceEnvironmentBootRefusals (..), ServiceEnvironmentBootRefusalsMembersItem (..), ServiceEnvironmentBootRefusalsRefusalsItem (..), ServiceTelemetryTelemetrySpansItemServicesItem (..), serviceTelemetryTelemetrySpansItemServicesItemText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -11,7 +11,7 @@ import Xynolog.Internal.Codec
 
 data ServiceEnvironmentBootRefusals = ServiceEnvironmentBootRefusals
   { serviceEnvironmentBootRefusalsComment :: Text,
-    serviceEnvironmentBootRefusalsServices :: [ServiceEnvironmentBootRefusalsServicesItem],
+    serviceEnvironmentBootRefusalsServices :: [ServiceTelemetryTelemetrySpansItemServicesItem],
     serviceEnvironmentBootRefusalsLine :: Text,
     serviceEnvironmentBootRefusalsExitCode :: Integer,
     serviceEnvironmentBootRefusalsRefusals :: [ServiceEnvironmentBootRefusalsRefusalsItem],
@@ -45,24 +45,24 @@ instance FromJSON ServiceEnvironmentBootRefusalsRefusalsItem where parseJSON = c
 
 instance ToJSON ServiceEnvironmentBootRefusalsRefusalsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (serviceEnvironmentBootRefusalsRefusalsItemName value))], [("situation", toJSON (serviceEnvironmentBootRefusalsRefusalsItemSituation value))], [("refusal", toJSON (serviceEnvironmentBootRefusalsRefusalsItemRefusal value))]]))
 
-data ServiceEnvironmentBootRefusalsServicesItem = ServiceEnvironmentBootRefusalsServicesItemArchivist | ServiceEnvironmentBootRefusalsServicesItemDispatcher | ServiceEnvironmentBootRefusalsServicesItemGateway | ServiceEnvironmentBootRefusalsServicesItemLibrarian | ServiceEnvironmentBootRefusalsServicesItemSmelter | ServiceEnvironmentBootRefusalsServicesItemWeaver | ServiceEnvironmentBootRefusalsServicesItemWorker deriving (Eq, Show)
+data ServiceTelemetryTelemetrySpansItemServicesItem = ServiceTelemetryTelemetrySpansItemServicesItemArchivist | ServiceTelemetryTelemetrySpansItemServicesItemDispatcher | ServiceTelemetryTelemetrySpansItemServicesItemGateway | ServiceTelemetryTelemetrySpansItemServicesItemLibrarian | ServiceTelemetryTelemetrySpansItemServicesItemSmelter | ServiceTelemetryTelemetrySpansItemServicesItemWeaver | ServiceTelemetryTelemetrySpansItemServicesItemWorker deriving (Eq, Show)
 
-instance FromJSON ServiceEnvironmentBootRefusalsServicesItem where parseJSON = checked "ServiceEnvironmentBootRefusalsServicesItem" $ \value -> if value == String "archivist" then pure ServiceEnvironmentBootRefusalsServicesItemArchivist else if value == String "dispatcher" then pure ServiceEnvironmentBootRefusalsServicesItemDispatcher else if value == String "gateway" then pure ServiceEnvironmentBootRefusalsServicesItemGateway else if value == String "librarian" then pure ServiceEnvironmentBootRefusalsServicesItemLibrarian else if value == String "smelter" then pure ServiceEnvironmentBootRefusalsServicesItemSmelter else if value == String "weaver" then pure ServiceEnvironmentBootRefusalsServicesItemWeaver else if value == String "worker" then pure ServiceEnvironmentBootRefusalsServicesItemWorker else fail "unknown enumeration member"
+instance FromJSON ServiceTelemetryTelemetrySpansItemServicesItem where parseJSON = checked "ServiceTelemetryTelemetrySpansItemServicesItem" $ \value -> if value == String "archivist" then pure ServiceTelemetryTelemetrySpansItemServicesItemArchivist else if value == String "dispatcher" then pure ServiceTelemetryTelemetrySpansItemServicesItemDispatcher else if value == String "gateway" then pure ServiceTelemetryTelemetrySpansItemServicesItemGateway else if value == String "librarian" then pure ServiceTelemetryTelemetrySpansItemServicesItemLibrarian else if value == String "smelter" then pure ServiceTelemetryTelemetrySpansItemServicesItemSmelter else if value == String "weaver" then pure ServiceTelemetryTelemetrySpansItemServicesItemWeaver else if value == String "worker" then pure ServiceTelemetryTelemetrySpansItemServicesItemWorker else fail "unknown enumeration member"
 
-instance ToJSON ServiceEnvironmentBootRefusalsServicesItem where
-  toJSON ServiceEnvironmentBootRefusalsServicesItemArchivist = String "archivist"
-  toJSON ServiceEnvironmentBootRefusalsServicesItemDispatcher = String "dispatcher"
-  toJSON ServiceEnvironmentBootRefusalsServicesItemGateway = String "gateway"
-  toJSON ServiceEnvironmentBootRefusalsServicesItemLibrarian = String "librarian"
-  toJSON ServiceEnvironmentBootRefusalsServicesItemSmelter = String "smelter"
-  toJSON ServiceEnvironmentBootRefusalsServicesItemWeaver = String "weaver"
-  toJSON ServiceEnvironmentBootRefusalsServicesItemWorker = String "worker"
+instance ToJSON ServiceTelemetryTelemetrySpansItemServicesItem where
+  toJSON ServiceTelemetryTelemetrySpansItemServicesItemArchivist = String "archivist"
+  toJSON ServiceTelemetryTelemetrySpansItemServicesItemDispatcher = String "dispatcher"
+  toJSON ServiceTelemetryTelemetrySpansItemServicesItemGateway = String "gateway"
+  toJSON ServiceTelemetryTelemetrySpansItemServicesItemLibrarian = String "librarian"
+  toJSON ServiceTelemetryTelemetrySpansItemServicesItemSmelter = String "smelter"
+  toJSON ServiceTelemetryTelemetrySpansItemServicesItemWeaver = String "weaver"
+  toJSON ServiceTelemetryTelemetrySpansItemServicesItemWorker = String "worker"
 
-serviceEnvironmentBootRefusalsServicesItemText :: ServiceEnvironmentBootRefusalsServicesItem -> Text
-serviceEnvironmentBootRefusalsServicesItemText ServiceEnvironmentBootRefusalsServicesItemArchivist = "archivist"
-serviceEnvironmentBootRefusalsServicesItemText ServiceEnvironmentBootRefusalsServicesItemDispatcher = "dispatcher"
-serviceEnvironmentBootRefusalsServicesItemText ServiceEnvironmentBootRefusalsServicesItemGateway = "gateway"
-serviceEnvironmentBootRefusalsServicesItemText ServiceEnvironmentBootRefusalsServicesItemLibrarian = "librarian"
-serviceEnvironmentBootRefusalsServicesItemText ServiceEnvironmentBootRefusalsServicesItemSmelter = "smelter"
-serviceEnvironmentBootRefusalsServicesItemText ServiceEnvironmentBootRefusalsServicesItemWeaver = "weaver"
-serviceEnvironmentBootRefusalsServicesItemText ServiceEnvironmentBootRefusalsServicesItemWorker = "worker"
+serviceTelemetryTelemetrySpansItemServicesItemText :: ServiceTelemetryTelemetrySpansItemServicesItem -> Text
+serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemArchivist = "archivist"
+serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemDispatcher = "dispatcher"
+serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemGateway = "gateway"
+serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemLibrarian = "librarian"
+serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemSmelter = "smelter"
+serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemWeaver = "weaver"
+serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemWorker = "worker"

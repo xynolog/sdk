@@ -10,7 +10,7 @@ import kotlinx.serialization.json.JsonElement
 @Serializable
 public data class ArchivistLayoutStorageUriIndex(
     /** The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store. */
-    public val tree: ArchivistLayoutStorageUriIndexTree,
+    public val tree: ArchivistLayoutEventStreamTree,
     /** Its path in its tree, `/`-separated. */
     public val path: String,
     /** The schema an entry is. */
@@ -18,7 +18,7 @@ public data class ArchivistLayoutStorageUriIndex(
 ) {
     /** How Java makes a `ArchivistLayoutStorageUriIndex`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val tree: ArchivistLayoutStorageUriIndexTree,
+        private val tree: ArchivistLayoutEventStreamTree,
         private val path: String,
         private val schema: JsonElement,
     ) {
@@ -28,6 +28,6 @@ public data class ArchivistLayoutStorageUriIndex(
     public companion object {
         /** A builder of a `ArchivistLayoutStorageUriIndex` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(tree: ArchivistLayoutStorageUriIndexTree, path: String, schema: JsonElement): Builder = Builder(tree, path, schema)
+        public fun builder(tree: ArchivistLayoutEventStreamTree, path: String, schema: JsonElement): Builder = Builder(tree, path, schema)
     }
 }

@@ -65,6 +65,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema a `$ref` names at a place within a file is one type, named where
+  that place is stated, wherever it is referred to: the Archivist layout's
+  trees are all `ArchivistLayoutEventStreamTree`, a placement is
+  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
+  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
+  and the rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
+  gone.
 - A retry budget is `types::RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `retry::RetryPolicy`:
   `timing::EMIT_RETRY` and `timing::REFRESH_RETRY` are one, a transport's

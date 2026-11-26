@@ -509,7 +509,7 @@ let files ~root (spec : Spec.t) =
                  (fun name ->
                    match List.assoc_opt name made with
                    | Some validated ->
-                       bundle.view (Normalize.shape_only validated)
+                       bundle.view ~at:None (Normalize.shape_only validated)
                    | None -> bundle.definitions.schema name);
              }
              ~roots:(List.map fst made)

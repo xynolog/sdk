@@ -26,6 +26,9 @@ type t =
 
 and node = {
   keys : string list;  (** The keywords it states, by their names. *)
+  origin : origin option;
+      (** The place within a file it is, when a [$ref] names that place
+          ([Schema_names.referred_places]). *)
   title : string option;
   description : string option;
   type_ : types option;
@@ -46,9 +49,15 @@ and node = {
   pattern : string option;
 }
 
+(* A place a [$ref] names, by its key ([Schema_names.place_key]): where it is
+   stated, or written in the place of a [$ref] to it ([referred]). Each
+   writer names it once, as it is where it is stated ([Typing]). *)
+and origin = { key : string; referred : bool }
+
 let node keys =
   {
     keys;
+    origin = None;
     title = None;
     description = None;
     type_ = None;
@@ -170,7 +179,7 @@ let whole (spec : Spec.t) =
     | Ok records -> List.map (fun (key, _, _) -> key) records
     | Error message -> refuse "%s" message
   in
-  let files = Schema_names.in_place spec in
+  let files = Schema_names.in_place spec ~places:true in
   fun s ->
     match members_in_place ~ids ~schemas ~recorded s with
     | s ->
@@ -260,23 +269,48 @@ let client_roots (spec : Spec.t) =
     (List.map fst spec.schemas)
   @ List.map (fun (key, _, _) -> key) (records spec)
 
-(* The view of a schema written in [file], each [$ref] it holds resolved by
-   [named] or written in place from [schemas]. *)
-let view ~ids ~named ~schemas =
+(* Where the view is in what it reads: the files written in place that reach
+   it ([in_place]), the key of the place it is within its file, when that is
+   known, and whether it is within a schema written in the place of a
+   [$ref]. *)
+type context = { trail : string list; at : string option; within_ref : bool }
+
+(* The key of the place [segments] (a JSON pointer's, unescaped) name below
+   [at]. *)
+let below at segments =
+  let escape segment =
+    String.concat "~1"
+      (String.split_on_char '/'
+         (String.concat "~0" (String.split_on_char '~' segment)))
+  in
+  Option.map
+    (fun at ->
+      String.concat "/"
+        ((if String.contains at '#' then at else at ^ "#")
+        :: List.map escape segments))
+    at
+
+(* The view of a schema, each [$ref] it holds resolved by [named] or written
+   in place from [schemas], and each place within it that a [$ref] names
+   ([referred]) marked as that place ([origin]). [at] is the key of the
+   schema's own place, its file's when it is a whole file; a schema of no
+   file is at none. *)
+let view ~ids ~named ~schemas ~referred =
   let rec view s = Schema.para ~boolean:(fun b _ -> Bool b) ~schema:layer s
-  and layer (l : (Schema.t * (string list -> t)) Schema.layer) trail =
+  and layer (l : (Schema.t * (context -> t)) Schema.layer) context =
     match Null_form.without_null fst l with
     | Error message -> refuse "%s" message
-    | Ok None -> plain l trail
+    | Ok None -> plain l context
     | Ok (Some beside) -> (
-        match plain beside trail with
+        (* What is beside null is no place of its own file. *)
+        match plain beside { context with at = None } with
         | Node ({ type_ = Some (One t); _ } as n) ->
             Node { n with type_ = Some (Or_null t) }
         | other ->
             Node { (node [ "anyOf" ]) with any_of = Some [ Null; other ] })
-  and plain l trail =
+  and plain l context =
     let s = Schema.map snd l in
-    if Option.is_some s.unevaluated_properties then closed l trail
+    if Option.is_some s.unevaluated_properties then closed l context
     else
       match s.ref_ with
       | Some r -> (
@@ -287,20 +321,30 @@ let view ~ids ~named ~schemas =
           in
           match referent ~ids ~named ~schemas r with
           | Some (Named name) -> Ref { name; description }
-          | Some (In_place (file, target)) ->
+          | Some (In_place (key, target)) ->
               if Option.is_some description then
                 refuse
                   "$ref %s is written in its place, so nothing can be said of \
                    it beside it"
                   r.target;
-              view target (in_place ~trail file)
+              view target
+                {
+                  trail = in_place ~trail:context.trail key;
+                  at = Some key;
+                  within_ref = true;
+                }
           | None -> refuse "$ref %s names no schema" r.target)
       | None
         when Schema.keywords s = [ "type" ] && s.type_ = Some [ Schema.Null ] ->
           Null
       | None ->
-          let sub f = f trail in
-          let subs = Option.map (List.map sub) in
+          let sub segments f =
+            f { context with at = below context.at segments }
+          in
+          let subs keyword =
+            Option.map
+              (List.mapi (fun i f -> sub [ keyword; string_of_int i ] f))
+          in
           let keys = Schema.keywords s in
           let merged =
             Option.map
@@ -309,7 +353,7 @@ let view ~ids ~named ~schemas =
                   Normalize.normalize ids ~find:(schema_of ~ids ~schemas)
                     (Schema.Schema (Schema.map fst l))
                 with
-                | Ok m -> view (Schema.Schema m) trail
+                | Ok m -> view (Schema.Schema m) { context with at = None }
                 | Error message -> refuse "%s" message)
               s.all_of
           in
@@ -323,6 +367,12 @@ let view ~ids ~named ~schemas =
           let own =
             {
               keys;
+              origin =
+                Option.bind context.at (fun at ->
+                    let key = Schema_names.place_key at in
+                    if referred key then
+                      Some { key; referred = context.within_ref }
+                    else None);
               title = s.title;
               description =
                 (match merged with
@@ -332,17 +382,22 @@ let view ~ids ~named ~schemas =
               format = s.format;
               enum = s.enum;
               properties =
-                Option.map (List.map (fun (k, v) -> (k, sub v))) s.properties;
+                Option.map
+                  (List.map (fun (k, v) -> (k, sub [ "properties"; k ] v)))
+                  s.properties;
               required = s.required;
-              additional_properties = Option.map sub s.additional_properties;
+              additional_properties =
+                Option.map
+                  (sub [ "additionalProperties" ])
+                  s.additional_properties;
               max_properties = s.max_properties;
               minimum = s.minimum;
               maximum = s.maximum;
-              items = Option.map sub s.items;
-              all_of = subs s.all_of;
+              items = Option.map (sub [ "items" ]) s.items;
+              all_of = subs "allOf" s.all_of;
               merged;
-              any_of = subs s.any_of;
-              one_of = subs s.one_of;
+              any_of = subs "anyOf" s.any_of;
+              one_of = subs "oneOf" s.one_of;
               discriminator =
                 Option.map
                   (fun (d : Schema.discriminator) -> d.property_name)
@@ -352,14 +407,14 @@ let view ~ids ~named ~schemas =
           in
           Node own
   (* A schema that closes what it composes, as the one object it means. *)
-  and closed l trail =
+  and closed l context =
     match
       Normalize.closed ids ~find:(schema_of ~ids ~schemas) (Schema.map fst l)
     with
-    | Ok closed -> view (Schema.Schema closed) trail
+    | Ok closed -> view (Schema.Schema closed) { context with at = None }
     | Error message -> refuse "%s" message
   in
-  fun s -> view s []
+  fun ~at s -> view s { trail = []; at; within_ref = false }
 
 (* Every [$ref] a schema holds, through the files written in its place. *)
 let references ~ids ~named ~schemas =
@@ -389,8 +444,9 @@ let header_schemas (r : Openapi.response) =
 
 type bundle = {
   definitions : definitions;
-  view : Schema.t -> t;
-      (** Any other schema, each file it names as the bundle names it. *)
+  view : at:string option -> Schema.t -> t;
+      (** Any other schema, at the key of its place when it has one
+          ([Definitions.view]), each file it names as the bundle names it. *)
   bodies : string list;
       (** Every component schema a request or response body of the paths names.
       *)
@@ -420,9 +476,15 @@ let bundle (spec : Spec.t) =
     | Error message -> refuse "%s" message
   in
   (* Each schema a writer is handed, the files no generation names written in
-     their places ([Schema_names.in_place]). *)
+     their places ([Schema_names.in_place]); a place a [$ref] names within
+     one is the view's to mark ([Schema_names.referred_places]). *)
+  let referred =
+    match Schema_names.referred_places spec with
+    | Ok referred -> referred
+    | Error message -> refuse "%s" message
+  in
   let in_place =
-    let in_place = Schema_names.in_place spec in
+    let in_place = Schema_names.in_place spec ~places:false in
     fun s ->
       match in_place s with Ok s -> s | Error message -> refuse "%s" message
   in
@@ -534,7 +596,8 @@ let bundle (spec : Spec.t) =
         | None -> refuse "the spec declares no schema %s" name
         | Some file ->
             let v =
-              view ~ids ~named ~schemas (in_place (Hashtbl.find schemas file))
+              view ~ids ~named ~schemas ~referred ~at:(Some file)
+                (in_place (Hashtbl.find schemas file))
             in
             Hashtbl.replace views name v;
             v)
@@ -548,7 +611,7 @@ let bundle (spec : Spec.t) =
   let names = names_of (Hashtbl.mem gateway) in
   {
     definitions = { names; schema };
-    view = (fun s -> view ~ids ~named ~schemas (in_place s));
+    view = (fun ~at s -> view ~ids ~named ~schemas ~referred ~at (in_place s));
     bodies =
       List.filter_map named (List.concat_map refs body_schemas)
       |> List.sort_uniq String.compare;
@@ -561,7 +624,9 @@ let alone ~ids ~name (s : Schema.t) =
     view ~ids
       ~named:(fun file ->
         refuse "%s refers to %s, and is generated alone" name file)
-      ~schemas:(Hashtbl.create 0) s
+      ~schemas:(Hashtbl.create 0)
+      ~referred:(fun _ -> false)
+      ~at:None s
   in
   {
     names = [ name ];

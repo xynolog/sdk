@@ -165,7 +165,7 @@ public sealed partial class TransportTests
             LiveQueries.OnStream.Select(group => group.Key).ToHashSet());
         Assert.All(LiveQueries.OnChannel.Select(group => group.Key), channel => Assert.True(BusChannels.Readings.ContainsKey(channel), channel));
         Assert.All(LiveQueries.OnChannel.SelectMany(group => group), row => Assert.True(row.Reach is null or ClientRefreshRefreshItemOnReach.Held, row.On));
-        Assert.All(LiveQueries.OnStream.SelectMany(group => group), row => Assert.True(row.Reach is null or ClientRefreshRefreshItemStreamReach.Held));
+        Assert.All(LiveQueries.OnStream.SelectMany(group => group), row => Assert.True(row.Reach is null or ClientRefreshRefreshItemOnReach.Held));
     }
 
     private static IEnumerable<string> WireMembers<T>() =>

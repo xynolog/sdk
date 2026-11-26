@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.GraphSchema (GraphSchema (..), GraphSchemaNodes (..), GraphSchemaNodesAnnotation (..), GraphSchemaNodesEntityType (..), GraphSchemaNodesResource (..), GraphSchemaRelationships (..), GraphSchemaRelationshipsBelongsTo (..), GraphSchemaRelationshipsReferences (..), GraphSchemaRelationshipsTaggedAs (..), GraphSchemaStub (..)) where
+module Xynolog.Internal.Generated.Models.GraphSchema (GraphSchema (..), GraphSchemaNodes (..), GraphSchemaNodesResource (..), GraphSchemaRelationships (..), GraphSchemaRelationshipsBelongsTo (..), GraphSchemaStub (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -23,38 +23,14 @@ instance ToJSON GraphSchema where toJSON value = Object (KM.fromList (concat [[(
 
 data GraphSchemaNodes = GraphSchemaNodes
   { graphSchemaNodesResource :: GraphSchemaNodesResource,
-    graphSchemaNodesAnnotation :: GraphSchemaNodesAnnotation,
-    graphSchemaNodesEntityType :: GraphSchemaNodesEntityType
+    graphSchemaNodesAnnotation :: GraphSchemaNodesResource,
+    graphSchemaNodesEntityType :: GraphSchemaNodesResource
   }
   deriving (Eq, Show)
 
 instance FromJSON GraphSchemaNodes where parseJSON = checked "GraphSchemaNodes" $ withObject "GraphSchemaNodes" (\fields -> GraphSchemaNodes <$> (fields .: "resource") <*> (fields .: "annotation") <*> (fields .: "entityType"))
 
 instance ToJSON GraphSchemaNodes where toJSON value = Object (KM.fromList (concat [[("resource", toJSON (graphSchemaNodesResource value))], [("annotation", toJSON (graphSchemaNodesAnnotation value))], [("entityType", toJSON (graphSchemaNodesEntityType value))]]))
-
-data GraphSchemaNodesAnnotation = GraphSchemaNodesAnnotation
-  { graphSchemaNodesAnnotationLabel :: Text,
-    graphSchemaNodesAnnotationRow :: Maybe Text,
-    graphSchemaNodesAnnotationKey :: Text,
-    graphSchemaNodesAnnotationLookups :: [Text]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON GraphSchemaNodesAnnotation where parseJSON = checked "GraphSchemaNodesAnnotation" $ withObject "GraphSchemaNodesAnnotation" (\fields -> GraphSchemaNodesAnnotation <$> (fields .: "label") <*> optional fields "row" <*> (fields .: "key") <*> (fields .: "lookups"))
-
-instance ToJSON GraphSchemaNodesAnnotation where toJSON value = Object (KM.fromList (concat [[("label", toJSON (graphSchemaNodesAnnotationLabel value))], optionalPair "row" (graphSchemaNodesAnnotationRow value), [("key", toJSON (graphSchemaNodesAnnotationKey value))], [("lookups", toJSON (graphSchemaNodesAnnotationLookups value))]]))
-
-data GraphSchemaNodesEntityType = GraphSchemaNodesEntityType
-  { graphSchemaNodesEntityTypeLabel :: Text,
-    graphSchemaNodesEntityTypeRow :: Maybe Text,
-    graphSchemaNodesEntityTypeKey :: Text,
-    graphSchemaNodesEntityTypeLookups :: [Text]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON GraphSchemaNodesEntityType where parseJSON = checked "GraphSchemaNodesEntityType" $ withObject "GraphSchemaNodesEntityType" (\fields -> GraphSchemaNodesEntityType <$> (fields .: "label") <*> optional fields "row" <*> (fields .: "key") <*> (fields .: "lookups"))
-
-instance ToJSON GraphSchemaNodesEntityType where toJSON value = Object (KM.fromList (concat [[("label", toJSON (graphSchemaNodesEntityTypeLabel value))], optionalPair "row" (graphSchemaNodesEntityTypeRow value), [("key", toJSON (graphSchemaNodesEntityTypeKey value))], [("lookups", toJSON (graphSchemaNodesEntityTypeLookups value))]]))
 
 data GraphSchemaNodesResource = GraphSchemaNodesResource
   { graphSchemaNodesResourceLabel :: Text,
@@ -70,8 +46,8 @@ instance ToJSON GraphSchemaNodesResource where toJSON value = Object (KM.fromLis
 
 data GraphSchemaRelationships = GraphSchemaRelationships
   { graphSchemaRelationshipsBelongsTo :: GraphSchemaRelationshipsBelongsTo,
-    graphSchemaRelationshipsReferences :: GraphSchemaRelationshipsReferences,
-    graphSchemaRelationshipsTaggedAs :: GraphSchemaRelationshipsTaggedAs
+    graphSchemaRelationshipsReferences :: GraphSchemaRelationshipsBelongsTo,
+    graphSchemaRelationshipsTaggedAs :: GraphSchemaRelationshipsBelongsTo
   }
   deriving (Eq, Show)
 
@@ -90,30 +66,6 @@ data GraphSchemaRelationshipsBelongsTo = GraphSchemaRelationshipsBelongsTo
 instance FromJSON GraphSchemaRelationshipsBelongsTo where parseJSON = checked "GraphSchemaRelationshipsBelongsTo" $ withObject "GraphSchemaRelationshipsBelongsTo" (\fields -> GraphSchemaRelationshipsBelongsTo <$> (fields .: "type") <*> (fields .: "from") <*> (fields .: "to") <*> (fields .: "says"))
 
 instance ToJSON GraphSchemaRelationshipsBelongsTo where toJSON value = Object (KM.fromList (concat [[("type", toJSON (graphSchemaRelationshipsBelongsToType value))], [("from", toJSON (graphSchemaRelationshipsBelongsToFrom value))], [("to", toJSON (graphSchemaRelationshipsBelongsToTo value))], [("says", toJSON (graphSchemaRelationshipsBelongsToSays value))]]))
-
-data GraphSchemaRelationshipsReferences = GraphSchemaRelationshipsReferences
-  { graphSchemaRelationshipsReferencesType :: Text,
-    graphSchemaRelationshipsReferencesFrom :: Text,
-    graphSchemaRelationshipsReferencesTo :: Text,
-    graphSchemaRelationshipsReferencesSays :: Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON GraphSchemaRelationshipsReferences where parseJSON = checked "GraphSchemaRelationshipsReferences" $ withObject "GraphSchemaRelationshipsReferences" (\fields -> GraphSchemaRelationshipsReferences <$> (fields .: "type") <*> (fields .: "from") <*> (fields .: "to") <*> (fields .: "says"))
-
-instance ToJSON GraphSchemaRelationshipsReferences where toJSON value = Object (KM.fromList (concat [[("type", toJSON (graphSchemaRelationshipsReferencesType value))], [("from", toJSON (graphSchemaRelationshipsReferencesFrom value))], [("to", toJSON (graphSchemaRelationshipsReferencesTo value))], [("says", toJSON (graphSchemaRelationshipsReferencesSays value))]]))
-
-data GraphSchemaRelationshipsTaggedAs = GraphSchemaRelationshipsTaggedAs
-  { graphSchemaRelationshipsTaggedAsType :: Text,
-    graphSchemaRelationshipsTaggedAsFrom :: Text,
-    graphSchemaRelationshipsTaggedAsTo :: Text,
-    graphSchemaRelationshipsTaggedAsSays :: Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON GraphSchemaRelationshipsTaggedAs where parseJSON = checked "GraphSchemaRelationshipsTaggedAs" $ withObject "GraphSchemaRelationshipsTaggedAs" (\fields -> GraphSchemaRelationshipsTaggedAs <$> (fields .: "type") <*> (fields .: "from") <*> (fields .: "to") <*> (fields .: "says"))
-
-instance ToJSON GraphSchemaRelationshipsTaggedAs where toJSON value = Object (KM.fromList (concat [[("type", toJSON (graphSchemaRelationshipsTaggedAsType value))], [("from", toJSON (graphSchemaRelationshipsTaggedAsFrom value))], [("to", toJSON (graphSchemaRelationshipsTaggedAsTo value))], [("says", toJSON (graphSchemaRelationshipsTaggedAsSays value))]]))
 
 data GraphSchemaStub = GraphSchemaStub
   { graphSchemaStubNode :: Text,

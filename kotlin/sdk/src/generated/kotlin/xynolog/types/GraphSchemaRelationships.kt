@@ -11,15 +11,15 @@ public data class GraphSchemaRelationships(
     /** A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says. */
     public val belongsTo: GraphSchemaRelationshipsBelongsTo,
     /** A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says. */
-    public val references: GraphSchemaRelationshipsReferences,
+    public val references: GraphSchemaRelationshipsBelongsTo,
     /** A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says. */
-    public val taggedAs: GraphSchemaRelationshipsTaggedAs,
+    public val taggedAs: GraphSchemaRelationshipsBelongsTo,
 ) {
     /** How Java makes a `GraphSchemaRelationships`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val belongsTo: GraphSchemaRelationshipsBelongsTo,
-        private val references: GraphSchemaRelationshipsReferences,
-        private val taggedAs: GraphSchemaRelationshipsTaggedAs,
+        private val references: GraphSchemaRelationshipsBelongsTo,
+        private val taggedAs: GraphSchemaRelationshipsBelongsTo,
     ) {
         public fun build(): GraphSchemaRelationships = GraphSchemaRelationships(belongsTo = belongsTo, references = references, taggedAs = taggedAs)
     }
@@ -27,6 +27,6 @@ public data class GraphSchemaRelationships(
     public companion object {
         /** A builder of a `GraphSchemaRelationships` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(belongsTo: GraphSchemaRelationshipsBelongsTo, references: GraphSchemaRelationshipsReferences, taggedAs: GraphSchemaRelationshipsTaggedAs): Builder = Builder(belongsTo, references, taggedAs)
+        public fun builder(belongsTo: GraphSchemaRelationshipsBelongsTo, references: GraphSchemaRelationshipsBelongsTo, taggedAs: GraphSchemaRelationshipsBelongsTo): Builder = Builder(belongsTo, references, taggedAs)
     }
 }

@@ -1,8 +1,9 @@
-(* The tables the services keep to, which the Kotlin SDK carries for them
-   ([Roots.service_tables]), as xynolog.services.ServiceTables: each table
-   read as its schema's type of xynolog.types, named as its schema's file
-   is ([Places.schema_of]), by that type's serializer, from the table's
-   JSON; and the Archivist's HTTP operations, as ArchivistRoute. *)
+(* The tables the Kotlin SDK carries, each read as its schema's type of
+   xynolog.types, named as its schema's file is ([Places.schema_of]), by that
+   type's serializer, from the table's JSON: the services' tables
+   ([Roots.service_tables]) as xynolog.services.ServiceTables, and the
+   clients' tables no other file carries as xynolog.Tables; and the
+   Archivist's HTTP operations, as ArchivistRoute. *)
 
 module K = Kotlin_syntax
 
@@ -11,6 +12,44 @@ let writer = __FILE__
 let refuse = Names.refuse
 let generated = K.annotation "Generated"
 
+(* An object of tables: its package and name, what it says of itself, the
+   name of the map that holds every one by its file, and its tables. *)
+type carried = {
+  package : string;
+  name : string;
+  about : string;
+  listing : string;
+  tables : string list;
+}
+
+let carried (spec : Spec.t) =
+  [
+    {
+      package;
+      name = "ServiceTables";
+      about =
+        "The tables the services keep to, each read as its schema's type: the \
+         variables a service reads and why it refuses to start, what it tells \
+         OpenTelemetry and logs, its messages, its jobs' budgets, the bounds \
+         of the bus's replies, and the rest. `SERVICE_TABLES` holds each by \
+         its file.";
+      listing = "SERVICE_TABLES";
+      tables = Roots.service_tables spec;
+    };
+    {
+      package = "xynolog";
+      name = "Tables";
+      about =
+        "The clients' tables, each read as its schema's type: the languages \
+         Xynolog supports. `TABLES` holds each by its file.";
+      listing = "TABLES";
+      tables = [ "locales/registry.json" ];
+    };
+  ]
+
+(* Every table the SDK carries. *)
+let tables spec = List.concat_map (fun c -> c.tables) (carried spec)
+
 (* The type a table is read as: its schema's file's stem. *)
 let type_of table =
   Filename.remove_extension (Filename.basename (Places.schema_of table))
@@ -18,18 +57,16 @@ let type_of table =
 (* [service-environment/variables.json] as [SERVICE_ENVIRONMENT_VARIABLES]. *)
 let constant table = Names.constant_name (Filename.remove_extension table)
 
-(* The file's name, the types of xynolog.types it names, and its declarations:
-   each table, from [read], the JSON its file holds, and every one by its
-   file. *)
-let declarations ~(read : string -> Yojson.Safe.t) (spec : Spec.t) =
-  let tables = Roots.service_tables spec in
-  let constants = List.map constant tables in
+(* The types of xynolog.types [c] names, and its declarations: each table,
+   from [read], the JSON its file holds, and every one by its file. *)
+let declarations ~(read : string -> Yojson.Safe.t) c =
+  let constants = List.map constant c.tables in
   (match
      List.find_opt
-       (fun c -> List.length (List.filter (( = ) c) constants) > 1)
+       (fun k -> List.length (List.filter (( = ) k) constants) > 1)
        constants
    with
-  | Some c -> refuse "two of the services' tables are both %s" c
+  | Some k -> refuse "two of the tables of %s are both %s" c.name k
   | None -> ());
   let table t =
     let type_ = type_of t in
@@ -48,20 +85,12 @@ let declarations ~(read : string -> Yojson.Safe.t) (spec : Spec.t) =
               ]))
       (constant t)
   in
-  ( "ServiceTables",
-    List.sort_uniq compare (List.map type_of tables),
+  ( List.sort_uniq compare (List.map type_of c.tables),
     [
-      K.class_
-        ~about:
-          (K.Doc
-             "The tables the services keep to, each read as its schema's type: \
-              the variables a service reads and why it refuses to start, what \
-              it tells OpenTelemetry and logs, its messages, its jobs' \
-              budgets, the bounds of the bus's replies, and the rest. \
-              `SERVICE_TABLES` holds each by its file.")
-        ~annotations:[ generated ] ~visibility:K.Public
+      K.class_ ~about:(K.Doc c.about) ~annotations:[ generated ]
+        ~visibility:K.Public
         ~members:
-          (List.map table tables
+          (List.map table c.tables
           @ [
               K.property
                 ~about:
@@ -75,10 +104,10 @@ let declarations ~(read : string -> Yojson.Safe.t) (spec : Spec.t) =
                         (List.map
                            (fun t ->
                              K.Binary (K.Str t, K.To, K.Name (constant t)))
-                           tables)))
-                "SERVICE_TABLES";
+                           c.tables)))
+                c.listing;
             ])
-        K.Object "ServiceTables";
+        K.Object c.name;
     ] )
 
 (* The Archivist's HTTP operations (protocol/specs/src/archivist/openapi.json),

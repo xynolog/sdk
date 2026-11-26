@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistLayoutStorageUriIndex
 {
-    [global::Xynolog.Serialization.Wire("tree")] public required global::Xynolog.Types.ArchivistLayoutStorageUriIndexTree Tree { get; init; }
+    [global::Xynolog.Serialization.Wire("tree")] public required global::Xynolog.Types.ArchivistLayoutEventStreamTree Tree { get; init; }
     [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
     [global::Xynolog.Serialization.Wire("schema")] public required global::System.Text.Json.JsonElement Schema { get; init; }
 }
