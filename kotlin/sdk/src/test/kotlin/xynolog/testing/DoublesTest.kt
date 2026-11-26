@@ -32,9 +32,9 @@ import xynolog.errors.TransportErrorCode
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Carried
 import xynolog.transport.ConnectionState
-import xynolog.transport.Content
 import xynolog.transport.Frame
-import xynolog.transport.PutBinaryRequest
+import xynolog.types.PutBinaryRequest
+import xynolog.types.ResourceRepresentation
 import xynolog.types.UploadProgressFinished
 import xynolog.types.UploadProgressProgress
 import xynolog.types.UploadProgressStarted
@@ -233,8 +233,8 @@ class DoublesTest {
             listOf(UploadProgressStarted(totalBytes = 9), UploadProgressProgress(bytesUploaded = 9, totalBytes = 9), UploadProgressFinished(resourceId = made)),
             upload.progress.toList(),
         )
-        assertEquals("the words", String(content.getBinary(made).bytes))
-        content.seed(RESOURCE, Content("text/plain", "seeded".toByteArray()))
+        assertEquals("the words", String(content.getBinary(made).data))
+        content.seed(RESOURCE, ResourceRepresentation(data = "seeded".toByteArray(), contentType = "text/plain"))
         assertEquals("seeded", String(content.getBinaryStream(RESOURCE).bytes.toList().single()))
         val missing = assertThrows<TransportError> { content.getAnnotations(ResourceId("res-9")) }
         assertEquals(TransportErrorCode.NotFound, missing.reason)

@@ -4,4 +4,4 @@
 package xynolog.types
 
 /** Bytes held whole. They can be read more than once, and sent again when an upload is retried. */
-public typealias Binary = String
+public typealias Binary = ByteArray

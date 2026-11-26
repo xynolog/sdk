@@ -63,6 +63,28 @@ the coming release's, and gathers its changes as they land.
   codes' shared table: `SpanRefusal`, where it was `SpanRefusalErrorCode`
   (`SpanRefusedError.reason`), and `IdentityUnverifiableReason`, where it was
   `KbIdentityErrorCode` (`IdentityUnverifiableError.reason`).
+- `PutBinaryRequest` is the type of Protocol's
+  `client/types/PutBinaryRequest.json`, where it was the SDK's own: `Codable`
+  and `Hashable` as every generated type is, its four required members `var`s
+  where they were `let`s, and its initializer names `language` before
+  `entityTypes`. `entityTypes` is a `[String]?` and `generator` a
+  `OneOrMoreAgents?`, absent by default, where they were a `[String]` and an
+  `[Agent]` defaulting to empty. An upload sends `entityTypes` when it is
+  present and not empty, as it sent it when not empty, and `generator` as the
+  JSON of its value: what an `[Agent]` sent, as an array, is sent of `.list`
+  of it.
+- A resource's bytes, read whole, are a `ResourceRepresentation`, the type of
+  Protocol's `client/types/ResourceRepresentation.json`, where they were the
+  SDK's own `Content`: `browse.resourceRepresentation` and
+  `ContentTransport.getBinary` answer one, made by
+  `ResourceRepresentation(data:contentType:)`, and its bytes are its `data`,
+  where they were `bytes`.
+- `BrowseNamespace.engines()` is a `Cached<EnginesWithLimits>`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, whose `EngineWithLimits`
+  is `Codable` and `Hashable` as every generated type is, where the SDK's own
+  was only `Encodable`.
+- `Binary`, the type of Protocol's bytes held whole, is `Data`, where it was a
+  `String`, and `ResourceUpload`'s `file` is one.
 - `RetryBudget` is the model of Protocol's `client/RetryBudget.json`:
   `Codable` and `Hashable`, its members `var`s.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held

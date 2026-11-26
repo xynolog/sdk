@@ -51,8 +51,8 @@ client comes to be signed in.
 ```python
 from xynolog.client import XynologClient
 from xynolog.identifiers import ResourceId
-from xynolog.transport import PutBinaryRequest, Transport
-from xynolog.types import GenerationJobParams, JobDeclined, LinkingJobParams
+from xynolog.transport import Transport
+from xynolog.types import GenerationJobParams, JobDeclined, LinkingJobParams, PutBinaryRequest
 
 
 async def summarize(client: XynologClient[Transport], paper: bytes) -> ResourceId | None:
@@ -1003,8 +1003,7 @@ itself.
 ```python
 from xynolog.http import HttpTransport
 from xynolog.identifiers import ResourceId
-from xynolog.transport import PutBinaryRequest
-from xynolog.types import UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
+from xynolog.types import PutBinaryRequest, UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
 
 
 async def store(transport: HttpTransport, page: bytes) -> ResourceId:

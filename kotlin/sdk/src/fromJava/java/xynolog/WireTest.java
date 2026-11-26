@@ -27,17 +27,17 @@ import xynolog.channels.ChannelsKt;
 import xynolog.http.HttpContentTransport;
 import xynolog.http.HttpTransport;
 import xynolog.identifiers.ResourceId;
-import xynolog.transport.Content;
 import xynolog.transport.ContentStream;
 import xynolog.transport.Delivered;
 import xynolog.transport.FrameRefusal;
 import xynolog.transport.Heard;
-import xynolog.transport.PutBinaryRequest;
 import xynolog.transport.Upload;
 import xynolog.types.BeckonFocusEvent;
 import xynolog.types.EmptyObject;
 import xynolog.types.FrameAddEntityTypeCommand;
 import xynolog.types.FrameRefusalReason;
+import xynolog.types.PutBinaryRequest;
+import xynolog.types.ResourceRepresentation;
 import xynolog.types.StatusResponse;
 
 /** The wire layer as a Java program calls it: a request through its future, a stream through its publisher, a request the program gives up, and content uploaded and read. */
@@ -141,9 +141,9 @@ final class WireTest {
         try (Gateway gateway = new Gateway();
                 HttpTransport transport = new HttpTransport(gateway.origin(), StateFlowKt.<String>MutableStateFlow(null), ChannelsKt.getBRIDGED_CHANNELS());
                 HttpContentTransport content = new HttpContentTransport(transport)) {
-            Content whole = content.getBinaryFuture(new ResourceId("res-1")).get(10, SECONDS);
+            ResourceRepresentation whole = content.getBinaryFuture(new ResourceId("res-1")).get(10, SECONDS);
             assertEquals("text/plain", whole.getContentType());
-            assertEquals("the bytes", new String(whole.getBytes(), UTF_8));
+            assertEquals("the bytes", new String(whole.getData(), UTF_8));
 
             ContentStream stream = content.getBinaryStreamFuture(new ResourceId("res-1")).get(10, SECONDS);
             ByteArrayOutputStream read = new ByteArrayOutputStream();

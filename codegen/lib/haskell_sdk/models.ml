@@ -257,8 +257,10 @@ let union_decls name members =
     ]
 
 (* A newtype of [value_type]: an identifier's opaque, made only by its
-   module's mk, and a map's [key] read and written as the map's keys. *)
-let newtype_decls name ~constructor value_type opaque ~key =
+   module's mk, and a map's [key] read and written as the map's keys. Its
+   instances read and write the value with [read] and [write]: aeson's own,
+   or Codec's base64 of bytes, which aeson has no JSON of. *)
+let newtype_decls name ~constructor ~read ~write value_type opaque ~key =
   let accessor = lower name ^ "Value" in
   let maker = "mk" ^ name in
   let newtype =
@@ -281,12 +283,12 @@ let newtype_decls name ~constructor value_type opaque ~key =
            ( "value",
              Infix
                ( Name constructor,
-                 [ ("<$>", Apply (Name "parseJSON", [ Name "value" ])) ] ) ));
+                 [ ("<$>", Apply (Name read, [ Name "value" ])) ] ) ));
       to_json
         [
           {
             H.patterns = [ Constructor (constructor, [ Var "value" ]) ];
-            body = Apply (Name "toJSON", [ Name "value" ]);
+            body = Apply (Name write, [ Name "value" ]);
           };
         ]
         name;
@@ -427,6 +429,7 @@ let object_decls name ~constructor ~open_ ~names ~extra_type members =
     ]
 
 let scalar_of : T.scalar -> H.type_ = function
+  | Text { binary = true; _ } -> T_name "ByteString"
   | Text _ -> T_name "Text"
   | Integer _ -> T_name "Integer"
   | Number -> T_name "Scientific"
@@ -501,6 +504,11 @@ and stated state at original (ty : T.ty) =
   | Named target ->
       depend state target;
       Ok (H.T_name target)
+  | Scalar (Text { binary = true; _ }) ->
+      Error
+        (at
+       ^ ": bytes stated in place, which aeson has no JSON of; a named schema \
+          of bytes is a newtype that reads and writes them as base64")
   | Scalar s -> Ok (scalar_of s)
   | List (Some item) ->
       let* item_schema = items state at original in
@@ -597,6 +605,11 @@ and declare state name original (form : T.form) =
           | None -> newtype state name (H.T_name "Value"))
       | Identifier _ -> newtype state name (H.T_name "Text")
       | Json -> newtype state name (H.T_name "Value")
+      | Alias (Scalar (Text { binary = true; _ } as bytes)) ->
+          newtype_decls name ~constructor:(constructed state name)
+            ~read:"base64Bytes" ~write:"base64Value" (scalar_of bytes)
+            (Names.mem name state.identifiers)
+            ~key:(Names.mem name state.keys)
       | Alias ty -> (
           let* value_type = type_of state name original ty in
           match ty with
@@ -638,7 +651,8 @@ and constructed state name =
   if Names.mem name state.union_members then "Mk" ^ name else name
 
 and newtype state name value_type =
-  newtype_decls name ~constructor:(constructed state name) value_type
+  newtype_decls name ~constructor:(constructed state name) ~read:"parseJSON"
+    ~write:"toJSON" value_type
     (Names.mem name state.identifiers)
     ~key:(Names.mem name state.keys)
 
@@ -801,11 +815,19 @@ let imports body dependencies =
   @ when_ (type_ "Map.Map") (H.import "Data.Map.Strict" ~qualified:"Map")
   @ when_ (type_ "Scientific")
       (H.import "Data.Scientific" ~items:[ Plain "Scientific" ])
+  @ when_ (type_ "ByteString")
+      (H.import "Data.ByteString" ~items:[ Plain "ByteString" ])
   @ when_ (type_ "Text") (H.import "Data.Text" ~items:[ Plain "Text" ])
   @ when_
       (List.exists value
          [
-           "checked"; "optional"; "optionalPair"; "readMember"; "withoutFields";
+           "base64Bytes";
+           "base64Value";
+           "checked";
+           "optional";
+           "optionalPair";
+           "readMember";
+           "withoutFields";
          ])
       (H.import "Xynolog.Internal.Codec")
   @ List.map (fun m -> H.import m) dependencies

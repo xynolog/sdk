@@ -24,8 +24,9 @@
 import type { Observable } from 'rxjs';
 
 import type { components } from './types';
+import type { PutBinaryRequest, ResourceRepresentation } from './payload-types';
 import type { AccessToken, BaseUrl } from './branded-types';
-import type { AnnotationId, JobId, ResourceId } from './identifiers';
+import type { ResourceId } from './identifiers';
 import type { EventMap } from './bus-protocol';
 import type { BusEnvelope, BusFrame } from './event-bus';
 import type { EventBus } from './event-bus';
@@ -251,36 +252,6 @@ export interface IGatewayOperations {
 }
 
 // ── IContentTransport ───────────────────────────────────────────────────
-
-type ResourceUpload = components['schemas']['ResourceUpload'];
-type YieldCreateCommand = components['schemas']['YieldCreateCommand'];
-
-/**
- * What uploading a resource is handed (client/types/PutBinaryRequest.json),
- * each member the one its schema refers to. The bytes are what a caller holds
- * them as, which no schema can say; sdk's client-types census holds the
- * members to the schema's.
- */
-export type PutBinaryRequest = Pick<
-  ResourceUpload,
-  'name' | 'format' | 'storageUri'
-> &
-  Partial<
-    Pick<ResourceUpload, 'language' | 'generationPrompt' | 'cloneToken'> &
-      Pick<YieldCreateCommand, 'entityTypes' | 'generator' | 'isDraft'> &
-      Pick<components['schemas']['YieldCloneCreateCommand'], 'archiveOriginal'>
-  > & {
-    file: File | Buffer;
-    sourceAnnotationId?: AnnotationId;
-    sourceResourceId?: ResourceId;
-    jobId?: JobId;
-  };
-
-/** A resource's bytes, whole, with the media type they were answered with (client/types/ResourceRepresentation.json). */
-export interface ResourceRepresentation {
-  data: ArrayBuffer;
-  contentType: string;
-}
 
 /** A resource's bytes as they arrive, read once, with the media type they were answered with (client/types/ResourceRepresentationStream.json). */
 export interface ResourceRepresentationStream {

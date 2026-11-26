@@ -312,7 +312,7 @@ private actor Driver {
       let contentType: String
       if op == "get" {
         let read = try await client.getBinary(resource)
-        bytes = read.bytes
+        bytes = read.data
         contentType = read.contentType
       } else {
         let read = try await client.getBinaryStream(resource)
@@ -331,9 +331,8 @@ private actor Driver {
       }
       let request = PutBinaryRequest(
         name: try args.text("name"), file: data, format: try args.text("format"),
-        storageUri: try args.text("storageUri"),
-        entityTypes: args["entityTypes"] == nil ? [] : try args.texts("entityTypes"),
-        language: try args.optionalText("language"),
+        storageUri: try args.text("storageUri"), language: try args.optionalText("language"),
+        entityTypes: args["entityTypes"] == nil ? nil : try args.texts("entityTypes"),
         sourceAnnotationId: try args.optionalText("sourceAnnotationId").map(AnnotationId.init),
         sourceResourceId: try args.optionalText("sourceResourceId").map(ResourceId.init),
         generationPrompt: try args.optionalText("generationPrompt"),

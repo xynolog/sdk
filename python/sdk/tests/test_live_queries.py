@@ -38,7 +38,6 @@ from xynolog.channels import BRIDGED_CHANNELS
 from xynolog.client import CachePersistence, ClientTiming, XynologClient
 from xynolog.errors import BusRequestError
 from xynolog.identifiers import ResourceId
-from xynolog.namespaces.browse import EngineWithLimits
 from xynolog.refresh import CACHE_QUERIES, CacheQuery
 from xynolog.resume import CoupledBookmarks
 from xynolog.storage import MemoryStorage
@@ -47,6 +46,7 @@ from xynolog.stored import KEPT_QUERIES, KeptQuery
 from xynolog.testing import DropReply, FaultyTransport, SharedStorage, StubGateway, create_test_client, refuse_unscripted_operation
 from xynolog.testing.liveness import LivenessScenario, LivenessSpec, assert_liveness_axioms
 from xynolog.timing import INVALIDATION_WINDOW_MS, SAVE_DEBOUNCE_MS
+from xynolog.types import EnginesWithLimits
 
 type Client = XynologClient[FaultyTransport]
 
@@ -212,7 +212,7 @@ def test_the_engines_are_shown_as_they_are_answered_and_each_holders_limits_as_i
         claude: JsonObject = {"provider": "anthropic", "model": "claude-opus-5-5"}
         client, transport = world(answered=False)
 
-        def limits_of(engines: list[EngineWithLimits]) -> list[float | None]:
+        def limits_of(engines: EnginesWithLimits) -> list[float | None]:
             return [None if each.limits is None else each.limits.context_tokens for each in engines]
 
         async with client, client.browse.engines() as live:
@@ -232,7 +232,7 @@ def test_the_engines_are_shown_as_they_are_answered_and_each_holders_limits_as_i
             answer(transport, engines, {"engines": [{"engine": gemma}, {"engine": claude}]})
             shown = await soon(reading)
             assert isinstance(shown, Ready)
-            assert [(each.entry.engine.provider, each.entry.engine.model) for each in shown.value] == [
+            assert [(each.engine.provider, each.engine.model) for each in shown.value] == [
                 ("ollama", "gemma2:27b"),
                 ("anthropic", "claude-opus-5-5"),
             ]
@@ -259,7 +259,7 @@ def test_the_engines_are_shown_as_they_are_answered_and_each_holders_limits_as_i
             answer(transport, transport.emitted[4], {"engines": [{"engine": claude}]})
             shown = await soon(reading)
             assert isinstance(shown, Ready)
-            assert [(each.entry.engine.provider, each.entry.engine.model) for each in shown.value] == [("anthropic", "claude-opus-5-5")]
+            assert [(each.engine.provider, each.engine.model) for each in shown.value] == [("anthropic", "claude-opus-5-5")]
             assert limits_of(shown.value) == [9]
 
     run(scenario())

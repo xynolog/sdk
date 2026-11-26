@@ -151,7 +151,7 @@ newContent http = do
     Content.ContentTransport
       { Content.putBinary = upload,
         Content.getBinaryStream = stream True,
-        Content.getBinary = \override resource -> stream False override resource (\media chunks -> deadline http (Settings.httpRequestTimeoutMs (httpTiming (options http))) (Content.BinaryContent media . Bytes.concat <$> Stream.toList_ chunks)),
+        Content.getBinary = \override resource -> stream False override resource (\media chunks -> deadline http (Settings.httpRequestTimeoutMs (httpTiming (options http))) ((\bytes -> ResourceRepresentation {resourceRepresentationData = Binary bytes, resourceRepresentationContentType = media}) . Bytes.concat <$> Stream.toList_ chunks)),
         Content.getResourceGraph = \override resource -> owned (readNote resource (Telemetry.withSpan Trace.Client spanContentGetGraph [(attributeResourceId, toAttribute (resourceIdValue resource))] (json http GetResourceJsonLd (Just resource) override ()))),
         Content.getAnnotations = \override resource -> owned (readNote resource (Telemetry.withSpan Trace.Client spanContentGetAnnotations [(attributeResourceId, toAttribute (resourceIdValue resource))] (json http GetResourceAnnotations (Just resource) override ()))),
         Content.getAnchoredText = \override resource -> owned (readNote resource (Telemetry.withSpan Trace.Client spanContentGetAnchoredText [(attributeResourceId, toAttribute (resourceIdValue resource))] (json http GetResourceAnchoredText (Just resource) override ()))),

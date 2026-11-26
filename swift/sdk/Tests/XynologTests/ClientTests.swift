@@ -152,9 +152,10 @@ extension ProbeTransport: ContentTransport {
         Call(via: "content", name: name, payload: ["resourceId": .string(resource.value)]))
     }
   }
-  func getBinary(_ resource: ResourceId) async throws -> Content {
+  func getBinary(_ resource: ResourceId) async throws -> ResourceRepresentation {
     recordContent("getBinary", resource: resource)
-    return Content(contentType: "text/plain; charset=windows-1252", bytes: Data([0, 255]))
+    return ResourceRepresentation(
+      data: Data([0, 255]), contentType: "text/plain; charset=windows-1252")
   }
   func getBinaryStream(_ resource: ResourceId) async throws -> ContentStream {
     recordContent("getBinaryStream", resource: resource)
@@ -266,7 +267,7 @@ private let callsByName:
       let reply = try await client.browse.resourceRepresentation(
         decoded(ResourceId.self, required(args, "resourceId")))
       #expect(reply.contentType == "text/plain; charset=windows-1252")
-      #expect(reply.bytes == Data([0, 255]))
+      #expect(reply.data == Data([0, 255]))
       return nil
     },
     "browse.resourceRepresentationStream": { client, args in

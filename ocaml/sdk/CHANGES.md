@@ -10,6 +10,9 @@ the coming release's, and gathers its changes as they land.
 
 - `Testing.delivery_op_name`: a delivery step as Protocol's word for it
   (`"write"`, `"transition"`), as the other SDKs carry it.
+- `Records.Engine_with_limits` and `Records.Engines_with_limits`, the types of
+  Protocol's `client/types/EngineWithLimits.json` and
+  `client/types/EnginesWithLimits.json`.
 - A record of `Records` for ten of Protocol's tables that no service keeps,
   each typed by the table's own schema: `Client_discovery_absent`,
   `Client_refresh`, `Client_testing`, `Control_cli`, `Errors_codes`,
@@ -57,6 +60,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `Browse.resource_representation` answers a
+  `Records.Resource_representation.t`, the record of Protocol's
+  `client/types/ResourceRepresentation.json`, `{ data; content_type }`, where
+  it answered a pair of the media type and the bytes.
+- `Yield.resource` takes a `Records.Put_binary_request.t`, the record of
+  Protocol's `client/types/PutBinaryRequest.json`, whose `file` holds the
+  bytes, in place of `~fields` and `~bytes`.
 - `Agent.sign_in` asks the gateway to name the agent once. A gateway that
   does not answer, or answers 503 or 401, fails the sign-in at once, after
   one grant and one `GET /api/users/me`. It no longer asks again after

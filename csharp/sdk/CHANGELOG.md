@@ -50,6 +50,29 @@ the coming release's, and gathers its changes as they land.
 
 - The testing kit's `DeliveryOp` is written and read as Protocol's words for
   the steps, `"write"` and `"transition"`, as the other SDKs carry them.
+- An upload is a `PutBinaryRequest` (`Xynolog.Types`), the type of
+  Protocol's `client/types/PutBinaryRequest.json`, where it was the
+  multipart body's `ResourceUpload`: `Yield.Resource` and
+  `HttpContentTransport.PutBinaryAsync` take one. Its members are as a
+  caller holds them, where `ResourceUpload`'s are the form's text:
+  `EntityTypes` is a list of names, `Generator` a `OneOrMoreAgents`, and
+  `IsDraft` and `ArchiveOriginal` are `bool?`.
+- A resource's bytes, read whole, are a `ResourceRepresentation`
+  (`Xynolog.Types`), the type of Protocol's
+  `client/types/ResourceRepresentation.json`, where they were
+  `Xynolog.Http.BinaryContent`: `Browse.ResourceRepresentationAsync` and
+  `HttpContentTransport.GetBinaryAsync` answer one, and its bytes are its
+  `Data`, where they were `Bytes`.
+- `BrowseNamespace.Engines()` is a
+  `Cached<IReadOnlyList<Xynolog.Types.EngineWithLimits>>`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, where it was of
+  `Xynolog.EngineWithLimits`: an engine's `Engine` and `Jobs` are its own,
+  where they were its `Entry`'s.
+- The SDK reads the refresh table, the media types, the OAuth clients, the
+  sign-in store's owner-only permissions and its telemetry as their
+  generated types (`ClientRefresh`, `MediaTypesRegistry`, `SessionOauth`,
+  `SignInStoreOwnerOnly`, `SdkTelemetryTelemetry`), each held to its schema
+  when first read, where it read their JSON by member name.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `Xynolog.Http.RetryPolicy`:
   `Timing.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes one. It

@@ -1,7 +1,6 @@
 from xynolog.http import HttpTransport
 from xynolog.identifiers import ResourceId
-from xynolog.transport import PutBinaryRequest
-from xynolog.types import UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
+from xynolog.types import PutBinaryRequest, UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
 
 
 async def store(transport: HttpTransport, page: bytes) -> ResourceId:

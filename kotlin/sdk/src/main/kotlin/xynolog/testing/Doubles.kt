@@ -13,12 +13,10 @@ import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
 import xynolog.identifiers.ResourceId
 import xynolog.telemetry.futureOf
-import xynolog.transport.Content
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.Events
 import xynolog.transport.GatewayOperations
-import xynolog.transport.PutBinaryRequest
 import xynolog.transport.Upload
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.CreateResourceResponse
@@ -27,6 +25,8 @@ import xynolog.types.GetResourceResponse
 import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenResponse
 import xynolog.types.ProtectedResourceMetadata
+import xynolog.types.PutBinaryRequest
+import xynolog.types.ResourceRepresentation
 import xynolog.types.StatusResponse
 import xynolog.types.UploadProgress
 import xynolog.types.UploadProgressFinished
@@ -69,7 +69,7 @@ private fun notFound(what: String, resourceId: ResourceId): TransportError =
  * thread that asks.
  */
 public class InMemoryContent : ContentTransport {
-    private val stored = mutableMapOf<ResourceId, Content>()
+    private val stored = mutableMapOf<ResourceId, ResourceRepresentation>()
     private val graphs = mutableMapOf<ResourceId, GetResourceResponse>()
     private val annotations = mutableMapOf<ResourceId, GetAnnotationsResponse>()
     private val anchoredTexts = mutableMapOf<ResourceId, AnchoredTextAnswer>()
@@ -78,7 +78,7 @@ public class InMemoryContent : ContentTransport {
 
     /** Store `content` as the bytes of `resourceId`. */
     @JvmExposeBoxed
-    public fun seed(resourceId: ResourceId, content: Content): Unit = synchronized(this) { stored[resourceId] = content }
+    public fun seed(resourceId: ResourceId, content: ResourceRepresentation): Unit = synchronized(this) { stored[resourceId] = content }
 
     /** Store `graph` as the description of `resourceId`. */
     @JvmExposeBoxed
@@ -104,7 +104,7 @@ public class InMemoryContent : ContentTransport {
     override fun putBinary(request: PutBinaryRequest): Upload {
         val created = synchronized(this) {
             val resourceId = ResourceId("test-content-${stored.size + 1}")
-            stored[resourceId] = Content(request.format, request.file)
+            stored[resourceId] = ResourceRepresentation(data = request.file, contentType = request.format)
             made += PutBinary(request)
             CreateResourceResponse(resourceId = resourceId)
         }
@@ -117,14 +117,14 @@ public class InMemoryContent : ContentTransport {
         return Upload(CompletableDeferred(created), Events(progress.consumeAsFlow()) { progress.close() })
     }
 
-    override suspend fun getBinary(resourceId: ResourceId): Content = called(GetBinary(resourceId)) { stored[resourceId] ?: throw notFound("content", resourceId) }
+    override suspend fun getBinary(resourceId: ResourceId): ResourceRepresentation = called(GetBinary(resourceId)) { stored[resourceId] ?: throw notFound("content", resourceId) }
 
     @JvmExposeBoxed
-    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<Content> = scope.futureOf { getBinary(resourceId) }
+    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation> = scope.futureOf { getBinary(resourceId) }
 
     override suspend fun getBinaryStream(resourceId: ResourceId): ContentStream {
         val content = called(GetBinaryStream(resourceId)) { stored[resourceId] ?: throw notFound("content", resourceId) }
-        return ContentStream(content.contentType, flowOf(content.bytes), scope)
+        return ContentStream(content.contentType, flowOf(content.data), scope)
     }
 
     @JvmExposeBoxed

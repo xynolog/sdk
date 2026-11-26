@@ -26,7 +26,7 @@ public sealed class YieldNamespace
     }
 
     /// <summary>Uploads a new resource, reporting its progress and then the id of the resource created.</summary>
-    public Upload Resource(ResourceUpload data, CancellationToken cancellation = default) => new(content, data, cancellation);
+    public Upload Resource(PutBinaryRequest data, CancellationToken cancellation = default) => new(content, data, cancellation);
 
     /// <summary>Asks for a token, good until it expires, from which the resource can be cloned.</summary>
     public async Task<CloneResourceWithTokenResponse> CloneTokenAsync(ResourceId resourceId, CancellationToken cancellation = default) =>
@@ -46,14 +46,14 @@ public sealed class YieldNamespace
         var source = await FromTokenAsync(options.Token, cancellation).ConfigureAwait(Spawning.Captures);
         var mediaType = PrimaryMediaType(source);
         var format = MediaTypes.CloneFormat(mediaType);
-        return await content.UploadAsync(new ResourceUpload
+        return await content.UploadAsync(new PutBinaryRequest
         {
             Name = options.Name,
             File = Encoding.UTF8.GetBytes(options.Content),
             Format = format,
             StorageUri = "file://" + MediaTypes.StorageFileName(options.Name, format),
             CloneToken = options.Token,
-            ArchiveOriginal = options.ArchiveOriginal is bool archive ? archive ? "true" : "false" : null,
+            ArchiveOriginal = options.ArchiveOriginal,
         }, null, cancellation).ConfigureAwait(Spawning.Captures);
     }
 

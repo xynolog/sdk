@@ -10,7 +10,8 @@ use crate::resources::primary_media_type;
 use crate::timing::{
     GENERATION_STALL_ASSUMED_TOKENS_COUNT, GENERATION_STALL_FLOOR, GENERATION_STALL_PER_TOKEN,
 };
-use crate::transport::{ContentTransport, Envelope, PutBinaryRequest, Upload};
+use crate::transport::{ContentTransport, Envelope, Upload};
+use crate::types::PutBinaryRequest;
 use crate::types::ResourceId;
 use crate::types::{
     CloneResourceWithTokenResponse, CreateFromTokenOptions, CreateResourceResponse,

@@ -228,6 +228,16 @@ let readings =
                ("Y", object_ {|"b":{"type":"string"}|});
              ]
              ()));
+    case "a named list is no model of its own" (fun () ->
+        Alcotest.(check (list string))
+          "models" [ "Thing"; "X" ]
+          (names
+             [
+               ("Thing", object_ {|"a":{"type":"string"}|});
+               ("Things", {|{"type":"array","items":{"$ref":"./Thing.json"}}|});
+               ("X", object_ {|"things":{"$ref":"./Things.json"}|});
+             ]
+             ()));
     case "a list of two types is a union of each" (fun () ->
         Alcotest.(check (list string))
           "models" [ "X"; "XA" ]

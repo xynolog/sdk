@@ -639,7 +639,7 @@ export interface components {
      * Bytes held whole. They can be read more than once, and sent again when an
      * upload is retried.
      */
-    Binary: string;
+    Binary: Blob;
     /**
      * One edit to a linking annotation's body list: add or remove a body item,
      * or replace an existing one.
@@ -7060,6 +7060,27 @@ export interface records {
     expiresIn: number;
   };
   /**
+   * One of the knowledge base's engines as a client joins it: the entry
+   * `browse:engines-result` names, with the inference limits the service
+   * holding its credentials reported. A client asks each such service for its
+   * limits; an engine no service reported has no `limits`.
+   */
+  EngineWithLimits: {
+    engine: components['schemas']['Engine'];
+    /**
+     * The jobs the knowledge base's Inference document has this engine used
+     * for, as a claim names them. Absent for an engine only Librarian actors
+     * ask.
+     */
+    jobs?: components['schemas']['JobFilter'][];
+    limits?: components['schemas']['InferenceLimits'];
+  };
+  /**
+   * The knowledge base's engines, in the order `browse:engines-result` names
+   * them, each with the limits reported for it.
+   */
+  EnginesWithLimits: records['EngineWithLimits'][];
+  /**
    * What a person believed they were signing in to: the did and the name of the
    * row they clicked, or of the entry they signed in to again.
    */
@@ -7250,6 +7271,48 @@ export interface records {
     detail: string | null;
   };
   /**
+   * What uploading a resource is handed: its bytes, what the upload states of
+   * them, and, for a clone, its token. Each member is as a caller holds it;
+   * ResourceUpload is the multipart body the content transport sends of it.
+   */
+  PutBinaryRequest: {
+    /** Human-readable resource name */
+    name: string;
+    /** Binary content */
+    file: components['schemas']['Binary'];
+    /** Media type of the content (e.g. text/plain, text/markdown, image/png) */
+    format: string;
+    /**
+     * Where the content lives (file://... for local). Required — the client
+     * names the location; the server does not derive one.
+     */
+    storageUri: string;
+    /** ISO 639-1 language code */
+    language?: string;
+    entityTypes?: string[];
+    sourceAnnotationId?: components['schemas']['AnnotationId'];
+    sourceResourceId?: components['schemas']['ResourceId'];
+    /** For AI-generated resources: the prompt that drove generation */
+    generationPrompt?: string;
+    /**
+     * The Software peer that produced the content, when software did. Its
+     * identity must be the emitter's own — the knowledge base refuses a
+     * generator naming anyone else, and supplies it from the verified emitter
+     * when omitted. `creator` and `wasAttributedTo` are never sent; the
+     * knowledge base derives them from the emitter and the cited job.
+     */
+    generator?: components['schemas']['OneOrMoreAgents'];
+    jobId?: components['schemas']['JobId'];
+    isDraft?: boolean;
+    /**
+     * A clone token from `yield:clone-token-requested`. With it, the resource
+     * is created as a clone of the token's source, inheriting its entity types;
+     * `language`, `entityTypes` and the generation fields are then not read.
+     */
+    cloneToken?: string;
+    archiveOriginal?: boolean;
+  };
+  /**
    * Words of a text, as a selection quotes them: the words themselves, and
    * maybe the text just before and just after them, which tell apart the places
    * they occur.
@@ -7272,6 +7335,16 @@ export interface records {
     | ReconciledSpanContextRecovered
     | ReconciledSpanFirstOfMany
     | ReconciledSpanFuzzyMatch;
+  /**
+   * A resource's bytes as the content transport answers them, whole, with the
+   * media type it answered with.
+   */
+  ResourceRepresentation: {
+    /** The bytes, whole. */
+    data: components['schemas']['Binary'];
+    /** The media type the content transport answered with. */
+    contentType: string;
+  };
   /**
    * What a text search for resources is told beside its text:
    * MatchResourcesRequest's other members. client/surface.json's

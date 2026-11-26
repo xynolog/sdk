@@ -395,7 +395,7 @@ var calls = map[string]call{
 			StorageURI string `json:"storageUri"`
 		}
 		a.into("data", &data)
-		_, _ = c.Yield.Resource(ctx, xynolog.PutBinaryRequest{Name: data.Name, Bytes: []byte(data.File), Format: data.Format, StorageURI: data.StorageURI}).Wait(ctx)
+		_, _ = c.Yield.Resource(ctx, api.PutBinaryRequest{Name: data.Name, File: []byte(data.File), Format: data.Format, StorageUri: data.StorageURI}).Wait(ctx)
 	},
 	"yield.delegate": func(ctx context.Context, c *xynolog.Client, a args) {
 		var within time.Duration
@@ -654,9 +654,9 @@ func heldTo(t *testing.T, w *surfaceWorld, kind, named string, at int, sends any
 		})
 		given := map[string]any{"resourceId": made.Resource.String()}
 		if made.Put != nil {
-			given = map[string]any{"name": made.Put.Name, "content": string(made.Put.Bytes), "format": made.Put.Format, "storageUri": made.Put.StorageURI}
-			if made.Put.CloneToken != "" {
-				given["cloneToken"] = made.Put.CloneToken
+			given = map[string]any{"name": made.Put.Name, "content": string(made.Put.File), "format": made.Put.Format, "storageUri": made.Put.StorageUri}
+			if made.Put.CloneToken != nil {
+				given["cloneToken"] = *made.Put.CloneToken
 			}
 		}
 		if made.Operation != named {

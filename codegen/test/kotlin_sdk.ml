@@ -44,6 +44,51 @@ let says ~what expected said =
 
 let cases =
   [
+    case "a named list is an alias of its list" (fun () ->
+        says ~what:"alias"
+          "public typealias Things = kotlin.collections.List<Thing>"
+          (generated
+             [
+               ("Things", {|{"type":"array","items":{"$ref":"Thing.json"}}|});
+               ("Thing", {|{"type":"string"}|});
+             ]));
+    case "bytes are a ByteArray, which a record compares by what it holds"
+      (fun () ->
+        let code =
+          generated
+            [
+              ( "Upload",
+                {|{"type":"object","required":["file","name"],"properties":{"file":{"type":"string","format":"binary"},"name":{"type":"string"}}}|}
+              );
+            ]
+        in
+        says ~what:"member" "public val file: ByteArray," code;
+        says ~what:"equals"
+          "override fun equals(other: Any?): Boolean = other is Upload && \
+           file.contentEquals(other.file) && name == other.name"
+          code;
+        says ~what:"hashCode"
+          "override fun hashCode(): Int = listOf(file.contentHashCode(), \
+           name).hashCode()"
+          code);
+    case "a record of no bytes compares as a data class does" (fun () ->
+        let code =
+          generated
+            [
+              ( "Note",
+                {|{"type":"object","required":["text"],"properties":{"text":{"type":"string"}}}|}
+              );
+            ]
+        in
+        if contains code "equals" then Alcotest.failf "wrote %s" code);
+    case "a list of bytes is refused" (fun () ->
+        says ~what:"refusal" "Uploads.files"
+          (refused
+             [
+               ( "Uploads",
+                 {|{"type":"object","properties":{"files":{"type":"array","items":{"type":"string","format":"binary"}}}}|}
+               );
+             ]));
     case "a schema of a shape it does not know is refused, naming the property"
       (fun () ->
         says ~what:"refusal" "Thing.either"
