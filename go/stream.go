@@ -848,8 +848,8 @@ func refusesCredential(status int, body []byte) bool {
 	case http.StatusUnauthorized:
 		return true
 	case http.StatusTooManyRequests:
-		var limit api.LimitRefusal
-		return json.Unmarshal(body, &limit) == nil && limit.Code == api.LimitRefusalCodeRefusalRate
+		limit, read := required.ReadAs[api.LimitRefusal](body)
+		return read && limit.Code == api.LimitRefusalCodeRefusalRate
 	default:
 		return false
 	}

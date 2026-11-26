@@ -27,6 +27,7 @@ import {
   BusRequestError,
   CHECKS_AT_ONCE_COUNT,
   EventBus,
+  faultOf,
   FrameRefusal,
   getPrimaryRepresentation,
   kbDid,
@@ -92,31 +93,50 @@ function signalled<T>(payload: T | FrameRefusal): T {
   return payload;
 }
 
+/** What is stored under a per-KB key, as the object it is kept as; none for what is not one. */
+function keptByKbOf(
+  stored: string | null,
+): Record<string, unknown> | undefined {
+  if (stored === null) return undefined;
+  let kept: unknown;
+  try {
+    kept = JSON.parse(stored);
+  } catch {
+    return undefined;
+  }
+  return typeof kept === 'object' && kept !== null && !Array.isArray(kept)
+    ? (kept as Record<string, unknown>)
+    : undefined;
+}
+
 /**
  * Tabs are per-KB state: Record<kbId, OpenResource[]>, read from what is
- * stored under `OPEN_RESOURCES_BY_KB_KEY`; none for what does not parse. A
- * flat `openDocuments` key in storage is deliberately ignored: it does not
- * record which KB its entries belong to.
+ * stored under `OPEN_RESOURCES_BY_KB_KEY`; none for what does not read as
+ * that, each entry held to `OpenResource` by the table. A flat
+ * `openDocuments` key in storage is deliberately ignored: it does not record
+ * which KB its entries belong to.
  */
 function openResourcesByKbOf(
   stored: string | null,
 ): Record<string, OpenResource[]> {
-  if (stored === null) return {};
-  try {
-    return JSON.parse(stored) as Record<string, OpenResource[]>;
-  } catch {
-    return {};
-  }
+  const kept = keptByKbOf(stored);
+  if (kept === undefined) return {};
+  const read = Object.values(kept).every(
+    (entries) =>
+      Array.isArray(entries) &&
+      entries.every((entry) => faultOf('OpenResource', entry) === undefined),
+  );
+  return read ? (kept as Record<string, OpenResource[]>) : {};
 }
 
-/** Per-KB last-viewed resource: Record<kbId, resourceId>; none for what does not parse. */
+/** Per-KB last-viewed resource: Record<kbId, resourceId>; none for what does not read as that. */
 function lastViewedByKbOf(stored: string | null): Record<string, string> {
-  if (stored === null) return {};
-  try {
-    return JSON.parse(stored) as Record<string, string>;
-  } catch {
-    return {};
-  }
+  const kept = keptByKbOf(stored);
+  if (kept === undefined) return {};
+  const read = Object.values(kept).every(
+    (id) => faultOf('ResourceId', id) === undefined,
+  );
+  return read ? (kept as Record<string, string>) : {};
 }
 
 /**
@@ -294,19 +314,12 @@ export class XynologBrowser {
     // Sync the per-KB maps from other contexts (cross-tab/cross-process).
     this.unsubscribeStorage = this.storage.subscribe((key, newValue) => {
       if (!newValue) return;
-      try {
-        if (key === OPEN_RESOURCES_BY_KB_KEY) {
-          this.openByKb = JSON.parse(newValue) as Record<
-            string,
-            OpenResource[]
-          >;
-          this.refreshOpenResources();
-        } else if (key === LAST_VIEWED_RESOURCE_BY_KB_KEY) {
-          this.lastViewedByKb = JSON.parse(newValue) as Record<string, string>;
-          this.refreshLastViewedResource();
-        }
-      } catch {
-        // Ignore parse errors
+      if (key === OPEN_RESOURCES_BY_KB_KEY) {
+        this.openByKb = openResourcesByKbOf(newValue);
+        this.refreshOpenResources();
+      } else if (key === LAST_VIEWED_RESOURCE_BY_KB_KEY) {
+        this.lastViewedByKb = lastViewedByKbOf(newValue);
+        this.refreshLastViewedResource();
       }
     });
 

@@ -80,6 +80,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/required"
 )
 
 // JobClaimChannels is what a worker's stream names for its claims: the
@@ -741,12 +742,16 @@ func anchorOf(jobType api.JobType, params api.JobParams) api.AnnotationId {
 	if err != nil {
 		return api.AnnotationId{}
 	}
-	var stated api.GenerationJobParams
-	if json.Unmarshal(encoded, &stated) != nil {
+	var members map[string]json.RawMessage
+	if json.Unmarshal(encoded, &members) != nil {
+		return api.AnnotationId{}
+	}
+	gathered, read := required.ReadAs[api.GatheredContext](members["context"])
+	if !read {
 		return api.AnnotationId{}
 	}
 	var focus api.GatheredContextFocusAnnotation
-	if stated.Context.Focus.As(&focus) != nil || focus.Kind != api.GatheredContextFocusAnnotationKindAnnotation {
+	if gathered.Focus.As(&focus) != nil || focus.Kind != api.GatheredContextFocusAnnotationKindAnnotation {
 		return api.AnnotationId{}
 	}
 	return focus.Annotation.Id

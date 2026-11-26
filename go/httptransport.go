@@ -24,6 +24,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/required"
 )
 
 // TokenRefresher renews a token the gateway refused. It is asked once for a
@@ -363,10 +364,13 @@ func (s *transportShared) emitOnce(ctx context.Context, token, key string, body 
 		return emitted{}, refusal(message, response.StatusCode, wait, hasWait, answered)
 	}
 	// No count is reported as no count, never as a zero: an absent
-	// `subscribers` is the gateway saying it could not count, and an
-	// unreadable body says nothing at all.
-	var accepted api.BusEmitAccepted
-	if readErr != nil || json.Unmarshal(answered, &accepted) != nil || accepted.Subscribers == nil {
+	// `subscribers` is the gateway saying it could not count, and a body that
+	// is no BusEmitAccepted, as the table holds it, says nothing at all.
+	if readErr != nil {
+		return emitted{}, nil
+	}
+	accepted, read := required.ReadAs[api.BusEmitAccepted](answered)
+	if !read || accepted.Subscribers == nil {
 		return emitted{}, nil
 	}
 	return emitted{subscribers: *accepted.Subscribers, counted: true}, nil

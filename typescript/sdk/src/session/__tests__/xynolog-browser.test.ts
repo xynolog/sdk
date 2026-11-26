@@ -846,6 +846,44 @@ describe('XynologBrowser — open resources (KB-scoped)', () => {
     await second.dispose();
   });
 
+  it('reads none of what is stored when a tab holds null where OpenResource allows none, or a last-viewed id is null', async () => {
+    storage.set(
+      OPEN_RESOURCES_BY_KB_KEY,
+      JSON.stringify({
+        [KB_A.id]: [
+          { id: 'kept', name: 'Kept', openedAt: 1, order: 0 },
+          {
+            id: 'nulled',
+            name: 'Nulled',
+            openedAt: 2,
+            order: 1,
+            mediaType: null,
+          },
+        ],
+      }),
+    );
+    storage.set(
+      LAST_VIEWED_RESOURCE_BY_KB_KEY,
+      JSON.stringify({ [KB_A.id]: null }),
+    );
+    const browser = await makeConnectedBrowser();
+
+    expect(browser.openResources$.getValue()).toEqual([]);
+    expect(browser.lastViewedResource$.getValue()).toBeNull();
+
+    // Another context writes what reads as that: it is read.
+    const written = JSON.stringify({
+      [KB_A.id]: [{ id: 'kept', name: 'Kept', openedAt: 1, order: 0 }],
+    });
+    storage.set(OPEN_RESOURCES_BY_KB_KEY, written);
+    storage.dispatch(OPEN_RESOURCES_BY_KB_KEY, written);
+    expect(browser.openResources$.getValue().map((r) => r.id)).toEqual([
+      'kept',
+    ]);
+
+    await browser.dispose();
+  });
+
   it('a change to what is open, or to where the person was, is made against what the storage holds', async () => {
     const browser = await makeConnectedBrowser();
     browser.addOpenResource(resourceId('mine'), 'Mine');
