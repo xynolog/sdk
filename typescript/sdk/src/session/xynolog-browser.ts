@@ -111,33 +111,42 @@ function keptByKbOf(
 
 /**
  * Tabs are per-KB state: Record<kbId, OpenResource[]>, read from what is
- * stored under `OPEN_RESOURCES_BY_KB_KEY`; none for what does not read as
- * that, each entry held to `OpenResource` by the table. A flat
- * `openDocuments` key in storage is deliberately ignored: it does not record
- * which KB its entries belong to.
+ * stored under `OPEN_RESOURCES_BY_KB_KEY`, each entry held to `OpenResource`
+ * by the table; none for what does not read as that. A flat `openDocuments`
+ * key in storage is deliberately ignored: it does not record which KB its
+ * entries belong to.
  */
-function openResourcesByKbOf(
+function openResourcesByKbIn(
   stored: string | null,
-): Record<string, OpenResource[]> {
+): Record<string, OpenResource[]> | undefined {
   const kept = keptByKbOf(stored);
-  if (kept === undefined) return {};
-  const read = Object.values(kept).every(
-    (entries) =>
-      Array.isArray(entries) &&
-      entries.every((entry) => faultOf('OpenResource', entry) === undefined),
-  );
-  return read ? (kept as Record<string, OpenResource[]>) : {};
+  const read =
+    kept !== undefined &&
+    Object.values(kept).every(
+      (entries) =>
+        Array.isArray(entries) &&
+        entries.every((entry) => faultOf('OpenResource', entry) === undefined),
+    );
+  return read ? (kept as Record<string, OpenResource[]>) : undefined;
 }
 
+const openResourcesByKbOf = (
+  stored: string | null,
+): Record<string, OpenResource[]> => openResourcesByKbIn(stored) ?? {};
+
 /** Per-KB last-viewed resource: Record<kbId, resourceId>; none for what does not read as that. */
-function lastViewedByKbOf(stored: string | null): Record<string, string> {
+function lastViewedByKbIn(
+  stored: string | null,
+): Record<string, string> | undefined {
   const kept = keptByKbOf(stored);
-  if (kept === undefined) return {};
-  const read = Object.values(kept).every(
-    (id) => faultOf('ResourceId', id) === undefined,
-  );
-  return read ? (kept as Record<string, string>) : {};
+  const read =
+    kept !== undefined &&
+    Object.values(kept).every((id) => faultOf('ResourceId', id) === undefined);
+  return read ? (kept as Record<string, string>) : undefined;
 }
+
+const lastViewedByKbOf = (stored: string | null): Record<string, string> =>
+  lastViewedByKbIn(stored) ?? {};
 
 /**
  * Whether a registry takes two endpoints for one place: for a gateway, its
@@ -313,12 +322,16 @@ export class XynologBrowser {
 
     // Sync the per-KB maps from other contexts (cross-tab/cross-process).
     this.unsubscribeStorage = this.storage.subscribe((key, newValue) => {
-      if (!newValue) return;
+      // What does not read as what the key keeps leaves what is held as it is.
       if (key === OPEN_RESOURCES_BY_KB_KEY) {
-        this.openByKb = openResourcesByKbOf(newValue);
+        const open = openResourcesByKbIn(newValue);
+        if (open === undefined) return;
+        this.openByKb = open;
         this.refreshOpenResources();
       } else if (key === LAST_VIEWED_RESOURCE_BY_KB_KEY) {
-        this.lastViewedByKb = lastViewedByKbOf(newValue);
+        const viewed = lastViewedByKbIn(newValue);
+        if (viewed === undefined) return;
+        this.lastViewedByKb = viewed;
         this.refreshLastViewedResource();
       }
     });

@@ -11,6 +11,7 @@ use super::kept::SignInKept;
 use super::token_expiry;
 use super::{CACHE_KEY_PREFIX, KNOWLEDGE_BASES_KEY, LAST_EVENT_ID_KEY_PREFIX, SESSION_KEY_PREFIX};
 use crate::refresh::CacheQuery;
+use crate::required::read_as;
 use crate::storage::SessionStorage;
 use crate::transport::BoxFuture;
 use crate::types::{KnowledgeBase, StoredSession};
@@ -50,9 +51,10 @@ pub fn cache_key(kb_id: &str, person_key: &str, query: CacheQuery) -> String {
 }
 
 impl StoredSession {
-    /// A stored value as a session; one that is not a session is none.
+    /// A stored value as a session; one that is not a session, as the table
+    /// holds it, is none.
     pub fn read(stored: &str) -> Option<StoredSession> {
-        serde_json::from_str(stored).ok()
+        read_as(serde_json::from_str(stored).ok()?).ok()
     }
 
     pub fn written(&self) -> String {
@@ -262,7 +264,7 @@ pub fn load_knowledge_bases(storage: &dyn SessionStorage) -> Vec<KnowledgeBase> 
     };
     entries
         .into_iter()
-        .filter_map(|entry| serde_json::from_value(entry).ok())
+        .filter_map(|entry| read_as(entry).ok())
         .collect()
 }
 

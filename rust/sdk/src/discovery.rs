@@ -22,6 +22,7 @@
 //! one over a URL. Discovery only describes: signing in to a knowledge base
 //! it lists is a person's act.
 
+use crate::required::read_as;
 use crate::transport::BoxFuture;
 use crate::types::{DiscoveredKB, DiscoveryDocument, DiscoveryDocumentVersion};
 use futures_core::Stream;
@@ -103,9 +104,14 @@ pub fn parse_discovery_document(text: &str) -> DiscoveryState {
             );
         }
     }
-    let document: DiscoveryDocument = match serde_json::from_value(parsed) {
+    let document: DiscoveryDocument = match read_as(parsed) {
         Ok(document) => document,
-        Err(error) => return DiscoveryState::absent(Invalid, error.to_string()),
+        Err(fault) => {
+            return DiscoveryState::absent(
+                Invalid,
+                format!("the document is no discovery document: {fault}"),
+            );
+        }
     };
     if let Some(kb) = document
         .kbs

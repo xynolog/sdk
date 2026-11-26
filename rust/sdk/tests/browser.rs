@@ -477,6 +477,44 @@ async fn a_stored_credential_says_whether_it_is_good_expired_or_not_there() {
 }
 
 #[tokio::test(start_paused = true)]
+async fn what_is_stored_with_a_null_where_its_schema_allows_none_is_not_read() {
+    // A null is refused, not read as absent: a session with one is none, a
+    // knowledge base with one is dropped, and a tab with one makes nothing
+    // open.
+    let world = World::with(&[kb_a()]);
+    let mut session = serde_json::to_value(tokens("r")).expect("a session writes");
+    session["personKey"] = Value::Null;
+    world
+        .storage
+        .set(&session_key(B), &session.to_string())
+        .expect("stored");
+    assert!(stored_session(world.storage.as_ref(), B).is_none());
+
+    let mut nulled = serde_json::to_value(kb_b()).expect("a knowledge base writes");
+    nulled["lastRead"] = Value::Null;
+    let kept = serde_json::to_value(kb_a()).expect("a knowledge base writes");
+    world
+        .storage
+        .set(KNOWLEDGE_BASES_KEY, &json!([kept, nulled]).to_string())
+        .expect("stored");
+    world
+        .storage
+        .set(
+            OPEN_RESOURCES_BY_KB_KEY,
+            &json!({ A: [
+                { "id": "r1", "name": "One", "openedAt": 1, "order": 0 },
+                { "id": "r2", "name": "Two", "openedAt": 2, "order": 1, "mediaType": null },
+            ] })
+            .to_string(),
+        )
+        .expect("stored");
+    let browser = world.browser();
+    live(&browser).await;
+    assert_eq!(*browser.kbs().borrow(), [kb_a()]);
+    assert!(open(&browser).is_empty());
+}
+
+#[tokio::test(start_paused = true)]
 async fn the_identity_token_is_what_it_was_last_set_to() {
     let browser = World::new().browser();
     assert_eq!(*browser.identity_token().borrow(), None);

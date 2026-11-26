@@ -881,6 +881,18 @@ describe('XynologBrowser — open resources (KB-scoped)', () => {
       'kept',
     ]);
 
+    // And what does not: it is not read, and what is held stays.
+    const nulled = JSON.stringify({
+      [KB_A.id]: [
+        { id: 'other', name: 'Other', openedAt: 2, order: 0, storageUri: null },
+      ],
+    });
+    storage.set(OPEN_RESOURCES_BY_KB_KEY, nulled);
+    storage.dispatch(OPEN_RESOURCES_BY_KB_KEY, nulled);
+    expect(browser.openResources$.getValue().map((r) => r.id)).toEqual([
+      'kept',
+    ]);
+
     await browser.dispose();
   });
 
