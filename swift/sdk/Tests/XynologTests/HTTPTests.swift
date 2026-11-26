@@ -364,7 +364,8 @@ extension HttpTransport {
     let resource = try ResourceId("resource")
     let trace = TraceCarrier(traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01")
     let payload: [String: JSONValue] = [
-      "annotationId": .string("annotation"), traceField: try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(trace)),
+      "annotationId": .string("annotation"),
+      traceField: try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(trace)),
     ]
     for (channel, id) in [
       (Channels.beckonFocus.name, "p-resource-1"), (Channels.beckonSparkle.name, "e-two"),
