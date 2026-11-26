@@ -1,10 +1,8 @@
-using System.Reflection;
 using System.Text.Json;
 using Xynolog.Errors;
 using Xynolog.Http;
 using Xynolog.Identifiers;
 using Xynolog.Protocol;
-using Xynolog.Serialization;
 using Xynolog.Types;
 
 namespace Xynolog;
@@ -18,11 +16,9 @@ internal sealed class LiveQueries : IDisposable
 
     internal static readonly IReadOnlyList<string> PersistedQueries = Array.AsReadOnly(ProtocolTables.ClientRefresh.Queries
         .Where(KeptTable.Persisted).Select(KeptTable.Name).ToArray());
-    private static readonly string[] RowMembers = ["on", "stream", "when", "reach", "names", "carries", "refetches", "writes", "removes", "docs"];
-    private static readonly string[] NamedSlots = ["resource", "annotation"];
-    private static readonly ILookup<string, ClientRefreshRefreshItemOn> OnChannel = ProtocolTables.ClientRefresh.Refresh
+    internal static readonly ILookup<string, ClientRefreshRefreshItemOn> OnChannel = ProtocolTables.ClientRefresh.Refresh
         .OfType<ClientRefreshRefreshItem.On>().Select(row => row.Value).ToLookup(row => row.On, StringComparer.Ordinal);
-    private static readonly ILookup<ClientRefreshRefreshItemStreamStream, ClientRefreshRefreshItemStream> OnStream = ProtocolTables.ClientRefresh.Refresh
+    internal static readonly ILookup<ClientRefreshRefreshItemStreamStream, ClientRefreshRefreshItemStream> OnStream = ProtocolTables.ClientRefresh.Refresh
         .OfType<ClientRefreshRefreshItem.Stream>().Select(row => row.Value).ToLookup(row => row.Stream);
     private readonly EventBus.Subscription events;
     private readonly Dictionary<string, Query> queries;
@@ -196,36 +192,20 @@ internal sealed class LiveQueries : IDisposable
             if (AnnotationMatches(pair.Key, subject)) pair.Value.Remove(onlyIfHeld: true);
     }
 
+    /// <summary>Every query the table names is one of the cache's, and each it writes or removes has a write or a
+    /// removal; LiveCacheTests holds the rest of the table to what the cache reads.</summary>
     private void CheckRefresh()
     {
+        var refetched = OnChannel.SelectMany(group => group).SelectMany(row => row.Refetches ?? [])
+            .Concat(OnStream.SelectMany(group => group).SelectMany(row => row.Refetches ?? []));
+        var written = OnChannel.SelectMany(group => group).SelectMany(row => row.Writes ?? []);
+        var removed = OnChannel.SelectMany(group => group).SelectMany(row => row.Removes ?? []);
         if (!queries.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(ProtocolTables.ClientRefresh.Queries.Select(KeptTable.Name)) ||
-            !OnStream.Select(group => group.Key).ToHashSet().SetEquals([ClientRefreshRefreshItemStreamStream.Reopened, ClientRefreshRefreshItemStreamStream.Unreadable]) ||
-            !OnChannel.Select(group => group.Key).All(BusChannels.Readings.ContainsKey))
+            !refetched.All(queries.ContainsKey) ||
+            !written.All(name => queries.TryGetValue(name, out var query) && query.Write is not null) ||
+            !removed.All(name => queries.TryGetValue(name, out var query) && query.Remove is not null))
             throw new InvalidOperationException("The live cache does not cover the refresh table.");
-        foreach (var member in WireMembers<ClientRefreshRefreshItemOn>().Concat(WireMembers<ClientRefreshRefreshItemStream>()))
-            if (!RowMembers.Contains(member, StringComparer.Ordinal))
-                throw new InvalidOperationException("A refresh row states " + member + ", which the live cache does not read.");
-        foreach (var slot in WireMembers<ClientRefreshRefreshItemOnNames>())
-            if (!NamedSlots.Contains(slot, StringComparer.Ordinal))
-                throw new InvalidOperationException("A refresh row names a " + slot + ", which the live cache does not read.");
-        foreach (var row in OnChannel.SelectMany(group => group))
-        {
-            if (row.Reach is not (null or ClientRefreshRefreshItemOnReach.Held)) throw new InvalidOperationException("Unknown cache refresh reach.");
-            foreach (var name in row.Refetches ?? []) _ = queries[name];
-            foreach (var name in row.Writes ?? [])
-                if (queries[name].Write is null) throw new InvalidOperationException("No cache write for " + name);
-            foreach (var name in row.Removes ?? [])
-                if (queries[name].Remove is null) throw new InvalidOperationException("No cache removal for " + name);
-        }
-        foreach (var row in OnStream.SelectMany(group => group))
-        {
-            if (row.Reach is not (null or ClientRefreshRefreshItemStreamReach.Held)) throw new InvalidOperationException("Unknown cache refresh reach.");
-            foreach (var name in row.Refetches ?? []) _ = queries[name];
-        }
     }
-
-    private static IEnumerable<string> WireMembers<T>() =>
-        typeof(T).GetProperties().Select(property => property.GetCustomAttribute<WireAttribute>()?.Name).OfType<string>();
 
     private async Task ReadEventsAsync()
     {
