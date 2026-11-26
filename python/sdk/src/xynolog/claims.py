@@ -70,7 +70,7 @@ from datetime import UTC, datetime
 from types import TracebackType
 from typing import Annotated, Final, Literal, Self, assert_never, final
 
-from pydantic import Field, JsonValue, TypeAdapter
+from pydantic import Field, JsonValue, TypeAdapter, ValidationError
 
 from xynolog import telemetry
 from xynolog._instant import instant
@@ -281,7 +281,11 @@ def _anchor_of(job_type: JobType, params: Mapping[str, JsonValue]) -> Annotation
     read = as_read(GatheredContext, params.get("context"))
     if isinstance(read, Fault):
         return None
-    match GatheredContext.model_validate(read).focus:
+    try:
+        context = GatheredContext.model_validate(read)
+    except ValidationError:
+        return None
+    match context.focus:
         case GatheredContextFocusAnnotation(annotation=annotation):
             return annotation.id
         case GatheredContextFocusResource():

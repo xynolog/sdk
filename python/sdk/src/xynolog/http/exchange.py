@@ -23,7 +23,7 @@ from functools import partial
 from typing import TypeAliasType, final, override
 
 import httpx
-from pydantic import JsonValue, TypeAdapter, ValidationError
+from pydantic import JsonValue, TypeAdapter
 
 from xynolog import telemetry
 from xynolog._kept_for_first_reader import KeptForFirstReader
@@ -253,8 +253,9 @@ class Exchange:
                 async with asyncio.timeout(None if at_length else self._deadline_ms / 1000):
                     body = await response.aread()
                 # The gateway's refusal, in its own words when its body states them.
-                said = ErrorResponse.model_validate_json(body).error
-            except (ValidationError, httpx.HTTPError, TimeoutError):
+                words = read_as(ErrorResponse, body, ErrorResponse.model_validate)
+                said = f"HTTP {status}: {response.reason_phrase}" if isinstance(words, Fault) else words.error
+            except (httpx.HTTPError, TimeoutError):
                 said = f"HTTP {status}: {response.reason_phrase}"
             finally:
                 await response.aclose()

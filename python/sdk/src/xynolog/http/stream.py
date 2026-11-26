@@ -771,7 +771,8 @@ async def _refusal(response: httpx.Response, deadline_ms: int) -> TransportError
     try:
         async with asyncio.timeout(deadline_ms / 1000):
             body = await response.aread()
-        said = f": {ErrorResponse.model_validate_json(body).error}"
-    except (ValidationError, httpx.HTTPError, TimeoutError):
+        words = read_as(ErrorResponse, body, ErrorResponse.model_validate)
+        said = "" if isinstance(words, Fault) else f": {words.error}"
+    except (httpx.HTTPError, TimeoutError):
         said = ""
     return refusal(f"SSE connect failed: {status}{said}", status, body, retry_after_ms(response.headers.get(RETRY_AFTER)))

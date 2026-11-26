@@ -204,8 +204,12 @@ def load_knowledge_bases(storage: SessionStorage) -> list[KnowledgeBase]:
     kbs: list[KnowledgeBase] = []
     for entry in entries:
         read = as_read(KnowledgeBase, entry)
-        if not isinstance(read, Fault):
+        if isinstance(read, Fault):
+            continue
+        try:
             kbs.append(KnowledgeBase.model_validate(read))
+        except ValidationError:
+            continue
     return kbs
 
 
