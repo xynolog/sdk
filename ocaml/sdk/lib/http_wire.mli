@@ -89,3 +89,5 @@ val put :
   string
 
 val check_user : t -> string -> (string, failure) result
+(** Who the gateway names [token] by: one [GET /api/users/me], bounded by the
+    request timeout, neither made again nor sent with a renewed token. *)

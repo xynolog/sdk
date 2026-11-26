@@ -30,19 +30,21 @@ let sign_in ~sw ~clock ~issuer ~http ~client_id ~proof ~key ~call () =
       let http =
         Http_wire.make ~clock ~session ~key ~on_error:ignore ~call ()
       in
+      (* One request, as the grant is one: starting a sign-in again is the
+         service's (WORKER-SERVICE R3). *)
       let identify () =
-        try
-          let body = Http_wire.current_user http in
-          match Models.decode Models.user_response body with
-          | Error _ -> Error Invalid_identity
-          | Ok user -> (
-              match
-                Identifiers.User_id.of_string
-                  (Records.User_response.of_model user).did
-              with
-              | Ok did -> Ok { did; session }
-              | Error _ -> Error Invalid_identity)
-        with Http_wire.Failed error -> Error (Gateway error)
+        match Http_wire.check_user http initial.access_token with
+        | Error failure -> Error (Gateway failure)
+        | Ok body -> (
+            match Models.decode Models.user_response body with
+            | Error _ -> Error Invalid_identity
+            | Ok user -> (
+                match
+                  Identifiers.User_id.of_string
+                    (Records.User_response.of_model user).did
+                with
+                | Ok did -> Ok { did; session }
+                | Error _ -> Error Invalid_identity))
       in
       let success = ref false in
       Fun.protect
