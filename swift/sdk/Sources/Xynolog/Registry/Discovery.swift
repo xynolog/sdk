@@ -46,7 +46,8 @@ public func parseDiscoveryDocument(_ text: String) -> DiscoveryState {
         reason: .unsupportedVersion, diagnostic: "Unsupported discovery version \(version)"))
   }
   if let fault = faultOf("DiscoveryDocument", parsed) {
-    return .discoveryAbsent(DiscoveryAbsent(reason: .invalid, diagnostic: String(describing: fault)))
+    return .discoveryAbsent(
+      DiscoveryAbsent(reason: .invalid, diagnostic: String(describing: fault)))
   }
   do {
     let document = try decoder.decode(DiscoveryDocument.self, from: data)
