@@ -53,8 +53,6 @@ type t = {
   control : vocabulary;  (** The control plane's codes. *)
 }
 
-(* Each vocabulary by its member of the table: its type's name in Python and
-   TypeScript, and in Go, Rust, Kotlin and Swift. *)
 (* A code's part after its last dot, which names its Go constant: lower-case
    words of letters and digits joined by hyphens. *)
 let segment code =
