@@ -47,7 +47,7 @@ from xynolog.testing import (
     retry_key_of,
 )
 from xynolog.timing import ERRORS_KEPT_FOR_FIRST_READER_COUNT
-from xynolog.transport import Content, ContentTransport, Frame, FrameRefusal, FrameSink, GatewayOperations, PutBinaryRequest, Transport
+from xynolog.transport import ContentTransport, Frame, FrameRefusal, FrameSink, GatewayOperations, Transport
 from xynolog.types import (
     AnchoredTextAbsent,
     GatheredContext,
@@ -57,6 +57,8 @@ from xynolog.types import (
     HttpEndpoint,
     KbTarget,
     MediaTokenResponse,
+    PutBinaryRequest,
+    ResourceRepresentation,
     StatusResponse,
     StoredSession,
     UploadProgressFinished,
@@ -499,7 +501,7 @@ def test_content_in_memory_keeps_what_it_is_given_gives_it_back_and_refuses_what
             assert (missing.value.code, missing.value.status) == ("not-found", 404)
             assert str(missing.value) == f"InMemoryContent: no {what} stored for res-1"
 
-        page = Content(data=b"# A page", content_type="text/markdown")
+        page = ResourceRepresentation(data=b"# A page", content_type="text/markdown")
         content.seed(RESOURCE, page)
         graph = GetResourceResponse.model_validate({"resource": DESCRIBED, "annotations": []})
         content.seed_graph(RESOURCE, graph)
@@ -528,7 +530,7 @@ def test_content_in_memory_keeps_what_it_is_given_gives_it_back_and_refuses_what
             UploadProgressProgress(phase="progress", bytes_uploaded=10, total_bytes=10),
             UploadProgressFinished(phase="finished", resource_id=created.resource_id),
         ]
-        assert await content.get_binary(created.resource_id) == Content(data=b"some notes", content_type="text/plain")
+        assert await content.get_binary(created.resource_id) == ResourceRepresentation(data=b"some notes", content_type="text/plain")
         assert (await content.put_binary(put)).resource_id == "test-content-3"
 
         # Every call, in order, answered or not.
@@ -643,7 +645,7 @@ def test_a_test_client_is_a_real_client_over_the_doubles_it_is_given_or_makes() 
 
         # Scripted, the client's own namespaces, cache and deadlines do the rest.
         made.transport.queue_reply(ASK, [{"resource": DESCRIBED, "lastSequence": 1}])
-        made.content.seed(RESOURCE, Content(data=b"text", content_type="text/plain"))
+        made.content.seed(RESOURCE, ResourceRepresentation(data=b"text", content_type="text/plain"))
         async with made.client as client, client.browse.resource(RESOURCE) as live:
             assert await soon(anext(live)) == Pending()
             shown = await soon(anext(live))

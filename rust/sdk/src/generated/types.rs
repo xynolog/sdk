@@ -2086,7 +2086,7 @@ impl BeginAuthorizationOptions {
 schema!(BeginAuthorizationOptions);
 
 /// Bytes held whole. They can be read more than once, and sent again when an upload is retried.
-pub type Binary = String;
+pub type Binary = bytes::Bytes;
 
 /// One edit to a linking annotation's body list: add or remove a body item, or replace an existing one.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -6638,6 +6638,34 @@ impl EngineProvider {
         }
     }
 }
+
+/// One of the knowledge base's engines as a client joins it: the entry `browse:engines-result` names, with the inference limits the service holding its credentials reported. A client asks each such service for its limits; an engine no service reported has no `limits`.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EngineWithLimits {
+    pub engine: Engine,
+    /// The jobs the knowledge base's Inference document has this engine used for, as a claim names them. Absent for an engine only Librarian actors ask.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub jobs: Option<Vec<JobFilter>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limits: Option<InferenceLimits>,
+}
+
+impl EngineWithLimits {
+    /// The `EngineWithLimits` that states these and nothing else.
+    pub fn new(engine: Engine) -> Self {
+        Self {
+            engine,
+            jobs: None,
+            limits: None,
+        }
+    }
+}
+
+schema!(EngineWithLimits);
+
+/// The knowledge base's engines, in the order `browse:engines-result` names them, each with the limits reported for it.
+pub type EnginesWithLimits = Vec<EngineWithLimits>;
 
 /// Wire format for persisted events delivered over the bus SSE stream (GET /bus/subscribe). Extends StoredEventResponse with optional enrichment fields the EventStore populates from the materialized view at publish time (persistence → view → enrich → notification). Subscribers read the enrichment fields directly to update local caches without an additional fetch.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -14965,6 +14993,82 @@ pub struct Provider {
 
 schema!(Provider);
 
+/// What uploading a resource is handed: its bytes, what the upload states of them, and, for a clone, its token. Each member is as a caller holds it; ResourceUpload is the multipart body the content transport sends of it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PutBinaryRequest {
+    /// Human-readable resource name
+    pub name: String,
+    /// Binary content
+    pub file: Binary,
+    /// Media type of the content (e.g. text/plain, text/markdown, image/png)
+    pub format: String,
+    /// Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.
+    #[serde(rename = "storageUri")]
+    pub storage_uri: String,
+    /// ISO 639-1 language code
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+    #[serde(rename = "entityTypes")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub entity_types: Option<Vec<String>>,
+    #[serde(rename = "sourceAnnotationId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_annotation_id: Option<AnnotationId>,
+    #[serde(rename = "sourceResourceId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_resource_id: Option<ResourceId>,
+    /// For AI-generated resources: the prompt that drove generation
+    #[serde(rename = "generationPrompt")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generation_prompt: Option<String>,
+    /// The Software peer that produced the content, when software did. Its identity must be the emitter's own — the knowledge base refuses a generator naming anyone else, and supplies it from the verified emitter when omitted. `creator` and `wasAttributedTo` are never sent; the knowledge base derives them from the emitter and the cited job.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generator: Option<OneOrMoreAgents>,
+    #[serde(rename = "jobId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<JobId>,
+    #[serde(rename = "isDraft")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub is_draft: Option<bool>,
+    /// A clone token from `yield:clone-token-requested`. With it, the resource is created as a clone of the token's source, inheriting its entity types; `language`, `entityTypes` and the generation fields are then not read.
+    #[serde(rename = "cloneToken")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clone_token: Option<String>,
+    #[serde(rename = "archiveOriginal")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub archive_original: Option<bool>,
+}
+
+impl PutBinaryRequest {
+    /// The `PutBinaryRequest` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        file: Binary,
+        format: impl Into<String>,
+        storage_uri: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            file,
+            format: format.into(),
+            storage_uri: storage_uri.into(),
+            language: None,
+            entity_types: None,
+            source_annotation_id: None,
+            source_resource_id: None,
+            generation_prompt: None,
+            generator: None,
+            job_id: None,
+            is_draft: None,
+            clone_token: None,
+            archive_original: None,
+        }
+    }
+}
+
+schema!(PutBinaryRequest);
+
 /// A vector index kept in a Qdrant server, asked over its REST API with a token.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -16158,6 +16262,19 @@ pub struct ResourceMovedPayload {
 }
 
 schema!(ResourceMovedPayload);
+
+/// A resource's bytes as the content transport answers them, whole, with the media type it answered with.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResourceRepresentation {
+    /// The bytes, whole.
+    pub data: Binary,
+    /// The media type the content transport answered with.
+    #[serde(rename = "contentType")]
+    pub content_type: String,
+}
+
+schema!(ResourceRepresentation);
 
 /// What a text search for resources is told beside its text: MatchResourcesRequest's other members. client/surface.json's `match.resources` cases state what is sent for one left out.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]

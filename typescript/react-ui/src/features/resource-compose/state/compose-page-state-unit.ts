@@ -88,7 +88,10 @@ export function createComposePageStateUnit(
           const rId = tokenResult['@id'];
           const { data, contentType } =
             await client.browse.resourceRepresentation(rId);
-          const content = decodeWithCharset(data, contentType);
+          const content = decodeWithCharset(
+            await data.arrayBuffer(),
+            contentType,
+          );
           cloneData$.next({
             sourceResource: tokenResult,
             sourceContent: content,

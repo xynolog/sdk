@@ -84,22 +84,10 @@ let routes (m : Model.t) =
    operationIds, each path's parameters left for the caller to fill. *)
 let archivist_routes (spec : Spec.t) =
   route_table ~name:"ArchivistRoute" ~of_:"the archivist"
-    (List.concat_map
-       (fun (path, reference) ->
-         let file, _ = Decode.resolve spec.ids reference in
-         match List.assoc_opt file spec.path_items with
-         | None ->
-             Definitions.refuse "archivist/openapi.json names no path item %s"
-               file
-         | Some (item : Openapi.path_item) ->
-             List.filter_map
-               (fun (method_, operation) ->
-                 Option.map
-                   (fun (o : Openapi.operation) ->
-                     (o.operation_id, method_, path))
-                   operation)
-               [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
-       spec.archivist.paths)
+    (List.map
+       (fun { Archivist_routes.method_; path; operation } ->
+         (operation.operation_id, method_, path))
+       (Archivist_routes.all spec))
 
 let namespace ~doc name members =
   decl ~doc:(docs doc) [ "public" ]

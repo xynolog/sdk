@@ -8,6 +8,10 @@ module T = Tables.Service_environment_variables
 
 let from_ = "service-environment/variables.json"
 let writer = __FILE__
+
+(* Service_environment.group, which this module cannot read: that group
+   writes Haskell's through Haskell_sdk, which reads Error_codes, which reads
+   this SDK. The contracts census looks for this file by the group's name. *)
 let name = "ServiceEnvironmentVariable"
 
 let declarations (t : T.t) =

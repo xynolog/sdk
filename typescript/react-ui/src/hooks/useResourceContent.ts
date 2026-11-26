@@ -46,13 +46,14 @@ export function useResourceContent(
     let cancelled = false;
     client.browse
       .resourceRepresentation(rUri)
-      .then(({ data, contentType }) => {
+      .then(async ({ data, contentType }) => {
+        const bytes = await data.arrayBuffer();
         if (cancelled) return;
         setOutcome({
           client,
           rUri,
           mediaType,
-          result: { content: decodeWithCharset(data, contentType) },
+          result: { content: decodeWithCharset(bytes, contentType) },
         });
       })
       .catch((err) => {

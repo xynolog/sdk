@@ -52,6 +52,33 @@ the coming release's, and gathers its changes as they land.
   and the rest. The type each reference was given of its own
   (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
   gone.
+- `PutBinaryRequest` is `xynolog.types.PutBinaryRequest`, the type of
+  Protocol's `client/types/PutBinaryRequest.json`, where it was
+  `xynolog.transport.PutBinaryRequest`: `yield.resource`,
+  `ContentTransport.putBinary` and `xynolog.testing.PutBinary` take and hold
+  it. It is `@Serializable` as every generated class is, and its constructor,
+  `copy` and `componentN` take `language` before `entityTypes`. `entityTypes`
+  is a `List<String>?` and `generator` a `OneOrMoreAgents?`, `null` by
+  default, where they were a `List<String>` and a `List<Agent>` defaulting to
+  empty. Java builds one by the generated
+  `PutBinaryRequest.builder(name, file, format, storageUri)`, whose
+  `entityTypes` takes a list or `null` and `generator` a `OneOrMoreAgents` or
+  `null`. An upload sends `entityTypes` when it is present and not empty, as it
+  sent it when not empty, and `generator` as the JSON of its value: what a
+  `List<Agent>` sent, as an array, is sent of `OneOrMoreAgents.List` of it.
+- A resource's bytes, read whole, are a `xynolog.types.ResourceRepresentation`,
+  the type of Protocol's `client/types/ResourceRepresentation.json`, where they
+  were `xynolog.transport.Content`: `browse.resourceRepresentation` and
+  `ContentTransport.getBinary` answer one, and its bytes are its `data`, where
+  they were `bytes`. Two are equal when their bytes are.
+- `BrowseNamespace.engines()` is a `Cached<EnginesWithLimits>` of
+  `xynolog.types.EngineWithLimits`, the types of Protocol's
+  `client/types/EnginesWithLimits.json`, where it was of
+  `xynolog.namespaces.EngineWithLimits`: an engine's `engine` and `jobs` are
+  its own, where they were its `entry`'s.
+- `Binary`, the type of Protocol's bytes held whole, is a `ByteArray`, where
+  it was a `String`, and `ResourceUpload`'s `file` is one. A generated class
+  that holds bytes compares and hashes them by what they hold.
 - A retry budget is `xynolog.types.RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
   `Timing.emitRetry` is one, and `retryWithBackoff` and

@@ -214,6 +214,29 @@ let cases =
              ]
              "MediaType")
           "/// A MIME type.\npub type MediaType = String;");
+    case "a named list is an alias of a Vec" (fun () ->
+        has
+          (generated
+             [
+               ( "Things",
+                 {|{"type": "array", "description": "Some things.", "items": {"$ref": "Thing.json"}}|}
+               );
+               ("Thing", {|{"type": "string"}|});
+             ]
+             "Things")
+          "/// Some things.\npub type Things = Vec<Thing>;");
+    case "bytes are Bytes, and other text a String" (fun () ->
+        let code =
+          generated
+            [
+              ( "Upload",
+                {|{"type": "object", "required": ["file", "name"], "properties": {"file": {"type": "string", "format": "binary"}, "name": {"type": "string"}}}|}
+              );
+            ]
+            "Upload"
+        in
+        has code "pub file: bytes::Bytes,";
+        has code "pub name: String,");
     case "a nullable reference is the referenced type and not a copy of it"
       (fun () ->
         let code =

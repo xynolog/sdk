@@ -5,7 +5,6 @@ import (
 	"slices"
 	"testing"
 
-	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
@@ -14,8 +13,8 @@ import (
 // size, that all of it was sent, and the resource made.
 func TestAnUploadInMemoryReportsItsSizeThatAllOfItWasSentAndTheResourceMade(t *testing.T) {
 	content := xynologtest.NewInMemoryContent()
-	upload := content.PutBinary(context.Background(), xynolog.PutBinaryRequest{
-		Name: "Notes", Bytes: []byte("some notes"), Format: "text/plain", StorageURI: "file://notes.txt",
+	upload := content.PutBinary(context.Background(), api.PutBinaryRequest{
+		Name: "Notes", File: []byte("some notes"), Format: "text/plain", StorageUri: "file://notes.txt",
 	})
 	var reports []any
 	for progress := range upload.Progress() {

@@ -64,13 +64,7 @@ export class YieldNamespace implements IYieldNamespace {
   }
 
   resource(data: PutBinaryRequest): UploadObservable {
-    // `Buffer` is a Node global; referencing it bare in the browser throws
-    // ReferenceError. Guard with a typeof check so this code runs in both
-    // environments (browser uploads File, Node workers upload Buffer).
-    const totalBytes =
-      typeof Buffer !== 'undefined' && data.file instanceof Buffer
-        ? data.file.length
-        : (data.file as File).size;
+    const totalBytes = data.file.size;
     return new UploadObservable((subscriber) => {
       // `started` fires synchronously so subscribers can render an upload-
       // in-progress indicator before any I/O begins.
@@ -198,13 +192,9 @@ export class YieldNamespace implements IYieldNamespace {
     // `yield:clone-create`.
     const source = await this.fromToken(options.token);
     const format = cloneFormat(getPrimaryRepresentation(source)?.mediaType);
-    const file =
-      typeof Buffer !== 'undefined'
-        ? Buffer.from(options.content)
-        : new File([options.content], options.name, { type: format });
     return this.content.putBinary({
       name: options.name,
-      file,
+      file: new Blob([options.content], { type: format }),
       format,
       storageUri: deriveStorageUri(options.name, format),
       cloneToken: options.token,

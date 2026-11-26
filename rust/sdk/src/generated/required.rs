@@ -6028,6 +6028,35 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "EngineWithLimits",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["engine"],
+            members: &[
+                ("engine", reference("Engine")),
+                (
+                    "jobs",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("JobFilter")),
+                        ..NONE
+                    },
+                ),
+                ("limits", reference("InferenceLimits")),
+            ],
+            closed: Some(&["engine", "jobs", "limits"]),
+            ..NONE
+        },
+    ),
+    (
+        "EnginesWithLimits",
+        Shape {
+            kinds: Some(&[Kind::Array]),
+            items: Some(&reference("EngineWithLimits")),
+            ..NONE
+        },
+    ),
+    (
         "EnrichedResourceEvent",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -13549,6 +13578,53 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "PutBinaryRequest",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["name", "file", "format", "storageUri"],
+            members: &[
+                ("archiveOriginal", of(&[Kind::Boolean])),
+                ("cloneToken", of(&[Kind::String])),
+                (
+                    "entityTypes",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("file", reference("Binary")),
+                ("format", of(&[Kind::String])),
+                ("generationPrompt", of(&[Kind::String])),
+                ("generator", reference("OneOrMoreAgents")),
+                ("isDraft", of(&[Kind::Boolean])),
+                ("jobId", reference("JobId")),
+                ("language", of(&[Kind::String])),
+                ("name", of(&[Kind::String])),
+                ("sourceAnnotationId", reference("AnnotationId")),
+                ("sourceResourceId", reference("ResourceId")),
+                ("storageUri", of(&[Kind::String])),
+            ],
+            closed: Some(&[
+                "archiveOriginal",
+                "cloneToken",
+                "entityTypes",
+                "file",
+                "format",
+                "generationPrompt",
+                "generator",
+                "isDraft",
+                "jobId",
+                "language",
+                "name",
+                "sourceAnnotationId",
+                "sourceResourceId",
+                "storageUri",
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "QdrantVectorsConfig",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -14219,6 +14295,26 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("fromUri", of(&[Kind::String])),
                 ("toUri", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "ResourceRepresentation",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["data", "contentType"],
+            members: &[
+                (
+                    "contentType",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                ("data", reference("Binary")),
+            ],
+            closed: Some(&["contentType", "data"]),
             ..NONE
         },
     ),

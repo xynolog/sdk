@@ -1,7 +1,7 @@
 from xynolog.client import XynologClient
 from xynolog.identifiers import ResourceId
-from xynolog.transport import PutBinaryRequest, Transport
-from xynolog.types import GenerationJobParams, JobDeclined, LinkingJobParams
+from xynolog.transport import Transport
+from xynolog.types import GenerationJobParams, JobDeclined, LinkingJobParams, PutBinaryRequest
 
 
 async def summarize(client: XynologClient[Transport], paper: bytes) -> ResourceId | None:

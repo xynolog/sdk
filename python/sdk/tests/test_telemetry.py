@@ -26,7 +26,8 @@ from xynolog import telemetry
 from xynolog.http import HttpTransport
 from xynolog.identifiers import ResourceId
 from xynolog.telemetry_table import METRICS, SPANS, SpanKindName, SpanRow
-from xynolog.transport import Frame, PutBinaryRequest, TraceContext
+from xynolog.transport import Frame, TraceContext
+from xynolog.types import PutBinaryRequest
 from xynolog.watched import Variable, reached
 
 KINDS: dict[SpanKindName, SpanKind] = {"client": SpanKind.CLIENT, "consumer": SpanKind.CONSUMER, "producer": SpanKind.PRODUCER}

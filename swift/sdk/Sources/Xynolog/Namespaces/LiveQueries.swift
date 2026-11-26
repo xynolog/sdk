@@ -26,7 +26,7 @@ struct LiveQueries: Sendable {
   let engines: Cached<[EngineEntry]>
   /// The engines, each joined with the limits reported for it: the one view every observer of the
   /// engines shares (B4).
-  let enginesWithLimits: Cached<[EngineWithLimits]>
+  let enginesWithLimits: Cached<EnginesWithLimits>
   let details: Cache<AnnotationKey, KeptAnnotation>
   private let annotationLists = Views<ResourceId, [Annotation]>()
   private let keeping: KeptQueries?

@@ -115,21 +115,7 @@ let declarations ~(read : string -> Yojson.Safe.t) c =
    one's method and path, a [{name}] for each of its parameters. *)
 let archivist_routes (spec : Spec.t) =
   let name = "ArchivistRoute" in
-  let operations =
-    List.concat_map
-      (fun (path, reference) ->
-        let file, _ = Decode.resolve spec.ids reference in
-        match List.assoc_opt file spec.path_items with
-        | None -> refuse "archivist/openapi.json names no path item %s" file
-        | Some (item : Openapi.path_item) ->
-            List.filter_map
-              (fun (method_, operation) ->
-                Option.map
-                  (fun (o : Openapi.operation) -> (method_, path, o))
-                  operation)
-              [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
-      spec.archivist.paths
-  in
+  let operations = Archivist_routes.all spec in
   ( name,
     [
       K.class_
@@ -150,7 +136,7 @@ let archivist_routes (spec : Spec.t) =
              ])
         ~entries:
           (List.map
-             (fun (method_, path, (o : Openapi.operation)) ->
+             (fun { Archivist_routes.method_; path; operation = o } ->
                K.entry ~about:(K.Doc o.summary)
                  ~args:[ K.Str method_; K.Str path ]
                  (Names.variant_of o.operation_id))

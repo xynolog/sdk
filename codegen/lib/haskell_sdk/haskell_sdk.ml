@@ -132,7 +132,7 @@ let files ~root (spec : Spec.t) =
   let* adapters = adapters spec in
   let* definitions, validated_roots =
     within "openapi.json"
-      (Definitions.derive ~root spec ~adapters
+      (Definitions.derive spec ~adapters
          ~carrier:(Transport.carrier_schema transport)
          ~http:(http.schemas @ archivist.schemas)
          ~envelopes:bus.envelopes)
@@ -144,9 +144,11 @@ let files ~root (spec : Spec.t) =
   in
   let* models =
     within "openapi.json"
-      (Models.generate
-         ~banner:(banner "protocol/specs/src")
-         ~spec ~identifiers ~keys:(Typing.D.map_keys spec) definitions)
+      (Result.bind (Schema_names.referred_places spec) (fun referred ->
+           Models.generate
+             ~banner:(banner "protocol/specs/src")
+             ~ids:spec.ids ~sources:spec.schemas ~referred ~identifiers
+             ~keys:(Typing.D.map_keys spec) definitions))
   in
   let* () =
     within "openapi.json"
@@ -249,7 +251,7 @@ let files ~root (spec : Spec.t) =
          (List.map fst models.definitions))
   in
   let unrecognized =
-    Error_codes.Haskell.code_constructor "busRequest"
+    Error_codes.Haskell.bus_constructor
       spec.tables.errors_codes.bus_request.unrecognized_failure
   in
   Ok

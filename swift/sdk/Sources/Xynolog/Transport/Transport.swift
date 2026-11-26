@@ -32,7 +32,7 @@ public protocol GatewayOperations: Sendable {
 }
 
 public protocol ContentTransport: Sendable {
-  func getBinary(_ resource: ResourceId) async throws -> Content
+  func getBinary(_ resource: ResourceId) async throws -> ResourceRepresentation
   func getBinaryStream(_ resource: ResourceId) async throws -> ContentStream
   func getAnnotations(_ resource: ResourceId) async throws -> GetAnnotationsResponse
   func getResourceGraph(_ resource: ResourceId) async throws -> GetResourceResponse

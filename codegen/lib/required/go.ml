@@ -2,8 +2,8 @@
    the package finds a reply's shape by the name of the type package api
    declares of its schema, which is the schema's own, so each component must
    have such a type. One the Go types group writes as an alias ([type X = Y])
-   is read by the type it names: its shape may state no kind but the one that
-   type is, and nothing of what an object, an array or a union holds. What it
+   is read as the type it names is ([read_of_go]): its shape may state of what
+   it holds nothing that reading does not. What it
    states of the value itself (its enumeration, pattern, lengths and bounds)
    the package holds a value to where a component refers to it. *)
 
@@ -28,8 +28,29 @@ let kind_of_go named : Shape.kind option =
   else if List.mem named integer then Some Integer
   else if named = "float32" || named = "float64" then Some Number
   else if String.starts_with ~prefix:"map[" named then Some Object
-  else if String.starts_with ~prefix:"[]" named then Some Array
   else None
+
+(* What package required reads a value of the Go type [named] as: bytes as
+   the string encoding/json writes of them, any other slice as an array of
+   what it reads each item as, a type of package api that is a schema of
+   [shapes] as that schema, and any other by its kind. *)
+let rec read_of_go shapes named : Shape.shape =
+  match named <> "[]byte" && String.starts_with ~prefix:"[]" named with
+  | true ->
+      let item = String.sub named 2 (String.length named - 2) in
+      Shape
+        {
+          Shape.empty with
+          kinds = Some [ Array ];
+          items = Some (read_of_go shapes item);
+        }
+  | false when List.mem_assoc named shapes -> Ref named
+  | false ->
+      Shape
+        {
+          Shape.empty with
+          kinds = Option.map (fun kind -> [ kind ]) (kind_of_go named);
+        }
 
 (* A shape without what it states of the value itself: what it holds. *)
 let held : Shape.shape -> Shape.shape = function
@@ -62,13 +83,7 @@ let check ~declared (shapes : (string * Shape.shape) list) =
                name)
       | Some None -> None
       | Some (Some named) ->
-          let read_as =
-            Shape.Shape
-              {
-                Shape.empty with
-                kinds = Option.map (fun kind -> [ kind ]) (kind_of_go named);
-              }
-          in
+          let read_as = read_of_go shapes named in
           if held shape = read_as then None
           else
             refused

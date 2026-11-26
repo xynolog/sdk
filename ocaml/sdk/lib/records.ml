@@ -425,6 +425,36 @@ module Device_code = struct
         ]
 end
 
+module Engine_with_limits = struct
+  type t = {
+    engine : [ `Engine ] Models.t;
+    jobs : [ `JobFilter ] Models.t list option;
+    limits : [ `InferenceLimits ] Models.t option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* engine = required (model Models.engine) "engine" members in
+        let* jobs = optional (list (model Models.job_filter)) "jobs" members in
+        let* limits =
+          optional (model Models.inference_limits) "limits" members
+        in
+        Ok { engine; jobs; limits }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("engine", Some (json_model value.engine));
+          ("jobs", Option.map (json_list json_model) value.jobs);
+          ("limits", Option.map json_model value.limits);
+        ]
+end
+
 module Gather_resource_options = struct
   type t = {
     depth : int option;
@@ -594,6 +624,88 @@ module Pending_annotation = struct
         ]
 end
 
+module Put_binary_request = struct
+  type t = {
+    name : string;
+    file : string;
+    format : string;
+    storage_uri : string;
+    language : string option;
+    entity_types : string list option;
+    source_annotation_id : string option;
+    source_resource_id : string option;
+    generation_prompt : string option;
+    generator : [ `OneOrMoreAgents ] Models.t option;
+    job_id : string option;
+    is_draft : bool option;
+    clone_token : string option;
+    archive_original : bool option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* name = required string "name" members in
+        let* file = required string "file" members in
+        let* format = required string "format" members in
+        let* storage_uri = required string "storageUri" members in
+        let* language = optional string "language" members in
+        let* entity_types = optional (list string) "entityTypes" members in
+        let* source_annotation_id =
+          optional string "sourceAnnotationId" members
+        in
+        let* source_resource_id = optional string "sourceResourceId" members in
+        let* generation_prompt = optional string "generationPrompt" members in
+        let* generator =
+          optional (model Models.one_or_more_agents) "generator" members
+        in
+        let* job_id = optional string "jobId" members in
+        let* is_draft = optional bool "isDraft" members in
+        let* clone_token = optional string "cloneToken" members in
+        let* archive_original = optional bool "archiveOriginal" members in
+        Ok
+          {
+            name;
+            file;
+            format;
+            storage_uri;
+            language;
+            entity_types;
+            source_annotation_id;
+            source_resource_id;
+            generation_prompt;
+            generator;
+            job_id;
+            is_draft;
+            clone_token;
+            archive_original;
+          }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("name", Some (json_string value.name));
+          ("file", Some (json_string value.file));
+          ("format", Some (json_string value.format));
+          ("storageUri", Some (json_string value.storage_uri));
+          ("language", Option.map json_string value.language);
+          ("entityTypes", Option.map (json_list json_string) value.entity_types);
+          ( "sourceAnnotationId",
+            Option.map json_string value.source_annotation_id );
+          ("sourceResourceId", Option.map json_string value.source_resource_id);
+          ("generationPrompt", Option.map json_string value.generation_prompt);
+          ("generator", Option.map json_model value.generator);
+          ("jobId", Option.map json_string value.job_id);
+          ("isDraft", Option.map json_bool value.is_draft);
+          ("cloneToken", Option.map json_string value.clone_token);
+          ("archiveOriginal", Option.map json_bool value.archive_original);
+        ]
+end
+
 module Quoted_text = struct
   type t = { exact : string; prefix : string option; suffix : string option }
 
@@ -740,6 +852,28 @@ module Reconciled_span = struct
                 ((json_enum Enums.Match_quality.to_string) value.match_quality)
             );
           ]
+end
+
+module Resource_representation = struct
+  type t = { data : string; content_type : string }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* data = required string "data" members in
+        let* content_type = required string "contentType" members in
+        Ok { data; content_type }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("data", Some (json_string value.data));
+          ("contentType", Some (json_string value.content_type));
+        ]
 end
 
 module Resource_search_filters = struct
@@ -977,6 +1111,18 @@ module Pending_authorization = struct
           ("expectedDid", Option.map json_string value.expected_did);
           ("expectedName", Option.map json_string value.expected_name);
         ]
+end
+
+module Engines_with_limits = struct
+  type t = Engine_with_limits.t list
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    list (record Engine_with_limits.of_json) ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    json_list Engine_with_limits.to_json
 end
 
 module Agent_organization = struct

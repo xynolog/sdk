@@ -47,7 +47,7 @@ describe('browse content reads — pure pipe', () => {
     // mangle the 0xE9 byte; charset-aware decoding yields the correct string.
     const bytes = new Uint8Array([0x63, 0x61, 0x66, 0xe9]);
     const getBinary = vi.fn().mockResolvedValue({
-      data: bytes.buffer,
+      data: new Blob([bytes]),
       contentType: 'text/plain; charset=iso-8859-1',
     });
     const content = {
@@ -69,7 +69,7 @@ describe('browse content reads — pure pipe', () => {
   it('resourceContent refuses a media type whose text is not its bytes, whatever the bytes are', async () => {
     // "%PDF" would decode as UTF-8 without complaint. A PDF's text is derived from its bytes, not decoded from them.
     const getBinary = vi.fn().mockResolvedValue({
-      data: new Uint8Array([0x25, 0x50, 0x44, 0x46]).buffer,
+      data: new Blob([new Uint8Array([0x25, 0x50, 0x44, 0x46])]),
       contentType: 'application/pdf',
     });
     const content = {

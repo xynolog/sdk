@@ -74,7 +74,7 @@ import type {
   AnchorRect,
   GatheredContext,
   TagSchema,
-  EngineWithLimits,
+  EnginesWithLimits,
   KbDescription,
 } from '@xynolog/core';
 
@@ -143,7 +143,7 @@ export interface BrowseNamespace {
    * KB-wide singleton; cached for the client lifetime, asked again when the
    * stream reopens after a drop.
    */
-  engines(): CacheObservable<EngineWithLimits[]>;
+  engines(): CacheObservable<EnginesWithLimits>;
   events(resourceId: ResourceId): CacheObservable<AttributedEvent[]>;
 
   // One-shot reads (Promise — no caching, no live update)

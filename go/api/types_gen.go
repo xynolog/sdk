@@ -4875,6 +4875,25 @@ func (e EngineProvider) Valid() bool {
 	return false
 }
 
+// EngineWithLimits One of the knowledge base's engines as a client joins it:
+// the entry `browse:engines-result` names, with the inference limits the
+// service holding its credentials reported. A client asks each such service
+// for its limits; an engine no service reported has no `limits`.
+type EngineWithLimits struct {
+	Engine Engine `json:"engine"`
+	// Jobs The jobs the knowledge base's Inference document has this engine used
+	// for, as a claim names them. Absent for an engine only Librarian actors
+	// ask.
+	Jobs   *[]JobFilter     `json:"jobs,omitempty"`
+	Limits *InferenceLimits `json:"limits,omitempty"`
+}
+
+// EnginesWithLimits The knowledge base's engines, in the order
+// `browse:engines-result` names them, each with the limits reported for it.
+type (
+	EnginesWithLimits = []EngineWithLimits
+)
+
 // EnrichedResourceEvent Wire format for persisted events delivered over the
 // bus SSE stream (GET /bus/subscribe). Extends StoredEventResponse with
 // optional enrichment fields the EventStore populates from the materialized
@@ -10875,6 +10894,45 @@ type Provider struct {
 	ApiKey  *SecretRef `json:"apiKey,omitempty"`
 }
 
+// PutBinaryRequest What uploading a resource is handed: its bytes, what the
+// upload states of them, and, for a clone, its token. Each member is as a
+// caller holds it; ResourceUpload is the multipart body the content transport
+// sends of it.
+type PutBinaryRequest struct {
+	// Name Human-readable resource name
+	Name string `json:"name"`
+	// File Binary content
+	File Binary `json:"file"`
+	// Format Media type of the content (e.g. text/plain, text/markdown,
+	// image/png)
+	Format string `json:"format"`
+	// StorageUri Where the content lives (file://... for local). Required — the
+	// client names the location; the server does not derive one.
+	StorageUri string `json:"storageUri"`
+	// Language ISO 639-1 language code
+	Language           *string       `json:"language,omitempty"`
+	EntityTypes        *[]string     `json:"entityTypes,omitempty"`
+	SourceAnnotationId *AnnotationId `json:"sourceAnnotationId,omitempty"`
+	SourceResourceId   *ResourceId   `json:"sourceResourceId,omitempty"`
+	// GenerationPrompt For AI-generated resources: the prompt that drove
+	// generation
+	GenerationPrompt *string `json:"generationPrompt,omitempty"`
+	// Generator The Software peer that produced the content, when software did.
+	// Its identity must be the emitter's own — the knowledge base refuses a
+	// generator naming anyone else, and supplies it from the verified emitter
+	// when omitted. `creator` and `wasAttributedTo` are never sent; the
+	// knowledge base derives them from the emitter and the cited job.
+	Generator *OneOrMoreAgents `json:"generator,omitempty"`
+	JobId     *JobId           `json:"jobId,omitempty"`
+	IsDraft   *bool            `json:"isDraft,omitempty"`
+	// CloneToken A clone token from `yield:clone-token-requested`. With it, the
+	// resource is created as a clone of the token's source, inheriting its
+	// entity types; `language`, `entityTypes` and the generation fields are then
+	// not read.
+	CloneToken      *string `json:"cloneToken,omitempty"`
+	ArchiveOriginal *bool   `json:"archiveOriginal,omitempty"`
+}
+
 // QdrantVectorsConfig A vector index kept in a Qdrant server, asked over its
 // REST API with a token.
 type QdrantVectorsConfig struct {
@@ -11667,6 +11725,15 @@ type ResourceMovedPayload struct {
 	FromUri string `json:"fromUri"`
 	// ToUri New file:// URI
 	ToUri string `json:"toUri"`
+}
+
+// ResourceRepresentation A resource's bytes as the content transport answers
+// them, whole, with the media type it answered with.
+type ResourceRepresentation struct {
+	// Data The bytes, whole.
+	Data Binary `json:"data"`
+	// ContentType The media type the content transport answered with.
+	ContentType string `json:"contentType"`
 }
 
 // ResourceSearchFilters What a text search for resources is told beside its

@@ -1265,7 +1265,7 @@ describe('YieldNamespace', () => {
     );
 
     const events: UploadProgress[] = [];
-    const file = Buffer.from(new Uint8Array(1024)); // 1 KB pre-flight size
+    const file = new Blob([new Uint8Array(1024)]); // 1 KB pre-flight size
     yld
       .resource({
         name: 'doc',
@@ -1317,7 +1317,7 @@ describe('YieldNamespace', () => {
     yld
       .resource({
         name: 'doc',
-        file: Buffer.from(new Uint8Array(2048)),
+        file: new Blob([new Uint8Array(2048)]),
         format: 'text/plain',
         storageUri: 'file://x',
       })
@@ -1346,7 +1346,7 @@ describe('YieldNamespace', () => {
     const sub = yld
       .resource({
         name: 'doc',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://x',
       })
@@ -1921,15 +1921,8 @@ describe('late-rejection guards', () => {
 });
 
 /**
- * `yield.resource()` must work where the Node global `Buffer` does not
- * exist: a bare `data.file instanceof Buffer` throws `ReferenceError:
- * Buffer is not defined` synchronously in browsers (Buffer is not a
- * browser global).
- *
- * The Buffer branch is gated on a runtime check
- * (`typeof Buffer !== 'undefined'`); these tests pin that behavior
- * by deleting `globalThis.Buffer` and verifying the upload path
- * works for File-shaped inputs.
+ * `yield.resource()` names no Node global: with `globalThis.Buffer`
+ * deleted, as in a browser, the upload of a `File` goes through.
  */
 describe('YieldNamespace.resource — runtime fallback when Buffer is unavailable', () => {
   let bufferGlobal: PropertyDescriptor | undefined;
@@ -1972,9 +1965,6 @@ describe('YieldNamespace.resource — runtime fallback when Buffer is unavailabl
         error: (e) => errors.push(e),
       });
 
-    // Without the typeof guard this throws `Buffer is not defined`
-    // synchronously before `started` ever fires. With it, the Buffer
-    // branch is short-circuited and the size is read from `.size`.
     expect(events[0]).toEqual({ phase: 'started', totalBytes: 4096 });
     expect(errors).toEqual([]);
 

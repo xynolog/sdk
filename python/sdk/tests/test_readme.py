@@ -49,7 +49,7 @@ from xynolog.sign_in_store import FILE_NAME, SignInStore, state_dir, this_system
 from xynolog.state import BeckonStateUnit
 from xynolog.storage import MemoryStorage
 from xynolog.testing import InMemoryContent, PutBinary, ScriptedSessions, create_test_client
-from xynolog.transport import Content, Frame
+from xynolog.transport import Frame
 from xynolog.types import (
     AgentSoftware,
     AnchoredText,
@@ -57,6 +57,7 @@ from xynolog.types import (
     HttpEndpoint,
     KnowledgeBase,
     PdfTextItem,
+    ResourceRepresentation,
     StoredSession,
     UserResponse,
 )
@@ -279,7 +280,7 @@ def test_the_client_annotates_over_the_doubles_and_over_http(capsys: pytest.Capt
         made = create_test_client()
         made.transport.queue_reply("browse:resource-requested", [DESCRIBED])
         made.transport.queue_reply("job:create", [{"jobId": "job-1"}])
-        made.content.seed(RESOURCE, Content(data=b"some text", content_type="text/plain"))
+        made.content.seed(RESOURCE, ResourceRepresentation(data=b"some text", content_type="text/plain"))
         async with made.client as client:
             annotating = asyncio.ensure_future(the_client.annotate(client, RESOURCE, ANNOTATION))
             await until("the job's creation", lambda: any(asked.channel == "job:create" for asked in made.transport.request_log))

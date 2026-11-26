@@ -26,13 +26,6 @@ extension MatchResourcesRequest {
   }
 }
 
-/// An engine in the knowledge base and any limits reported by its credential holder.
-public struct EngineWithLimits: Encodable, Sendable {
-  public let engine: Engine
-  public let jobs: [JobFilter]?
-  public let limits: InferenceLimits?
-}
-
 /// What the key holders reported of their engines' limits when the engines were last asked for.
 final class ReportedLimits: Sendable {
   private let reported = Mutex<[EngineLimits]>([])
@@ -40,7 +33,7 @@ final class ReportedLimits: Sendable {
   func keep(_ limits: [EngineLimits]) { reported.withLock { $0 = limits } }
 
   /// `engines`, in their order, each with the limits reported for its provider and model.
-  func joined(_ engines: [EngineEntry]) -> [EngineWithLimits] {
+  func joined(_ engines: [EngineEntry]) -> EnginesWithLimits {
     let reports = reported.withLock { $0 }
     return engines.map { entry in
       let limits = reports.first {

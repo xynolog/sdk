@@ -62,25 +62,6 @@ func liveQuery[T any](q *xynolog.Cached[T], show func(T) any) query {
 	}
 }
 
-// engines is the engines as the wire had them, each entry with its limits
-// beside its own fields.
-func engines(listed []xynolog.EngineWithLimits) any {
-	written := make([]any, 0, len(listed))
-	for _, engine := range listed {
-		encoded, err := json.Marshal(engine.Entry)
-		var entry map[string]any
-		if err != nil || json.Unmarshal(encoded, &entry) != nil {
-			written = append(written, engine.Entry)
-			continue
-		}
-		if engine.Limits != nil {
-			entry["limits"] = engine.Limits
-		}
-		written = append(written, entry)
-	}
-	return written
-}
-
 // failure is err as the protocol carries it. An error of none of the SDK's
 // vocabularies has no code to say, and the suite fails it for that.
 func failure(err error) api.ConformanceFailure {
@@ -214,7 +195,7 @@ func queryOf(c *xynolog.Client, q protocol.Arguments) (query, error) {
 	case xynolog.CacheQueryTagSchemas:
 		return liveQuery(c.Browse.TagSchemas(), itself[[]api.TagSchema]), nil
 	case xynolog.CacheQueryEngines:
-		return liveQuery(c.Browse.Engines(), engines), nil
+		return liveQuery(c.Browse.Engines(), itself[api.EnginesWithLimits]), nil
 	}
 	return query{}, protocol.Misused("no live query %s", name)
 }

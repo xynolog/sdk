@@ -52,7 +52,7 @@ how a session comes to be signed in.
 // Ingest: the paper's bytes become a resource.
 const { resourceId } = await session.client.yield.resource({
   name: 'Attention Is All You Need',
-  file,                                   // a browser File or a Node Buffer
+  file,                                   // a Blob: a browser File, or new Blob([bytes])
   format: 'application/pdf',
   storageUri: 'file://papers/attention-is-all-you-need.pdf',
 });
