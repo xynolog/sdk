@@ -596,26 +596,26 @@ let sign_in () =
     decode Models.kb_description
       (`Assoc [ ("name", text domain); ("domain", text domain) ])
   in
-  let sign port domain access =
-    Result.get_ok
-      (R.record_sign_in browser
-         {
-           endpoint = endpoint port;
-           description = description domain;
-           session =
-             {
-               access;
-               refresh = "refresh";
-               client_id = "script";
-               token_endpoint = "https://issuer.example/token";
-               revocation_endpoint = None;
-               person_key = None;
-             };
-           kb_id = Some "kb-1";
-           expected_did = Some "did:web:one.example";
-           expected_name = None;
-         })
+  let record port domain access =
+    R.record_sign_in browser
+      {
+        endpoint = endpoint port;
+        description = description domain;
+        session =
+          {
+            access;
+            refresh = "refresh";
+            client_id = "script";
+            token_endpoint = "https://issuer.example/token";
+            revocation_endpoint = None;
+            person_key = None;
+          };
+        kb_id = Some "kb-1";
+        expected_did = Some "did:web:one.example";
+        expected_name = None;
+      }
   in
+  let sign port domain access = Result.get_ok (record port domain access) in
   let id (outcome : Records.Sign_in_outcome.t) =
     (Records.Knowledge_base.of_model outcome.kb).id
   in
@@ -625,7 +625,13 @@ let sign_in () =
   assert (id (sign 4010 "other.example" "different-identity") = "kb-3");
   assert ((Option.get (R.stored_session storage "kb-1")).access = "new");
   R.sign_out browser "kb-3";
-  assert (R.active_id browser = None && R.stored_session storage "kb-3" = None)
+  assert (R.active_id browser = None && R.stored_session storage "kb-3" = None);
+  assert (
+    record 4012 "" "no-domain"
+    = Error (R.Identity Error_codes.Kb_identity.Not_reported));
+  serial := 1;
+  assert (record 4012 "third.example" "taken-id" = Error R.Id_conflict);
+  assert (R.activate browser "kb-unknown" = Error R.Unknown_kb)
 
 let redirect () =
   Eio_mock.Backend.run @@ fun () ->
@@ -671,7 +677,7 @@ let redirect () =
     decode Models.kb_description
       (Yojson.Safe.from_string {|{"name":"Actual","domain":"kb.example"}|})
   in
-  let discovery = ref 0 and exchanges = ref 0 in
+  let discovery = ref 0 and exchanges = ref 0 and refreshes = ref true in
   let http (request : OAuth.request) =
     match request.meth with
     | "GET" ->
@@ -684,7 +690,9 @@ let redirect () =
         assert (request.url = "https://issuer.example/token");
         assert (List.assoc "code" request.form = "one");
         assert (List.assoc "code_verifier" request.form <> "");
-        (200, {|{"access_token":"access","refresh_token":"refresh"}|})
+        if !refreshes then
+          (200, {|{"access_token":"access","refresh_token":"refresh"}|})
+        else (200, {|{"access_token":"access"}|})
     | _ -> assert false
   in
   let origin = "http://localhost:4010/callback" in
@@ -703,11 +711,14 @@ let redirect () =
       ~expected_did:"did:web:expected.example" ()
     |> Result.get_ok |> Uri.of_string
   in
-  let complete callback =
-    R.complete_sign_in (R.new_xynolog_browser ~storage:atomic_storage config)
-      ~http ~callback ~describe:(fun endpoint ~access ->
-        assert (R.same_place endpoint target && access = "access");
-        Ok description)
+  let described endpoint ~access =
+    assert (R.same_place endpoint target && access = "access");
+    Ok description
+  in
+  let complete ?(describe = described) callback =
+    R.complete_sign_in
+      (R.new_xynolog_browser ~storage:atomic_storage config)
+      ~http ~callback ~describe
   in
   let location = begin_ () in
   let state = Option.get (Uri.get_query_param location "state") in
@@ -724,7 +735,16 @@ let redirect () =
   assert (kept.access = "access" && kept.refresh = "refresh");
   assert (kept.revocation_endpoint = Some "https://issuer.example/revoke");
   assert (complete callback = Error (R.Sign_in Error_codes.Sign_in.No_pending));
-  assert (!discovery = 2 && !exchanges = 1 && !takes = 4)
+  assert (!discovery = 2 && !exchanges = 1 && !takes = 4);
+  ignore (begin_ ());
+  assert (
+    complete
+      ~describe:(fun _ ~access:_ -> Error Error_codes.Kb_identity.Unreachable)
+      callback
+    = Error (R.Identity Error_codes.Kb_identity.Unreachable));
+  refreshes := false;
+  ignore (begin_ ());
+  assert (complete callback = Error (R.Sign_in Error_codes.Sign_in.Exchange))
 
 (* A writer held to [schema] both ways: what it wrote, [written], holds
    every member the schema states and no other, and a stored value without
@@ -1016,6 +1036,42 @@ let kept =
   with
   | Integer count -> count
   | Object _ -> failwith "errorsKeptForFirstReaderCount is no count"
+
+(* A query the bus refuses is refused with the bus's code. *)
+let query_refused () =
+  Eio_mock.Backend.run @@ fun () ->
+  Switch.run @@ fun sw ->
+  let mono, clock = mock_clock () in
+  let testing =
+    Testing.transport ~sw ~clock ~schedule:[] ~respond:(fun ~channel _ ->
+        assert (channel = Bus_registry.(name Channels.browse_resource_requested));
+        Some
+          ( Bus_registry.(name Channels.browse_resource_failed),
+            `Assoc [ ("message", text "absent"); ("code", text "not-found") ] ))
+  in
+  let session =
+    Session.start ~sw ~clock ~initial_token:(Some "token")
+      ~renew:(fun ~holding:_ -> Session.Refused)
+      ()
+  in
+  let client =
+    Client.connect ~sw ~clock ~session ~client_id:"query"
+      ~key:(fun () -> "query-1")
+      ~call:(Testing.call testing)
+      ~global:
+        Bus_registry.
+          [
+            Channel Channels.browse_resource_result;
+            Channel Channels.browse_resource_failed;
+          ]
+      ~on_event:ignore ()
+  in
+  pass mono clock 0;
+  let resource = Result.get_ok (Identifiers.Resource_id.of_string "res-1") in
+  assert (
+    Client.fresh (Client.Browse.resource client resource)
+    = Error (Http_wire.Bus Error_codes.Bus_request.Not_found));
+  Client.close client
 
 let claims_refused () =
   Eio_mock.Backend.run @@ fun () ->
@@ -1630,6 +1686,8 @@ let () =
           Alcotest.test_case "document and diff" `Quick discovery;
           Alcotest.test_case "shared clock" `Quick controlled;
         ] );
+      ( "queries",
+        [ Alcotest.test_case "refused by the bus" `Quick query_refused ] );
       ( "claims",
         [
           Alcotest.test_case "refusals kept for the first reader" `Quick
