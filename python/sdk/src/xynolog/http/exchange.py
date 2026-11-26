@@ -67,11 +67,9 @@ def refusal(message: str, status: int, body: bytes | None, stated_wait_ms: int |
 
 def _names_refusal_rate(body: bytes) -> bool:
     """Whether a `429`'s body is a `LimitRefusal` naming `refusal-rate`."""
-    try:
-        return LimitRefusal.model_validate_json(body).code == "refusal-rate"
-    except ValidationError:
-        # Not a limit this build can name: a limit all the same, as its status says.
-        return False
+    limit = read_as(LimitRefusal, body, LimitRefusal.model_validate)
+    # Not a limit this build can name: a limit all the same, as its status says.
+    return not isinstance(limit, Fault) and limit.code == "refusal-rate"
 
 
 @final

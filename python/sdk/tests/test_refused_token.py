@@ -20,6 +20,7 @@ from xynolog.channels import BRIDGED_CHANNELS
 from xynolog.errors import SignInError, TransportError, XynologError
 from xynolog.events import Events
 from xynolog.http import HttpTransport, Timing
+from xynolog.http.exchange import refusal
 from xynolog.identifiers import ResourceId
 from xynolog.transport import UploadProgress
 from xynolog.types import PutBinaryRequest, RetryBudget, UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
@@ -419,3 +420,17 @@ def test_an_upload_refused_is_sent_again_whole_and_its_progress_is_reported_once
                 await transport.close()
 
     run(scenario())
+
+
+@pytest.mark.parametrize(
+    ("body", "refuses"),
+    [
+        (b'{"error":"refused","code":"refusal-rate"}', True),
+        (b'{"error":"refused","code":"emit-rate"}', False),
+        (b'{"error":"refused","code":"refusal-rate","hint":null}', False),
+        (b'{"code":"refusal-rate"}', False),
+    ],
+)
+def test_a_429_refuses_the_token_only_by_a_limit_refusal_naming_refusal_rate(body: bytes, refuses: bool) -> None:
+    # A null where LimitRefusal allows none makes it a limit's, as its status says.
+    assert (refusal("refused", 429, body, None).code == "unauthorized") == refuses

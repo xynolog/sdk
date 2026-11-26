@@ -47,6 +47,7 @@ from xynolog.http.endpoint import gateway_url
 from xynolog.http.transport import HttpTransport
 from xynolog.identity import encode_uri_component
 from xynolog.oauth_clients import BROWSER_CLIENT_ID, SCRIPT_CLIENT_ID, SIGN_IN_SCOPE
+from xynolog.required import Fault, read_as
 from xynolog.retry import REFRESH, RetryFacts, retry_with_backoff
 from xynolog.session import SignInKept, is_token_expired
 from xynolog.storage import SessionStorage
@@ -372,10 +373,8 @@ def _taken(pending: SessionStorage) -> PendingAuthorization | None:
     pending.update(PENDING_AUTHORIZATION_KEY, take)
     if not taken:
         return None
-    try:
-        return PendingAuthorization.model_validate_json(taken[0])
-    except ValidationError:
-        return None
+    read = read_as(PendingAuthorization, taken[0], PendingAuthorization.model_validate)
+    return None if isinstance(read, Fault) else read
 
 
 async def complete_authorization(

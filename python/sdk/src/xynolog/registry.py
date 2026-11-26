@@ -71,7 +71,7 @@ from xynolog.events import Events
 from xynolog.identifiers import ResourceId
 from xynolog.identity import kb_did
 from xynolog.model import written
-from xynolog.required import fault_of
+from xynolog.required import Fault, as_read, fault_of, read_as
 from xynolog.resources import primary_media_type
 from xynolog.session import SignInKept, XynologSession, is_token_expired
 from xynolog.session_signals import SessionSignals
@@ -135,10 +135,8 @@ def stored_session(storage: SessionStorage, kb_id: str) -> StoredSession | None:
     stored = storage.get(session_key(kb_id))
     if stored is None:
         return None
-    try:
-        return StoredSession.model_validate_json(stored)
-    except ValidationError:
-        return None
+    read = read_as(StoredSession, stored, StoredSession.model_validate)
+    return None if isinstance(read, Fault) else read
 
 
 def store_session(storage: SessionStorage, kb_id: str, session: StoredSession) -> None:
@@ -205,10 +203,9 @@ def load_knowledge_bases(storage: SessionStorage) -> list[KnowledgeBase]:
         return []
     kbs: list[KnowledgeBase] = []
     for entry in entries:
-        try:
-            kbs.append(KnowledgeBase.model_validate(entry))
-        except ValidationError:
-            continue
+        read = as_read(KnowledgeBase, entry)
+        if not isinstance(read, Fault):
+            kbs.append(KnowledgeBase.model_validate(read))
     return kbs
 
 
@@ -271,10 +268,8 @@ class _KeptIn(SignInKept):
 
 
 def _session_in(stored: str) -> StoredSession | None:
-    try:
-        return StoredSession.model_validate_json(stored)
-    except ValidationError:
-        return None
+    read = read_as(StoredSession, stored, StoredSession.model_validate)
+    return None if isinstance(read, Fault) else read
 
 
 def kept_in(storage: SessionStorage, kb_id: str) -> SignInKept:
@@ -325,17 +320,21 @@ _OPEN_BY_KB: Final = TypeAdapter[dict[str, list[OpenResource]]](dict[str, list[O
 _VIEWED_BY_KB: Final = TypeAdapter[dict[str, ResourceId]](dict[str, ResourceId])
 
 
-def _open_by_kb_of(stored: str | None) -> dict[str, list[OpenResource]]:
-    """What is stored of each knowledge base's open resources; none for what does not read as that."""
-    if stored is None:
-        return {}
+def _open_by_kb_in(stored: str) -> dict[str, list[OpenResource]] | None:
+    """What is stored of each knowledge base's open resources; nothing for what does not read as that."""
     try:
         kept = _KEPT_BY_KB.validate_json(stored)
     except ValidationError:
-        return {}
+        return None
     if any(fault_of(OpenResource, entry) is not None for entries in kept.values() for entry in entries):
-        return {}
+        return None
     return _OPEN_BY_KB.validate_python(kept)
+
+
+def _open_by_kb_of(stored: str | None) -> dict[str, list[OpenResource]]:
+    """What is stored of each knowledge base's open resources; none for what does not read as that."""
+    read = None if stored is None else _open_by_kb_in(stored)
+    return {} if read is None else read
 
 
 def _viewed_by_kb_of(stored: str | None) -> dict[str, ResourceId]:
@@ -1035,7 +1034,10 @@ class XynologBrowser:
             return
         try:
             if key == OPEN_RESOURCES_BY_KB_KEY:
-                self._open_by_kb = _OPEN_BY_KB.validate_json(value)
+                open_by_kb = _open_by_kb_in(value)
+                if open_by_kb is None:
+                    return
+                self._open_by_kb = open_by_kb
             elif key == LAST_VIEWED_RESOURCE_BY_KB_KEY:
                 self._viewed_by_kb = _VIEWED_BY_KB.validate_json(value)
             else:

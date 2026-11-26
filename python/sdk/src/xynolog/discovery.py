@@ -31,6 +31,7 @@ from typing import Final, Protocol, final, get_args, override
 
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
+from xynolog.required import Fault, read_as
 from xynolog.timing import DISCOVERY_INTERVAL_MS
 from xynolog.types import DiscoveredKB, DiscoveryAbsentReason, DiscoveryDocument
 
@@ -106,11 +107,6 @@ class DiscoveryTransport(Protocol):
         ...
 
 
-def _where(location: tuple[int | str, ...]) -> str:
-    """A place in the document, as `kbs[1].did` names one."""
-    return "".join(f"[{step}]" if isinstance(step, int) else f".{step}" for step in location).removeprefix(".")
-
-
 def parse_discovery_document(text: str) -> DiscoveryState:
     """The document's text as a state. Every reader goes through this."""
     try:
@@ -127,12 +123,9 @@ def parse_discovery_document(text: str) -> DiscoveryState:
             reason="unsupported-version",
             diagnostic=f"discovery document version {version} is not the one this client speaks ({_VERSION}); it is not read in part",
         )
-    try:
-        # Strictly: a port written as text, or a name written as a number, is not the schema's.
-        document = DiscoveryDocument.model_validate_json(text, strict=True)
-    except ValidationError as error:
-        first = error.errors()[0]
-        return Absent(reason="invalid", diagnostic=f"{_where(first['loc'])}: {first['msg']}")
+    document = read_as(DiscoveryDocument, text, DiscoveryDocument.model_validate)
+    if isinstance(document, Fault):
+        return Absent(reason="invalid", diagnostic=f"the document is no discovery document: {document}")
     for kb in document.kbs:
         if not 1 <= kb.port <= 65535:
             return Absent(reason="invalid", diagnostic=f"kb entry at {kb.host} has port {kb.port}, which is not a port")

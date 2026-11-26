@@ -118,9 +118,15 @@ def _own[E: WireModel](recorded: str, shape: type[E], stored: StoredEventRespons
     so the event's type is asked first: the payload alone would be read as
     either.
     """
+    # The walk reads this module's `Empty` and `Response`, so it is imported once this module is.
+    from xynolog.required import Fault, as_read
+
     if stored.type != recorded:
         raise ValueError(f"{stored.type} {stored.id} is not a {recorded} event")
-    return shape.model_validate(stored.payload)
+    read = as_read(shape, stored.payload)
+    if isinstance(read, Fault):
+        raise ValueError(f"the payload of {stored.type} {stored.id} is not its event's: {read}")
+    return shape.model_validate(read)
 
 
 @dataclass(frozen=True, slots=True)

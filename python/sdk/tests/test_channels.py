@@ -137,8 +137,17 @@ def test_a_channel_of_the_record_refuses_a_stored_event_of_another_type_and_a_pa
     named = StoredEventResponse.model_validate({**STORED, "type": "frame:entity-type-added", "payload": {"entityType": "Person"}})
     with pytest.raises(ValueError, match=r"frame:entity-type-added 0e2f8c0a-.* is not a frame:tag-schema-added event"):
         channels.FRAME_TAG_SCHEMA_ADDED.event(named)
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError, match=r"the payload of mark:removed 0e2f8c0a-.* is not its event's: it has no `annotationId`"):
         channels.MARK_REMOVED.event(StoredEventResponse.model_validate({**STORED, "type": "mark:removed", "payload": {}}))
+    # A null where the event's schema allows none is refused, not read as absent.
+    created: dict[str, JsonValue] = {"name": "Doc", "format": "text/plain", "contentChecksum": "sha256:00"}
+    assert (
+        channels.YIELD_CREATED.event(StoredEventResponse.model_validate({**STORED, "type": "yield:created", "payload": created})).name
+        == "Doc"
+    )
+    nulled = StoredEventResponse.model_validate({**STORED, "type": "yield:created", "payload": {**created, "isDraft": None}})
+    with pytest.raises(ValueError, match=r"the payload of yield:created 0e2f8c0a-.* is not its event's: its `isDraft` is malformed"):
+        channels.YIELD_CREATED.event(nulled)
 
 
 def test_a_channel_whose_schema_is_one_of_several_carries_each_of_them() -> None:

@@ -70,7 +70,7 @@ from datetime import UTC, datetime
 from types import TracebackType
 from typing import Annotated, Final, Literal, Self, assert_never, final
 
-from pydantic import Field, JsonValue, TypeAdapter, ValidationError
+from pydantic import Field, JsonValue, TypeAdapter
 
 from xynolog import telemetry
 from xynolog._instant import instant
@@ -95,6 +95,7 @@ from xynolog.identifiers import AnnotationId, JobId, ResourceId
 from xynolog.job_filter import job_matches_filter
 from xynolog.model import WireModel, written
 from xynolog.operations import BROWSE_ANNOTATION_REQUESTED, JOB_CLAIM, MARK_COMMIT
+from xynolog.required import Fault, as_read
 from xynolog.timing import HELD_JOB_STALL_CHECK_MS, HELD_JOB_STALL_MS, JOB_CLAIM_TIMEOUT_MS, MARK_COMMIT_TIMEOUT_MS
 from xynolog.transport import Frame, FrameRefusal, TraceContext, Transport
 from xynolog.types import (
@@ -277,11 +278,10 @@ def _anchor_of(job_type: JobType, params: Mapping[str, JsonValue]) -> Annotation
     """
     if job_type != "yield":
         return None
-    try:
-        context = GatheredContext.model_validate(params.get("context"))
-    except ValidationError:
+    read = as_read(GatheredContext, params.get("context"))
+    if isinstance(read, Fault):
         return None
-    match context.focus:
+    match GatheredContext.model_validate(read).focus:
         case GatheredContextFocusAnnotation(annotation=annotation):
             return annotation.id
         case GatheredContextFocusResource():
