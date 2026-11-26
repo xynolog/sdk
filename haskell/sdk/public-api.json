@@ -115,7 +115,10 @@
     "generated/Xynolog/Internal/Generated/Models/BusSubscribeRequest.hs": "324726f55dd00e5feacecdd8c9dbde90c0e92570c38368373efe8d65266419f4",
     "generated/Xynolog/Internal/Generated/Models/Cancelled.hs": "debb9770c84c6f56760667617945057b2a302acdcb229763fb3cdfd2630950c9",
     "generated/Xynolog/Internal/Generated/Models/ClaimOptions.hs": "926bd2adde207205fb85ffb53b38e4ec766c8489c67f9b10655544cf55f953a9",
+    "generated/Xynolog/Internal/Generated/Models/ClientDiscoveryAbsent.hs": "73fcbc6ed28291d9fec1e390ca7f25eda1ddf0179dd11c858e0ef827aff5a81e",
+    "generated/Xynolog/Internal/Generated/Models/ClientRefresh.hs": "e6a5af4c3f19effb7d9fc5dcf7f4f206fbed0e2b0d6bf9b3491bf23439d77577",
     "generated/Xynolog/Internal/Generated/Models/ClientSecretForm.hs": "8b8b0cdb1c079f2d8926dd3448fc6354b409320d9d564b9c7b916f0045b267ad",
+    "generated/Xynolog/Internal/Generated/Models/ClientTesting.hs": "3f85dad3dfca5d5b3bd8814b43f2dbb104229b1b8179d8bac65d7d4eadf79ae3",
     "generated/Xynolog/Internal/Generated/Models/CloneResourceWithTokenResponse.hs": "e77427df62a5ff1ba9583b48e42c6dd62986effe49dbbbe01c0e56637c557cae",
     "generated/Xynolog/Internal/Generated/Models/CloneResourceWithTokenResponseBusEnvelope.hs": "a1d780fb0fcbece86128df6f48deb75673fb75c97e80f5cac7fe8230874a238e",
     "generated/Xynolog/Internal/Generated/Models/CommandError.hs": "35bd0bfa47bdbfa792c4bd9c27e48b70ddeacff0b1bb86bf87761a43a611b919",
@@ -131,6 +134,7 @@
     "generated/Xynolog/Internal/Generated/Models/ContentFormat.hs": "62037bccb5814eb10401fcda683f7b0f3b054d4e5db9c00649fe2bba25c2ae17",
     "generated/Xynolog/Internal/Generated/Models/ContextualSummaryResponse.hs": "7a0d2c32a2252e498778a4777e6236244e98829773f72127f700c836bbb05b6c",
     "generated/Xynolog/Internal/Generated/Models/ContextualSummaryResponseBusEnvelope.hs": "005722a15930dd345f19630885fc835e57fa8ac84b00388ad587638999a33605",
+    "generated/Xynolog/Internal/Generated/Models/ControlCli.hs": "3dc1da08ef90a2df004eea4b998e83a36e9ab9d7582b57b4810b664d64ab3e7f",
     "generated/Xynolog/Internal/Generated/Models/CreateAnnotationRequest.hs": "751bab2c56adf1148cf131cc4bd544f370f14f47ba6af1fca8a9ad4a6bd58a51",
     "generated/Xynolog/Internal/Generated/Models/CreateFromTokenOptions.hs": "1b3b896db638021f6f00f85d38f8c6ee33938280d7d720ac4977dcef72511326",
     "generated/Xynolog/Internal/Generated/Models/CreateResourceResponse.hs": "50e4e250449b8ebb33d4b2bf67693fe75360b2b652002b233bb574358e5ec5be",
@@ -159,6 +163,7 @@
     "generated/Xynolog/Internal/Generated/Models/EphemeralEventId.hs": "2dfc6cdcf6d7e488e9da2fa99ca8663a7004aa4f4b8519e0f279047daad131e8",
     "generated/Xynolog/Internal/Generated/Models/ErrorData.hs": "022ce5aac5da2f829d9eeee968e3ea452fd87d919d7d48145bd1af52c3d37fe1",
     "generated/Xynolog/Internal/Generated/Models/ErrorResponse.hs": "8aebe4f89ee7cd6fab6d28f2ff21beb8ba0db49da73d9439961d35a456fca1d0",
+    "generated/Xynolog/Internal/Generated/Models/ErrorsCodes.hs": "535e5a648279eab45dd9a6a7de2c1963f6b428f86b15e3adf5dcc68de783b48c",
     "generated/Xynolog/Internal/Generated/Models/EventMetadata.hs": "bf09142af5eb756e7b7f13057cd07ea1beb8dcac894e35ee8fcf8e04885c5131",
     "generated/Xynolog/Internal/Generated/Models/Expected.hs": "b2f9ea2cfb9e30f569aeaba07bfc2e03b7c3e04344816244b4481ffefa67b9e1",
     "generated/Xynolog/Internal/Generated/Models/ExtractedText.hs": "af1c4ff7e13a3d6cef1c4221dab4c91eb4531af03b47607d4bc63f1ec9e37286",
@@ -214,6 +219,7 @@
     "generated/Xynolog/Internal/Generated/Models/HostPort.hs": "f3ebadd9e906582071b6663be1df7a9d2e32373f3e6ef5678a70de59b74fd1b3",
     "generated/Xynolog/Internal/Generated/Models/HttpEndpoint.hs": "18b4c0a7a40853a2988b481cf13a01c58c6e15753d01d8fac611a7301e8d0e48",
     "generated/Xynolog/Internal/Generated/Models/HttpStatus.hs": "255540189a8e55771ef5aff36c6293dee51682037c6a65d1eebdcac5ef0c3d7b",
+    "generated/Xynolog/Internal/Generated/Models/IdentifiersKinds.hs": "ce858fc9e9dbb0058bf6ba34b44da0931a1668cd9ed88504991dc89487357328",
     "generated/Xynolog/Internal/Generated/Models/IdentityUser.hs": "7cdfad16a7ccf1402d3a38ea722cad7d2e8323240854d21279c4fdb4c4ed2952",
     "generated/Xynolog/Internal/Generated/Models/IdentityUseraddParams.hs": "610f9b95686713fc050fdf24529d5e260b2a74a062b0366154a986ff28ebf13d",
     "generated/Xynolog/Internal/Generated/Models/IdentityUseraddResult.hs": "addd1e319c2235a08caa516ec2bef0c377c3fc74b4e584da94b7d6715e10b521",
@@ -342,6 +348,7 @@
     "generated/Xynolog/Internal/Generated/Models/MatchSearchResult.hs": "f36b40664d936adaa0ed9ff72071dea2c2dd57a9b29d3300bd4cc287856b7f7e",
     "generated/Xynolog/Internal/Generated/Models/MediaTokenRequest.hs": "13d33fe7dda92a95e01be61782fc17b47ea7832d3c46df625a2cfbec27cc76a6",
     "generated/Xynolog/Internal/Generated/Models/MediaTokenResponse.hs": "956371e602bbb7a791cd2fad420c538a837aac280367b4624e2c76192ab43181",
+    "generated/Xynolog/Internal/Generated/Models/MediaTypesRegistry.hs": "cc6d1d348ce48668755f3a46260832f71807894911a65bd4bbc198f818c8e980",
     "generated/Xynolog/Internal/Generated/Models/MemoryGraphConfig.hs": "410ecaf731b730aba7fe157efc2803f77bb1497e6c78e986fd54b8fea5755ebb",
     "generated/Xynolog/Internal/Generated/Models/MemoryVectorsConfig.hs": "135590157c9e42714833692931abc8d5e1acaeff168f6b24241f24eb7b6460b4",
     "generated/Xynolog/Internal/Generated/Models/Metadata.hs": "6349a3f6776ef40502805fb733a1386dd889456bd8c2d550b6c8f11cd09a5245",
@@ -413,6 +420,7 @@
     "generated/Xynolog/Internal/Generated/Models/Runtime.hs": "13a47ddac1bf33cc6dddc7b96965aae0059f8ce7d44e4a3fe8f8daa08fd710f2",
     "generated/Xynolog/Internal/Generated/Models/RuntimeState.hs": "903ae05efaa2a7e54d1f5db2e86c865495e6ef86acea90d91caeb0df81725059",
     "generated/Xynolog/Internal/Generated/Models/ScoredResource.hs": "dc2f3063322eb529913ffacdd77aab6ab2077a630234c6da2ad348020ddcd30e",
+    "generated/Xynolog/Internal/Generated/Models/SdkTelemetryTelemetry.hs": "c7c281933bd5ee8a927c860217a0fe7d14405a641359f8e4f227b1e737f24a80",
     "generated/Xynolog/Internal/Generated/Models/SecretRef.hs": "a3efa723210b726a64ab0cd760a2bcb538a59091e083e073e2aa5641f9d8ce5b",
     "generated/Xynolog/Internal/Generated/Models/Selector.hs": "facd2e941ff4e6db5c0460eaa354d50913194251aab9f4cc42ce8550a4165f79",
     "generated/Xynolog/Internal/Generated/Models/SemanticMatch.hs": "3e57fbafe70b6c9ddea29dd9250e771c062c717058a047ab66f19a31b613bea9",
@@ -437,6 +445,7 @@
     "generated/Xynolog/Internal/Generated/Models/SessionEnded.hs": "51e2a78b8ceef59898677b2755ee8b89ecfbeb006282318272147285e5b87cab",
     "generated/Xynolog/Internal/Generated/Models/SessionJoinedEvent.hs": "9cd34af203e0fd9e71da1e19ec095be5855630504e5af2466b73bad4f0a23cf2",
     "generated/Xynolog/Internal/Generated/Models/SessionLeftEvent.hs": "09727fba1a6a2353531284a253d2b28dcfbabbd84963923cde4148172f219251",
+    "generated/Xynolog/Internal/Generated/Models/SessionOauth.hs": "dc69792e70667bce2be5a0263ec54372ab88835aaf1b0e574da2d970199c5b72",
     "generated/Xynolog/Internal/Generated/Models/Setting.hs": "4f3d5e2743e740b9b352d5a644516b20ec31d9c05e6877270f89038201c9bac4",
     "generated/Xynolog/Internal/Generated/Models/SettingLine.hs": "8ab5d0e74f13256ec377ee83aeff52185e7e17b5376671dc59c6654e023d21e7",
     "generated/Xynolog/Internal/Generated/Models/SettingsGetParams.hs": "c7e21e4f2f35d50a1c0facb2d6bef0d90794167f2b22d2d046d9fa0cd48bf406",
@@ -451,6 +460,7 @@
     "generated/Xynolog/Internal/Generated/Models/SettingsUnsetParams.hs": "5ad39e9e2091c9ec7b8dc81a19d56e0ee1217b39691d3edc9c8cf1f05a2e19ff",
     "generated/Xynolog/Internal/Generated/Models/SignIn.hs": "29f495718be72d36304edb8ff564c4a0497af6495a24d76f3523b9e94acb7bc6",
     "generated/Xynolog/Internal/Generated/Models/SignInOutcome.hs": "f13c14767c4f6b33bfa2c68b978e29362c7e695b76a9ae4b5fc261dc99f6b9f3",
+    "generated/Xynolog/Internal/Generated/Models/SignInStoreOwnerOnly.hs": "bf23a8db3a44d7ee693b5f6ba41e7b28f128681cc0bf507c651593fc18e13a2e",
     "generated/Xynolog/Internal/Generated/Models/SignedIn.hs": "7991c79079cde399abf329f08a38586acb5f22e45c517cfe55172372d9aa9f98",
     "generated/Xynolog/Internal/Generated/Models/SmeltRebuildAnchorsCommand.hs": "501065720308bb1f6c50967388206569d93c8e9b1000cc3fb7813fbc094e73e8",
     "generated/Xynolog/Internal/Generated/Models/SmeltSettled.hs": "30ba63a1a08e0d6cbb39fc087ed0f639bcf8fb3a8c1fa853074763f0b19ae254",
@@ -532,8 +542,8 @@
     "generated/Xynolog/Internal/Generated/OperationReports.hs": "8456e121145825e7e7b06f75e9a1baf6d5deb402218a4c854436f22378540046",
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
-    "generated/Xynolog/Internal/Generated/Required.hs": "141564f3c7cb0f3c95ccede99a7ba370d2656dda8a898f4350f4f323496166df",
-    "generated/Xynolog/Internal/Generated/Schemas.hs": "0532c6835766d06112c0c909ddb73df804a37ebc6845a5e14a18b0ebc4694a06",
+    "generated/Xynolog/Internal/Generated/Required.hs": "af519512ab03c9d0a4153dd7abeb73b4f91c87187ac22a34ae0128e66abef353",
+    "generated/Xynolog/Internal/Generated/Schemas.hs": "7fa7c04525678b07e51ea9ca4ab2ab10071b1bdd4c6e3e8261a20101bbb6fa75",
     "generated/Xynolog/Internal/Generated/SearchState.hs": "d5994a174a2a535cb04661283a500feb97cf4e80783492c2cf390e712b38c0a9",
     "generated/Xynolog/Internal/Generated/ServiceProof.hs": "86e44db90b1ac4a3713f4794f4f1f2f32bdf7eeeb7ad24e12046c050f8acadaf",
     "generated/Xynolog/Internal/Generated/SessionFactoryOptions.hs": "1378c790f4a48832e1a0a938eb64c8759870e4ebf73f2445e8ba81c354334c45",
@@ -668,7 +678,7 @@
     "src/Xynolog/Tokens.hs": "bba264adde2b8a6c123b9e64e99aeae6fd917f9a09f10194684a8daf708bceca",
     "src/Xynolog/Transport.hs": "5f0c95953108daa834e02c580f0ffb49c3d8fb30ad4cf0424ae3b19c500de034",
     "src/Xynolog/Transport/Facts.hs": "b861a07eb1fc5319a56fec2889c08f9fe7d59c43682d5b488d14520377ff08ba",
-    "src/Xynolog/Types.hs": "2a7d02c395756ae149b9938d89e31158044b5d1e7a5564ca009f989a1cef3015",
+    "src/Xynolog/Types.hs": "54a253dc6be33ed8c5cc1aae2a26b7c459b067c61d397deb4d1132c7c647b4fc",
     "src/Xynolog/Worker.hs": "d28b7e18354e537f90e441ef67c2f27335badf807b00947f6cb55a48ef378fea",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
     "xynolog.cabal.in": "de921b517a25d7fdd89123310e389b294dc45796fe2cbf34c329c1529d49ac55"
@@ -3819,12 +3829,120 @@
           "definition": "data Xynolog.Internal.Generated.Models.ClaimOptions.ClaimOptions = ...",
           "kind": "*"
         },
+        "ClientDiscoveryAbsent": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsent = ...",
+          "kind": "*"
+        },
+        "ClientDiscoveryAbsentReasonsItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsentReasonsItem = ...",
+          "kind": "*"
+        },
+        "ClientRefresh": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefresh = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItem = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItemAsks": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItemAsksPer": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPer = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItemAsksPersisted": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPersisted = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItemAsksValue": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksValue = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItemReads": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItemReadsPer": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPer = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItemReadsPersisted": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPersisted = ...",
+          "kind": "*"
+        },
+        "ClientRefreshQueriesItemReadsValue": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsValue = ...",
+          "kind": "*"
+        },
+        "ClientRefreshRefreshItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItem = ...",
+          "kind": "*"
+        },
+        "ClientRefreshRefreshItemOn": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn = ...",
+          "kind": "*"
+        },
+        "ClientRefreshRefreshItemOnNames": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnNames = ...",
+          "kind": "*"
+        },
+        "ClientRefreshRefreshItemOnReach": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnReach = ...",
+          "kind": "*"
+        },
+        "ClientRefreshRefreshItemOnWhen": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnWhen = ...",
+          "kind": "*"
+        },
+        "ClientRefreshRefreshItemStream": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStream = ...",
+          "kind": "*"
+        },
+        "ClientRefreshRefreshItemStreamReach": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamReach = ...",
+          "kind": "*"
+        },
+        "ClientRefreshRefreshItemStreamStream": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamStream = ...",
+          "kind": "*"
+        },
         "ClientSecretForm": {
           "definition": "data Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretForm = ...",
           "kind": "*"
         },
         "ClientSecretFormGrantType": {
           "definition": "data Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretFormGrantType = ...",
+          "kind": "*"
+        },
+        "ClientTesting": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting = ...",
+          "kind": "*"
+        },
+        "ClientTestingDelayMs": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDelayMs = ...",
+          "kind": "*"
+        },
+        "ClientTestingDeliveryOps": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDeliveryOps = ...",
+          "kind": "*"
+        },
+        "ClientTestingFaultActionsItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingFaultActionsItem = ...",
+          "kind": "*"
+        },
+        "ClientTestingRecordsItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingRecordsItem = ...",
+          "kind": "*"
+        },
+        "ClientTestingScheduleLength": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingScheduleLength = ...",
+          "kind": "*"
+        },
+        "ClientTestingSlack": {
+          "definition": "data Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingSlack = ...",
           "kind": "*"
         },
         "CloneResourceWithTokenResponse": {
@@ -4179,6 +4297,42 @@
           "definition": "data Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseRelevantFields = ...",
           "kind": "*"
         },
+        "ControlCli": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCli = ...",
+          "kind": "*"
+        },
+        "ControlCliCommandsValue": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValue = ...",
+          "kind": "*"
+        },
+        "ControlCliCommandsValueFlagsValue": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValue = ...",
+          "kind": "*"
+        },
+        "ControlCliCommandsValueFlagsValueCliOnly": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueCliOnly = ...",
+          "kind": "*"
+        },
+        "ControlCliCommandsValueFlagsValueFields": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueFields = ...",
+          "kind": "*"
+        },
+        "ControlCliCommandsValueFlagsValueMethod": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueMethod = ...",
+          "kind": "*"
+        },
+        "ControlCliCommandsValuePositionalsItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItem = ...",
+          "kind": "*"
+        },
+        "ControlCliCommandsValuePositionalsItemCliOnly": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemCliOnly = ...",
+          "kind": "*"
+        },
+        "ControlCliCommandsValuePositionalsItemFields": {
+          "definition": "data Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemFields = ...",
+          "kind": "*"
+        },
         "CreateAnnotationRequest": {
           "definition": "data Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest = ...",
           "kind": "*"
@@ -4341,6 +4495,90 @@
         },
         "ErrorResponse": {
           "definition": "data Xynolog.Internal.Generated.Models.ErrorResponse.ErrorResponse = ...",
+          "kind": "*"
+        },
+        "ErrorsCodes": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesBusRequest": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequest = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesBusRequestCodesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItem = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesBusRequestCodesItemWire": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItemWire = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesControl": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControl = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesControlCodesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControlCodesItem = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesJob": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJob = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesJobCodesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJobCodesItem = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesKbIdentity": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentity = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesKbIdentityCodesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentityCodesItem = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesSession": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSession = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesSessionCodesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSessionCodesItem = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesSignIn": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignIn = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesSignInCodesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignInCodesItem = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesSpanRefusal": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusal = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesSpanRefusalCodesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusalCodesItem = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesTransport": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransport = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesTransportCodesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItem = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesTransportCodesItemNoStatus": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemNoStatus = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesTransportCodesItemStatus": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatus = ...",
+          "kind": "*"
+        },
+        "ErrorsCodesTransportCodesItemStatusFrom": {
+          "definition": "data Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatusFrom = ...",
           "kind": "*"
         },
         "EventMetadata": {
@@ -4765,6 +5003,26 @@
         },
         "HttpStatus": {
           "definition": "newtype Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus = ...",
+          "kind": "*"
+        },
+        "IdentifiersKinds": {
+          "definition": "data Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKinds = ...",
+          "kind": "*"
+        },
+        "IdentifiersKindsKindsItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItem = ...",
+          "kind": "*"
+        },
+        "IdentifiersKindsKindsItemAcceptsItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemAcceptsItem = ...",
+          "kind": "*"
+        },
+        "IdentifiersKindsKindsItemRefusesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemRefusesItem = ...",
+          "kind": "*"
+        },
+        "IdentifiersKindsOthersItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsOthersItem = ...",
           "kind": "*"
         },
         "IdentityUser": {
@@ -5575,6 +5833,14 @@
           "definition": "data Xynolog.Internal.Generated.Models.MediaTokenResponse.MediaTokenResponse = ...",
           "kind": "*"
         },
+        "MediaTypesRegistry": {
+          "definition": "data Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistry = ...",
+          "kind": "*"
+        },
+        "MediaTypesRegistryMediaTypesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem = ...",
+          "kind": "*"
+        },
         "MemoryGraphConfig": {
           "definition": "data Xynolog.Internal.Generated.Models.MemoryGraphConfig.MemoryGraphConfig = ...",
           "kind": "*"
@@ -5999,6 +6265,50 @@
           "definition": "data Xynolog.Internal.Generated.Models.ScoredResource.ScoredResource = ...",
           "kind": "*"
         },
+        "SdkTelemetryTelemetry": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetry = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetryMetricsItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetryMetricsItemAttributesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItem = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetryMetricsItemInstrument": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemInstrument = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetryMetricsItemTransport": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemTransport = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetrySpansItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetrySpansItemAttributesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItem = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetrySpansItemAttributesItemValuesItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItemValuesItem = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetrySpansItemKind": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind = ...",
+          "kind": "*"
+        },
+        "SdkTelemetryTelemetrySpansItemTransport": {
+          "definition": "data Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemTransport = ...",
+          "kind": "*"
+        },
         "SecretRef": {
           "definition": "data Xynolog.Internal.Generated.Models.SecretRef.SecretRef = ...",
           "kind": "*"
@@ -6215,6 +6525,18 @@
           "definition": "data Xynolog.Internal.Generated.Models.SessionLeftEvent.SessionLeftEvent = ...",
           "kind": "*"
         },
+        "SessionOauth": {
+          "definition": "data Xynolog.Internal.Generated.Models.SessionOauth.SessionOauth = ...",
+          "kind": "*"
+        },
+        "SessionOauthClientsItem": {
+          "definition": "data Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthClientsItem = ...",
+          "kind": "*"
+        },
+        "SessionOauthScopes": {
+          "definition": "data Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthScopes = ...",
+          "kind": "*"
+        },
         "SessionState": {
           "definition": "data Xynolog.Internal.Generated.Models.Session.SessionState = ...",
           "kind": "*"
@@ -6285,6 +6607,26 @@
         },
         "SignInOutcome": {
           "definition": "data Xynolog.Internal.Generated.Models.SignInOutcome.SignInOutcome = ...",
+          "kind": "*"
+        },
+        "SignInStoreOwnerOnly": {
+          "definition": "data Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnly = ...",
+          "kind": "*"
+        },
+        "SignInStoreOwnerOnlyDirectoryAccessList": {
+          "definition": "data Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryAccessList = ...",
+          "kind": "*"
+        },
+        "SignInStoreOwnerOnlyDirectoryMode": {
+          "definition": "data Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryMode = ...",
+          "kind": "*"
+        },
+        "SignInStoreOwnerOnlyFileAccessList": {
+          "definition": "data Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileAccessList = ...",
+          "kind": "*"
+        },
+        "SignInStoreOwnerOnlyFileMode": {
+          "definition": "data Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileMode = ...",
           "kind": "*"
         },
         "SignedIn": {
@@ -7075,8 +7417,41 @@
         "BusSubscribeRequestScopedItem": "Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> [Data.Text.Internal.Text] -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.BusSubscribeRequest.BusSubscribeRequestScopedItem",
         "Cancelled": "Xynolog.Internal.Generated.Models.RequestId.RequestId -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Cancelled.Cancelled",
         "ClaimOptions": "[Xynolog.Internal.Generated.Models.JobFilter.JobFilter] -> Maybe Integer -> Maybe Integer -> Maybe Integer -> Maybe Integer -> Xynolog.Internal.Generated.Models.ClaimOptions.ClaimOptions",
+        "ClientDiscoveryAbsent": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsentReasonsItem] -> Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsent",
+        "ClientDiscoveryAbsentReasonsItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsentReasonsItem",
+        "ClientRefresh": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItem] -> [Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItem] -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefresh",
+        "ClientRefreshQueriesItemAsks": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItem",
+        "ClientRefreshQueriesItemAsksPerAnnotation": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPer",
+        "ClientRefreshQueriesItemAsksPerFilters": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPer",
+        "ClientRefreshQueriesItemAsksPerResource": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPer",
+        "ClientRefreshQueriesItemAsksPersistedTrue": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPersisted",
+        "ClientRefreshQueriesItemAsksValue": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksValue",
+        "ClientRefreshQueriesItemReads": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItem",
+        "ClientRefreshQueriesItemReadsPerAnnotation": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPer",
+        "ClientRefreshQueriesItemReadsPerFilters": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPer",
+        "ClientRefreshQueriesItemReadsPerResource": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPer",
+        "ClientRefreshQueriesItemReadsPersistedTrue": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPersisted",
+        "ClientRefreshQueriesItemReadsValue": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsValue",
+        "ClientRefreshRefreshItemOn": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItem",
+        "ClientRefreshRefreshItemOnNames": "Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnNames",
+        "ClientRefreshRefreshItemOnReachHeld": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnReach",
+        "ClientRefreshRefreshItemOnReachSubject": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnReach",
+        "ClientRefreshRefreshItemOnWhenEnriched": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnWhen",
+        "ClientRefreshRefreshItemOnWhenUnenriched": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnWhen",
+        "ClientRefreshRefreshItemStream": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStream -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItem",
+        "ClientRefreshRefreshItemStreamReachHeld": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamReach",
+        "ClientRefreshRefreshItemStreamReachSubject": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamReach",
+        "ClientRefreshRefreshItemStreamStreamReopened": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamStream",
+        "ClientRefreshRefreshItemStreamStreamUnreadable": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamStream",
         "ClientSecretForm": "Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretFormGrantType -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretForm",
         "ClientSecretFormGrantTypeClientCredentials": "Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretFormGrantType",
+        "ClientTesting": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingFaultActionsItem] -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDelayMs -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingScheduleLength -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingSlack -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDeliveryOps -> [Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingRecordsItem] -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting",
+        "ClientTestingDelayMs": "Data.Text.Internal.Text -> Integer -> Integer -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDelayMs",
+        "ClientTestingDeliveryOps": "Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDeliveryOps",
+        "ClientTestingFaultActionsItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingFaultActionsItem",
+        "ClientTestingRecordsItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingRecordsItem",
+        "ClientTestingScheduleLength": "Data.Text.Internal.Text -> Integer -> Integer -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingScheduleLength",
+        "ClientTestingSlack": "Data.Text.Internal.Text -> Integer -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingSlack",
         "CloneResourceWithTokenResponse": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor -> Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponse.CloneResourceWithTokenResponse",
         "CloneResourceWithTokenResponseBusEnvelope": "Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponse.CloneResourceWithTokenResponse -> Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponseBusEnvelope.CloneResourceWithTokenResponseBusEnvelope",
         "CommandError": "Maybe Xynolog.Internal.Generated.Models.CommandError.CommandErrorCode -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.CommandError.CommandError",
@@ -7205,6 +7580,13 @@
         "ContextualSummaryResponseBusEnvelope": "Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponse -> Xynolog.Internal.Generated.Models.ContextualSummaryResponseBusEnvelope.ContextualSummaryResponseBusEnvelope",
         "ContextualSummaryResponseContext": "Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseContext",
         "ContextualSummaryResponseRelevantFields": "Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseRelevantFields",
+        "ControlCli": "Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValue -> Xynolog.Internal.Generated.Models.ControlCli.ControlCli",
+        "ControlCliCommandsValue": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe [Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItem] -> Data.Aeson.KeyMap.KeyMap Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValue -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValue",
+        "ControlCliCommandsValueFlagsValueCliOnly": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueCliOnly -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValue",
+        "ControlCliCommandsValueFlagsValueFields": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueFields -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValue",
+        "ControlCliCommandsValueFlagsValueMethod": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueMethod -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValue",
+        "ControlCliCommandsValuePositionalsItemCliOnly": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemCliOnly -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItem",
+        "ControlCliCommandsValuePositionalsItemFields": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemFields -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItem",
         "CreateAnnotationRequest": "Xynolog.Internal.Generated.Models.Motivation.Motivation -> Xynolog.Internal.Generated.Models.AnnotationTarget.AnnotationTarget -> Maybe Xynolog.Internal.Generated.Models.AnnotationBodies.AnnotationBodies -> Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest",
         "CreateFromTokenOptions": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Bool -> Xynolog.Internal.Generated.Models.CreateFromTokenOptions.CreateFromTokenOptions",
         "CreateResourceResponse": "Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse",
@@ -7261,6 +7643,29 @@
         "EphemeralEventId": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.EphemeralEventId.EphemeralEventId",
         "ErrorData": "Data.Text.Internal.Text -> Bool -> Maybe [Xynolog.Internal.Generated.Models.FieldFault.FieldFault] -> Maybe [Xynolog.Internal.Generated.Models.Target.Target] -> Maybe [Data.Text.Internal.Text] -> Maybe Bool -> Xynolog.Internal.Generated.Models.ErrorData.ErrorData",
         "ErrorResponse": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.ErrorResponse.ErrorResponse",
+        "ErrorsCodes": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequest -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransport -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJob -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSession -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignIn -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentity -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusal -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControl -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes",
+        "ErrorsCodesBusRequest": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItem] -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequest",
+        "ErrorsCodesBusRequestCodesItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItemWire -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItem",
+        "ErrorsCodesBusRequestCodesItemWireNonePending": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItemWire",
+        "ErrorsCodesBusRequestCodesItemWireNotFound": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItemWire",
+        "ErrorsCodesBusRequestCodesItemWirePeerUnavailable": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItemWire",
+        "ErrorsCodesBusRequestCodesItemWireUnauthorized": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItemWire",
+        "ErrorsCodesControl": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControlCodesItem] -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControl",
+        "ErrorsCodesControlCodesItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControlCodesItem",
+        "ErrorsCodesJob": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJobCodesItem] -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJob",
+        "ErrorsCodesJobCodesItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJobCodesItem",
+        "ErrorsCodesKbIdentity": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentityCodesItem] -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentity",
+        "ErrorsCodesKbIdentityCodesItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentityCodesItem",
+        "ErrorsCodesSession": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSessionCodesItem] -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSession",
+        "ErrorsCodesSessionCodesItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSessionCodesItem",
+        "ErrorsCodesSignIn": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignInCodesItem] -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignIn",
+        "ErrorsCodesSignInCodesItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignInCodesItem",
+        "ErrorsCodesSpanRefusal": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusalCodesItem] -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusal",
+        "ErrorsCodesSpanRefusalCodesItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusalCodesItem",
+        "ErrorsCodesTransport": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItem] -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransport",
+        "ErrorsCodesTransportCodesItemNoStatus": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemNoStatus -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItem",
+        "ErrorsCodesTransportCodesItemStatus": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatus -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItem",
+        "ErrorsCodesTransportCodesItemStatusFrom": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatusFrom -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItem",
         "EventMetadata": "Integer -> Xynolog.Internal.Generated.Models.EventMetadata.EventMetadata",
         "Expected": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Expected.Expected",
         "ExtractedText": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.PdfTextItem.PdfTextItem] -> Xynolog.Internal.Generated.Models.ExtractedText.ExtractedTextKind -> Xynolog.Internal.Generated.Models.ExtractionMethod.ExtractionMethod -> Maybe Xynolog.Internal.Generated.Models.PdfClass.PdfClass -> Maybe Xynolog.Internal.Generated.Models.OcrConfidence.OcrConfidence -> Maybe [Integer] -> Xynolog.Internal.Generated.Models.ExtractedText.ExtractedText",
@@ -7385,6 +7790,11 @@
         "HttpEndpointProtocolHttp": "Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpointProtocol",
         "HttpEndpointProtocolHttps": "Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpointProtocol",
         "HttpStatus": "Integer -> Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus",
+        "IdentifiersKinds": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItem] -> [Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsOthersItem] -> Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKinds",
+        "IdentifiersKindsKindsItem": "Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> [Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemAcceptsItem] -> [Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemRefusesItem] -> Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItem",
+        "IdentifiersKindsKindsItemAcceptsItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemAcceptsItem",
+        "IdentifiersKindsKindsItemRefusesItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemRefusesItem",
+        "IdentifiersKindsOthersItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsOthersItem",
         "IdentityUser": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Bool -> Xynolog.Internal.Generated.Models.IdentityUser.IdentityUser",
         "IdentityUseraddParams": "Xynolog.Internal.Generated.Models.ApiVersion.ApiVersion -> Xynolog.Internal.Generated.Models.LocalTarget.LocalTarget -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Bool -> Xynolog.Internal.Generated.Models.IdentityUseraddParams.IdentityUseraddParams",
         "IdentityUseraddResult": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Bool -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.IdentityUseraddResult.IdentityUseraddResult",
@@ -7641,6 +8051,8 @@
         "MatchSearchResult": "Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> [Xynolog.Internal.Generated.Models.ScoredResource.ScoredResource] -> Xynolog.Internal.Generated.Models.MatchSearchResult.MatchSearchResult",
         "MediaTokenRequest": "Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Xynolog.Internal.Generated.Models.MediaTokenRequest.MediaTokenRequest",
         "MediaTokenResponse": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.MediaTokenResponse.MediaTokenResponse",
+        "MediaTypesRegistry": "Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> [Data.Text.Internal.Text] -> [Data.Text.Internal.Text] -> Data.Aeson.KeyMap.KeyMap Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem] -> Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistry",
+        "MediaTypesRegistryMediaTypesItem": "Xynolog.Internal.Generated.Models.SupportedMediaType.SupportedMediaType -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Bool -> Bool -> Bool -> Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem",
         "MemoryGraphConfig": "Xynolog.Internal.Generated.Models.MemoryGraphConfig.MemoryGraphConfigType -> Xynolog.Internal.Generated.Models.MemoryGraphConfig.MemoryGraphConfig",
         "MemoryGraphConfigTypeMemory": "Xynolog.Internal.Generated.Models.MemoryGraphConfig.MemoryGraphConfigType",
         "MemoryVectorsConfig": "Xynolog.Internal.Generated.Models.MemoryVectorsConfig.MemoryVectorsConfigType -> Xynolog.Internal.Generated.Models.MemoryVectorsConfig.MemoryVectorsConfig",
@@ -7648,6 +8060,10 @@
         "Metadata": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe (Data.Aeson.KeyMap.KeyMap Data.Text.Internal.Text) -> Maybe (Data.Aeson.KeyMap.KeyMap Data.Text.Internal.Text) -> Xynolog.Internal.Generated.Models.Metadata.Metadata",
         "MkBusReplyBoundsRepliesValueValueBy": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.BusReplyBounds.BusReplyBoundsRepliesValueValueBy",
         "MkBusReplyBoundsRepliesValueValueGrows": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.BusReplyBounds.BusReplyBoundsRepliesValueValueGrows",
+        "MkClientRefreshQueriesItemAsks": "Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPer -> Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPersisted -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksValue -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks",
+        "MkClientRefreshQueriesItemReads": "Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPer -> Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPersisted -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsValue -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads",
+        "MkClientRefreshRefreshItemOn": "Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnWhen -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnReach -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnNames -> Maybe Data.Text.Internal.Text -> Maybe [Data.Text.Internal.Text] -> Maybe [Data.Text.Internal.Text] -> Maybe [Data.Text.Internal.Text] -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn",
+        "MkClientRefreshRefreshItemStream": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamStream -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamReach -> Maybe [Data.Text.Internal.Text] -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStream",
         "MkConformanceDriverLineAbandoned": "Integer -> Xynolog.Internal.Generated.Models.ConformanceDriverLine.ConformanceDriverLineAbandonedAbandoned -> Xynolog.Internal.Generated.Models.ConformanceDriverLine.ConformanceDriverLineAbandoned",
         "MkConformanceDriverLineClaimed": "Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.ConformanceDriverLine.ConformanceDriverLineClaimed",
         "MkConformanceDriverLineCompleted": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ConformanceDriverLine.ConformanceDriverLineCompleted",
@@ -7693,6 +8109,14 @@
         "MkConformanceStepState": "Xynolog.Internal.Generated.Models.ConformanceStep.ConformanceStepStateState -> Xynolog.Internal.Generated.Models.ConformanceStep.ConformanceStepState",
         "MkConformanceStepStays": "Xynolog.Internal.Generated.Models.ConformanceStep.ConformanceStepStaysStays -> Xynolog.Internal.Generated.Models.ConformanceStep.ConformanceStepStays",
         "MkConformanceStepWire": "Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ConformanceStep.ConformanceStepWireAt -> Maybe Integer -> Maybe Data.Aeson.Types.Internal.Value -> Maybe Data.Aeson.Types.Internal.Value -> Maybe Data.Aeson.Types.Internal.Value -> Maybe (Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value) -> Maybe Data.Aeson.Types.Internal.Value -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ConformanceStep.ConformanceStepWire",
+        "MkControlCliCommandsValueFlagsValueCliOnly": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueCliOnly",
+        "MkControlCliCommandsValueFlagsValueFields": "[Data.Text.Internal.Text] -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueFields",
+        "MkControlCliCommandsValueFlagsValueMethod": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueMethod",
+        "MkControlCliCommandsValuePositionalsItemCliOnly": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemCliOnly",
+        "MkControlCliCommandsValuePositionalsItemFields": "Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemFields",
+        "MkErrorsCodesTransportCodesItemNoStatus": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemNoStatus",
+        "MkErrorsCodesTransportCodesItemStatus": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatus",
+        "MkErrorsCodesTransportCodesItemStatusFrom": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatusFrom",
         "MkGatheredContextFocusAnnotation": "Xynolog.Internal.Generated.Models.GatheredContext.GatheredContextFocusAnnotationKind -> Xynolog.Internal.Generated.Models.Annotation.Annotation -> Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor -> Maybe Xynolog.Internal.Generated.Models.GatheredContext.GatheredContextFocusAnnotationSelected -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor -> Maybe Xynolog.Internal.Generated.Models.GatheredContext.GatheredContextFocusAnnotationTargetContext -> Xynolog.Internal.Generated.Models.GatheredContext.GatheredContextFocusAnnotation",
         "MkGatheredContextFocusResource": "Xynolog.Internal.Generated.Models.GatheredContext.GatheredContextFocusResourceKind -> Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor -> Maybe Data.Text.Internal.Text -> Maybe [Data.Text.Internal.Text] -> Maybe Xynolog.Internal.Generated.Models.GatheredContext.GatheredContextFocusResourceContent -> Xynolog.Internal.Generated.Models.GatheredContext.GatheredContextFocusResource",
         "MkJobStoredProgressEmpty": "Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.JobStoredProgress.JobStoredProgressEmpty",
@@ -7856,6 +8280,28 @@
         "RuntimePodman": "Xynolog.Internal.Generated.Models.Runtime.Runtime",
         "RuntimeState": "Xynolog.Internal.Generated.Models.Runtime.Runtime -> Bool -> Xynolog.Internal.Generated.Models.RuntimeState.RuntimeState",
         "ScoredResource": "Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptorContext -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Xynolog.Internal.Generated.Models.OneOrMoreStrings.OneOrMoreStrings -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptorIdentifier -> Maybe Xynolog.Internal.Generated.Models.OneOrMoreStrings.OneOrMoreStrings -> Maybe [Data.Text.Internal.Text] -> Maybe [Data.Text.Internal.Text] -> Maybe [Data.Text.Internal.Text] -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptorWasDerivedFrom -> Maybe Xynolog.Internal.Generated.Models.OneOrMoreAgents.OneOrMoreAgents -> Maybe Xynolog.Internal.Generated.Models.OneOrMoreAgents.OneOrMoreAgents -> Maybe Xynolog.Internal.Generated.Models.OneOrMoreUris.OneOrMoreUris -> Maybe [Data.Text.Internal.Text] -> Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptorRepresentations -> Maybe Bool -> Maybe [Data.Text.Internal.Text] -> Maybe Bool -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Data.Text.Internal.Text -> Maybe Data.Scientific.Scientific -> Maybe Data.Text.Internal.Text -> Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.ScoredResource.ScoredResource",
+        "SdkTelemetryTelemetry": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem] -> [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem] -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetry",
+        "SdkTelemetryTelemetryMetricsItem": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemTransport -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemInstrument -> Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItem] -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem",
+        "SdkTelemetryTelemetryMetricsItemAttributesItem": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem] -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItem",
+        "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean": "Bool -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem",
+        "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem",
+        "SdkTelemetryTelemetryMetricsItemInstrumentCounter": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemInstrument",
+        "SdkTelemetryTelemetryMetricsItemInstrumentGauge": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemInstrument",
+        "SdkTelemetryTelemetryMetricsItemInstrumentHistogram": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemInstrument",
+        "SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemInstrument",
+        "SdkTelemetryTelemetryMetricsItemTransportBus": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemTransport",
+        "SdkTelemetryTelemetryMetricsItemTransportContent": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemTransport",
+        "SdkTelemetryTelemetrySpansItem": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemTransport -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind -> Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItem] -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem",
+        "SdkTelemetryTelemetrySpansItemAttributesItem": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItemValuesItem] -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItem",
+        "SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean": "Bool -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItemValuesItem",
+        "SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItemValuesItem",
+        "SdkTelemetryTelemetrySpansItemKindClient": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind",
+        "SdkTelemetryTelemetrySpansItemKindConsumer": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind",
+        "SdkTelemetryTelemetrySpansItemKindInternal": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind",
+        "SdkTelemetryTelemetrySpansItemKindProducer": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind",
+        "SdkTelemetryTelemetrySpansItemKindServer": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind",
+        "SdkTelemetryTelemetrySpansItemTransportBus": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemTransport",
+        "SdkTelemetryTelemetrySpansItemTransportContent": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemTransport",
         "SecretRef": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SecretRef.SecretRef",
         "SelectorFragmentSelector": "Xynolog.Internal.Generated.Models.FragmentSelector.FragmentSelector -> Xynolog.Internal.Generated.Models.Selector.Selector",
         "SelectorSvgSelector": "Xynolog.Internal.Generated.Models.SvgSelector.SvgSelector -> Xynolog.Internal.Generated.Models.Selector.Selector",
@@ -7976,6 +8422,9 @@
         "SessionEnded": "Xynolog.Internal.Generated.Models.SessionEndReason.SessionEndReason -> Xynolog.Internal.Generated.Models.SessionEnded.SessionEnded",
         "SessionJoinedEvent": "Xynolog.Internal.Generated.Models.UserId.UserId -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SessionJoinedEvent.SessionJoinedEvent",
         "SessionLeftEvent": "Xynolog.Internal.Generated.Models.UserId.UserId -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SessionLeftEvent.SessionLeftEvent",
+        "SessionOauth": "Data.Text.Internal.Text -> [Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthClientsItem] -> Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthScopes -> Xynolog.Internal.Generated.Models.SessionOauth.SessionOauth",
+        "SessionOauthClientsItem": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthClientsItem",
+        "SessionOauthScopes": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthScopes",
         "SessionStateExpired": "Xynolog.Internal.Generated.Models.Session.SessionState",
         "SessionStateNone": "Xynolog.Internal.Generated.Models.Session.SessionState",
         "SessionStateUnverified": "Xynolog.Internal.Generated.Models.Session.SessionState",
@@ -8003,6 +8452,11 @@
         "SettingsUnsetParams": "Xynolog.Internal.Generated.Models.ApiVersion.ApiVersion -> Data.Text.Internal.Text -> Maybe Bool -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SettingsUnsetParams.SettingsUnsetParams",
         "SignIn": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SignIn.SignIn",
         "SignInOutcome": "Xynolog.Internal.Generated.Models.KnowledgeBase.KnowledgeBase -> Maybe Xynolog.Internal.Generated.Models.Expected.Expected -> Xynolog.Internal.Generated.Models.SignInOutcome.SignInOutcome",
+        "SignInStoreOwnerOnly": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryMode -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileMode -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryAccessList -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileAccessList -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnly",
+        "SignInStoreOwnerOnlyDirectoryAccessList": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryAccessList",
+        "SignInStoreOwnerOnlyDirectoryMode": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryMode",
+        "SignInStoreOwnerOnlyFileAccessList": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileAccessList",
+        "SignInStoreOwnerOnlyFileMode": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileMode",
         "SignedIn": "Xynolog.Internal.Generated.Models.KbEndpoint.KbEndpoint -> Xynolog.Internal.Generated.Models.KbDescription.KbDescription -> Xynolog.Internal.Generated.Models.StoredSession.StoredSession -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SignedIn.SignedIn",
         "SmeltRebuildAnchorsCommand": "Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Xynolog.Internal.Generated.Models.UserId.UserId -> Xynolog.Internal.Generated.Models.SmeltRebuildAnchorsCommand.SmeltRebuildAnchorsCommand",
         "SmeltSettled": "Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.SmeltSettled.SmeltSettledOutcome -> Maybe Xynolog.Internal.Generated.Models.SmeltSettled.SmeltSettledReason -> Xynolog.Internal.Generated.Models.SmeltSettled.SmeltSettled",
@@ -8604,10 +9058,76 @@
         "claimOptionsHeldJobStallMs": "Xynolog.Internal.Generated.Models.ClaimOptions.ClaimOptions -> Maybe Integer",
         "claimOptionsJobClaimTimeoutMs": "Xynolog.Internal.Generated.Models.ClaimOptions.ClaimOptions -> Maybe Integer",
         "claimOptionsMarkCommitTimeoutMs": "Xynolog.Internal.Generated.Models.ClaimOptions.ClaimOptions -> Maybe Integer",
+        "clientDiscoveryAbsentComment": "Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsent -> Data.Text.Internal.Text",
+        "clientDiscoveryAbsentReasons": "Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsent -> [Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsentReasonsItem]",
+        "clientDiscoveryAbsentReasonsItemDocs": "Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsentReasonsItem -> Data.Text.Internal.Text",
+        "clientDiscoveryAbsentReasonsItemReason": "Xynolog.Internal.Generated.Models.ClientDiscoveryAbsent.ClientDiscoveryAbsentReasonsItem -> Data.Text.Internal.Text",
+        "clientRefreshComment": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefresh -> Data.Text.Internal.Text",
+        "clientRefreshQueries": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefresh -> [Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItem]",
+        "clientRefreshQueriesItemAsksAsks": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemAsksDocs": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemAsksName": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemAsksPer": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPer",
+        "clientRefreshQueriesItemAsksPerText": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPer -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemAsksPersisted": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksPersisted",
+        "clientRefreshQueriesItemAsksValue": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsks -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksValue",
+        "clientRefreshQueriesItemAsksValueRef": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemAsksValue -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemReadsDocs": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemReadsName": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemReadsPer": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPer",
+        "clientRefreshQueriesItemReadsPerText": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPer -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemReadsPersisted": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsPersisted",
+        "clientRefreshQueriesItemReadsReads": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads -> Data.Text.Internal.Text",
+        "clientRefreshQueriesItemReadsValue": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReads -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsValue",
+        "clientRefreshQueriesItemReadsValueRef": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshQueriesItemReadsValue -> Data.Text.Internal.Text",
+        "clientRefreshRefresh": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefresh -> [Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItem]",
+        "clientRefreshRefreshItemOnCarries": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Maybe Data.Text.Internal.Text",
+        "clientRefreshRefreshItemOnDocs": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Data.Text.Internal.Text",
+        "clientRefreshRefreshItemOnNames": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnNames",
+        "clientRefreshRefreshItemOnNamesAnnotation": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnNames -> Maybe Data.Text.Internal.Text",
+        "clientRefreshRefreshItemOnNamesResource": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnNames -> Maybe Data.Text.Internal.Text",
+        "clientRefreshRefreshItemOnOn": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Data.Text.Internal.Text",
+        "clientRefreshRefreshItemOnReach": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnReach",
+        "clientRefreshRefreshItemOnReachText": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnReach -> Data.Text.Internal.Text",
+        "clientRefreshRefreshItemOnRefetches": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Maybe [Data.Text.Internal.Text]",
+        "clientRefreshRefreshItemOnRemoves": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Maybe [Data.Text.Internal.Text]",
+        "clientRefreshRefreshItemOnWhen": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnWhen",
+        "clientRefreshRefreshItemOnWhenText": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOnWhen -> Data.Text.Internal.Text",
+        "clientRefreshRefreshItemOnWrites": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemOn -> Maybe [Data.Text.Internal.Text]",
+        "clientRefreshRefreshItemStreamDocs": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStream -> Data.Text.Internal.Text",
+        "clientRefreshRefreshItemStreamReach": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStream -> Maybe Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamReach",
+        "clientRefreshRefreshItemStreamReachText": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamReach -> Data.Text.Internal.Text",
+        "clientRefreshRefreshItemStreamRefetches": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStream -> Maybe [Data.Text.Internal.Text]",
+        "clientRefreshRefreshItemStreamStream": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStream -> Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamStream",
+        "clientRefreshRefreshItemStreamStreamText": "Xynolog.Internal.Generated.Models.ClientRefresh.ClientRefreshRefreshItemStreamStream -> Data.Text.Internal.Text",
         "clientSecretFormClientId": "Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretForm -> Data.Text.Internal.Text",
         "clientSecretFormClientSecret": "Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretForm -> Data.Text.Internal.Text",
         "clientSecretFormGrantType": "Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretForm -> Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretFormGrantType",
         "clientSecretFormGrantTypeText": "Xynolog.Internal.Generated.Models.ClientSecretForm.ClientSecretFormGrantType -> Data.Text.Internal.Text",
+        "clientTestingComment": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting -> Data.Text.Internal.Text",
+        "clientTestingDelayMs": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDelayMs",
+        "clientTestingDelayMsDocs": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDelayMs -> Data.Text.Internal.Text",
+        "clientTestingDelayMsMaximum": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDelayMs -> Integer",
+        "clientTestingDelayMsMinimum": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDelayMs -> Integer",
+        "clientTestingDeliveryOps": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDeliveryOps",
+        "clientTestingDeliveryOpsDocs": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDeliveryOps -> Data.Text.Internal.Text",
+        "clientTestingDeliveryOpsOps": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingDeliveryOps -> [Data.Text.Internal.Text]",
+        "clientTestingFaultActions": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting -> [Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingFaultActionsItem]",
+        "clientTestingFaultActionsItemDocs": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingFaultActionsItem -> Data.Text.Internal.Text",
+        "clientTestingFaultActionsItemHolds": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingFaultActionsItem -> [Data.Text.Internal.Text]",
+        "clientTestingFaultActionsItemKind": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingFaultActionsItem -> Data.Text.Internal.Text",
+        "clientTestingFaultActionsItemName": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingFaultActionsItem -> Data.Text.Internal.Text",
+        "clientTestingRecords": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting -> [Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingRecordsItem]",
+        "clientTestingRecordsItemDocs": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingRecordsItem -> Data.Text.Internal.Text",
+        "clientTestingRecordsItemMembers": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingRecordsItem -> [Data.Text.Internal.Text]",
+        "clientTestingRecordsItemName": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingRecordsItem -> Data.Text.Internal.Text",
+        "clientTestingScheduleLength": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingScheduleLength",
+        "clientTestingScheduleLengthDocs": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingScheduleLength -> Data.Text.Internal.Text",
+        "clientTestingScheduleLengthMaximum": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingScheduleLength -> Integer",
+        "clientTestingScheduleLengthMinimum": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingScheduleLength -> Integer",
+        "clientTestingSlack": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTesting -> Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingSlack",
+        "clientTestingSlackDocs": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingSlack -> Data.Text.Internal.Text",
+        "clientTestingSlackTimes": "Xynolog.Internal.Generated.Models.ClientTesting.ClientTestingSlack -> Integer",
         "cloneResourceWithTokenResponseBusEnvelopeResponse": "Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponseBusEnvelope.CloneResourceWithTokenResponseBusEnvelope -> Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponse.CloneResourceWithTokenResponse",
         "cloneResourceWithTokenResponseExpiresAt": "Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponse.CloneResourceWithTokenResponse -> Data.Text.Internal.Text",
         "cloneResourceWithTokenResponseResource": "Xynolog.Internal.Generated.Models.CloneResourceWithTokenResponse.CloneResourceWithTokenResponse -> Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor",
@@ -8761,6 +9281,20 @@
         "contextualSummaryResponseRelevantFieldsResourceId": "Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseRelevantFields -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId",
         "contextualSummaryResponseRelevantFieldsResourceName": "Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponseRelevantFields -> Data.Text.Internal.Text",
         "contextualSummaryResponseSummary": "Xynolog.Internal.Generated.Models.ContextualSummaryResponse.ContextualSummaryResponse -> Data.Text.Internal.Text",
+        "controlCliCommands": "Xynolog.Internal.Generated.Models.ControlCli.ControlCli -> Data.Aeson.KeyMap.KeyMap Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValue",
+        "controlCliCommandsValueFlags": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValue -> Data.Aeson.KeyMap.KeyMap Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValue",
+        "controlCliCommandsValueFlagsValueCliOnlyCliOnly": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueCliOnly -> Data.Text.Internal.Text",
+        "controlCliCommandsValueFlagsValueFieldsFields": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueFields -> [Data.Text.Internal.Text]",
+        "controlCliCommandsValueFlagsValueFieldsNotes": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueFields -> Maybe Data.Text.Internal.Text",
+        "controlCliCommandsValueFlagsValueMethodMethod": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValueFlagsValueMethod -> Data.Text.Internal.Text",
+        "controlCliCommandsValueMethod": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValue -> Data.Text.Internal.Text",
+        "controlCliCommandsValueParser": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValue -> Data.Text.Internal.Text",
+        "controlCliCommandsValuePositionals": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValue -> Maybe [Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItem]",
+        "controlCliCommandsValuePositionalsItemCliOnlyCliOnly": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemCliOnly -> Data.Text.Internal.Text",
+        "controlCliCommandsValuePositionalsItemCliOnlyName": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemCliOnly -> Data.Text.Internal.Text",
+        "controlCliCommandsValuePositionalsItemFieldsFields": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemFields -> [Data.Text.Internal.Text]",
+        "controlCliCommandsValuePositionalsItemFieldsName": "Xynolog.Internal.Generated.Models.ControlCli.ControlCliCommandsValuePositionalsItemFields -> Data.Text.Internal.Text",
+        "controlCliComment": "Xynolog.Internal.Generated.Models.ControlCli.ControlCli -> Data.Text.Internal.Text",
         "createAnnotationRequestBody": "Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest -> Maybe Xynolog.Internal.Generated.Models.AnnotationBodies.AnnotationBodies",
         "createAnnotationRequestMotivation": "Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest -> Xynolog.Internal.Generated.Models.Motivation.Motivation",
         "createAnnotationRequestTarget": "Xynolog.Internal.Generated.Models.CreateAnnotationRequest.CreateAnnotationRequest -> Xynolog.Internal.Generated.Models.AnnotationTarget.AnnotationTarget",
@@ -8868,6 +9402,57 @@
         "errorResponseDetails": "Xynolog.Internal.Generated.Models.ErrorResponse.ErrorResponse -> Maybe Data.Aeson.Types.Internal.Value",
         "errorResponseError": "Xynolog.Internal.Generated.Models.ErrorResponse.ErrorResponse -> Data.Text.Internal.Text",
         "errorResponseHint": "Xynolog.Internal.Generated.Models.ErrorResponse.ErrorResponse -> Maybe Data.Text.Internal.Text",
+        "errorsCodesBusRequest": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequest",
+        "errorsCodesBusRequestCodes": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequest -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItem]",
+        "errorsCodesBusRequestCodesItemCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesBusRequestCodesItemDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesBusRequestCodesItemWire": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItem -> Maybe Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItemWire",
+        "errorsCodesBusRequestCodesItemWireText": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequestCodesItemWire -> Data.Text.Internal.Text",
+        "errorsCodesBusRequestDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequest -> Data.Text.Internal.Text",
+        "errorsCodesBusRequestUnrecognizedFailure": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesBusRequest -> Data.Text.Internal.Text",
+        "errorsCodesComment": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Data.Text.Internal.Text",
+        "errorsCodesControl": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControl",
+        "errorsCodesControlCodes": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControl -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControlCodesItem]",
+        "errorsCodesControlCodesItemCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControlCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesControlCodesItemDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControlCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesControlDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesControl -> Data.Text.Internal.Text",
+        "errorsCodesJob": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJob",
+        "errorsCodesJobCodes": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJob -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJobCodesItem]",
+        "errorsCodesJobCodesItemCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJobCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesJobCodesItemDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJobCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesJobDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesJob -> Data.Text.Internal.Text",
+        "errorsCodesKbIdentity": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentity",
+        "errorsCodesKbIdentityCodes": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentity -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentityCodesItem]",
+        "errorsCodesKbIdentityCodesItemCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentityCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesKbIdentityCodesItemDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentityCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesKbIdentityDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesKbIdentity -> Data.Text.Internal.Text",
+        "errorsCodesSession": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSession",
+        "errorsCodesSessionCodes": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSession -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSessionCodesItem]",
+        "errorsCodesSessionCodesItemCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSessionCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesSessionCodesItemDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSessionCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesSessionDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSession -> Data.Text.Internal.Text",
+        "errorsCodesSignIn": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignIn",
+        "errorsCodesSignInCodes": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignIn -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignInCodesItem]",
+        "errorsCodesSignInCodesItemCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignInCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesSignInCodesItemDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignInCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesSignInDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSignIn -> Data.Text.Internal.Text",
+        "errorsCodesSpanRefusal": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusal",
+        "errorsCodesSpanRefusalCodes": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusal -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusalCodesItem]",
+        "errorsCodesSpanRefusalCodesItemCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusalCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesSpanRefusalCodesItemDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusalCodesItem -> Data.Text.Internal.Text",
+        "errorsCodesSpanRefusalDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesSpanRefusal -> Data.Text.Internal.Text",
+        "errorsCodesTransport": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodes -> Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransport",
+        "errorsCodesTransportCodes": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransport -> [Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItem]",
+        "errorsCodesTransportCodesItemNoStatusCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemNoStatus -> Data.Text.Internal.Text",
+        "errorsCodesTransportCodesItemNoStatusDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemNoStatus -> Data.Text.Internal.Text",
+        "errorsCodesTransportCodesItemStatusCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatus -> Data.Text.Internal.Text",
+        "errorsCodesTransportCodesItemStatusDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatus -> Data.Text.Internal.Text",
+        "errorsCodesTransportCodesItemStatusFromCode": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatusFrom -> Data.Text.Internal.Text",
+        "errorsCodesTransportCodesItemStatusFromDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatusFrom -> Data.Text.Internal.Text",
+        "errorsCodesTransportCodesItemStatusFromStatusFrom": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatusFrom -> Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus",
+        "errorsCodesTransportCodesItemStatusStatus": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransportCodesItemStatus -> Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus",
+        "errorsCodesTransportDocs": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransport -> Data.Text.Internal.Text",
+        "errorsCodesTransportUnclassified": "Xynolog.Internal.Generated.Models.ErrorsCodes.ErrorsCodesTransport -> Data.Text.Internal.Text",
         "eventMetadataSequenceNumber": "Xynolog.Internal.Generated.Models.EventMetadata.EventMetadata -> Integer",
         "expectedDid": "Xynolog.Internal.Generated.Models.Expected.Expected -> Data.Text.Internal.Text",
         "expectedName": "Xynolog.Internal.Generated.Models.Expected.Expected -> Maybe Data.Text.Internal.Text",
@@ -9166,6 +9751,19 @@
         "httpEndpointProtocol": "Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpoint -> Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpointProtocol",
         "httpEndpointProtocolText": "Xynolog.Internal.Generated.Models.HttpEndpoint.HttpEndpointProtocol -> Data.Text.Internal.Text",
         "httpStatusValue": "Xynolog.Internal.Generated.Models.HttpStatus.HttpStatus -> Integer",
+        "identifiersKindsComment": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKinds -> Data.Text.Internal.Text",
+        "identifiersKindsKinds": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKinds -> [Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItem]",
+        "identifiersKindsKindsItemAccepts": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItem -> [Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemAcceptsItem]",
+        "identifiersKindsKindsItemAcceptsItemId": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemAcceptsItem -> Data.Text.Internal.Text",
+        "identifiersKindsKindsItemAcceptsItemWhy": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemAcceptsItem -> Data.Text.Internal.Text",
+        "identifiersKindsKindsItemProperties": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItem -> [Data.Text.Internal.Text]",
+        "identifiersKindsKindsItemRefuses": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItem -> [Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemRefusesItem]",
+        "identifiersKindsKindsItemRefusesItemId": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemRefusesItem -> Data.Text.Internal.Text",
+        "identifiersKindsKindsItemRefusesItemWhy": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItemRefusesItem -> Data.Text.Internal.Text",
+        "identifiersKindsKindsItemSchema": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsKindsItem -> Data.Text.Internal.Text",
+        "identifiersKindsOthers": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKinds -> [Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsOthersItem]",
+        "identifiersKindsOthersItemDocs": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsOthersItem -> Data.Text.Internal.Text",
+        "identifiersKindsOthersItemProperty": "Xynolog.Internal.Generated.Models.IdentifiersKinds.IdentifiersKindsOthersItem -> Data.Text.Internal.Text",
         "identityUserEmail": "Xynolog.Internal.Generated.Models.IdentityUser.IdentityUser -> Data.Text.Internal.Text",
         "identityUserEnabled": "Xynolog.Internal.Generated.Models.IdentityUser.IdentityUser -> Bool",
         "identityUserIdentity": "Xynolog.Internal.Generated.Models.IdentityUser.IdentityUser -> Data.Text.Internal.Text",
@@ -9688,6 +10286,21 @@
         "matchSearchResultResponse": "Xynolog.Internal.Generated.Models.MatchSearchResult.MatchSearchResult -> [Xynolog.Internal.Generated.Models.ScoredResource.ScoredResource]",
         "mediaTokenRequestResourceId": "Xynolog.Internal.Generated.Models.MediaTokenRequest.MediaTokenRequest -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId",
         "mediaTokenResponseToken": "Xynolog.Internal.Generated.Models.MediaTokenResponse.MediaTokenResponse -> Data.Text.Internal.Text",
+        "mediaTypesRegistryAnchoring": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistry -> [Data.Text.Internal.Text]",
+        "mediaTypesRegistryComment": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistry -> Data.Text.Internal.Text",
+        "mediaTypesRegistryExtensionAliases": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistry -> Data.Aeson.KeyMap.KeyMap Data.Text.Internal.Text",
+        "mediaTypesRegistryMediaTypes": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistry -> [Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem]",
+        "mediaTypesRegistryMediaTypesItemAnchoring": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Data.Text.Internal.Text",
+        "mediaTypesRegistryMediaTypesItemAuthorable": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Bool",
+        "mediaTypesRegistryMediaTypesItemExtension": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Data.Text.Internal.Text",
+        "mediaTypesRegistryMediaTypesItemGeneratable": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Bool",
+        "mediaTypesRegistryMediaTypesItemLabel": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Data.Text.Internal.Text",
+        "mediaTypesRegistryMediaTypesItemMediaType": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Xynolog.Internal.Generated.Models.SupportedMediaType.SupportedMediaType",
+        "mediaTypesRegistryMediaTypesItemRender": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Data.Text.Internal.Text",
+        "mediaTypesRegistryMediaTypesItemTextSource": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Data.Text.Internal.Text",
+        "mediaTypesRegistryMediaTypesItemUploadable": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistryMediaTypesItem -> Bool",
+        "mediaTypesRegistryRender": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistry -> [Data.Text.Internal.Text]",
+        "mediaTypesRegistryTextSource": "Xynolog.Internal.Generated.Models.MediaTypesRegistry.MediaTypesRegistry -> [Data.Text.Internal.Text]",
         "memoryGraphConfigType": "Xynolog.Internal.Generated.Models.MemoryGraphConfig.MemoryGraphConfig -> Xynolog.Internal.Generated.Models.MemoryGraphConfig.MemoryGraphConfigType",
         "memoryGraphConfigTypeText": "Xynolog.Internal.Generated.Models.MemoryGraphConfig.MemoryGraphConfigType -> Data.Text.Internal.Text",
         "memoryVectorsConfigType": "Xynolog.Internal.Generated.Models.MemoryVectorsConfig.MemoryVectorsConfig -> Xynolog.Internal.Generated.Models.MemoryVectorsConfig.MemoryVectorsConfigType",
@@ -10048,6 +10661,29 @@
         "scoredResourceVersion": "Xynolog.Internal.Generated.Models.ScoredResource.ScoredResource -> Maybe Data.Text.Internal.Text",
         "scoredResourceWasAttributedTo": "Xynolog.Internal.Generated.Models.ScoredResource.ScoredResource -> Maybe Xynolog.Internal.Generated.Models.OneOrMoreAgents.OneOrMoreAgents",
         "scoredResourceWasDerivedFrom": "Xynolog.Internal.Generated.Models.ScoredResource.ScoredResource -> Maybe Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptorWasDerivedFrom",
+        "sdkTelemetryTelemetryComment": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetry -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetryMetrics": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetry -> [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem]",
+        "sdkTelemetryTelemetryMetricsItemAttributes": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem -> [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItem]",
+        "sdkTelemetryTelemetryMetricsItemAttributesItemKey": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItem -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetryMetricsItemAttributesItemOnly": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItem -> Maybe Data.Text.Internal.Text",
+        "sdkTelemetryTelemetryMetricsItemAttributesItemValues": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItem -> Maybe [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem]",
+        "sdkTelemetryTelemetryMetricsItemInstrument": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemInstrument",
+        "sdkTelemetryTelemetryMetricsItemInstrumentText": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemInstrument -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetryMetricsItemMeaning": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetryMetricsItemName": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetryMetricsItemTransport": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItem -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemTransport",
+        "sdkTelemetryTelemetryMetricsItemTransportText": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetryMetricsItemTransport -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetrySpans": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetry -> [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem]",
+        "sdkTelemetryTelemetrySpansItemAttributes": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem -> [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItem]",
+        "sdkTelemetryTelemetrySpansItemAttributesItemKey": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItem -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetrySpansItemAttributesItemOnly": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItem -> Maybe Data.Text.Internal.Text",
+        "sdkTelemetryTelemetrySpansItemAttributesItemValues": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItem -> Maybe [Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemAttributesItemValuesItem]",
+        "sdkTelemetryTelemetrySpansItemKind": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind",
+        "sdkTelemetryTelemetrySpansItemKindText": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemKind -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetrySpansItemMeaning": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetrySpansItemName": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem -> Data.Text.Internal.Text",
+        "sdkTelemetryTelemetrySpansItemTransport": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItem -> Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemTransport",
+        "sdkTelemetryTelemetrySpansItemTransportText": "Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry.SdkTelemetryTelemetrySpansItemTransport -> Data.Text.Internal.Text",
         "secretRefFromEnv": "Xynolog.Internal.Generated.Models.SecretRef.SecretRef -> Data.Text.Internal.Text",
         "semanticMatchAnnotationId": "Xynolog.Internal.Generated.Models.SemanticMatch.SemanticMatch -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId",
         "semanticMatchEntityTypes": "Xynolog.Internal.Generated.Models.SemanticMatch.SemanticMatch -> Maybe [Data.Text.Internal.Text]",
@@ -10194,6 +10830,14 @@
         "sessionJoinedEventParticipant": "Xynolog.Internal.Generated.Models.SessionJoinedEvent.SessionJoinedEvent -> Xynolog.Internal.Generated.Models.UserId.UserId",
         "sessionLeftEventConnectionId": "Xynolog.Internal.Generated.Models.SessionLeftEvent.SessionLeftEvent -> Data.Text.Internal.Text",
         "sessionLeftEventParticipant": "Xynolog.Internal.Generated.Models.SessionLeftEvent.SessionLeftEvent -> Xynolog.Internal.Generated.Models.UserId.UserId",
+        "sessionOauthClients": "Xynolog.Internal.Generated.Models.SessionOauth.SessionOauth -> [Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthClientsItem]",
+        "sessionOauthClientsItemDocs": "Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthClientsItem -> Data.Text.Internal.Text",
+        "sessionOauthClientsItemId": "Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthClientsItem -> Data.Text.Internal.Text",
+        "sessionOauthClientsItemName": "Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthClientsItem -> Data.Text.Internal.Text",
+        "sessionOauthComment": "Xynolog.Internal.Generated.Models.SessionOauth.SessionOauth -> Data.Text.Internal.Text",
+        "sessionOauthScopes": "Xynolog.Internal.Generated.Models.SessionOauth.SessionOauth -> Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthScopes",
+        "sessionOauthScopesDocs": "Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthScopes -> Data.Text.Internal.Text",
+        "sessionOauthScopesValue": "Xynolog.Internal.Generated.Models.SessionOauth.SessionOauthScopes -> Data.Text.Internal.Text",
         "sessionState": "Xynolog.Internal.Generated.Models.Session.Session -> Xynolog.Internal.Generated.Models.Session.SessionState",
         "sessionStateText": "Xynolog.Internal.Generated.Models.Session.SessionState -> Data.Text.Internal.Text",
         "settingAppliesTo": "Xynolog.Internal.Generated.Models.Setting.Setting -> Xynolog.Internal.Generated.Models.Setting.SettingAppliesTo",
@@ -10239,6 +10883,19 @@
         "signInOutcomeKb": "Xynolog.Internal.Generated.Models.SignInOutcome.SignInOutcome -> Xynolog.Internal.Generated.Models.KnowledgeBase.KnowledgeBase",
         "signInRefreshToken": "Xynolog.Internal.Generated.Models.SignIn.SignIn -> Maybe Data.Text.Internal.Text",
         "signInRevocationEndpoint": "Xynolog.Internal.Generated.Models.SignIn.SignIn -> Maybe Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyComment": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnly -> Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyDirectoryAccessList": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnly -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryAccessList",
+        "signInStoreOwnerOnlyDirectoryAccessListDocs": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryAccessList -> Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyDirectoryAccessListValue": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryAccessList -> Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyDirectoryMode": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnly -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryMode",
+        "signInStoreOwnerOnlyDirectoryModeDocs": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryMode -> Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyDirectoryModeValue": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyDirectoryMode -> Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyFileAccessList": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnly -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileAccessList",
+        "signInStoreOwnerOnlyFileAccessListDocs": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileAccessList -> Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyFileAccessListValue": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileAccessList -> Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyFileMode": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnly -> Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileMode",
+        "signInStoreOwnerOnlyFileModeDocs": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileMode -> Data.Text.Internal.Text",
+        "signInStoreOwnerOnlyFileModeValue": "Xynolog.Internal.Generated.Models.SignInStoreOwnerOnly.SignInStoreOwnerOnlyFileMode -> Data.Text.Internal.Text",
         "signInToken": "Xynolog.Internal.Generated.Models.SignIn.SignIn -> Data.Text.Internal.Text",
         "signInTokenEndpoint": "Xynolog.Internal.Generated.Models.SignIn.SignIn -> Data.Text.Internal.Text",
         "signedInDescription": "Xynolog.Internal.Generated.Models.SignedIn.SignedIn -> Xynolog.Internal.Generated.Models.KbDescription.KbDescription",
