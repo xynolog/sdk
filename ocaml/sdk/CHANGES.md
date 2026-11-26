@@ -37,7 +37,7 @@ the coming release's, and gathers its changes as they land.
   typed by its params and its result descriptors, whether it runs alone and
   the notifications it sends, and each notification a
   `Control.Notification.t` typed by its params, with who sends it
-  (`Client | Launcher`).
+  (`Enums.Control_sender.t`).
 - `Error_codes` has every vocabulary of codes, the control plane's and span
   refusal's among them, each with `t`, a constructor per code, and `code`,
   the code each is.
@@ -47,6 +47,13 @@ the coming release's, and gathers its changes as they land.
 - An enum for every string enum Protocol roots (`Enums.Output_stream`,
   `Runtime`, `Run_service`, `Service_group`, `Kb_read_kind`, `Tab_verdict`),
   and each record's member of one is read as it.
+- `Error_codes.Control_rpc`, each code of `control/rpc-codes.json`, and
+  `Error_codes.control_rpc` and `control_retryable`: the JSON-RPC code each
+  control error code is answered with, and whether a request it failed is
+  worth sending again, generated from `control/rpc-codes.json` and
+  `errors/codes.json`.
+- `Discovery_url_path.discovery_url_path`, where a launcher's discovery
+  document is, generated from `client/surface.json`.
 
 ### Changed
 
@@ -167,6 +174,8 @@ the coming release's, and gathers its changes as they land.
   knowledge base the registry does not hold is `Registry.Unknown_kb`, and a
   sign-in whose id another knowledge base holds is `Id_conflict`, where each
   was a code Protocol does not state (`kb.not-found`, `kb.id-conflict`).
+- `Sign_in_store.state_directory` takes `~system`, Protocol's
+  `Enums.System.t`, where it took `~platform`, the SDK's own `platform`.
 
 ## 0.8.1
 

@@ -95,7 +95,7 @@ public class SignInStore(path: Path) {
     private fun ownerOnly(directory: Path) {
         if (posix) {
             Files.setPosixFilePermissions(directory, PosixFilePermissions.fromString(OWNER_ONLY_DIRECTORY_PERMISSIONS))
-        } else if (thisPlatform() == Platform.WINDOWS) {
+        } else if (thisSystem() == xynolog.types.System.Windows) {
             OwnerOnly.keep(directory)
         }
     }

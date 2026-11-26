@@ -248,6 +248,49 @@ let modules ?(beside = []) ~from_ ~module_name ~test_name families =
     };
   ]
 
+(* The JSON-RPC codes the control API answers with, a value each, and the
+   one each control code is answered under, with whether it is retryable. *)
+let control_answers (t : Table.t) =
+  let rpc_value r = "controlRpc" ^ Table.rpc_pascal r in
+  let typ = type_of t.control.member in
+  let answering ~about ~returns name value =
+    H.Value
+      {
+        about = [ about ];
+        name;
+        type_ = T_fun (T_name typ, T_name returns);
+        clauses =
+          List.map
+            (fun (a : Table.answered) ->
+              {
+                H.patterns =
+                  [
+                    Constructor
+                      (code_constructor t.control.member a.control_code.code, []);
+                  ];
+                body = value a;
+              })
+            t.answered;
+      }
+  in
+  List.map
+    (fun (r : Tables.Control_rpc_codes.codes_item) ->
+      H.value ~about:[ r.docs ] (rpc_value r) (T_name "Int") (Int r.number))
+    t.rpc_codes
+  @ [
+      answering
+        ~about:
+          "The JSON-RPC code of control/rpc-codes.json an answer carries a \
+           control code under." ~returns:"Int" "controlRpc" (fun a ->
+          H.Name (rpc_value a.rpc));
+      answering
+        ~about:
+          "Whether the same request can succeed sent again unchanged, once \
+           something outside it changes: what ErrorData's retryable says of \
+           the code." ~returns:"Bool" "controlRetryable" (fun a ->
+          H.Name (if a.retryable then "True" else "False"));
+    ]
+
 let files (t : Table.t) =
   let codes (v : Table.vocabulary) =
     List.map (fun (c : Table.code) -> c.code) v.codes
@@ -261,28 +304,29 @@ let files (t : Table.t) =
   in
   modules
     ~beside:
-      [
-        H.value
-          ~about:
-            [
-              "Each gateway refusal of a limit that is a transport code too: \
-               its status, its LimitRefusal code, and the transport code it \
-               is.";
-            ]
-          "limitRefusalTransportCodes"
-          (T_list
-             (T_tuple
-                [
-                  T_name "Int";
-                  T_name "Text";
-                  T_name (type_of t.transport.member);
-                ]))
-          (List
-             (List.map
-                (fun (status, limit, c) ->
-                  H.Tuple [ Int status; Str limit; transport c ])
-                t.limit_refusals));
-      ]
+      ([
+         H.value
+           ~about:
+             [
+               "Each gateway refusal of a limit that is a transport code too: \
+                its status, its LimitRefusal code, and the transport code it \
+                is.";
+             ]
+           "limitRefusalTransportCodes"
+           (T_list
+              (T_tuple
+                 [
+                   T_name "Int";
+                   T_name "Text";
+                   T_name (type_of t.transport.member);
+                 ]))
+           (List
+              (List.map
+                 (fun (status, limit, c) ->
+                   H.Tuple [ Int status; Str limit; transport c ])
+                 t.limit_refusals));
+       ]
+      @ control_answers t)
     ~from_:("protocol/specs/src/" ^ Table.file)
     ~module_name:"Xynolog.ErrorCodes" ~test_name:"ErrorRoundTrip"
     ((plain t.bus :: plain t.control :: List.map plain t.others)

@@ -31,16 +31,7 @@ let parse_discovery_document source =
               match Models.decode Models.discovery_document source with
               | Error _ -> Absent Invalid
               | Ok model ->
-                  let entries =
-                    (Records.Discovery_document.of_model model).kbs
-                  in
-                  if
-                    List.exists
-                      (fun (entry : Records.Discovered_kb.t) ->
-                        entry.port < 1 || entry.port > 65535)
-                      entries
-                  then Absent Invalid
-                  else Managed entries))
+                  Managed (Records.Discovery_document.of_model model).kbs))
       | _ -> Absent Invalid)
 
 let text_discovery read () =
@@ -52,7 +43,7 @@ let text_discovery read () =
   with Sys_error _ | Unix.Unix_error _ | Eio.Io _ -> Read (Absent Unreadable)
 
 let file_discovery ~state_directory =
-  let path = Filename.concat state_directory "discovery/kbs.json" in
+  let path = state_directory ^ Discovery_url_path.discovery_url_path in
   text_discovery (fun () ->
       try
         let fd = Unix.openfile path [ Unix.O_RDONLY; Unix.O_CLOEXEC ] 0 in

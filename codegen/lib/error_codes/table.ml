@@ -48,6 +48,18 @@ type t = {
   others : vocabulary list;
       (** The vocabularies that state nothing but their codes. *)
   control : vocabulary;  (** The control plane's codes. *)
+  rpc_codes : Tables.Control_rpc_codes.codes_item list;
+      (** Each JSON-RPC code the control API answers with
+          (control/rpc-codes.json), in its table's order. *)
+  answered : answered list;
+      (** Each control code, in its vocabulary's order, with the JSON-RPC code
+          it is answered under and whether it is retryable. *)
+}
+
+and answered = {
+  control_code : code;
+  rpc : Tables.Control_rpc_codes.codes_item;
+  retryable : bool;
 }
 
 (* Each vocabulary by its member of the table: its type's name in Python and
@@ -76,7 +88,8 @@ let pascal segment =
    the table's [wire] members are its enumeration. *)
 let wire_codes = List.map command_error_code_value command_error_code_all
 
-let derive (table : Tables.Errors_codes.t) =
+let derive ~(rpc_codes : Tables.Control_rpc_codes.t)
+    (table : Tables.Errors_codes.t) =
   let refusals = ref [] in
   let refuse pointer message =
     refusals := { Decode.file; pointer; message } :: !refusals
@@ -267,6 +280,35 @@ let derive (table : Tables.Errors_codes.t) =
       plain ~member:"spanRefusal" table.span_refusal;
     ]
   in
+  let control =
+    vocabulary ~member:"control" ~docs:table.control.docs
+      (List.map
+         (fun (c : Tables.Errors_codes.control_codes_item) -> (c.code, c.docs))
+         table.control.codes)
+  in
+  let rpc_codes = rpc_codes.codes in
+  let answered =
+    List.concat
+      (List.mapi
+         (fun i
+              ((stated : Tables.Errors_codes.control_codes_item), control_code)
+            ->
+           match
+             List.find_opt
+               (fun (r : Tables.Control_rpc_codes.codes_item) ->
+                 r.number = stated.rpc)
+               rpc_codes
+           with
+           | Some rpc -> [ { control_code; rpc; retryable = stated.retryable } ]
+           | None ->
+               refuse
+                 (Printf.sprintf "/control/codes/%d/rpc" i)
+                 (Printf.sprintf
+                    "is %d, which is none of control/rpc-codes.json's numbers"
+                    stated.rpc);
+               [])
+         (List.combine table.control.codes control.codes))
+  in
   match (List.rev !refusals, unrecognized, unclassified) with
   | [], Some unrecognized, Some unclassified ->
       Ok
@@ -290,12 +332,9 @@ let derive (table : Tables.Errors_codes.t) =
                 | Status _ | Status_from _ | No_status _ -> [])
               (List.combine table.transport.codes transport.codes);
           others;
-          control =
-            vocabulary ~member:"control" ~docs:table.control.docs
-              (List.map
-                 (fun (c : Tables.Errors_codes.control_codes_item) ->
-                   (c.code, c.docs))
-                 table.control.codes);
+          control;
+          rpc_codes;
+          answered;
         }
   | refusals, _, _ -> Error refusals
 
@@ -309,3 +348,20 @@ let enum vocabularies member =
     (fun (v : vocabulary) ->
       List.map (fun (c : code) -> Schema.String_literal c.code) v.codes)
     (List.find_opt (fun (v : vocabulary) -> v.member = member) vocabularies)
+
+(* A JSON-RPC code's name in Pascal case, which names its constant. *)
+let rpc_pascal (r : Tables.Control_rpc_codes.codes_item) = pascal r.name
+
+(* The control codes by what [key] says of each, each key once, in the order
+   of its first code. *)
+let grouped key t =
+  List.fold_left
+    (fun groups a ->
+      let k = key a in
+      if List.mem_assoc k groups then
+        List.map
+          (fun (k', codes) ->
+            if k' = k then (k', codes @ [ a.control_code ]) else (k', codes))
+          groups
+      else groups @ [ (k, [ a.control_code ]) ])
+    [] t.answered

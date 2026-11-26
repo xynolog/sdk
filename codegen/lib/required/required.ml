@@ -170,7 +170,9 @@ let roots (spec : Spec.t) = collect (components spec @ records spec)
 
 (* What each of [roots] requires, by its name. *)
 let derive_roots (spec : Spec.t) roots =
-  Result.bind (Error_codes.Table.derive spec.tables.errors_codes) (fun codes ->
+  Result.bind
+    (Error_codes.Table.derive ~rpc_codes:spec.tables.control_rpc_codes
+       spec.tables.errors_codes) (fun codes ->
       Shape.derive ~ids:spec.ids
         ~unrecognized:spec.tables.errors_codes.bus_request.unrecognized_failure
         ~vocabularies:(Error_codes.Table.vocabularies codes)

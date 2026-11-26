@@ -86,8 +86,6 @@ public fun parseDiscoveryDocument(text: String): DiscoveryState {
     } catch (invalid: IllegalArgumentException) {
         return Absent(DiscoveryAbsentReason.Invalid, invalid.message ?: "not a discovery document")
     }
-    // DiscoveredKB states no bounds of a port (a proposal for Protocol): until it does, one that is no TCP port is refused here.
-    read.kbs.firstOrNull { it.port !in 1..65535 }?.let { return Absent(DiscoveryAbsentReason.Invalid, "kb entry at ${it.host} has port ${it.port}, which is not a port") }
     return Managed(read.kbs)
 }
 

@@ -16,11 +16,10 @@ import Testing
     func text(_ key: String) -> String? {
       if case .string(let value) = row[key] { value } else { nil }
     }
-    let platform: Platform =
-      text("os") == "macos" ? .macos : text("os") == "windows" ? .windows : .other
+    let system = try decoded(System.self, try required(row, "os"))
     let actual =
       stateDir(
-        platform: platform, home: text("home"), xdgStateHome: text("xdgStateHome"),
+        system: system, home: text("home"), xdgStateHome: text("xdgStateHome"),
         localAppData: text("localAppData")
       ).map(JSONValue.string) ?? .null
     #expect(actual == (try required(row, "dir")))

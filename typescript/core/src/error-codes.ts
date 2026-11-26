@@ -200,3 +200,125 @@ export type ControlErrorCode =
   | 'control.cancelled'
   /** The request failed for a reason no other code names. Its message says why, as the command line would. */
   | 'control.failed';
+
+/** Each JSON-RPC error code the launcher's control API answers with (control/rpc-codes.json), by its name. */
+export const controlRpcCodes = {
+  /** The line is not JSON, or holds more than one JSON value. Answered under a null id (F2). */
+  parseError: -32700,
+  /** The message is a batch, does not state `"jsonrpc": "2.0"` and a method, has a member JSON-RPC does not define, or its id is null, a fraction or one in flight. Answered under a null id (F2, F3). */
+  invalidRequest: -32600,
+  /** The API has no method of the request's name (F4). */
+  methodNotFound: -32601,
+  /** The request's params are not what its method's schema admits, or are written to a version of the API this launcher does not speak (V1, P1). */
+  invalidParams: -32602,
+  /** The launcher would send a result or error data that does not hold to its schema, or the handler panicked. Never retryable: the same request fails the same way (E4). */
+  internalError: -32603,
+  /** The operation the request ran failed. The data's code says why, and whether the request is retryable (E2). */
+  operationFailed: -32000,
+} as const;
+
+/** A JSON-RPC error code the launcher's control API answers with. */
+export type ControlRpcCode =
+  (typeof controlRpcCodes)[keyof typeof controlRpcCodes];
+
+/** Each control code's JSON-RPC code, the one an answer carries it under, and whether it is retryable: whether the same request can succeed sent again unchanged, once something outside it changes. */
+export const controlErrorCodeAnswers = {
+  'control.invalid-params': {
+    rpc: controlRpcCodes.invalidParams,
+    retryable: false,
+  },
+  'control.unsupported-api-version': {
+    rpc: controlRpcCodes.invalidParams,
+    retryable: false,
+  },
+  'control.invalid-request': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.invalid-service': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.invalid-value': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.unknown-setting': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.target-required': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.target-ambiguous': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.root-not-found': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.root-not-registered': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.stack-not-running': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: true,
+  },
+  'control.stack-running': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: true,
+  },
+  'control.start-in-progress': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: true,
+  },
+  'control.runtime-unavailable': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: true,
+  },
+  'control.dependency-unavailable': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: true,
+  },
+  'control.unreachable': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: true,
+  },
+  'control.instance-in-use': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.instance-not-found': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.confirmation-required': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.unreadable-state': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: true,
+  },
+  'control.already-signed-in': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.sign-in-failed': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: true,
+  },
+  'control.cancelled': {
+    rpc: controlRpcCodes.operationFailed,
+    retryable: false,
+  },
+  'control.failed': { rpc: controlRpcCodes.operationFailed, retryable: true },
+} as const satisfies {
+  readonly [code in ControlErrorCode]: {
+    readonly rpc: ControlRpcCode;
+    readonly retryable: boolean;
+  };
+};

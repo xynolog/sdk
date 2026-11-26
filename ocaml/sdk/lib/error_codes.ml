@@ -271,3 +271,64 @@ end
 
 let limit_refusal_transport_codes =
   [ (429, "refusal-rate", Transport.Unauthorized) ]
+
+module Control_rpc = struct
+  let parse_error = -32700
+  let invalid_request = -32600
+  let method_not_found = -32601
+  let invalid_params = -32602
+  let internal_error = -32603
+  let operation_failed = -32000
+end
+
+let control_rpc = function
+  | Control.Invalid_params -> Control_rpc.invalid_params
+  | Control.Unsupported_api_version -> Control_rpc.invalid_params
+  | Control.Invalid_request -> Control_rpc.operation_failed
+  | Control.Invalid_service -> Control_rpc.operation_failed
+  | Control.Invalid_value -> Control_rpc.operation_failed
+  | Control.Unknown_setting -> Control_rpc.operation_failed
+  | Control.Target_required -> Control_rpc.operation_failed
+  | Control.Target_ambiguous -> Control_rpc.operation_failed
+  | Control.Root_not_found -> Control_rpc.operation_failed
+  | Control.Root_not_registered -> Control_rpc.operation_failed
+  | Control.Stack_not_running -> Control_rpc.operation_failed
+  | Control.Stack_running -> Control_rpc.operation_failed
+  | Control.Start_in_progress -> Control_rpc.operation_failed
+  | Control.Runtime_unavailable -> Control_rpc.operation_failed
+  | Control.Dependency_unavailable -> Control_rpc.operation_failed
+  | Control.Unreachable -> Control_rpc.operation_failed
+  | Control.Instance_in_use -> Control_rpc.operation_failed
+  | Control.Instance_not_found -> Control_rpc.operation_failed
+  | Control.Confirmation_required -> Control_rpc.operation_failed
+  | Control.Unreadable_state -> Control_rpc.operation_failed
+  | Control.Already_signed_in -> Control_rpc.operation_failed
+  | Control.Sign_in_failed -> Control_rpc.operation_failed
+  | Control.Cancelled -> Control_rpc.operation_failed
+  | Control.Failed -> Control_rpc.operation_failed
+
+let control_retryable = function
+  | Control.Invalid_params -> false
+  | Control.Unsupported_api_version -> false
+  | Control.Invalid_request -> false
+  | Control.Invalid_service -> false
+  | Control.Invalid_value -> false
+  | Control.Unknown_setting -> false
+  | Control.Target_required -> false
+  | Control.Target_ambiguous -> false
+  | Control.Root_not_found -> false
+  | Control.Root_not_registered -> false
+  | Control.Stack_not_running -> true
+  | Control.Stack_running -> true
+  | Control.Start_in_progress -> true
+  | Control.Runtime_unavailable -> true
+  | Control.Dependency_unavailable -> true
+  | Control.Unreachable -> true
+  | Control.Instance_in_use -> false
+  | Control.Instance_not_found -> false
+  | Control.Confirmation_required -> false
+  | Control.Unreadable_state -> true
+  | Control.Already_signed_in -> false
+  | Control.Sign_in_failed -> true
+  | Control.Cancelled -> false
+  | Control.Failed -> true

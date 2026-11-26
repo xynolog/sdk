@@ -57,11 +57,11 @@ public func parseDiscoveryDocument(_ text: String) -> DiscoveryState {
     return .absent(
       Absent(reason: .unsupportedVersion, diagnostic: "Unsupported discovery version \(version)"))
   }
+  if let fault = faultOf("DiscoveryDocument", parsed) {
+    return .absent(Absent(reason: .invalid, diagnostic: String(describing: fault)))
+  }
   do {
     let document = try decoder.decode(DiscoveryDocument.self, from: data)
-    guard document.kbs.allSatisfy({ !$0.host.isEmpty && (1...65535).contains($0.port) }) else {
-      return .absent(Absent(reason: .invalid, diagnostic: "Invalid knowledge-base address"))
-    }
     return .managed(Managed(kbs: document.kbs))
   } catch {
     return .absent(Absent(reason: .invalid, diagnostic: String(describing: error)))

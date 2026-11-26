@@ -40,7 +40,6 @@ import java.util.concurrent.Executors
 
 private const val A = "did:web:example.org:kb-a"
 private const val B = "did:web:example.org:kb-b"
-private const val PATH = "/discovery/kbs.json"
 
 private fun entry(host: String, port: Int, did: String): JsonObject = buildJsonObject {
     put("host", host)
@@ -114,7 +113,7 @@ private class Launcher(vararg answers: Served) : AutoCloseable {
     val tags = CopyOnWriteArrayList<String?>()
 
     init {
-        server.createContext(PATH) { exchange ->
+        server.createContext(DISCOVERY_URL_PATH) { exchange ->
             tags += exchange.requestHeaders.getFirst("If-None-Match")
             val served = synchronized(this.answers) { this.answers.removeAt(0) }
             if (served.hold) released.await()
@@ -128,7 +127,7 @@ private class Launcher(vararg answers: Served) : AutoCloseable {
         server.start()
     }
 
-    val url: String get() = "http://127.0.0.1:${server.address.port}$PATH"
+    val url: String get() = "http://127.0.0.1:${server.address.port}$DISCOVERY_URL_PATH"
 
     override fun close() {
         released.countDown()
@@ -349,7 +348,7 @@ class DiscoveryTest {
             // The tag of a document that did not read was not kept: it is not believed the next time.
             assertEquals(List(5) { null }, launcher.tags.toList())
         }
-        assertEquals(DiscoveryAbsentReason.Unreadable, (httpDiscovery("http://127.0.0.1:9$PATH").read() as Absent).reason)
+        assertEquals(DiscoveryAbsentReason.Unreadable, (httpDiscovery("http://127.0.0.1:9$DISCOVERY_URL_PATH").read() as Absent).reason)
     }
 
     @Test
@@ -357,7 +356,7 @@ class DiscoveryTest {
         Launcher(served(document(entry("localhost", 4000, A)))).use { launcher ->
             val http = CallersHttp()
             assertEquals(Managed(listOf(kb(entry("localhost", 4000, A)))), httpDiscovery(launcher.url, http).read())
-            assertEquals(listOf(PATH), http.made.toList())
+            assertEquals(listOf(DISCOVERY_URL_PATH), http.made.toList())
         }
     }
 

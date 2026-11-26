@@ -300,7 +300,11 @@ let control_notifications t (spec : Spec.t) =
    another vocabulary's too. *)
 let error_codes t (spec : Spec.t) =
   let module E = Error_codes.Table in
-  let table = derived (E.derive spec.tables.errors_codes) in
+  let table =
+    derived
+      (E.derive ~rpc_codes:spec.tables.control_rpc_codes
+         spec.tables.errors_codes)
+  in
   let codes =
     List.concat_map
       (fun (v : E.vocabulary) -> List.map (fun c -> (v, c)) v.codes)

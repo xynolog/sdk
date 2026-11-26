@@ -6,15 +6,12 @@ what each carries is a model of `xynolog.types`.
 """
 
 from dataclasses import dataclass
-from typing import Literal, Protocol, final
+from typing import Protocol, final
 
 from xynolog.model import WireModel
+from xynolog.types import ControlSender
 
-__all__ = ["AnyControlMethod", "AnyControlNotification", "ControlMethod", "ControlNotification", "ControlSender"]
-
-type ControlSender = Literal["client", "launcher"]
-"""Which side sends a notification."""
-
+__all__ = ["AnyControlMethod", "AnyControlNotification", "ControlMethod", "ControlNotification"]
 
 class AnyControlNotification(Protocol):
     """A notification, whatever it carries: what code that treats every notification alike reads of one."""

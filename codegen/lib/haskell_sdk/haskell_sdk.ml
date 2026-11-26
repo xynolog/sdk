@@ -228,7 +228,11 @@ let files ~root (spec : Spec.t) =
                Error (refused "openapi.json" (name ^ ": " ^ message)))
          models.definitions)
   in
-  let* codes = Error_codes.Table.derive spec.tables.errors_codes in
+  let* codes =
+    Error_codes.Table.derive ~rpc_codes:spec.tables.control_rpc_codes
+      spec.tables.errors_codes
+  in
+  let* discovery_url_path = Discovery_url_path.value spec in
   let* round_trip =
     within "openapi.json"
       (Companions.round_trip_module
@@ -293,7 +297,16 @@ let files ~root (spec : Spec.t) =
       ]
     @ manifest
     @ Error_codes.Haskell.modules
-        ~from_:"protocol/specs/src/client/discovery-absent.json"
+        ~beside:
+          [
+            Haskell_syntax.value
+              ~about:[ Discovery_url_path.about ]
+              "discoveryUrlPath" (Haskell_syntax.T_name "Text")
+              (Haskell_syntax.Str discovery_url_path);
+          ]
+        ~from_:
+          "protocol/specs/src/client/discovery-absent.json and \
+           protocol/specs/src/client/surface.json"
         ~module_name:"Xynolog.Discovery.Reasons"
         ~test_name:"DiscoveryReasonRoundTrip"
         [

@@ -249,14 +249,12 @@ module Assertion_cases = Protocol_cases.Session_client_assertion_cases
 let paths () =
   List.iter
     (fun (row : Store_cases.cases_item) ->
-      let platform =
-        match row.os with
-        | "macos" -> Store.Macos
-        | "windows" -> Store.Windows
-        | _ -> Store.Other
+      let system =
+        Option.get
+          (Xynolog.Enums.System.of_string (Store_cases.system_value row.os))
       in
       let actual =
-        Store.state_directory ~platform ~home:row.home
+        Store.state_directory ~system ~home:row.home
           ~xdg_state_home:row.xdg_state_home ~local_app_data:row.local_app_data
       in
       Alcotest.(check (option string)) row.why row.dir actual)

@@ -1,4 +1,4 @@
--- Generated from protocol/specs/src/client/discovery-absent.json; do not edit.
+-- Generated from protocol/specs/src/client/discovery-absent.json and protocol/specs/src/client/surface.json; do not edit.
 -- Regenerate: make generate (codegen/lib/error_codes/haskell.ml)
 {-# LANGUAGE OverloadedStrings #-}
 

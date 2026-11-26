@@ -2,19 +2,12 @@ package xynolog.cache
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import xynolog.types.ConformanceDriverLineEmissionEmissionStateFailedStatus
-import xynolog.types.ConformanceDriverLineEmissionEmissionStatePendingStatus
-import xynolog.types.ConformanceDriverLineEmissionEmissionStateReadyStatus
+import xynolog.types.CacheStatus
 
-/** CacheState, written by hand, held to the only schema that states its JSON: a conformance driver's emission. A status either side gains, loses or spells otherwise fails. */
+/** Each of Protocol's CacheStatus is the status of one CacheState: a status the schema gains fails. */
 class CacheStateTest {
     @Test
-    fun eachStatusIsTheEmissionsSpellingOfIt() {
-        val stated = listOf(
-            ConformanceDriverLineEmissionEmissionStatePendingStatus.entries.single().value,
-            ConformanceDriverLineEmissionEmissionStateReadyStatus.entries.single().value,
-            ConformanceDriverLineEmissionEmissionStateFailedStatus.entries.single().value,
-        )
-        assertEquals(stated, listOf(CacheState.Pending.status, CacheState.Ready(Unit).status, CacheState.Failed(IllegalStateException()).status))
+    fun eachStatusIsAState() {
+        assertEquals(CacheStatus.entries, listOf(CacheState.Pending.status, CacheState.Ready(Unit).status, CacheState.Failed(IllegalStateException()).status))
     }
 }

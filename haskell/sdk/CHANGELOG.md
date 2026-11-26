@@ -11,7 +11,8 @@ the coming release's, and gathers its changes as they land.
 - `Xynolog.Control`: the launcher's control API, a value per method (a
   `ControlMethod params result`) and per notification (a
   `ControlNotification params`), typed by the types of `Xynolog.Types` it
-  carries, and `ControlSender`, which side sends a notification.
+  carries, with the `ControlSender` of `Xynolog.Types` that sends a
+  notification.
 - `Xynolog.ServiceEnvironment`: every environment variable a Xynolog service
   reads, beside its configuration document, a value of its name
   (`xynologBusLog`). The bus log reads its variable by it.
@@ -38,6 +39,12 @@ the coming release's, and gathers its changes as they land.
   `ArchivistRoute`, typed by what each is asked and answers, with its method,
   path, status, media types and required headers, as `Xynolog.Http.Routes`
   states the gateway's.
+- `controlRpc*`, each code of `control/rpc-codes.json`, and `controlRpc` and
+  `controlRetryable`: the JSON-RPC code each control error code is answered
+  with, and whether a request it failed is worth sending again, generated from
+  `control/rpc-codes.json` and `errors/codes.json`.
+- `Xynolog.Discovery.discoveryUrlPath`, where a launcher's discovery document
+  is, generated from `client/surface.json`.
 
 ### Changed
 
@@ -150,6 +157,9 @@ the coming release's, and gathers its changes as they land.
   `Gather.annotation` no longer sends a `contextWindow` of 2000, nor an
   `options` member when it is given none, and `Match.search` no longer sends
   `useSemanticScoring` true. Its `limit` is still 10 when none is stated.
+- `stateDirectory` takes Protocol's `System` (`SystemMacos`, `SystemWindows`,
+  `SystemOther`), and `thisSystem` is one, where each was the system's name as
+  `Text`.
 
 ### Removed
 

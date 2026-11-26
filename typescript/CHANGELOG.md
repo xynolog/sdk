@@ -56,6 +56,11 @@ the coming release's, and gathers its changes as they land.
   table (`SPAN_CONTENT_GET`, `SPAN_BUS_EMIT`, `METRIC_XYNOLOG_BUS_SENT`, …,
   and `TELEMETRY_CHANNEL`, what stands for the channel in a span's name), and
   the transports name their spans and their count by them.
+- `controlRpcCodes` and `ControlRpcCode`, each code of
+  `control/rpc-codes.json`, and `controlErrorCodeAnswers`: the JSON-RPC code
+  each control error code is answered with, and whether a request it failed is
+  worth sending again, generated from `control/rpc-codes.json` and
+  `errors/codes.json`.
 
 ### Changed
 
@@ -134,6 +139,9 @@ the coming release's, and gathers its changes as they land.
   `gather.annotation` no longer sends `contextWindow: 2000` (nor `options`
   when none are given), and `match.search` no longer sends
   `useSemanticScoring: true`. A stated value is sent as stated.
+- `DISCOVERY_URL_PATH` is generated from `client/surface.json`.
+- `@xynolog/sdk` no longer exports `System`: `stateDir` takes Protocol's
+  `components['schemas']['System']`.
 
 ### Removed
 

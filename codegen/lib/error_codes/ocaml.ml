@@ -59,6 +59,36 @@ let test (module_, values) rest =
           values
        @ [ rest ]))
 
+(* The JSON-RPC codes the control API answers with, a value each of
+   [Control_rpc] named by its name, and the one each control code is answered
+   under ([control_rpc]), with whether it is retryable ([control_retryable]). *)
+let control_answers (t : Table.t) =
+  let module O = Ocaml_syntax in
+  let rpc_value r = Text.snake (Table.rpc_pascal r) in
+  let control = module_name t.control in
+  let answering name value =
+    O.let_ name
+      (O.function_
+         (List.map
+            (fun (a : Table.answered) ->
+              O.case
+                (O.Pattern.construct
+                   (control ^ "." ^ constructor a.control_code.code))
+                (value a))
+            t.answered))
+  in
+  [
+    O.module_ "Control_rpc"
+      (List.map
+         (fun (r : Tables.Control_rpc_codes.codes_item) ->
+           O.let_ (rpc_value r) (O.int r.number))
+         t.rpc_codes);
+    answering "control_rpc" (fun a ->
+        O.ident ("Control_rpc." ^ rpc_value a.rpc));
+    answering "control_retryable" (fun a ->
+        O.construct (string_of_bool a.retryable));
+  ]
+
 let files (t : Table.t) =
   let refusals = ref [] in
   let refuse message =
@@ -144,7 +174,8 @@ let files (t : Table.t) =
                                ^ constructor c.code);
                             ])
                         t.limit_refusals));
-              ]);
+              ]
+            @ control_answers t);
           Ocaml_syntax.implementation
             ~path:"ocaml/sdk/test/error_codes_cases.ml" ~banner
             [

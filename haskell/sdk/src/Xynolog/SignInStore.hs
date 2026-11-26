@@ -49,7 +49,7 @@ import Xynolog.Internal.NativeStore qualified as Native
 import Xynolog.Internal.SignIn qualified as SignIn
 import Xynolog.Retry qualified as Retry
 import Xynolog.Tokens qualified as Tokens
-import Xynolog.Types (SignIn (..), StoredSession (..))
+import Xynolog.Types (SignIn (..), StoredSession (..), System (..))
 
 data SignInStoreOptions = SignInStoreOptions
   { signInStoreTime :: Retry.RetryOptions,
@@ -73,18 +73,18 @@ path (SignInStore _ filename _) = filename
 
 -- | No environment is read: the caller supplies its standard directory values.
 -- A missing home is an absence even when a platform-specific directory is set.
-stateDirectory :: Text -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath
+stateDirectory :: System -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath
 stateDirectory system home xdg local = do
   base <- nonempty home
   pure $ case system of
-    "macos" -> foldl (Posix.</>) base ["Library", "Application Support", "xynolog"]
-    "windows" -> maybe (foldl (Windows.</>) base ["AppData", "Local", "xynolog"]) (Windows.</> "xynolog") (nonempty local)
-    _ -> maybe (foldl (Posix.</>) base [".local", "state", "xynolog"]) (Posix.</> "xynolog") (nonempty xdg)
+    SystemMacos -> foldl (Posix.</>) base ["Library", "Application Support", "xynolog"]
+    SystemWindows -> maybe (foldl (Windows.</>) base ["AppData", "Local", "xynolog"]) (Windows.</> "xynolog") (nonempty local)
+    SystemOther -> maybe (foldl (Posix.</>) base [".local", "state", "xynolog"]) (Posix.</> "xynolog") (nonempty xdg)
   where
     nonempty value = value >>= \text -> if null text then Nothing else Just text
 
-thisSystem :: Text
-thisSystem = case System.os of "darwin" -> "macos"; "mingw32" -> "windows"; other -> Text.pack other
+thisSystem :: System
+thisSystem = case System.os of "darwin" -> SystemMacos; "mingw32" -> SystemWindows; _ -> SystemOther
 
 readDocument :: SignInStore -> IO Object
 readDocument store = do

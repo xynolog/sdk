@@ -39,6 +39,7 @@ use tokio::task::AbortHandle;
 pub const DISCOVERY_INTERVAL: Duration = crate::timing::DISCOVERY_INTERVAL;
 
 include!("generated/discovery_absent.rs");
+include!("generated/discovery_url_path.rs");
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DiscoveryState {
@@ -103,23 +104,10 @@ pub fn parse_discovery_document(text: &str) -> DiscoveryState {
             );
         }
     }
-    let document: DiscoveryDocument = match serde_json::from_value(parsed) {
+    let document = match crate::required::read_as::<DiscoveryDocument>(parsed) {
         Ok(document) => document,
-        Err(error) => return DiscoveryState::absent(Invalid, error.to_string()),
+        Err(fault) => return DiscoveryState::absent(Invalid, fault),
     };
-    if let Some(kb) = document
-        .kbs
-        .iter()
-        .find(|kb| !(1..=65535).contains(&kb.port))
-    {
-        return DiscoveryState::absent(
-            Invalid,
-            format!(
-                "kb entry at {} has port {}, which is not a port",
-                kb.host, kb.port
-            ),
-        );
-    }
     DiscoveryState::Managed { kbs: document.kbs }
 }
 

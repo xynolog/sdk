@@ -325,7 +325,6 @@ let control_text (spec : Spec.t) =
           "control/methods.json: its apiVersion states no const"
   in
   let inline entries = T.Object { layout = Inline; entries } in
-  let from = function C.Launcher -> "launcher" | C.Client -> "client" in
   let schema_name =
     T.T_keyof (T.T_index (T_name "components", T_str "schemas"))
   in
@@ -363,7 +362,7 @@ let control_text (spec : Spec.t) =
                     ( Inline,
                       [
                         T.member ~readonly:true (Ident "from")
-                          (T_union [ T_str "launcher"; T_str "client" ]);
+                          (T.schema "ControlSender");
                         T.member ~readonly:true (Ident "params") schema_name;
                       ] )))
             (T.rows
@@ -374,7 +373,8 @@ let control_text (spec : Spec.t) =
                       (Quoted n.name)
                       (inline
                          [
-                           T.entry (Ident "from") (T.Str (from n.from));
+                           T.entry (Ident "from")
+                             (T.Str (C.control_sender_value n.from));
                            T.entry (Ident "params") (named n.params);
                          ]))
                   t.notifications));

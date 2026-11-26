@@ -118,12 +118,6 @@ func ParseDiscoveryDocument(text string) DiscoveryState {
 	if err := json.Unmarshal(read, &document); err != nil {
 		return invalid(err.Error())
 	}
-	// DiscoveredKB states no range for its port.
-	for _, kb := range document.Kbs {
-		if kb.Port < 1 || kb.Port > 65535 {
-			return invalid(fmt.Sprintf("kb entry at %s has port %d, which is not a port", kb.Host, kb.Port))
-		}
-	}
 	return Managed{KBs: document.Kbs}
 }
 

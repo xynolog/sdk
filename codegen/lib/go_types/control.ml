@@ -46,18 +46,13 @@ let api_type (spec : Spec.t) ~declared target =
            (Printf.sprintf "%s names %s, for which package api declares no type"
               table target))
 
-let sender = "Sender"
-
+(* Package api's constant of who sends a notification, of ControlSender. *)
 let sender_constant from =
-  sender ^ String.capitalize_ascii (T.control_sender_value from)
+  "api.ControlSender" ^ Naming.variant (T.control_sender_value from)
 
 let text (spec : Spec.t) ~declared =
   let t : T.t = spec.tables.control_methods in
   let typed = api_type spec ~declared in
-  let senders =
-    List.sort_uniq compare
-      (List.map (fun (n : T.notifications_item) -> n.from) t.notifications)
-  in
   let strings items =
     G.inline ~of_:(G.Slice (G.Named "string"))
       (List.map (fun s -> G.item (G.Quoted s)) items)
@@ -73,23 +68,6 @@ let text (spec : Spec.t) ~declared =
       imports = [ [ "github.com/xynolog/sdk/go/api" ] ];
       decls =
         [
-          G.Type
-            {
-              doc = G.prose (sender ^ " is who sends a notification.");
-              name = sender;
-              def = G.Is (G.Named "string");
-            };
-          G.Consts
-            {
-              doc = [];
-              spacing = Packed;
-              specs =
-                List.map
-                  (fun from ->
-                    G.spec ~type_:(G.Named sender) (sender_constant from)
-                      (G.Quoted (T.control_sender_value from)))
-                  senders;
-            };
           G.Vars
             {
               doc = [];

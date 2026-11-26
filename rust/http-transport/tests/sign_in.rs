@@ -38,7 +38,7 @@ use xynolog::channels::{BRIDGED_CHANNELS, PrincipalProfile};
 use xynolog::claims::{HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS};
 use xynolog::client::ClientOptions;
 use xynolog::discovery::{
-    DiscoveryAbsentReason, DiscoveryRead, DiscoveryState, DiscoveryTransport,
+    DISCOVERY_URL_PATH, DiscoveryAbsentReason, DiscoveryRead, DiscoveryState, DiscoveryTransport,
 };
 use xynolog::errors::{
     BusRequestErrorCode, IdentityUnverifiable, IdentityUnverifiableReason, SessionError,
@@ -523,7 +523,7 @@ impl World {
             .route("/realms/xynolog/token", post(token))
             .route("/realms/xynolog/device", post(device))
             .route("/realms/xynolog/revoke", post(revoke))
-            .route("/discovery/kbs.json", get(discovery))
+            .route(DISCOVERY_URL_PATH, get(discovery))
             .with_state(staged.clone());
         let server = tokio::spawn(async move {
             let _ = axum::serve(listener, app).await;
@@ -2773,7 +2773,7 @@ async fn a_document_that_has_not_changed_is_not_read_again() {
     .to_string();
     serving(&world, 200, "application/json", &document, Some("\"v1\""));
     let discovery = http_discovery(
-        &format!("{}/discovery/kbs.json", world.origin),
+        &format!("{}{DISCOVERY_URL_PATH}", world.origin),
         world.http.clone(),
     );
 
@@ -2802,7 +2802,7 @@ async fn a_document_that_has_not_changed_is_not_read_again() {
 async fn what_is_not_a_document_at_the_address_is_absent() {
     let world = World::start().await;
     let discovery = http_discovery(
-        &format!("{}/discovery/kbs.json", world.origin),
+        &format!("{}{DISCOVERY_URL_PATH}", world.origin),
         world.http.clone(),
     );
 
@@ -2841,7 +2841,10 @@ async fn what_is_not_a_document_at_the_address_is_absent() {
         Some(DiscoveryAbsentReason::NotJson)
     );
 
-    let nowhere = http_discovery("http://127.0.0.1:9/discovery/kbs.json", world.http.clone());
+    let nowhere = http_discovery(
+        &format!("http://127.0.0.1:9{DISCOVERY_URL_PATH}"),
+        world.http.clone(),
+    );
     assert_eq!(
         absent_for(&nowhere.read().await),
         Some(DiscoveryAbsentReason::Unreadable)
@@ -3722,7 +3725,7 @@ async fn a_launchers_document_that_is_never_served_is_unreadable_at_the_deadline
     let world = World::on_a_quick_clock().await;
     world.never_answers("document");
     let reader = http_discovery(
-        &format!("{}/discovery/kbs.json", world.origin),
+        &format!("{}{DISCOVERY_URL_PATH}", world.origin),
         world.http.clone(),
     );
     let started = tokio::time::Instant::now();

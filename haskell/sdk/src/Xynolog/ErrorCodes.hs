@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/error_codes/haskell.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.ErrorCodes (BusRequestCode (..), busRequestCode, parseBusRequestCode, ControlCode (..), controlCode, parseControlCode, JobCode (..), jobCode, parseJobCode, KbIdentityCode (..), kbIdentityCode, parseKbIdentityCode, SessionCode (..), sessionCode, parseSessionCode, SignInCode (..), signInCode, parseSignInCode, SpanRefusalCode (..), spanRefusalCode, parseSpanRefusalCode, TransportCode (..), transportCode, parseTransportCode, transportCodeFromStatus, limitRefusalTransportCodes) where
+module Xynolog.ErrorCodes (BusRequestCode (..), busRequestCode, parseBusRequestCode, ControlCode (..), controlCode, parseControlCode, JobCode (..), jobCode, parseJobCode, KbIdentityCode (..), kbIdentityCode, parseKbIdentityCode, SessionCode (..), sessionCode, parseSessionCode, SignInCode (..), signInCode, parseSignInCode, SpanRefusalCode (..), spanRefusalCode, parseSpanRefusalCode, TransportCode (..), transportCode, parseTransportCode, transportCodeFromStatus, limitRefusalTransportCodes, controlRpcParseError, controlRpcInvalidRequest, controlRpcMethodNotFound, controlRpcInvalidParams, controlRpcInternalError, controlRpcOperationFailed, controlRpc, controlRetryable) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withText)
 import Data.Text (Text)
@@ -243,3 +243,81 @@ transportCodeFromStatus status = if status == 401 then TransportUnauthorized els
 -- | Each gateway refusal of a limit that is a transport code too: its status, its LimitRefusal code, and the transport code it is.
 limitRefusalTransportCodes :: [(Int, Text, TransportCode)]
 limitRefusalTransportCodes = [(429, "refusal-rate", TransportUnauthorized)]
+
+-- | The line is not JSON, or holds more than one JSON value. Answered under a null id (F2).
+controlRpcParseError :: Int
+controlRpcParseError = -32700
+
+-- | The message is a batch, does not state `"jsonrpc": "2.0"` and a method, has a member JSON-RPC does not define, or its id is null, a fraction or one in flight. Answered under a null id (F2, F3).
+controlRpcInvalidRequest :: Int
+controlRpcInvalidRequest = -32600
+
+-- | The API has no method of the request's name (F4).
+controlRpcMethodNotFound :: Int
+controlRpcMethodNotFound = -32601
+
+-- | The request's params are not what its method's schema admits, or are written to a version of the API this launcher does not speak (V1, P1).
+controlRpcInvalidParams :: Int
+controlRpcInvalidParams = -32602
+
+-- | The launcher would send a result or error data that does not hold to its schema, or the handler panicked. Never retryable: the same request fails the same way (E4).
+controlRpcInternalError :: Int
+controlRpcInternalError = -32603
+
+-- | The operation the request ran failed. The data's code says why, and whether the request is retryable (E2).
+controlRpcOperationFailed :: Int
+controlRpcOperationFailed = -32000
+
+-- | The JSON-RPC code of control/rpc-codes.json an answer carries a control code under.
+controlRpc :: ControlCode -> Int
+controlRpc ControlInvalidParams = controlRpcInvalidParams
+controlRpc ControlUnsupportedApiVersion = controlRpcInvalidParams
+controlRpc ControlInvalidRequest = controlRpcOperationFailed
+controlRpc ControlInvalidService = controlRpcOperationFailed
+controlRpc ControlInvalidValue = controlRpcOperationFailed
+controlRpc ControlUnknownSetting = controlRpcOperationFailed
+controlRpc ControlTargetRequired = controlRpcOperationFailed
+controlRpc ControlTargetAmbiguous = controlRpcOperationFailed
+controlRpc ControlRootNotFound = controlRpcOperationFailed
+controlRpc ControlRootNotRegistered = controlRpcOperationFailed
+controlRpc ControlStackNotRunning = controlRpcOperationFailed
+controlRpc ControlStackRunning = controlRpcOperationFailed
+controlRpc ControlStartInProgress = controlRpcOperationFailed
+controlRpc ControlRuntimeUnavailable = controlRpcOperationFailed
+controlRpc ControlDependencyUnavailable = controlRpcOperationFailed
+controlRpc ControlUnreachable = controlRpcOperationFailed
+controlRpc ControlInstanceInUse = controlRpcOperationFailed
+controlRpc ControlInstanceNotFound = controlRpcOperationFailed
+controlRpc ControlConfirmationRequired = controlRpcOperationFailed
+controlRpc ControlUnreadableState = controlRpcOperationFailed
+controlRpc ControlAlreadySignedIn = controlRpcOperationFailed
+controlRpc ControlSignInFailed = controlRpcOperationFailed
+controlRpc ControlCancelled = controlRpcOperationFailed
+controlRpc ControlFailed = controlRpcOperationFailed
+
+-- | Whether the same request can succeed sent again unchanged, once something outside it changes: what ErrorData's retryable says of the code.
+controlRetryable :: ControlCode -> Bool
+controlRetryable ControlInvalidParams = False
+controlRetryable ControlUnsupportedApiVersion = False
+controlRetryable ControlInvalidRequest = False
+controlRetryable ControlInvalidService = False
+controlRetryable ControlInvalidValue = False
+controlRetryable ControlUnknownSetting = False
+controlRetryable ControlTargetRequired = False
+controlRetryable ControlTargetAmbiguous = False
+controlRetryable ControlRootNotFound = False
+controlRetryable ControlRootNotRegistered = False
+controlRetryable ControlStackNotRunning = True
+controlRetryable ControlStackRunning = True
+controlRetryable ControlStartInProgress = True
+controlRetryable ControlRuntimeUnavailable = True
+controlRetryable ControlDependencyUnavailable = True
+controlRetryable ControlUnreachable = True
+controlRetryable ControlInstanceInUse = False
+controlRetryable ControlInstanceNotFound = False
+controlRetryable ControlConfirmationRequired = False
+controlRetryable ControlUnreadableState = True
+controlRetryable ControlAlreadySignedIn = False
+controlRetryable ControlSignInFailed = True
+controlRetryable ControlCancelled = False
+controlRetryable ControlFailed = True

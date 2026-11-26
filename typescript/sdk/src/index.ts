@@ -332,7 +332,6 @@ export {
   SignInStore,
   stateDir,
   type SignInFiles,
-  type System,
 } from './session/sign-in-store';
 
 // State units — flow state machines and their RxJS substrate.

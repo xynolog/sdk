@@ -46,7 +46,7 @@ public sealed partial class TransportTests
             response.Headers.ETag = new EntityTagHeaderValue(step == 3 ? "\"bad\"" : "\"known\"");
             return Task.FromResult(response);
         };
-        var discovery = LauncherDiscovery.HttpDiscovery("https://launcher.test/discovery/kbs.json", http);
+        var discovery = LauncherDiscovery.HttpDiscovery("https://launcher.test" + LauncherDiscovery.DiscoveryUrlPath, http);
         Assert.IsType<Managed>(await discovery.ReadAsync());
         Assert.IsType<Unchanged>(await discovery.ReadAsync());
         Assert.Equal(DiscoveryAbsentReason.Invalid, Assert.IsType<Absent>(await discovery.ReadAsync()).Reason);

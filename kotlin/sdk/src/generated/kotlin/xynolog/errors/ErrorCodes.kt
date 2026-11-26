@@ -508,3 +508,33 @@ public data class LimitRefusalTransportCode(
 
 /** Each gateway refusal of a limit that is a transport code too. */
 public val LIMIT_REFUSAL_TRANSPORT_CODES: List<LimitRefusalTransportCode> = listOf(LimitRefusalTransportCode(429, "refusal-rate", TransportErrorCode.Unauthorized))
+
+/** The line is not JSON, or holds more than one JSON value. Answered under a null id (F2). */
+public val CONTROL_RPC_PARSE_ERROR: Int = -32700
+
+/** The message is a batch, does not state `"jsonrpc": "2.0"` and a method, has a member JSON-RPC does not define, or its id is null, a fraction or one in flight. Answered under a null id (F2, F3). */
+public val CONTROL_RPC_INVALID_REQUEST: Int = -32600
+
+/** The API has no method of the request's name (F4). */
+public val CONTROL_RPC_METHOD_NOT_FOUND: Int = -32601
+
+/** The request's params are not what its method's schema admits, or are written to a version of the API this launcher does not speak (V1, P1). */
+public val CONTROL_RPC_INVALID_PARAMS: Int = -32602
+
+/** The launcher would send a result or error data that does not hold to its schema, or the handler panicked. Never retryable: the same request fails the same way (E4). */
+public val CONTROL_RPC_INTERNAL_ERROR: Int = -32603
+
+/** The operation the request ran failed. The data's code says why, and whether the request is retryable (E2). */
+public val CONTROL_RPC_OPERATION_FAILED: Int = -32000
+
+/** The JSON-RPC code of control/rpc-codes.json an answer carries `code` under. */
+public fun controlRpcCodeOf(code: ControlErrorCode): Int = when (code) {
+    ControlErrorCode.InvalidParams, ControlErrorCode.UnsupportedApiVersion -> CONTROL_RPC_INVALID_PARAMS
+    ControlErrorCode.InvalidRequest, ControlErrorCode.InvalidService, ControlErrorCode.InvalidValue, ControlErrorCode.UnknownSetting, ControlErrorCode.TargetRequired, ControlErrorCode.TargetAmbiguous, ControlErrorCode.RootNotFound, ControlErrorCode.RootNotRegistered, ControlErrorCode.StackNotRunning, ControlErrorCode.StackRunning, ControlErrorCode.StartInProgress, ControlErrorCode.RuntimeUnavailable, ControlErrorCode.DependencyUnavailable, ControlErrorCode.Unreachable, ControlErrorCode.InstanceInUse, ControlErrorCode.InstanceNotFound, ControlErrorCode.ConfirmationRequired, ControlErrorCode.UnreadableState, ControlErrorCode.AlreadySignedIn, ControlErrorCode.SignInFailed, ControlErrorCode.Cancelled, ControlErrorCode.Failed -> CONTROL_RPC_OPERATION_FAILED
+}
+
+/** Whether the same request can succeed sent again unchanged, once something outside it changes: what `ErrorData.retryable` says of `code`. */
+public fun controlCodeRetryable(code: ControlErrorCode): Boolean = when (code) {
+    ControlErrorCode.InvalidParams, ControlErrorCode.UnsupportedApiVersion, ControlErrorCode.InvalidRequest, ControlErrorCode.InvalidService, ControlErrorCode.InvalidValue, ControlErrorCode.UnknownSetting, ControlErrorCode.TargetRequired, ControlErrorCode.TargetAmbiguous, ControlErrorCode.RootNotFound, ControlErrorCode.RootNotRegistered, ControlErrorCode.InstanceInUse, ControlErrorCode.InstanceNotFound, ControlErrorCode.ConfirmationRequired, ControlErrorCode.AlreadySignedIn, ControlErrorCode.Cancelled -> false
+    ControlErrorCode.StackNotRunning, ControlErrorCode.StackRunning, ControlErrorCode.StartInProgress, ControlErrorCode.RuntimeUnavailable, ControlErrorCode.DependencyUnavailable, ControlErrorCode.Unreachable, ControlErrorCode.UnreadableState, ControlErrorCode.SignInFailed, ControlErrorCode.Failed -> true
+}
