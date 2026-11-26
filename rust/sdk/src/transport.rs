@@ -29,7 +29,6 @@ use crate::types::{
     HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, PutBinaryRequest,
     ResourceRepresentation, StatusResponse, UploadProgress, UploadProgressFinished, UserResponse,
 };
-use crate::types::{AnnotationId, JobId};
 use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema, TraceCarrier};
 use bytes::Bytes;
 use futures_core::Stream;
