@@ -249,7 +249,7 @@ let files ~root (spec : Spec.t) =
          (List.map fst models.definitions))
   in
   let unrecognized =
-    Error_codes.Haskell.code_constructor "busRequest"
+    Error_codes.Haskell.bus_constructor
       spec.tables.errors_codes.bus_request.unrecognized_failure
   in
   Ok

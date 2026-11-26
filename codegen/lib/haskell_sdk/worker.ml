@@ -303,7 +303,8 @@ and field_type name text =
           match strip text with
           | "string" -> Ok (H.T_name "Text", [])
           | "number" -> Ok (H.T_name "Scientific", [])
-          | "BusRequestErrorCode" -> Ok (H.T_name "BusRequestCode", [])
+          | t when t = Error_codes.Table.bus_name ->
+              Ok (H.T_name Error_codes.Haskell.bus_type, [])
           | t when List.mem t models -> Ok (H.T_name t, [])
           | t -> Error (refused ("unsupported worker interface type: " ^ t))))
   | _ -> Error (refused ("unsupported worker interface type: " ^ text))
@@ -360,7 +361,8 @@ let types text =
           H.import "Data.Aeson.KeyMap" ~qualified:"KM";
           H.import "Data.Scientific" ~items:[ Plain "Scientific" ];
           H.import "Data.Text" ~items:[ Plain "Text" ];
-          H.import "Xynolog.ErrorCodes" ~items:[ Plain "BusRequestCode" ];
+          H.import "Xynolog.ErrorCodes"
+            ~items:[ Plain Error_codes.Haskell.bus_type ];
           H.import "Xynolog.Internal.Codec"
             ~items:[ Plain "optional"; Plain "optionalPair" ];
           H.import "Xynolog.Types" ~items:(List.map (fun t -> H.Plain t) models);

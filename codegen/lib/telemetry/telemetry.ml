@@ -14,7 +14,6 @@ module T = Tables.Sdk_telemetry_telemetry
 module Kotlin = Kotlin
 
 let file = "sdk-telemetry/telemetry.json"
-let channel = "{channel}"
 
 type row = {
   name : string;
@@ -30,8 +29,6 @@ type t = {
   keys : string list;  (** Every attribute key a row lists, once, in order. *)
 }
 
-let without_channel = Text.replace_all ~sub:(":" ^ channel) ~by:""
-
 (* A dotted, underscored name as a Go identifier behind [prefix]:
    content.size_bytes is keyContentSizeBytes. *)
 let go_identifier prefix name =
@@ -41,7 +38,7 @@ let go_identifier prefix name =
          (fun word ->
            if word = "id" then "ID" else String.capitalize_ascii word)
          (String.split_on_char '_'
-            (String.map (function '.' -> '_' | c -> c) (without_channel name))))
+            (String.map (function '.' -> '_' | c -> c) (Channel.without name))))
 
 (* The words of an attribute key: content.size_bytes is content, size and
    bytes. Every SDK names a key by them, so two keys of the same words would
@@ -68,7 +65,7 @@ let python_constant name =
             Buffer.length out = 0
             || Buffer.nth out (Buffer.length out - 1) <> '_'
           then Buffer.add_char out '_')
-    (Text.upper_snake (without_channel name));
+    (Text.upper_snake (Channel.without name));
   Buffer.contents out
 
 let python_key key = "ATTR_" ^ key_upper key
@@ -107,10 +104,10 @@ let derive (table : T.t) =
     List.mapi
       (fun i (s : T.spans_item) ->
         let at = Printf.sprintf "/spans/%d" i in
-        if String.contains (without_channel s.name) '{' then
+        if String.contains (Channel.without s.name) '{' then
           refuse (at ^ "/name")
             (Printf.sprintf "is %s, which has a placeholder but %s" s.name
-               channel);
+               Channel.placeholder);
         row at ~name:s.name
           ~kind:(T.service_telemetry_telemetry_kind_value s.kind)
           ~meaning:s.meaning
@@ -210,7 +207,7 @@ let go (t : t) =
                          "telemetryChannel stands for the bus channel in a \
                           span's name.";
                      ]
-                   "telemetryChannel" (G.Quoted channel));
+                   "telemetryChannel" (G.Quoted Channel.placeholder));
             ]
             @ List.map
                 (fun r ->
@@ -364,7 +361,7 @@ let python (t : t) =
 
 (* A row's or an attribute key's name in the OCaml SDK: the name without
    what stands for the channel, its dots underscores. *)
-let ocaml_name name = Text.replace_all ~sub:"." ~by:"_" (without_channel name)
+let ocaml_name name = Text.replace_all ~sub:"." ~by:"_" (Channel.without name)
 
 (* The rows as the OCaml SDK names them (ocaml/sdk/lib/telemetry_facts.ml): a
    span's name, its channel left for the caller, and its kind; a metric's
@@ -379,7 +376,8 @@ let ocaml (t : t) =
          O.let_ (ocaml_name r.name)
            (O.tuple
               [
-                O.string (Text.replace_all ~sub:channel ~by:"" r.name);
+                O.string
+                  (Text.replace_all ~sub:Channel.placeholder ~by:"" r.name);
                 O.construct ("Telemetry." ^ String.capitalize_ascii r.kind);
               ]))
        t.spans
@@ -393,10 +391,10 @@ let ocaml (t : t) =
 let about = "An attribute key a row of the telemetry table lists."
 
 (* A row's name by the words of its name without what stands for the
-   channel, which the name itself keeps, for the caller to put the channel
+   channel, which the name itself keeps, for the caller to put the Channel.placeholder
    in place of. *)
-let row_pascal (r : row) = key_pascal (without_channel r.name)
-let row_upper (r : row) = key_upper (without_channel r.name)
+let row_pascal (r : row) = key_pascal (Channel.without r.name)
+let row_upper (r : row) = key_upper (Channel.without r.name)
 let span_constant r = "SPAN_" ^ row_upper r
 let metric_constant r = "METRIC_" ^ row_upper r
 let haskell_span r = "span" ^ row_pascal r
@@ -419,7 +417,7 @@ let typescript_names (t : t) =
           body =
             T.const "TELEMETRY_CHANNEL"
               ~about:[ Doc "What stands for the bus channel in a span's name." ]
-              (T.Str channel)
+              (T.Str Channel.placeholder)
             :: List.map (fun r -> row (span_constant r) r) t.spans
             @ List.map (fun r -> row (metric_constant r) r) t.metrics;
         };
@@ -518,7 +516,7 @@ let csharp_names (t : t) =
           decls =
             [
               class_ "TelemetrySpans"
-                (constant "Channel" channel
+                (constant "Channel" Channel.placeholder
                 :: List.map (fun r -> constant (row_pascal r) r.name) t.spans);
               class_ "TelemetryMetrics"
                 (List.map (fun r -> constant (row_pascal r) r.name) t.metrics);
@@ -586,7 +584,7 @@ let haskell_names (t : t) =
       body =
         H.value
           ~about:[ "What stands for the bus channel in a span's name." ]
-          "telemetryChannel" (T_name "Text") (Str channel)
+          "telemetryChannel" (T_name "Text") (Str Channel.placeholder)
         :: List.map (row haskell_span) t.spans
         @ List.map (row haskell_metric) t.metrics;
     }
@@ -608,7 +606,7 @@ let rust (t : t) =
         ~header:(Banner.lines ~from_:("protocol/specs/src/" ^ file) __FILE__)
         (constant
            ~doc:[ "What stands for the bus channel in a span's name." ]
-           "CHANNEL" channel
+           "CHANNEL" Channel.placeholder
          :: List.map (row span_constant) t.spans
         @ List.map (row metric_constant) t.metrics
         @ List.map
