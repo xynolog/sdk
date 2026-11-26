@@ -20,14 +20,14 @@ use tokio::task::JoinSet;
 use xynolog::bus::{Bus, operation};
 use xynolog::errors::XynologError;
 use xynolog::transport::{
-    BoxFuture, ConnectionState, ContentTransport, Envelope, GatewayOperations, PutBinaryRequest,
-    ResourceHold, Transport,
+    BoxFuture, ConnectionState, ContentTransport, Envelope, GatewayOperations, ResourceHold,
+    Transport,
 };
 use xynolog::types::{
     ConformanceDriverLine, ConformanceDriverLineErrorStream, ConformanceDriverLineFrame,
     ConformanceDriverLineFrameFrame, ConformanceDriverLineProgress,
-    ConformanceDriverLineProgressProgress, ConformanceDriverLineState, ResourceId, RetryBudget,
-    UploadProgress,
+    ConformanceDriverLineProgressProgress, ConformanceDriverLineState, PutBinaryRequest, ResourceId,
+    RetryBudget, UploadProgress,
 };
 use xynolog_conformance_drivers::{
     Arguments, Driver, Ended, Running, count, failure, identifier, locked, object,
@@ -342,12 +342,12 @@ impl Wire {
             .map_err(|e| Ended::Misuse(format!("bytes is not base64: {e}")))?;
         let request = PutBinaryRequest {
             name: text(args, "name")?.to_owned(),
-            bytes: Bytes::from(bytes),
+            file: Bytes::from(bytes),
             format: text(args, "format")?.to_owned(),
             storage_uri: text(args, "storageUri")?.to_owned(),
             entity_types: match args.get("entityTypes") {
-                None => Vec::new(),
-                Some(_) => texts(args, "entityTypes")?,
+                None => None,
+                Some(_) => Some(texts(args, "entityTypes")?),
             },
             language: optional_text(args, "language")?,
             source_annotation_id: optional_identifier(args, "sourceAnnotationId")?,

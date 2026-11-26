@@ -442,7 +442,7 @@ describe('HttpTransport — HTTP wire shape', () => {
     test('POSTs to /resources (not /api/resources) with core fields', async () => {
       await content.putBinary({
         name: 'My Doc',
-        file: Buffer.from('hello'),
+        file: new Blob(['hello']),
         format: 'text/plain',
         storageUri: 'file://docs/my-doc.txt',
       });
@@ -461,7 +461,7 @@ describe('HttpTransport — HTTP wire shape', () => {
     test('serializes a Node Buffer as a Blob with the declared format', async () => {
       await content.putBinary({
         name: 'Binary.png',
-        file: Buffer.from([137, 80, 78, 71]),
+        file: new Blob([new Uint8Array([137, 80, 78, 71])]),
         format: 'image/png',
         storageUri: 'file://img/Binary.png',
       });
@@ -475,7 +475,7 @@ describe('HttpTransport — HTTP wire shape', () => {
     test('appends entityTypes as a JSON-stringified array', async () => {
       await content.putBinary({
         name: 'Tagged',
-        file: Buffer.from('x'),
+        file: new Blob(['x']),
         format: 'text/plain',
         storageUri: 'file://docs/tagged.txt',
         entityTypes: ['Person', 'Location'],
@@ -486,7 +486,7 @@ describe('HttpTransport — HTTP wire shape', () => {
     test('omits entityTypes when empty (avoids posting an empty array)', async () => {
       await content.putBinary({
         name: 'Plain',
-        file: Buffer.from('x'),
+        file: new Blob(['x']),
         format: 'text/plain',
         storageUri: 'file://docs/plain.txt',
         entityTypes: [],
@@ -505,7 +505,7 @@ describe('HttpTransport — HTTP wire shape', () => {
 
       await content.putBinary({
         name: 'Generated Summary',
-        file: Buffer.from('# Summary\n'),
+        file: new Blob(['# Summary\n']),
         format: 'text/markdown',
         storageUri: 'file://generated/summary.md',
         sourceResourceId: resourceId('res-abc'),
@@ -531,7 +531,7 @@ describe('HttpTransport — HTTP wire shape', () => {
       await content.putBinary(
         {
           name: 'Auth Check',
-          file: Buffer.from('x'),
+          file: new Blob(['x']),
           format: 'text/plain',
           storageUri: 'file://docs/auth-check.txt',
         },
@@ -547,7 +547,7 @@ describe('HttpTransport — HTTP wire shape', () => {
     test('returns the resourceId from the server response', async () => {
       const result = await content.putBinary({
         name: 'Round-trip',
-        file: Buffer.from('x'),
+        file: new Blob(['x']),
         format: 'text/plain',
         storageUri: 'file://docs/round-trip.txt',
       });

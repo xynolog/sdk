@@ -624,6 +624,88 @@ module Pending_annotation = struct
         ]
 end
 
+module Put_binary_request = struct
+  type t = {
+    name : string;
+    file : string;
+    format : string;
+    storage_uri : string;
+    language : string option;
+    entity_types : string list option;
+    source_annotation_id : string option;
+    source_resource_id : string option;
+    generation_prompt : string option;
+    generator : [ `OneOrMoreAgents ] Models.t option;
+    job_id : string option;
+    is_draft : bool option;
+    clone_token : string option;
+    archive_original : bool option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* name = required string "name" members in
+        let* file = required string "file" members in
+        let* format = required string "format" members in
+        let* storage_uri = required string "storageUri" members in
+        let* language = optional string "language" members in
+        let* entity_types = optional (list string) "entityTypes" members in
+        let* source_annotation_id =
+          optional string "sourceAnnotationId" members
+        in
+        let* source_resource_id = optional string "sourceResourceId" members in
+        let* generation_prompt = optional string "generationPrompt" members in
+        let* generator =
+          optional (model Models.one_or_more_agents) "generator" members
+        in
+        let* job_id = optional string "jobId" members in
+        let* is_draft = optional bool "isDraft" members in
+        let* clone_token = optional string "cloneToken" members in
+        let* archive_original = optional bool "archiveOriginal" members in
+        Ok
+          {
+            name;
+            file;
+            format;
+            storage_uri;
+            language;
+            entity_types;
+            source_annotation_id;
+            source_resource_id;
+            generation_prompt;
+            generator;
+            job_id;
+            is_draft;
+            clone_token;
+            archive_original;
+          }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("name", Some (json_string value.name));
+          ("file", Some (json_string value.file));
+          ("format", Some (json_string value.format));
+          ("storageUri", Some (json_string value.storage_uri));
+          ("language", Option.map json_string value.language);
+          ("entityTypes", Option.map (json_list json_string) value.entity_types);
+          ( "sourceAnnotationId",
+            Option.map json_string value.source_annotation_id );
+          ("sourceResourceId", Option.map json_string value.source_resource_id);
+          ("generationPrompt", Option.map json_string value.generation_prompt);
+          ("generator", Option.map json_model value.generator);
+          ("jobId", Option.map json_string value.job_id);
+          ("isDraft", Option.map json_bool value.is_draft);
+          ("cloneToken", Option.map json_string value.clone_token);
+          ("archiveOriginal", Option.map json_bool value.archive_original);
+        ]
+end
+
 module Quoted_text = struct
   type t = { exact : string; prefix : string option; suffix : string option }
 

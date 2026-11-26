@@ -4,46 +4,6 @@ import NIOCore
 import OpenTelemetryApi
 import Synchronization
 
-/// The multipart form as callers supply it. Its member census is held to ResourceUpload by a test.
-public struct PutBinaryRequest: Sendable {
-  public let name: String
-  public let file: Data
-  public let format: String
-  public let storageUri: String
-  public var entityTypes: [String]
-  public var language: String?
-  public var sourceAnnotationId: AnnotationId?
-  public var sourceResourceId: ResourceId?
-  public var generationPrompt: String?
-  public var generator: [Agent]
-  public var jobId: JobId?
-  public var isDraft: Bool?
-  public var cloneToken: String?
-  public var archiveOriginal: Bool?
-  public init(
-    name: String, file: Data, format: String, storageUri: String, entityTypes: [String] = [],
-    language: String? = nil,
-    sourceAnnotationId: AnnotationId? = nil, sourceResourceId: ResourceId? = nil,
-    generationPrompt: String? = nil,
-    generator: [Agent] = [], jobId: JobId? = nil, isDraft: Bool? = nil, cloneToken: String? = nil,
-    archiveOriginal: Bool? = nil
-  ) {
-    self.name = name
-    self.file = file
-    self.format = format
-    self.storageUri = storageUri
-    self.entityTypes = entityTypes
-    self.language = language
-    self.sourceAnnotationId = sourceAnnotationId
-    self.sourceResourceId = sourceResourceId
-    self.generationPrompt = generationPrompt
-    self.generator = generator
-    self.jobId = jobId
-    self.isDraft = isDraft
-    self.cloneToken = cloneToken
-    self.archiveOriginal = archiveOriginal
-  }
-}
 /// Awaited, an upload gives the resource it created; iterated, what it reports as it goes:
 /// `started` with its size before any bytes are sent, `progress` as they are sent, and `finished`
 /// with the resource made, once the knowledge base has answered. Its size is every byte sent for
@@ -136,10 +96,10 @@ private struct Multipart: Sendable {
     let form = ResourceUpload(
       name: request.name, file: Data(), format: request.format, storageUri: request.storageUri,
       language: request.language,
-      entityTypes: request.entityTypes.isEmpty ? nil : try json(request.entityTypes),
+      entityTypes: try request.entityTypes.flatMap { $0.isEmpty ? nil : try json($0) },
       sourceAnnotationId: request.sourceAnnotationId, sourceResourceId: request.sourceResourceId,
       generationPrompt: request.generationPrompt,
-      generator: request.generator.isEmpty ? nil : try json(request.generator),
+      generator: try request.generator.map { try json($0) },
       jobId: request.jobId, isDraft: request.isDraft.map(String.init),
       cloneToken: request.cloneToken, archiveOriginal: request.archiveOriginal.map(String.init))
     let fields = try JSONDecoder().decode(

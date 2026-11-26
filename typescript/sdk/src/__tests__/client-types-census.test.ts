@@ -1,22 +1,18 @@
 /**
  * The client types the generator leaves to each SDK (protocol/specs/src/client/types):
- * SearchState and JobEvent, which are generic, and PutBinaryRequest and
- * ResourceRepresentationStream, which hold bytes. This census holds each to
+ * SearchState and JobEvent, which are generic, and
+ * ResourceRepresentationStream, which holds a stream. This census holds each to
  * its schema. The compiler holds each list below to the type's members (and
  * which it requires) and branches, and the test holds the list to the
  * schema's, so a member or a branch either side gains or loses fails.
  */
 
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import type {
-  PutBinaryRequest,
-  ResourceRepresentationStream,
-} from '@xynolog/core';
+import type { ResourceRepresentationStream } from '@xynolog/core';
 import type { JobEvent } from '../awaitable';
 import type { SearchState } from '../state/lib/search-pipeline';
 import { schema as jobEvent } from './cases/client_types_job_event_schema';
 import { schema as searchState } from './cases/client_types_search_state_schema';
-import { schema as putBinaryRequest } from './cases/client_types_put_binary_request_schema';
 import { schema as resourceRepresentationStream } from './cases/client_types_resource_representation_stream_schema';
 
 const sorted = (names: readonly string[]) => [...names].sort();
@@ -101,23 +97,6 @@ type RequiredOf<T> = {
   [K in keyof T]-?: object extends Pick<T, K> ? never : K;
 }[keyof T];
 
-const PUT_BINARY_REQUEST = {
-  name: true,
-  file: true,
-  format: true,
-  storageUri: true,
-  language: false,
-  entityTypes: false,
-  sourceAnnotationId: false,
-  sourceResourceId: false,
-  generationPrompt: false,
-  generator: false,
-  jobId: false,
-  isDraft: false,
-  cloneToken: false,
-  archiveOriginal: false,
-} as const satisfies Members<PutBinaryRequest>;
-
 const RESOURCE_REPRESENTATION_STREAM = {
   stream: true,
   contentType: true,
@@ -140,15 +119,11 @@ function heldTo(
   );
 }
 
-describe('the client types that hold bytes', () => {
-  it('each has its schema’s members, and requires what it requires', () => {
-    expectTypeOf<RequiredOf<PutBinaryRequest>>().toEqualTypeOf<
-      RequiredIn<typeof PUT_BINARY_REQUEST>
-    >();
+describe('the client type that holds a stream', () => {
+  it('has its schema’s members, and requires what it requires', () => {
     expectTypeOf<RequiredOf<ResourceRepresentationStream>>().toEqualTypeOf<
       RequiredIn<typeof RESOURCE_REPRESENTATION_STREAM>
     >();
-    heldTo(putBinaryRequest, PUT_BINARY_REQUEST);
     heldTo(resourceRepresentationStream, RESOURCE_REPRESENTATION_STREAM);
   });
 });

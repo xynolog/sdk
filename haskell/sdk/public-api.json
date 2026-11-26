@@ -371,6 +371,7 @@
     "generated/Xynolog/Internal/Generated/Models/ProjectConfig.hs": "b28d307572b5569292caf47f5c83b24e5527c44344776aee5dad06fab1d28643",
     "generated/Xynolog/Internal/Generated/Models/ProtectedResourceMetadata.hs": "292e1adc72759cdbd48a5271ee13f0eb9032296b009a8e31f7ae89e40f52dae7",
     "generated/Xynolog/Internal/Generated/Models/Provider.hs": "c71de271e4565394f9d6c3c5d1d02ff6a0627573a0a1bb217aa8fdfc125cb516",
+    "generated/Xynolog/Internal/Generated/Models/PutBinaryRequest.hs": "9321646e928c77244dde85df44a5100d75555f5e336a309b74fbe4667bd7aec8",
     "generated/Xynolog/Internal/Generated/Models/QdrantVectorsConfig.hs": "c3944c802a7f5073e649d474de1ef2ccb3e0055471fee95b3fcf2aceea8a7f72",
     "generated/Xynolog/Internal/Generated/Models/QuotedText.hs": "d85418876eb65ca3890f4bb4b90228ea7826d18808a62ed00643846ad42beb3b",
     "generated/Xynolog/Internal/Generated/Models/ReconciledSpan.hs": "13eeb1f4a9b5a3bf419383a649794110eb140d30cc9d47c8765733756130fa8b",
@@ -397,7 +398,6 @@
     "generated/Xynolog/Internal/Generated/Models/ResourceUnarchivedPayload.hs": "fa8af18e7b882aa899de6c45ff12920abe9f8c0abcd28f03a9bfc0aa44205835",
     "generated/Xynolog/Internal/Generated/Models/ResourceUpdatedPayload.hs": "9eead1b198eddb2382cf843310d9ea22a7ad4b5e76c730ef9b3ea91edad133b6",
     "generated/Xynolog/Internal/Generated/Models/ResourceUpload.hs": "47e7f5185eea72442d456db45977ebc8c3741c39448381613c80c38bf3e111ed",
-    "generated/Xynolog/Internal/Generated/Models/ResourceUploadMetadata.hs": "0f61d240e03485273357d2fc302d13d2eeed8663c15d6e902b928f7f236baa98",
     "generated/Xynolog/Internal/Generated/Models/ResourceView.hs": "e5ce1b48dcd1bdde76aa6369ff745d855f794c5cc75a7584e0af2603d4da7bbe",
     "generated/Xynolog/Internal/Generated/Models/Resources.hs": "6f42a4636fc94c5ea86389f1bc58e1ef4be8e41a0362a2956b41276f96f9dea0",
     "generated/Xynolog/Internal/Generated/Models/RetryBudget.hs": "980713ee698afc3d208a933df77f21feda259e00a3831d95a141b0b4b159c680",
@@ -534,8 +534,8 @@
     "generated/Xynolog/Internal/Generated/OperationReports.hs": "8456e121145825e7e7b06f75e9a1baf6d5deb402218a4c854436f22378540046",
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
-    "generated/Xynolog/Internal/Generated/Required.hs": "1ef458db623d24c28f11d9e5a7de0380629c33014e918d4ee8e4876fc7674833",
-    "generated/Xynolog/Internal/Generated/Schemas.hs": "73efe2fd21560f0c422d4dedd588f465f9aa858063fecb6c3f95d1b351ddb7e2",
+    "generated/Xynolog/Internal/Generated/Required.hs": "fccbeeb222079b806d33555874a377cbd4df0d66f0a4e3d69d7a476860834091",
+    "generated/Xynolog/Internal/Generated/Schemas.hs": "a0db10adf327824501581b8905dd28491e357a7d5e338ea169a26e896bce57e6",
     "generated/Xynolog/Internal/Generated/SearchState.hs": "d5994a174a2a535cb04661283a500feb97cf4e80783492c2cf390e712b38c0a9",
     "generated/Xynolog/Internal/Generated/ServiceProof.hs": "86e44db90b1ac4a3713f4794f4f1f2f32bdf7eeeb7ad24e12046c050f8acadaf",
     "generated/Xynolog/Internal/Generated/SessionFactoryOptions.hs": "1378c790f4a48832e1a0a938eb64c8759870e4ebf73f2445e8ba81c354334c45",
@@ -569,7 +569,7 @@
     "internal/Xynolog/Internal/Gather.hs": "1a55570852c2f60a398c2e9ea452cf59608033e4da249d5b849eebba343d03d0",
     "internal/Xynolog/Internal/Http.hs": "c48068d21fb64bbcae4143bb9c98feade2724face035512acee8b7c8a44dd9bd",
     "internal/Xynolog/Internal/HttpActor.hs": "60d1f7f9a1a8765a9982016b08892e80cb0c9937b3f4a785e59958f137044839",
-    "internal/Xynolog/Internal/HttpContent.hs": "35936fab3437a9fa76b0c2b95279c2dbd323eef0c9e3f899e4957277b0a0009b",
+    "internal/Xynolog/Internal/HttpContent.hs": "ca940d3d43b8cad01f07dc36e540ef7a0a806ea502299ff06b21181bfe3de460",
     "internal/Xynolog/Internal/Issuer.hs": "a89e2fc2e2fa5d1abe162d13fb35eef7df43416fc4724c5e397f9763ba226388",
     "internal/Xynolog/Internal/Kept.hs": "339bd720c2bcc56a0b9b520a64e45e9d6cf689b875b503090fec59dc2e55e274",
     "internal/Xynolog/Internal/Lifetime.hs": "7683169b7799ad3119f1c2ea849238dddc0dd832dffeacc87b9be86049eba585",
@@ -596,7 +596,7 @@
     "internal/Xynolog/Internal/Transport.hs": "807623cd9ed2f919515428b6ce0d6f2fb6689969caa8df0e7dbaa010276847f3",
     "internal/Xynolog/Internal/UnicodeCase.hs": "db22ac7faa38045f0ee0331885d93caae5c7fc41df56d1d825da16e096ef450e",
     "internal/Xynolog/Internal/Utf8.hs": "109a7cb49bc473d5e423a8a63a4e311063c862dc966a98fa5b35bc5943ab79d4",
-    "internal/Xynolog/Internal/Yield.hs": "6df9dca1b50378d040a9b6f7eb6bf4b887f1b4d617821edbe19734ec97777e06",
+    "internal/Xynolog/Internal/Yield.hs": "f162a44a5443d839bb4034e7313d08996b7c3d96a4987b10b6e867cf76836854",
     "public-api.inputs.json": "e88f293799bdd5010b5faeda50a0c66fd97922d3c88c20af310d5e58cfb1fd83",
     "src/Xynolog/Annotations.hs": "4921bafbf44799f0910cb51db61fc6674930dcfe2d4f872adc26472f725d698d",
     "src/Xynolog/Archivist/Routes.hs": "03fa200e9b592b0afb2f799caad25404b8e77d893d873f76a961f0ed514fcd1f",
@@ -610,7 +610,7 @@
     "src/Xynolog/Claims.hs": "890ec782704b0b52cec69c66b224ef8146f738759d5c757c654d6a5c7ecd0204",
     "src/Xynolog/Client.hs": "87f06a4d5477a902fe35a794423d21cecb609a63b79ebe61723d8bc19b8fcd37",
     "src/Xynolog/ClientAssertion.hs": "07004022f82dc3fce9c9f50b94dfbcf978fb123ca61a55189c5daa507aaf2d96",
-    "src/Xynolog/Content.hs": "52f5f2a229ca71b28f32a8cb9ddecce5ea16d2e0c45220edba5fee79a4dd2a42",
+    "src/Xynolog/Content.hs": "64e897614878fea02616dd2edbe9102af49a27eb5c42e591ac039ea86a36f740",
     "src/Xynolog/Control.hs": "512c3c8296ac27f810a3a6b053a737fa46b878421742ba4b3ecd3dc4d3e46704",
     "src/Xynolog/Delegation.hs": "dc5779ae67ae4622e585e80020efcd7d2f49a8063d0c7b428d368652c08cc3bf",
     "src/Xynolog/Discovery.hs": "251635cef8030323d8df7b362ec99e601dbd40d6760afa766819215a85a34db5",
@@ -670,7 +670,7 @@
     "src/Xynolog/Tokens.hs": "bba264adde2b8a6c123b9e64e99aeae6fd917f9a09f10194684a8daf708bceca",
     "src/Xynolog/Transport.hs": "5f0c95953108daa834e02c580f0ffb49c3d8fb30ad4cf0424ae3b19c500de034",
     "src/Xynolog/Transport/Facts.hs": "b861a07eb1fc5319a56fec2889c08f9fe7d59c43682d5b488d14520377ff08ba",
-    "src/Xynolog/Types.hs": "543159e105a4e7c0d79f5d31c55670d25e9576537a2b81f8ba48dc4fb6ed5821",
+    "src/Xynolog/Types.hs": "7ffaedc83f28a3ab2995c1a21ff8dc546b7c33331fa6da7f4e829f3164dc75a2",
     "src/Xynolog/Worker.hs": "74c13763bd2c52e1f12c2a9827a4a4f369200e56f11f68db644558c7b703ab20",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
     "xynolog.cabal.in": "171bc716a64f3a951ec37a9f6526c834d862ef12c5bb5723f7464a25b71748e9"
@@ -1344,25 +1344,17 @@
         "ContentTransport": {
           "definition": "data Xynolog.Content.ContentTransport = ...",
           "kind": "*"
-        },
-        "ReplayableBody": {
-          "definition": "data Xynolog.Content.ReplayableBody = ...",
-          "kind": "*"
         }
       },
       "values": {
-        "ContentTransport": "(Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Xynolog.Content.ReplayableBody -> (Xynolog.Internal.Generated.OperationReports.UploadEvent -> IO ()) -> IO Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse) -> (Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.ResourceRepresentation.ResourceRepresentation) -> (forall result. Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> (Data.Text.Internal.Text -> Streaming.Internal.Stream (Data.Functor.Of.Of Data.ByteString.Internal.Type.ByteString) IO () -> IO result) -> IO result) -> (Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.GetResourceResponse.GetResourceResponse) -> (Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse) -> (Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.AnchoredTextAnswer.AnchoredTextAnswer) -> IO () -> Xynolog.Content.ContentTransport",
-        "ReplayableBody": "Maybe GHC.Internal.Int.Int64 -> Network.HTTP.Client.Types.GivesPopper () -> Xynolog.Content.ReplayableBody",
-        "bodyLength": "Xynolog.Content.ReplayableBody -> Maybe GHC.Internal.Int.Int64",
-        "bytesBody": "Data.ByteString.Internal.Type.ByteString -> Xynolog.Content.ReplayableBody",
+        "ContentTransport": "(Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> (Xynolog.Internal.Generated.OperationReports.UploadEvent -> IO ()) -> IO Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse) -> (Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.ResourceRepresentation.ResourceRepresentation) -> (forall result. Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> (Data.Text.Internal.Text -> Streaming.Internal.Stream (Data.Functor.Of.Of Data.ByteString.Internal.Type.ByteString) IO () -> IO result) -> IO result) -> (Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.GetResourceResponse.GetResourceResponse) -> (Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse) -> (Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.AnchoredTextAnswer.AnchoredTextAnswer) -> IO () -> Xynolog.Content.ContentTransport",
         "dispose": "Xynolog.Content.ContentTransport -> IO ()",
         "getAnchoredText": "Xynolog.Content.ContentTransport -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.AnchoredTextAnswer.AnchoredTextAnswer",
         "getAnnotations": "Xynolog.Content.ContentTransport -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.GetAnnotationsResponse.GetAnnotationsResponse",
         "getBinary": "Xynolog.Content.ContentTransport -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.ResourceRepresentation.ResourceRepresentation",
         "getBinaryStream": "Xynolog.Content.ContentTransport -> forall result. Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> (Data.Text.Internal.Text -> Streaming.Internal.Stream (Data.Functor.Of.Of Data.ByteString.Internal.Type.ByteString) IO () -> IO result) -> IO result",
         "getResourceGraph": "Xynolog.Content.ContentTransport -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> IO Xynolog.Internal.Generated.Models.GetResourceResponse.GetResourceResponse",
-        "openBody": "Xynolog.Content.ReplayableBody -> Network.HTTP.Client.Types.GivesPopper ()",
-        "putBinary": "Xynolog.Content.ContentTransport -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Xynolog.Content.ReplayableBody -> (Xynolog.Internal.Generated.OperationReports.UploadEvent -> IO ()) -> IO Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse"
+        "putBinary": "Xynolog.Content.ContentTransport -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> (Xynolog.Internal.Generated.OperationReports.UploadEvent -> IO ()) -> IO Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse"
       }
     },
     "Xynolog.Control": {
@@ -5834,6 +5826,10 @@
           "definition": "data Xynolog.Internal.Generated.Models.Provider.Provider = ...",
           "kind": "*"
         },
+        "PutBinaryRequest": {
+          "definition": "data Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest = ...",
+          "kind": "*"
+        },
         "QdrantVectorsConfig": {
           "definition": "data Xynolog.Internal.Generated.Models.QdrantVectorsConfig.QdrantVectorsConfig = ...",
           "kind": "*"
@@ -6000,10 +5996,6 @@
         },
         "ResourceUpload": {
           "definition": "data Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload = ...",
-          "kind": "*"
-        },
-        "ResourceUploadMetadata": {
-          "definition": "data Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata = ...",
           "kind": "*"
         },
         "ResourceView": {
@@ -7921,6 +7913,7 @@
         "ProtectedResourceMetadata": "Data.Text.Internal.Text -> [Data.Text.Internal.Text] -> [Xynolog.Internal.Generated.Models.ProtectedResourceMetadata.ProtectedResourceMetadataBearerMethodsSupportedItem] -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ProtectedResourceMetadata.ProtectedResourceMetadata",
         "ProtectedResourceMetadataBearerMethodsSupportedItemHeader": "Xynolog.Internal.Generated.Models.ProtectedResourceMetadata.ProtectedResourceMetadataBearerMethodsSupportedItem",
         "Provider": "Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.SecretRef.SecretRef -> Xynolog.Internal.Generated.Models.Provider.Provider",
+        "PutBinaryRequest": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Binary.Binary -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe [Data.Text.Internal.Text] -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.OneOrMoreAgents.OneOrMoreAgents -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId -> Maybe Bool -> Maybe Data.Text.Internal.Text -> Maybe Bool -> Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest",
         "QdrantVectorsConfig": "Xynolog.Internal.Generated.Models.QdrantVectorsConfig.QdrantVectorsConfigType -> Data.Text.Internal.Text -> Integer -> Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.QdrantVectorsConfig.QdrantVectorsConfig",
         "QdrantVectorsConfigTypeQdrant": "Xynolog.Internal.Generated.Models.QdrantVectorsConfig.QdrantVectorsConfigType",
         "QuotedText": "Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.QuotedText.QuotedText",
@@ -7976,7 +7969,6 @@
         "ResourceUnarchivedPayload": "Data.Aeson.KeyMap.KeyMap Data.Aeson.Types.Internal.Value -> Xynolog.Internal.Generated.Models.ResourceUnarchivedPayload.ResourceUnarchivedPayload",
         "ResourceUpdatedPayload": "Data.Text.Internal.Text -> Maybe Integer -> Xynolog.Internal.Generated.Models.ResourceUpdatedPayload.ResourceUpdatedPayload",
         "ResourceUpload": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Binary.Binary -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload",
-        "ResourceUploadMetadata": "Data.Text.Internal.Text -> Data.Text.Internal.Text -> Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Maybe Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata",
         "ResourceView": "Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor -> Xynolog.Internal.Generated.Models.ResourceAnnotations.ResourceAnnotations -> Integer -> Xynolog.Internal.Generated.Models.ResourceView.ResourceView",
         "Resources": "Xynolog.Internal.Generated.Models.Resources.ResourcesLimits -> Xynolog.Internal.Generated.Models.Resources.Resources",
         "ResourcesLimits": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.Resources.ResourcesLimits",
@@ -9973,6 +9965,20 @@
         "protectedResourceMetadataResourceName": "Xynolog.Internal.Generated.Models.ProtectedResourceMetadata.ProtectedResourceMetadata -> Maybe Data.Text.Internal.Text",
         "providerApiKey": "Xynolog.Internal.Generated.Models.Provider.Provider -> Maybe Xynolog.Internal.Generated.Models.SecretRef.SecretRef",
         "providerBaseURL": "Xynolog.Internal.Generated.Models.Provider.Provider -> Maybe Data.Text.Internal.Text",
+        "putBinaryRequestArchiveOriginal": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Bool",
+        "putBinaryRequestCloneToken": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Data.Text.Internal.Text",
+        "putBinaryRequestEntityTypes": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe [Data.Text.Internal.Text]",
+        "putBinaryRequestFile": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Xynolog.Internal.Generated.Models.Binary.Binary",
+        "putBinaryRequestFormat": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Data.Text.Internal.Text",
+        "putBinaryRequestGenerationPrompt": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Data.Text.Internal.Text",
+        "putBinaryRequestGenerator": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Xynolog.Internal.Generated.Models.OneOrMoreAgents.OneOrMoreAgents",
+        "putBinaryRequestIsDraft": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Bool",
+        "putBinaryRequestJobId": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId",
+        "putBinaryRequestLanguage": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Data.Text.Internal.Text",
+        "putBinaryRequestName": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Data.Text.Internal.Text",
+        "putBinaryRequestSourceAnnotationId": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId",
+        "putBinaryRequestSourceResourceId": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId",
+        "putBinaryRequestStorageUri": "Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> Data.Text.Internal.Text",
         "qdrantVectorsConfigHost": "Xynolog.Internal.Generated.Models.QdrantVectorsConfig.QdrantVectorsConfig -> Data.Text.Internal.Text",
         "qdrantVectorsConfigPort": "Xynolog.Internal.Generated.Models.QdrantVectorsConfig.QdrantVectorsConfig -> Integer",
         "qdrantVectorsConfigTokenEnv": "Xynolog.Internal.Generated.Models.QdrantVectorsConfig.QdrantVectorsConfig -> Data.Text.Internal.Text",
@@ -10125,19 +10131,6 @@
         "resourceUploadIsDraft": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Data.Text.Internal.Text",
         "resourceUploadJobId": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId",
         "resourceUploadLanguage": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Data.Text.Internal.Text",
-        "resourceUploadMetadataArchiveOriginal": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Data.Text.Internal.Text",
-        "resourceUploadMetadataCloneToken": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Data.Text.Internal.Text",
-        "resourceUploadMetadataEntityTypes": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Data.Text.Internal.Text",
-        "resourceUploadMetadataFormat": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Data.Text.Internal.Text",
-        "resourceUploadMetadataGenerationPrompt": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Data.Text.Internal.Text",
-        "resourceUploadMetadataGenerator": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Data.Text.Internal.Text",
-        "resourceUploadMetadataIsDraft": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Data.Text.Internal.Text",
-        "resourceUploadMetadataJobId": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Xynolog.Internal.Generated.Models.JobId.JobId",
-        "resourceUploadMetadataLanguage": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Data.Text.Internal.Text",
-        "resourceUploadMetadataName": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Data.Text.Internal.Text",
-        "resourceUploadMetadataSourceAnnotationId": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId",
-        "resourceUploadMetadataSourceResourceId": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId",
-        "resourceUploadMetadataStorageUri": "Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Data.Text.Internal.Text",
         "resourceUploadName": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Data.Text.Internal.Text",
         "resourceUploadSourceAnnotationId": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Xynolog.Internal.Generated.Models.AnnotationId.AnnotationId",
         "resourceUploadSourceResourceId": "Xynolog.Internal.Generated.Models.ResourceUpload.ResourceUpload -> Maybe Xynolog.Internal.Generated.Models.ResourceId.ResourceId",
@@ -11006,7 +10999,7 @@
         "createFromToken": "Xynolog.Internal.Yield.YieldNamespace -> Xynolog.Internal.Generated.Models.CreateFromTokenOptions.CreateFromTokenOptions -> IO Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse",
         "delegate": "Xynolog.Internal.Yield.YieldNamespace -> Xynolog.Internal.Generated.Models.GenerationJobParams.GenerationJobParams -> Maybe Data.Scientific.Scientific -> IO (Xynolog.Internal.Running.Running (Xynolog.Internal.Generated.OperationReports.JobEvent Xynolog.Internal.Generated.Models.YieldJobCompleteCommand.YieldJobCompleteCommand) Xynolog.Internal.Generated.Models.YieldJobCompleteCommand.YieldJobCompleteCommand)",
         "fromToken": "Xynolog.Internal.Yield.YieldNamespace -> Data.Text.Internal.Text -> IO Xynolog.Internal.Generated.Models.ResourceDescriptor.ResourceDescriptor",
-        "resource": "Xynolog.Internal.Yield.YieldNamespace -> Xynolog.Internal.Generated.Models.ResourceUploadMetadata.ResourceUploadMetadata -> Xynolog.Content.ReplayableBody -> IO (Xynolog.Internal.Running.Running Xynolog.Internal.Generated.OperationReports.UploadEvent Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse)"
+        "resource": "Xynolog.Internal.Yield.YieldNamespace -> Xynolog.Internal.Generated.Models.PutBinaryRequest.PutBinaryRequest -> IO (Xynolog.Internal.Running.Running Xynolog.Internal.Generated.OperationReports.UploadEvent Xynolog.Internal.Generated.Models.CreateResourceResponse.CreateResourceResponse)"
       }
     }
   }

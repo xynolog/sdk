@@ -10387,6 +10387,45 @@ type Provider struct {
 	ApiKey  *SecretRef `json:"apiKey,omitempty"`
 }
 
+// PutBinaryRequest What uploading a resource is handed: its bytes, what the
+// upload states of them, and, for a clone, its token. Each member is as a
+// caller holds it; ResourceUpload is the multipart body the content transport
+// sends of it.
+type PutBinaryRequest struct {
+	// Name Human-readable resource name
+	Name string `json:"name"`
+	// File Binary content
+	File Binary `json:"file"`
+	// Format Media type of the content (e.g. text/plain, text/markdown,
+	// image/png)
+	Format string `json:"format"`
+	// StorageUri Where the content lives (file://... for local). Required — the
+	// client names the location; the server does not derive one.
+	StorageUri string `json:"storageUri"`
+	// Language ISO 639-1 language code
+	Language           *string       `json:"language,omitempty"`
+	EntityTypes        *[]string     `json:"entityTypes,omitempty"`
+	SourceAnnotationId *AnnotationId `json:"sourceAnnotationId,omitempty"`
+	SourceResourceId   *ResourceId   `json:"sourceResourceId,omitempty"`
+	// GenerationPrompt For AI-generated resources: the prompt that drove
+	// generation
+	GenerationPrompt *string `json:"generationPrompt,omitempty"`
+	// Generator The Software peer that produced the content, when software did.
+	// Its identity must be the emitter's own — the knowledge base refuses a
+	// generator naming anyone else, and supplies it from the verified emitter
+	// when omitted. `creator` and `wasAttributedTo` are never sent; the
+	// knowledge base derives them from the emitter and the cited job.
+	Generator *OneOrMoreAgents `json:"generator,omitempty"`
+	JobId     *JobId           `json:"jobId,omitempty"`
+	IsDraft   *bool            `json:"isDraft,omitempty"`
+	// CloneToken A clone token from `yield:clone-token-requested`. With it, the
+	// resource is created as a clone of the token's source, inheriting its
+	// entity types; `language`, `entityTypes` and the generation fields are then
+	// not read.
+	CloneToken      *string `json:"cloneToken,omitempty"`
+	ArchiveOriginal *bool   `json:"archiveOriginal,omitempty"`
+}
+
 // QdrantVectorsConfig A vector index kept in a Qdrant server, asked over its
 // REST API with a token.
 type QdrantVectorsConfig struct {

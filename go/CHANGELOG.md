@@ -43,6 +43,18 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- An upload is an `api.PutBinaryRequest`, the type of Protocol's
+  `client/types/PutBinaryRequest.json`, where it was the SDK's own
+  `PutBinaryRequest`: `ContentTransport.PutBinary` and
+  `YieldNamespace.Resource` take one, and `xynologtest.ContentCall.Put` is
+  one. Its bytes are its `File`, where they were `Bytes`; `StorageURI`,
+  `SourceAnnotationID`, `SourceResourceID` and `JobID` are `StorageUri`,
+  `SourceAnnotationId`, `SourceResourceId` and `JobId`. A member it may leave
+  out is a pointer, nil when it is left out: `Language`, `GenerationPrompt`
+  and `CloneToken` are `*string`, `EntityTypes` is `*[]string`, and the ids
+  are pointers to them. `Generator` is an `*api.OneOrMoreAgents`, one agent
+  or several, where it was an `*api.Agent`. What an upload sends is as it
+  was.
 - A resource's bytes, read whole, are an `api.ResourceRepresentation`, the
   type of Protocol's `client/types/ResourceRepresentation.json`, where they
   were the SDK's own `Content`: `BrowseNamespace.ResourceRepresentation` and

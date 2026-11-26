@@ -30,7 +30,7 @@ type ContentCall struct {
 	// upload.
 	Resource api.ResourceId
 	// Put is what an upload was given; nil for a read.
-	Put *xynolog.PutBinaryRequest
+	Put *api.PutBinaryRequest
 }
 
 // InMemoryContent is a content transport that keeps what it is given (see the
@@ -118,9 +118,9 @@ func read[T any](c *InMemoryContent, held map[api.ResourceId]T, what string, res
 // PutBinary stores the bytes under an id of this double's making,
 // test-content-<n>, and reports their size, that all of them were sent, and
 // the resource made.
-func (c *InMemoryContent) PutBinary(_ context.Context, request xynolog.PutBinaryRequest) *xynolog.Upload {
+func (c *InMemoryContent) PutBinary(_ context.Context, request api.PutBinaryRequest) *xynolog.Upload {
 	return xynolog.NewUpload(func(report func(api.UploadProgress)) (api.CreateResourceResponse, error) {
-		size := len(request.Bytes)
+		size := len(request.File)
 		var started, sent api.UploadProgress
 		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: size}); err != nil {
 			return api.CreateResourceResponse{}, err
@@ -135,7 +135,7 @@ func (c *InMemoryContent) PutBinary(_ context.Context, request xynolog.PutBinary
 			c.mu.Unlock()
 			return api.CreateResourceResponse{}, err
 		}
-		c.stored[resource] = api.ResourceRepresentation{Data: request.Bytes, ContentType: request.Format}
+		c.stored[resource] = api.ResourceRepresentation{Data: request.File, ContentType: request.Format}
 		c.calls = append(c.calls, ContentCall{Operation: "putBinary", Put: &request})
 		c.mu.Unlock()
 		report(sent)

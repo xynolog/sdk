@@ -71,15 +71,6 @@ export {
 export function inMemoryContent(): IContentTransport {
   const store = new Map<string, ResourceRepresentation>();
   let seq = 0;
-  const toBuffer = (file: File | Buffer): Promise<ArrayBuffer> =>
-    file instanceof Uint8Array
-      ? Promise.resolve(
-          file.buffer.slice(
-            file.byteOffset,
-            file.byteOffset + file.byteLength,
-          ) as ArrayBuffer,
-        )
-      : file.arrayBuffer();
 
   return {
     async putBinary(
@@ -88,7 +79,7 @@ export function inMemoryContent(): IContentTransport {
     ): Promise<{ resourceId: ResourceId }> {
       const rId = makeResourceId(`test-content-${++seq}`);
       store.set(rId as string, {
-        data: new Blob([await toBuffer(request.file)]),
+        data: request.file,
         contentType: String(request.format),
       });
       return { resourceId: rId };

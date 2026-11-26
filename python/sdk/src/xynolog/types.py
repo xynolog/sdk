@@ -561,6 +561,7 @@ __all__ = [
     "ProjectConfigSite",
     "ProtectedResourceMetadata",
     "Provider",
+    "PutBinaryRequest",
     "QdrantVectorsConfig",
     "QuotedText",
     "ReconciledSpan",
@@ -8022,6 +8023,46 @@ class ProtectedResourceMetadata(WireModel, frozen=True, extra="forbid"):
         list[Literal["header"]], Field(description="How a bearer token reaches this resource: the Authorization header only.")
     ]
     resource_name: Annotated[str | None, Field(description="The knowledge base's name, for a client's sign-in prompt.")] = None
+
+
+class PutBinaryRequest(WireModel, frozen=True, extra="forbid"):
+    """
+    What uploading a resource is handed: its bytes, what the upload states of them, and, for a clone, its token. Each member is as a caller holds it; ResourceUpload is the multipart body the content transport sends of it.
+    """
+
+    name: Annotated[str, Field(description="Human-readable resource name")]
+    file: Annotated[Binary, Field(description="Binary content")]
+    format: Annotated[str, Field(description="Media type of the content (e.g. text/plain, text/markdown, image/png)")]
+    storage_uri: Annotated[
+        str,
+        Field(
+            alias="storageUri",
+            description="Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.",
+        ),
+    ]
+    language: Annotated[str | None, Field(description="ISO 639-1 language code")] = None
+    entity_types: Annotated[list[str] | None, Field(alias="entityTypes")] = None
+    source_annotation_id: Annotated[AnnotationId | None, Field(alias="sourceAnnotationId")] = None
+    source_resource_id: Annotated[ResourceId | None, Field(alias="sourceResourceId")] = None
+    generation_prompt: Annotated[
+        str | None, Field(alias="generationPrompt", description="For AI-generated resources: the prompt that drove generation")
+    ] = None
+    generator: Annotated[
+        OneOrMoreAgents | None,
+        Field(
+            description="The Software peer that produced the content, when software did. Its identity must be the emitter's own — the knowledge base refuses a generator naming anyone else, and supplies it from the verified emitter when omitted. `creator` and `wasAttributedTo` are never sent; the knowledge base derives them from the emitter and the cited job."
+        ),
+    ] = None
+    job_id: Annotated[JobId | None, Field(alias="jobId")] = None
+    is_draft: Annotated[bool | None, Field(alias="isDraft")] = None
+    clone_token: Annotated[
+        str | None,
+        Field(
+            alias="cloneToken",
+            description="A clone token from `yield:clone-token-requested`. With it, the resource is created as a clone of the token's source, inheriting its entity types; `language`, `entityTypes` and the generation fields are then not read.",
+        ),
+    ] = None
+    archive_original: Annotated[bool | None, Field(alias="archiveOriginal")] = None
 
 
 class QuotedText(WireModel, frozen=True, extra="forbid"):

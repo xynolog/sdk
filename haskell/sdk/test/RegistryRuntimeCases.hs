@@ -79,7 +79,7 @@ rig time fixtures = do
       options = Bus.BusOptions (Time.now time) (Time.waitUntil time) (UUID.toText <$> fresh)
       contents =
         Content.ContentTransport
-          (\_ _ _ _ -> ioError (userError "Unexpected upload"))
+          (\_ _ _ -> ioError (userError "Unexpected upload"))
           (\_ _ -> ioError (userError "Unexpected binary read"))
           (\_ _ _ -> ioError (userError "Unexpected streamed read"))
           (\_ _ -> fixture fixtures "GetResourceResponse")

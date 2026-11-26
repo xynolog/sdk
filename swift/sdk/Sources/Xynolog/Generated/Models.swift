@@ -14233,6 +14233,85 @@ public struct Provider: Codable, Sendable, Hashable {
   }
 }
 
+public struct PutBinaryRequest: Codable, Sendable, Hashable {
+  public var name: String
+  public var file: Binary
+  public var format: String
+  public var storageUri: String
+  public var language: String?
+  public var entityTypes: [String]?
+  public var sourceAnnotationId: AnnotationId?
+  public var sourceResourceId: ResourceId?
+  public var generationPrompt: String?
+  public var generator: OneOrMoreAgents?
+  public var jobId: JobId?
+  public var isDraft: Bool?
+  public var cloneToken: String?
+  public var archiveOriginal: Bool?
+  public init(
+    name: String, file: Binary, format: String, storageUri: String, language: String? = nil,
+    entityTypes: [String]? = nil, sourceAnnotationId: AnnotationId? = nil,
+    sourceResourceId: ResourceId? = nil, generationPrompt: String? = nil,
+    generator: OneOrMoreAgents? = nil, jobId: JobId? = nil, isDraft: Bool? = nil,
+    cloneToken: String? = nil, archiveOriginal: Bool? = nil
+  ) {
+    self.name = name
+    self.file = file
+    self.format = format
+    self.storageUri = storageUri
+    self.language = language
+    self.entityTypes = entityTypes
+    self.sourceAnnotationId = sourceAnnotationId
+    self.sourceResourceId = sourceResourceId
+    self.generationPrompt = generationPrompt
+    self.generator = generator
+    self.jobId = jobId
+    self.isDraft = isDraft
+    self.cloneToken = cloneToken
+    self.archiveOriginal = archiveOriginal
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "name", "file", "format", "storageUri", "language", "entityTypes", "sourceAnnotationId",
+        "sourceResourceId", "generationPrompt", "generator", "jobId", "isDraft", "cloneToken",
+        "archiveOriginal",
+      ], in: "PutBinaryRequest")
+    self.name = try c.value("name")
+    self.file = try c.value("file")
+    self.format = try c.value("format")
+    self.storageUri = try c.value("storageUri")
+    self.language = try c.ifPresent("language")
+    self.entityTypes = try c.ifPresent("entityTypes")
+    self.sourceAnnotationId = try c.ifPresent("sourceAnnotationId")
+    self.sourceResourceId = try c.ifPresent("sourceResourceId")
+    self.generationPrompt = try c.ifPresent("generationPrompt")
+    self.generator = try c.ifPresent("generator")
+    self.jobId = try c.ifPresent("jobId")
+    self.isDraft = try c.ifPresent("isDraft")
+    self.cloneToken = try c.ifPresent("cloneToken")
+    self.archiveOriginal = try c.ifPresent("archiveOriginal")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.name, as: "name")
+    try c.encode(self.file, as: "file")
+    try c.encode(self.format, as: "format")
+    try c.encode(self.storageUri, as: "storageUri")
+    try c.encodeIfPresent(self.language, as: "language")
+    try c.encodeIfPresent(self.entityTypes, as: "entityTypes")
+    try c.encodeIfPresent(self.sourceAnnotationId, as: "sourceAnnotationId")
+    try c.encodeIfPresent(self.sourceResourceId, as: "sourceResourceId")
+    try c.encodeIfPresent(self.generationPrompt, as: "generationPrompt")
+    try c.encodeIfPresent(self.generator, as: "generator")
+    try c.encodeIfPresent(self.jobId, as: "jobId")
+    try c.encodeIfPresent(self.isDraft, as: "isDraft")
+    try c.encodeIfPresent(self.cloneToken, as: "cloneToken")
+    try c.encodeIfPresent(self.archiveOriginal, as: "archiveOriginal")
+  }
+}
+
 public struct QdrantVectorsConfig: Codable, Sendable, Hashable {
   public let type: QdrantVectorsConfigType
   public var host: String
@@ -26333,6 +26412,23 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object],
     members: ["apiKey": Shape(ref: "SecretRef"), "baseURL": Shape(kinds: [.string], minLength: 1)],
     closed: ["apiKey", "baseURL"])
+  shapes["PutBinaryRequest"] = Shape(
+    kinds: [.object], required: ["name", "file", "format", "storageUri"],
+    members: [
+      "archiveOriginal": Shape(kinds: [.boolean]), "cloneToken": Shape(kinds: [.string]),
+      "entityTypes": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "file": Shape(ref: "Binary"), "format": Shape(kinds: [.string]),
+      "generationPrompt": Shape(kinds: [.string]), "generator": Shape(ref: "OneOrMoreAgents"),
+      "isDraft": Shape(kinds: [.boolean]), "jobId": Shape(ref: "JobId"),
+      "language": Shape(kinds: [.string]), "name": Shape(kinds: [.string]),
+      "sourceAnnotationId": Shape(ref: "AnnotationId"),
+      "sourceResourceId": Shape(ref: "ResourceId"), "storageUri": Shape(kinds: [.string]),
+    ],
+    closed: [
+      "archiveOriginal", "cloneToken", "entityTypes", "file", "format", "generationPrompt",
+      "generator", "isDraft", "jobId", "language", "name", "sourceAnnotationId", "sourceResourceId",
+      "storageUri",
+    ])
   shapes["QdrantVectorsConfig"] = Shape(
     kinds: [.object], required: ["type", "host", "port", "tokenEnv"],
     members: [

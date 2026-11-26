@@ -33,7 +33,7 @@ import xynolog.identifiers.ResourceId
 import xynolog.transport.Carried
 import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
-import xynolog.transport.PutBinaryRequest
+import xynolog.types.PutBinaryRequest
 import xynolog.types.ResourceRepresentation
 import xynolog.types.UploadProgressFinished
 import xynolog.types.UploadProgressProgress

@@ -190,7 +190,7 @@ makeRig time config = do
   inputCell <- newEmptyTMVarIO
   serial <- newTVarIO (0 :: Integer)
   let clock = Bus.BusOptions (Time.now time) (Time.waitUntil time) (atomically $ do modifyTVar' serial (+ 1); Text.pack . show <$> readTVar serial)
-      content = Content.ContentTransport (\_ _ _ _ -> unexpected) (\_ _ -> unexpected) (\_ _ _ -> unexpected) (\_ _ -> unexpected) (\_ _ -> unexpected) (\_ _ -> unexpected) (pure ())
+      content = Content.ContentTransport (\_ _ _ -> unexpected) (\_ _ -> unexpected) (\_ _ _ -> unexpected) (\_ _ -> unexpected) (\_ _ -> unexpected) (\_ _ -> unexpected) (pure ())
       send envelope = do
         atomically (modifyTVar' sent (++ [envelope]))
         queued <- atomically $ do

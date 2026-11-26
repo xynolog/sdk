@@ -171,7 +171,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
       .putBinary(
         {
           name: 'a note',
-          file: Buffer.from('a note'),
+          file: new Blob(['a note']),
           format: 'text/plain',
           storageUri: 'file://a-note.txt',
         },
@@ -200,7 +200,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'gen.md',
-        file: Buffer.from('generated'),
+        file: new Blob(['generated']),
         format: 'text/markdown',
         storageUri: 'file://gen.md',
         sourceResourceId: resourceId('res-source'),
@@ -224,7 +224,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'doc.md',
-        file: Buffer.from('hello world'),
+        file: new Blob(['hello world']),
         format: 'text/markdown',
         storageUri: 'file://docs/doc.md',
       },
@@ -249,7 +249,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -286,7 +286,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -309,7 +309,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -339,7 +339,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -369,7 +369,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -405,7 +405,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -457,7 +457,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -483,7 +483,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -505,7 +505,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -535,7 +535,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -557,7 +557,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
   describe('sent once more, with the same key and form, when a repeat is answered as the first was', () => {
     const note = {
       name: 'a',
-      file: Buffer.from('xx'),
+      file: new Blob(['xx']),
       format: 'text/plain',
       storageUri: 'file://a',
     } as const;
@@ -760,7 +760,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -793,7 +793,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
     const promise = content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -818,7 +818,7 @@ describe('HttpContentTransport.putBinary — XHR path', () => {
 
     const result = await content.putBinary({
       name: 'a',
-      file: Buffer.from('xx'),
+      file: new Blob(['xx']),
       format: 'text/plain',
       storageUri: 'file://a',
     });
@@ -879,7 +879,7 @@ describe('HttpContentTransport.putBinary — where there is no XMLHttpRequest', 
     const result = await content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -903,7 +903,7 @@ describe('HttpContentTransport.putBinary — where there is no XMLHttpRequest', 
     const result = await content.putBinary(
       {
         name: 'a',
-        file: Buffer.from('xx'),
+        file: new Blob(['xx']),
         format: 'text/plain',
         storageUri: 'file://a',
       },
@@ -932,7 +932,7 @@ describe('HttpContentTransport.putBinary — where there is no XMLHttpRequest', 
 
     await content.putBinary({
       name: 'a',
-      file: Buffer.from('xx'),
+      file: new Blob(['xx']),
       format: 'text/plain',
       storageUri: 'file://a',
     });
@@ -942,15 +942,8 @@ describe('HttpContentTransport.putBinary — where there is no XMLHttpRequest', 
 });
 
 /**
- * Regression guard for the browser-upload bug surfaced at /know/compose:
- * `buildFormData()` referenced the Node global `Buffer` directly via
- * `Buffer.isBuffer(...)`, which throws `ReferenceError: Buffer is not
- * defined` synchronously in browsers (Buffer is not a browser global).
- *
- * The fix gates the Buffer branch on a runtime check
- * (`typeof Buffer !== 'undefined'`); these tests pin that behavior by
- * deleting `globalThis.Buffer` and verifying putBinary still works for
- * `File` inputs (the only shape browsers ever send).
+ * An upload names no Node global: with `globalThis.Buffer` deleted, as in a
+ * browser, putBinary still sends a `File`.
  */
 describe('HttpContentTransport.putBinary — runtime fallback when Buffer is unavailable', () => {
   let savedBuffer: typeof globalThis.Buffer | undefined;
@@ -974,13 +967,7 @@ describe('HttpContentTransport.putBinary — runtime fallback when Buffer is una
       json: vi.fn().mockResolvedValue({ resourceId: 'browser-result' }),
     } as never);
 
-    // Construct a real File. Browser uploads always hit this branch in
-    // buildFormData; the Buffer branch (which referenced the bare global)
-    // is only for Node-side workers and must be skipped without throwing.
     const file = new File(['hello'], 'doc.md', { type: 'text/markdown' });
-
-    // Pre-fix this would throw `Buffer is not defined` synchronously
-    // because buildFormData() did `Buffer.isBuffer(...)` unguarded.
     const result = await content.putBinary({
       name: 'doc.md',
       file,
@@ -990,22 +977,5 @@ describe('HttpContentTransport.putBinary — runtime fallback when Buffer is una
 
     expect(result).toEqual({ resourceId: resourceId('browser-result') });
     expect(mockKy.post).toHaveBeenCalledTimes(1);
-  });
-
-  test('putBinary with a non-File, non-Buffer input throws the documented error (not ReferenceError)', async () => {
-    const { content } = makeTransportAndContent();
-
-    // Pre-fix this would throw `Buffer is not defined` (a ReferenceError
-    // from the bare global). With the typeof guard, both branches fall
-    // through to the explicit `throw new Error('file must be a File or
-    // Buffer')` — the documented, intentional failure.
-    await expect(
-      content.putBinary({
-        name: 'a',
-        file: 'not a file' as unknown as File,
-        format: 'text/plain',
-        storageUri: 'file://a',
-      }),
-    ).rejects.toThrow(/file must be a File or Buffer/);
   });
 });

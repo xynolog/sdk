@@ -11,7 +11,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.jdk9.asFlow
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -27,13 +26,13 @@ import xynolog.telemetry.futureOf
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.Events
-import xynolog.transport.PutBinaryRequest
 import xynolog.transport.Upload
-import xynolog.types.Agent
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.CreateResourceResponse
 import xynolog.types.GetAnnotationsResponse
 import xynolog.types.GetResourceResponse
+import xynolog.types.OneOrMoreAgents
+import xynolog.types.PutBinaryRequest
 import xynolog.types.ResourceRepresentation
 import xynolog.types.ResourceUpload
 import xynolog.types.UploadProgress
@@ -74,11 +73,11 @@ private class Form(request: PutBinaryRequest) {
                 format = request.format,
                 storageUri = request.storageUri,
                 language = request.language?.takeIf { it.isNotEmpty() },
-                entityTypes = request.entityTypes.takeIf { it.isNotEmpty() }?.let { names -> JsonArray(names.map(::JsonPrimitive)).toString() },
+                entityTypes = request.entityTypes?.takeIf { it.isNotEmpty() }?.let { names -> JsonArray(names.map(::JsonPrimitive)).toString() },
                 sourceAnnotationId = request.sourceAnnotationId,
                 sourceResourceId = request.sourceResourceId,
                 generationPrompt = request.generationPrompt?.takeIf { it.isNotEmpty() },
-                generator = request.generator.takeIf { it.isNotEmpty() }?.let { wireJson.encodeToString(ListSerializer(Agent.serializer()), it) },
+                generator = request.generator?.let { wireJson.encodeToString(OneOrMoreAgents.serializer(), it) },
                 jobId = request.jobId,
                 isDraft = request.isDraft?.toString(),
                 cloneToken = request.cloneToken?.takeIf { it.isNotEmpty() },

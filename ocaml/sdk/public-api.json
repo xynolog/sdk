@@ -153,8 +153,8 @@
     "lib/hover_dwell.ml": "2a8e9fef90c75ce18569793c04f553523e3dc523d53d869ceef4dab6a7702122",
     "lib/hover_dwell.mli": "3bf63911f6482ad960a6e4d3881e4a637caa0d9929dc8d62dbf7b69421fa19af",
     "lib/http_facts.ml": "fa5774ea443d7d01c8a1186238031bc3b90d65e77cf419ecee487eb3dc65fce8",
-    "lib/http_wire.ml": "9083c0f1734eb0b1e721cec545b9fd22f9951cba7d0ced7aca06a8e9f1a9c2c7",
-    "lib/http_wire.mli": "551237395fa11501ae2d4a79502af202913054c6ab49a0408dd25ad8b9ca45e9",
+    "lib/http_wire.ml": "00f685134cef3a620f16e2914641d51056850d10574ff32886e85c98bb13c2f3",
+    "lib/http_wire.mli": "f654cb1e6dbc5585cc34f0ef741df987cda6a22747bfb57d6c7d60b6f41c2901",
     "lib/identifiers.ml": "1ee61e8298715512590d2e8045869efb0687ace6df642970da0d54baffe26448",
     "lib/identifiers.mli": "d344831d9323c9ab0934e9027f4e8269b5d3554ef347c1d71b04cedc65d6a92b",
     "lib/identity.ml": "926a5ae2b89b08a294af2bbee6975347194bdaea78109f82a777b9fcff388e58",
@@ -180,8 +180,8 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "eb028289ebf602eee509cc1a0cd6dfd9c213378a4d2d0ab0375a3d46d6666049",
-    "lib/models.mli": "dc488a66e04f13af306ca77ddffe3e82feb68c1cb90efbaef8f65086860a43d7",
+    "lib/models.ml": "7a098f5bc19e6eab19ca442ead2a7258c1aee2f7bd2baf3ea5895b864d0fa9ef",
+    "lib/models.mli": "c244da8c084179517eb36019871ba503ad0eee0f155c73a8b248b63d6b8744d6",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "83e3a22603a7623efa040692be2134de278c2b08a8d1d9a74e077fcb2c039f58",
     "lib/oauth.mli": "e553d7b097ce242bcb9309a2bf829c6c2611d1fad4a335a69ef91164668ca088",
@@ -189,7 +189,7 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "0dd50f3584995cc2d49d37d79f8fd40b2b1dc786561a563550ad5bfc78776766",
+    "lib/records.ml": "557200f06d873ce716c021868109fd1ed68c76cd919a5c34d6d03cd10f459584",
     "lib/redirect_sign_in.ml": "12c7f252e2250311a07038063ab2797e97f12d048177a0d3c33735ff0f1135d4",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "cbb2d6ccd19fd62371e52c7d5a02f4e2fa07b26db97762b2b836db49db66bc7e",
@@ -203,7 +203,7 @@
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "6d56c1ed040e39ab02b1fa6d6c0d4ce1c87818eb521dc4c4304658e92027c65d",
+    "lib/schema_shapes.ml": "5e9f040eb63b68c1e34041b81789db85efcacfae23a0869fcd1c329a56b57a45",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "f631bad7d16a82910665c02614d271aa21ec4e8f8262848c82b360f95072e07a",
@@ -267,8 +267,8 @@
     "lib/worker_messages.ml": "f1afd7b85f6a93528e39a878d15d51c8047c00320f07417fd85ccef28554cfc7",
     "lib/xynolog.ml": "ccc4740213b707ba9592ad6a22806169da7e100b90ed81840a1cb5d74976476d",
     "lib/xynolog.mli": "b0e32d5d046398887addfbf5fa70cc028a1ecc8d19156fe6d088c3d96c6652a8",
-    "lib/yield.ml": "a81d8371500764779dcb553a99deaa5d3855b84b77f860aa251b269e6f61732b",
-    "lib/yield.mli": "da4db7e1cc2177b532bf7e95c864e3e636e911d31fe86763235a25373930a744",
+    "lib/yield.ml": "b736bce17549b645d80c047efacbf0852b9d913481ff340d91495788028a074c",
+    "lib/yield.mli": "f1955bb72f1d202e3ff0323ea5ca0053b9b7ad05d944212ddc96aa0e39719cf1",
     "lib/yield_state.ml": "964626f32956299da2c452708bd8be0e9c69017c7c98b8cef2a96cbfae777cf0",
     "lib/yield_state.mli": "fe746d0f5b1657d53c8a2856e1ee7b0626dd570e0c855ba57fe502958686b978",
     "probes/api_inventory.ml": "97b819335b2d6d55f2f4a7c73422ad4df34ca5e459fe4df300f01a0ff5efb36a",
@@ -5353,6 +5353,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.put_binary_request",
+      "declaration": "val put_binary_request : [ `PutBinaryRequest ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.qdrant_vectors_config",
       "declaration": "val qdrant_vectors_config : [ `QdrantVectorsConfig ] descriptor"
     },
@@ -6655,6 +6660,43 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Pending_annotation.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Put_binary_request",
+      "declaration": "module Put_binary_request :\n  sig\n    type t = {\n      name : string;\n      file : string;\n      format : string;\n      storage_uri : string;\n      language : string option;\n      entity_types : string list option;\n      source_annotation_id : string option;\n      source_resource_id : string option;\n      generation_prompt : string option;\n      generator : [ `OneOrMoreAgents ] Xynolog__.Models.t option;\n      job_id : string option;\n      is_draft : bool option;\n      clone_token : string option;\n      archive_original : bool option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Put_binary_request.t",
+      "declaration": "type t = {\n  name : string;\n  file : string;\n  format : string;\n  storage_uri : string;\n  language : string option;\n  entity_types : string list option;\n  source_annotation_id : string option;\n  source_resource_id : string option;\n  generation_prompt : string option;\n  generator : [ `OneOrMoreAgents ] Xynolog__.Models.t option;\n  job_id : string option;\n  is_draft : bool option;\n  clone_token : string option;\n  archive_original : bool option;\n}",
+      "representation": "record",
+      "fields": [
+        "name",
+        "file",
+        "format",
+        "storage_uri",
+        "language",
+        "entity_types",
+        "source_annotation_id",
+        "source_resource_id",
+        "generation_prompt",
+        "generator",
+        "job_id",
+        "is_draft",
+        "clone_token",
+        "archive_original"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Put_binary_request.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Put_binary_request.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -32533,7 +32575,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Http_wire.put",
-      "declaration": "val put :\n  t ->\n  fields:(string * string) list ->\n  bytes:string ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) -> string"
+      "declaration": "val put :\n  t ->\n  Xynolog__.Records.Put_binary_request.t ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) -> string"
     },
     {
       "kind": "value",
@@ -34060,7 +34102,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Yield.resource",
-      "declaration": "val resource :\n  Xynolog__.Client_core.t ->\n  fields:(string * string) list ->\n  bytes:string ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) ->\n  Xynolog__.Upload.t"
+      "declaration": "val resource :\n  Xynolog__.Client_core.t ->\n  Xynolog__.Records.Put_binary_request.t ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) ->\n  Xynolog__.Upload.t"
     },
     {
       "kind": "value",
@@ -34546,7 +34588,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client.Yield.resource",
-      "declaration": "val resource :\n  Xynolog__.Client_core.t ->\n  fields:(string * string) list ->\n  bytes:string ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) ->\n  Xynolog__.Upload.t"
+      "declaration": "val resource :\n  Xynolog__.Client_core.t ->\n  Xynolog__.Records.Put_binary_request.t ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) ->\n  Xynolog__.Upload.t"
     },
     {
       "kind": "value",

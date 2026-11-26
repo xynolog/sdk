@@ -92,8 +92,7 @@ export class HttpContentTransport implements IContentTransport {
     request: PutBinaryRequest,
     options?: PutBinaryOptions,
   ): Promise<{ resourceId: ResourceId }> {
-    const sizeBytes =
-      request.file instanceof File ? request.file.size : request.file.length;
+    const sizeBytes = request.file.size;
     busLog('PUT', 'content', {
       name: request.name,
       format: request.format,
@@ -446,18 +445,11 @@ const UPLOAD_FORM: {
     request.isDraft === undefined ? undefined : String(request.isDraft),
 };
 
-/** The upload's bytes: a browser's `File` as it is, a Node `Buffer` as a file named for the resource. */
+/** The upload's bytes: a `File` as it is, other bytes as a file named for the resource, of its format. */
 function fileOf(request: PutBinaryRequest): Blob {
-  if (request.file instanceof File) return request.file;
-  // `Buffer` is a Node global; referencing it bare in the browser throws
-  // ReferenceError before the isBuffer call. Browser uploads always hit the
-  // File branch above; this branch is for Node-side workers.
-  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(request.file)) {
-    return new File([new Uint8Array(request.file)], request.name, {
-      type: request.format,
-    });
-  }
-  throw new Error('file must be a File or Buffer');
+  return request.file instanceof File
+    ? request.file
+    : new File([request.file], request.name, { type: request.format });
 }
 
 function buildFormData(request: PutBinaryRequest): FormData {

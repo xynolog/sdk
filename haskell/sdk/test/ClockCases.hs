@@ -321,7 +321,7 @@ inProcessClient time answer = do
       unexpected = ioError (userError "unexpected content read in a client clock case")
       contents =
         Content.ContentTransport
-          (\_ _ _ _ -> unexpected)
+          (\_ _ _ -> unexpected)
           (\_ _ -> unexpected)
           (\_ _ _ -> unexpected)
           (\_ _ -> unexpected)

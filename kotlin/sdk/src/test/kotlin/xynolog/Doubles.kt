@@ -23,7 +23,6 @@ import xynolog.transport.FrameRefusal
 import xynolog.transport.FrameSink
 import xynolog.transport.GatewayOperations
 import xynolog.transport.PendingReply
-import xynolog.transport.PutBinaryRequest
 import xynolog.transport.ReplyRouter
 import xynolog.transport.ResourceHold
 import xynolog.transport.Transport
@@ -35,6 +34,7 @@ import xynolog.types.GetResourceResponse
 import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenResponse
 import xynolog.types.ProtectedResourceMetadata
+import xynolog.types.PutBinaryRequest
 import xynolog.types.ResourceRepresentation
 import xynolog.types.StatusResponse
 import xynolog.types.UserResponse

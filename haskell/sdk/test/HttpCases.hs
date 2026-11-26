@@ -273,20 +273,18 @@ httpCases root fixtures = do
           require "escaped content reader was usable" (either (const True) (const False) outside)
           reach peer "uploads"
           atomically (writeTVar supplied (Just "renew-upload"))
-          opens <- newIORef (0 :: Int)
           progress <- newIORef []
-          let metadata =
-                (fromFixture "ResourceUploadMetadata")
-                  { resourceUploadMetadataName = "upload λ\".txt",
-                    resourceUploadMetadataFormat = "text/plain",
-                    resourceUploadMetadataStorageUri = "local",
-                    resourceUploadMetadataCloneToken = Just "credential-not-for-bus-log"
+          let bytes = encodeUtf8 "complete upload λ"
+              request =
+                (fromFixture "PutBinaryRequest")
+                  { putBinaryRequestName = "upload λ\".txt",
+                    putBinaryRequestFile = Binary bytes,
+                    putBinaryRequestFormat = "text/plain",
+                    putBinaryRequestStorageUri = "local",
+                    putBinaryRequestCloneToken = Just "credential-not-for-bus-log"
                   }
-              bytes = encodeUtf8 "complete upload λ"
-              source = (Content.bytesBody bytes) {Content.openBody = \consume -> modifyIORef' opens (+ 1) >> Content.openBody (Content.bytesBody bytes) consume}
-          uploaded <- Content.putBinary contents Nothing metadata source (\value -> modifyIORef' progress (++ [value]))
+          uploaded <- Content.putBinary contents Nothing request (\value -> modifyIORef' progress (++ [value]))
           require "upload response changed" (uploaded == fromFixture "CreateResourceResponse")
-          readIORef opens >>= require "renewal did not reopen the complete upload" . (== 2)
           readIORef renewals >>= require "renewal did not receive the refused token exactly once" . (== ["renew-upload"])
           notices <- readIORef progress
           let total = fromIntegral (Bytes.length bytes)
@@ -304,12 +302,11 @@ httpCases root fixtures = do
           postControl peer "/test/config" (object ["uploadStatuses" .= ([503] :: [Int])])
           retryProgress <- newIORef []
           began <- readTVarIO clock
-          retriedUpload <- async (Content.putBinary contents Nothing metadata source (\value -> modifyIORef' retryProgress (++ [value])))
+          retriedUpload <- async (Content.putBinary contents Nothing request (\value -> modifyIORef' retryProgress (++ [value])))
           let retryAt = began + Timing.requestRetryPauseMs * 1000000
           waitForDeadline waits retryAt
           atomically (writeTVar clock retryAt)
           wait retriedUpload >>= require "retried upload returned another resource" . (== uploaded)
-          readIORef opens >>= require "a retry did not reopen the upload's byte source" . (== 4)
           afterRetry <- readState peer
           let repeats = drop 2 (values "uploads" afterRetry)
           case repeats of
@@ -320,18 +317,15 @@ httpCases root fixtures = do
           retriedNotices <- readIORef retryProgress
           require "upload progress decreased across retry" (and (zipWith (<=) (sent retriedNotices) (drop 1 (sent retriedNotices))))
           beforeExplicitUpload <- readIORef renewals
-          Content.putBinary contents (Just "content-override") metadata source (const (pure ())) >>= require "explicit upload returned another resource" . (== uploaded)
+          Content.putBinary contents (Just "content-override") request (const (pure ())) >>= require "explicit upload returned another resource" . (== uploaded)
           postControl peer "/test/config" (object ["uploadStatuses" .= ([401] :: [Int])])
-          failedExplicitUpload <- try (Content.putBinary contents (Just "refused-content-override") metadata source (const (pure ()))) :: IO (Either TransportError CreateResourceResponse)
+          failedExplicitUpload <- try (Content.putBinary contents (Just "refused-content-override") request (const (pure ()))) :: IO (Either TransportError CreateResourceResponse)
           require "explicit upload credential refusal was not final" (case failedExplicitUpload of Left problem -> transportErrorCode problem == Code.TransportUnauthorized; Right _ -> False)
           readIORef renewals >>= require "explicit upload refusal renewed the held token" . (== beforeExplicitUpload)
           afterExplicitUpload <- readState peer
           let explicitUploads = drop 4 (values "uploads" afterExplicitUpload)
           require "explicit upload inherited or retried a credential" (map (field "token") explicitUploads == [Just (String "Bearer content-override"), Just (String "Bearer refused-content-override")])
           Content.getBinary contents Nothing resource >>= require "explicit refusal quarantined the held credential" . (\value -> binaryValue (resourceRepresentationData value) == encodeUtf8 "hello λ")
-          let invalidSource = (Content.bytesBody bytes) {Content.bodyLength = Just (-1)}
-          invalidUpload <- try (Content.putBinary contents Nothing metadata invalidSource (const (pure ()))) :: IO (Either TransportError CreateResourceResponse)
-          require "negative upload size was accepted" (either ((== Code.TransportBadRequest) . transportErrorCode) (const False) invalidUpload)
           malformed <- either (ioError . userError) pure (mkResourceId "malformed")
           malformedAnswer <- try (Content.getResourceGraph contents Nothing malformed) :: IO (Either TransportError GetResourceResponse)
           require "malformed HTTP JSON was accepted" (either ((== Code.TransportError) . transportErrorCode) (const False) malformedAnswer)

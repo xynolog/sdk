@@ -25,10 +25,9 @@ use crate::locked;
 use crate::required::{Fault, fault_of, schema};
 use crate::types::{
     AnchoredTextAnswer, CreateResourceResponse, GetAnnotationsResponse, GetResourceResponse,
-    HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, ResourceRepresentation,
-    StatusResponse, UploadProgress, UploadProgressFinished, UserResponse,
+    HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, PutBinaryRequest,
+    ResourceRepresentation, StatusResponse, UploadProgress, UploadProgressFinished, UserResponse,
 };
-use crate::types::{AnnotationId, JobId};
 use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema};
 use bytes::Bytes;
 use futures_core::Stream;
@@ -584,59 +583,6 @@ pub fn unsubscribed(channel: &str) -> BusRequestError {
 }
 
 // ── Content ─────────────────────────────────────────────────────────────
-
-/// An upload: the bytes, and each field the resource is created with.
-#[derive(Debug, Clone, PartialEq)]
-pub struct PutBinaryRequest {
-    pub name: String,
-    pub bytes: Bytes,
-    /// The media type of the bytes.
-    pub format: String,
-    pub storage_uri: String,
-    pub entity_types: Vec<String>,
-    pub language: Option<String>,
-    pub source_annotation_id: Option<AnnotationId>,
-    pub source_resource_id: Option<ResourceId>,
-    pub generation_prompt: Option<String>,
-    /// The agent or agents that generated it, as the schema's `Agent`.
-    pub generator: Option<Value>,
-    /// The job this resource fulfils, when a worker is creating it.
-    pub job_id: Option<JobId>,
-    pub is_draft: Option<bool>,
-    /// A clone's provenance: with it, the resource is created as a clone.
-    pub clone_token: Option<String>,
-    /// Of a clone: archive the source once the clone exists.
-    pub archive_original: Option<bool>,
-}
-
-impl PutBinaryRequest {
-    /// An upload of `bytes`, of the media type `format`, as the resource
-    /// `name` kept at `storage_uri`: what every upload states, and nothing
-    /// else.
-    pub fn new(
-        name: impl Into<String>,
-        bytes: Bytes,
-        format: impl Into<String>,
-        storage_uri: impl Into<String>,
-    ) -> Self {
-        Self {
-            name: name.into(),
-            bytes,
-            format: format.into(),
-            storage_uri: storage_uri.into(),
-            entity_types: Vec::new(),
-            language: None,
-            source_annotation_id: None,
-            source_resource_id: None,
-            generation_prompt: None,
-            generator: None,
-            job_id: None,
-            is_draft: None,
-            clone_token: None,
-            archive_original: None,
-        }
-    }
-}
 
 /// An upload in flight. As a stream it gives what the upload reports as it
 /// goes, and ends when the upload has; awaited, it gives the id of the

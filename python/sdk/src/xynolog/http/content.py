@@ -14,7 +14,7 @@ the telemetry table (`content.put`, `content.get`, `content.get_graph`,
 
 import asyncio
 import uuid
-from collections.abc import AsyncGenerator, AsyncIterator, Callable, Sequence
+from collections.abc import AsyncGenerator, AsyncIterator, Callable
 from typing import Final, Self, final, override
 
 import httpx
@@ -36,13 +36,15 @@ from xynolog.http.gateway_http import (
     GatewayRoute,
 )
 from xynolog.identifiers import ResourceId
-from xynolog.transport import ContentStream, ContentTransport, PutBinaryRequest, Upload
+from xynolog.transport import ContentStream, ContentTransport, Upload
 from xynolog.types import (
     Agent,
     AnchoredTextAnswer,
     CreateResourceResponse,
     GetAnnotationsResponse,
     GetResourceResponse,
+    OneOrMoreAgents,
+    PutBinaryRequest,
     ResourceRepresentation,
     ResourceUpload,
     UploadProgress,
@@ -66,11 +68,11 @@ def _flag(value: bool | None) -> str | None:
     return None if value is None else "true" if value else "false"
 
 
-def _generated_by(generator: Agent | Sequence[Agent] | None) -> str | None:
+def _generated_by(generator: OneOrMoreAgents | None) -> str | None:
     if generator is None:
         return None
-    if isinstance(generator, Sequence):
-        return _AGENTS.dump_json(list(generator), by_alias=True, exclude_unset=True).decode()
+    if isinstance(generator, list):
+        return _AGENTS.dump_json(generator, by_alias=True, exclude_unset=True).decode()
     return _AGENT.dump_json(generator, by_alias=True, exclude_unset=True).decode()
 
 
@@ -82,7 +84,7 @@ def form_of(request: PutBinaryRequest) -> ResourceUpload:
         format=request.format,
         storage_uri=request.storage_uri,
         language=request.language or None,
-        entity_types=_NAMES.dump_json(list(request.entity_types)).decode() if request.entity_types else None,
+        entity_types=_NAMES.dump_json(request.entity_types).decode() if request.entity_types else None,
         source_annotation_id=request.source_annotation_id,
         source_resource_id=request.source_resource_id,
         generation_prompt=request.generation_prompt or None,

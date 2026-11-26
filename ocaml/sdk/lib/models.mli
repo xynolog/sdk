@@ -392,6 +392,7 @@ val progress : [ `Progress ] descriptor
 val project_config : [ `ProjectConfig ] descriptor
 val protected_resource_metadata : [ `ProtectedResourceMetadata ] descriptor
 val provider : [ `Provider ] descriptor
+val put_binary_request : [ `PutBinaryRequest ] descriptor
 val qdrant_vectors_config : [ `QdrantVectorsConfig ] descriptor
 val quoted_text : [ `QuotedText ] descriptor
 val reconciled_span : [ `ReconciledSpan ] descriptor

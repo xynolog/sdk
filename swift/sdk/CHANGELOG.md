@@ -54,6 +54,16 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `PutBinaryRequest` is the type of Protocol's
+  `client/types/PutBinaryRequest.json`, where it was the SDK's own: `Codable`
+  and `Hashable` as every generated type is, its four required members `var`s
+  where they were `let`s, and its initializer names `language` before
+  `entityTypes`. `entityTypes` is a `[String]?` and `generator` a
+  `OneOrMoreAgents?`, absent by default, where they were a `[String]` and an
+  `[Agent]` defaulting to empty. An upload sends `entityTypes` when it is
+  present and not empty, as it sent it when not empty, and `generator` as the
+  JSON of its value: what an `[Agent]` sent, as an array, is sent of `.list`
+  of it.
 - A resource's bytes, read whole, are a `ResourceRepresentation`, the type of
   Protocol's `client/types/ResourceRepresentation.json`, where they were the
   SDK's own `Content`: `browse.resourceRepresentation` and

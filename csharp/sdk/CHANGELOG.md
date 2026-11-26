@@ -43,6 +43,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- An upload is a `PutBinaryRequest` (`Xynolog.Types`), the type of
+  Protocol's `client/types/PutBinaryRequest.json`, where it was the
+  multipart body's `ResourceUpload`: `Yield.Resource` and
+  `HttpContentTransport.PutBinaryAsync` take one. Its members are as a
+  caller holds them, where `ResourceUpload`'s are the form's text:
+  `EntityTypes` is a list of names, `Generator` a `OneOrMoreAgents`, and
+  `IsDraft` and `ArchiveOriginal` are `bool?`.
 - A resource's bytes, read whole, are a `ResourceRepresentation`
   (`Xynolog.Types`), the type of Protocol's
   `client/types/ResourceRepresentation.json`, where they were

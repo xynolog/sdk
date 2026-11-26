@@ -62,6 +62,12 @@ export type EngineEntry = components['schemas']['EngineEntry'];
 export type EngineWithLimits = records['EngineWithLimits'];
 export type EnginesWithLimits = records['EnginesWithLimits'];
 
+/**
+ * What uploading a resource is handed: its bytes, what the upload states of
+ * them, and, for a clone, its token.
+ */
+export type PutBinaryRequest = records['PutBinaryRequest'];
+
 /** A resource's bytes, whole, with the media type they were answered with. */
 export type ResourceRepresentation = records['ResourceRepresentation'];
 

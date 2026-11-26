@@ -59,6 +59,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `PutBinaryRequest` is `records['PutBinaryRequest']`, generated from
+  Protocol's `client/types/PutBinaryRequest.json`, and its `file` is a
+  `Blob`, where it was a `File | Buffer`: a browser's `File` is one, and a
+  Node `Buffer` is uploaded as `new Blob([new Uint8Array(buffer)])`. A `File`
+  is sent as it is; other bytes are sent as a file named for the resource,
+  of its format, as a `Buffer` was.
 - `ResourceRepresentation` is `records['ResourceRepresentation']`, generated
   from Protocol's `client/types/ResourceRepresentation.json`, and its `data`
   is a `Blob`, where it was an `ArrayBuffer`: `browse.resourceRepresentation`

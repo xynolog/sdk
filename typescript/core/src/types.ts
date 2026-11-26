@@ -7117,6 +7117,48 @@ export interface records {
     detail: string | null;
   };
   /**
+   * What uploading a resource is handed: its bytes, what the upload states of
+   * them, and, for a clone, its token. Each member is as a caller holds it;
+   * ResourceUpload is the multipart body the content transport sends of it.
+   */
+  PutBinaryRequest: {
+    /** Human-readable resource name */
+    name: string;
+    /** Binary content */
+    file: components['schemas']['Binary'];
+    /** Media type of the content (e.g. text/plain, text/markdown, image/png) */
+    format: string;
+    /**
+     * Where the content lives (file://... for local). Required — the client
+     * names the location; the server does not derive one.
+     */
+    storageUri: string;
+    /** ISO 639-1 language code */
+    language?: string;
+    entityTypes?: string[];
+    sourceAnnotationId?: components['schemas']['AnnotationId'];
+    sourceResourceId?: components['schemas']['ResourceId'];
+    /** For AI-generated resources: the prompt that drove generation */
+    generationPrompt?: string;
+    /**
+     * The Software peer that produced the content, when software did. Its
+     * identity must be the emitter's own — the knowledge base refuses a
+     * generator naming anyone else, and supplies it from the verified emitter
+     * when omitted. `creator` and `wasAttributedTo` are never sent; the
+     * knowledge base derives them from the emitter and the cited job.
+     */
+    generator?: components['schemas']['OneOrMoreAgents'];
+    jobId?: components['schemas']['JobId'];
+    isDraft?: boolean;
+    /**
+     * A clone token from `yield:clone-token-requested`. With it, the resource
+     * is created as a clone of the token's source, inheriting its entity types;
+     * `language`, `entityTypes` and the generation fields are then not read.
+     */
+    cloneToken?: string;
+    archiveOriginal?: boolean;
+  };
+  /**
    * Words of a text, as a selection quotes them: the words themselves, and
    * maybe the text just before and just after them, which tell apart the places
    * they occur.

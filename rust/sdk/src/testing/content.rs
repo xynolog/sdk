@@ -8,10 +8,10 @@
 
 use crate::errors::TransportError;
 use crate::locked;
-use crate::transport::{BoxFuture, ContentStream, ContentTransport, PutBinaryRequest, Upload};
+use crate::transport::{BoxFuture, ContentStream, ContentTransport, Upload};
 use crate::types::{
     AnchoredTextAnswer, CreateResourceResponse, GetAnnotationsResponse, GetResourceResponse,
-    ResourceId, ResourceRepresentation, UploadProgress, UploadProgressProgress,
+    PutBinaryRequest, ResourceId, ResourceRepresentation, UploadProgress, UploadProgressProgress,
     UploadProgressStarted,
 };
 use std::collections::HashMap;
@@ -111,7 +111,7 @@ impl ContentTransport for InMemoryContent {
         Upload::new(
             reported,
             Box::pin(async move {
-                let total_bytes = request.bytes.len() as u64;
+                let total_bytes = request.file.len() as u64;
                 let _ = progress.send(UploadProgress::Started(UploadProgressStarted::new(
                     total_bytes,
                 )));
@@ -122,7 +122,7 @@ impl ContentTransport for InMemoryContent {
                     stored.insert(
                         resource_id.clone(),
                         ResourceRepresentation {
-                            data: request.bytes.clone(),
+                            data: request.file.clone(),
                             content_type: request.format.clone(),
                         },
                     );

@@ -57,10 +57,10 @@ public sealed class HttpContentTransport(HttpTransport transport) : IDisposable
     }
 
     /// <summary>Uploads a resource, reporting its progress, and returns the new resource's id.</summary>
-    public async Task<ResourceId> PutBinaryAsync(ResourceUpload request, IProgress<UploadProgress>? progress = null, CancellationToken cancellation = default) =>
+    public async Task<ResourceId> PutBinaryAsync(PutBinaryRequest request, IProgress<UploadProgress>? progress = null, CancellationToken cancellation = default) =>
         (await UploadAsync(request, progress, cancellation).ConfigureAwait(Spawning.Captures)).ResourceId;
 
-    internal async Task<CreateResourceResponse> UploadAsync(ResourceUpload request, IProgress<UploadProgress>? progress, CancellationToken cancellation)
+    internal async Task<CreateResourceResponse> UploadAsync(PutBinaryRequest request, IProgress<UploadProgress>? progress, CancellationToken cancellation)
     {
         using var linked = Link(cancellation);
         cancellation = linked.Token;

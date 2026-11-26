@@ -60,6 +60,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- An upload is a `types::PutBinaryRequest`, the type of Protocol's
+  `client/types/PutBinaryRequest.json`, where it was
+  `transport::PutBinaryRequest`: its bytes are its `file`, a `types::Binary`,
+  where they were `bytes`; `entity_types` is an `Option<Vec<String>>`, `None`
+  when it is left out, where it was a `Vec` that was empty; and `generator` is
+  an `Option<types::OneOrMoreAgents>`, where it was an
+  `Option<serde_json::Value>`. `PutBinaryRequest::new` takes what it took.
+  What an upload sends is as it was.
 - A resource's bytes, read whole, are a `types::ResourceRepresentation`, the
   type of Protocol's `client/types/ResourceRepresentation.json`, where they
   were `transport::Content`: `browse.resource_representation` and

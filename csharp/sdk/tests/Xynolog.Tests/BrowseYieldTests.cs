@@ -253,7 +253,7 @@ public sealed partial class TransportTests
                 sent.SetResult();
                 return new HttpResponseMessage(HttpStatusCode.Accepted) { Content = JsonContent.Create(new CreateResourceResponse { ResourceId = created }) };
             };
-            using var upload = client.Yield.Resource(new ResourceUpload
+            using var upload = client.Yield.Resource(new PutBinaryRequest
             {
                 Name = Text(data, "name"),
                 File = bytes,
@@ -289,7 +289,7 @@ public sealed partial class TransportTests
             await Task.Delay(Timeout.InfiniteTimeSpan, cancellation);
             return new HttpResponseMessage(HttpStatusCode.Accepted);
         };
-        using var upload = client.Yield.Resource(new ResourceUpload { Name = "Notes", File = [1], Format = "text/plain", StorageUri = "file://notes.txt" });
+        using var upload = client.Yield.Resource(new PutBinaryRequest { Name = "Notes", File = [1], Format = "text/plain", StorageUri = "file://notes.txt" });
         await sent.Task.WaitAsync(deadline.Token);
         upload.Dispose();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => upload.CompleteAsync().WaitAsync(deadline.Token));

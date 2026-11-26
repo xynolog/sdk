@@ -43,7 +43,6 @@ import xynolog.transport.Events
 import xynolog.transport.Frame
 import xynolog.transport.FrameSink
 import xynolog.transport.PendingReply
-import xynolog.transport.PutBinaryRequest
 import xynolog.transport.ReplyRouter
 import xynolog.transport.ResourceHold
 import xynolog.transport.Transport
@@ -52,6 +51,7 @@ import xynolog.transport.Watched
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.GetAnnotationsResponse
 import xynolog.types.GetResourceResponse
+import xynolog.types.PutBinaryRequest
 import xynolog.types.ResourceRepresentation
 import xynolog.types.wireJson
 import java.util.concurrent.CompletableFuture

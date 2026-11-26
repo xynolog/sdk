@@ -15,7 +15,7 @@ is told to its failures.
 """
 
 import asyncio
-from collections.abc import AsyncGenerator, AsyncIterator, Callable, Collection, Generator, Mapping, Sequence
+from collections.abc import AsyncGenerator, AsyncIterator, Callable, Collection, Generator, Mapping
 from dataclasses import dataclass, field, replace
 from types import TracebackType
 from typing import Final, Literal, Protocol, Self, final
@@ -24,9 +24,8 @@ from pydantic import JsonValue
 
 from xynolog.errors import BusRequestError, XynologError
 from xynolog.events import Broadcast, Events
-from xynolog.identifiers import AnnotationId, JobId, ResourceId
+from xynolog.identifiers import ResourceId
 from xynolog.types import (
-    Agent,
     AnchoredTextAnswer,
     CreateResourceResponse,
     FrameRefusalReason,
@@ -35,6 +34,7 @@ from xynolog.types import (
     HealthResponse,
     MediaTokenResponse,
     ProtectedResourceMetadata,
+    PutBinaryRequest,
     ResourceRepresentation,
     StatusResponse,
     UploadProgress,
@@ -55,7 +55,6 @@ __all__ = [
     "FrameSink",
     "GatewayOperations",
     "PendingReply",
-    "PutBinaryRequest",
     "ReplyRouter",
     "ResourceHold",
     "TraceContext",
@@ -407,32 +406,6 @@ class Transport(Protocol):
 
 
 # ── Content ─────────────────────────────────────────────────────────────
-
-
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class PutBinaryRequest:
-    """An upload: the bytes, and each field the resource is created with."""
-
-    name: str
-    file: bytes
-    format: str
-    """The media type of the bytes."""
-    storage_uri: str
-    entity_types: Sequence[str] = ()
-    language: str | None = None
-    source_annotation_id: AnnotationId | None = None
-    source_resource_id: ResourceId | None = None
-    generation_prompt: str | None = None
-    generator: Agent | Sequence[Agent] | None = None
-    """The agent or agents that generated it."""
-    job_id: JobId | None = None
-    """The job this resource fulfils, when a worker is creating it."""
-    is_draft: bool | None = None
-    clone_token: str | None = None
-    """A clone's provenance: with it, the resource is created as a clone."""
-    archive_original: bool | None = None
-    """Of a clone: archive the source once the clone exists."""
 
 
 @final

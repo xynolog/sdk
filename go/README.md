@@ -73,11 +73,11 @@ import (
 // is false when the job declined, and made nothing.
 func Summarize(ctx context.Context, client *xynolog.Client, paper []byte) (summary api.ResourceId, ok bool, err error) {
 	// Ingest: the paper's bytes become a resource.
-	created, err := client.Yield.Resource(ctx, xynolog.PutBinaryRequest{
+	created, err := client.Yield.Resource(ctx, api.PutBinaryRequest{
 		Name:       "Attention Is All You Need",
-		Bytes:      paper,
+		File:       paper,
 		Format:     "application/pdf",
-		StorageURI: "file://papers/attention-is-all-you-need.pdf",
+		StorageUri: "file://papers/attention-is-all-you-need.pdf",
 	}).Wait(ctx)
 	if err != nil {
 		return api.ResourceId{}, false, err
@@ -1007,8 +1007,9 @@ import (
 // and whether it is serving. Over HTTP, content is
 // xynolog.NewHTTPContentTransport(transport), and gateway is the transport.
 func Store(ctx context.Context, content xynolog.ContentTransport, gateway xynolog.GatewayOperations, page []byte) (api.ResourceId, error) {
-	upload := content.PutBinary(ctx, xynolog.PutBinaryRequest{
-		Name: "A page", Bytes: page, Format: "text/markdown", StorageURI: "file://pages/a.md", EntityTypes: []string{"Note"},
+	entityTypes := []string{"Note"}
+	upload := content.PutBinary(ctx, api.PutBinaryRequest{
+		Name: "A page", File: page, Format: "text/markdown", StorageUri: "file://pages/a.md", EntityTypes: &entityTypes,
 	})
 	for progress := range upload.Progress() {
 		member, err := progress.Member()

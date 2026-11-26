@@ -36,6 +36,20 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `PutBinaryRequest` is `xynolog.types.PutBinaryRequest`, the type of
+  Protocol's `client/types/PutBinaryRequest.json`, where it was
+  `xynolog.transport.PutBinaryRequest`: `yield.resource`,
+  `ContentTransport.putBinary` and `xynolog.testing.PutBinary` take and hold
+  it. It is `@Serializable` as every generated class is, and its constructor,
+  `copy` and `componentN` take `language` before `entityTypes`. `entityTypes`
+  is a `List<String>?` and `generator` a `OneOrMoreAgents?`, `null` by
+  default, where they were a `List<String>` and a `List<Agent>` defaulting to
+  empty. Java builds one by the generated
+  `PutBinaryRequest.builder(name, file, format, storageUri)`, whose
+  `entityTypes` takes a list or `null` and `generator` a `OneOrMoreAgents` or
+  `null`. An upload sends `entityTypes` when it is present and not empty, as it
+  sent it when not empty, and `generator` as the JSON of its value: what a
+  `List<Agent>` sent, as an array, is sent of `OneOrMoreAgents.List` of it.
 - A resource's bytes, read whole, are a `xynolog.types.ResourceRepresentation`,
   the type of Protocol's `client/types/ResourceRepresentation.json`, where they
   were `xynolog.transport.Content`: `browse.resourceRepresentation` and

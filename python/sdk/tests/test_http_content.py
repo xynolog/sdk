@@ -7,7 +7,6 @@ an upload does when it is read twice or abandoned.
 """
 
 import asyncio
-import dataclasses
 
 import httpx
 import pytest
@@ -19,8 +18,15 @@ from xynolog.errors import TransportError, XynologError
 from xynolog.http import HttpTransport, Timing
 from xynolog.http.content import form_of
 from xynolog.identifiers import AnnotationId, JobId, ResourceId
-from xynolog.transport import PutBinaryRequest, UploadProgress
-from xynolog.types import AgentSoftware, ResourceUpload, UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
+from xynolog.transport import UploadProgress
+from xynolog.types import (
+    AgentSoftware,
+    PutBinaryRequest,
+    ResourceUpload,
+    UploadProgressFinished,
+    UploadProgressProgress,
+    UploadProgressStarted,
+)
 from xynolog.watched import Variable
 
 EVERY_BYTE = bytes(range(256)) * 600
@@ -35,7 +41,7 @@ def transport_to(gateway: GatewayServer, token: str | None = "t") -> HttpTranspo
 
 def test_an_upload_names_every_field_the_form_has_and_no_other() -> None:
     # The upload a caller writes and the form the spec states are two shapes of one thing.
-    assert {field.name for field in dataclasses.fields(PutBinaryRequest)} == set(ResourceUpload.model_fields)
+    assert set(PutBinaryRequest.model_fields) == set(ResourceUpload.model_fields)
 
 
 def test_an_upload_carries_its_bytes_unchanged_and_each_field_under_its_own_name() -> None:

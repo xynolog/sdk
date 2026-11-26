@@ -380,6 +380,7 @@ func roundTripModel(_ name: String, _ value: JSONValue) throws -> JSONValue {
   case "ProjectConfig": return try roundTrip(ProjectConfig.self, value)
   case "ProtectedResourceMetadata": return try roundTrip(ProtectedResourceMetadata.self, value)
   case "Provider": return try roundTrip(Provider.self, value)
+  case "PutBinaryRequest": return try roundTrip(PutBinaryRequest.self, value)
   case "QdrantVectorsConfig": return try roundTrip(QdrantVectorsConfig.self, value)
   case "QuotedText": return try roundTrip(QuotedText.self, value)
   case "ReconciledSpan": return try roundTrip(ReconciledSpan.self, value)

@@ -420,8 +420,8 @@ func (w *wire) put(ctx context.Context, args protocol.Arguments, reporting bool,
 	if err != nil {
 		return nil, err
 	}
-	var request xynolog.PutBinaryRequest
-	for name, field := range map[string]*string{"name": &request.Name, "format": &request.Format, "storageUri": &request.StorageURI} {
+	var request api.PutBinaryRequest
+	for name, field := range map[string]*string{"name": &request.Name, "format": &request.Format, "storageUri": &request.StorageUri} {
 		if *field, err = protocol.Text(args, name); err != nil {
 			return nil, err
 		}
@@ -430,39 +430,47 @@ func (w *wire) put(ctx context.Context, args protocol.Arguments, reporting bool,
 	if err != nil {
 		return nil, err
 	}
-	if request.Bytes, err = base64.StdEncoding.DecodeString(encoded); err != nil {
+	if request.File, err = base64.StdEncoding.DecodeString(encoded); err != nil {
 		return nil, protocol.Misused("bytes is not base64: %v", err)
 	}
-	for name, field := range map[string]*string{"language": &request.Language, "generationPrompt": &request.GenerationPrompt} {
+	for name, field := range map[string]**string{"language": &request.Language, "generationPrompt": &request.GenerationPrompt} {
 		if text, ok, err := protocol.OptionalText(args, name); err != nil {
 			return nil, err
 		} else if ok {
-			*field = text
+			*field = &text
 		}
 	}
 	if _, given := args["entityTypes"]; given {
-		if request.EntityTypes, err = protocol.Texts(args, "entityTypes"); err != nil {
+		entityTypes, err := protocol.Texts(args, "entityTypes")
+		if err != nil {
 			return nil, err
 		}
+		request.EntityTypes = &entityTypes
 	}
 	if _, given := args["sourceResourceId"]; given {
-		if request.SourceResourceID, err = resource(args, "sourceResourceId"); err != nil {
+		source, err := resource(args, "sourceResourceId")
+		if err != nil {
 			return nil, err
 		}
+		request.SourceResourceId = &source
 	}
 	if text, ok, err := protocol.OptionalText(args, "sourceAnnotationId"); err != nil {
 		return nil, err
 	} else if ok {
-		if request.SourceAnnotationID, err = api.ParseAnnotationId(text); err != nil {
+		annotation, err := api.ParseAnnotationId(text)
+		if err != nil {
 			return nil, protocol.Misused("sourceAnnotationId: %v", err)
 		}
+		request.SourceAnnotationId = &annotation
 	}
 	if text, ok, err := protocol.OptionalText(args, "jobId"); err != nil {
 		return nil, err
 	} else if ok {
-		if request.JobID, err = api.ParseJobId(text); err != nil {
+		job, err := api.ParseJobId(text)
+		if err != nil {
 			return nil, protocol.Misused("jobId: %v", err)
 		}
+		request.JobId = &job
 	}
 	if raw, given := args["isDraft"]; given {
 		var draft bool

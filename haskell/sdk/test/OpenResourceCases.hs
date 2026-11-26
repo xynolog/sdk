@@ -132,7 +132,7 @@ runCase fixtures row = do
       contents _ =
         pure
           ( Content.ContentTransport
-              (\_ _ _ _ -> unexpected)
+              (\_ _ _ -> unexpected)
               (\_ _ -> unexpected)
               (\_ _ _ -> unexpected)
               (\_ _ -> unexpected)

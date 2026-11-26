@@ -572,6 +572,7 @@ library internal
     Xynolog.Internal.Generated.Models.ProjectConfig
     Xynolog.Internal.Generated.Models.ProtectedResourceMetadata
     Xynolog.Internal.Generated.Models.Provider
+    Xynolog.Internal.Generated.Models.PutBinaryRequest
     Xynolog.Internal.Generated.Models.QdrantVectorsConfig
     Xynolog.Internal.Generated.Models.QuotedText
     Xynolog.Internal.Generated.Models.ReconciledSpan
@@ -598,7 +599,6 @@ library internal
     Xynolog.Internal.Generated.Models.ResourceUnarchivedPayload
     Xynolog.Internal.Generated.Models.ResourceUpdatedPayload
     Xynolog.Internal.Generated.Models.ResourceUpload
-    Xynolog.Internal.Generated.Models.ResourceUploadMetadata
     Xynolog.Internal.Generated.Models.ResourceView
     Xynolog.Internal.Generated.Models.Resources
     Xynolog.Internal.Generated.Models.RetryBudget

@@ -18,8 +18,8 @@ import xynolog.Timings
 import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
 import xynolog.identifiers.ResourceId
-import xynolog.transport.PutBinaryRequest
 import xynolog.types.CreateResourceResponse
+import xynolog.types.PutBinaryRequest
 import xynolog.types.UploadProgress
 import xynolog.types.UploadProgressFinished
 import xynolog.types.UploadProgressProgress

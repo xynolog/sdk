@@ -13,8 +13,9 @@ import (
 // and whether it is serving. Over HTTP, content is
 // xynolog.NewHTTPContentTransport(transport), and gateway is the transport.
 func Store(ctx context.Context, content xynolog.ContentTransport, gateway xynolog.GatewayOperations, page []byte) (api.ResourceId, error) {
-	upload := content.PutBinary(ctx, xynolog.PutBinaryRequest{
-		Name: "A page", Bytes: page, Format: "text/markdown", StorageURI: "file://pages/a.md", EntityTypes: []string{"Note"},
+	entityTypes := []string{"Note"}
+	upload := content.PutBinary(ctx, api.PutBinaryRequest{
+		Name: "A page", File: page, Format: "text/markdown", StorageUri: "file://pages/a.md", EntityTypes: &entityTypes,
 	})
 	for progress := range upload.Progress() {
 		member, err := progress.Member()

@@ -17,7 +17,6 @@ import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.Events
 import xynolog.transport.GatewayOperations
-import xynolog.transport.PutBinaryRequest
 import xynolog.transport.Upload
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.CreateResourceResponse
@@ -26,6 +25,7 @@ import xynolog.types.GetResourceResponse
 import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenResponse
 import xynolog.types.ProtectedResourceMetadata
+import xynolog.types.PutBinaryRequest
 import xynolog.types.ResourceRepresentation
 import xynolog.types.StatusResponse
 import xynolog.types.UploadProgress

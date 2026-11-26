@@ -86,7 +86,7 @@ withClient time action = do
   let unused = ioError (userError "the session used a client operation its case never called")
       contents =
         Content.ContentTransport
-          (\_ _ _ _ -> unused)
+          (\_ _ _ -> unused)
           (\_ _ -> unused)
           (\_ _ _ -> unused)
           (\_ _ -> unused)
@@ -513,7 +513,7 @@ sessionClockCases root fixtures = clockCasesFor root ["renewal"] $ \time row -> 
       unused = ioError (userError "renewal clock unexpectedly used the client")
       contents =
         Content.ContentTransport
-          (\_ _ _ _ -> unused)
+          (\_ _ _ -> unused)
           (\_ _ -> unused)
           (\_ _ _ -> unused)
           (\_ _ -> unused)

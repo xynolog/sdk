@@ -15,12 +15,13 @@ from typing import Final, final, override
 
 from xynolog.errors import TransportError
 from xynolog.identifiers import ResourceId
-from xynolog.transport import ContentStream, ContentTransport, PutBinaryRequest, Upload
+from xynolog.transport import ContentStream, ContentTransport, Upload
 from xynolog.types import (
     AnchoredTextAnswer,
     CreateResourceResponse,
     GetAnnotationsResponse,
     GetResourceResponse,
+    PutBinaryRequest,
     ResourceRepresentation,
     UploadProgress,
     UploadProgressProgress,
