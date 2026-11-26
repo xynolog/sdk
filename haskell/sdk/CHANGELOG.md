@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A type for ten of Protocol's tables that no service keeps, each typed by
+  the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+  `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
+  `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
+  `SignInStoreOwnerOnly`.
 - `Xynolog.Control`: the launcher's control API, a value per method (a
   `ControlMethod params result`) and per notification (a
   `ControlNotification params`), typed by the types of `Xynolog.Types` it

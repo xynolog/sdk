@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A record of `Records` for ten of Protocol's tables that no service keeps,
+  each typed by the table's own schema: `Client_discovery_absent`,
+  `Client_refresh`, `Client_testing`, `Control_cli`, `Errors_codes`,
+  `Identifiers_kinds`, `Media_types_registry`, `Sdk_telemetry_telemetry`,
+  `Session_oauth` and `Sign_in_store_owner_only`.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,

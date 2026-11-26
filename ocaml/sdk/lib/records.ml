@@ -8140,6 +8140,233 @@ module Archivist_config_staging = struct
       ]
 end
 
+module Client_discovery_absent_reasons_item = struct
+  type t = { reason : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      reason = required reader string "reason";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("reason", Some (json_string value.reason));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Client_refresh_queries_item_asks_value = struct
+  type t = { field_ref : string }
+
+  let project fields =
+    let reader = start fields in
+    { field_ref = required reader string "$ref" }
+
+  let to_json (value : t) =
+    write [ ("$ref", Some (json_string value.field_ref)) ]
+end
+
+module Client_refresh_queries_item_reads_value = struct
+  type t = { field_ref : string }
+
+  let project fields =
+    let reader = start fields in
+    { field_ref = required reader string "$ref" }
+
+  let to_json (value : t) =
+    write [ ("$ref", Some (json_string value.field_ref)) ]
+end
+
+module Client_refresh_refresh_item_on_names = struct
+  type t = { resource : string option; annotation : string option }
+
+  let project fields =
+    let reader = start fields in
+    {
+      resource = maybe reader string "resource";
+      annotation = maybe reader string "annotation";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("resource", Option.map json_string value.resource);
+        ("annotation", Option.map json_string value.annotation);
+      ]
+end
+
+module Client_refresh_refresh_item_stream = struct
+  module Stream = struct
+    type t = Reopened | Unreadable
+
+    let to_string = function
+      | Reopened -> "reopened"
+      | Unreadable -> "unreadable"
+
+    let of_string = function
+      | "reopened" -> Some Reopened
+      | "unreadable" -> Some Unreadable
+      | _ -> None
+  end
+
+  module Reach = struct
+    type t = Subject | Held
+
+    let to_string = function Subject -> "subject" | Held -> "held"
+
+    let of_string = function
+      | "subject" -> Some Subject
+      | "held" -> Some Held
+      | _ -> None
+  end
+
+  type t = {
+    stream : Stream.t;
+    reach : Reach.t option;
+    refetches : string list option;
+    docs : string;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      stream = required reader (enum Stream.of_string) "stream";
+      reach = maybe reader (enum Reach.of_string) "reach";
+      refetches = maybe reader (list string) "refetches";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("stream", Some ((json_enum Stream.to_string) value.stream));
+        ("reach", Option.map (json_enum Reach.to_string) value.reach);
+        ("refetches", Option.map (json_list json_string) value.refetches);
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Client_testing_fault_actions_item = struct
+  type t = { name : string; kind : string; docs : string; holds : string list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      kind = required reader string "kind";
+      docs = required reader string "docs";
+      holds = required reader (list string) "holds";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("kind", Some (json_string value.kind));
+        ("docs", Some (json_string value.docs));
+        ("holds", Some ((json_list json_string) value.holds));
+      ]
+end
+
+module Client_testing_delay_ms = struct
+  type t = { docs : string; minimum : int; maximum : int }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      minimum = required reader int "minimum";
+      maximum = required reader int "maximum";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ("minimum", Some (json_int value.minimum));
+        ("maximum", Some (json_int value.maximum));
+      ]
+end
+
+module Client_testing_schedule_length = struct
+  type t = { docs : string; minimum : int; maximum : int }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      minimum = required reader int "minimum";
+      maximum = required reader int "maximum";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ("minimum", Some (json_int value.minimum));
+        ("maximum", Some (json_int value.maximum));
+      ]
+end
+
+module Client_testing_slack = struct
+  type t = { docs : string; times : int }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      times = required reader int "times";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ("times", Some (json_int value.times));
+      ]
+end
+
+module Client_testing_delivery_ops = struct
+  type t = { docs : string; ops : string list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      ops = required reader (list string) "ops";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ("ops", Some ((json_list json_string) value.ops));
+      ]
+end
+
+module Client_testing_records_item = struct
+  type t = { name : string; docs : string; members : string list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      docs = required reader string "docs";
+      members = required reader (list string) "members";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("docs", Some (json_string value.docs));
+        ("members", Some ((json_list json_string) value.members));
+      ]
+end
+
 module Conformance_step_let = struct
   type t = { let_ : (string * Yojson.Raw.t) list }
 
@@ -8750,6 +8977,82 @@ module Request_id = struct
     Models.decode Models.request_id (Yojson.Raw.to_string (to_json value))
 end
 
+module Control_cli_commands_value_positionals_item_fields = struct
+  type t = { name : string; fields : string list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      fields = required reader (list string) "fields";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("fields", Some ((json_list json_string) value.fields));
+      ]
+end
+
+module Control_cli_commands_value_positionals_item_cli_only = struct
+  type t = { name : string; cli_only : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      cli_only = required reader string "cliOnly";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("cliOnly", Some (json_string value.cli_only));
+      ]
+end
+
+module Control_cli_commands_value_flags_value_fields = struct
+  type t = { fields : string list; notes : string option }
+
+  let project fields =
+    let reader = start fields in
+    {
+      fields = required reader (list string) "fields";
+      notes = maybe reader string "notes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("fields", Some ((json_list json_string) value.fields));
+        ("notes", Option.map json_string value.notes);
+      ]
+end
+
+module Control_cli_commands_value_flags_value_method = struct
+  type t = { method_ : string }
+
+  let project fields =
+    let reader = start fields in
+    { method_ = required reader string "method" }
+
+  let to_json (value : t) =
+    write [ ("method", Some (json_string value.method_)) ]
+end
+
+module Control_cli_commands_value_flags_value_cli_only = struct
+  type t = { cli_only : string }
+
+  let project fields =
+    let reader = start fields in
+    { cli_only = required reader string "cliOnly" }
+
+  let to_json (value : t) =
+    write [ ("cliOnly", Some (json_string value.cli_only)) ]
+end
+
 module Workload_status_ledger = struct
   type t = { claims : int; capacity : int }
 
@@ -8856,6 +9159,209 @@ module Dispatcher_config_timing = struct
       ]
 end
 
+module Errors_codes_bus_request_codes_item = struct
+  module Wire = struct
+    type t = Peer_unavailable | Not_found | Unauthorized | None_pending
+
+    let to_string = function
+      | Peer_unavailable -> "peer-unavailable"
+      | Not_found -> "not-found"
+      | Unauthorized -> "unauthorized"
+      | None_pending -> "none-pending"
+
+    let of_string = function
+      | "peer-unavailable" -> Some Peer_unavailable
+      | "not-found" -> Some Not_found
+      | "unauthorized" -> Some Unauthorized
+      | "none-pending" -> Some None_pending
+      | _ -> None
+  end
+
+  type t = { code : string; docs : string; wire : Wire.t option }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+      wire = maybe reader (enum Wire.of_string) "wire";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+        ("wire", Option.map (json_enum Wire.to_string) value.wire);
+      ]
+end
+
+module Errors_codes_transport_codes_item_status = struct
+  type t = { code : string; docs : string; status : int }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+      status = required reader int "status";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+        ("status", Some (json_int value.status));
+      ]
+end
+
+module Errors_codes_transport_codes_item_status_from = struct
+  type t = { code : string; docs : string; status_from : int }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+      status_from = required reader int "statusFrom";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+        ("statusFrom", Some (json_int value.status_from));
+      ]
+end
+
+module Errors_codes_transport_codes_item_no_status = struct
+  type t = { code : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Errors_codes_job_codes_item = struct
+  type t = { code : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Errors_codes_session_codes_item = struct
+  type t = { code : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Errors_codes_sign_in_codes_item = struct
+  type t = { code : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Errors_codes_kb_identity_codes_item = struct
+  type t = { code : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Errors_codes_span_refusal_codes_item = struct
+  type t = { code : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Errors_codes_control_codes_item = struct
+  type t = { code : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
 module Gateway_config_identity = struct
   type t = { issuer : string; subject_claim : string }
 
@@ -8930,6 +9436,54 @@ module Gateway_config_capacity = struct
       ]
 end
 
+module Identifiers_kinds_kinds_item_accepts_item = struct
+  type t = { id : string; why : string }
+
+  let project fields =
+    let reader = start fields in
+    { id = required reader string "id"; why = required reader string "why" }
+
+  let to_json (value : t) =
+    write
+      [
+        ("id", Some (json_string value.id));
+        ("why", Some (json_string value.why));
+      ]
+end
+
+module Identifiers_kinds_kinds_item_refuses_item = struct
+  type t = { id : string; why : string }
+
+  let project fields =
+    let reader = start fields in
+    { id = required reader string "id"; why = required reader string "why" }
+
+  let to_json (value : t) =
+    write
+      [
+        ("id", Some (json_string value.id));
+        ("why", Some (json_string value.why));
+      ]
+end
+
+module Identifiers_kinds_others_item = struct
+  type t = { property : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      property = required reader string "property";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("property", Some (json_string value.property));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
 module Project_config_project = struct
   type t = { name : string; version : string option }
 
@@ -8996,6 +9550,234 @@ module Librarian_config_search = struct
 
   let to_json (value : t) =
     write [ ("semanticFloor", Some (json_float value.semantic_floor)) ]
+end
+
+module Media_types_registry_media_types_item = struct
+  type t = {
+    media_type : Enums.Supported_media_type.t;
+    extension : string;
+    label : string;
+    render : string;
+    anchoring : string;
+    text_source : string;
+    authorable : bool;
+    uploadable : bool;
+    generatable : bool;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      media_type =
+        required reader (enum Enums.Supported_media_type.of_string) "mediaType";
+      extension = required reader string "extension";
+      label = required reader string "label";
+      render = required reader string "render";
+      anchoring = required reader string "anchoring";
+      text_source = required reader string "textSource";
+      authorable = required reader bool "authorable";
+      uploadable = required reader bool "uploadable";
+      generatable = required reader bool "generatable";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ( "mediaType",
+          Some
+            ((json_enum Enums.Supported_media_type.to_string) value.media_type)
+        );
+        ("extension", Some (json_string value.extension));
+        ("label", Some (json_string value.label));
+        ("render", Some (json_string value.render));
+        ("anchoring", Some (json_string value.anchoring));
+        ("textSource", Some (json_string value.text_source));
+        ("authorable", Some (json_bool value.authorable));
+        ("uploadable", Some (json_bool value.uploadable));
+        ("generatable", Some (json_bool value.generatable));
+      ]
+end
+
+module Sdk_telemetry_telemetry_spans_item_attributes_item_values_item = struct
+  type t = Text of string | Boolean of bool
+
+  let members =
+    [
+      [
+        {
+          kind = Text_kind;
+          required = [];
+          allowed = None;
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Boolean_kind;
+          required = [];
+          allowed = None;
+          fixed = [];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> Text (string value)
+    | 1 -> Boolean (bool value)
+    | _ -> assert false
+
+  let to_json = function
+    | Text value -> json_string value
+    | Boolean value -> json_bool value
+end
+
+module Sdk_telemetry_telemetry_metrics_item_attributes_item_values_item = struct
+  type t = Text of string | Boolean of bool
+
+  let members =
+    [
+      [
+        {
+          kind = Text_kind;
+          required = [];
+          allowed = None;
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Boolean_kind;
+          required = [];
+          allowed = None;
+          fixed = [];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> Text (string value)
+    | 1 -> Boolean (bool value)
+    | _ -> assert false
+
+  let to_json = function
+    | Text value -> json_string value
+    | Boolean value -> json_bool value
+end
+
+module Session_oauth_clients_item = struct
+  type t = { name : string; id : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      id = required reader string "id";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("id", Some (json_string value.id));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Session_oauth_scopes = struct
+  type t = { value : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      value = required reader string "value";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("value", Some (json_string value.value));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Sign_in_store_owner_only_directory_mode = struct
+  type t = { value : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      value = required reader string "value";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("value", Some (json_string value.value));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Sign_in_store_owner_only_file_mode = struct
+  type t = { value : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      value = required reader string "value";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("value", Some (json_string value.value));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Sign_in_store_owner_only_directory_access_list = struct
+  type t = { value : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      value = required reader string "value";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("value", Some (json_string value.value));
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Sign_in_store_owner_only_file_access_list = struct
+  type t = { value : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      value = required reader string "value";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("value", Some (json_string value.value));
+        ("docs", Some (json_string value.docs));
+      ]
 end
 
 module Smelter_health_index_stamp_embedding = struct
@@ -10511,6 +11293,102 @@ module Archivist_streams_response = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
+module Client_discovery_absent = struct
+  type t = {
+    field_comment : string;
+    reasons : Client_discovery_absent_reasons_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      reasons =
+        required reader
+          (list (record Client_discovery_absent_reasons_item.project))
+          "reasons";
+    }
+
+  let of_model (model : [ `ClientDiscoveryAbsent ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "reasons",
+          Some
+            ((json_list Client_discovery_absent_reasons_item.to_json)
+               value.reasons) );
+      ]
+
+  let to_model value =
+    Models.decode Models.client_discovery_absent
+      (Yojson.Raw.to_string (to_json value))
+end
+
+module Client_testing = struct
+  type t = {
+    field_comment : string;
+    fault_actions : Client_testing_fault_actions_item.t list;
+    delay_ms : Client_testing_delay_ms.t;
+    schedule_length : Client_testing_schedule_length.t;
+    slack : Client_testing_slack.t;
+    delivery_ops : Client_testing_delivery_ops.t;
+    records : Client_testing_records_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      fault_actions =
+        required reader
+          (list (record Client_testing_fault_actions_item.project))
+          "faultActions";
+      delay_ms =
+        required reader (record Client_testing_delay_ms.project) "delayMs";
+      schedule_length =
+        required reader
+          (record Client_testing_schedule_length.project)
+          "scheduleLength";
+      slack = required reader (record Client_testing_slack.project) "slack";
+      delivery_ops =
+        required reader
+          (record Client_testing_delivery_ops.project)
+          "deliveryOps";
+      records =
+        required reader
+          (list (record Client_testing_records_item.project))
+          "records";
+    }
+
+  let of_model (model : [ `ClientTesting ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "faultActions",
+          Some
+            ((json_list Client_testing_fault_actions_item.to_json)
+               value.fault_actions) );
+        ("delayMs", Some (Client_testing_delay_ms.to_json value.delay_ms));
+        ( "scheduleLength",
+          Some (Client_testing_schedule_length.to_json value.schedule_length) );
+        ("slack", Some (Client_testing_slack.to_json value.slack));
+        ( "deliveryOps",
+          Some (Client_testing_delivery_ops.to_json value.delivery_ops) );
+        ( "records",
+          Some ((json_list Client_testing_records_item.to_json) value.records)
+        );
+      ]
+
+  let to_model value =
+    Models.decode Models.client_testing (Yojson.Raw.to_string (to_json value))
+end
+
 module About_result = struct
   type t = {
     version : string option;
@@ -11535,6 +12413,146 @@ module Librarian_engine_config = struct
 
   let to_model value =
     Models.decode Models.librarian_engine_config
+      (Yojson.Raw.to_string (to_json value))
+end
+
+module Media_types_registry = struct
+  type t = {
+    field_comment : string;
+    render : string list;
+    anchoring : string list;
+    text_source : string list;
+    extension_aliases : (string * string) list;
+    media_types : Media_types_registry_media_types_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      render = required reader (list string) "render";
+      anchoring = required reader (list string) "anchoring";
+      text_source = required reader (list string) "textSource";
+      extension_aliases = required reader (map string) "extensionAliases";
+      media_types =
+        required reader
+          (list (record Media_types_registry_media_types_item.project))
+          "mediaTypes";
+    }
+
+  let of_model (model : [ `MediaTypesRegistry ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ("render", Some ((json_list json_string) value.render));
+        ("anchoring", Some ((json_list json_string) value.anchoring));
+        ("textSource", Some ((json_list json_string) value.text_source));
+        ( "extensionAliases",
+          Some ((json_map json_string) value.extension_aliases) );
+        ( "mediaTypes",
+          Some
+            ((json_list Media_types_registry_media_types_item.to_json)
+               value.media_types) );
+      ]
+
+  let to_model value =
+    Models.decode Models.media_types_registry
+      (Yojson.Raw.to_string (to_json value))
+end
+
+module Session_oauth = struct
+  type t = {
+    field_comment : string;
+    clients : Session_oauth_clients_item.t list;
+    scopes : Session_oauth_scopes.t;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      clients =
+        required reader
+          (list (record Session_oauth_clients_item.project))
+          "clients";
+      scopes = required reader (record Session_oauth_scopes.project) "scopes";
+    }
+
+  let of_model (model : [ `SessionOauth ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "clients",
+          Some ((json_list Session_oauth_clients_item.to_json) value.clients) );
+        ("scopes", Some (Session_oauth_scopes.to_json value.scopes));
+      ]
+
+  let to_model value =
+    Models.decode Models.session_oauth (Yojson.Raw.to_string (to_json value))
+end
+
+module Sign_in_store_owner_only = struct
+  type t = {
+    field_comment : string;
+    directory_mode : Sign_in_store_owner_only_directory_mode.t;
+    file_mode : Sign_in_store_owner_only_file_mode.t;
+    directory_access_list : Sign_in_store_owner_only_directory_access_list.t;
+    file_access_list : Sign_in_store_owner_only_file_access_list.t;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      directory_mode =
+        required reader
+          (record Sign_in_store_owner_only_directory_mode.project)
+          "directoryMode";
+      file_mode =
+        required reader
+          (record Sign_in_store_owner_only_file_mode.project)
+          "fileMode";
+      directory_access_list =
+        required reader
+          (record Sign_in_store_owner_only_directory_access_list.project)
+          "directoryAccessList";
+      file_access_list =
+        required reader
+          (record Sign_in_store_owner_only_file_access_list.project)
+          "fileAccessList";
+    }
+
+  let of_model (model : [ `SignInStoreOwnerOnly ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "directoryMode",
+          Some
+            (Sign_in_store_owner_only_directory_mode.to_json
+               value.directory_mode) );
+        ( "fileMode",
+          Some (Sign_in_store_owner_only_file_mode.to_json value.file_mode) );
+        ( "directoryAccessList",
+          Some
+            (Sign_in_store_owner_only_directory_access_list.to_json
+               value.directory_access_list) );
+        ( "fileAccessList",
+          Some
+            (Sign_in_store_owner_only_file_access_list.to_json
+               value.file_access_list) );
+      ]
+
+  let to_model value =
+    Models.decode Models.sign_in_store_owner_only
       (Yojson.Raw.to_string (to_json value))
 end
 
@@ -12623,6 +13641,180 @@ module Archivist_engines_actors = struct
       ]
 end
 
+module Client_refresh_queries_item_asks = struct
+  module Per = struct
+    type t = Resource | Annotation | Filters
+
+    let to_string = function
+      | Resource -> "resource"
+      | Annotation -> "annotation"
+      | Filters -> "filters"
+
+    let of_string = function
+      | "resource" -> Some Resource
+      | "annotation" -> Some Annotation
+      | "filters" -> Some Filters
+      | _ -> None
+  end
+
+  type t = {
+    name : string;
+    per : Per.t option;
+    asks : string;
+    persisted : bool option;
+    value : Client_refresh_queries_item_asks_value.t;
+    docs : string;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      per = maybe reader (enum Per.of_string) "per";
+      asks = required reader string "asks";
+      persisted = maybe reader bool "persisted";
+      value =
+        required reader
+          (record Client_refresh_queries_item_asks_value.project)
+          "value";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("per", Option.map (json_enum Per.to_string) value.per);
+        ("asks", Some (json_string value.asks));
+        ("persisted", Option.map json_bool value.persisted);
+        ( "value",
+          Some (Client_refresh_queries_item_asks_value.to_json value.value) );
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Client_refresh_queries_item_reads = struct
+  module Per = struct
+    type t = Resource | Annotation | Filters
+
+    let to_string = function
+      | Resource -> "resource"
+      | Annotation -> "annotation"
+      | Filters -> "filters"
+
+    let of_string = function
+      | "resource" -> Some Resource
+      | "annotation" -> Some Annotation
+      | "filters" -> Some Filters
+      | _ -> None
+  end
+
+  type t = {
+    name : string;
+    per : Per.t option;
+    reads : string;
+    persisted : bool option;
+    value : Client_refresh_queries_item_reads_value.t;
+    docs : string;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      per = maybe reader (enum Per.of_string) "per";
+      reads = required reader string "reads";
+      persisted = maybe reader bool "persisted";
+      value =
+        required reader
+          (record Client_refresh_queries_item_reads_value.project)
+          "value";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("per", Option.map (json_enum Per.to_string) value.per);
+        ("reads", Some (json_string value.reads));
+        ("persisted", Option.map json_bool value.persisted);
+        ( "value",
+          Some (Client_refresh_queries_item_reads_value.to_json value.value) );
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Client_refresh_refresh_item_on = struct
+  module When_ = struct
+    type t = Enriched | Unenriched
+
+    let to_string = function
+      | Enriched -> "enriched"
+      | Unenriched -> "unenriched"
+
+    let of_string = function
+      | "enriched" -> Some Enriched
+      | "unenriched" -> Some Unenriched
+      | _ -> None
+  end
+
+  module Reach = struct
+    type t = Subject | Held
+
+    let to_string = function Subject -> "subject" | Held -> "held"
+
+    let of_string = function
+      | "subject" -> Some Subject
+      | "held" -> Some Held
+      | _ -> None
+  end
+
+  type t = {
+    on : string;
+    when_ : When_.t option;
+    reach : Reach.t option;
+    names : Client_refresh_refresh_item_on_names.t option;
+    carries : string option;
+    refetches : string list option;
+    writes : string list option;
+    removes : string list option;
+    docs : string;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      on = required reader string "on";
+      when_ = maybe reader (enum When_.of_string) "when";
+      reach = maybe reader (enum Reach.of_string) "reach";
+      names =
+        maybe reader
+          (record Client_refresh_refresh_item_on_names.project)
+          "names";
+      carries = maybe reader string "carries";
+      refetches = maybe reader (list string) "refetches";
+      writes = maybe reader (list string) "writes";
+      removes = maybe reader (list string) "removes";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("on", Some (json_string value.on));
+        ("when", Option.map (json_enum When_.to_string) value.when_);
+        ("reach", Option.map (json_enum Reach.to_string) value.reach);
+        ( "names",
+          Option.map Client_refresh_refresh_item_on_names.to_json value.names );
+        ("carries", Option.map json_string value.carries);
+        ("refetches", Option.map (json_list json_string) value.refetches);
+        ("writes", Option.map (json_list json_string) value.writes);
+        ("removes", Option.map (json_list json_string) value.removes);
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
 module Conformance_step_observe = struct
   type t = { observe : Conformance_step_observe_observe.t; as_ : string }
 
@@ -12712,6 +13904,380 @@ module Conformance_implementations_sdks_value = struct
             value.live );
         ("worker", Option.map (json_list json_string) value.worker);
         ("exempt", Option.map (json_map json_string) value.exempt);
+      ]
+end
+
+module Control_cli_commands_value_positionals_item = struct
+  type t =
+    | Fields of Control_cli_commands_value_positionals_item_fields.t
+    | CliOnly of Control_cli_commands_value_positionals_item_cli_only.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "name"; "fields" ];
+          allowed = Some [ "name"; "fields" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "name"; "cliOnly" ];
+          allowed = Some [ "name"; "cliOnly" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 ->
+        Fields
+          ((record Control_cli_commands_value_positionals_item_fields.project)
+             value)
+    | 1 ->
+        CliOnly
+          ((record Control_cli_commands_value_positionals_item_cli_only.project)
+             value)
+    | _ -> assert false
+
+  let to_json = function
+    | Fields value ->
+        Control_cli_commands_value_positionals_item_fields.to_json value
+    | CliOnly value ->
+        Control_cli_commands_value_positionals_item_cli_only.to_json value
+end
+
+module Control_cli_commands_value_flags_value = struct
+  type t =
+    | Fields of Control_cli_commands_value_flags_value_fields.t
+    | Method of Control_cli_commands_value_flags_value_method.t
+    | CliOnly of Control_cli_commands_value_flags_value_cli_only.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "fields" ];
+          allowed = Some [ "fields"; "notes" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "method" ];
+          allowed = Some [ "method" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "cliOnly" ];
+          allowed = Some [ "cliOnly" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 ->
+        Fields
+          ((record Control_cli_commands_value_flags_value_fields.project) value)
+    | 1 ->
+        Method
+          ((record Control_cli_commands_value_flags_value_method.project) value)
+    | 2 ->
+        CliOnly
+          ((record Control_cli_commands_value_flags_value_cli_only.project)
+             value)
+    | _ -> assert false
+
+  let to_json = function
+    | Fields value ->
+        Control_cli_commands_value_flags_value_fields.to_json value
+    | Method value ->
+        Control_cli_commands_value_flags_value_method.to_json value
+    | CliOnly value ->
+        Control_cli_commands_value_flags_value_cli_only.to_json value
+end
+
+module Errors_codes_bus_request = struct
+  type t = {
+    docs : string;
+    unrecognized_failure : string;
+    codes : Errors_codes_bus_request_codes_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      unrecognized_failure = required reader string "unrecognizedFailure";
+      codes =
+        required reader
+          (list (record Errors_codes_bus_request_codes_item.project))
+          "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ("unrecognizedFailure", Some (json_string value.unrecognized_failure));
+        ( "codes",
+          Some
+            ((json_list Errors_codes_bus_request_codes_item.to_json)
+               value.codes) );
+      ]
+end
+
+module Errors_codes_transport_codes_item = struct
+  type t =
+    | Status of Errors_codes_transport_codes_item_status.t
+    | StatusFrom of Errors_codes_transport_codes_item_status_from.t
+    | NoStatus of Errors_codes_transport_codes_item_no_status.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "docs"; "status" ];
+          allowed = Some [ "code"; "docs"; "status" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "docs"; "statusFrom" ];
+          allowed = Some [ "code"; "docs"; "statusFrom" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "docs" ];
+          allowed = Some [ "code"; "docs" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 ->
+        Status ((record Errors_codes_transport_codes_item_status.project) value)
+    | 1 ->
+        StatusFrom
+          ((record Errors_codes_transport_codes_item_status_from.project) value)
+    | 2 ->
+        NoStatus
+          ((record Errors_codes_transport_codes_item_no_status.project) value)
+    | _ -> assert false
+
+  let to_json = function
+    | Status value -> Errors_codes_transport_codes_item_status.to_json value
+    | StatusFrom value ->
+        Errors_codes_transport_codes_item_status_from.to_json value
+    | NoStatus value ->
+        Errors_codes_transport_codes_item_no_status.to_json value
+end
+
+module Errors_codes_job = struct
+  type t = { docs : string; codes : Errors_codes_job_codes_item.t list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      codes =
+        required reader
+          (list (record Errors_codes_job_codes_item.project))
+          "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ( "codes",
+          Some ((json_list Errors_codes_job_codes_item.to_json) value.codes) );
+      ]
+end
+
+module Errors_codes_session = struct
+  type t = { docs : string; codes : Errors_codes_session_codes_item.t list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      codes =
+        required reader
+          (list (record Errors_codes_session_codes_item.project))
+          "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ( "codes",
+          Some ((json_list Errors_codes_session_codes_item.to_json) value.codes)
+        );
+      ]
+end
+
+module Errors_codes_sign_in = struct
+  type t = { docs : string; codes : Errors_codes_sign_in_codes_item.t list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      codes =
+        required reader
+          (list (record Errors_codes_sign_in_codes_item.project))
+          "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ( "codes",
+          Some ((json_list Errors_codes_sign_in_codes_item.to_json) value.codes)
+        );
+      ]
+end
+
+module Errors_codes_kb_identity = struct
+  type t = { docs : string; codes : Errors_codes_kb_identity_codes_item.t list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      codes =
+        required reader
+          (list (record Errors_codes_kb_identity_codes_item.project))
+          "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ( "codes",
+          Some
+            ((json_list Errors_codes_kb_identity_codes_item.to_json)
+               value.codes) );
+      ]
+end
+
+module Errors_codes_span_refusal = struct
+  type t = {
+    docs : string;
+    codes : Errors_codes_span_refusal_codes_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      codes =
+        required reader
+          (list (record Errors_codes_span_refusal_codes_item.project))
+          "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ( "codes",
+          Some
+            ((json_list Errors_codes_span_refusal_codes_item.to_json)
+               value.codes) );
+      ]
+end
+
+module Errors_codes_control = struct
+  type t = { docs : string; codes : Errors_codes_control_codes_item.t list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      codes =
+        required reader
+          (list (record Errors_codes_control_codes_item.project))
+          "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ( "codes",
+          Some ((json_list Errors_codes_control_codes_item.to_json) value.codes)
+        );
+      ]
+end
+
+module Identifiers_kinds_kinds_item = struct
+  type t = {
+    schema : string;
+    properties : string list;
+    accepts : Identifiers_kinds_kinds_item_accepts_item.t list;
+    refuses : Identifiers_kinds_kinds_item_refuses_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      schema = required reader string "schema";
+      properties = required reader (list string) "properties";
+      accepts =
+        required reader
+          (list (record Identifiers_kinds_kinds_item_accepts_item.project))
+          "accepts";
+      refuses =
+        required reader
+          (list (record Identifiers_kinds_kinds_item_refuses_item.project))
+          "refuses";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("schema", Some (json_string value.schema));
+        ("properties", Some ((json_list json_string) value.properties));
+        ( "accepts",
+          Some
+            ((json_list Identifiers_kinds_kinds_item_accepts_item.to_json)
+               value.accepts) );
+        ( "refuses",
+          Some
+            ((json_list Identifiers_kinds_kinds_item_refuses_item.to_json)
+               value.refuses) );
       ]
 end
 
@@ -12870,6 +14436,77 @@ module Embedding_config = struct
 
   let to_model value =
     Models.decode Models.embedding_config (Yojson.Raw.to_string (to_json value))
+end
+
+module Sdk_telemetry_telemetry_spans_item_attributes_item = struct
+  type t = {
+    key : string;
+    only : string option;
+    values :
+      Sdk_telemetry_telemetry_spans_item_attributes_item_values_item.t list
+      option;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      key = required reader string "key";
+      only = maybe reader string "only";
+      values =
+        maybe reader
+          (list
+             Sdk_telemetry_telemetry_spans_item_attributes_item_values_item.read)
+          "values";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("key", Some (json_string value.key));
+        ("only", Option.map json_string value.only);
+        ( "values",
+          Option.map
+            (json_list
+               Sdk_telemetry_telemetry_spans_item_attributes_item_values_item
+               .to_json)
+            value.values );
+      ]
+end
+
+module Sdk_telemetry_telemetry_metrics_item_attributes_item = struct
+  type t = {
+    key : string;
+    only : string option;
+    values :
+      Sdk_telemetry_telemetry_metrics_item_attributes_item_values_item.t list
+      option;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      key = required reader string "key";
+      only = maybe reader string "only";
+      values =
+        maybe reader
+          (list
+             Sdk_telemetry_telemetry_metrics_item_attributes_item_values_item
+             .read)
+          "values";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("key", Some (json_string value.key));
+        ("only", Option.map json_string value.only);
+        ( "values",
+          Option.map
+            (json_list
+               Sdk_telemetry_telemetry_metrics_item_attributes_item_values_item
+               .to_json)
+            value.values );
+      ]
 end
 
 module Smelter_health_reconcile = struct
@@ -14251,6 +15888,46 @@ module Settings_list_result = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
+module Identifiers_kinds = struct
+  type t = {
+    field_comment : string;
+    kinds : Identifiers_kinds_kinds_item.t list;
+    others : Identifiers_kinds_others_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      kinds =
+        required reader
+          (list (record Identifiers_kinds_kinds_item.project))
+          "kinds";
+      others =
+        required reader
+          (list (record Identifiers_kinds_others_item.project))
+          "others";
+    }
+
+  let of_model (model : [ `IdentifiersKinds ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "kinds",
+          Some ((json_list Identifiers_kinds_kinds_item.to_json) value.kinds) );
+        ( "others",
+          Some ((json_list Identifiers_kinds_others_item.to_json) value.others)
+        );
+      ]
+
+  let to_model value =
+    Models.decode Models.identifiers_kinds
+      (Yojson.Raw.to_string (to_json value))
+end
+
 module Librarian_config = struct
   type t = {
     kb : Kb_identity.t;
@@ -14975,6 +16652,121 @@ module Anchored_text_entry = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
+module Client_refresh_queries_item = struct
+  type t =
+    | Asks of Client_refresh_queries_item_asks.t
+    | Reads of Client_refresh_queries_item_reads.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "name"; "asks"; "value"; "docs" ];
+          allowed = Some [ "name"; "per"; "asks"; "persisted"; "value"; "docs" ];
+          fixed =
+            [
+              ( "per",
+                [
+                  Text_value "resource";
+                  Text_value "annotation";
+                  Text_value "filters";
+                ] );
+              ("persisted", [ Boolean_value true ]);
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "name"; "reads"; "value"; "docs" ];
+          allowed =
+            Some [ "name"; "per"; "reads"; "persisted"; "value"; "docs" ];
+          fixed =
+            [
+              ( "per",
+                [
+                  Text_value "resource";
+                  Text_value "annotation";
+                  Text_value "filters";
+                ] );
+              ("persisted", [ Boolean_value true ]);
+            ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> Asks ((record Client_refresh_queries_item_asks.project) value)
+    | 1 -> Reads ((record Client_refresh_queries_item_reads.project) value)
+    | _ -> assert false
+
+  let to_json = function
+    | Asks value -> Client_refresh_queries_item_asks.to_json value
+    | Reads value -> Client_refresh_queries_item_reads.to_json value
+end
+
+module Client_refresh_refresh_item = struct
+  type t =
+    | On of Client_refresh_refresh_item_on.t
+    | Stream of Client_refresh_refresh_item_stream.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "on"; "docs" ];
+          allowed =
+            Some
+              [
+                "on";
+                "when";
+                "reach";
+                "names";
+                "carries";
+                "refetches";
+                "writes";
+                "removes";
+                "docs";
+              ];
+          fixed =
+            [
+              ("when", [ Text_value "enriched"; Text_value "unenriched" ]);
+              ("reach", [ Text_value "subject"; Text_value "held" ]);
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "stream"; "docs" ];
+          allowed = Some [ "stream"; "reach"; "refetches"; "docs" ];
+          fixed =
+            [
+              ("stream", [ Text_value "reopened"; Text_value "unreadable" ]);
+              ("reach", [ Text_value "subject"; Text_value "held" ]);
+            ];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 -> On ((record Client_refresh_refresh_item_on.project) value)
+    | 1 -> Stream ((record Client_refresh_refresh_item_stream.project) value)
+    | _ -> assert false
+
+  let to_json = function
+    | On value -> Client_refresh_refresh_item_on.to_json value
+    | Stream value -> Client_refresh_refresh_item_stream.to_json value
+end
+
 module Conformance_step_fetches = struct
   type t = { fetches : Conformance_step_fetches_fetches_item.t list }
 
@@ -14994,6 +16786,191 @@ module Conformance_step_fetches = struct
           Some
             ((json_list Conformance_step_fetches_fetches_item.to_json)
                value.fetches) );
+      ]
+end
+
+module Control_cli_commands_value = struct
+  type t = {
+    parser : string;
+    method_ : string;
+    positionals : Control_cli_commands_value_positionals_item.t list option;
+    flags : (string * Control_cli_commands_value_flags_value.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      parser = required reader string "parser";
+      method_ = required reader string "method";
+      positionals =
+        maybe reader
+          (list Control_cli_commands_value_positionals_item.read)
+          "positionals";
+      flags =
+        required reader
+          (map Control_cli_commands_value_flags_value.read)
+          "flags";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("parser", Some (json_string value.parser));
+        ("method", Some (json_string value.method_));
+        ( "positionals",
+          Option.map
+            (json_list Control_cli_commands_value_positionals_item.to_json)
+            value.positionals );
+        ( "flags",
+          Some
+            ((json_map Control_cli_commands_value_flags_value.to_json)
+               value.flags) );
+      ]
+end
+
+module Errors_codes_transport = struct
+  type t = {
+    docs : string;
+    unclassified : string;
+    codes : Errors_codes_transport_codes_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      unclassified = required reader string "unclassified";
+      codes =
+        required reader (list Errors_codes_transport_codes_item.read) "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ("unclassified", Some (json_string value.unclassified));
+        ( "codes",
+          Some
+            ((json_list Errors_codes_transport_codes_item.to_json) value.codes)
+        );
+      ]
+end
+
+module Sdk_telemetry_telemetry_spans_item = struct
+  module Transport = struct
+    type t = Bus | Content
+
+    let to_string = function Bus -> "bus" | Content -> "content"
+
+    let of_string = function
+      | "bus" -> Some Bus
+      | "content" -> Some Content
+      | _ -> None
+  end
+
+  module Kind = struct
+    type t = Client | Consumer | Internal | Producer | Server
+
+    let to_string = function
+      | Client -> "client"
+      | Consumer -> "consumer"
+      | Internal -> "internal"
+      | Producer -> "producer"
+      | Server -> "server"
+
+    let of_string = function
+      | "client" -> Some Client
+      | "consumer" -> Some Consumer
+      | "internal" -> Some Internal
+      | "producer" -> Some Producer
+      | "server" -> Some Server
+      | _ -> None
+  end
+
+  type t = {
+    name : string;
+    transport : Transport.t;
+    kind : Kind.t;
+    meaning : string;
+    attributes : Sdk_telemetry_telemetry_spans_item_attributes_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      transport = required reader (enum Transport.of_string) "transport";
+      kind = required reader (enum Kind.of_string) "kind";
+      meaning = required reader string "meaning";
+      attributes =
+        required reader
+          (list
+             (record Sdk_telemetry_telemetry_spans_item_attributes_item.project))
+          "attributes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("transport", Some ((json_enum Transport.to_string) value.transport));
+        ("kind", Some ((json_enum Kind.to_string) value.kind));
+        ("meaning", Some (json_string value.meaning));
+        ( "attributes",
+          Some
+            ((json_list
+                Sdk_telemetry_telemetry_spans_item_attributes_item.to_json)
+               value.attributes) );
+      ]
+end
+
+module Sdk_telemetry_telemetry_metrics_item = struct
+  module Transport = struct
+    type t = Bus | Content
+
+    let to_string = function Bus -> "bus" | Content -> "content"
+
+    let of_string = function
+      | "bus" -> Some Bus
+      | "content" -> Some Content
+      | _ -> None
+  end
+
+  type t = {
+    name : string;
+    transport : Transport.t;
+    instrument : string;
+    meaning : string;
+    attributes : Sdk_telemetry_telemetry_metrics_item_attributes_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      name = required reader string "name";
+      transport = required reader (enum Transport.of_string) "transport";
+      instrument = required reader string "instrument";
+      meaning = required reader string "meaning";
+      attributes =
+        required reader
+          (list
+             (record
+                Sdk_telemetry_telemetry_metrics_item_attributes_item.project))
+          "attributes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("name", Some (json_string value.name));
+        ("transport", Some ((json_enum Transport.to_string) value.transport));
+        ("instrument", Some (json_string value.instrument));
+        ("meaning", Some (json_string value.meaning));
+        ( "attributes",
+          Some
+            ((json_list
+                Sdk_telemetry_telemetry_metrics_item_attributes_item.to_json)
+               value.attributes) );
       ]
 end
 
@@ -16749,6 +18726,73 @@ module Anchored_text_write = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
+module Client_refresh = struct
+  type t = {
+    field_comment : string;
+    queries : Client_refresh_queries_item.t list;
+    refresh : Client_refresh_refresh_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      queries =
+        required reader (list Client_refresh_queries_item.read) "queries";
+      refresh =
+        required reader (list Client_refresh_refresh_item.read) "refresh";
+    }
+
+  let of_model (model : [ `ClientRefresh ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "queries",
+          Some ((json_list Client_refresh_queries_item.to_json) value.queries)
+        );
+        ( "refresh",
+          Some ((json_list Client_refresh_refresh_item.to_json) value.refresh)
+        );
+      ]
+
+  let to_model value =
+    Models.decode Models.client_refresh (Yojson.Raw.to_string (to_json value))
+end
+
+module Control_cli = struct
+  type t = {
+    field_comment : string;
+    commands : (string * Control_cli_commands_value.t) list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      commands =
+        required reader
+          (map (record Control_cli_commands_value.project))
+          "commands";
+    }
+
+  let of_model (model : [ `ControlCli ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "commands",
+          Some ((json_map Control_cli_commands_value.to_json) value.commands) );
+      ]
+
+  let to_model value =
+    Models.decode Models.control_cli (Yojson.Raw.to_string (to_json value))
+end
+
 module Stack_start_result = struct
   type t = {
     dry_run : bool;
@@ -16849,6 +18893,102 @@ module Status_snapshot_result = struct
 
   let to_model value =
     Models.decode Models.status_snapshot_result
+      (Yojson.Raw.to_string (to_json value))
+end
+
+module Errors_codes = struct
+  type t = {
+    field_comment : string;
+    bus_request : Errors_codes_bus_request.t;
+    transport : Errors_codes_transport.t;
+    job : Errors_codes_job.t;
+    session : Errors_codes_session.t;
+    sign_in : Errors_codes_sign_in.t;
+    kb_identity : Errors_codes_kb_identity.t;
+    span_refusal : Errors_codes_span_refusal.t;
+    control : Errors_codes_control.t;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      bus_request =
+        required reader (record Errors_codes_bus_request.project) "busRequest";
+      transport =
+        required reader (record Errors_codes_transport.project) "transport";
+      job = required reader (record Errors_codes_job.project) "job";
+      session = required reader (record Errors_codes_session.project) "session";
+      sign_in = required reader (record Errors_codes_sign_in.project) "signIn";
+      kb_identity =
+        required reader (record Errors_codes_kb_identity.project) "kbIdentity";
+      span_refusal =
+        required reader (record Errors_codes_span_refusal.project) "spanRefusal";
+      control = required reader (record Errors_codes_control.project) "control";
+    }
+
+  let of_model (model : [ `ErrorsCodes ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ("busRequest", Some (Errors_codes_bus_request.to_json value.bus_request));
+        ("transport", Some (Errors_codes_transport.to_json value.transport));
+        ("job", Some (Errors_codes_job.to_json value.job));
+        ("session", Some (Errors_codes_session.to_json value.session));
+        ("signIn", Some (Errors_codes_sign_in.to_json value.sign_in));
+        ("kbIdentity", Some (Errors_codes_kb_identity.to_json value.kb_identity));
+        ( "spanRefusal",
+          Some (Errors_codes_span_refusal.to_json value.span_refusal) );
+        ("control", Some (Errors_codes_control.to_json value.control));
+      ]
+
+  let to_model value =
+    Models.decode Models.errors_codes (Yojson.Raw.to_string (to_json value))
+end
+
+module Sdk_telemetry_telemetry = struct
+  type t = {
+    field_comment : string;
+    spans : Sdk_telemetry_telemetry_spans_item.t list;
+    metrics : Sdk_telemetry_telemetry_metrics_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      spans =
+        required reader
+          (list (record Sdk_telemetry_telemetry_spans_item.project))
+          "spans";
+      metrics =
+        required reader
+          (list (record Sdk_telemetry_telemetry_metrics_item.project))
+          "metrics";
+    }
+
+  let of_model (model : [ `SdkTelemetryTelemetry ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "spans",
+          Some
+            ((json_list Sdk_telemetry_telemetry_spans_item.to_json) value.spans)
+        );
+        ( "metrics",
+          Some
+            ((json_list Sdk_telemetry_telemetry_metrics_item.to_json)
+               value.metrics) );
+      ]
+
+  let to_model value =
+    Models.decode Models.sdk_telemetry_telemetry
       (Yojson.Raw.to_string (to_json value))
 end
 
