@@ -546,7 +546,7 @@
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
     "generated/Xynolog/Internal/Generated/Required.hs": "18bf03c4f69606eec06d9d39ff4a99531a75b8668f4b661d3a01c0ac146710c5",
-    "generated/Xynolog/Internal/Generated/Schemas.hs": "e973bf7835809e6e06daf28747ef5a5a76ac15d04d0f22dd27214eccf52f5e2a",
+    "generated/Xynolog/Internal/Generated/Schemas.hs": "56b3d5e81f1c5e6a1a44d2ad5872f24ce360d9273523903a82148bd9e0b386dd",
     "generated/Xynolog/Internal/Generated/SearchState.hs": "d5994a174a2a535cb04661283a500feb97cf4e80783492c2cf390e712b38c0a9",
     "generated/Xynolog/Internal/Generated/ServiceProof.hs": "86e44db90b1ac4a3713f4794f4f1f2f32bdf7eeeb7ad24e12046c050f8acadaf",
     "generated/Xynolog/Internal/Generated/SessionFactoryOptions.hs": "1378c790f4a48832e1a0a938eb64c8759870e4ebf73f2445e8ba81c354334c45",

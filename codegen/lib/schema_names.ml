@@ -118,6 +118,18 @@ let in_place (spec : Spec.t) ~places =
   | Error message -> fun _ -> Error message
   | Ok named -> files_in_place ~ids:spec.ids ~schemas ~named ~places
 
+(* A schema of [spec] with each [$ref] to a place within a file that no
+   generation names written in its place, and each to a whole file left as
+   it is: what a validator reads where the models name a place once
+   ([referred_places]). *)
+let places_in_place (spec : Spec.t) =
+  let schemas = Hashtbl.of_seq (List.to_seq spec.schemas) in
+  match named spec with
+  | Error message -> fun _ -> Error message
+  | Ok named ->
+      files_in_place ~ids:spec.ids ~schemas ~places:true ~named:(fun key ->
+          if String.contains key '#' then named key else Some key)
+
 (* A place's key ([Table_records.key]) as Protocol's one flat namespace of
    files names it: its file's name, and its pointer within it. *)
 let place_key key =
