@@ -131,6 +131,12 @@ the coming release's, and gathers its changes as they land.
 - `JOB_CLAIM_CHANNELS` and `JOB_COMMIT_CHANNELS` are generated, in
   `xynolog/jobs/WorkerChannels.kt`. Java reads them from `WorkerChannelsKt`,
   in place of `ClaimsKt`: `WorkerChannelsKt.getJOB_CLAIM_CHANNELS()`.
+- A default the service decides is no longer sent for it (protocol#109).
+  `browse.resources` and `match.resources` send no `limit` of 100 and no
+  `offset` of 0, `gather.annotation` no `contextWindow` of 2000, and
+  `match.search` no `useSemanticScoring` of true, when the caller leaves them
+  out: the service's own default applies. Options to `gather.annotation` that
+  state nothing are not sent.
 
 ### Removed
 

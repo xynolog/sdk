@@ -19,17 +19,16 @@ public sealed class GatherNamespace
     public Cached<IReadOnlyList<GetReferencedByResponseReferencedByItem>> ReferencedBy(ResourceId resourceId) =>
         live.ReferencedBy.Observe(resourceId);
 
-    /// <summary>Gathers the context around the annotation: the text on each side of it, 2000 code points unless the options
-    /// say otherwise.</summary>
+    /// <summary>Gathers the context around the annotation: the text on each side of it, as much as the options say and as
+    /// the gatherer decides when they do not. Options that state nothing are not sent.</summary>
     public Running<GatherAnnotationComplete> Annotation(ResourceId resourceId, AnnotationId annotationId,
         GatherAnnotationOptions? options = null)
     {
-        options ??= new GatherAnnotationOptions();
         var request = new GatherAnnotationRequest
         {
             ResourceId = resourceId,
             AnnotationId = annotationId,
-            Options = options with { ContextWindow = options.ContextWindow ?? 2000 },
+            Options = options == new GatherAnnotationOptions() ? null : options,
         };
         return new((_, cancellation) => wire.RequestAsync(BusOperations.GatherRequested, request, cancellation: cancellation));
     }

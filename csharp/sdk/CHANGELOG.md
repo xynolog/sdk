@@ -163,6 +163,12 @@ the coming release's, and gathers its changes as they land.
   place of JSON values under text. A model whose other members are of a
   schema holds each as that schema's type, and each id is a key
   System.Text.Json reads and writes.
+- A default the service decides is no longer sent for it (protocol#109).
+  `Browse.Resources` and `Match.Resources` send no `limit` of 100 and no
+  `offset` of 0, `Gather.Annotation` no `contextWindow` of 2000, and
+  `Match.Search` no `useSemanticScoring` of true, when the caller leaves them
+  out: the service's own default applies. Options to `Gather.Annotation` that
+  state nothing are not sent.
 
 ### Removed
 

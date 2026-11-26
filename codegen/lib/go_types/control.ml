@@ -47,7 +47,7 @@ let api_type (spec : Spec.t) ~declared target =
               table target))
 
 let sender = "Sender"
-let sender_constant from = sender ^ String.capitalize_ascii (T.from_value from)
+let sender_constant from = sender ^ String.capitalize_ascii (T.control_sender_value from)
 
 let text (spec : Spec.t) ~declared =
   let t : T.t = spec.tables.control_methods in
@@ -85,7 +85,7 @@ let text (spec : Spec.t) ~declared =
                 List.map
                   (fun from ->
                     G.spec ~type_:(G.Named sender) (sender_constant from)
-                      (G.Quoted (T.from_value from)))
+                      (G.Quoted (T.control_sender_value from)))
                   senders;
             };
           G.Vars

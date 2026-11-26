@@ -174,12 +174,12 @@ private func hold(_ query: CacheQuery, in live: LiveQueries) async throws {
   case .referencedBy: await live.referencedBy.set(resource, value: [])
   case .resources:
     await live.listedResources.set(
-      BrowseResourcesRequest().paged, value: try decoded(ListResourcesResponse.self, listed))
+      BrowseResourcesRequest(), value: try decoded(ListResourcesResponse.self, listed))
   case .matchedResources:
     var matched = try listed.object
     matched["matchKind"] = .string("lexical")
     await live.matchedResources.set(
-      MatchResourcesRequest("one", paging: ResourceSearchFilters()),
+      MatchResourcesRequest("one", filters: ResourceSearchFilters()),
       value: try decoded(MatchResourcesResponse.self, .object(matched)))
   case .entityTypes: await live.entityTypes.replace(.ready(["Person"]))
   case .tagSchemas: await live.tagSchemas.replace(.ready([]))

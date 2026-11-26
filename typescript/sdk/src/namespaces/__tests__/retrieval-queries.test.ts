@@ -133,7 +133,7 @@ describe('match.resources()', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('asks the search with its filters, and the first hundred when none are given', async () => {
+  it('asks the search with its filters, and no page when none is given', async () => {
     const h = harness();
     const match = new MatchNamespace(h.transport, h.bus);
 
@@ -146,21 +146,12 @@ describe('match.resources()', () => {
       }),
     );
 
-    expect(h.asked.map((a) => a.payload)).toEqual([
-      {
-        search: 'cat',
-        archived: undefined,
-        entityType: undefined,
-        limit: 100,
-        offset: 0,
-      },
-      {
-        search: 'cat',
-        archived: false,
-        entityType: 'Person',
-        limit: 5,
-        offset: 0,
-      },
+    // What goes on the wire: a member left unstated is not sent.
+    expect(
+      h.asked.map((a) => JSON.parse(JSON.stringify(a.payload)) as unknown),
+    ).toStrictEqual([
+      { search: 'cat' },
+      { search: 'cat', archived: false, entityType: 'Person', limit: 5 },
     ]);
     match.dispose();
   });

@@ -142,6 +142,10 @@ the coming release's, and gathers its changes as they land.
   `Retry.budget`; `Client_timing.emit_retry` and `Client_timing.refresh_retry`
   are one. `Client_timing`, the timing every SDK reads from Protocol, is
   public.
+- `Gather_state.gather_annotation`'s `?context_window` has no default: left
+  out, no `contextWindow` is sent, nor an `options` member when no option is
+  given, and the Librarian's own default applies (protocol#109), where it
+  sent 2000. Its type is the same.
 
 ## 0.8.1
 

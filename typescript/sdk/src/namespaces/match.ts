@@ -70,8 +70,8 @@ export class MatchNamespace implements IMatchNamespace {
             search: asked.search,
             archived: asked.filters.archived,
             entityType: asked.filters.entityType,
-            limit: asked.filters.limit ?? 100,
-            offset: asked.filters.offset ?? 0,
+            limit: asked.filters.limit,
+            offset: asked.filters.offset,
           },
           options?.busTimeoutMs,
         );
@@ -154,7 +154,7 @@ export class MatchNamespace implements IMatchNamespace {
             referenceId,
             context,
             limit: options?.limit ?? 10,
-            useSemanticScoring: options?.useSemanticScoring ?? true,
+            useSemanticScoring: options?.useSemanticScoring,
           },
           // The request's own deadline: the option above is the live query's.
           undefined,

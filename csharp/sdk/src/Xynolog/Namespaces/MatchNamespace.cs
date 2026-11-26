@@ -17,19 +17,20 @@ public sealed class MatchNamespace
         this.live = live;
     }
 
-    /// <summary>A live query of the resources whose text matches the search, a page at a time: the first hundred unless the
-    /// filters name another page.</summary>
+    /// <summary>A live query of the resources whose text matches the search, a page at a time: the page the filters name,
+    /// and the service's own when they name none.</summary>
     public Cached<MatchResourcesResponse> Resources(string search, ResourceSearchFilters? filters = null) =>
         live.MatchedResources.Observe(new MatchResourcesRequest
         {
             Search = search,
-            Limit = filters?.Limit ?? 100,
-            Offset = filters?.Offset ?? 0,
+            Limit = filters?.Limit,
+            Offset = filters?.Offset,
             Archived = filters?.Archived,
             EntityType = filters?.EntityType,
         });
 
-    /// <summary>Searches for the resources the reference could refer to, scored by its gathered context.</summary>
+    /// <summary>Searches for the resources the reference could refer to, scored by its gathered context: ten unless the
+    /// options say otherwise, and scored as the service decides unless they say how.</summary>
     public Running<MatchSearchResult> Search(ResourceId resourceId, AnnotationId referenceId, GatheredContext context,
         MatchSearchOptions? options = null)
     {
@@ -39,7 +40,7 @@ public sealed class MatchNamespace
             ReferenceId = referenceId,
             Context = context,
             Limit = options?.Limit ?? 10,
-            UseSemanticScoring = options?.UseSemanticScoring ?? true,
+            UseSemanticScoring = options?.UseSemanticScoring,
         };
         return new((_, cancellation) => wire.RequestAsync(BusOperations.MatchSearchRequested, request, cancellation: cancellation));
     }

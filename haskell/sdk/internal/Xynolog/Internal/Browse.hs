@@ -129,14 +129,9 @@ resource :: BrowseNamespace -> ResourceId -> Cache.Query ResourceDescriptor
 resource namespace = Cache.query (resourceCache namespace)
 
 resources :: BrowseNamespace -> Maybe BrowseResourcesRequest -> Cache.Query ListResourcesResponse
-resources namespace options = Cache.query (resourcesCache namespace) selected
+resources namespace options = Cache.query (resourcesCache namespace) chosen
   where
     chosen = fromMaybe (BrowseResourcesRequest {browseResourcesRequestArchived = Nothing, browseResourcesRequestEntityType = Nothing, browseResourcesRequestLimit = Nothing, browseResourcesRequestOffset = Nothing}) options
-    selected =
-      chosen
-        { browseResourcesRequestLimit = Just (fromMaybe 100 (browseResourcesRequestLimit chosen)),
-          browseResourcesRequestOffset = Just (fromMaybe 0 (browseResourcesRequestOffset chosen))
-        }
 
 annotations :: BrowseNamespace -> ResourceId -> Cache.Query [Annotation]
 annotations namespace identity = getAnnotationsResponseAnnotations <$> Cache.query (annotationsCache namespace) identity

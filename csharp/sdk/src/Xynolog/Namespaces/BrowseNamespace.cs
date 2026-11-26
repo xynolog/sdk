@@ -27,9 +27,9 @@ public sealed class BrowseNamespace
     public Cached<ResourceDescriptor> Resource(ResourceId resourceId) => live.ResourcesById.Observe(resourceId);
 
     /// <summary>A live query of a page of the knowledge base's resources, narrowed to archived or unarchived ones and to an
-    /// entity type when the filters say so: the first hundred unless they name another page.</summary>
+    /// entity type when the filters say so: the page they name, and the service's own when they name none.</summary>
     public Cached<ListResourcesResponse> Resources(BrowseResourcesRequest? filters = null) =>
-        live.Resources.Observe((filters ?? new BrowseResourcesRequest()) with { Limit = filters?.Limit ?? 100, Offset = filters?.Offset ?? 0 });
+        live.Resources.Observe(filters ?? new BrowseResourcesRequest());
 
     /// <summary>A live query of the resource's annotations.</summary>
     public Cached<IReadOnlyList<Annotation>> Annotations(ResourceId resourceId) =>

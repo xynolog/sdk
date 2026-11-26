@@ -1178,8 +1178,8 @@ async fn a_search_asks_for_its_text_among_the_resources_its_filters_admit() {
     assert_eq!(
         searched(&transport),
         [
-            json!({ "search": "cat", "limit": 100, "offset": 0 }),
-            json!({ "search": "cat", "archived": false, "entityType": "Person", "limit": 5, "offset": 0 }),
+            json!({ "search": "cat" }),
+            json!({ "search": "cat", "archived": false, "entityType": "Person", "limit": 5 }),
         ]
     );
     // A list is asked for with no text, and of another operation.
@@ -1195,7 +1195,7 @@ async fn a_search_asks_for_its_text_among_the_resources_its_filters_admit() {
             .filter(|entry| entry.channel == "browse:resources-requested")
             .map(|entry| Value::Object(entry.payload.clone()))
             .collect::<Vec<_>>(),
-        [json!({ "limit": 100, "offset": 0 })]
+        [json!({})]
     );
 }
 
@@ -1277,9 +1277,9 @@ async fn a_search_is_kept_per_text_and_set_of_filters_and_every_search_held_is_a
     );
     let again = searched(&transport);
     for search in [
-        json!({ "search": "cat", "limit": 100, "offset": 0 }),
-        json!({ "search": "cat", "entityType": "Person", "limit": 100, "offset": 0 }),
-        json!({ "search": "dog", "limit": 100, "offset": 0 }),
+        json!({ "search": "cat" }),
+        json!({ "search": "cat", "entityType": "Person" }),
+        json!({ "search": "dog" }),
     ] {
         assert_eq!(
             again[before..]

@@ -667,12 +667,13 @@ func TestAResourcesAnnotationsAreTheListAndAListOrASearchIsOneQueryPerSetOfFilte
 		watch(t, c.Browse.Resources(filters)).now(t)
 	}
 	lists := bus.BrowseResourcesRequested.Request().Channel()
-	waitUntil(t, "the lists asked for", 2*time.Second, func() bool { return len(requestsOn(w.transport, lists)) >= 4 })
+	waitUntil(t, "the lists asked for", 2*time.Second, func() bool { return len(requestsOn(w.transport, lists)) >= 5 })
 	time.Sleep(settling)
-	// Stating the limit a list has anyway is the same list.
+	// What is not stated is not sent: stating a limit is another list than
+	// stating none.
 	asked := payloadsOn(w.transport, lists)
 	slices.Sort(asked)
-	want := []string{`{"archived":true,"limit":100,"offset":0}`, `{"entityType":"Person","limit":100,"offset":0}`, `{"limit":100,"offset":0}`, `{"limit":5,"offset":0}`}
+	want := []string{`{"archived":true}`, `{"entityType":"Person"}`, `{"limit":100}`, `{"limit":5}`, `{}`}
 	if !slices.Equal(asked, want) {
 		t.Fatalf("the lists asked for are %v, want %v", asked, want)
 	}
@@ -686,7 +687,7 @@ func TestAResourcesAnnotationsAreTheListAndAListOrASearchIsOneQueryPerSetOfFilte
 	waitUntil(t, "the second search", 2*time.Second, func() bool { return len(requestsOn(w.transport, searches)) >= 2 })
 	time.Sleep(settling)
 	searched := payloadsOn(w.transport, searches)
-	if want := []string{`{"limit":100,"offset":0,"search":"a"}`, `{"archived":false,"limit":100,"offset":0,"search":"b"}`}; !slices.Equal(searched, want) {
+	if want := []string{`{"search":"a"}`, `{"archived":false,"search":"b"}`}; !slices.Equal(searched, want) {
 		t.Fatalf("the searches are %v, want %v", searched, want)
 	}
 }

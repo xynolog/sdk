@@ -23,7 +23,7 @@ let value_name name =
     (function ('a' .. 'z' | '0' .. '9' | '_') as c -> c | _ -> '_')
     (Text.snake name)
 
-let sender from = String.capitalize_ascii (C.from_value from)
+let sender from = String.capitalize_ascii (C.control_sender_value from)
 
 let record name params fields =
   O.module_ name
@@ -34,7 +34,7 @@ let types =
     O.type_item
       (O.type_declaration "sender"
          (Variant
-            (List.map (fun from -> O.constructor (sender from)) C.from_all)));
+            (List.map (fun from -> O.constructor (sender from)) C.control_sender_all)));
     record "Method" [ "params"; "result" ]
       [
         ("name", O.type_ "string");

@@ -1,28 +1,12 @@
 import Synchronization
 
-/// The page a listing or search of resources sends where its caller names none, as
-/// client/surface.json's `browse.resources` and `match.resources` cases state it.
-private let pageLimit = 100
-private let pageOffset = 0
-
-extension BrowseResourcesRequest {
-  /// The request a listing sends: these filters, with the page its caller left out filled. Each
-  /// listing is kept by it, so filters that send the same request share one.
-  var paged: Self {
-    var request = self
-    request.limit = limit ?? pageLimit
-    request.offset = offset ?? pageOffset
-    return request
-  }
-}
-
 extension MatchResourcesRequest {
-  /// The request a search for `search` sends: `filters`, with the page its caller left out
-  /// filled. Each search is kept by it, so searches that send the same request share one.
-  init(_ search: String, paging filters: ResourceSearchFilters) {
+  /// The request a search for `search` sends: `filters`, each member only as its caller states
+  /// it. Each search is kept by it, so searches that send the same request share one.
+  init(_ search: String, filters: ResourceSearchFilters) {
     self.init(
       search: search, archived: filters.archived, entityType: filters.entityType,
-      offset: filters.offset ?? pageOffset, limit: filters.limit ?? pageLimit)
+      offset: filters.offset, limit: filters.limit)
   }
 }
 

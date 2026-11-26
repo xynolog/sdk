@@ -53,11 +53,6 @@ use std::sync::{Arc, Mutex, OnceLock};
 use std::task::{Context, Poll};
 use tokio_stream::wrappers::WatchStream;
 
-/// How many resources a list or a search asks for when its caller states no
-/// limit. Every SDK asks for as many: the cases of
-/// protocol/specs/src/client/surface.json hold each to it.
-pub(super) const LIST_LIMIT: u16 = 100;
-
 /// The key of a query the knowledge base has one of. A kept one keeps its one
 /// entry under it, written as protocol/specs/src/session/stored.json's
 /// `wholeKey`; read from anything else, it is refused, so an entry under
@@ -405,12 +400,7 @@ impl Live {
             move |filters: BrowseResourcesRequest| {
                 let links = links.clone();
                 async move {
-                    let request = BrowseResourcesRequest {
-                        limit: Some(filters.limit.unwrap_or(LIST_LIMIT.into())),
-                        offset: Some(filters.offset.unwrap_or(0)),
-                        ..filters
-                    };
-                    let answer = links.request::<BrowseResourcesRequested>(&request).await?;
+                    let answer = links.request::<BrowseResourcesRequested>(&filters).await?;
                     Ok(answer.response)
                 }
             }
@@ -837,8 +827,8 @@ impl BrowseNamespace {
         self.of_resource(&self.live.resource, resource_id, resource_id, |value| value)
     }
 
-    /// A page of the resources `filters` admits: a hundred when they state no
-    /// limit, from the first when they state no offset. A list is a query's answer:
+    /// A page of the resources `filters` admits: the page they state, and the
+    /// service's own when they state none. A list is a query's answer:
     /// it is asked for again when a resource is created, updated, cloned or
     /// moved, and when a dropped stream reopens, and not by a change to a
     /// resource whose scope the client does not hold. Finding resources by

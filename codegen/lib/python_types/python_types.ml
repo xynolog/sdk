@@ -619,7 +619,7 @@ let control_text (spec : Spec.t) =
              P.items ~magic:true
                [
                  P.keyword "name" (P.Str n.name);
-                 P.keyword "sent_by" (P.Str (C.from_value n.from));
+                 P.keyword "sent_by" (P.Str (C.control_sender_value n.from));
                  P.keyword "params" (P.Name params);
                ] ))
       ~doc:(Wrapped n.docs)

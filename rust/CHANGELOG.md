@@ -124,8 +124,6 @@ the coming release's, and gathers its changes as they land.
   in place of `xynolog::session::OpenResource`.
 - `browse.resources` takes the generated `BrowseResourcesRequest`, and
   `match.resources` takes `ResourceSearchFilters`. `ResourceFilters` is gone.
-  Both read a hundred when no limit is stated and start from the first when no
-  offset is stated.
 - `gather.resource` takes the generated `GatherResourceOptions`, each member of
   which a caller may leave out, in place of `GatherResourceRequestOptions`,
   which no longer has a `Default`. `match.search` takes the resource, the
@@ -156,6 +154,12 @@ the coming release's, and gathers its changes as they land.
 - The HTTP transport reads a frame's trace as `TraceCarrier` by the required
   table (`read_as`): one the table refuses, such as one whose tracestate is
   empty, is no trace, and is still taken off the payload.
+- A default the service decides is no longer sent for it (protocol#109).
+  `browse.resources` and `match.resources` send no `limit` of 100 and no
+  `offset` of 0, `gather.annotation` no `contextWindow` of 2000, and
+  `match.search` no `useSemanticScoring` of true, when the caller leaves them
+  out: the service's own default applies. Options to `gather.annotation` that
+  state nothing are not sent.
 
 ## 0.8.1
 

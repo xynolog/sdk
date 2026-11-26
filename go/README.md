@@ -456,9 +456,10 @@ Every method returns one of nine shapes, and the table says which:
   `xynolog.NewHTTPContentTransport(transport)`. `Close` ends what the client
   started. It does not close its transport: whoever opened that closes it,
   after the client. A session holds one as `session.Client()`.
-- **What it sends unasked is the table's**: a list's first hundred, a
-  search's ten candidates, a context's two thousand characters. An option
-  left at its zero value is an option not given, and is not sent.
+- **What it sends unasked is the table's**: a search's ten candidates, a
+  resource's context two links deep and ten resources wide. An option left
+  at its zero value is an option not given, and is not sent: a list's page, a
+  context's window and how a search scores are the service's when unstated.
 
 Why the shapes are these, in every SDK, is
 [the reactive model][reactive-model].

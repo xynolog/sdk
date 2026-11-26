@@ -340,9 +340,10 @@ Every method returns one of nine shapes, and the table says which:
   session (`session_from_kept`) holds one as `session.client`.
 - **A client is generic in its transport.** Code that takes a
   `XynologClient[Transport]` runs over HTTP and over a test's doubles alike.
-- **What it sends unasked is the table's**: a list's first hundred, a
-  search's ten candidates, a context's two thousand characters. An option
-  given as `None` is an option not given, and is not sent.
+- **What it sends unasked is the table's**: a search's ten candidates, a
+  resource's context two links deep and ten resources wide. An option given
+  as `None` is an option not given, and is not sent: a list's page, a
+  context's window and how a search scores are the service's when unstated.
 
 Why the shapes are these eight, in every SDK, is
 [the reactive model][reactive-model].

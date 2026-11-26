@@ -1251,8 +1251,6 @@ let kinds ~written t spec =
     schemas ~written t "schemas" (List.map fst (Roots.all spec));
     schemas ~written t "client registry types"
       (titles spec spec.tables.client_registry.types);
-    schemas ~written t "state-unit notices"
-      (titles spec spec.tables.client_state_units.notices);
     channels t spec;
     control_methods t spec;
     control_notifications t spec;

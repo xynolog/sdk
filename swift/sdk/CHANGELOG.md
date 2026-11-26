@@ -134,6 +134,12 @@ the coming release's, and gathers its changes as they land.
   takes `ResourceSearchFilters`, in place of `ResourceFilters`. Filters that
   send the same request share one live query.
 - A failure a bus request is answered with is read as `CommandError`.
+- What a caller leaves out of these options is not sent, and the service's
+  own default applies (protocol#109): `browse.resources` and
+  `match.resources` no longer send a `limit` of 100 and an `offset` of 0,
+  `gather.annotation` no longer sends a `contextWindow` of 2000, nor an
+  `options` member when it is given none, and `match.search` no longer sends
+  `useSemanticScoring` true. Its `limit` is still 10 when none is stated.
 
 ### Fixed
 

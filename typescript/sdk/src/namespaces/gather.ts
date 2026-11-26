@@ -117,19 +117,16 @@ export class GatherNamespace implements IGatherNamespace {
     annotationId: AnnotationId,
     options?: components['schemas']['GatherAnnotationOptions'],
   ): StreamObservable<GatherAnnotationComplete> {
+    // Options none of which is stated are not sent: each is the gatherer's.
+    const stated =
+      options !== undefined &&
+      Object.values(options).some((option) => option !== undefined);
     return new StreamObservable<GatherAnnotationComplete>((subscriber) => {
       const abandoned = new AbortController();
       this.wire
         .request(
           'gather:requested',
-          {
-            annotationId,
-            resourceId,
-            options: {
-              ...options,
-              contextWindow: options?.contextWindow ?? 2000,
-            },
-          },
+          { annotationId, resourceId, options: stated ? options : undefined },
           // The request's own deadline: the option above is the live query's.
           undefined,
           abandoned.signal,

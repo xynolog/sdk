@@ -144,6 +144,12 @@ the coming release's, and gathers its changes as they land.
   matches), in place of trying each member until one parses. Only that
   member is read, and a value it refuses is refused as that member refuses
   it, where it was refused as the last member tried refused it.
+- What a caller leaves out of these options is not sent, and the service's
+  own default applies (protocol#109): `Browse.resources` and
+  `Match.resources` no longer send a `limit` of 100 and an `offset` of 0,
+  `Gather.annotation` no longer sends a `contextWindow` of 2000, nor an
+  `options` member when it is given none, and `Match.search` no longer sends
+  `useSemanticScoring` true. Its `limit` is still 10 when none is stated.
 
 ### Removed
 

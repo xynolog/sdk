@@ -189,19 +189,20 @@ def test_a_resources_annotations_are_the_list_and_a_list_or_a_search_is_one_quer
                 ):
                     await held.enter_async_context(query)
                 await turns(20)
-                # Stating the limit a list has anyway is the same list.
+                # What is not stated is not sent: stating a limit is another list than stating none.
                 asked = [frame.payload for frame in asked_for(transport, "browse:resources-requested")]
-                assert {"limit": 100, "offset": 0} in asked
-                assert {"limit": 100, "offset": 0, "archived": True} in asked
-                assert {"limit": 100, "offset": 0, "entityType": "Person"} in asked
-                assert {"limit": 5, "offset": 0} in asked
-                assert len(asked) == 4
+                assert {} in asked
+                assert {"limit": 100} in asked
+                assert {"archived": True} in asked
+                assert {"entityType": "Person"} in asked
+                assert {"limit": 5} in asked
+                assert len(asked) == 5
 
             before = len(asked_for(transport, "match:resources-requested"))
             async with client.match.resources("a"), client.match.resources("a"), client.match.resources("b", archived=False):
                 await turns(20)
             searched = [frame.payload for frame in asked_for(transport, "match:resources-requested")[before:]]
-            assert searched == [{"search": "a", "limit": 100, "offset": 0}, {"search": "b", "limit": 100, "offset": 0, "archived": False}]
+            assert searched == [{"search": "a"}, {"search": "b", "archived": False}]
 
     run(scenario())
 

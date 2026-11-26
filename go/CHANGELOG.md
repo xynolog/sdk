@@ -97,8 +97,8 @@ the coming release's, and gathers its changes as they land.
   that type, and `Bookmarks.Load` gives the places as `api.LastEventIds`.
 - `Browse.Resources` takes `api.BrowseResourcesRequest` and `Match.Resources`
   takes `api.ResourceSearchFilters`, the types Protocol states, in place of
-  `ResourceFilters`, which is gone. A limit left out (nil) is still the first
-  hundred; a limit stated as zero is now sent as zero.
+  `ResourceFilters`, which is gone. A limit stated as zero is now sent as
+  zero.
 - A union's member interface is exported (`api.MarkJobParamsMember`,
   `api.ConformanceDriverLineMember`, …), so a function can take any member
   of a union. Its marker method is still unexported: no other type joins it.
@@ -144,6 +144,13 @@ the coming release's, and gathers its changes as they land.
 - A frame's trace is read as `api.TraceCarrier` by the required table: one
   the table refuses, such as one whose tracestate is empty, is no trace, and
   is still taken off the payload.
+- A default the service owns is no longer sent when the caller leaves it
+  out, and the service's own applies (protocol#109): `Browse.Resources` and
+  `Match.Resources` no longer send `limit` 100 and `offset` 0,
+  `Gather.Annotation` no longer sends `contextWindow` 2000 (nor `options`
+  when every option is nil), and `Match.Search` no longer sends
+  `useSemanticScoring` true. A stated value is sent as stated, and a list or
+  a search stating a limit of 100 is no longer the one stating none.
 
 ## 0.8.1
 

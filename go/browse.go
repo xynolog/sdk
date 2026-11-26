@@ -51,11 +51,11 @@ func (n *BrowseNamespace) Resource(resourceID api.ResourceId) *Cached[api.Resour
 }
 
 // Resources is a page of the knowledge base's resources, among those filters
-// admits. It is kept true by what every client hears and by the events of the
-// resources this client holds the scope of, and by nothing else. Finding
-// resources by text is Match.Resources.
+// admits: the knowledge base's own page when filters states none. It is kept
+// true by what every client hears and by the events of the resources this
+// client holds the scope of, and by nothing else. Finding resources by text
+// is Match.Resources.
 func (n *BrowseNamespace) Resources(filters api.BrowseResourcesRequest) *Cached[api.ListResourcesResponse] {
-	filters.Limit, filters.Offset = paged(filters.Limit, filters.Offset)
 	return keyed(n.links, n.live.resources, sentKeyOf(filters), itself[api.ListResourcesResponse], api.ResourceId{})
 }
 

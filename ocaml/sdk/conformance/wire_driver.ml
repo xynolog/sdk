@@ -84,15 +84,12 @@ let query_key value =
   let name = string "query" value in
   let resource = optional J.to_string "resource" value in
   let argument =
-    if name = "resources" || name = "matchedResources" then
-      let page = [ ("limit", `Int 100); ("offset", `Int 0) ] in
-      let fields =
-        if name = "matchedResources" then
-          ("search", field "search" value) :: page
-        else page
-      in
-      Some (Yojson.Safe.to_string (`Assoc fields))
-    else optional J.to_string "annotation" value
+    match name with
+    | "resources" -> Some (Yojson.Safe.to_string (`Assoc []))
+    | "matchedResources" ->
+        Some
+          (Yojson.Safe.to_string (`Assoc [ ("search", field "search" value) ]))
+    | _ -> optional J.to_string "annotation" value
   in
   (name, resource, argument)
 

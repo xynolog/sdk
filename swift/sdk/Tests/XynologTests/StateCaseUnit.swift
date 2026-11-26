@@ -157,8 +157,9 @@ struct StateCaseUnit {
     case (let yield as YieldStateUnit, "dismissProgress"): yield.dismissProgress()
     case (let gather as GatherStateUnit, "gatherAnnotation"):
       let id = try argument(AnnotationId.self, "annotationId")
-      let options = try decoded(
-        GatherAnnotationOptions.self, .object(args.filter { $0.key != "annotationId" }))
+      let stated = args.filter { $0.key != "annotationId" }
+      let options =
+        try stated.isEmpty ? nil : decoded(GatherAnnotationOptions.self, .object(stated))
       gather.gatherAnnotation(id, options: options)
     case (let gather as GatherStateUnit, "gatherResource"):
       let id = try argument(ResourceId.self, "resourceId")

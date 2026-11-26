@@ -303,7 +303,10 @@ let families
     ("signIn", codes sign_in);
     ("kbIdentity", codes kb_identity);
     ("spanRefusal", codes span_refusal);
-    ("control", codes control);
+    ( "control",
+      List.map
+        (fun (c : Tables.Errors_codes.control_codes_item) -> c.code)
+        control.codes );
   ]
 
 let error_codes models ~shapes ~table (codes : Error_codes.Table.t) =

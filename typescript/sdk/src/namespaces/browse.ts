@@ -273,8 +273,8 @@ export class BrowseNamespace implements IBrowseNamespace {
           {
             archived: filters.archived,
             entityType: filters.entityType,
-            limit: filters.limit ?? 100,
-            offset: filters.offset ?? 0,
+            limit: filters.limit,
+            offset: filters.offset,
           },
           this.busTimeoutMs,
         );

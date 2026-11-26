@@ -64,7 +64,6 @@ from xynolog.types import (
 __all__ = [
     "CACHE_VALUES",
     "LIMITS_HOLDERS",
-    "LIST_LIMIT",
     "AnnotationValue",
     "AnnotationsValue",
     "CachePersistence",
@@ -92,11 +91,6 @@ type EntityTypesValue = list[str]
 type TagSchemasValue = list[TagSchema]
 type EnginesValue = list[EngineEntry]
 
-LIST_LIMIT: Final = 100
-"""The most resources a list, or a search, has when its caller states none.
-
-Every SDK asks for as many: the cases of protocol/specs/src/client/surface.json hold each to it.
-"""
 
 CACHE_VALUES: Final[Mapping[CacheQuery, TypeAliasType]] = MappingProxyType(
     {

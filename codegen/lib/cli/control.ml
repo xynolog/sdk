@@ -165,7 +165,7 @@ let derive ~root (spec : Spec.t) =
                                (G.inline
                                   [
                                     G.keyed "name" (q n.name);
-                                    G.keyed "from" (q (T.from_value n.from));
+                                    G.keyed "from" (q (T.control_sender_value n.from));
                                     G.keyed "params" (q (id ~root params));
                                   ]))
                            notifications)));

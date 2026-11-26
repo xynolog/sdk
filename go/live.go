@@ -46,18 +46,6 @@ func sentKeyOf(filters any) sentKey {
 // already holds.
 func (k sentKey) into(request any) error { return json.Unmarshal([]byte(k), request) }
 
-// paged is a page as a list sends it: the first hundred where a caller states
-// no limit, from the first where it states no offset.
-func paged(limit, offset *int) (*int, *int) {
-	if limit == nil {
-		limit = new(listLimit)
-	}
-	if offset == nil {
-		offset = new(0)
-	}
-	return limit, offset
-}
-
 // searchKey is a search for resources by text, among those its filters admit.
 type searchKey struct {
 	search  string

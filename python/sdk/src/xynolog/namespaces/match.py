@@ -5,7 +5,7 @@ from typing import Final, final
 from xynolog.cached import Cached, Keyed, itself
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.namespaces.links import Links
-from xynolog.namespaces.live import LIST_LIMIT, Live
+from xynolog.namespaces.live import Live
 from xynolog.operations import MATCH_SEARCH_REQUESTED
 from xynolog.running import Running
 from xynolog.types import GatheredContext, MatchResourcesRequest, MatchResourcesResponse, MatchSearchRequest, MatchSearchResult
@@ -34,13 +34,13 @@ class MatchNamespace:
         limit: int | None = None,
         use_semantic_scoring: bool | None = None,
     ) -> Running[MatchSearchResult]:
-        """Candidates for a reference, given its gathered context: ten, scored semantically, when nothing else is stated."""
+        """Candidates for a reference, given its gathered context: ten when no limit is stated, scored as the Librarian scores unasked."""
         request = MatchSearchRequest(
             resource_id=resource_id,
             reference_id=reference_id,
             context=context,
             limit=_CANDIDATES if limit is None else limit,
-            use_semantic_scoring=True if use_semantic_scoring is None else use_semantic_scoring,
+            use_semantic_scoring=use_semantic_scoring,
         )
         return Running(lambda _: self._links.run(self._links.request(MATCH_SEARCH_REQUESTED, request)))
 
@@ -57,7 +57,7 @@ class MatchNamespace:
         offset: int | None = None,
         limit: int | None = None,
     ) -> Cached[MatchResourcesResponse]:
-        """A page of the resources a search for `search` finds, among those the filters admit: the first hundred when nothing is stated.
+        """A page of the resources a search for `search` finds, among those the filters admit: the Librarian's own page when none is stated.
 
         `offset` of them are passed over before the page begins.
 
@@ -71,8 +71,8 @@ class MatchNamespace:
                     search=search,
                     archived=archived,
                     entity_type=entity_type,
-                    offset=offset or 0,
-                    limit=LIST_LIMIT if limit is None else limit,
+                    offset=offset,
+                    limit=limit,
                 ),
                 itself,
             )

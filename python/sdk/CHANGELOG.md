@@ -126,6 +126,14 @@ the coming release's, and gathers its changes as they land.
   unit_cursors=None)`; and `cancel(JobReached(completed_units=…,
   unit_cursors=…))`, in place of `cancel(completed_units=None,
   unit_cursors=None)`. Each of `fail`'s and `cancel`'s is optional.
+- A default the service owns is no longer sent when the caller leaves it
+  out, and the service's own applies (protocol#109): `browse.resources` and
+  `match.resources` no longer send `limit` 100 and `offset` 0,
+  `gather.annotation` no longer sends `contextWindow` 2000 (nor `options`
+  when none is stated), and `match.search` no longer sends
+  `useSemanticScoring` true. A stated value is sent as stated, and a list or
+  a search stating a limit of 100 is no longer the one stating none.
+  `xynolog.namespaces.live.LIST_LIMIT` is gone.
 
 ## 0.8.1
 

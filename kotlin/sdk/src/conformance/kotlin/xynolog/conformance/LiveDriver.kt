@@ -246,7 +246,7 @@ private class LiveDriver : Driver {
         }
     }
 
-    /** The filters of a list or a search, as the suite states them: none stated is a list's first page. */
+    /** The filters of a list or a search, as the suite states them: none stated is none sent. */
     private fun <T> filters(stated: JsonObject, serializer: KSerializer<T>): T {
         val filters = stated["filters"] as? JsonObject ?: JsonObject(emptyMap())
         filters.keys.firstOrNull { it !in serializer.descriptor.elementNames }?.let { throw Misuse("$it is no filter of a list") }

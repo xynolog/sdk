@@ -128,6 +128,12 @@ the coming release's, and gathers its changes as they land.
   `DiscoveredKBPlacement`, `KnowledgeBaseStatusPlacement`, `RootPlacement`
   and `TargetKind`, one type each place it was stated; an inference provider
   is `InferenceProvider`, where it was `EngineProvider`.
+- A default the service owns is no longer sent when the caller leaves it
+  out, and the service's own applies (protocol#109): `browse.resources` and
+  `match.resources` no longer send `limit: 100` and `offset: 0`,
+  `gather.annotation` no longer sends `contextWindow: 2000` (nor `options`
+  when none are given), and `match.search` no longer sends
+  `useSemanticScoring: true`. A stated value is sent as stated.
 
 ### Removed
 

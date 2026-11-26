@@ -290,7 +290,12 @@ let derive (table : Tables.Errors_codes.t) =
                 | Status _ | Status_from _ | No_status _ -> [])
               (List.combine table.transport.codes transport.codes);
           others;
-          control = plain ~member:"control" table.control;
+          control =
+            vocabulary ~member:"control" ~docs:table.control.docs
+              (List.map
+                 (fun (c : Tables.Errors_codes.control_codes_item) ->
+                   (c.code, c.docs))
+                 table.control.codes);
         }
   | refusals, _, _ -> Error refusals
 

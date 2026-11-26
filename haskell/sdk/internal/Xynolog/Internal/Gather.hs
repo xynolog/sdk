@@ -27,10 +27,7 @@ newGather wire carrier clock timing =
 annotation :: GatherNamespace -> ResourceId -> AnnotationId -> Maybe GatherAnnotationOptions -> IO (Running.Running GatherAnnotationComplete GatherAnnotationComplete)
 annotation (GatherNamespace wire timing _) identity mark options =
   oneReport $
-    Bus.request wire GatherRequestedOperation (GatherAnnotationRequest {gatherAnnotationRequestAnnotationId = mark, gatherAnnotationRequestOptions = (Just withWindow), gatherAnnotationRequestResourceId = identity}) (Timing.busRequestTimeoutMs timing)
-  where
-    chosen = fromMaybe (GatherAnnotationOptions {gatherAnnotationOptionsContextWindow = Nothing, gatherAnnotationOptionsIncludeSourceContext = Nothing, gatherAnnotationOptionsIncludeTargetContext = Nothing}) options
-    withWindow = chosen {gatherAnnotationOptionsContextWindow = Just (fromMaybe 2000 (gatherAnnotationOptionsContextWindow chosen))}
+    Bus.request wire GatherRequestedOperation (GatherAnnotationRequest {gatherAnnotationRequestAnnotationId = mark, gatherAnnotationRequestOptions = options, gatherAnnotationRequestResourceId = identity}) (Timing.busRequestTimeoutMs timing)
 
 resource :: GatherNamespace -> ResourceId -> Maybe GatherResourceOptions -> IO GatheredContext
 resource (GatherNamespace wire timing _) identity options =

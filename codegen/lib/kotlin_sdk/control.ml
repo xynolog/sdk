@@ -68,7 +68,7 @@ let declarations ~types (t : C.t) =
       (K.call ~layout:K.Lines (K.Name "ControlNotification")
          [
            K.Str n.name;
-           K.Member (K.Name sender, Names.variant_of (C.from_value n.from));
+           K.Member (K.Name sender, Names.variant_of (C.control_sender_value n.from));
            serializer params;
          ])
   in
@@ -117,9 +117,9 @@ let declarations ~types (t : C.t) =
         ~entries:
           (List.map
              (fun from ->
-               let value = C.from_value from in
+               let value = C.control_sender_value from in
                K.entry ~args:[ K.Str value ] (Names.variant_of value))
-             C.from_all)
+             C.control_sender_all)
         K.Enum_class sender;
       K.class_
         ~about:
