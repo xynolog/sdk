@@ -123,9 +123,6 @@ let lacking : (item * (Coverage_sdk.t * lack) list) list =
           Absent
             "Kotlin's is xynolog.errors.SpanRefusal, generated with the other \
              error codes." );
-        ( Swift,
-          Absent "Swift's is SpanRefusal, generated with the other error codes."
-        );
       ] );
     ( Module_member ("annotations", "Spanned"),
       [
