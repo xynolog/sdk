@@ -132,7 +132,8 @@ export type LastEventIds = records['LastEventIds'];
 export type AnchorMethod = records['AnchorMethod'];
 export type MatchQuality = records['MatchQuality'];
 export type FrameRefusalReason = records['FrameRefusalReason'];
-export type DiscoveryAbsentReason = components['schemas']['DiscoveryAbsentReason'];
+export type DiscoveryAbsentReason =
+  components['schemas']['DiscoveryAbsentReason'];
 export type DiscoveryAbsent = records['DiscoveryAbsent'];
 export type DiscoveryManaged = records['DiscoveryManaged'];
 export type DiscoveryUnchanged = records['DiscoveryUnchanged'];
