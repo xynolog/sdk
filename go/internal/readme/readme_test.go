@@ -363,7 +363,7 @@ func TestTheClient(t *testing.T) {
 	made.Transport.QueueReply(jobStatus, completed("job-1", "mark", `{"found":1,"persisted":1}`))
 	made.Transport.Counted(2)
 	resource := idOf(t, "res-1")
-	made.Content.Seed(resource, xynolog.Content{Bytes: []byte("Some notes.\n"), ContentType: "text/plain; charset=utf-8"})
+	made.Content.Seed(resource, api.ResourceRepresentation{Data: []byte("Some notes.\n"), ContentType: "text/plain; charset=utf-8"})
 	annotation, err := api.ParseAnnotationId("ann-1")
 	if err != nil {
 		t.Fatal(err)

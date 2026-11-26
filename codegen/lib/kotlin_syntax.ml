@@ -27,7 +27,7 @@ type type_ =
   | Star
   | Function_type of type_ list * type_
 
-type binary = Or | And | Eq | Ge | In | Range | Plus | To
+type binary = Or | And | Eq | Ge | In | Is | Range | Plus | To
 type layout = Inline | Lines
 
 type expr =
@@ -411,6 +411,7 @@ let binary = function
   | Eq -> "=="
   | Ge -> ">="
   | In -> "in"
+  | Is -> "is"
   | Range -> ".."
   | Plus -> "+"
   | To -> "to"
@@ -425,7 +426,7 @@ let rank = function
   | And -> 2
   | Eq -> 3
   | Ge -> 4
-  | In -> 5
+  | In | Is -> 5
   | To -> 7
   | Range -> 8
   | Plus -> 9

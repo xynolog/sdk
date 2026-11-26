@@ -31,7 +31,7 @@ let found ~shape name =
       Error [ refusal name "is no client type, and a Haskell writer reads it" ]
 
 (* A client type as the haskell-sdk group models one, beside the types it
-   brings: words; an object, as [whole] reads it; or a union of its
+   brings: words; an object or a list, as [whole] reads it; or a union of its
    branches, each its own type named for the word that tags it, an object of
    that word and its members, each a scalar, another type's schema, or a
    list of either. Each
@@ -90,13 +90,12 @@ let adapter ~whole name =
   in
   function
   | Words w -> Ok [ (name, titled name (words w)) ]
-  | Fields _ -> (
+  | Fields _ | Items _ -> (
       let* s = whole name in
       match s with
       | Schema.Schema s -> Ok [ (name, titled name s) ]
-      | Schema.Boolean_schema _ -> Error [ refusal name "is no object" ])
-  | Items _ ->
-      Error [ refusal name "is a list, which the group models as none" ]
+      | Schema.Boolean_schema _ ->
+          Error [ refusal name "is no object and no list" ])
   | Union { tag; branches } ->
       let* branches =
         Spec.all

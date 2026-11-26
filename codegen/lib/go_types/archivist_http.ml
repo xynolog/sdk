@@ -10,26 +10,9 @@ let path = "go/archivisthttp_gen.go"
 let route_type = "ArchivistRoute"
 let route_name operation_id = route_type ^ Text.pascal operation_id
 
-let operations (spec : Spec.t) =
-  List.concat_map
-    (fun (path, reference) ->
-      let file, _ = Decode.resolve spec.ids reference in
-      match List.assoc_opt file spec.path_items with
-      | None ->
-          raise
-            (Definitions.Refused
-               ("archivist/openapi.json names no path item " ^ file))
-      | Some (item : Openapi.path_item) ->
-          List.filter_map
-            (fun (method_, operation) ->
-              Option.map
-                (fun (o : Openapi.operation) -> (o.operation_id, method_, path))
-                operation)
-            [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
-    spec.archivist.paths
-
 let text (spec : Spec.t) =
-  let route (operation_id, method_, path) =
+  let route { Archivist_routes.method_; path; operation } =
+    let operation_id = operation.operation_id in
     let name = route_name operation_id in
     G.spec
       ~doc:(G.prose (Printf.sprintf "%s is %s." name operation_id))
@@ -76,7 +59,7 @@ let text (spec : Spec.t) =
             {
               doc = [];
               spacing = Spaced;
-              specs = List.map route (operations spec);
+              specs = List.map route (Archivist_routes.all spec);
             };
         ];
     }

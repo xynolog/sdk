@@ -2638,6 +2638,516 @@ type ClaimRefusal struct {
 	Message string `json:"message"`
 }
 
+// ClientConnectionStates client/connection-states.json: where a client's
+// stream can be, and where it can move from each.
+type ClientConnectionStates struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// States Each state, in ConnectionState's order, what it means, and the
+	// states it can move to.
+	States []ClientConnectionStatesStatesItem `json:"states"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientConnectionStates) MarshalJSON() ([]byte, error) {
+	type written ClientConnectionStates
+	v.States = listOf(v.States)
+	return json.Marshal(written(v))
+}
+
+type ClientConnectionStatesStatesItem struct {
+	State ConnectionState `json:"state"`
+	// Meaning What the state is, in prose.
+	Meaning string `json:"meaning"`
+	// Moves The states it can move to, in ConnectionState's order; none for a
+	// terminal state.
+	Moves []ConnectionState `json:"moves"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientConnectionStatesStatesItem) MarshalJSON() ([]byte, error) {
+	type written ClientConnectionStatesStatesItem
+	v.Moves = listOf(v.Moves)
+	return json.Marshal(written(v))
+}
+
+// ClientDiscoveryAbsent client/discovery-absent.json: why a client that read
+// a launcher's discovery document found no launcher.
+type ClientDiscoveryAbsent struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Reasons Each reason, and what it means.
+	Reasons []ClientDiscoveryAbsentReasonsItem `json:"reasons"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientDiscoveryAbsent) MarshalJSON() ([]byte, error) {
+	type written ClientDiscoveryAbsent
+	v.Reasons = listOf(v.Reasons)
+	return json.Marshal(written(v))
+}
+
+type ClientDiscoveryAbsentReasonsItem struct {
+	// Reason The reason, as every SDK spells it.
+	Reason string `json:"reason"`
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+}
+
+// ClientOptionDefaults client/option-defaults.json: what a public option of a
+// Xynolog client is when its caller leaves it out, where the client, not the
+// service, decides.
+type ClientOptionDefaults struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Defaults Each default, once.
+	Defaults []ClientOptionDefaultsDefaultsItem `json:"defaults"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientOptionDefaults) MarshalJSON() ([]byte, error) {
+	type written ClientOptionDefaults
+	v.Defaults = listOf(v.Defaults)
+	return json.Marshal(written(v))
+}
+
+type ClientOptionDefaultsDefaultsItem struct {
+	// Method What takes the option, as client/surface.json names it: a
+	// namespace's method, or a module's function, the two joined by a dot.
+	Method string `json:"method"`
+	// Parameter The parameter it is, or the parameter whose member it is.
+	Parameter string `json:"parameter"`
+	// Option The member of the parameter it is, where the parameter is an object
+	// of options. Absent: the parameter itself.
+	Option *string `json:"option,omitempty"`
+	Value  any     `json:"value"`
+	// Schema What the parameter is.
+	Schema *ClientOptionDefaultsDefaultsItemSchema `json:"schema,omitempty"`
+	// Sends Where in the request the method sends it, as a JSON Pointer into a
+	// case's `sends`. Absent: the option is not sent, and only changes what the
+	// client does.
+	Sends *string `json:"sends,omitempty"`
+	// Docs What the option is, in prose.
+	Docs string `json:"docs"`
+}
+
+// ClientOptionDefaultsDefaultsItemSchema What the parameter is.
+type ClientOptionDefaultsDefaultsItemSchema struct {
+	union[ClientOptionDefaultsDefaultsItemSchemaMember]
+}
+
+// ClientOptionDefaultsDefaultsItemSchemaMember is a member of
+// ClientOptionDefaultsDefaultsItemSchema:
+// ClientOptionDefaultsDefaultsItemSchemaReference,
+// ClientOptionDefaultsDefaultsItemSchemaDateTime.
+type ClientOptionDefaultsDefaultsItemSchemaMember interface {
+	memberOfClientOptionDefaultsDefaultsItemSchema()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ClientOptionDefaultsDefaultsItemSchema) Member() (any, error) {
+	return u.member("ClientOptionDefaultsDefaultsItemSchema", clientOptionDefaultsDefaultsItemSchemaMembers)
+}
+
+// clientOptionDefaultsDefaultsItemSchemaMembers is what each member of
+// ClientOptionDefaultsDefaultsItemSchema admits, and how a value of it is
+// read.
+var clientOptionDefaultsDefaultsItemSchemaMembers = []unionMember{
+	{"ClientOptionDefaultsDefaultsItemSchemaReference", readAs[ClientOptionDefaultsDefaultsItemSchemaReference], []signature{{kind: objectKind, required: []string{"$ref"}, allowed: []string{"$ref"}}}},
+	{"ClientOptionDefaultsDefaultsItemSchemaDateTime", readAs[ClientOptionDefaultsDefaultsItemSchemaDateTime], []signature{{kind: objectKind, required: []string{"type", "description"}, allowed: []string{"type", "minimum", "format", "description"}, fixed: []fixedValues{{"type", []any{"integer", "string", "boolean"}}, {"format", []any{"date-time"}}}}}},
+}
+
+type ClientOptionDefaultsDefaultsItemSchemaDateTime struct {
+	// Type The value's type, where no component states one.
+	Type ClientOptionDefaultsDefaultsItemSchemaDateTimeType `json:"type"`
+	// Minimum The least an integer may be.
+	Minimum *int `json:"minimum,omitempty"`
+	// Format The string's format, where it has one: `date-time` is an RFC 3339
+	// time.
+	Format *ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat `json:"format,omitempty"`
+	// Description What the value is.
+	Description string `json:"description"`
+}
+
+func (ClientOptionDefaultsDefaultsItemSchemaDateTime) memberOfClientOptionDefaultsDefaultsItemSchema() {
+}
+
+// ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat The string's format,
+// where it has one: `date-time` is an RFC 3339 time.
+type ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat string
+
+// The values of ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat.
+const (
+	ClientOptionDefaultsDefaultsItemSchemaDateTimeFormatDateTime ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat = "date-time"
+)
+
+// Valid is whether e is one of
+// ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat's values.
+func (e ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat) Valid() bool {
+	switch e {
+	case ClientOptionDefaultsDefaultsItemSchemaDateTimeFormatDateTime:
+		return true
+	}
+	return false
+}
+
+// ClientOptionDefaultsDefaultsItemSchemaDateTimeType The value's type, where
+// no component states one.
+type ClientOptionDefaultsDefaultsItemSchemaDateTimeType string
+
+// The values of ClientOptionDefaultsDefaultsItemSchemaDateTimeType.
+const (
+	ClientOptionDefaultsDefaultsItemSchemaDateTimeTypeInteger ClientOptionDefaultsDefaultsItemSchemaDateTimeType = "integer"
+	ClientOptionDefaultsDefaultsItemSchemaDateTimeTypeString  ClientOptionDefaultsDefaultsItemSchemaDateTimeType = "string"
+	ClientOptionDefaultsDefaultsItemSchemaDateTimeTypeBoolean ClientOptionDefaultsDefaultsItemSchemaDateTimeType = "boolean"
+)
+
+// Valid is whether e is one of
+// ClientOptionDefaultsDefaultsItemSchemaDateTimeType's values.
+func (e ClientOptionDefaultsDefaultsItemSchemaDateTimeType) Valid() bool {
+	switch e {
+	case ClientOptionDefaultsDefaultsItemSchemaDateTimeTypeInteger, ClientOptionDefaultsDefaultsItemSchemaDateTimeTypeString, ClientOptionDefaultsDefaultsItemSchemaDateTimeTypeBoolean:
+		return true
+	}
+	return false
+}
+
+type ClientOptionDefaultsDefaultsItemSchemaReference struct {
+	// Ref The $id of a component, a member within one, or a client type of
+	// specs/src/client/types: an object is always one of these, so that it is
+	// named.
+	Ref string `json:"$ref"`
+}
+
+func (ClientOptionDefaultsDefaultsItemSchemaReference) memberOfClientOptionDefaultsDefaultsItemSchema() {
+}
+
+// ClientRefresh client/refresh.json: what a Xynolog client asks again for,
+// and when.
+type ClientRefresh struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Queries The live queries.
+	Queries []ClientRefreshQueriesItem `json:"queries"`
+	// Refresh A row per trigger.
+	Refresh []ClientRefreshRefreshItem `json:"refresh"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientRefresh) MarshalJSON() ([]byte, error) {
+	type written ClientRefresh
+	v.Queries = listOf(v.Queries)
+	v.Refresh = listOf(v.Refresh)
+	return json.Marshal(written(v))
+}
+
+type ClientRefreshQueriesItem struct {
+	union[ClientRefreshQueriesItemMember]
+}
+
+// ClientRefreshQueriesItemMember is a member of ClientRefreshQueriesItem:
+// ClientRefreshQueriesItemAsks, ClientRefreshQueriesItemReads.
+type ClientRefreshQueriesItemMember interface {
+	memberOfClientRefreshQueriesItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ClientRefreshQueriesItem) Member() (any, error) {
+	return u.member("ClientRefreshQueriesItem", clientRefreshQueriesItemMembers)
+}
+
+// clientRefreshQueriesItemMembers is what each member of
+// ClientRefreshQueriesItem admits, and how a value of it is read.
+var clientRefreshQueriesItemMembers = []unionMember{
+	{"ClientRefreshQueriesItemAsks", readAs[ClientRefreshQueriesItemAsks], []signature{{kind: objectKind, required: []string{"name", "asks", "value", "docs"}, allowed: []string{"name", "per", "asks", "persisted", "value", "docs"}, fixed: []fixedValues{{"per", []any{"resource", "annotation", "filters"}}, {"persisted", []any{true}}}}}},
+	{"ClientRefreshQueriesItemReads", readAs[ClientRefreshQueriesItemReads], []signature{{kind: objectKind, required: []string{"name", "reads", "value", "docs"}, allowed: []string{"name", "per", "reads", "persisted", "value", "docs"}, fixed: []fixedValues{{"per", []any{"resource", "annotation", "filters"}}, {"persisted", []any{true}}}}}},
+}
+
+// ClientRefreshQueriesItemAsks A live query that asks an operation of the
+// registry, by its request's channel.
+type ClientRefreshQueriesItemAsks struct {
+	// Name A query, by its name.
+	Name string `json:"name"`
+	// Per What one is kept per; absent, the knowledge base has one.
+	Per *ClientRefreshQueriesItemAsksPer `json:"per,omitempty"`
+	// Asks The channel's name.
+	Asks string `json:"asks"`
+	// Persisted Its answers are kept across a client's lives.
+	Persisted *ClientRefreshQueriesItemAsksPersisted `json:"persisted,omitempty"`
+	// Value A reference to the schema of its value.
+	Value ClientRefreshQueriesItemAsksValue `json:"value"`
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+}
+
+func (ClientRefreshQueriesItemAsks) memberOfClientRefreshQueriesItem() {}
+
+// ClientRefreshQueriesItemAsksPer What one is kept per; absent, the knowledge
+// base has one.
+type ClientRefreshQueriesItemAsksPer string
+
+// The values of ClientRefreshQueriesItemAsksPer.
+const (
+	ClientRefreshQueriesItemAsksPerResource   ClientRefreshQueriesItemAsksPer = "resource"
+	ClientRefreshQueriesItemAsksPerAnnotation ClientRefreshQueriesItemAsksPer = "annotation"
+	ClientRefreshQueriesItemAsksPerFilters    ClientRefreshQueriesItemAsksPer = "filters"
+)
+
+// Valid is whether e is one of ClientRefreshQueriesItemAsksPer's values.
+func (e ClientRefreshQueriesItemAsksPer) Valid() bool {
+	switch e {
+	case ClientRefreshQueriesItemAsksPerResource, ClientRefreshQueriesItemAsksPerAnnotation, ClientRefreshQueriesItemAsksPerFilters:
+		return true
+	}
+	return false
+}
+
+// ClientRefreshQueriesItemAsksPersisted Its answers are kept across a
+// client's lives.
+type ClientRefreshQueriesItemAsksPersisted bool
+
+// The values of ClientRefreshQueriesItemAsksPersisted.
+const (
+	ClientRefreshQueriesItemAsksPersistedTrue ClientRefreshQueriesItemAsksPersisted = true
+)
+
+// Valid is whether e is one of ClientRefreshQueriesItemAsksPersisted's
+// values.
+func (e ClientRefreshQueriesItemAsksPersisted) Valid() bool {
+	switch e {
+	case ClientRefreshQueriesItemAsksPersistedTrue:
+		return true
+	}
+	return false
+}
+
+// ClientRefreshQueriesItemAsksValue A reference to the schema of its value.
+type ClientRefreshQueriesItemAsksValue struct {
+	// Ref The $id of the schema of what its cache holds for a key: a component,
+	// or a member within one.
+	Ref string `json:"$ref"`
+}
+
+// ClientRefreshQueriesItemReads A live query that reads a GET of the
+// gateway's API.
+type ClientRefreshQueriesItemReads struct {
+	// Name A query, by its name.
+	Name string `json:"name"`
+	// Per What one is kept per; absent, the knowledge base has one.
+	Per *ClientRefreshQueriesItemReadsPer `json:"per,omitempty"`
+	// Reads The GET of the gateway's API it reads.
+	Reads string `json:"reads"`
+	// Persisted Its answers are kept across a client's lives.
+	Persisted *ClientRefreshQueriesItemReadsPersisted `json:"persisted,omitempty"`
+	// Value A reference to the schema of its value.
+	Value ClientRefreshQueriesItemReadsValue `json:"value"`
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+}
+
+func (ClientRefreshQueriesItemReads) memberOfClientRefreshQueriesItem() {}
+
+// ClientRefreshQueriesItemReadsPer What one is kept per; absent, the
+// knowledge base has one.
+type ClientRefreshQueriesItemReadsPer string
+
+// The values of ClientRefreshQueriesItemReadsPer.
+const (
+	ClientRefreshQueriesItemReadsPerResource   ClientRefreshQueriesItemReadsPer = "resource"
+	ClientRefreshQueriesItemReadsPerAnnotation ClientRefreshQueriesItemReadsPer = "annotation"
+	ClientRefreshQueriesItemReadsPerFilters    ClientRefreshQueriesItemReadsPer = "filters"
+)
+
+// Valid is whether e is one of ClientRefreshQueriesItemReadsPer's values.
+func (e ClientRefreshQueriesItemReadsPer) Valid() bool {
+	switch e {
+	case ClientRefreshQueriesItemReadsPerResource, ClientRefreshQueriesItemReadsPerAnnotation, ClientRefreshQueriesItemReadsPerFilters:
+		return true
+	}
+	return false
+}
+
+// ClientRefreshQueriesItemReadsPersisted Its answers are kept across a
+// client's lives.
+type ClientRefreshQueriesItemReadsPersisted bool
+
+// The values of ClientRefreshQueriesItemReadsPersisted.
+const (
+	ClientRefreshQueriesItemReadsPersistedTrue ClientRefreshQueriesItemReadsPersisted = true
+)
+
+// Valid is whether e is one of ClientRefreshQueriesItemReadsPersisted's
+// values.
+func (e ClientRefreshQueriesItemReadsPersisted) Valid() bool {
+	switch e {
+	case ClientRefreshQueriesItemReadsPersistedTrue:
+		return true
+	}
+	return false
+}
+
+// ClientRefreshQueriesItemReadsValue A reference to the schema of its value.
+type ClientRefreshQueriesItemReadsValue struct {
+	// Ref The $id of the schema of what its cache holds for a key: a component,
+	// or a member within one.
+	Ref string `json:"$ref"`
+}
+
+type ClientRefreshRefreshItem struct {
+	union[ClientRefreshRefreshItemMember]
+}
+
+// ClientRefreshRefreshItemMember is a member of ClientRefreshRefreshItem:
+// ClientRefreshRefreshItemOn, ClientRefreshRefreshItemStream.
+type ClientRefreshRefreshItemMember interface {
+	memberOfClientRefreshRefreshItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ClientRefreshRefreshItem) Member() (any, error) {
+	return u.member("ClientRefreshRefreshItem", clientRefreshRefreshItemMembers)
+}
+
+// clientRefreshRefreshItemMembers is what each member of
+// ClientRefreshRefreshItem admits, and how a value of it is read.
+var clientRefreshRefreshItemMembers = []unionMember{
+	{"ClientRefreshRefreshItemOn", readAs[ClientRefreshRefreshItemOn], []signature{{kind: objectKind, required: []string{"on", "docs"}, allowed: []string{"on", "when", "reach", "names", "carries", "refetches", "writes", "removes", "docs"}, fixed: []fixedValues{{"when", []any{"enriched", "unenriched"}}, {"reach", []any{"subject", "held"}}}}}},
+	{"ClientRefreshRefreshItemStream", readAs[ClientRefreshRefreshItemStream], []signature{{kind: objectKind, required: []string{"stream", "docs"}, allowed: []string{"stream", "reach", "refetches", "docs"}, fixed: []fixedValues{{"stream", []any{"reopened", "unreadable"}}, {"reach", []any{"subject", "held"}}}}}},
+}
+
+// ClientRefreshRefreshItemOn A row for a channel's events.
+type ClientRefreshRefreshItemOn struct {
+	// On The channel's name.
+	On string `json:"on"`
+	// When Which of a channel's two ways of event the row is for.
+	When *ClientRefreshRefreshItemOnWhen `json:"when,omitempty"`
+	// Reach Which keys the row reaches: the event's subject, or every key held.
+	Reach *ClientRefreshRefreshItemOnReach `json:"reach,omitempty"`
+	// Names Where in the event a subject row finds the resource and the
+	// annotation it names.
+	Names *ClientRefreshRefreshItemOnNames `json:"names,omitempty"`
+	// Carries A way into the event's payload: the names of the members it passes
+	// through and of its own, joined by dots.
+	Carries *string `json:"carries,omitempty"`
+	// Refetches The queries asked again.
+	Refetches *[]string `json:"refetches,omitempty"`
+	// Writes The queries whose new value the event carries.
+	Writes *[]string `json:"writes,omitempty"`
+	// Removes The queries whose entity the event says is gone.
+	Removes *[]string `json:"removes,omitempty"`
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+}
+
+func (ClientRefreshRefreshItemOn) memberOfClientRefreshRefreshItem() {}
+
+// ClientRefreshRefreshItemOnNames Where in the event a subject row finds the
+// resource and the annotation it names.
+type ClientRefreshRefreshItemOnNames struct {
+	// Resource A way into the event's payload: the names of the members it
+	// passes through and of its own, joined by dots.
+	Resource *string `json:"resource,omitempty"`
+	// Annotation A way into the event's payload: the names of the members it
+	// passes through and of its own, joined by dots.
+	Annotation *string `json:"annotation,omitempty"`
+}
+
+// ClientRefreshRefreshItemOnReach Which keys the row reaches: the event's
+// subject, or every key held.
+type ClientRefreshRefreshItemOnReach string
+
+// The values of ClientRefreshRefreshItemOnReach.
+const (
+	ClientRefreshRefreshItemOnReachSubject ClientRefreshRefreshItemOnReach = "subject"
+	ClientRefreshRefreshItemOnReachHeld    ClientRefreshRefreshItemOnReach = "held"
+)
+
+// Valid is whether e is one of ClientRefreshRefreshItemOnReach's values.
+func (e ClientRefreshRefreshItemOnReach) Valid() bool {
+	switch e {
+	case ClientRefreshRefreshItemOnReachSubject, ClientRefreshRefreshItemOnReachHeld:
+		return true
+	}
+	return false
+}
+
+// ClientRefreshRefreshItemOnWhen Which of a channel's two ways of event the
+// row is for.
+type ClientRefreshRefreshItemOnWhen string
+
+// The values of ClientRefreshRefreshItemOnWhen.
+const (
+	ClientRefreshRefreshItemOnWhenEnriched   ClientRefreshRefreshItemOnWhen = "enriched"
+	ClientRefreshRefreshItemOnWhenUnenriched ClientRefreshRefreshItemOnWhen = "unenriched"
+)
+
+// Valid is whether e is one of ClientRefreshRefreshItemOnWhen's values.
+func (e ClientRefreshRefreshItemOnWhen) Valid() bool {
+	switch e {
+	case ClientRefreshRefreshItemOnWhenEnriched, ClientRefreshRefreshItemOnWhenUnenriched:
+		return true
+	}
+	return false
+}
+
+// ClientRefreshRefreshItemStream A row for what befalls the stream itself.
+type ClientRefreshRefreshItemStream struct {
+	// Stream `reopened`, the stream open again after a drop; or `unreadable`, an
+	// event that cannot be read.
+	Stream ClientRefreshRefreshItemStreamStream `json:"stream"`
+	// Reach Which keys the row reaches: the event's subject, or every key held.
+	Reach *ClientRefreshRefreshItemStreamReach `json:"reach,omitempty"`
+	// Refetches The queries asked again.
+	Refetches *[]string `json:"refetches,omitempty"`
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+}
+
+func (ClientRefreshRefreshItemStream) memberOfClientRefreshRefreshItem() {}
+
+// ClientRefreshRefreshItemStreamReach Which keys the row reaches: the event's
+// subject, or every key held.
+type ClientRefreshRefreshItemStreamReach string
+
+// The values of ClientRefreshRefreshItemStreamReach.
+const (
+	ClientRefreshRefreshItemStreamReachSubject ClientRefreshRefreshItemStreamReach = "subject"
+	ClientRefreshRefreshItemStreamReachHeld    ClientRefreshRefreshItemStreamReach = "held"
+)
+
+// Valid is whether e is one of ClientRefreshRefreshItemStreamReach's values.
+func (e ClientRefreshRefreshItemStreamReach) Valid() bool {
+	switch e {
+	case ClientRefreshRefreshItemStreamReachSubject, ClientRefreshRefreshItemStreamReachHeld:
+		return true
+	}
+	return false
+}
+
+// ClientRefreshRefreshItemStreamStream `reopened`, the stream open again
+// after a drop; or `unreadable`, an event that cannot be read.
+type ClientRefreshRefreshItemStreamStream string
+
+// The values of ClientRefreshRefreshItemStreamStream.
+const (
+	ClientRefreshRefreshItemStreamStreamReopened   ClientRefreshRefreshItemStreamStream = "reopened"
+	ClientRefreshRefreshItemStreamStreamUnreadable ClientRefreshRefreshItemStreamStream = "unreadable"
+)
+
+// Valid is whether e is one of ClientRefreshRefreshItemStreamStream's values.
+func (e ClientRefreshRefreshItemStreamStream) Valid() bool {
+	switch e {
+	case ClientRefreshRefreshItemStreamStreamReopened, ClientRefreshRefreshItemStreamStreamUnreadable:
+		return true
+	}
+	return false
+}
+
 // ClientSecretForm The form a service account that holds a client secret
 // posts to its issuer's token endpoint for a client-credentials grant: its
 // client id and secret in the body (RFC 6749 §2.3.1). An account that holds a
@@ -2668,6 +3178,105 @@ func (e ClientSecretFormGrantType) Valid() bool {
 		return true
 	}
 	return false
+}
+
+// ClientTesting client/testing.json: the testing kit every SDK ships.
+type ClientTesting struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// FaultActions What a faulty transport does to a request.
+	FaultActions   []ClientTestingFaultActionsItem `json:"faultActions"`
+	DelayMs        ClientTestingDelayMs            `json:"delayMs"`
+	ScheduleLength ClientTestingScheduleLength     `json:"scheduleLength"`
+	Slack          ClientTestingSlack              `json:"slack"`
+	DeliveryOps    ClientTestingDeliveryOps        `json:"deliveryOps"`
+	// Records The kit's records.
+	Records []ClientTestingRecordsItem `json:"records"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientTesting) MarshalJSON() ([]byte, error) {
+	type written ClientTesting
+	v.FaultActions = listOf(v.FaultActions)
+	v.Records = listOf(v.Records)
+	return json.Marshal(written(v))
+}
+
+type ClientTestingDelayMs struct {
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+	// Minimum The fewest milliseconds a drawn delay is.
+	Minimum int `json:"minimum"`
+	// Maximum The most milliseconds a drawn delay is.
+	Maximum int `json:"maximum"`
+}
+
+type ClientTestingDeliveryOps struct {
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+	// Ops The steps an interleaving is of.
+	Ops []string `json:"ops"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientTestingDeliveryOps) MarshalJSON() ([]byte, error) {
+	type written ClientTestingDeliveryOps
+	v.Ops = listOf(v.Ops)
+	return json.Marshal(written(v))
+}
+
+type ClientTestingFaultActionsItem struct {
+	// Name The fault's type's name.
+	Name string `json:"name"`
+	// Kind The word that names the fault in a request log.
+	Kind string `json:"kind"`
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+	// Holds The whole numbers the fault carries, by name.
+	Holds []string `json:"holds"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientTestingFaultActionsItem) MarshalJSON() ([]byte, error) {
+	type written ClientTestingFaultActionsItem
+	v.Holds = listOf(v.Holds)
+	return json.Marshal(written(v))
+}
+
+type ClientTestingRecordsItem struct {
+	// Name The record's type's name.
+	Name string `json:"name"`
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+	// Members The record's members, named as surface.json names members.
+	Members []string `json:"members"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ClientTestingRecordsItem) MarshalJSON() ([]byte, error) {
+	type written ClientTestingRecordsItem
+	v.Members = listOf(v.Members)
+	return json.Marshal(written(v))
+}
+
+type ClientTestingScheduleLength struct {
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+	// Minimum The fewest faults a drawn schedule is of.
+	Minimum int `json:"minimum"`
+	// Maximum The most faults a drawn schedule is of.
+	Maximum int `json:"maximum"`
+}
+
+type ClientTestingSlack struct {
+	// Docs What it is, in prose.
+	Docs string `json:"docs"`
+	// Times How many times its reckoned bound a case is given.
+	Times int `json:"times"`
 }
 
 type CloneResourceWithTokenResponse struct {
@@ -3963,6 +4572,173 @@ func (v ContextualSummaryResponseRelevantFields) MarshalJSON() ([]byte, error) {
 	return json.Marshal(written(v))
 }
 
+// ControlCli control/cli.json: every option of the launcher commands the
+// control API covers, and what it is in the API.
+type ControlCli struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Commands Each command, by its name.
+	Commands map[string]ControlCliCommandsValue `json:"commands"`
+}
+
+// ControlCliCommandsValue A command.
+type ControlCliCommandsValue struct {
+	// Parser The Go function in cli/internal/launcher whose switch reads the
+	// command's options.
+	Parser string `json:"parser"`
+	// Method The method's name.
+	Method string `json:"method"`
+	// Positionals The command's operands, which no switch reads by name.
+	Positionals *[]ControlCliCommandsValuePositionalsItem `json:"positionals,omitempty"`
+	// Flags Each option, by its flag.
+	Flags map[string]ControlCliCommandsValueFlagsValue `json:"flags"`
+}
+
+type ControlCliCommandsValueFlagsValue struct {
+	union[ControlCliCommandsValueFlagsValueMember]
+}
+
+// ControlCliCommandsValueFlagsValueMember is a member of
+// ControlCliCommandsValueFlagsValue: ControlCliCommandsValueFlagsValueFields,
+// ControlCliCommandsValueFlagsValueMethod,
+// ControlCliCommandsValueFlagsValueCliOnly.
+type ControlCliCommandsValueFlagsValueMember interface {
+	memberOfControlCliCommandsValueFlagsValue()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ControlCliCommandsValueFlagsValue) Member() (any, error) {
+	return u.member("ControlCliCommandsValueFlagsValue", controlCliCommandsValueFlagsValueMembers)
+}
+
+// controlCliCommandsValueFlagsValueMembers is what each member of
+// ControlCliCommandsValueFlagsValue admits, and how a value of it is read.
+var controlCliCommandsValueFlagsValueMembers = []unionMember{
+	{"ControlCliCommandsValueFlagsValueFields", readAs[ControlCliCommandsValueFlagsValueFields], []signature{{kind: objectKind, required: []string{"fields"}, allowed: []string{"fields", "notes"}}}},
+	{"ControlCliCommandsValueFlagsValueMethod", readAs[ControlCliCommandsValueFlagsValueMethod], []signature{{kind: objectKind, required: []string{"method"}, allowed: []string{"method"}}}},
+	{"ControlCliCommandsValueFlagsValueCliOnly", readAs[ControlCliCommandsValueFlagsValueCliOnly], []signature{{kind: objectKind, required: []string{"cliOnly"}, allowed: []string{"cliOnly"}}}},
+}
+
+// ControlCliCommandsValueFlagsValueCliOnly An option the API has no place
+// for.
+type ControlCliCommandsValueFlagsValueCliOnly struct {
+	// CliOnly Why it has no place in the API.
+	CliOnly string `json:"cliOnly"`
+}
+
+func (ControlCliCommandsValueFlagsValueCliOnly) memberOfControlCliCommandsValueFlagsValue() {}
+
+// ControlCliCommandsValueFlagsValueFields An option that becomes params
+// fields.
+type ControlCliCommandsValueFlagsValueFields struct {
+	// Fields The params fields it becomes, each `<method>.<field path>`.
+	Fields []string `json:"fields"`
+	// Notes What else a reader of the row must know.
+	Notes *string `json:"notes,omitempty"`
+}
+
+func (ControlCliCommandsValueFlagsValueFields) memberOfControlCliCommandsValueFlagsValue() {}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ControlCliCommandsValueFlagsValueFields) MarshalJSON() ([]byte, error) {
+	type written ControlCliCommandsValueFlagsValueFields
+	v.Fields = listOf(v.Fields)
+	return json.Marshal(written(v))
+}
+
+// ControlCliCommandsValueFlagsValueMethod An option that selects a method.
+type ControlCliCommandsValueFlagsValueMethod struct {
+	// Method The method's name.
+	Method string `json:"method"`
+}
+
+func (ControlCliCommandsValueFlagsValueMethod) memberOfControlCliCommandsValueFlagsValue() {}
+
+type ControlCliCommandsValuePositionalsItem struct {
+	union[ControlCliCommandsValuePositionalsItemMember]
+}
+
+// ControlCliCommandsValuePositionalsItemMember is a member of
+// ControlCliCommandsValuePositionalsItem:
+// ControlCliCommandsValuePositionalsItemFields,
+// ControlCliCommandsValuePositionalsItemCliOnly.
+type ControlCliCommandsValuePositionalsItemMember interface {
+	memberOfControlCliCommandsValuePositionalsItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ControlCliCommandsValuePositionalsItem) Member() (any, error) {
+	return u.member("ControlCliCommandsValuePositionalsItem", controlCliCommandsValuePositionalsItemMembers)
+}
+
+// controlCliCommandsValuePositionalsItemMembers is what each member of
+// ControlCliCommandsValuePositionalsItem admits, and how a value of it is
+// read.
+var controlCliCommandsValuePositionalsItemMembers = []unionMember{
+	{"ControlCliCommandsValuePositionalsItemFields", readAs[ControlCliCommandsValuePositionalsItemFields], []signature{{kind: objectKind, required: []string{"name", "fields"}, allowed: []string{"name", "fields"}}}},
+	{"ControlCliCommandsValuePositionalsItemCliOnly", readAs[ControlCliCommandsValuePositionalsItemCliOnly], []signature{{kind: objectKind, required: []string{"name", "cliOnly"}, allowed: []string{"name", "cliOnly"}}}},
+}
+
+// ControlCliCommandsValuePositionalsItemCliOnly An operand the API has no
+// place for.
+type ControlCliCommandsValuePositionalsItemCliOnly struct {
+	// Name The operand, as its usage writes it.
+	Name string `json:"name"`
+	// CliOnly Why it has no place in the API.
+	CliOnly string `json:"cliOnly"`
+}
+
+func (ControlCliCommandsValuePositionalsItemCliOnly) memberOfControlCliCommandsValuePositionalsItem() {
+}
+
+// ControlCliCommandsValuePositionalsItemFields An operand that becomes params
+// fields.
+type ControlCliCommandsValuePositionalsItemFields struct {
+	// Name The operand, as its usage writes it.
+	Name string `json:"name"`
+	// Fields The params fields it becomes, each `<method>.<field path>`.
+	Fields []string `json:"fields"`
+}
+
+func (ControlCliCommandsValuePositionalsItemFields) memberOfControlCliCommandsValuePositionalsItem() {
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ControlCliCommandsValuePositionalsItemFields) MarshalJSON() ([]byte, error) {
+	type written ControlCliCommandsValuePositionalsItemFields
+	v.Fields = listOf(v.Fields)
+	return json.Marshal(written(v))
+}
+
+// ControlRpcCodes control/rpc-codes.json: the JSON-RPC error codes the
+// control API answers with.
+type ControlRpcCodes struct {
+	// Comment The rule the table states, in prose.
+	Comment string                     `json:"$comment"`
+	Codes   []ControlRpcCodesCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ControlRpcCodes) MarshalJSON() ([]byte, error) {
+	type written ControlRpcCodes
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ControlRpcCodesCodesItem struct {
+	// Number The JSON-RPC error's code.
+	Number int `json:"number"`
+	// Name Its name, as every SDK names it.
+	Name string `json:"name"`
+	// Docs When the launcher answers with it, in prose, by the contract's rules.
+	Docs string `json:"docs"`
+	// Data The data every answer under it carries, whatever failed.
+	Data *ErrorData `json:"data,omitempty"`
+}
+
 // ControlSender Which side of the control API sends a message: the client,
 // whose notifications arrive on the launcher's stdin, or the launcher, whose
 // notifications leave on its stdout (LAUNCHER-CONTROL.md F1).
@@ -4692,6 +5468,25 @@ type EngineLimits struct {
 	Limits InferenceLimits `json:"limits"`
 }
 
+// EngineWithLimits One of the knowledge base's engines as a client joins it:
+// the entry `browse:engines-result` names, with the inference limits the
+// service holding its credentials reported. A client asks each such service
+// for its limits; an engine no service reported has no `limits`.
+type EngineWithLimits struct {
+	Engine Engine `json:"engine"`
+	// Jobs The jobs the knowledge base's Inference document has this engine used
+	// for, as a claim names them. Absent for an engine only Librarian actors
+	// ask.
+	Jobs   *[]JobFilter     `json:"jobs,omitempty"`
+	Limits *InferenceLimits `json:"limits,omitempty"`
+}
+
+// EnginesWithLimits The knowledge base's engines, in the order
+// `browse:engines-result` names them, each with the limits reported for it.
+type (
+	EnginesWithLimits = []EngineWithLimits
+)
+
 // EnrichedResourceEvent Wire format for persisted events delivered over the
 // bus SSE stream (GET /bus/subscribe). Extends StoredEventResponse with
 // optional enrichment fields the EventStore populates from the materialized
@@ -4794,6 +5589,433 @@ type ErrorResponse struct {
 	// Hint What the caller can do about it, when there is something to say.
 	Hint    *string `json:"hint,omitempty"`
 	Details any     `json:"details,omitempty"`
+}
+
+// ErrorsCodes errors/codes.json: the error codes a Xynolog client reports, in
+// one vocabulary for each kind of failure.
+type ErrorsCodes struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// BusRequest Why a bus request did not resolve.
+	BusRequest ErrorsCodesBusRequest `json:"busRequest"`
+	// Transport The transport-neutral failure vocabulary.
+	Transport ErrorsCodesTransport `json:"transport"`
+	// Job A vocabulary that states nothing of its codes but each one's docs:
+	// here, why a job its client follows ended without a result.
+	Job ErrorsCodesJob `json:"job"`
+	// Session A vocabulary that states nothing of its codes but each one's docs:
+	// here, why a job its client follows ended without a result.
+	Session ErrorsCodesSession `json:"session"`
+	// SignIn A vocabulary that states nothing of its codes but each one's docs:
+	// here, why a job its client follows ended without a result.
+	SignIn ErrorsCodesSignIn `json:"signIn"`
+	// KbIdentity A vocabulary that states nothing of its codes but each one's
+	// docs: here, why a job its client follows ended without a result.
+	KbIdentity ErrorsCodesKbIdentity `json:"kbIdentity"`
+	// SpanRefusal A vocabulary that states nothing of its codes but each one's
+	// docs: here, why a job its client follows ended without a result.
+	SpanRefusal ErrorsCodesSpanRefusal `json:"spanRefusal"`
+	// Control Why a request of the launcher's control API failed: each code, the
+	// JSON-RPC code an answer carries it under, and whether a request that fails
+	// with it is retryable.
+	Control ErrorsCodesControl `json:"control"`
+}
+
+// ErrorsCodesBusRequest Why a bus request did not resolve.
+type ErrorsCodesBusRequest struct {
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+	// UnrecognizedFailure The code, as every SDK names it.
+	UnrecognizedFailure string `json:"unrecognizedFailure"`
+	// Codes Each code, and the wire's `CommandError.code` it restates, where it
+	// restates one.
+	Codes []ErrorsCodesBusRequestCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ErrorsCodesBusRequest) MarshalJSON() ([]byte, error) {
+	type written ErrorsCodesBusRequest
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ErrorsCodesBusRequestCodesItem struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+	// Wire Machine-readable failure class, for consumers that must BRANCH on why
+	// a command failed rather than log it. Optional and deliberately sparse:
+	// absent means 'no class declared', and every existing failure stays that
+	// way. An enum rather than a free string so the vocabulary has an owner — an
+	// unconstrained code is a mirror with no gate, and adding one should be a
+	// deliberate spec change. `message` remains the human-readable text and is
+	// unaffected. Members: `peer-unavailable` — the channel this command was
+	// sent on has no subscriber, i.e. the service that answers it has not
+	// connected yet. Transient by nature (a peer still starting), which is what
+	// distinguishes it from a refusal: retrying is the correct response.
+	// `not-found` — the resource this command addressed does not exist in this
+	// knowledge base. A verdict, not a symptom: it is emitted only where the
+	// answer comes from the event store, which is the system of record, and
+	// never from a projection that may merely be lagging. Deterministic, so
+	// unlike `peer-unavailable` retrying is pointless — and consumers may act
+	// destructively on it (the SDK deletes a restored tab). Absence is not
+	// denial: a future 'exists, but not for you' must travel as its own code,
+	// never as this one. `unauthorized` — that code: the caller is authenticated
+	// but not permitted to do what it asked. A verdict about the CALLER, not the
+	// resource, so retrying under the same credential cannot succeed and a
+	// consumer must never spin on it; emitted by `job:claim` for a caller whose
+	// token carries no worker role. `none-pending` — a declined claim, not an
+	// error: the queue holds no pending job of the requested types. Nothing went
+	// wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+	// wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
+	// neither is unclassified — a malformed record or a missing injection — and
+	// a consumer treats it as 'log it, assume nothing'.
+	Wire *ErrorsCodesBusRequestCodesItemWire `json:"wire,omitempty"`
+}
+
+// ErrorsCodesBusRequestCodesItemWire Machine-readable failure class, for
+// consumers that must BRANCH on why a command failed rather than log it.
+// Optional and deliberately sparse: absent means 'no class declared', and
+// every existing failure stays that way. An enum rather than a free string so
+// the vocabulary has an owner — an unconstrained code is a mirror with no
+// gate, and adding one should be a deliberate spec change. `message` remains
+// the human-readable text and is unaffected. Members: `peer-unavailable` —
+// the channel this command was sent on has no subscriber, i.e. the service
+// that answers it has not connected yet. Transient by nature (a peer still
+// starting), which is what distinguishes it from a refusal: retrying is the
+// correct response. `not-found` — the resource this command addressed does
+// not exist in this knowledge base. A verdict, not a symptom: it is emitted
+// only where the answer comes from the event store, which is the system of
+// record, and never from a projection that may merely be lagging.
+// Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+// consumers may act destructively on it (the SDK deletes a restored tab).
+// Absence is not denial: a future 'exists, but not for you' must travel as
+// its own code, never as this one. `unauthorized` — that code: the caller is
+// authenticated but not permitted to do what it asked. A verdict about the
+// CALLER, not the resource, so retrying under the same credential cannot
+// succeed and a consumer must never spin on it; emitted by `job:claim` for a
+// caller whose token carries no worker role. `none-pending` — a declined
+// claim, not an error: the queue holds no pending job of the requested types.
+// Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to
+// do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal
+// carrying neither is unclassified — a malformed record or a missing
+// injection — and a consumer treats it as 'log it, assume nothing'.
+type ErrorsCodesBusRequestCodesItemWire string
+
+// The values of ErrorsCodesBusRequestCodesItemWire.
+const (
+	ErrorsCodesBusRequestCodesItemWirePeerUnavailable ErrorsCodesBusRequestCodesItemWire = "peer-unavailable"
+	ErrorsCodesBusRequestCodesItemWireNotFound        ErrorsCodesBusRequestCodesItemWire = "not-found"
+	ErrorsCodesBusRequestCodesItemWireUnauthorized    ErrorsCodesBusRequestCodesItemWire = "unauthorized"
+	ErrorsCodesBusRequestCodesItemWireNonePending     ErrorsCodesBusRequestCodesItemWire = "none-pending"
+)
+
+// Valid is whether e is one of ErrorsCodesBusRequestCodesItemWire's values.
+func (e ErrorsCodesBusRequestCodesItemWire) Valid() bool {
+	switch e {
+	case ErrorsCodesBusRequestCodesItemWirePeerUnavailable, ErrorsCodesBusRequestCodesItemWireNotFound, ErrorsCodesBusRequestCodesItemWireUnauthorized, ErrorsCodesBusRequestCodesItemWireNonePending:
+		return true
+	}
+	return false
+}
+
+// ErrorsCodesControl Why a request of the launcher's control API failed: each
+// code, the JSON-RPC code an answer carries it under, and whether a request
+// that fails with it is retryable.
+type ErrorsCodesControl struct {
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs  string                        `json:"docs"`
+	Codes []ErrorsCodesControlCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ErrorsCodesControl) MarshalJSON() ([]byte, error) {
+	type written ErrorsCodesControl
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ErrorsCodesControlCodesItem struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+	// Rpc The JSON-RPC error's code an answer carries it under: a number of
+	// control/rpc-codes.json.
+	Rpc int `json:"rpc"`
+	// Retryable Whether the same request can succeed sent again unchanged, once
+	// something outside it changes (contract/LAUNCHER-CONTROL.md E3): what
+	// ErrorData's retryable says of it when it is answered under its rpc. Under
+	// a code of control/rpc-codes.json that states its data, the data is that
+	// row's.
+	Retryable bool `json:"retryable"`
+}
+
+// ErrorsCodesJob A vocabulary that states nothing of its codes but each one's
+// docs: here, why a job its client follows ended without a result.
+type ErrorsCodesJob struct {
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs  string                    `json:"docs"`
+	Codes []ErrorsCodesJobCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ErrorsCodesJob) MarshalJSON() ([]byte, error) {
+	type written ErrorsCodesJob
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ErrorsCodesJobCodesItem struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+}
+
+// ErrorsCodesKbIdentity A vocabulary that states nothing of its codes but
+// each one's docs: here, why a job its client follows ended without a result.
+type ErrorsCodesKbIdentity struct {
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs  string                           `json:"docs"`
+	Codes []ErrorsCodesKbIdentityCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ErrorsCodesKbIdentity) MarshalJSON() ([]byte, error) {
+	type written ErrorsCodesKbIdentity
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ErrorsCodesKbIdentityCodesItem struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+}
+
+// ErrorsCodesSession A vocabulary that states nothing of its codes but each
+// one's docs: here, why a job its client follows ended without a result.
+type ErrorsCodesSession struct {
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs  string                        `json:"docs"`
+	Codes []ErrorsCodesSessionCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ErrorsCodesSession) MarshalJSON() ([]byte, error) {
+	type written ErrorsCodesSession
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ErrorsCodesSessionCodesItem struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+}
+
+// ErrorsCodesSignIn A vocabulary that states nothing of its codes but each
+// one's docs: here, why a job its client follows ended without a result.
+type ErrorsCodesSignIn struct {
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs  string                       `json:"docs"`
+	Codes []ErrorsCodesSignInCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ErrorsCodesSignIn) MarshalJSON() ([]byte, error) {
+	type written ErrorsCodesSignIn
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ErrorsCodesSignInCodesItem struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+}
+
+// ErrorsCodesSpanRefusal A vocabulary that states nothing of its codes but
+// each one's docs: here, why a job its client follows ended without a result.
+type ErrorsCodesSpanRefusal struct {
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs  string                            `json:"docs"`
+	Codes []ErrorsCodesSpanRefusalCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ErrorsCodesSpanRefusal) MarshalJSON() ([]byte, error) {
+	type written ErrorsCodesSpanRefusal
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ErrorsCodesSpanRefusalCodesItem struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+}
+
+// ErrorsCodesTransport The transport-neutral failure vocabulary.
+type ErrorsCodesTransport struct {
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+	// Unclassified The code, as every SDK names it.
+	Unclassified string `json:"unclassified"`
+	// Codes Each code, and the HTTP statuses it is read from.
+	Codes []ErrorsCodesTransportCodesItem `json:"codes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v ErrorsCodesTransport) MarshalJSON() ([]byte, error) {
+	type written ErrorsCodesTransport
+	v.Codes = listOf(v.Codes)
+	return json.Marshal(written(v))
+}
+
+type ErrorsCodesTransportCodesItem struct {
+	union[ErrorsCodesTransportCodesItemMember]
+}
+
+// ErrorsCodesTransportCodesItemMember is a member of
+// ErrorsCodesTransportCodesItem: ErrorsCodesTransportCodesItemStatus,
+// ErrorsCodesTransportCodesItemStatusFrom,
+// ErrorsCodesTransportCodesItemNoStatus.
+type ErrorsCodesTransportCodesItemMember interface {
+	memberOfErrorsCodesTransportCodesItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u ErrorsCodesTransportCodesItem) Member() (any, error) {
+	return u.member("ErrorsCodesTransportCodesItem", errorsCodesTransportCodesItemMembers)
+}
+
+// errorsCodesTransportCodesItemMembers is what each member of
+// ErrorsCodesTransportCodesItem admits, and how a value of it is read.
+var errorsCodesTransportCodesItemMembers = []unionMember{
+	{"ErrorsCodesTransportCodesItemStatus", readAs[ErrorsCodesTransportCodesItemStatus], []signature{{kind: objectKind, required: []string{"code", "docs", "status"}, allowed: []string{"code", "docs", "status", "limitRefusals"}}}},
+	{"ErrorsCodesTransportCodesItemStatusFrom", readAs[ErrorsCodesTransportCodesItemStatusFrom], []signature{{kind: objectKind, required: []string{"code", "docs", "statusFrom"}, allowed: []string{"code", "docs", "statusFrom"}}}},
+	{"ErrorsCodesTransportCodesItemNoStatus", readAs[ErrorsCodesTransportCodesItemNoStatus], []signature{{kind: objectKind, required: []string{"code", "docs"}, allowed: []string{"code", "docs"}}}},
+}
+
+// ErrorsCodesTransportCodesItemNoStatus A code no HTTP status is read as.
+type ErrorsCodesTransportCodesItemNoStatus struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs string `json:"docs"`
+}
+
+func (ErrorsCodesTransportCodesItemNoStatus) memberOfErrorsCodesTransportCodesItem() {}
+
+// ErrorsCodesTransportCodesItemStatus A code read from one HTTP status.
+type ErrorsCodesTransportCodesItemStatus struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs   string     `json:"docs"`
+	Status HttpStatus `json:"status"`
+	// LimitRefusals The limit refusals read as this code and not as the code of
+	// their status: each a status and the LimitRefusal `code` it carries, as a
+	// row of gateway/messages.json states them.
+	LimitRefusals *[]ErrorsCodesTransportCodesItemStatusLimitRefusalsItem `json:"limitRefusals,omitempty"`
+}
+
+func (ErrorsCodesTransportCodesItemStatus) memberOfErrorsCodesTransportCodesItem() {}
+
+// ErrorsCodesTransportCodesItemStatusFrom A code read from every HTTP status
+// at or above one.
+type ErrorsCodesTransportCodesItemStatusFrom struct {
+	// Code The code, as every SDK names it.
+	Code string `json:"code"`
+	// Docs Its documentation, in prose: what a generated type or member says of
+	// it.
+	Docs       string     `json:"docs"`
+	StatusFrom HttpStatus `json:"statusFrom"`
+}
+
+func (ErrorsCodesTransportCodesItemStatusFrom) memberOfErrorsCodesTransportCodesItem() {}
+
+type ErrorsCodesTransportCodesItemStatusLimitRefusalsItem struct {
+	Status HttpStatus `json:"status"`
+	// Code `streams`: the principal already holds as many streams as its
+	// coefficient of `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`:
+	// the principal's emits have used its bucket, whose rate and burst are its
+	// coefficient of `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
+	// `unanswered-requests`: the client already awaits as many replies as
+	// `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway
+	// holds as many queued bytes as it can. `refusal-rate`: the request's
+	// credential was refused, and the requests its holder has had refused have
+	// used their allowance; it answers only a request whose token has already
+	// failed verification, so it says what a 401 says, and a client that can
+	// renew its token renews it and sends the request again rather than waiting
+	// (contract/TRANSPORT-CONTRACT.md § A refused credential).
+	Code ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode `json:"code"`
+}
+
+// ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode `streams`: the
+// principal already holds as many streams as its coefficient of
+// `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the principal's
+// emits have used its bucket, whose rate and burst are its coefficient of
+// `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
+// `unanswered-requests`: the client already awaits as many replies as
+// `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway
+// holds as many queued bytes as it can. `refusal-rate`: the request's
+// credential was refused, and the requests its holder has had refused have
+// used their allowance; it answers only a request whose token has already
+// failed verification, so it says what a 401 says, and a client that can
+// renew its token renews it and sends the request again rather than waiting
+// (contract/TRANSPORT-CONTRACT.md § A refused credential).
+type ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode string
+
+// The values of ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode.
+const (
+	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams            ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "streams"
+	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeEmitRate           ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "emit-rate"
+	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeUnansweredRequests ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "unanswered-requests"
+	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeCapacity           ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "capacity"
+	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeRefusalRate        ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "refusal-rate"
+)
+
+// Valid is whether e is one of
+// ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode's values.
+func (e ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode) Valid() bool {
+	switch e {
+	case ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams, ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeEmitRate, ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeUnansweredRequests, ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeCapacity, ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeRefusalRate:
+		return true
+	}
+	return false
 }
 
 // EventMetadata Metadata added at persistence time. Part of every
@@ -6587,6 +7809,68 @@ func (e HttpEndpointProtocol) Valid() bool {
 type (
 	HttpStatus = int
 )
+
+// IdentifiersKinds identifiers/kinds.json: the kinds of id the protocol
+// names, the properties that carry each, and the properties named like an id
+// that carry something else.
+type IdentifiersKinds struct {
+	// Comment The rule the table states, in prose.
+	Comment string                       `json:"$comment"`
+	Kinds   []IdentifiersKindsKindsItem  `json:"kinds"`
+	Others  []IdentifiersKindsOthersItem `json:"others"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v IdentifiersKinds) MarshalJSON() ([]byte, error) {
+	type written IdentifiersKinds
+	v.Kinds = listOf(v.Kinds)
+	v.Others = listOf(v.Others)
+	return json.Marshal(written(v))
+}
+
+type IdentifiersKindsKindsItem struct {
+	// Schema The component under components/schemas that states the kind, by
+	// name.
+	Schema string `json:"schema"`
+	// Properties The property names that always carry the kind.
+	Properties []string `json:"properties"`
+	// Accepts Strings the kind's rule takes.
+	Accepts []IdentifiersKindsKindsItemAcceptsItem `json:"accepts"`
+	// Refuses Strings the kind's rule does not take.
+	Refuses []IdentifiersKindsKindsItemRefusesItem `json:"refuses"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v IdentifiersKindsKindsItem) MarshalJSON() ([]byte, error) {
+	type written IdentifiersKindsKindsItem
+	v.Properties = listOf(v.Properties)
+	v.Accepts = listOf(v.Accepts)
+	v.Refuses = listOf(v.Refuses)
+	return json.Marshal(written(v))
+}
+
+type IdentifiersKindsKindsItemAcceptsItem struct {
+	// Id A string the kind's rule is asked about.
+	Id string `json:"id"`
+	// Why What the case shows, in prose.
+	Why string `json:"why"`
+}
+
+type IdentifiersKindsKindsItemRefusesItem struct {
+	// Id A string the kind's rule is asked about.
+	Id string `json:"id"`
+	// Why What the case shows, in prose.
+	Why string `json:"why"`
+}
+
+type IdentifiersKindsOthersItem struct {
+	// Property A property named like an id.
+	Property string `json:"property"`
+	// Docs What it carries instead.
+	Docs string `json:"docs"`
+}
 
 // IdentityUser An account in a knowledge base's launcher-managed identity
 // realm. Passwords and tokens are never included.
@@ -9998,6 +11282,52 @@ type MediaTokenResponse struct {
 	Token string `json:"token"`
 }
 
+// MediaTypesRegistry media-types/registry.json: the media types a knowledge
+// base admits, and what the system can do with each.
+type MediaTypesRegistry struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Render The viewers a reader mounts.
+	Render []string `json:"render"`
+	// Anchoring The annotation models.
+	Anchoring []string `json:"anchoring"`
+	// TextSource Where a type's text comes from.
+	TextSource []string `json:"textSource"`
+	// ExtensionAliases Each extension another stands for, by the extension that
+	// stands for it.
+	ExtensionAliases map[string]string `json:"extensionAliases"`
+	// MediaTypes One row for each member of SupportedMediaType.
+	MediaTypes []MediaTypesRegistryMediaTypesItem `json:"mediaTypes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v MediaTypesRegistry) MarshalJSON() ([]byte, error) {
+	type written MediaTypesRegistry
+	v.Render = listOf(v.Render)
+	v.Anchoring = listOf(v.Anchoring)
+	v.TextSource = listOf(v.TextSource)
+	v.MediaTypes = listOf(v.MediaTypes)
+	return json.Marshal(written(v))
+}
+
+type MediaTypesRegistryMediaTypesItem struct {
+	MediaType SupportedMediaType `json:"mediaType"`
+	// Extension A file extension, with its dot.
+	Extension string `json:"extension"`
+	// Label The name a person reads.
+	Label string `json:"label"`
+	// Render The viewer a reader mounts, one of `render`.
+	Render string `json:"render"`
+	// Anchoring The annotation model, one of `anchoring`.
+	Anchoring string `json:"anchoring"`
+	// TextSource Where its text comes from, one of `textSource`.
+	TextSource  string `json:"textSource"`
+	Authorable  bool   `json:"authorable"`
+	Uploadable  bool   `json:"uploadable"`
+	Generatable bool   `json:"generatable"`
+}
+
 // MemoryGraphConfig A graph held in the memory of the one process that is
 // given it: for a test. It cannot be shared between processes, so a service
 // that writes the graph for another to read, or reads what another wrote,
@@ -10510,6 +11840,37 @@ type PrincipalProfiledPayload struct {
 	Name string `json:"name"`
 }
 
+// PrincipalsRoles principals/roles.json: the claims a token carries for the
+// gateway to read its holder's roles and kind by, and each role.
+type PrincipalsRoles struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// RolesClaim The claim whose value is a flat array of the account's roles.
+	RolesClaim string `json:"rolesClaim"`
+	// Roles Each role the gateway reads.
+	Roles []PrincipalsRolesRolesItem `json:"roles"`
+	// KindClaim The claim that says what kind of account the token's is.
+	KindClaim string `json:"kindClaim"`
+	// AgentKind What the kind claim holds on an agent's account. A person's
+	// account carries any other value, or none.
+	AgentKind string `json:"agentKind"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v PrincipalsRoles) MarshalJSON() ([]byte, error) {
+	type written PrincipalsRoles
+	v.Roles = listOf(v.Roles)
+	return json.Marshal(written(v))
+}
+
+type PrincipalsRolesRolesItem struct {
+	// Role The role, as the token carries it.
+	Role string `json:"role"`
+	// Docs What it grants, in prose.
+	Docs string `json:"docs"`
+}
+
 // Profile What a principal last said it is called, and when: the profile a
 // `principal:profiled` event gives.
 type Profile struct {
@@ -10665,6 +12026,45 @@ type Provider struct {
 	// shared Ollama, are stated by no baseURL.
 	BaseURL *string    `json:"baseURL,omitempty"`
 	ApiKey  *SecretRef `json:"apiKey,omitempty"`
+}
+
+// PutBinaryRequest What uploading a resource is handed: its bytes, what the
+// upload states of them, and, for a clone, its token. Each member is as a
+// caller holds it; ResourceUpload is the multipart body the content transport
+// sends of it.
+type PutBinaryRequest struct {
+	// Name Human-readable resource name
+	Name string `json:"name"`
+	// File Binary content
+	File Binary `json:"file"`
+	// Format Media type of the content (e.g. text/plain, text/markdown,
+	// image/png)
+	Format string `json:"format"`
+	// StorageUri Where the content lives (file://... for local). Required — the
+	// client names the location; the server does not derive one.
+	StorageUri string `json:"storageUri"`
+	// Language ISO 639-1 language code
+	Language           *string       `json:"language,omitempty"`
+	EntityTypes        *[]string     `json:"entityTypes,omitempty"`
+	SourceAnnotationId *AnnotationId `json:"sourceAnnotationId,omitempty"`
+	SourceResourceId   *ResourceId   `json:"sourceResourceId,omitempty"`
+	// GenerationPrompt For AI-generated resources: the prompt that drove
+	// generation
+	GenerationPrompt *string `json:"generationPrompt,omitempty"`
+	// Generator The Software peer that produced the content, when software did.
+	// Its identity must be the emitter's own — the knowledge base refuses a
+	// generator naming anyone else, and supplies it from the verified emitter
+	// when omitted. `creator` and `wasAttributedTo` are never sent; the
+	// knowledge base derives them from the emitter and the cited job.
+	Generator *OneOrMoreAgents `json:"generator,omitempty"`
+	JobId     *JobId           `json:"jobId,omitempty"`
+	IsDraft   *bool            `json:"isDraft,omitempty"`
+	// CloneToken A clone token from `yield:clone-token-requested`. With it, the
+	// resource is created as a clone of the token's source, inheriting its
+	// entity types; `language`, `entityTypes` and the generation fields are then
+	// not read.
+	CloneToken      *string `json:"cloneToken,omitempty"`
+	ArchiveOriginal *bool   `json:"archiveOriginal,omitempty"`
 }
 
 // QdrantVectorsConfig A vector index kept in a Qdrant server, asked over its
@@ -11461,6 +12861,15 @@ type ResourceMovedPayload struct {
 	ToUri string `json:"toUri"`
 }
 
+// ResourceRepresentation A resource's bytes as the content transport answers
+// them, whole, with the media type it answered with.
+type ResourceRepresentation struct {
+	// Data The bytes, whole.
+	Data Binary `json:"data"`
+	// ContentType The media type the content transport answered with.
+	ContentType string `json:"contentType"`
+}
+
 // ResourceSearchFilters What a text search for resources is told beside its
 // text: MatchResourcesRequest's other members. client/surface.json's
 // `match.resources` cases state what is sent for one left out.
@@ -11902,6 +13311,255 @@ func (v ScoredResource) MarshalJSON() ([]byte, error) {
 func (v *ScoredResource) UnmarshalJSON(raw []byte) error {
 	type read ScoredResource
 	return readOpen(raw, (*read)(v), &v.AdditionalProperties)
+}
+
+// SdkTelemetryTelemetry sdk-telemetry/telemetry.json: the telemetry a Xynolog
+// SDK's transports export over OTLP: its spans and metrics, the transport
+// each comes from, and the attributes each carries.
+type SdkTelemetryTelemetry struct {
+	// Comment The rule the table states, in prose.
+	Comment string                             `json:"$comment"`
+	Spans   []SdkTelemetryTelemetrySpansItem   `json:"spans"`
+	Metrics []SdkTelemetryTelemetryMetricsItem `json:"metrics"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v SdkTelemetryTelemetry) MarshalJSON() ([]byte, error) {
+	type written SdkTelemetryTelemetry
+	v.Spans = listOf(v.Spans)
+	v.Metrics = listOf(v.Metrics)
+	return json.Marshal(written(v))
+}
+
+type SdkTelemetryTelemetryMetricsItem struct {
+	// Name The row's name; `{channel}` in it is the bus channel, and `{jobType}`
+	// the job's type.
+	Name string `json:"name"`
+	// Transport The transport the row comes from: `bus`, the stream and emits;
+	// `content`, uploads and reads.
+	Transport SdkTelemetryTelemetryMetricsItemTransport `json:"transport"`
+	// Instrument The metric's instrument.
+	Instrument SdkTelemetryTelemetryMetricsItemInstrument `json:"instrument"`
+	// Meaning What the row says.
+	Meaning string `json:"meaning"`
+	// Attributes The attributes the span carries.
+	Attributes []SdkTelemetryTelemetryMetricsItemAttributesItem `json:"attributes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v SdkTelemetryTelemetryMetricsItem) MarshalJSON() ([]byte, error) {
+	type written SdkTelemetryTelemetryMetricsItem
+	v.Attributes = listOf(v.Attributes)
+	return json.Marshal(written(v))
+}
+
+// SdkTelemetryTelemetryMetricsItemAttributesItem An attribute a row carries.
+type SdkTelemetryTelemetryMetricsItemAttributesItem struct {
+	// Key The attribute's key.
+	Key string `json:"key"`
+	// Only When alone the attribute is carried: a row's attribute without it is
+	// carried every time.
+	Only *string `json:"only,omitempty"`
+	// Values The only values it carries, each of the type it is carried as: a
+	// string or a boolean.
+	Values *[]SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem `json:"values,omitempty"`
+}
+
+type SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem struct {
+	union[SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemMember]
+}
+
+// SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemMember is a member
+// of SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem:
+// SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText,
+// SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean.
+type SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemMember interface {
+	memberOfSdkTelemetryTelemetryMetricsItemAttributesItemValuesItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem) Member() (any, error) {
+	return u.member("SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem", sdkTelemetryTelemetryMetricsItemAttributesItemValuesItemMembers)
+}
+
+// sdkTelemetryTelemetryMetricsItemAttributesItemValuesItemMembers is what
+// each member of SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem
+// admits, and how a value of it is read.
+var sdkTelemetryTelemetryMetricsItemAttributesItemValuesItemMembers = []unionMember{
+	{"SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText", readAs[SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText], []signature{{kind: textKind}}},
+	{"SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean", readAs[SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean], []signature{{kind: booleanKind}}},
+}
+
+// SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean is a
+// SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem that is boolean.
+type SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean bool
+
+func (SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean) memberOfSdkTelemetryTelemetryMetricsItemAttributesItemValuesItem() {
+}
+
+// SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText is a
+// SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem that is text.
+type SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText string
+
+func (SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText) memberOfSdkTelemetryTelemetryMetricsItemAttributesItemValuesItem() {
+}
+
+// SdkTelemetryTelemetryMetricsItemInstrument The metric's instrument.
+type SdkTelemetryTelemetryMetricsItemInstrument string
+
+// The values of SdkTelemetryTelemetryMetricsItemInstrument.
+const (
+	SdkTelemetryTelemetryMetricsItemInstrumentCounter       SdkTelemetryTelemetryMetricsItemInstrument = "counter"
+	SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter SdkTelemetryTelemetryMetricsItemInstrument = "up-down counter"
+	SdkTelemetryTelemetryMetricsItemInstrumentGauge         SdkTelemetryTelemetryMetricsItemInstrument = "gauge"
+	SdkTelemetryTelemetryMetricsItemInstrumentHistogram     SdkTelemetryTelemetryMetricsItemInstrument = "histogram"
+)
+
+// Valid is whether e is one of SdkTelemetryTelemetryMetricsItemInstrument's
+// values.
+func (e SdkTelemetryTelemetryMetricsItemInstrument) Valid() bool {
+	switch e {
+	case SdkTelemetryTelemetryMetricsItemInstrumentCounter, SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter, SdkTelemetryTelemetryMetricsItemInstrumentGauge, SdkTelemetryTelemetryMetricsItemInstrumentHistogram:
+		return true
+	}
+	return false
+}
+
+// SdkTelemetryTelemetryMetricsItemTransport The transport the row comes from:
+// `bus`, the stream and emits; `content`, uploads and reads.
+type SdkTelemetryTelemetryMetricsItemTransport string
+
+// The values of SdkTelemetryTelemetryMetricsItemTransport.
+const (
+	SdkTelemetryTelemetryMetricsItemTransportBus     SdkTelemetryTelemetryMetricsItemTransport = "bus"
+	SdkTelemetryTelemetryMetricsItemTransportContent SdkTelemetryTelemetryMetricsItemTransport = "content"
+)
+
+// Valid is whether e is one of SdkTelemetryTelemetryMetricsItemTransport's
+// values.
+func (e SdkTelemetryTelemetryMetricsItemTransport) Valid() bool {
+	switch e {
+	case SdkTelemetryTelemetryMetricsItemTransportBus, SdkTelemetryTelemetryMetricsItemTransportContent:
+		return true
+	}
+	return false
+}
+
+type SdkTelemetryTelemetrySpansItem struct {
+	// Name The row's name; `{channel}` in it is the bus channel, and `{jobType}`
+	// the job's type.
+	Name string `json:"name"`
+	// Transport The transport the row comes from: `bus`, the stream and emits;
+	// `content`, uploads and reads.
+	Transport SdkTelemetryTelemetrySpansItemTransport `json:"transport"`
+	// Kind The span's kind, in OTLP's words.
+	Kind SdkTelemetryTelemetrySpansItemKind `json:"kind"`
+	// Meaning What the row says.
+	Meaning string `json:"meaning"`
+	// Attributes The attributes the span carries.
+	Attributes []SdkTelemetryTelemetrySpansItemAttributesItem `json:"attributes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v SdkTelemetryTelemetrySpansItem) MarshalJSON() ([]byte, error) {
+	type written SdkTelemetryTelemetrySpansItem
+	v.Attributes = listOf(v.Attributes)
+	return json.Marshal(written(v))
+}
+
+// SdkTelemetryTelemetrySpansItemAttributesItem An attribute a row carries.
+type SdkTelemetryTelemetrySpansItemAttributesItem struct {
+	// Key The attribute's key.
+	Key string `json:"key"`
+	// Only When alone the attribute is carried: a row's attribute without it is
+	// carried every time.
+	Only *string `json:"only,omitempty"`
+	// Values The only values it carries, each of the type it is carried as: a
+	// string or a boolean.
+	Values *[]SdkTelemetryTelemetrySpansItemAttributesItemValuesItem `json:"values,omitempty"`
+}
+
+type SdkTelemetryTelemetrySpansItemAttributesItemValuesItem struct {
+	union[SdkTelemetryTelemetrySpansItemAttributesItemValuesItemMember]
+}
+
+// SdkTelemetryTelemetrySpansItemAttributesItemValuesItemMember is a member of
+// SdkTelemetryTelemetrySpansItemAttributesItemValuesItem:
+// SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText,
+// SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean.
+type SdkTelemetryTelemetrySpansItemAttributesItemValuesItemMember interface {
+	memberOfSdkTelemetryTelemetrySpansItemAttributesItemValuesItem()
+}
+
+// Member is the member this value is: the one whose schema admits it.
+func (u SdkTelemetryTelemetrySpansItemAttributesItemValuesItem) Member() (any, error) {
+	return u.member("SdkTelemetryTelemetrySpansItemAttributesItemValuesItem", sdkTelemetryTelemetrySpansItemAttributesItemValuesItemMembers)
+}
+
+// sdkTelemetryTelemetrySpansItemAttributesItemValuesItemMembers is what each
+// member of SdkTelemetryTelemetrySpansItemAttributesItemValuesItem admits,
+// and how a value of it is read.
+var sdkTelemetryTelemetrySpansItemAttributesItemValuesItemMembers = []unionMember{
+	{"SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText", readAs[SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText], []signature{{kind: textKind}}},
+	{"SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean", readAs[SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean], []signature{{kind: booleanKind}}},
+}
+
+// SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean is a
+// SdkTelemetryTelemetrySpansItemAttributesItemValuesItem that is boolean.
+type SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean bool
+
+func (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean) memberOfSdkTelemetryTelemetrySpansItemAttributesItemValuesItem() {
+}
+
+// SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText is a
+// SdkTelemetryTelemetrySpansItemAttributesItemValuesItem that is text.
+type SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText string
+
+func (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText) memberOfSdkTelemetryTelemetrySpansItemAttributesItemValuesItem() {
+}
+
+// SdkTelemetryTelemetrySpansItemKind The span's kind, in OTLP's words.
+type SdkTelemetryTelemetrySpansItemKind string
+
+// The values of SdkTelemetryTelemetrySpansItemKind.
+const (
+	SdkTelemetryTelemetrySpansItemKindClient   SdkTelemetryTelemetrySpansItemKind = "client"
+	SdkTelemetryTelemetrySpansItemKindConsumer SdkTelemetryTelemetrySpansItemKind = "consumer"
+	SdkTelemetryTelemetrySpansItemKindInternal SdkTelemetryTelemetrySpansItemKind = "internal"
+	SdkTelemetryTelemetrySpansItemKindProducer SdkTelemetryTelemetrySpansItemKind = "producer"
+	SdkTelemetryTelemetrySpansItemKindServer   SdkTelemetryTelemetrySpansItemKind = "server"
+)
+
+// Valid is whether e is one of SdkTelemetryTelemetrySpansItemKind's values.
+func (e SdkTelemetryTelemetrySpansItemKind) Valid() bool {
+	switch e {
+	case SdkTelemetryTelemetrySpansItemKindClient, SdkTelemetryTelemetrySpansItemKindConsumer, SdkTelemetryTelemetrySpansItemKindInternal, SdkTelemetryTelemetrySpansItemKindProducer, SdkTelemetryTelemetrySpansItemKindServer:
+		return true
+	}
+	return false
+}
+
+// SdkTelemetryTelemetrySpansItemTransport The transport the row comes from:
+// `bus`, the stream and emits; `content`, uploads and reads.
+type SdkTelemetryTelemetrySpansItemTransport string
+
+// The values of SdkTelemetryTelemetrySpansItemTransport.
+const (
+	SdkTelemetryTelemetrySpansItemTransportBus     SdkTelemetryTelemetrySpansItemTransport = "bus"
+	SdkTelemetryTelemetrySpansItemTransportContent SdkTelemetryTelemetrySpansItemTransport = "content"
+)
+
+// Valid is whether e is one of SdkTelemetryTelemetrySpansItemTransport's
+// values.
+func (e SdkTelemetryTelemetrySpansItemTransport) Valid() bool {
+	switch e {
+	case SdkTelemetryTelemetrySpansItemTransportBus, SdkTelemetryTelemetrySpansItemTransportContent:
+		return true
+	}
+	return false
 }
 
 // SecretRef A secret the document names and does not hold. The launcher hands
@@ -12964,6 +14622,42 @@ type SessionLeftEvent struct {
 	ConnectionId string `json:"connectionId"`
 }
 
+// SessionOauth session/oauth.json: the clients a Xynolog client signs in to
+// the issuer as, and the scope every sign-in asks for.
+type SessionOauth struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// Clients The clients the realm registers.
+	Clients []SessionOauthClientsItem `json:"clients"`
+	// Scopes What every sign-in asks for.
+	Scopes SessionOauthScopes `json:"scopes"`
+}
+
+// MarshalJSON writes v, each list its schema requires that Go holds as nil
+// written as the empty list.
+func (v SessionOauth) MarshalJSON() ([]byte, error) {
+	type written SessionOauth
+	v.Clients = listOf(v.Clients)
+	return json.Marshal(written(v))
+}
+
+type SessionOauthClientsItem struct {
+	// Name What the client is named by in every SDK.
+	Name string `json:"name"`
+	// Id The client id the realm registers.
+	Id string `json:"id"`
+	// Docs Its documentation, in prose.
+	Docs string `json:"docs"`
+}
+
+// SessionOauthScopes What every sign-in asks for.
+type SessionOauthScopes struct {
+	// Value The scopes, separated by a space.
+	Value string `json:"value"`
+	// Docs Its documentation, in prose.
+	Docs string `json:"docs"`
+}
+
 // SessionState valid: the stack's gateway accepts the stored token. expired:
 // it refuses it (a refresh, or xynolog login, renews it). unverified: the
 // stack did not answer. none: nothing is stored.
@@ -13196,6 +14890,49 @@ type SignInOutcome struct {
 	// Expected What the person believed they were signing in to. Absent when
 	// they named nothing.
 	Expected *Expected `json:"expected,omitempty"`
+}
+
+// SignInStoreOwnerOnly sign-in-store/owner-only.json: how a writer keeps a
+// directory and a file to its owner.
+type SignInStoreOwnerOnly struct {
+	// Comment The rule the table states, in prose.
+	Comment string `json:"$comment"`
+	// DirectoryMode A mode, on a system that has modes.
+	DirectoryMode SignInStoreOwnerOnlyDirectoryMode `json:"directoryMode"`
+	// FileMode A mode, on a system that has modes.
+	FileMode SignInStoreOwnerOnlyFileMode `json:"fileMode"`
+	// DirectoryAccessList An access list, on Windows.
+	DirectoryAccessList SignInStoreOwnerOnlyDirectoryAccessList `json:"directoryAccessList"`
+	// FileAccessList An access list, on Windows.
+	FileAccessList SignInStoreOwnerOnlyFileAccessList `json:"fileAccessList"`
+}
+
+// SignInStoreOwnerOnlyDirectoryAccessList An access list, on Windows.
+type SignInStoreOwnerOnlyDirectoryAccessList struct {
+	// Value The access list in SDDL, with `{owner}` where the owner's SID goes.
+	Value string `json:"value"`
+	Docs  string `json:"docs"`
+}
+
+// SignInStoreOwnerOnlyDirectoryMode A mode, on a system that has modes.
+type SignInStoreOwnerOnlyDirectoryMode struct {
+	// Value The mode, in octal.
+	Value string `json:"value"`
+	Docs  string `json:"docs"`
+}
+
+// SignInStoreOwnerOnlyFileAccessList An access list, on Windows.
+type SignInStoreOwnerOnlyFileAccessList struct {
+	// Value The access list in SDDL, with `{owner}` where the owner's SID goes.
+	Value string `json:"value"`
+	Docs  string `json:"docs"`
+}
+
+// SignInStoreOwnerOnlyFileMode A mode, on a system that has modes.
+type SignInStoreOwnerOnlyFileMode struct {
+	// Value The mode, in octal.
+	Value string `json:"value"`
+	Docs  string `json:"docs"`
 }
 
 // SignedIn What a completed sign-in learned, as a registry is handed it to

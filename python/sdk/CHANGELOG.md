@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A type for ten of Protocol's tables that no service keeps, each typed by
+  the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+  `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
+  `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
+  `SignInStoreOwnerOnly`.
 - `xynolog.service_environment`: every environment variable a Xynolog service
   reads, beside its configuration document, a constant of its name
   (`XYNOLOG_BUS_LOG`). The bus log reads its variable by it.
@@ -65,6 +70,24 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- An upload is a `PutBinaryRequest` (`xynolog.types`), the model of
+  Protocol's `client/types/PutBinaryRequest.json`, where it was the dataclass
+  `xynolog.transport.PutBinaryRequest`, with the members it had. It is
+  validated as it is made, and refuses a member its schema does not name.
+  `entity_types` is a `list[str]` or `None`, `None` when it is left out,
+  where it was a sequence that was empty when left out; `generator` is a
+  `OneOrMoreAgents`, an `Agent` or a `list[Agent]`, where it was an `Agent`
+  or a sequence of them. What an upload sends is as it was.
+- A resource's bytes, read whole, are a `ResourceRepresentation`
+  (`xynolog.types`), the type of Protocol's
+  `client/types/ResourceRepresentation.json`, where they were
+  `xynolog.transport.Content`, with the members it had, `data` and
+  `content_type`.
+- `browse.engines()` is a `Cached[EnginesWithLimits]` of
+  `xynolog.types.EngineWithLimits`, the types of Protocol's
+  `client/types/EnginesWithLimits.json`, where it was of
+  `xynolog.namespaces.browse.EngineWithLimits`: an engine's `engine` and
+  `jobs` are its own, where they were its `entry`'s.
 - A retry budget is `xynolog.types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
   `EMIT_RETRY` and `REFRESH_RETRY` are one, and `retry_with_backoff` and

@@ -221,7 +221,7 @@ const CALLS: Calls = {
       };
       return c.yield.resource({
         name: data.name,
-        file: Buffer.from(data.file),
+        file: new Blob([data.file]),
         format: data.format,
         storageUri: data.storageUri,
       });
@@ -294,7 +294,7 @@ function recordingContent(calls: Recorded[]): IContentTransport {
         operation: 'putBinary',
         given: wired({
           name: request.name,
-          content: Buffer.from(request.file as Buffer).toString('utf8'),
+          content: await request.file.text(),
           format: request.format,
           storageUri: request.storageUri,
           cloneToken: request.cloneToken,
@@ -304,7 +304,7 @@ function recordingContent(calls: Recorded[]): IContentTransport {
     },
     async getBinary(id) {
       read('getBinary', id);
-      return { data: new ArrayBuffer(0), contentType: 'text/plain' };
+      return { data: new Blob([]), contentType: 'text/plain' };
     },
     async getBinaryStream(id) {
       read('getBinaryStream', id);

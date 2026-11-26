@@ -1,10 +1,11 @@
 (* Every schema the Haskell SDK's models type, by name: the gateway's
    component schemas, each carried table's own ([Carried_tables]), and the
-   schemas the SDK derives beside them. A component is named by its file. Beside them are the form a resource's
-   upload states its metadata in (ResourceUpload without its file), the records of the client registry
-   and of how a session ends, the stored sign-in, session and resources, an
-   engine with its limits, what an HTTP operation states in place, and each bus
-   envelope. None may take a component's name. *)
+   schemas the SDK derives beside them. A component is named by its file.
+   Beside them are the form a resource's upload states its metadata in
+   (ResourceUpload without its file), the records of the client registry and
+   of how a session ends, the stored sign-in, session and resources, what an
+   HTTP operation states in place, and each bus envelope. None may take a
+   component's name. *)
 
 let ( let* ) = Result.bind
 
@@ -61,35 +62,6 @@ let without_properties keys (s : Schema.schema) =
         s.properties;
   }
 
-let reference name =
-  Schema.Schema
-    {
-      Schema.empty with
-      ref_ = Some { Decode.target = name ^ ".json"; file = ""; pointer = "" };
-    }
-
-let with_property key schema (s : Schema.schema) =
-  {
-    s with
-    properties =
-      Some
-        (List.map
-           (fun (k, v) -> if k = key then (k, schema) else (k, v))
-           (Option.value s.properties ~default:[])
-        @
-        if List.mem_assoc key (Option.value s.properties ~default:[]) then []
-        else [ (key, schema) ]);
-  }
-
-let payload_types = "typescript/core/src/payload-types.ts"
-
-let squeeze text =
-  String.concat ""
-    (List.map (String.make 1)
-       (List.filter
-          (fun c -> not (List.mem c [ ' '; '\n'; '\r'; '\t' ]))
-          (List.of_seq (String.to_seq text))))
-
 (* The roots ([Roots]), each the schema of the file its reference
    names, with each file it refers to that no generation names written in its
    place ([Schema_names.in_place]): as the models type it
@@ -137,7 +109,7 @@ let titled ids records (r : Decode.reference) =
     | None ->
         raise (Unresolved ("reference into a table not read: " ^ r.target))
 
-let derive ~root (spec : Spec.t) ~adapters ~http ~envelopes =
+let derive (spec : Spec.t) ~adapters ~http ~envelopes =
   let* roots = components spec in
   let components = List.map (fun (name, (typed, _)) -> (name, typed)) roots in
   (* What is derived from a root's shape is validated as that shape: a root
@@ -155,19 +127,10 @@ let derive ~root (spec : Spec.t) ~adapters ~http ~envelopes =
     | None -> Error (name ^ " schema missing")
   in
   let* () = shaped "ResourceUpload" in
-  let* () = shaped "EngineEntry" in
   let component name =
     match List.assoc_opt name components with
     | Some s -> Ok s
     | None -> Error (name ^ " schema missing")
-  in
-  let normalize s =
-    Normalize.normalize spec.Spec.ids
-      ~find:(fun r ->
-        match List.assoc_opt (referenced r) components with
-        | Some s -> Ok s
-        | None -> Error ("unknown schema reference: " ^ r.target))
-      (canonical ~rewrite:unchanged s)
   in
   let* upload =
     Result.bind (component "ResourceUpload") (layer "ResourceUpload")
@@ -182,27 +145,6 @@ let derive ~root (spec : Spec.t) ~adapters ~http ~envelopes =
         (without_properties [ "file" ] upload) with
         required = Some (List.filter (( <> ) "file") required);
       }
-  in
-  let* () =
-    if
-      Marker.find
-        "exporttypeEngineWithLimits=EngineEntry&{limits?:components['schemas']['InferenceLimits'];};"
-        (squeeze (Marker.read ~root payload_types))
-      = None
-    then Error "EngineWithLimits changed: update its derived Haskell adapter"
-    else Ok ()
-  in
-  let* engine = Result.bind (component "EngineEntry") normalize in
-  let* () =
-    if engine.properties = None then Error "EngineEntry properties missing"
-    else Ok ()
-  in
-  let options =
-    [
-      ( "EngineWithLimits",
-        Schema.Schema
-          (with_property "limits" (reference "InferenceLimits") engine) );
-    ]
   in
   let* table_records = Table_records.all spec in
   let* records =
@@ -232,8 +174,7 @@ let derive ~root (spec : Spec.t) ~adapters ~http ~envelopes =
     @ [ ("SignIn", sign_in) ]
   in
   let derived =
-    [ ("ResourceUploadMetadata", metadata) ]
-    @ stored @ options @ http @ envelopes
+    [ ("ResourceUploadMetadata", metadata) ] @ stored @ http @ envelopes
   in
   let* () =
     match List.find_opt (fun (n, _) -> List.mem_assoc n components) derived with

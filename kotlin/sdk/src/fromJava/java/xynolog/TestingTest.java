@@ -40,10 +40,10 @@ import xynolog.testing.TestSession;
 import xynolog.testing.TestSessionKt;
 import xynolog.testing.TestSessionOptions;
 import xynolog.transport.Carried;
-import xynolog.transport.Content;
 import xynolog.transport.Frame;
 import xynolog.transport.PendingReply;
 import xynolog.transport.ResourceHold;
+import xynolog.types.ResourceRepresentation;
 
 /**
  * The testing module as a Java program's tests use it: doubles scripted from
@@ -141,8 +141,8 @@ final class TestingTest {
     void theDoublesTwinsAreCalledFromJava() throws Exception {
         ResourceId resource = new ResourceId("res-1");
         InMemoryContent content = new InMemoryContent();
-        content.seed(resource, new Content("text/plain", "the bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        assertArrayEquals("the bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8), content.getBinaryFuture(resource).get(10, SECONDS).getBytes());
+        content.seed(resource, new ResourceRepresentation("the bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8), "text/plain"));
+        assertArrayEquals("the bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8), content.getBinaryFuture(resource).get(10, SECONDS).getData());
         assertEquals("text/plain", content.getBinaryStreamFuture(resource).get(10, SECONDS).getContentType());
         // What nobody stored is not found, never read as nothing.
         assertThrows(ExecutionException.class, () -> content.getBinaryFuture(new ResourceId("res-2")).get(10, SECONDS));

@@ -150,22 +150,22 @@ let control_answers (t : Table.t) =
     ]
 
 let file (t : Table.t) =
-  let bus c = R.Path [ "BusRequestErrorCode"; variant c ] in
-  let transport c = R.Path [ "TransportErrorCode"; variant c ] in
   let names : Table.vocabulary -> string = fun v -> v.go_name in
+  let bus c = R.Path [ names t.bus; variant c ] in
+  let transport c = R.Path [ names t.transport; variant c ] in
   {
     Output.path;
     text =
       R.text
         ~header:
           (Banner.lines ~from_:"protocol/specs/src/errors/codes.json" __FILE__)
-        (vocabulary ~name:"BusRequestErrorCode" t.bus
+        (vocabulary ~name:(names t.bus) t.bus
         @ [
             R.Impl
               {
                 generics = [];
                 trait_ = None;
-                for_ = R.named "BusRequestErrorCode";
+                for_ = R.named (names t.bus);
                 items =
                   [
                     R.I_fn
@@ -182,7 +182,7 @@ let file (t : Table.t) =
                              R.Param
                                ("code", R.named "Option" ~args:[ wire_type ]);
                            ]
-                         ~ret:(R.named "BusRequestErrorCode")
+                         ~ret:(R.named (names t.bus))
                          [
                            R.Tail
                              (R.Match
@@ -220,13 +220,13 @@ let file (t : Table.t) =
               };
             R.Blank;
           ]
-        @ vocabulary ~name:"TransportErrorCode" t.transport
+        @ vocabulary ~name:(names t.transport) t.transport
         @ [
             R.Impl
               {
                 generics = [];
                 trait_ = None;
-                for_ = R.named "TransportErrorCode";
+                for_ = R.named (names t.transport);
                 items =
                   [
                     R.I_fn
@@ -234,7 +234,7 @@ let file (t : Table.t) =
                          ~doc:[ "The code an HTTP status becomes." ]
                          ~vis:Pub ~const:true "of_status"
                          ~params:[ R.Param ("status", R.named "u16") ]
-                         ~ret:(R.named "TransportErrorCode")
+                         ~ret:(R.named (names t.transport))
                          [
                            R.Tail
                              (R.Match

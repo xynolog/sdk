@@ -110,6 +110,48 @@ let unions =
           };
         ];
       ] );
+    ( "Sdk_telemetry_telemetry_spans_item_attributes_item_values_item",
+      [
+        [
+          {
+            kind = Text_kind;
+            required = [];
+            allowed = None;
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Boolean_kind;
+            required = [];
+            allowed = None;
+            fixed = [];
+            values = None;
+          };
+        ];
+      ] );
+    ( "Sdk_telemetry_telemetry_metrics_item_attributes_item_values_item",
+      [
+        [
+          {
+            kind = Text_kind;
+            required = [];
+            allowed = None;
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Boolean_kind;
+            required = [];
+            allowed = None;
+            fixed = [];
+            values = None;
+          };
+        ];
+      ] );
     ( "Selector",
       [
         [
@@ -687,6 +729,36 @@ let unions =
           };
         ];
       ] );
+    ( "Client_option_defaults_defaults_item_schema",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "$ref" ];
+            allowed = Some [ "$ref" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "type"; "description" ];
+            allowed = Some [ "type"; "minimum"; "format"; "description" ];
+            fixed =
+              [
+                ( "type",
+                  [
+                    Text_value "integer";
+                    Text_value "string";
+                    Text_value "boolean";
+                  ] );
+                ("format", [ Text_value "date-time" ]);
+              ];
+            values = None;
+          };
+        ];
+      ] );
     ( "Conformance_step_fetches_fetches_item",
       [
         [
@@ -703,6 +775,57 @@ let unions =
             kind = Object_kind;
             required = [ "fetch" ];
             allowed = Some [ "fetch"; "params" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+      ] );
+    ( "Control_cli_commands_value_positionals_item",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "name"; "fields" ];
+            allowed = Some [ "name"; "fields" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "name"; "cliOnly" ];
+            allowed = Some [ "name"; "cliOnly" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+      ] );
+    ( "Control_cli_commands_value_flags_value",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "fields" ];
+            allowed = Some [ "fields"; "notes" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "method" ];
+            allowed = Some [ "method" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "cliOnly" ];
+            allowed = Some [ "cliOnly" ];
             fixed = [];
             values = None;
           };
@@ -1100,6 +1223,118 @@ let unions =
                     Text_value "too-large";
                   ] );
               ];
+            values = None;
+          };
+        ];
+      ] );
+    ( "Client_refresh_queries_item",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "name"; "asks"; "value"; "docs" ];
+            allowed =
+              Some [ "name"; "per"; "asks"; "persisted"; "value"; "docs" ];
+            fixed =
+              [
+                ( "per",
+                  [
+                    Text_value "resource";
+                    Text_value "annotation";
+                    Text_value "filters";
+                  ] );
+                ("persisted", [ Boolean_value true ]);
+              ];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "name"; "reads"; "value"; "docs" ];
+            allowed =
+              Some [ "name"; "per"; "reads"; "persisted"; "value"; "docs" ];
+            fixed =
+              [
+                ( "per",
+                  [
+                    Text_value "resource";
+                    Text_value "annotation";
+                    Text_value "filters";
+                  ] );
+                ("persisted", [ Boolean_value true ]);
+              ];
+            values = None;
+          };
+        ];
+      ] );
+    ( "Client_refresh_refresh_item",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "on"; "docs" ];
+            allowed =
+              Some
+                [
+                  "on";
+                  "when";
+                  "reach";
+                  "names";
+                  "carries";
+                  "refetches";
+                  "writes";
+                  "removes";
+                  "docs";
+                ];
+            fixed =
+              [
+                ("when", [ Text_value "enriched"; Text_value "unenriched" ]);
+                ("reach", [ Text_value "subject"; Text_value "held" ]);
+              ];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "stream"; "docs" ];
+            allowed = Some [ "stream"; "reach"; "refetches"; "docs" ];
+            fixed =
+              [
+                ("stream", [ Text_value "reopened"; Text_value "unreadable" ]);
+                ("reach", [ Text_value "subject"; Text_value "held" ]);
+              ];
+            values = None;
+          };
+        ];
+      ] );
+    ( "Errors_codes_transport_codes_item",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "code"; "docs"; "status" ];
+            allowed = Some [ "code"; "docs"; "status"; "limitRefusals" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "code"; "docs"; "statusFrom" ];
+            allowed = Some [ "code"; "docs"; "statusFrom" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "code"; "docs" ];
+            allowed = Some [ "code"; "docs" ];
+            fixed = [];
             values = None;
           };
         ];

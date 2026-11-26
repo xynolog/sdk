@@ -1,29 +1,29 @@
 using System.Text;
-using System.Text.Json;
 using Xynolog.Protocol;
+using Xynolog.Serialization;
+using Xynolog.Types;
 
 namespace Xynolog;
 
 internal static class MediaTypes
 {
     private const string PlainText = "text/plain";
-    private static readonly JsonDocument Registry = JsonDocument.Parse(ProtocolTables.MediaTypes);
-    private static readonly Dictionary<string, JsonElement> Rows = Registry.RootElement.GetProperty("mediaTypes")
-        .EnumerateArray().ToDictionary(row => Text(row, "mediaType"), StringComparer.Ordinal);
+    private static readonly Dictionary<string, MediaTypesRegistryMediaTypesItem> Rows = ProtocolTables.MediaTypesRegistry.MediaTypes
+        .ToDictionary(row => WireEnumConverter<SupportedMediaType>.Wire(row.MediaType), StringComparer.Ordinal);
 
     internal static string Base(string format) => format.AsSpan().SplitAtSemicolon().Trim().ToString().ToLowerInvariant();
 
     internal static string TextSource(string format)
     {
         var media = Base(format);
-        return Rows.TryGetValue(media, out var row) ? Text(row, "textSource") :
+        return Rows.TryGetValue(media, out var row) ? row.TextSource :
             media.StartsWith("text/", StringComparison.Ordinal) ? "decode" : "none";
     }
 
     internal static string CloneFormat(string? format)
     {
         var media = format is null ? PlainText : Base(format);
-        return Rows.TryGetValue(media, out var row) && row.GetProperty("authorable").GetBoolean() ? media : PlainText;
+        return Rows.TryGetValue(media, out var row) && row.Authorable ? media : PlainText;
     }
 
     internal static string StorageFileName(string name, string format)
@@ -40,7 +40,7 @@ internal static class MediaTypes
             }
             else separated = true;
         }
-        var extension = Rows.TryGetValue(Base(format), out var row) ? Text(row, "extension") : ".dat";
+        var extension = Rows.TryGetValue(Base(format), out var row) ? row.Extension : ".dat";
         return slug.Append(extension).ToString();
     }
 
@@ -49,7 +49,4 @@ internal static class MediaTypes
         var end = value.IndexOf(';');
         return end < 0 ? value : value[..end];
     }
-
-    private static string Text(JsonElement row, string name) =>
-        row.GetProperty(name).GetString() ?? throw new InvalidOperationException("Missing media type member " + name);
 }

@@ -28,7 +28,7 @@ charsets = ["dep:encoding_rs"]
 
 [dependencies]
 base64.workspace = true
-bytes.workspace = true
+bytes = { workspace = true, features = ["serde"] }
 encoding_rs = { workspace = true, optional = true }
 futures-core.workspace = true
 # The system's random source, which a jitter draws from when its caller gives none.

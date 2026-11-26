@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A type for ten of Protocol's tables that no service keeps, each typed by
+  the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+  `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
+  `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
+  `SignInStoreOwnerOnly`.
 - `@xynolog/core` exports the keys a registry and its sessions keep what
   they keep under, generated from Protocol's `session/stored.json`:
   `STORAGE_KEY`, `ACTIVE_KEY`, `OPEN_RESOURCES_BY_KB_KEY`,
@@ -64,13 +69,29 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `PutBinaryRequest` is `records['PutBinaryRequest']`, generated from
+  Protocol's `client/types/PutBinaryRequest.json`, and its `file` is a
+  `Blob`, where it was a `File | Buffer`: a browser's `File` is one, and a
+  Node `Buffer` is uploaded as `new Blob([new Uint8Array(buffer)])`. A `File`
+  is sent as it is; other bytes are sent as a file named for the resource,
+  of its format, as a `Buffer` was.
+- `ResourceRepresentation` is `records['ResourceRepresentation']`, generated
+  from Protocol's `client/types/ResourceRepresentation.json`, and its `data`
+  is a `Blob`, where it was an `ArrayBuffer`: `browse.resourceRepresentation`
+  and `getBinary` answer the bytes as the response held them. A reader that
+  wants them as a buffer has `await data.arrayBuffer()`.
+- `EngineWithLimits` is `records['EngineWithLimits']`, generated from
+  Protocol's `client/types/EngineWithLimits.json`, with the members it had,
+  and `EnginesWithLimits` is its list; `browse.engines()` is a
+  `CacheObservable<EnginesWithLimits>`.
 - A retry budget is `RetryBudget`, the type of Protocol's
   `client/RetryBudget.json` (`components['schemas']['RetryBudget']`), where
   it was `RetryPolicy`: `EMIT_RETRY` and `REFRESH_RETRY` are one, and
   `retryWithBackoff` and a transport's `emitRetry` take one. Its members are
   as they were.
 - `ResourceUpload`'s `file` is `components['schemas']['Binary']`, the type of
-  Protocol's bytes held whole, which is still a `string`.
+  Protocol's bytes held whole, which is a `Blob`, where `file` was a
+  `string`. A browser's `File` is one as it is.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
 - `GetAnnotationsResponse`'s `motivation` is an optional `Motivation`, where

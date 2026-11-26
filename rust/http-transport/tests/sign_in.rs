@@ -63,13 +63,13 @@ use xynolog::storage::{
 use xynolog::testing::as_id;
 use xynolog::testing::examples::{assert_blocks_are_examples, assert_readme_shows};
 use xynolog::timing::{DEVICE_SLOW_DOWN, HTTP_REQUEST_TIMEOUT, REFRESH_RETRY, SAVE_DEBOUNCE};
-use xynolog::transport::{BoxFuture, Envelope, Events, Lagged, PutBinaryRequest};
+use xynolog::transport::{BoxFuture, Envelope, Events, Lagged};
 use xynolog::types::JobFailure;
 use xynolog::types::{
     AgentSoftware, Annotation, BeginAuthorizationOptions, DeviceCode, FailureClass, HttpEndpoint,
     HttpEndpointProtocol, JobCompleteCommand, JobProgress, KbEndpoint, KbTarget, KnowledgeBase,
     LocalEndpoint, MarkJobDone, MarkJobFilter, MarkJobFilterParams, Motivation,
-    PendingAuthorization, PrincipalProfileCommand, QuotedText, TextSpan,
+    PendingAuthorization, PrincipalProfileCommand, PutBinaryRequest, QuotedText, TextSpan,
 };
 use xynolog::types::{ClaimOptions, SessionEndReason, StoredSession};
 use xynolog_http_transport::agent::{AgentSignInError, AgentToken};

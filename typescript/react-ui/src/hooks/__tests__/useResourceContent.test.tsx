@@ -31,7 +31,7 @@ const resource = {
 } as unknown as ResourceDescriptor;
 
 const RID = resourceId('res-1');
-const utf8 = (s: string) => new TextEncoder().encode(s).buffer;
+const utf8 = (s: string) => new Blob([s]);
 
 /** A promise the test settles by hand, to observe the state while it is pending. */
 function deferred<T>() {
@@ -129,7 +129,7 @@ describe('useResourceContent — undefined means not loaded, never an empty docu
   });
 
   it('a zero-byte representation loads as the empty string', async () => {
-    const fetch = deferred<{ data: ArrayBuffer; contentType: string }>();
+    const fetch = deferred<{ data: Blob; contentType: string }>();
     mockResourceRepresentation.mockReturnValue(fetch.promise);
 
     const { result } = renderHook(() =>
@@ -145,7 +145,7 @@ describe('useResourceContent — undefined means not loaded, never an empty docu
   });
 
   it('disabling mid-fetch returns to idle: not loading, no content, and the late reply is dropped', async () => {
-    const fetch = deferred<{ data: ArrayBuffer; contentType: string }>();
+    const fetch = deferred<{ data: Blob; contentType: string }>();
     mockResourceRepresentation.mockReturnValue(fetch.promise);
 
     const { result, rerender } = renderHook(
@@ -208,7 +208,7 @@ describe('useResourceContent — every render answers for its own inputs', () =>
     const { result, rerender, rendersFor } = renderRecording();
     await waitFor(() => expect(result.current.content).toBe('first'));
 
-    const next = deferred<{ data: ArrayBuffer; contentType: string }>();
+    const next = deferred<{ data: Blob; contentType: string }>();
     mockResourceRepresentation.mockReturnValueOnce(next.promise);
     rerender({ rid: NEXT });
 
@@ -264,7 +264,7 @@ describe('useResourceContent — every render answers for its own inputs', () =>
       error: null,
     });
 
-    const refetch = deferred<{ data: ArrayBuffer; contentType: string }>();
+    const refetch = deferred<{ data: Blob; contentType: string }>();
     mockResourceRepresentation.mockReturnValueOnce(refetch.promise);
     const rendersBefore = renders.length;
     rerender({ enabled: true });

@@ -25,8 +25,9 @@ use xynolog::testing::{
     ContentCall, FaultAction, FaultyTransport, RequestLogEntry, ScriptedSessions, SharedStorage,
     TestClientOptions, create_test_client,
 };
-use xynolog::transport::{BoxFuture, Envelope, Frame, PutBinaryRequest};
+use xynolog::transport::{BoxFuture, Envelope, Frame};
 use xynolog::types::BusFrame;
+use xynolog::types::PutBinaryRequest;
 use xynolog::types::StoredSession;
 use xynolog::types::{
     Agent, ClaimOptions, GatherResourceOptions, GenerationJobParams, HighlightingJobParams,
@@ -425,7 +426,7 @@ async fn the_first_program_ingests_a_paper_has_it_annotated_gathers_its_context_
         panic!("one upload, and nothing else asked of the content: {uploads:?}");
     };
     assert_eq!(
-        (&uploaded.bytes, uploaded.format.as_str()),
+        (&uploaded.file, uploaded.format.as_str()),
         (&paper, "application/pdf")
     );
     assert_eq!(

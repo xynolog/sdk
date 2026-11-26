@@ -135,6 +135,20 @@ let store () =
         | _ -> failwith "the poll issued no tokens"
       in
       save "first";
+      let refused error =
+        O.poll_device
+          (fun _ -> (400, {|{"error":"|} ^ error ^ {|"}|}))
+          issuer device
+      in
+      assert (
+        refused "access_denied"
+        = Error { O.code = Error_codes.Sign_in.Denied; status = Some 400 });
+      assert (
+        refused "expired_token"
+        = Error { O.code = Error_codes.Sign_in.Expired; status = Some 400 });
+      assert (
+        refused "invalid_grant"
+        = Error { O.code = Error_codes.Sign_in.Exchange; status = Some 400 });
       assert ((Unix.stat path).st_perm = 0o600);
       assert (
         (Unix.stat (Filename.concat directory "tokens.lock")).st_perm = 0o600);
@@ -523,6 +537,51 @@ let agent () =
     Session.refresh_refused session ~refused:"initial" = Some "replacement");
   Agent.close agent
 
+(* A gateway that does not name the agent fails the sign-in at once: one grant,
+   one request, whatever it answers. *)
+let agent_named_once () =
+  Eio_main.run @@ fun env ->
+  Eio.Switch.run @@ fun sw ->
+  let clock =
+    Clock.make ~wall:(Eio.Stdenv.clock env)
+      ~monotonic:(Eio.Stdenv.mono_clock env)
+      ~jitter:(Random.State.make [| 3 |])
+  in
+  let sign_in answer =
+    let grants = ref 0 and asks = ref 0 in
+    let http (_ : O.request) =
+      incr grants;
+      (200, {|{"access_token":"initial"}|})
+    in
+    let call ~sw:_ ~meth:_ ~path ~headers:_ ~body:_ ~progress:_ =
+      assert (path = "/api/users/me");
+      incr asks;
+      answer ()
+    in
+    let outcome =
+      Agent.sign_in ~sw ~clock ~issuer:(issuer ()) ~http ~client_id:"worker"
+        ~proof:(Agent.Secret "secret")
+        ~key:(fun () -> "unique")
+        ~call ()
+    in
+    assert (!grants = 1 && !asks = 1);
+    match outcome with
+    | Error (Agent.Gateway failure) -> failure
+    | _ -> failwith "the sign-in did not fail at the gateway"
+  in
+  let answered status =
+    sign_in (fun () -> (status, [], Eio.Flow.string_source {|{"error":"no"}|}))
+  in
+  let unready = answered 503 in
+  assert (unready.code = Error_codes.Transport.Unavailable);
+  assert (unready.status = Some 503);
+  let refused = answered 401 in
+  assert (refused.code = Error_codes.Transport.Unauthorized);
+  assert ((answered 404).code = Error_codes.Transport.Not_found);
+  let unreachable = sign_in (fun () -> raise End_of_file) in
+  assert (unreachable.code = Error_codes.Transport.Unavailable);
+  assert (unreachable.status = None)
+
 let () =
   Alcotest.run "OCaml sign-in"
     [
@@ -533,6 +592,7 @@ let () =
           Alcotest.test_case "renewal refused by status" `Quick refusals;
           Alcotest.test_case "issuer revocation form" `Quick revoke;
           Alcotest.test_case "agent identity and renewal" `Quick agent;
+          Alcotest.test_case "agent named once" `Quick agent_named_once;
         ] );
       ( "shared store",
         [

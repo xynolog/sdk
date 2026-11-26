@@ -96,5 +96,11 @@ let () =
           holds "an object in place that names no member and admits any"
             {|{"type":"object","required":["x"],"properties":{"x":{"type":"object","additionalProperties":true}}}|}
             "public var x: [String: JSONValue]";
+          holds "bytes as Data, and other text as a String"
+            {|{"type":"object","required":["file","name"],"properties":{"file":{"type":"string","format":"binary"},"name":{"type":"string"}}}|}
+            "public var file: Data\n  public var name: String";
+          holds "a named list as an alias of its array"
+            {|{"type":"array","items":{"type":"string"}}|}
+            "public typealias Fixture = [String]";
         ] );
     ]

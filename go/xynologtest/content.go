@@ -30,14 +30,14 @@ type ContentCall struct {
 	// upload.
 	Resource api.ResourceId
 	// Put is what an upload was given; nil for a read.
-	Put *xynolog.PutBinaryRequest
+	Put *api.PutBinaryRequest
 }
 
 // InMemoryContent is a content transport that keeps what it is given (see the
 // file's documentation).
 type InMemoryContent struct {
 	mu          sync.Mutex
-	stored      map[api.ResourceId]xynolog.Content
+	stored      map[api.ResourceId]api.ResourceRepresentation
 	graphs      map[api.ResourceId]api.GetResourceResponse
 	annotations map[api.ResourceId]api.GetAnnotationsResponse
 	anchored    map[api.ResourceId]api.AnchoredTextAnswer
@@ -49,7 +49,7 @@ var _ xynolog.ContentTransport = (*InMemoryContent)(nil)
 // NewInMemoryContent is an InMemoryContent holding nothing.
 func NewInMemoryContent() *InMemoryContent {
 	return &InMemoryContent{
-		stored:      map[api.ResourceId]xynolog.Content{},
+		stored:      map[api.ResourceId]api.ResourceRepresentation{},
 		graphs:      map[api.ResourceId]api.GetResourceResponse{},
 		annotations: map[api.ResourceId]api.GetAnnotationsResponse{},
 		anchored:    map[api.ResourceId]api.AnchoredTextAnswer{},
@@ -57,7 +57,7 @@ func NewInMemoryContent() *InMemoryContent {
 }
 
 // Seed stores content as the bytes of resource.
-func (c *InMemoryContent) Seed(resource api.ResourceId, content xynolog.Content) {
+func (c *InMemoryContent) Seed(resource api.ResourceId, content api.ResourceRepresentation) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.stored[resource] = content
@@ -118,9 +118,9 @@ func read[T any](c *InMemoryContent, held map[api.ResourceId]T, what string, res
 // PutBinary stores the bytes under an id of this double's making,
 // test-content-<n>, and reports their size, that all of them were sent, and
 // the resource made.
-func (c *InMemoryContent) PutBinary(_ context.Context, request xynolog.PutBinaryRequest) *xynolog.Upload {
+func (c *InMemoryContent) PutBinary(_ context.Context, request api.PutBinaryRequest) *xynolog.Upload {
 	return xynolog.NewUpload(func(report func(api.UploadProgress)) (api.CreateResourceResponse, error) {
-		size := len(request.Bytes)
+		size := len(request.File)
 		var started, sent api.UploadProgress
 		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: size}); err != nil {
 			return api.CreateResourceResponse{}, err
@@ -135,7 +135,7 @@ func (c *InMemoryContent) PutBinary(_ context.Context, request xynolog.PutBinary
 			c.mu.Unlock()
 			return api.CreateResourceResponse{}, err
 		}
-		c.stored[resource] = xynolog.Content{Bytes: request.Bytes, ContentType: request.Format}
+		c.stored[resource] = api.ResourceRepresentation{Data: request.File, ContentType: request.Format}
 		c.calls = append(c.calls, ContentCall{Operation: "putBinary", Put: &request})
 		c.mu.Unlock()
 		report(sent)
@@ -143,7 +143,7 @@ func (c *InMemoryContent) PutBinary(_ context.Context, request xynolog.PutBinary
 	})
 }
 
-func (c *InMemoryContent) GetBinary(_ context.Context, resource api.ResourceId) (xynolog.Content, error) {
+func (c *InMemoryContent) GetBinary(_ context.Context, resource api.ResourceId) (api.ResourceRepresentation, error) {
 	c.record(ContentCall{Operation: "getBinary", Resource: resource})
 	return read(c, c.stored, "content", resource)
 }
@@ -154,7 +154,7 @@ func (c *InMemoryContent) GetBinaryStream(_ context.Context, resource api.Resour
 	if err != nil {
 		return xynolog.ContentStream{}, err
 	}
-	return xynolog.ContentStream{Bytes: io.NopCloser(bytes.NewReader(content.Bytes)), ContentType: content.ContentType}, nil
+	return xynolog.ContentStream{Bytes: io.NopCloser(bytes.NewReader(content.Data)), ContentType: content.ContentType}, nil
 }
 
 func (c *InMemoryContent) GetResourceGraph(_ context.Context, resource api.ResourceId) (api.GetResourceResponse, error) {

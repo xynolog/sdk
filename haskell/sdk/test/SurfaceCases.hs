@@ -99,7 +99,7 @@ withAnswers fixtures answerOverride action = do
               progress (UploadFinished (createResourceResponseResourceId created))
               pure created
           )
-          (\_ identity -> recordContent "getBinary" identity >> pure (Content.BinaryContent "text/plain" "surface"))
+          (\_ identity -> recordContent "getBinary" identity >> pure (ResourceRepresentation {resourceRepresentationData = Binary "surface", resourceRepresentationContentType = "text/plain"}))
           (\_ identity consume -> recordContent "getBinaryStream" identity >> consume "text/plain" (Stream.yield "surface"))
           (\_ identity -> recordContent "getResourceGraph" identity >> fixture fixtures "GetResourceResponse")
           (\_ identity -> recordContent "getAnnotations" identity >> fixture fixtures "GetAnnotationsResponse")

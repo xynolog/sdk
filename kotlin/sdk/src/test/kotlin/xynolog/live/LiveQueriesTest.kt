@@ -32,7 +32,6 @@ import xynolog.cache.CacheRefreshTrigger
 import xynolog.cache.CacheState
 import xynolog.cache.PERSISTED_QUERIES
 import xynolog.errors.BusRequestError
-import xynolog.namespaces.EngineWithLimits
 import xynolog.registry.cacheKey
 import xynolog.registry.lastEventIdKey
 import xynolog.sameJson
@@ -42,6 +41,7 @@ import xynolog.storage.MemoryStorage
 import xynolog.storage.SessionStorage
 import xynolog.transport.Frame
 import xynolog.types.BrowseResourcesRequest
+import xynolog.types.EnginesWithLimits
 import xynolog.types.ResourceSearchFilters
 import java.util.concurrent.CountDownLatch
 import kotlin.time.TimeSource
@@ -168,7 +168,7 @@ class LiveQueriesTest {
         val claude = """{"provider":"anthropic","model":"claude-opus-5-5"}"""
         val world = KbWorld(StandardTestDispatcher(testScheduler), testScheduler.timeSource, answered = false)
         val kb = world.kb
-        fun limitsOf(engines: List<EngineWithLimits>) = engines.map { it.limits?.contextTokens }
+        fun limitsOf(engines: EnginesWithLimits) = engines.map { it.limits?.contextTokens }
 
         val live = world.watch(world.client.browse.engines())
         assertEquals(CacheState.Pending, live.next())
@@ -194,7 +194,7 @@ class LiveQueriesTest {
         // The engines are shown when they are answered, with what has been reported so far: they wait for no holder.
         kb.answer(engines, json("""{"engines":[{"engine":$gemma},{"engine":$claude}]}"""))
         var shown = live.ready().value
-        assertEquals(listOf("gemma2:27b", "claude-opus-5-5"), shown.map { it.entry.engine.model })
+        assertEquals(listOf("gemma2:27b", "claude-opus-5-5"), shown.map { it.engine.model })
         assertEquals(listOf(8192.0, null), limitsOf(shown))
 
         // A holder that reports later delays only its own engines' limits.
@@ -214,7 +214,7 @@ class LiveQueriesTest {
         live.nothingFor()
         kb.answer(kb.emitted[4], json("""{"engines":[{"engine":$claude}]}"""))
         shown = live.ready().value
-        assertEquals(listOf("claude-opus-5-5"), shown.map { it.entry.engine.model })
+        assertEquals(listOf("claude-opus-5-5"), shown.map { it.engine.model })
         assertEquals(listOf(9.0), limitsOf(shown))
         world.close()
     }

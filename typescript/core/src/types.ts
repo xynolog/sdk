@@ -641,7 +641,7 @@ export interface components {
      * Bytes held whole. They can be read more than once, and sent again when an
      * upload is retried.
      */
-    Binary: string;
+    Binary: Blob;
     /**
      * One edit to a linking annotation's body list: add or remove a body item,
      * or replace an existing one.
@@ -1125,6 +1125,49 @@ export interface components {
       reason?: string;
     };
     /**
+     * client/connection-states.json: where a client's stream can be, and where
+     * it can move from each.
+     */
+    ClientConnectionStates: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /**
+       * Each state, in ConnectionState's order, what it means, and the states
+       * it can move to.
+       */
+      states: ClientConnectionStatesStatesItem[];
+    };
+    /**
+     * client/discovery-absent.json: why a client that read a launcher's
+     * discovery document found no launcher.
+     */
+    ClientDiscoveryAbsent: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** Each reason, and what it means. */
+      reasons: ClientDiscoveryAbsentReasonsItem[];
+    };
+    /**
+     * client/option-defaults.json: what a public option of a Xynolog client is
+     * when its caller leaves it out, where the client, not the service,
+     * decides.
+     */
+    ClientOptionDefaults: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** Each default, once. */
+      defaults: ClientOptionDefaultsDefaultsItem[];
+    };
+    /** client/refresh.json: what a Xynolog client asks again for, and when. */
+    ClientRefresh: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** The live queries. */
+      queries: ClientRefreshQueriesItem[];
+      /** A row per trigger. */
+      refresh: ClientRefreshRefreshItem[];
+    };
+    /**
      * The form a service account that holds a client secret posts to its
      * issuer's token endpoint for a client-credentials grant: its client id and
      * secret in the body (RFC 6749 §2.3.1). An account that holds a key proves
@@ -1137,6 +1180,19 @@ export interface components {
       client_id: string;
       /** The account's client secret. */
       client_secret: string;
+    };
+    /** client/testing.json: the testing kit every SDK ships. */
+    ClientTesting: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** What a faulty transport does to a request. */
+      faultActions: ClientTestingFaultActionsItem[];
+      delayMs: ClientTestingDelayMs;
+      scheduleLength: ClientTestingScheduleLength;
+      slack: ClientTestingSlack;
+      deliveryOps: ClientTestingDeliveryOps;
+      /** The kit's records. */
+      records: ClientTestingRecordsItem[];
     };
     CloneResourceWithTokenResponse: {
       /** Generated clone token */
@@ -1399,6 +1455,25 @@ export interface components {
        */
       relevantFields: ContextualSummaryResponseRelevantFields;
       context: ContextualSummaryResponseContext;
+    };
+    /**
+     * control/cli.json: every option of the launcher commands the control API
+     * covers, and what it is in the API.
+     */
+    ControlCli: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** Each command, by its name. */
+      commands: { [key: string]: ControlCliCommandsValue };
+    };
+    /**
+     * control/rpc-codes.json: the JSON-RPC error codes the control API answers
+     * with.
+     */
+    ControlRpcCodes: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      codes: ControlRpcCodesCodesItem[];
     };
     /**
      * Which side of the control API sends a message: the client, whose
@@ -1722,6 +1797,49 @@ export interface components {
       /** What the caller can do about it, when there is something to say. */
       hint?: string;
       details?: unknown;
+    };
+    /**
+     * errors/codes.json: the error codes a Xynolog client reports, in one
+     * vocabulary for each kind of failure.
+     */
+    ErrorsCodes: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** Why a bus request did not resolve. */
+      busRequest: ErrorsCodesBusRequest;
+      /** The transport-neutral failure vocabulary. */
+      transport: ErrorsCodesTransport;
+      /**
+       * A vocabulary that states nothing of its codes but each one's docs:
+       * here, why a job its client follows ended without a result.
+       */
+      job: ErrorsCodesJob;
+      /**
+       * A vocabulary that states nothing of its codes but each one's docs:
+       * here, why a job its client follows ended without a result.
+       */
+      session: ErrorsCodesSession;
+      /**
+       * A vocabulary that states nothing of its codes but each one's docs:
+       * here, why a job its client follows ended without a result.
+       */
+      signIn: ErrorsCodesSignIn;
+      /**
+       * A vocabulary that states nothing of its codes but each one's docs:
+       * here, why a job its client follows ended without a result.
+       */
+      kbIdentity: ErrorsCodesKbIdentity;
+      /**
+       * A vocabulary that states nothing of its codes but each one's docs:
+       * here, why a job its client follows ended without a result.
+       */
+      spanRefusal: ErrorsCodesSpanRefusal;
+      /**
+       * Why a request of the launcher's control API failed: each code, the
+       * JSON-RPC code an answer carries it under, and whether a request that
+       * fails with it is retryable.
+       */
+      control: ErrorsCodesControl;
     };
     /**
      * Metadata added at persistence time. Part of every StoredEvent. Integrity
@@ -2357,6 +2475,17 @@ export interface components {
      * it, so it is no component.
      */
     HttpStatus: number;
+    /**
+     * identifiers/kinds.json: the kinds of id the protocol names, the
+     * properties that carry each, and the properties named like an id that
+     * carry something else.
+     */
+    IdentifiersKinds: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      kinds: IdentifiersKindsKindsItem[];
+      others: IdentifiersKindsOthersItem[];
+    };
     /**
      * An account in a knowledge base's launcher-managed identity realm.
      * Passwords and tokens are never included.
@@ -4134,6 +4263,26 @@ export interface components {
       token: string;
     };
     /**
+     * media-types/registry.json: the media types a knowledge base admits, and
+     * what the system can do with each.
+     */
+    MediaTypesRegistry: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** The viewers a reader mounts. */
+      render: string[];
+      /** The annotation models. */
+      anchoring: string[];
+      /** Where a type's text comes from. */
+      textSource: string[];
+      /**
+       * Each extension another stands for, by the extension that stands for it.
+       */
+      extensionAliases: { [key: string]: string };
+      /** One row for each member of SupportedMediaType. */
+      mediaTypes: MediaTypesRegistryMediaTypesItem[];
+    };
+    /**
      * A graph held in the memory of the one process that is given it: for a
      * test. It cannot be shared between processes, so a service that writes the
      * graph for another to read, or reads what another wrote, refuses it.
@@ -4371,6 +4520,25 @@ export interface components {
        * claim, or what the principal said of itself.
        */
       name: string;
+    };
+    /**
+     * principals/roles.json: the claims a token carries for the gateway to read
+     * its holder's roles and kind by, and each role.
+     */
+    PrincipalsRoles: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** The claim whose value is a flat array of the account's roles. */
+      rolesClaim: string;
+      /** Each role the gateway reads. */
+      roles: PrincipalsRolesRolesItem[];
+      /** The claim that says what kind of account the token's is. */
+      kindClaim: string;
+      /**
+       * What the kind claim holds on an agent's account. A person's account
+       * carries any other value, or none.
+       */
+      agentKind: string;
     };
     /**
      * What a principal last said it is called, and when: the profile a
@@ -5073,6 +5241,17 @@ export interface components {
     ScoredResource: components['schemas']['ResourceDescriptor'] &
       ScoredResourceValue;
     /**
+     * sdk-telemetry/telemetry.json: the telemetry a Xynolog SDK's transports
+     * export over OTLP: its spans and metrics, the transport each comes from,
+     * and the attributes each carries.
+     */
+    SdkTelemetryTelemetry: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      spans: SdkTelemetryTelemetrySpansItem[];
+      metrics: SdkTelemetryTelemetryMetricsItem[];
+    };
+    /**
      * A secret the document names and does not hold. The launcher hands it to
      * the service that needs it, from where the reference says it is.
      */
@@ -5415,6 +5594,18 @@ export interface components {
       /** The connectionId announced by the matching session:joined. */
       connectionId: string;
     };
+    /**
+     * session/oauth.json: the clients a Xynolog client signs in to the issuer
+     * as, and the scope every sign-in asks for.
+     */
+    SessionOauth: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** The clients the realm registers. */
+      clients: SessionOauthClientsItem[];
+      /** What every sign-in asks for. */
+      scopes: SessionOauthScopes;
+    };
     /** One setting the launcher keeps, as xynolog settings shows it. */
     Setting: {
       /** Its name, as xynolog settings takes it. */
@@ -5547,6 +5738,22 @@ export interface components {
        * started in.
        */
       root?: string;
+    };
+    /**
+     * sign-in-store/owner-only.json: how a writer keeps a directory and a file
+     * to its owner.
+     */
+    SignInStoreOwnerOnly: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** A mode, on a system that has modes. */
+      directoryMode: SignInStoreOwnerOnlyDirectoryMode;
+      /** A mode, on a system that has modes. */
+      fileMode: SignInStoreOwnerOnlyFileMode;
+      /** An access list, on Windows. */
+      directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList;
+      /** An access list, on Windows. */
+      fileAccessList: SignInStoreOwnerOnlyFileAccessList;
     };
     /**
      * Bus command to rebuild anchored-text artifacts by re-running extraction —
@@ -7021,6 +7228,27 @@ export interface records {
   DiscoveryRead:
     DiscoveryReadAbsent | DiscoveryReadManaged | DiscoveryReadUnchanged;
   /**
+   * One of the knowledge base's engines as a client joins it: the entry
+   * `browse:engines-result` names, with the inference limits the service
+   * holding its credentials reported. A client asks each such service for its
+   * limits; an engine no service reported has no `limits`.
+   */
+  EngineWithLimits: {
+    engine: components['schemas']['Engine'];
+    /**
+     * The jobs the knowledge base's Inference document has this engine used
+     * for, as a claim names them. Absent for an engine only Librarian actors
+     * ask.
+     */
+    jobs?: components['schemas']['JobFilter'][];
+    limits?: components['schemas']['InferenceLimits'];
+  };
+  /**
+   * The knowledge base's engines, in the order `browse:engines-result` names
+   * them, each with the limits reported for it.
+   */
+  EnginesWithLimits: records['EngineWithLimits'][];
+  /**
    * What a person believed they were signing in to: the did and the name of the
    * row they clicked, or of the entry they signed in to again.
    */
@@ -7345,6 +7573,48 @@ export interface records {
     detail: string | null;
   };
   /**
+   * What uploading a resource is handed: its bytes, what the upload states of
+   * them, and, for a clone, its token. Each member is as a caller holds it;
+   * ResourceUpload is the multipart body the content transport sends of it.
+   */
+  PutBinaryRequest: {
+    /** Human-readable resource name */
+    name: string;
+    /** Binary content */
+    file: components['schemas']['Binary'];
+    /** Media type of the content (e.g. text/plain, text/markdown, image/png) */
+    format: string;
+    /**
+     * Where the content lives (file://... for local). Required — the client
+     * names the location; the server does not derive one.
+     */
+    storageUri: string;
+    /** ISO 639-1 language code */
+    language?: string;
+    entityTypes?: string[];
+    sourceAnnotationId?: components['schemas']['AnnotationId'];
+    sourceResourceId?: components['schemas']['ResourceId'];
+    /** For AI-generated resources: the prompt that drove generation */
+    generationPrompt?: string;
+    /**
+     * The Software peer that produced the content, when software did. Its
+     * identity must be the emitter's own — the knowledge base refuses a
+     * generator naming anyone else, and supplies it from the verified emitter
+     * when omitted. `creator` and `wasAttributedTo` are never sent; the
+     * knowledge base derives them from the emitter and the cited job.
+     */
+    generator?: components['schemas']['OneOrMoreAgents'];
+    jobId?: components['schemas']['JobId'];
+    isDraft?: boolean;
+    /**
+     * A clone token from `yield:clone-token-requested`. With it, the resource
+     * is created as a clone of the token's source, inheriting its entity types;
+     * `language`, `entityTypes` and the generation fields are then not read.
+     */
+    cloneToken?: string;
+    archiveOriginal?: boolean;
+  };
+  /**
    * Words of a text, as a selection quotes them: the words themselves, and
    * maybe the text just before and just after them, which tell apart the places
    * they occur.
@@ -7367,6 +7637,16 @@ export interface records {
     | ReconciledSpanContextRecovered
     | ReconciledSpanFirstOfMany
     | ReconciledSpanFuzzyMatch;
+  /**
+   * A resource's bytes as the content transport answers them, whole, with the
+   * media type it answered with.
+   */
+  ResourceRepresentation: {
+    /** The bytes, whole. */
+    data: components['schemas']['Binary'];
+    /** The media type the content transport answered with. */
+    contentType: string;
+  };
   /**
    * What a text search for resources is told beside its text:
    * MatchResourcesRequest's other members. client/surface.json's
@@ -9552,6 +9832,273 @@ export type BusSubscribeRequestScopedItem = {
   lastEventId?: string;
 };
 
+export type ClientConnectionStatesStatesItem = {
+  state: components['schemas']['ConnectionState'];
+  /** What the state is, in prose. */
+  meaning: string;
+  /**
+   * The states it can move to, in ConnectionState's order; none for a terminal
+   * state.
+   */
+  moves: components['schemas']['ConnectionState'][];
+};
+
+export type ClientDiscoveryAbsentReasonsItem = {
+  /** The reason, as every SDK spells it. */
+  reason: string;
+  /** What it is, in prose. */
+  docs: string;
+};
+
+export type ClientOptionDefaultsDefaultsItem = {
+  /**
+   * What takes the option, as client/surface.json names it: a namespace's
+   * method, or a module's function, the two joined by a dot.
+   */
+  method: string;
+  /** The parameter it is, or the parameter whose member it is. */
+  parameter: string;
+  /**
+   * The member of the parameter it is, where the parameter is an object of
+   * options. Absent: the parameter itself.
+   */
+  option?: string;
+  value: unknown;
+  /** What the parameter is. */
+  schema?: ClientOptionDefaultsDefaultsItemSchema;
+  /**
+   * Where in the request the method sends it, as a JSON Pointer into a case's
+   * `sends`. Absent: the option is not sent, and only changes what the client
+   * does.
+   */
+  sends?: string;
+  /** What the option is, in prose. */
+  docs: string;
+};
+
+/** What the parameter is. */
+export type ClientOptionDefaultsDefaultsItemSchema =
+  | ClientOptionDefaultsDefaultsItemSchemaReference
+  | ClientOptionDefaultsDefaultsItemSchemaDateTime;
+
+export type ClientOptionDefaultsDefaultsItemSchemaReference = {
+  /**
+   * The $id of a component, a member within one, or a client type of
+   * specs/src/client/types: an object is always one of these, so that it is
+   * named.
+   */
+  $ref: string;
+};
+
+export type ClientOptionDefaultsDefaultsItemSchemaDateTime = {
+  /** The value's type, where no component states one. */
+  type: ClientOptionDefaultsDefaultsItemSchemaDateTimeType;
+  /** The least an integer may be. */
+  minimum?: number;
+  /** The string's format, where it has one: `date-time` is an RFC 3339 time. */
+  format?: 'date-time';
+  /** What the value is. */
+  description: string;
+};
+
+/** The value's type, where no component states one. */
+export type ClientOptionDefaultsDefaultsItemSchemaDateTimeType =
+  'integer' | 'string' | 'boolean';
+
+export type ClientRefreshQueriesItem =
+  ClientRefreshQueriesItemAsks | ClientRefreshQueriesItemReads;
+
+/**
+ * A live query that asks an operation of the registry, by its request's
+ * channel.
+ */
+export type ClientRefreshQueriesItemAsks = {
+  /** A query, by its name. */
+  name: string;
+  /** What one is kept per; absent, the knowledge base has one. */
+  per?: ClientRefreshQueriesItemAsksPer;
+  /** The channel's name. */
+  asks: string;
+  /** Its answers are kept across a client's lives. */
+  persisted?: true;
+  /** A reference to the schema of its value. */
+  value: ClientRefreshQueriesItemAsksValue;
+  /** What it is, in prose. */
+  docs: string;
+};
+
+/** What one is kept per; absent, the knowledge base has one. */
+export type ClientRefreshQueriesItemAsksPer =
+  'resource' | 'annotation' | 'filters';
+
+/** A reference to the schema of its value. */
+export type ClientRefreshQueriesItemAsksValue = {
+  /**
+   * The $id of the schema of what its cache holds for a key: a component, or a
+   * member within one.
+   */
+  $ref: string;
+};
+
+/** A live query that reads a GET of the gateway's API. */
+export type ClientRefreshQueriesItemReads = {
+  /** A query, by its name. */
+  name: string;
+  /** What one is kept per; absent, the knowledge base has one. */
+  per?: ClientRefreshQueriesItemReadsPer;
+  /** The GET of the gateway's API it reads. */
+  reads: string;
+  /** Its answers are kept across a client's lives. */
+  persisted?: true;
+  /** A reference to the schema of its value. */
+  value: ClientRefreshQueriesItemReadsValue;
+  /** What it is, in prose. */
+  docs: string;
+};
+
+/** What one is kept per; absent, the knowledge base has one. */
+export type ClientRefreshQueriesItemReadsPer =
+  'resource' | 'annotation' | 'filters';
+
+/** A reference to the schema of its value. */
+export type ClientRefreshQueriesItemReadsValue = {
+  /**
+   * The $id of the schema of what its cache holds for a key: a component, or a
+   * member within one.
+   */
+  $ref: string;
+};
+
+export type ClientRefreshRefreshItem =
+  ClientRefreshRefreshItemOn | ClientRefreshRefreshItemStream;
+
+/** A row for a channel's events. */
+export type ClientRefreshRefreshItemOn = {
+  /** The channel's name. */
+  on: string;
+  /** Which of a channel's two ways of event the row is for. */
+  when?: ClientRefreshRefreshItemOnWhen;
+  /** Which keys the row reaches: the event's subject, or every key held. */
+  reach?: ClientRefreshRefreshItemOnReach;
+  /**
+   * Where in the event a subject row finds the resource and the annotation it
+   * names.
+   */
+  names?: ClientRefreshRefreshItemOnNames;
+  /**
+   * A way into the event's payload: the names of the members it passes through
+   * and of its own, joined by dots.
+   */
+  carries?: string;
+  /** The queries asked again. */
+  refetches?: string[];
+  /** The queries whose new value the event carries. */
+  writes?: string[];
+  /** The queries whose entity the event says is gone. */
+  removes?: string[];
+  /** What it is, in prose. */
+  docs: string;
+};
+
+/** Which of a channel's two ways of event the row is for. */
+export type ClientRefreshRefreshItemOnWhen = 'enriched' | 'unenriched';
+
+/** Which keys the row reaches: the event's subject, or every key held. */
+export type ClientRefreshRefreshItemOnReach = 'subject' | 'held';
+
+/**
+ * Where in the event a subject row finds the resource and the annotation it
+ * names.
+ */
+export type ClientRefreshRefreshItemOnNames = {
+  /**
+   * A way into the event's payload: the names of the members it passes through
+   * and of its own, joined by dots.
+   */
+  resource?: string;
+  /**
+   * A way into the event's payload: the names of the members it passes through
+   * and of its own, joined by dots.
+   */
+  annotation?: string;
+};
+
+/** A row for what befalls the stream itself. */
+export type ClientRefreshRefreshItemStream = {
+  /**
+   * `reopened`, the stream open again after a drop; or `unreadable`, an event
+   * that cannot be read.
+   */
+  stream: ClientRefreshRefreshItemStreamStream;
+  /** Which keys the row reaches: the event's subject, or every key held. */
+  reach?: ClientRefreshRefreshItemStreamReach;
+  /** The queries asked again. */
+  refetches?: string[];
+  /** What it is, in prose. */
+  docs: string;
+};
+
+/**
+ * `reopened`, the stream open again after a drop; or `unreadable`, an event
+ * that cannot be read.
+ */
+export type ClientRefreshRefreshItemStreamStream = 'reopened' | 'unreadable';
+
+/** Which keys the row reaches: the event's subject, or every key held. */
+export type ClientRefreshRefreshItemStreamReach = 'subject' | 'held';
+
+export type ClientTestingFaultActionsItem = {
+  /** The fault's type's name. */
+  name: string;
+  /** The word that names the fault in a request log. */
+  kind: string;
+  /** What it is, in prose. */
+  docs: string;
+  /** The whole numbers the fault carries, by name. */
+  holds: string[];
+};
+
+export type ClientTestingDelayMs = {
+  /** What it is, in prose. */
+  docs: string;
+  /** The fewest milliseconds a drawn delay is. */
+  minimum: number;
+  /** The most milliseconds a drawn delay is. */
+  maximum: number;
+};
+
+export type ClientTestingScheduleLength = {
+  /** What it is, in prose. */
+  docs: string;
+  /** The fewest faults a drawn schedule is of. */
+  minimum: number;
+  /** The most faults a drawn schedule is of. */
+  maximum: number;
+};
+
+export type ClientTestingSlack = {
+  /** What it is, in prose. */
+  docs: string;
+  /** How many times its reckoned bound a case is given. */
+  times: number;
+};
+
+export type ClientTestingDeliveryOps = {
+  /** What it is, in prose. */
+  docs: string;
+  /** The steps an interleaving is of. */
+  ops: string[];
+};
+
+export type ClientTestingRecordsItem = {
+  /** The record's type's name. */
+  name: string;
+  /** What it is, in prose. */
+  docs: string;
+  /** The record's members, named as surface.json names members. */
+  members: string[];
+};
+
 /**
  * Machine-readable failure class, for consumers that must BRANCH on why a
  * command failed rather than log it. Optional and deliberately sparse: absent
@@ -10106,6 +10653,77 @@ export type ContextualSummaryResponseContext = {
   after?: string;
 };
 
+/** A command. */
+export type ControlCliCommandsValue = {
+  /**
+   * The Go function in cli/internal/launcher whose switch reads the command's
+   * options.
+   */
+  parser: string;
+  /** The method's name. */
+  method: string;
+  /** The command's operands, which no switch reads by name. */
+  positionals?: ControlCliCommandsValuePositionalsItem[];
+  /** Each option, by its flag. */
+  flags: { [key: string]: ControlCliCommandsValueFlagsValue };
+};
+
+export type ControlCliCommandsValuePositionalsItem =
+  | ControlCliCommandsValuePositionalsItemFields
+  | ControlCliCommandsValuePositionalsItemCliOnly;
+
+/** An operand that becomes params fields. */
+export type ControlCliCommandsValuePositionalsItemFields = {
+  /** The operand, as its usage writes it. */
+  name: string;
+  /** The params fields it becomes, each `<method>.<field path>`. */
+  fields: string[];
+};
+
+/** An operand the API has no place for. */
+export type ControlCliCommandsValuePositionalsItemCliOnly = {
+  /** The operand, as its usage writes it. */
+  name: string;
+  /** Why it has no place in the API. */
+  cliOnly: string;
+};
+
+export type ControlCliCommandsValueFlagsValue =
+  | ControlCliCommandsValueFlagsValueFields
+  | ControlCliCommandsValueFlagsValueMethod
+  | ControlCliCommandsValueFlagsValueCliOnly;
+
+/** An option that becomes params fields. */
+export type ControlCliCommandsValueFlagsValueFields = {
+  /** The params fields it becomes, each `<method>.<field path>`. */
+  fields: string[];
+  /** What else a reader of the row must know. */
+  notes?: string;
+};
+
+/** An option that selects a method. */
+export type ControlCliCommandsValueFlagsValueMethod = {
+  /** The method's name. */
+  method: string;
+};
+
+/** An option the API has no place for. */
+export type ControlCliCommandsValueFlagsValueCliOnly = {
+  /** Why it has no place in the API. */
+  cliOnly: string;
+};
+
+export type ControlRpcCodesCodesItem = {
+  /** The JSON-RPC error's code. */
+  number: number;
+  /** Its name, as every SDK names it. */
+  name: string;
+  /** When the launcher answers with it, in prose, by the contract's rules. */
+  docs: string;
+  /** The data every answer under it carries, whatever failed. */
+  data?: components['schemas']['ErrorData'];
+};
+
 /**
  * The JetStream broker holding the job queue, whose layout is
  * specs/src/jobs/storage.json.
@@ -10170,6 +10788,321 @@ export type EnrichedResourceEventValue = {
    * annotations.
    */
   annotation?: components['schemas']['Annotation'];
+};
+
+/** Why a bus request did not resolve. */
+export type ErrorsCodesBusRequest = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  /** The code, as every SDK names it. */
+  unrecognizedFailure: string;
+  /**
+   * Each code, and the wire's `CommandError.code` it restates, where it
+   * restates one.
+   */
+  codes: ErrorsCodesBusRequestCodesItem[];
+};
+
+export type ErrorsCodesBusRequestCodesItem = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  /**
+   * Machine-readable failure class, for consumers that must BRANCH on why a
+   * command failed rather than log it. Optional and deliberately sparse: absent
+   * means 'no class declared', and every existing failure stays that way. An
+   * enum rather than a free string so the vocabulary has an owner — an
+   * unconstrained code is a mirror with no gate, and adding one should be a
+   * deliberate spec change. `message` remains the human-readable text and is
+   * unaffected. Members: `peer-unavailable` — the channel this command was sent
+   * on has no subscriber, i.e. the service that answers it has not connected
+   * yet. Transient by nature (a peer still starting), which is what
+   * distinguishes it from a refusal: retrying is the correct response.
+   * `not-found` — the resource this command addressed does not exist in this
+   * knowledge base. A verdict, not a symptom: it is emitted only where the
+   * answer comes from the event store, which is the system of record, and never
+   * from a projection that may merely be lagging. Deterministic, so unlike
+   * `peer-unavailable` retrying is pointless — and consumers may act
+   * destructively on it (the SDK deletes a restored tab). Absence is not
+   * denial: a future 'exists, but not for you' must travel as its own code,
+   * never as this one. `unauthorized` — that code: the caller is authenticated
+   * but not permitted to do what it asked. A verdict about the CALLER, not the
+   * resource, so retrying under the same credential cannot succeed and a
+   * consumer must never spin on it; emitted by `job:claim` for a caller whose
+   * token carries no worker role. `none-pending` — a declined claim, not an
+   * error: the queue holds no pending job of the requested types. Nothing went
+   * wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+   * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
+   * neither is unclassified — a malformed record or a missing injection — and a
+   * consumer treats it as 'log it, assume nothing'.
+   */
+  wire?: ErrorsCodesBusRequestCodesItemWire;
+};
+
+/**
+ * Machine-readable failure class, for consumers that must BRANCH on why a
+ * command failed rather than log it. Optional and deliberately sparse: absent
+ * means 'no class declared', and every existing failure stays that way. An enum
+ * rather than a free string so the vocabulary has an owner — an unconstrained
+ * code is a mirror with no gate, and adding one should be a deliberate spec
+ * change. `message` remains the human-readable text and is unaffected. Members:
+ * `peer-unavailable` — the channel this command was sent on has no subscriber,
+ * i.e. the service that answers it has not connected yet. Transient by nature
+ * (a peer still starting), which is what distinguishes it from a refusal:
+ * retrying is the correct response. `not-found` — the resource this command
+ * addressed does not exist in this knowledge base. A verdict, not a symptom: it
+ * is emitted only where the answer comes from the event store, which is the
+ * system of record, and never from a projection that may merely be lagging.
+ * Deterministic, so unlike `peer-unavailable` retrying is pointless — and
+ * consumers may act destructively on it (the SDK deletes a restored tab).
+ * Absence is not denial: a future 'exists, but not for you' must travel as its
+ * own code, never as this one. `unauthorized` — that code: the caller is
+ * authenticated but not permitted to do what it asked. A verdict about the
+ * CALLER, not the resource, so retrying under the same credential cannot
+ * succeed and a consumer must never spin on it; emitted by `job:claim` for a
+ * caller whose token carries no worker role. `none-pending` — a declined claim,
+ * not an error: the queue holds no pending job of the requested types. Nothing
+ * went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a
+ * wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither
+ * is unclassified — a malformed record or a missing injection — and a consumer
+ * treats it as 'log it, assume nothing'.
+ */
+export type ErrorsCodesBusRequestCodesItemWire =
+  'peer-unavailable' | 'not-found' | 'unauthorized' | 'none-pending';
+
+/** The transport-neutral failure vocabulary. */
+export type ErrorsCodesTransport = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  /** The code, as every SDK names it. */
+  unclassified: string;
+  /** Each code, and the HTTP statuses it is read from. */
+  codes: ErrorsCodesTransportCodesItem[];
+};
+
+export type ErrorsCodesTransportCodesItem =
+  | ErrorsCodesTransportCodesItemStatus
+  | ErrorsCodesTransportCodesItemStatusFrom
+  | ErrorsCodesTransportCodesItemNoStatus;
+
+/** A code read from one HTTP status. */
+export type ErrorsCodesTransportCodesItemStatus = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  status: components['schemas']['HttpStatus'];
+  /**
+   * The limit refusals read as this code and not as the code of their status:
+   * each a status and the LimitRefusal `code` it carries, as a row of
+   * gateway/messages.json states them.
+   */
+  limitRefusals?: ErrorsCodesTransportCodesItemStatusLimitRefusalsItem[];
+};
+
+export type ErrorsCodesTransportCodesItemStatusLimitRefusalsItem = {
+  status: components['schemas']['HttpStatus'];
+  /**
+   * `streams`: the principal already holds as many streams as its coefficient
+   * of `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the
+   * principal's emits have used its bucket, whose rate and burst are its
+   * coefficient of `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
+   * `unanswered-requests`: the client already awaits as many replies as
+   * `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway
+   * holds as many queued bytes as it can. `refusal-rate`: the request's
+   * credential was refused, and the requests its holder has had refused have
+   * used their allowance; it answers only a request whose token has already
+   * failed verification, so it says what a 401 says, and a client that can
+   * renew its token renews it and sends the request again rather than waiting
+   * (contract/TRANSPORT-CONTRACT.md § A refused credential).
+   */
+  code: ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode;
+};
+
+/**
+ * `streams`: the principal already holds as many streams as its coefficient of
+ * `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the principal's
+ * emits have used its bucket, whose rate and burst are its coefficient of
+ * `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
+ * `unanswered-requests`: the client already awaits as many replies as
+ * `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway holds
+ * as many queued bytes as it can. `refusal-rate`: the request's credential was
+ * refused, and the requests its holder has had refused have used their
+ * allowance; it answers only a request whose token has already failed
+ * verification, so it says what a 401 says, and a client that can renew its
+ * token renews it and sends the request again rather than waiting
+ * (contract/TRANSPORT-CONTRACT.md § A refused credential).
+ */
+export type ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode =
+  'streams' | 'emit-rate' | 'unanswered-requests' | 'capacity' | 'refusal-rate';
+
+/** A code read from every HTTP status at or above one. */
+export type ErrorsCodesTransportCodesItemStatusFrom = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  statusFrom: components['schemas']['HttpStatus'];
+};
+
+/** A code no HTTP status is read as. */
+export type ErrorsCodesTransportCodesItemNoStatus = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+};
+
+/**
+ * A vocabulary that states nothing of its codes but each one's docs: here, why
+ * a job its client follows ended without a result.
+ */
+export type ErrorsCodesJob = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  codes: ErrorsCodesJobCodesItem[];
+};
+
+export type ErrorsCodesJobCodesItem = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+};
+
+/**
+ * A vocabulary that states nothing of its codes but each one's docs: here, why
+ * a job its client follows ended without a result.
+ */
+export type ErrorsCodesSession = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  codes: ErrorsCodesSessionCodesItem[];
+};
+
+export type ErrorsCodesSessionCodesItem = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+};
+
+/**
+ * A vocabulary that states nothing of its codes but each one's docs: here, why
+ * a job its client follows ended without a result.
+ */
+export type ErrorsCodesSignIn = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  codes: ErrorsCodesSignInCodesItem[];
+};
+
+export type ErrorsCodesSignInCodesItem = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+};
+
+/**
+ * A vocabulary that states nothing of its codes but each one's docs: here, why
+ * a job its client follows ended without a result.
+ */
+export type ErrorsCodesKbIdentity = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  codes: ErrorsCodesKbIdentityCodesItem[];
+};
+
+export type ErrorsCodesKbIdentityCodesItem = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+};
+
+/**
+ * A vocabulary that states nothing of its codes but each one's docs: here, why
+ * a job its client follows ended without a result.
+ */
+export type ErrorsCodesSpanRefusal = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  codes: ErrorsCodesSpanRefusalCodesItem[];
+};
+
+export type ErrorsCodesSpanRefusalCodesItem = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+};
+
+/**
+ * Why a request of the launcher's control API failed: each code, the JSON-RPC
+ * code an answer carries it under, and whether a request that fails with it is
+ * retryable.
+ */
+export type ErrorsCodesControl = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  codes: ErrorsCodesControlCodesItem[];
+};
+
+export type ErrorsCodesControlCodesItem = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  /**
+   * The JSON-RPC error's code an answer carries it under: a number of
+   * control/rpc-codes.json.
+   */
+  rpc: number;
+  /**
+   * Whether the same request can succeed sent again unchanged, once something
+   * outside it changes (contract/LAUNCHER-CONTROL.md E3): what ErrorData's
+   * retryable says of it when it is answered under its rpc. Under a code of
+   * control/rpc-codes.json that states its data, the data is that row's.
+   */
+  retryable: boolean;
 };
 
 export type ExtractedTextValue = {
@@ -10385,6 +11318,38 @@ export type GetReferencedByResponseReferencedByItemTargetSelector = {
 
 /** What the gateway is reached over. */
 export type HttpEndpointProtocol = 'http' | 'https';
+
+export type IdentifiersKindsKindsItem = {
+  /** The component under components/schemas that states the kind, by name. */
+  schema: string;
+  /** The property names that always carry the kind. */
+  properties: string[];
+  /** Strings the kind's rule takes. */
+  accepts: IdentifiersKindsKindsItemAcceptsItem[];
+  /** Strings the kind's rule does not take. */
+  refuses: IdentifiersKindsKindsItemRefusesItem[];
+};
+
+export type IdentifiersKindsKindsItemAcceptsItem = {
+  /** A string the kind's rule is asked about. */
+  id: string;
+  /** What the case shows, in prose. */
+  why: string;
+};
+
+export type IdentifiersKindsKindsItemRefusesItem = {
+  /** A string the kind's rule is asked about. */
+  id: string;
+  /** What the case shows, in prose. */
+  why: string;
+};
+
+export type IdentifiersKindsOthersItem = {
+  /** A property named like an id. */
+  property: string;
+  /** What it carries instead. */
+  docs: string;
+};
 
 /** The providers, and the engine for each job and each Librarian actor. */
 export type InferenceSpec = {
@@ -10822,6 +11787,30 @@ export type MatchSearchFailedValue = {
   referenceId: components['schemas']['AnnotationId'];
 };
 
+export type MediaTypesRegistryMediaTypesItem = {
+  mediaType: components['schemas']['SupportedMediaType'];
+  /** A file extension, with its dot. */
+  extension: string;
+  /** The name a person reads. */
+  label: string;
+  /** The viewer a reader mounts, one of `render`. */
+  render: string;
+  /** The annotation model, one of `anchoring`. */
+  anchoring: string;
+  /** Where its text comes from, one of `textSource`. */
+  textSource: string;
+  authorable: boolean;
+  uploadable: boolean;
+  generatable: boolean;
+};
+
+export type PrincipalsRolesRolesItem = {
+  /** The role, as the token carries it. */
+  role: string;
+  /** What it grants, in prose. */
+  docs: string;
+};
+
 /**
  * What the line is: narration (log, note), an outcome (ok, warn, fail), a
  * heading (banner, section), a timestamp (stamp), a runtime command about to
@@ -10945,6 +11934,102 @@ export type ScoredResourceValue = {
   matchReason?: string;
 };
 
+export type SdkTelemetryTelemetrySpansItem = {
+  /**
+   * The row's name; `{channel}` in it is the bus channel, and `{jobType}` the
+   * job's type.
+   */
+  name: string;
+  /**
+   * The transport the row comes from: `bus`, the stream and emits; `content`,
+   * uploads and reads.
+   */
+  transport: SdkTelemetryTelemetrySpansItemTransport;
+  /** The span's kind, in OTLP's words. */
+  kind: SdkTelemetryTelemetrySpansItemKind;
+  /** What the row says. */
+  meaning: string;
+  /** The attributes the span carries. */
+  attributes: SdkTelemetryTelemetrySpansItemAttributesItem[];
+};
+
+/**
+ * The transport the row comes from: `bus`, the stream and emits; `content`,
+ * uploads and reads.
+ */
+export type SdkTelemetryTelemetrySpansItemTransport = 'bus' | 'content';
+
+/** The span's kind, in OTLP's words. */
+export type SdkTelemetryTelemetrySpansItemKind =
+  'client' | 'consumer' | 'internal' | 'producer' | 'server';
+
+/** An attribute a row carries. */
+export type SdkTelemetryTelemetrySpansItemAttributesItem = {
+  /** The attribute's key. */
+  key: string;
+  /**
+   * When alone the attribute is carried: a row's attribute without it is
+   * carried every time.
+   */
+  only?: string;
+  /**
+   * The only values it carries, each of the type it is carried as: a string or
+   * a boolean.
+   */
+  values?: SdkTelemetryTelemetrySpansItemAttributesItemValuesItem[];
+};
+
+export type SdkTelemetryTelemetrySpansItemAttributesItemValuesItem =
+  string | boolean;
+
+export type SdkTelemetryTelemetryMetricsItem = {
+  /**
+   * The row's name; `{channel}` in it is the bus channel, and `{jobType}` the
+   * job's type.
+   */
+  name: string;
+  /**
+   * The transport the row comes from: `bus`, the stream and emits; `content`,
+   * uploads and reads.
+   */
+  transport: SdkTelemetryTelemetryMetricsItemTransport;
+  /** The metric's instrument. */
+  instrument: SdkTelemetryTelemetryMetricsItemInstrument;
+  /** What the row says. */
+  meaning: string;
+  /** The attributes the span carries. */
+  attributes: SdkTelemetryTelemetryMetricsItemAttributesItem[];
+};
+
+/**
+ * The transport the row comes from: `bus`, the stream and emits; `content`,
+ * uploads and reads.
+ */
+export type SdkTelemetryTelemetryMetricsItemTransport = 'bus' | 'content';
+
+/** The metric's instrument. */
+export type SdkTelemetryTelemetryMetricsItemInstrument =
+  'counter' | 'up-down counter' | 'gauge' | 'histogram';
+
+/** An attribute a row carries. */
+export type SdkTelemetryTelemetryMetricsItemAttributesItem = {
+  /** The attribute's key. */
+  key: string;
+  /**
+   * When alone the attribute is carried: a row's attribute without it is
+   * carried every time.
+   */
+  only?: string;
+  /**
+   * The only values it carries, each of the type it is carried as: a string or
+   * a boolean.
+   */
+  values?: SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem[];
+};
+
+export type SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem =
+  string | boolean;
+
 /**
  * term: SIGTERM, and SIGKILL 15 seconds later if it has not exited. kill:
  * SIGKILL, so nothing it would settle on the way out is settled.
@@ -10972,6 +12057,23 @@ export type ServiceStatusState =
  */
 export type SessionState = 'valid' | 'expired' | 'unverified' | 'none';
 
+export type SessionOauthClientsItem = {
+  /** What the client is named by in every SDK. */
+  name: string;
+  /** The client id the realm registers. */
+  id: string;
+  /** Its documentation, in prose. */
+  docs: string;
+};
+
+/** What every sign-in asks for. */
+export type SessionOauthScopes = {
+  /** The scopes, separated by a space. */
+  value: string;
+  /** Its documentation, in prose. */
+  docs: string;
+};
+
 /** What it applies to: every knowledge base on this machine, or one. */
 export type SettingAppliesTo = 'machine' | 'knowledge-base';
 
@@ -10983,6 +12085,34 @@ export type SettingsPathParamsDocument =
   'browser' | 'worker' | 'issuer' | 'vectors';
 
 export type SettingsThemeChangedEventTheme = 'light' | 'dark' | 'system';
+
+/** A mode, on a system that has modes. */
+export type SignInStoreOwnerOnlyDirectoryMode = {
+  /** The mode, in octal. */
+  value: string;
+  docs: string;
+};
+
+/** A mode, on a system that has modes. */
+export type SignInStoreOwnerOnlyFileMode = {
+  /** The mode, in octal. */
+  value: string;
+  docs: string;
+};
+
+/** An access list, on Windows. */
+export type SignInStoreOwnerOnlyDirectoryAccessList = {
+  /** The access list in SDDL, with `{owner}` where the owner's SID goes. */
+  value: string;
+  docs: string;
+};
+
+/** An access list, on Windows. */
+export type SignInStoreOwnerOnlyFileAccessList = {
+  /** The access list in SDDL, with `{owner}` where the owner's SID goes. */
+  value: string;
+  docs: string;
+};
 
 export type SmeltSettledOutcome = 'indexed' | 'skipped';
 

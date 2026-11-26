@@ -239,11 +239,11 @@ perform driver identifier operation args = case operation of
     contents <- Http.content <$> opened driver
     resource <- need args "resource"
     binary <- Content.getBinary contents Nothing resource
-    pure (binaryValue (Content.contentType binary) (Content.contentBytes binary))
+    pure (bytesAnswer (resourceRepresentationContentType binary) (binaryValue (resourceRepresentationData binary)))
   "get-stream" -> Just $ do
     contents <- Http.content <$> opened driver
     resource <- need args "resource"
-    Content.getBinaryStream contents Nothing resource $ \media chunks -> binaryValue media . Bytes.concat <$> Stream.toList_ chunks
+    Content.getBinaryStream contents Nothing resource $ \media chunks -> bytesAnswer media . Bytes.concat <$> Stream.toList_ chunks
   "graph" -> Just $ contentRead Content.getResourceGraph
   "annotations" -> Just $ contentRead Content.getAnnotations
   "anchored-text" -> Just $ contentRead Content.getAnchoredText
@@ -262,7 +262,7 @@ perform driver identifier operation args = case operation of
     pure Null
   _ -> Nothing
   where
-    binaryValue media bytes = object ["contentType" .= media, "bytes" .= decodeUtf8 (Base64.encode bytes)]
+    bytesAnswer media bytes = object ["contentType" .= media, "bytes" .= decodeUtf8 (Base64.encode bytes)]
     contentRead :: (ToJSON answer) => (Content.ContentTransport -> Maybe Text -> ResourceId -> IO answer) -> IO Value
     contentRead readContent = do
       contents <- Http.content <$> opened driver

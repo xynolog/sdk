@@ -956,22 +956,7 @@ let archivist_path = "python/sdk/src/xynolog/http/archivist_http.py"
 let archivist_route_name operation_id = Text.upper_snake operation_id
 
 let archivist_text (spec : Spec.t) =
-  let operations =
-    List.concat_map
-      (fun (path, reference) ->
-        let file, _ = Decode.resolve spec.ids reference in
-        match List.assoc_opt file spec.path_items with
-        | None -> refuse "archivist/openapi.json names no path item %s" file
-        | Some (item : Openapi.path_item) ->
-            List.filter_map
-              (fun (method_, operation) ->
-                Option.map
-                  (fun (o : Openapi.operation) ->
-                    (o.operation_id, method_, path))
-                  operation)
-              [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
-      spec.archivist.paths
-  in
+  let operations = Archivist_routes.all spec in
   P.text
     {
       header =
@@ -1000,7 +985,8 @@ let archivist_text (spec : Spec.t) =
                        (List.sort compare
                           ("ArchivistRoute"
                           :: List.map
-                               (fun (o, _, _) -> archivist_route_name o)
+                               (fun (r : Archivist_routes.route) ->
+                                 archivist_route_name r.operation.operation_id)
                                operations)))));
           P.frozen_dataclass "ArchivistRoute"
             "An operation of the Archivist: its method, and its path, a \
@@ -1008,7 +994,8 @@ let archivist_text (spec : Spec.t) =
             [ P.field "method" (P.Name "str"); P.field "path" (P.Name "str") ];
         ]
         @ List.map
-            (fun (operation_id, method_, path) ->
+            (fun { Archivist_routes.method_; path; operation } ->
+              let operation_id = operation.operation_id in
               P.assign
                 ~about:[ Line ("`" ^ operation_id ^ "`.") ]
                 ~annotation:(P.Name "Final")

@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A type for ten of Protocol's tables that no service keeps, each typed by
+  the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+  `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
+  `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
+  `SignInStoreOwnerOnly`.
 - `Xynolog.Control`: the launcher's control API, a value per method (a
   `ControlMethod params result`) and per notification (a
   `ControlNotification params`), typed by the types of `Xynolog.Types` it
@@ -45,6 +50,10 @@ the coming release's, and gathers its changes as they land.
   `control/rpc-codes.json` and `errors/codes.json`.
 - `Xynolog.Discovery.discoveryUrlPath`, where a launcher's discovery document
   is, generated from `client/surface.json`.
+- `PutBinaryRequest`, the type of Protocol's
+  `client/types/PutBinaryRequest.json`. Uploads still take a
+  `ResourceUploadMetadata` and a `ReplayableBody`, so a body of unknown length,
+  or one larger than memory, is read from its source as it is sent.
 
 ### Changed
 
@@ -57,6 +66,16 @@ the coming release's, and gathers its changes as they land.
   `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
   and `TargetKind`; `InferenceProvider` names an inference provider, in
   place of `EngineProvider`.
+- A resource's bytes, read whole, are a `ResourceRepresentation`, the type of
+  Protocol's `client/types/ResourceRepresentation.json`, where they were
+  `Content.BinaryContent`: `Browse.resourceRepresentation` and
+  `Content.getBinary` answer one, its bytes its `resourceRepresentationData`
+  and its media type its `resourceRepresentationContentType`.
+- `Binary`, Protocol's bytes held whole, holds a `ByteString`, where it held
+  `Text`; as JSON, which Protocol never sends bytes as, it is their base64.
+- `Browse.engines` is a `Cache.Query EnginesWithLimits`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, where it was a list of
+  `EngineWithLimits`; `enginesWithLimitsValue` is that list.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where `Xynolog.Timing` declared one of its own:
   its fields are `retryBudgetAttempts`, `retryBudgetInitialDelayMs` and

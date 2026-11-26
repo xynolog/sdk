@@ -7,6 +7,9 @@ open Tables.Errors_codes
 
 let file = "errors/codes.json"
 
+(* The bus vocabulary's member of the table. *)
+let bus_member = "busRequest"
+
 (* What every transport code states alike, whatever status it is read from. *)
 let transport_code_and_docs : transport_codes_item -> string * string = function
   | Status { code; docs; _ }
@@ -131,7 +134,7 @@ let derive ~(rpc_codes : Tables.Control_rpc_codes.t)
     { member; name; go_name; docs; codes }
   in
   let bus =
-    vocabulary ~member:"busRequest" ~docs:table.bus_request.docs
+    vocabulary ~member:bus_member ~docs:table.bus_request.docs
       (List.map
          (fun (c : codes_item) -> (c.code, c.docs))
          table.bus_request.codes)
@@ -148,7 +151,7 @@ let derive ~(rpc_codes : Tables.Control_rpc_codes.t)
   in
   List.iteri
     (fun n (i, wire, _) ->
-      let at = Printf.sprintf "/busRequest/codes/%d/wire" i in
+      let at = Printf.sprintf "/%s/codes/%d/wire" bus_member i in
       List.iteri
         (fun m (_, earlier, (first : code)) ->
           if m < n && earlier = wire then
@@ -159,7 +162,8 @@ let derive ~(rpc_codes : Tables.Control_rpc_codes.t)
   List.iter
     (fun declared ->
       if not (List.exists (fun (_, wire, _) -> wire = declared) restated) then
-        refuse "/busRequest/codes"
+        refuse
+          ("/" ^ bus_member ^ "/codes")
           (Printf.sprintf "restates no code as CommandError.code's %s" declared))
     wire_codes;
   let named ~at ~vocabulary:(v : vocabulary) name =
@@ -170,8 +174,9 @@ let derive ~(rpc_codes : Tables.Control_rpc_codes.t)
         None
   in
   let unrecognized =
-    named ~at:"/busRequest/unrecognizedFailure" ~vocabulary:bus
-      table.bus_request.unrecognized_failure
+    named
+      ~at:("/" ^ bus_member ^ "/unrecognizedFailure")
+      ~vocabulary:bus table.bus_request.unrecognized_failure
   in
   (match
      List.find_opt
@@ -179,7 +184,8 @@ let derive ~(rpc_codes : Tables.Control_rpc_codes.t)
        table.bus_request.codes
    with
   | Some { wire = Some wire; _ } ->
-      refuse "/busRequest/unrecognizedFailure"
+      refuse
+        ("/" ^ bus_member ^ "/unrecognizedFailure")
         (Printf.sprintf
            "is %s, which restates the wire's %s: an unrecognized failure is no \
             recognized one"

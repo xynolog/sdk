@@ -26,9 +26,9 @@ import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
-import xynolog.transport.PutBinaryRequest
 import xynolog.transport.ResourceHold
 import xynolog.types.ConnectionState
+import xynolog.types.PutBinaryRequest
 import xynolog.types.RetryBudget
 import xynolog.types.UploadProgressProgress
 import java.util.Base64
@@ -202,7 +202,7 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
             file = bytes,
             format = args.text("format"),
             storageUri = args.text("storageUri"),
-            entityTypes = if ("entityTypes" in args) args.texts("entityTypes") else emptyList(),
+            entityTypes = if ("entityTypes" in args) args.texts("entityTypes") else null,
             language = args.optionalText("language"),
             sourceAnnotationId = args.optionalText("sourceAnnotationId")?.let { AnnotationId.parse(it) ?: throw Misuse("sourceAnnotationId: $it is not an annotation's id") },
             sourceResourceId = args.optionalText("sourceResourceId")?.let { resource(it, "sourceResourceId") },
@@ -236,7 +236,7 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
             stream.contentType to read.toByteArray()
         } else {
             val content = current().content.getBinary(id)
-            content.contentType to content.bytes
+            content.contentType to content.data
         }
         return Say.of("contentType" to JsonPrimitive(contentType), "bytes" to JsonPrimitive(Base64.getEncoder().encodeToString(bytes)))
     }

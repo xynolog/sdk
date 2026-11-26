@@ -7,12 +7,11 @@ module G = Go_syntax
 module T = Tables.Service_environment_variables
 
 let path = "go/serviceenvironment_gen.go"
-let type_name = "ServiceEnvironmentVariable"
 
 (* A variable's name as its constant's: [XYNOLOG_OIDC_CLIENT_ID] is
    [ServiceEnvironmentVariableXynologOidcClientId]. *)
 let constant name =
-  type_name
+  Service_environment.group
   ^ String.concat ""
       (List.map
          (fun word -> String.capitalize_ascii (String.lowercase_ascii word))
@@ -35,10 +34,10 @@ let text (t : T.t) =
             {
               doc =
                 G.prose
-                  (type_name
+                  (Service_environment.group
                  ^ " is an environment variable a Xynolog service reads, \
                     beside its configuration document.");
-              name = type_name;
+              name = Service_environment.group;
               def = G.Is (G.Named "string");
             };
           G.Consts
@@ -50,8 +49,8 @@ let text (t : T.t) =
                   (fun (v : T.variables_item) ->
                     G.spec
                       ~doc:(G.prose (constant v.name ^ ": " ^ v.effect_))
-                      ~type_:(G.Named type_name) (constant v.name)
-                      (G.Quoted v.name))
+                      ~type_:(G.Named Service_environment.group)
+                      (constant v.name) (G.Quoted v.name))
                   t.variables;
             };
         ];

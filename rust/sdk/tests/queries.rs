@@ -1409,7 +1409,7 @@ async fn b13_a_gap_asks_again_for_what_refers_to_the_resource_it_names_and_to_no
 
 // ── The engines ─────────────────────────────────────────
 
-fn limits_of(engines: &[xynolog::namespaces::EngineWithLimits]) -> Vec<Option<f64>> {
+fn limits_of(engines: &[xynolog::types::EngineWithLimits]) -> Vec<Option<f64>> {
     engines
         .iter()
         .map(|engine| engine.limits.as_ref().map(|limits| limits.context_tokens))

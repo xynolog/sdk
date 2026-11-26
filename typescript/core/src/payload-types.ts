@@ -59,15 +59,17 @@ export type JobType = components['schemas']['JobType'];
  */
 export type EngineEntry = components['schemas']['EngineEntry'];
 
+export type EngineWithLimits = records['EngineWithLimits'];
+export type EnginesWithLimits = records['EnginesWithLimits'];
+
 /**
- * An engine with the inference limits its key holder reported, as the SDK
- * joins them: the knowledge base names its engines, and the services holding
- * the inference credentials report the limits (`LIMITS_OPERATIONS`). Absent
- * `limits` means no key holder reported that engine.
+ * What uploading a resource is handed: its bytes, what the upload states of
+ * them, and, for a clone, its token.
  */
-export type EngineWithLimits = EngineEntry & {
-  limits?: components['schemas']['InferenceLimits'];
-};
+export type PutBinaryRequest = records['PutBinaryRequest'];
+
+/** A resource's bytes, whole, with the media type they were answered with. */
+export type ResourceRepresentation = records['ResourceRepresentation'];
 
 /**
  * What a knowledge base says of itself (`browse:kb-result`): its committed

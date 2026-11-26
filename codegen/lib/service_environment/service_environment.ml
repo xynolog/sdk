@@ -188,7 +188,7 @@ let csharp (t : T.t) =
 
 let haskell (t : T.t) =
   let module H = Haskell_syntax in
-  Haskell_sdk.file ~under:"src"
+  Haskell_syntax.file ~under:"src"
     {
       H.banner = Banner.lines ~from_ __FILE__;
       extensions = [];
@@ -206,7 +206,7 @@ let haskell (t : T.t) =
    (test/.../ServiceEnvironmentValues.hs) to hold to the table. *)
 let haskell_values (t : T.t) =
   let module H = Haskell_syntax in
-  Haskell_sdk.file ~under:"test"
+  Haskell_syntax.file ~under:"test"
     {
       H.banner = Banner.lines ~from_ __FILE__;
       extensions = [];

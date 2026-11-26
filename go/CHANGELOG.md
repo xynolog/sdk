@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A type for ten of Protocol's tables that no service keeps, each typed by
+  the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+  `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
+  `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
+  `SignInStoreOwnerOnly`.
 - A type for every schema Protocol states, not only the gateway's components:
   the Control API's methods, notifications and errors (`AboutParams`,
   `ErrorData`, `RequestId`, …), the stack's kinds (`Inference`, `Issuer`,
@@ -50,6 +55,27 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- An upload is an `api.PutBinaryRequest`, the type of Protocol's
+  `client/types/PutBinaryRequest.json`, where it was the SDK's own
+  `PutBinaryRequest`: `ContentTransport.PutBinary` and
+  `YieldNamespace.Resource` take one, and `xynologtest.ContentCall.Put` is
+  one. Its bytes are its `File`, where they were `Bytes`; `StorageURI`,
+  `SourceAnnotationID`, `SourceResourceID` and `JobID` are `StorageUri`,
+  `SourceAnnotationId`, `SourceResourceId` and `JobId`. A member it may leave
+  out is a pointer, nil when it is left out: `Language`, `GenerationPrompt`
+  and `CloneToken` are `*string`, `EntityTypes` is `*[]string`, and the ids
+  are pointers to them. `Generator` is an `*api.OneOrMoreAgents`, one agent
+  or several, where it was an `*api.Agent`. What an upload sends is as it
+  was.
+- A resource's bytes, read whole, are an `api.ResourceRepresentation`, the
+  type of Protocol's `client/types/ResourceRepresentation.json`, where they
+  were the SDK's own `Content`: `BrowseNamespace.ResourceRepresentation` and
+  `ContentTransport.GetBinary` answer one, and its bytes are its `Data`, where
+  they were `Bytes`. `xynologtest.InMemoryContent.Seed` takes one.
+- `BrowseNamespace.Engines` is a `Cached[api.EnginesWithLimits]`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, where it was of the SDK's
+  own `EngineWithLimits`: an engine's `Engine` and `Jobs` are its own fields,
+  where they were its `Entry`'s.
 - A retry budget is `api.RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `RetryPolicy`: `Timing.EmitRetry`
   and `Timing.RefreshRetry` are one, and `RetryWithBackoff` takes one. Its

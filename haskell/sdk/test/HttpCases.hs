@@ -249,12 +249,12 @@ httpCases root fixtures = do
           Content.getAnnotations contents (Just "content-override") resource >>= require "explicit annotations response changed" . (== fromFixture "GetAnnotationsResponse")
           Content.getAnchoredText contents (Just "content-override") resource >>= require "explicit anchored text response changed" . (== fromFixture "AnchoredTextAnswer")
           explicitBinary <- Content.getBinary contents (Just "content-override") resource
-          require "explicit download changed bytes" (Content.contentBytes explicitBinary == encodeUtf8 "hello λ")
+          require "explicit download changed bytes" (binaryValue (resourceRepresentationData explicitBinary) == encodeUtf8 "hello λ")
           Content.getBinaryStream contents (Just "content-override") resource (\_ chunks -> Stream.effects chunks)
           overrideState <- readState peer
           let explicitReads = [value | value <- values "requests" overrideState, field "token" value == Just (String "Bearer content-override")]
           require "not every content reader sent its explicit credential" (length explicitReads == 5)
-          refusedOverride <- try (Content.getBinary contents (Just "refused-content-override") resource) :: IO (Either TransportError Content.BinaryContent)
+          refusedOverride <- try (Content.getBinary contents (Just "refused-content-override") resource) :: IO (Either TransportError ResourceRepresentation)
           require "explicit content credential refusal was not final" (case refusedOverride of Left problem -> transportErrorCode problem == Code.TransportUnauthorized; Right _ -> False)
           readIORef renewals >>= require "an explicit content credential renewed the held token" . (== beforeOverrideRenewals)
           contextKey <- Context.newKey "HTTP consumer context"
@@ -267,7 +267,7 @@ httpCases root fixtures = do
           afterContext <- getContext
           require "HTTP callback leaked its context to the caller" (Context.lookup contextKey afterContext == Context.lookup contextKey beforeContext)
           binary <- Content.getBinary contents Nothing resource
-          require "download did not preserve bytes/media type" (Content.contentBytes binary == encodeUtf8 "hello λ" && Content.contentType binary == "text/plain; charset=utf-8")
+          require "download did not preserve bytes/media type" (binaryValue (resourceRepresentationData binary) == encodeUtf8 "hello λ" && resourceRepresentationContentType binary == "text/plain; charset=utf-8")
           escaped <- Content.getBinaryStream contents Nothing resource (\_ chunks -> pure chunks)
           outside <- try (Stream.effects escaped) :: IO (Either TransportError ())
           require "escaped content reader was usable" (either (const True) (const False) outside)
@@ -328,7 +328,7 @@ httpCases root fixtures = do
           afterExplicitUpload <- readState peer
           let explicitUploads = drop 4 (values "uploads" afterExplicitUpload)
           require "explicit upload inherited or retried a credential" (map (field "token") explicitUploads == [Just (String "Bearer content-override"), Just (String "Bearer refused-content-override")])
-          Content.getBinary contents Nothing resource >>= require "explicit refusal quarantined the held credential" . (\value -> Content.contentBytes value == encodeUtf8 "hello λ")
+          Content.getBinary contents Nothing resource >>= require "explicit refusal quarantined the held credential" . (\value -> binaryValue (resourceRepresentationData value) == encodeUtf8 "hello λ")
           let invalidSource = (Content.bytesBody bytes) {Content.bodyLength = Just (-1)}
           invalidUpload <- try (Content.putBinary contents Nothing metadata invalidSource (const (pure ()))) :: IO (Either TransportError CreateResourceResponse)
           require "negative upload size was accepted" (either ((== Code.TransportBadRequest) . transportErrorCode) (const False) invalidUpload)
@@ -337,7 +337,7 @@ httpCases root fixtures = do
           require "malformed HTTP JSON was accepted" (either ((== Code.TransportError) . transportErrorCode) (const False) malformedAnswer)
           refused <- either (ioError . userError) pure (mkResourceId "refused")
           Transport.errors (Client.transport client) $ \failures -> do
-            answer <- try (Content.getBinary contents Nothing refused) :: IO (Either TransportError Content.BinaryContent)
+            answer <- try (Content.getBinary contents Nothing refused) :: IO (Either TransportError ResourceRepresentation)
             case answer of
               Right _ -> ioError (userError "HTTP refusal became content")
               Left problem -> do
@@ -346,7 +346,7 @@ httpCases root fixtures = do
                 require "HTTP refusal was not observed before throw" (noticed == [problem])
           readIORef hookRequests >>= require "caller HTTP hooks were not used" . (> 10)
           Content.dispose contents
-          closedContent <- try (Content.getBinary contents Nothing resource) :: IO (Either BusRequestError Content.BinaryContent)
+          closedContent <- try (Content.getBinary contents Nothing resource) :: IO (Either BusRequestError ResourceRepresentation)
           require "disposed content still performed I/O" (either ((== Code.BusRequestClosed) . busRequestErrorCode) (const False) closedContent)
           Gateway.healthCheck (Http.gateway http) >>= require "disposing content closed the caller's HTTP pool" . (== fromFixture "HealthResponse")
         )
@@ -435,7 +435,7 @@ httpFaults peer http client resource clock waits = do
     reach peer "a request unanswered at its deadline"
     headerResource <- either (ioError . userError) pure (mkResourceId "headers")
     headerStart <- readTVarIO clock
-    stalled <- async (try (Content.getBinary (Http.content http) Nothing headerResource) :: IO (Either TransportError Content.BinaryContent))
+    stalled <- async (try (Content.getBinary (Http.content http) Nothing headerResource) :: IO (Either TransportError ResourceRepresentation))
     let headerDeadline = headerStart + Timing.httpRequestTimeoutMs * 1000000
     waitForDeadline waits headerDeadline
     let headerPath = Text.replace "{id}" (resourceIdValue headerResource) (Routes.routePath Routes.GetResourceRepresentation)
