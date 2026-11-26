@@ -120,7 +120,9 @@ function uploadOf(args: Arguments): PutBinaryRequest {
     name: text(args, 'name'),
     format: text(args, 'format') as ContentFormat,
     storageUri: text(args, 'storageUri'),
-    file: Buffer.from(text(args, 'bytes'), 'base64'),
+    file: new Blob([
+      new Uint8Array(Buffer.from(text(args, 'bytes'), 'base64')),
+    ]),
     ...(args['entityTypes'] === undefined
       ? {}
       : { entityTypes: texts(args, 'entityTypes') }),
@@ -330,7 +332,10 @@ const operations: Record<
     const { data, contentType } = await contentTransport().getBinary(
       resourceId(text(args, 'resource')),
     );
-    return { contentType, bytes: Buffer.from(data).toString('base64') };
+    return {
+      contentType,
+      bytes: Buffer.from(await data.arrayBuffer()).toString('base64'),
+    };
   },
 
   async 'get-stream'(args) {

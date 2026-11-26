@@ -33,9 +33,9 @@ import (
 // description and annotations, and its anchored text.
 type ContentTransport interface {
 	// PutBinary uploads a resource's bytes and its fields.
-	PutBinary(ctx context.Context, request PutBinaryRequest) *Upload
+	PutBinary(ctx context.Context, request api.PutBinaryRequest) *Upload
 	// GetBinary reads a resource's bytes, whole, with their media type.
-	GetBinary(ctx context.Context, resource api.ResourceId) (Content, error)
+	GetBinary(ctx context.Context, resource api.ResourceId) (api.ResourceRepresentation, error)
 	// GetBinaryStream reads a resource's bytes as a stream, with their media
 	// type.
 	GetBinaryStream(ctx context.Context, resource api.ResourceId) (ContentStream, error)
@@ -64,30 +64,6 @@ type GatewayOperations interface {
 }
 
 var _ GatewayOperations = (*HTTPTransport)(nil)
-
-// PutBinaryRequest is an upload: the resource's bytes and its fields. A field
-// left at its zero value is not sent.
-type PutBinaryRequest struct {
-	Name       string
-	Bytes      []byte
-	Format     string
-	StorageURI string
-	// EntityTypes is the resource's entity types.
-	EntityTypes []string
-	Language    string
-	// SourceAnnotationID and SourceResourceID name what a generated resource
-	// was generated from.
-	SourceAnnotationID api.AnnotationId
-	SourceResourceID   api.ResourceId
-	GenerationPrompt   string
-	// Generator is the agent that produced a generated resource's content.
-	Generator *api.Agent
-	// JobID is the job a worker's upload fulfils.
-	JobID           api.JobId
-	IsDraft         *bool
-	CloneToken      string
-	ArchiveOriginal *bool
-}
 
 // Upload is an upload under way: what it reports as it goes, and what the
 // gateway answers. It is consumed once.
@@ -151,12 +127,6 @@ func (u *Upload) Wait(ctx context.Context) (api.CreateResourceResponse, error) {
 	}
 }
 
-// Content is a resource's bytes, with their media type.
-type Content struct {
-	Bytes       []byte
-	ContentType string
-}
-
 // ContentStream is a resource's bytes as they arrive, with their media type.
 // Its reader is closed by its caller.
 type ContentStream struct {
@@ -184,7 +154,7 @@ const uploadChunk = 64 * 1024
 // form is an upload's body, as RouteUploadResource sends it: its members
 // every upload sends, then the bytes as the file member, then the others it
 // sends.
-func form(request PutBinaryRequest) (body []byte, contentType string, err error) {
+func form(request api.PutBinaryRequest) (body []byte, contentType string, err error) {
 	var buffer bytes.Buffer
 	writer := multipart.NewWriter(&buffer)
 	fields := func(required bool) error {
@@ -215,7 +185,7 @@ func form(request PutBinaryRequest) (body []byte, contentType string, err error)
 	if err != nil {
 		return nil, "", err
 	}
-	if _, err := part.Write(request.Bytes); err != nil {
+	if _, err := part.Write(request.File); err != nil {
 		return nil, "", err
 	}
 	if err := fields(false); err != nil {
@@ -229,24 +199,40 @@ func form(request PutBinaryRequest) (body []byte, contentType string, err error)
 
 // uploadSent is each member of an upload but its file, as request sends it:
 // its text, and whether it is sent.
-var uploadSent = map[string]func(request PutBinaryRequest) (string, bool, error){
-	uploadFieldName:               func(r PutBinaryRequest) (string, bool, error) { return r.Name, true, nil },
-	uploadFieldFormat:             func(r PutBinaryRequest) (string, bool, error) { return r.Format, true, nil },
-	uploadFieldStorageUri:         func(r PutBinaryRequest) (string, bool, error) { return r.StorageURI, true, nil },
-	uploadFieldLanguage:           func(r PutBinaryRequest) (string, bool, error) { return given(r.Language) },
-	uploadFieldEntityTypes:        func(r PutBinaryRequest) (string, bool, error) { return encoded(r.EntityTypes, len(r.EntityTypes) > 0) },
-	uploadFieldSourceAnnotationId: func(r PutBinaryRequest) (string, bool, error) { return given(r.SourceAnnotationID.String()) },
-	uploadFieldSourceResourceId:   func(r PutBinaryRequest) (string, bool, error) { return given(r.SourceResourceID.String()) },
-	uploadFieldGenerationPrompt:   func(r PutBinaryRequest) (string, bool, error) { return given(r.GenerationPrompt) },
-	uploadFieldGenerator:          func(r PutBinaryRequest) (string, bool, error) { return encoded(r.Generator, r.Generator != nil) },
-	uploadFieldJobId:              func(r PutBinaryRequest) (string, bool, error) { return given(r.JobID.String()) },
-	uploadFieldIsDraft:            func(r PutBinaryRequest) (string, bool, error) { return flag(r.IsDraft) },
-	uploadFieldCloneToken:         func(r PutBinaryRequest) (string, bool, error) { return given(r.CloneToken) },
-	uploadFieldArchiveOriginal:    func(r PutBinaryRequest) (string, bool, error) { return flag(r.ArchiveOriginal) },
+var uploadSent = map[string]func(request api.PutBinaryRequest) (string, bool, error){
+	uploadFieldName:       func(r api.PutBinaryRequest) (string, bool, error) { return r.Name, true, nil },
+	uploadFieldFormat:     func(r api.PutBinaryRequest) (string, bool, error) { return r.Format, true, nil },
+	uploadFieldStorageUri: func(r api.PutBinaryRequest) (string, bool, error) { return r.StorageUri, true, nil },
+	uploadFieldLanguage:   func(r api.PutBinaryRequest) (string, bool, error) { return given(r.Language) },
+	uploadFieldEntityTypes: func(r api.PutBinaryRequest) (string, bool, error) {
+		return encoded(r.EntityTypes, r.EntityTypes != nil && len(*r.EntityTypes) > 0)
+	},
+	uploadFieldSourceAnnotationId: func(r api.PutBinaryRequest) (string, bool, error) { return identified(r.SourceAnnotationId) },
+	uploadFieldSourceResourceId:   func(r api.PutBinaryRequest) (string, bool, error) { return identified(r.SourceResourceId) },
+	uploadFieldGenerationPrompt:   func(r api.PutBinaryRequest) (string, bool, error) { return given(r.GenerationPrompt) },
+	uploadFieldGenerator:          func(r api.PutBinaryRequest) (string, bool, error) { return encoded(r.Generator, r.Generator != nil) },
+	uploadFieldJobId:              func(r api.PutBinaryRequest) (string, bool, error) { return identified(r.JobId) },
+	uploadFieldIsDraft:            func(r api.PutBinaryRequest) (string, bool, error) { return flag(r.IsDraft) },
+	uploadFieldCloneToken:         func(r api.PutBinaryRequest) (string, bool, error) { return given(r.CloneToken) },
+	uploadFieldArchiveOriginal:    func(r api.PutBinaryRequest) (string, bool, error) { return flag(r.ArchiveOriginal) },
 }
 
-// given is text, sent when it is not empty.
-func given(text string) (string, bool, error) { return text, text != "", nil }
+// given is text, sent when it is stated and not empty.
+func given(text *string) (string, bool, error) {
+	if text == nil {
+		return "", false, nil
+	}
+	return *text, *text != "", nil
+}
+
+// identified is id's text, sent when it is stated and not the zero id.
+func identified[ID fmt.Stringer](id *ID) (string, bool, error) {
+	if id == nil {
+		return "", false, nil
+	}
+	text := (*id).String()
+	return text, text != "", nil
+}
 
 // flag is value's text, sent when it is set.
 func flag(value *bool) (string, bool, error) {
@@ -306,10 +292,10 @@ func (p *progressReader) Read(buffer []byte) (int, error) {
 // and fields, after Timing.RequestRetryPause or the answer's Retry-After when
 // that is longer. Its context abandons it: the connection is closed, nothing
 // is reported on the error stream, and it is not sent again.
-func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting PutBinaryRequest) *Upload {
+func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting api.PutBinaryRequest) *Upload {
 	return NewUpload(func(report func(api.UploadProgress)) (api.CreateResourceResponse, error) {
-		busLog(ctx, busPut, "content", map[string]any{"name": putting.Name, "format": putting.Format, "storageUri": putting.StorageURI, "sizeBytes": len(putting.Bytes)}, Envelope{})
-		ctx, span := uploading(ctx, putting.Format, len(putting.Bytes))
+		busLog(ctx, busPut, "content", map[string]any{"name": putting.Name, "format": putting.Format, "storageUri": putting.StorageUri, "sizeBytes": len(putting.File)}, Envelope{})
+		ctx, span := uploading(ctx, putting.Format, len(putting.File))
 		defer span.End()
 		body, contentType, err := form(putting)
 		if err != nil {
@@ -358,23 +344,23 @@ func interrupted(resource api.ResourceId, err error) *TransportError {
 }
 
 // GetBinary reads a resource's bytes, whole.
-func (c *HTTPContentTransport) GetBinary(ctx context.Context, resource api.ResourceId) (Content, error) {
+func (c *HTTPContentTransport) GetBinary(ctx context.Context, resource api.ResourceId) (api.ResourceRepresentation, error) {
 	busLog(ctx, busGet, "content", map[string]any{"resourceId": resource}, Envelope{})
 	ctx, span := getting(ctx, resource, false)
 	defer span.End()
 	got, err := c.read(ctx, resource)
 	if err != nil {
-		return Content{}, err
+		return api.ResourceRepresentation{}, err
 	}
 	defer got.done()
 	read, err := io.ReadAll(got.response.Body)
 	if err != nil {
 		if ctx.Err() != nil {
-			return Content{}, ctx.Err()
+			return api.ResourceRepresentation{}, ctx.Err()
 		}
-		return Content{}, c.shared.failures.Report(interrupted(resource, err))
+		return api.ResourceRepresentation{}, c.shared.failures.Report(interrupted(resource, err))
 	}
-	return Content{Bytes: read, ContentType: contentType(got.response)}, nil
+	return api.ResourceRepresentation{Data: read, ContentType: contentType(got.response)}, nil
 }
 
 // streamed reports a read whose bytes stopped coming, and releases the

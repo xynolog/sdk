@@ -346,6 +346,7 @@ and type_of st what (ty_ : T.ty) =
   | T.Any -> R.named "serde_json::Value"
   | T.Nullable inner -> type_of st what inner
   | T.Inline i -> in_place st what i
+  | T.Scalar (T.Text { binary = true; _ }) -> R.named "bytes::Bytes"
   | T.Scalar (T.Text _) -> string_ty
   | T.Scalar T.Boolean -> ty "bool"
   | T.Scalar T.Number -> ty "f64"
@@ -398,11 +399,7 @@ and declaration st name (form : T.form) doc =
          generated"
         name
   | T.Identifier { pattern } -> identifier name pattern doc
-  | T.Alias (T.Scalar (T.Text _)) -> alias string_ty
-  | T.Alias (T.Scalar (T.Integer { minimum; maximum })) ->
-      alias (integer_ty ~minimum ~maximum)
-  | T.Alias (T.Scalar T.Number) -> alias (ty "f64")
-  | T.Alias (T.Scalar T.Boolean) -> alias (ty "bool")
+  | T.Alias ((T.Scalar _ | T.List _) as held) -> alias (type_of st name held)
   | T.Map { key; value } ->
       let key = match key with Some key -> named st key | None -> string_ty in
       alias
@@ -1042,6 +1039,7 @@ let hashable st names =
               ( "String" | "bool" | "u16" | "u64" | "i64" | "Vec" | "Option"
               | "Box" );
             ]
+          | [ "bytes"; "Bytes" ]
           | [ "std"; "collections"; "BTreeMap" ]
           | [ "serde_json"; ("Map" | "Value") ] ),
           args ) ->

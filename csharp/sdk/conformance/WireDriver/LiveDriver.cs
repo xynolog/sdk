@@ -169,20 +169,13 @@ internal sealed class LiveDriver : IDisposable
             "matchedResources" => Query(Client.Match.Resources(Text(args, "search"), Filters<ResourceSearchFilters>())),
             "entityTypes" => Query(Client.Browse.EntityTypes()),
             "tagSchemas" => Query(Client.Browse.TagSchemas()),
-            "engines" => Query(Client.Browse.Engines(), Engines),
+            "engines" => Query(Client.Browse.Engines()),
             var name => throw new InvalidOperationException("Unknown query " + name),
         };
     }
 
-    private static JsonElement Engines(IReadOnlyList<EngineWithLimits> engines) => JsonSerializer.SerializeToElement(engines.Select(engine =>
-    {
-        var node = JsonSerializer.SerializeToNode(engine.Entry)?.AsObject() ?? throw new InvalidOperationException("Missing engine");
-        if (engine.Limits is { } limits) node["limits"] = JsonSerializer.SerializeToNode(limits);
-        return node;
-    }));
-
-    private static IQuery Query<T>(Cached<T> cached, Func<T, JsonElement>? encode = null) =>
-        new QueryView<T>(cached, encode ?? (value => JsonSerializer.SerializeToElement(value)));
+    private static IQuery Query<T>(Cached<T> cached) =>
+        new QueryView<T>(cached, value => JsonSerializer.SerializeToElement(value));
 
     private static string Text(JsonElement row, string key) => row.GetProperty(key).GetString() ?? throw new InvalidOperationException("Missing " + key);
     private static T Required<T>(JsonElement row, string key) where T : class =>

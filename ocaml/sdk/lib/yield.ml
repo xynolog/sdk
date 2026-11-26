@@ -5,10 +5,10 @@ let delegate follower ?stall_ms ~params ~on_report ~on_failure ~on_close () =
     ~params:(Yojson.Safe.from_string (Models.encode params))
     ~on_report ~on_failure ~on_close ()
 
-let resource client ~fields ~bytes ~on_progress =
+let resource client request ~on_progress =
   Upload.make (fun () ->
       Client_core.content (fun () ->
-          Http_wire.put (Client_core.http client) ~fields ~bytes ~on_progress))
+          Http_wire.put (Client_core.http client) request ~on_progress))
 
 let create_from_token client ~token ~name ~content ?archive_original () =
   let module B = Bus_registry in
@@ -42,20 +42,23 @@ let create_from_token client ~token ~name ~content ?archive_original () =
             | _ -> ""
           in
           let format = Media_types.clone_format media in
-          let fields =
-            [
-              (Gateway_http.Upload_field.name, name);
-              (Gateway_http.Upload_field.format, format);
-              ( Gateway_http.Upload_field.storage_uri,
-                "file://" ^ Media_types.storage_file_name ~name ~format );
-              (Gateway_http.Upload_field.clone_token, token);
-            ]
-            @ Option.to_list
-                (Option.map
-                   (fun value ->
-                     ( Gateway_http.Upload_field.archive_original,
-                       string_of_bool value ))
-                   archive_original)
+          let request : Records.Put_binary_request.t =
+            {
+              name;
+              file = content;
+              format;
+              storage_uri =
+                "file://" ^ Media_types.storage_file_name ~name ~format;
+              language = None;
+              entity_types = None;
+              source_annotation_id = None;
+              source_resource_id = None;
+              generation_prompt = None;
+              generator = None;
+              job_id = None;
+              is_draft = None;
+              clone_token = Some token;
+              archive_original;
+            }
           in
-          Upload.await
-            (resource client ~fields ~bytes:content ~on_progress:ignore))
+          Upload.await (resource client request ~on_progress:ignore))

@@ -12,13 +12,14 @@ from xynolog.namespaces.links import Links
 from xynolog.operations import YIELD_CLONE_RESOURCE_REQUESTED, YIELD_CLONE_TOKEN_REQUESTED
 from xynolog.resources import primary_media_type
 from xynolog.timing import GENERATION_STALL_ASSUMED_TOKENS_COUNT, GENERATION_STALL_FLOOR_MS, GENERATION_STALL_PER_TOKEN_MS
-from xynolog.transport import ContentTransport, PutBinaryRequest, Upload
+from xynolog.transport import ContentTransport, Upload
 from xynolog.types import (
     CloneResourceWithTokenResponse,
     CreateFromTokenOptions,
     CreateResourceResponse,
     GatheredContextFocusResource,
     GenerationJobParams,
+    PutBinaryRequest,
     ResourceDescriptor,
     YieldCloneResourceRequest,
     YieldCloneTokenRequest,

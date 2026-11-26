@@ -380,6 +380,7 @@ and form =
   | Fields of field list
   | Map of base
       (** each member's value, the member named as the caller chooses *)
+  | Items of base  (** each item of a list *)
   | Variants of { property : string; variants : variant list }
 
 and variant = { tag : string; constructor : string; fields : field list }
@@ -463,6 +464,9 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
           base_of key "/additionalProperties" ~named:(module_ ^ "_value") value
         in
         { module_; form = Map base; needs = Option.to_list need }
+    | T.Alias (T.List (Some item)) ->
+        let base, need = base_of key "/items" ~named:(module_ ^ "_item") item in
+        { module_; form = Items base; needs = Option.to_list need }
     | T.Union { tag = Some { property; _ }; branches } ->
         let variants =
           List.mapi
@@ -505,7 +509,7 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
           form = Variants { property; variants = List.map fst variants };
           needs = List.concat_map snd variants;
         }
-    | _ -> refuse "" "is no object, no union and no string enum"
+    | _ -> refuse "" "is no object, no union, no list and no string enum"
   in
   let derived = List.map derive written in
   let derived = List.rev !stated @ derived in
@@ -953,6 +957,9 @@ let files (entries, tabled) =
             ~manifest:
               (O.type_ "list"
                  ~args:[ O.type_tuple [ O.type_ "string"; base_type base ] ])
+      | Items base ->
+          O.type_declaration "t" O.Abstract
+            ~manifest:(base_type (List_base base))
       | Variants { variants; _ } ->
           O.type_declaration "t"
             (Variant
@@ -975,25 +982,37 @@ let files (entries, tabled) =
           | Some c when fields = [] -> O.construct c
           | Some c -> O.construct c ~arg:record)
     in
+    (* An object's members read as [read] has them. *)
+    let members read =
+      O.function_
+        [
+          O.case (O.Pattern.variant "Assoc" ~arg:(O.Pattern.var "members")) read;
+          O.case O.Pattern.any (O.call "malformed" [ O.string "" ]);
+        ]
+    in
     let read =
       match t.form with
-      | Fields fields -> read_fields t.module_ fields (built None fields)
-      | Map base -> O.call "map" [ base_reader base; O.ident "members" ]
+      | Fields fields ->
+          members (read_fields t.module_ fields (built None fields))
+      | Map base ->
+          members (O.call "map" [ base_reader base; O.ident "members" ])
+      | Items base -> O.call "list" [ base_reader base; O.string "" ]
       | Variants { property; variants } ->
-          O.let_star (O.Pattern.var "tag")
-            (O.call "required"
-               [ O.ident "string"; O.string property; O.ident "members" ])
-            (O.match_ (O.ident "tag")
-               (List.map
-                  (fun v ->
-                    O.case (O.Pattern.string v.tag)
-                      (read_fields t.module_ v.fields
-                         (built (Some v.constructor) v.fields)))
-                  variants
-               @ [
-                   O.case O.Pattern.any
-                     (O.call "malformed" [ O.string property ]);
-                 ]))
+          members
+          @@ O.let_star (O.Pattern.var "tag")
+               (O.call "required"
+                  [ O.ident "string"; O.string property; O.ident "members" ])
+               (O.match_ (O.ident "tag")
+                  (List.map
+                     (fun v ->
+                       O.case (O.Pattern.string v.tag)
+                         (read_fields t.module_ v.fields
+                            (built (Some v.constructor) v.fields)))
+                     variants
+                  @ [
+                      O.case O.Pattern.any
+                        (O.call "malformed" [ O.string property ]);
+                    ]))
     in
     let json = O.type_ "Yojson.Safe.t" in
     let of_json =
@@ -1001,14 +1020,7 @@ let files (entries, tabled) =
         ~type_:
           (O.arrow json
              (O.type_ "result" ~args:[ O.type_ "t"; O.type_ "Models.fault" ]))
-        (O.open_in "Table_codec"
-           (O.function_
-              [
-                O.case
-                  (O.Pattern.variant "Assoc" ~arg:(O.Pattern.var "members"))
-                  read;
-                O.case O.Pattern.any (O.call "malformed" [ O.string "" ]);
-              ]))
+        (O.open_in "Table_codec" read)
     in
     let value = O.ident "value" in
     let to_json =
@@ -1021,6 +1033,7 @@ let files (entries, tabled) =
                  [ O.Pattern.var "value" ]
                  (O.call "write" [ O.list (written_fields value fields) ])
            | Map base -> O.call "json_map" [ base_writer base ]
+           | Items base -> base_writer (List_base base)
            | Variants { property; variants } ->
                O.function_
                  (List.map

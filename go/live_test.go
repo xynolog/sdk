@@ -692,18 +692,18 @@ func TestAResourcesAnnotationsAreTheListAndAListOrASearchIsOneQueryPerSetOfFilte
 }
 
 // namesOf is each engine as "<provider> <model>".
-func namesOf(t *testing.T, engines []xynolog.EngineWithLimits) []string {
+func namesOf(t *testing.T, engines api.EnginesWithLimits) []string {
 	t.Helper()
 	var names []string
 	for _, each := range engines {
-		names = append(names, string(each.Entry.Engine.Provider)+" "+each.Entry.Engine.Model)
+		names = append(names, string(each.Engine.Provider)+" "+each.Engine.Model)
 	}
 	return names
 }
 
 // limitsOf is the context each engine was reported to hold; "none" for one
 // with no report.
-func limitsOf(engines []xynolog.EngineWithLimits) []string {
+func limitsOf(engines api.EnginesWithLimits) []string {
 	var limits []string
 	for _, each := range engines {
 		if each.Limits == nil {
@@ -743,14 +743,14 @@ func TestTheEnginesAreShownAsTheirRequestIsAnsweredAndEachHoldersLimitsAsItRepor
 
 	// The engines are shown when their request is answered, with what has been reported so far: they wait for no holder.
 	answerRequest(w.transport, engines, `{"engines":[{"engine":`+gemma+`},{"engine":`+claude+`}]}`)
-	shown := valueIn[[]xynolog.EngineWithLimits](t, live.now(t))
+	shown := valueIn[api.EnginesWithLimits](t, live.now(t))
 	if names, limits := namesOf(t, shown), limitsOf(shown); !slices.Equal(names, []string{"ollama gemma2:27b", "anthropic claude-opus-5-5"}) || !slices.Equal(limits, []string{"8192", "none"}) {
 		t.Fatalf("shown %v with limits %v", names, limits)
 	}
 
 	// A holder that reports later delays only its own engines' limits.
 	answerRequest(w.transport, gather, `{"limits":[{"engine":`+claude+`,"limits":{"contextTokens":9,"maxOutputTokens":1}}]}`)
-	if limits := limitsOf(valueIn[[]xynolog.EngineWithLimits](t, live.now(t))); !slices.Equal(limits, []string{"8192", "9"}) {
+	if limits := limitsOf(valueIn[api.EnginesWithLimits](t, live.now(t))); !slices.Equal(limits, []string{"8192", "9"}) {
 		t.Fatalf("shown limits %v", limits)
 	}
 
@@ -772,7 +772,7 @@ func TestTheEnginesAreShownAsTheirRequestIsAnsweredAndEachHoldersLimitsAsItRepor
 		}
 	}
 	answerRequest(w.transport, reasked, `{"engines":[{"engine":`+claude+`}]}`)
-	shown = valueIn[[]xynolog.EngineWithLimits](t, live.now(t))
+	shown = valueIn[api.EnginesWithLimits](t, live.now(t))
 	if names, limits := namesOf(t, shown), limitsOf(shown); !slices.Equal(names, []string{"anthropic claude-opus-5-5"}) || !slices.Equal(limits, []string{"9"}) {
 		t.Fatalf("shown %v with limits %v", names, limits)
 	}

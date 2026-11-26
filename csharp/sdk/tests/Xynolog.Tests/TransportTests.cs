@@ -696,11 +696,11 @@ public sealed partial class TransportTests
         using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], httpClient: client);
         await OpenAsync(transport);
         using var content = new HttpContentTransport(transport);
-        var uploaded = await content.PutBinaryAsync(new ResourceUpload { Name = "A name", Format = "image/png", StorageUri = "file:///upload", File = payload, EntityTypes = "[\"Person\"]" });
+        var uploaded = await content.PutBinaryAsync(new PutBinaryRequest { Name = "A name", Format = "image/png", StorageUri = "file:///upload", File = payload, EntityTypes = ["Person"] });
         Assert.Equal("r-uploaded", uploaded.Value);
         var buffered = await content.GetBinaryAsync(uploaded);
         Assert.Equal("image/png", buffered.ContentType);
-        Assert.Equal(payload, buffered.Bytes);
+        Assert.Equal(payload, buffered.Data);
         using var streamed = await content.GetBinaryStreamAsync(uploaded);
         using var destination = new MemoryStream();
         await streamed.Stream.CopyToAsync(destination);
@@ -809,8 +809,8 @@ public sealed partial class TransportTests
 
     private static TimeSpan RequestRetryPause => TimeSpan.FromMilliseconds(Timings.RequestRetryPauseMs);
 
-    private static ResourceUpload SampleUpload() =>
-        new() { Name = "A name", Format = "image/png", StorageUri = "file:///upload", File = [0, 1, 127, 128, 255], EntityTypes = "[\"Person\"]" };
+    private static PutBinaryRequest SampleUpload() =>
+        new() { Name = "A name", Format = "image/png", StorageUri = "file:///upload", File = [0, 1, 127, 128, 255], EntityTypes = ["Person"] };
 
     private static async Task<(string Key, byte[] File, Dictionary<string, string> Fields)> ReadUploadAsync(HttpRequestMessage request, CancellationToken cancellation)
     {

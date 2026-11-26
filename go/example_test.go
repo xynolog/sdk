@@ -78,7 +78,7 @@ func ExampleBrowseNamespace_ResourceContent() {
 		fmt.Println(err)
 		return
 	}
-	made.Content.Seed(resource, xynolog.Content{Bytes: []byte("Attention is all you need."), ContentType: "text/plain; charset=utf-8"})
+	made.Content.Seed(resource, api.ResourceRepresentation{Data: []byte("Attention is all you need."), ContentType: "text/plain; charset=utf-8"})
 	text, err := made.Client.Browse.ResourceContent(context.Background(), resource)
 	if err != nil {
 		fmt.Println(err)

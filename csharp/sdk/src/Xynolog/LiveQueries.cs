@@ -7,9 +7,6 @@ using Xynolog.Types;
 
 namespace Xynolog;
 
-/// <summary>An engine configured in the knowledge base and the limits its service reported.</summary>
-public sealed record EngineWithLimits(EngineEntry Entry, InferenceLimits? Limits);
-
 internal sealed class LiveQueries : IDisposable
 {
     internal readonly record struct AnnotationKey(ResourceId Resource, AnnotationId Annotation);
@@ -150,7 +147,7 @@ internal sealed class LiveQueries : IDisposable
     {
         var limits = new Dictionary<Engine, InferenceLimits>();
         foreach (var entry in Volatile.Read(ref reportedLimits)) limits[entry.Engine] = entry.Limits;
-        return engines.Select(entry => new EngineWithLimits(entry, limits.GetValueOrDefault(entry.Engine))).ToArray();
+        return engines.Select(entry => new EngineWithLimits { Engine = entry.Engine, Jobs = entry.Jobs, Limits = limits.GetValueOrDefault(entry.Engine) }).ToArray();
     }
 
     private static bool ResourceMatches(ResourceId resource, Subject subject) => subject.Resource == resource;

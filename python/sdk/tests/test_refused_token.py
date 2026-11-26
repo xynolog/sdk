@@ -21,8 +21,8 @@ from xynolog.errors import SignInError, TransportError, XynologError
 from xynolog.events import Events
 from xynolog.http import HttpTransport, Timing
 from xynolog.identifiers import ResourceId
-from xynolog.transport import PutBinaryRequest, UploadProgress
-from xynolog.types import RetryBudget, UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
+from xynolog.transport import UploadProgress
+from xynolog.types import PutBinaryRequest, RetryBudget, UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
 from xynolog.watched import Variable, reached
 
 QUICK = Timing(reconnect_ms=20, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1))

@@ -132,7 +132,7 @@ let files ~root (spec : Spec.t) =
   let* adapters = adapters spec in
   let* definitions, validated_roots =
     within "openapi.json"
-      (Definitions.derive ~root spec ~adapters
+      (Definitions.derive spec ~adapters
          ~carrier:(Transport.carrier_schema transport)
          ~http:(http.schemas @ archivist.schemas)
          ~envelopes:bus.envelopes)

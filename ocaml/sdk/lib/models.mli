@@ -161,6 +161,8 @@ val embedding_config : [ `EmbeddingConfig ] descriptor
 val engine : [ `Engine ] descriptor
 val engine_entry : [ `EngineEntry ] descriptor
 val engine_limits : [ `EngineLimits ] descriptor
+val engine_with_limits : [ `EngineWithLimits ] descriptor
+val engines_with_limits : [ `EnginesWithLimits ] descriptor
 val enriched_resource_event : [ `EnrichedResourceEvent ] descriptor
 val entity_tag_changed_payload : [ `EntityTagChangedPayload ] descriptor
 val entity_type_added_payload : [ `EntityTypeAddedPayload ] descriptor
@@ -397,6 +399,7 @@ val progress : [ `Progress ] descriptor
 val project_config : [ `ProjectConfig ] descriptor
 val protected_resource_metadata : [ `ProtectedResourceMetadata ] descriptor
 val provider : [ `Provider ] descriptor
+val put_binary_request : [ `PutBinaryRequest ] descriptor
 val qdrant_vectors_config : [ `QdrantVectorsConfig ] descriptor
 val quoted_text : [ `QuotedText ] descriptor
 val reconciled_span : [ `ReconciledSpan ] descriptor
@@ -417,6 +420,7 @@ val resource_descriptor : [ `ResourceDescriptor ] descriptor
 val resource_error_event : [ `ResourceErrorEvent ] descriptor
 val resource_id : [ `ResourceId ] descriptor
 val resource_moved_payload : [ `ResourceMovedPayload ] descriptor
+val resource_representation : [ `ResourceRepresentation ] descriptor
 val resource_search_filters : [ `ResourceSearchFilters ] descriptor
 val resource_unarchived_payload : [ `ResourceUnarchivedPayload ] descriptor
 val resource_updated_payload : [ `ResourceUpdatedPayload ] descriptor

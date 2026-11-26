@@ -22,7 +22,7 @@ public sealed class Upload : IAsyncEnumerable<UploadProgress>, IDisposable
     private bool finished;
     private int consumed;
 
-    internal Upload(HttpContentTransport content, ResourceUpload request, CancellationToken cancellation)
+    internal Upload(HttpContentTransport content, PutBinaryRequest request, CancellationToken cancellation)
     {
         stopping = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         completion = SendAsync(content, request);
@@ -66,7 +66,7 @@ public sealed class Upload : IAsyncEnumerable<UploadProgress>, IDisposable
         finally { Dispose(); }
     }
 
-    private async Task<CreateResourceResponse> SendAsync(HttpContentTransport content, ResourceUpload request)
+    private async Task<CreateResourceResponse> SendAsync(HttpContentTransport content, PutBinaryRequest request)
     {
         try
         {

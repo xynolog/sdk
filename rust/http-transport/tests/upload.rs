@@ -20,8 +20,10 @@ use tokio::sync::{Notify, watch};
 use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::gateway_http::UPLOAD_RESOURCE;
 use xynolog::timing::REQUEST_RETRY_PAUSE;
-use xynolog::transport::{BoxFuture, ContentTransport, PutBinaryRequest};
-use xynolog::types::{UploadProgress, UploadProgressFinished, UploadProgressStarted};
+use xynolog::transport::{BoxFuture, ContentTransport};
+use xynolog::types::{
+    PutBinaryRequest, UploadProgress, UploadProgressFinished, UploadProgressStarted,
+};
 use xynolog_http_transport::content::HttpContentTransport;
 use xynolog_http_transport::transport::{
     HttpTransport, HttpTransportConfig, Timing, TokenRefresher,

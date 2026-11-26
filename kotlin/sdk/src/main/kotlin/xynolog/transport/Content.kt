@@ -1,5 +1,3 @@
-@file:OptIn(kotlin.ExperimentalStdlibApi::class)
-
 package xynolog.transport
 
 import kotlinx.coroutines.CoroutineScope
@@ -7,10 +5,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.jdk9.asPublisher
-import xynolog.identifiers.AnnotationId
-import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
-import xynolog.types.Agent
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.CreateResourceResponse
 import xynolog.types.GetAnnotationsResponse
@@ -18,100 +13,13 @@ import xynolog.types.GetResourceResponse
 import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenResponse
 import xynolog.types.ProtectedResourceMetadata
+import xynolog.types.PutBinaryRequest
+import xynolog.types.ResourceRepresentation
 import xynolog.types.StatusResponse
 import xynolog.types.UploadProgress
 import xynolog.types.UserResponse
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Flow.Publisher
-
-/** An upload: the bytes, and each field the resource is created with. */
-public data class PutBinaryRequest(
-    public val name: String,
-    public val file: ByteArray,
-    /** The media type of the bytes. */
-    public val format: String,
-    public val storageUri: String,
-    public val entityTypes: List<String> = emptyList(),
-    public val language: String? = null,
-    @get:JvmExposeBoxed
-    public val sourceAnnotationId: AnnotationId? = null,
-    @get:JvmExposeBoxed
-    public val sourceResourceId: ResourceId? = null,
-    public val generationPrompt: String? = null,
-    /** Who made it, when it was made for someone. */
-    public val generator: List<Agent> = emptyList(),
-    /** The job this resource fulfils, when a worker is creating it. */
-    @get:JvmExposeBoxed
-    public val jobId: JobId? = null,
-    public val isDraft: Boolean? = null,
-    /** The token a clone's source was read by, when this resource is that clone. */
-    public val cloneToken: String? = null,
-    /** Whether the clone's source is archived once the clone exists. */
-    public val archiveOriginal: Boolean? = null,
-) {
-    // Bytes are compared by what they hold, not by which array holds them.
-    override fun equals(other: Any?): Boolean =
-        other is PutBinaryRequest && name == other.name && file.contentEquals(other.file) && format == other.format && storageUri == other.storageUri &&
-            entityTypes == other.entityTypes && language == other.language && sourceAnnotationId == other.sourceAnnotationId &&
-            sourceResourceId == other.sourceResourceId && generationPrompt == other.generationPrompt && generator == other.generator && jobId == other.jobId &&
-            isDraft == other.isDraft && cloneToken == other.cloneToken && archiveOriginal == other.archiveOriginal
-
-    override fun hashCode(): Int =
-        listOf(name, file.contentHashCode(), format, storageUri, entityTypes, language, sourceAnnotationId, sourceResourceId, generationPrompt, generator, jobId, isDraft, cloneToken, archiveOriginal)
-            .hashCode()
-
-    /** How Java makes a `PutBinaryRequest`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
-    public class Builder internal constructor(
-        private val name: String,
-        private val file: ByteArray,
-        private val format: String,
-        private val storageUri: String,
-    ) {
-        private var entityTypes: List<String> = emptyList()
-        private var language: String? = null
-        private var sourceAnnotationId: AnnotationId? = null
-        private var sourceResourceId: ResourceId? = null
-        private var generationPrompt: String? = null
-        private var generator: List<Agent> = emptyList()
-        private var jobId: JobId? = null
-        private var isDraft: Boolean? = null
-        private var cloneToken: String? = null
-        private var archiveOriginal: Boolean? = null
-
-        public fun entityTypes(entityTypes: List<String>): Builder = apply { this.entityTypes = entityTypes }
-
-        public fun language(language: String?): Builder = apply { this.language = language }
-
-        @JvmExposeBoxed
-        public fun sourceAnnotationId(sourceAnnotationId: AnnotationId?): Builder = apply { this.sourceAnnotationId = sourceAnnotationId }
-
-        @JvmExposeBoxed
-        public fun sourceResourceId(sourceResourceId: ResourceId?): Builder = apply { this.sourceResourceId = sourceResourceId }
-
-        public fun generationPrompt(generationPrompt: String?): Builder = apply { this.generationPrompt = generationPrompt }
-
-        @JvmExposeBoxed
-        public fun jobId(jobId: JobId?): Builder = apply { this.jobId = jobId }
-
-        public fun isDraft(isDraft: Boolean?): Builder = apply { this.isDraft = isDraft }
-
-        public fun generator(generator: List<Agent>): Builder = apply { this.generator = generator }
-
-        public fun cloneToken(cloneToken: String?): Builder = apply { this.cloneToken = cloneToken }
-
-        public fun archiveOriginal(archiveOriginal: Boolean?): Builder = apply { this.archiveOriginal = archiveOriginal }
-
-        public fun build(): PutBinaryRequest = PutBinaryRequest(
-            name, file, format, storageUri, entityTypes, language, sourceAnnotationId, sourceResourceId, generationPrompt, generator, jobId, isDraft, cloneToken, archiveOriginal,
-        )
-    }
-
-    public companion object {
-        /** A builder of a `PutBinaryRequest` that states these, and what its setters add. */
-        @JvmStatic
-        public fun builder(name: String, file: ByteArray, format: String, storageUri: String): Builder = Builder(name, file, format, storageUri)
-    }
-}
 
 /**
  * An upload under way: what it reports as it goes, and the resource it
@@ -137,9 +45,6 @@ public class Upload internal constructor(
     override fun close(): Unit = sending.cancel()
 }
 
-/** A resource's bytes, with their media type. */
-public class Content(public val contentType: String, public val bytes: ByteArray)
-
 /** A resource's bytes as they arrive, with their media type: read once. Closing it before its end gives up the read. */
 public class ContentStream internal constructor(
     public val contentType: String,
@@ -159,10 +64,10 @@ public interface ContentTransport : AutoCloseable {
     public fun putBinary(request: PutBinaryRequest): Upload
 
     /** A resource's bytes, whole. */
-    public suspend fun getBinary(resourceId: ResourceId): Content
+    public suspend fun getBinary(resourceId: ResourceId): ResourceRepresentation
 
     /** `getBinary`, for Java. */
-    public fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<Content>
+    public fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation>
 
     /** A resource's bytes, as they arrive. */
     public suspend fun getBinaryStream(resourceId: ResourceId): ContentStream
