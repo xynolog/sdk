@@ -729,6 +729,7 @@ roundTrip name value = case name of
   "ResourceUnarchivedPayload" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceUnarchivedPayload)
   "ResourceUpdatedPayload" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceUpdatedPayload)
   "ResourceUpload" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceUpload)
+  "ResourceUploadMetadata" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceUploadMetadata)
   "ResourceView" -> toJSON <$> (parseEither parseJSON value :: Either String ResourceView)
   "Resources" -> toJSON <$> (parseEither parseJSON value :: Either String Resources)
   "ResourcesLimits" -> toJSON <$> (parseEither parseJSON value :: Either String ResourcesLimits)

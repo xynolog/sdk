@@ -1,10 +1,11 @@
 (* Every schema the Haskell SDK's models type, by name: the gateway's
    component schemas, each carried table's own ([Carried_tables]), and the
-   schemas the SDK derives beside them. A component is named by its file.
-   Beside them are the trace carrier, the records of the client registry, of
-   the state units' notices and of how a session ends, the stored sign-in,
-   session and resources, an engine with its limits, what an HTTP operation
-   states in place, and each bus envelope. None may take a component's name. *)
+   schemas the SDK derives beside them. A component is named by its file. Beside them are the form a resource's
+   upload states its metadata in (ResourceUpload without its file), the trace
+   carrier, the records of the client registry, of the state units' notices
+   and of how a session ends, the stored sign-in, session and resources, an
+   engine with its limits, what an HTTP operation states in place, and each bus
+   envelope. None may take a component's name. *)
 
 let ( let* ) = Result.bind
 
@@ -42,6 +43,24 @@ let unchanged (r : Decode.reference) = r.target
 
 (* A reference names the schema of its file's base name. *)
 let referenced (r : Decode.reference) = stem r.target
+
+let layer name = function
+  | Schema.Schema s -> Ok s
+  | Boolean_schema _ -> Error (name ^ " is no schema object")
+
+let property name key (s : Schema.schema) =
+  match Option.bind s.properties (List.assoc_opt key) with
+  | Some p -> Ok p
+  | None -> Error (name ^ " has no property " ^ key)
+
+let without_properties keys (s : Schema.schema) =
+  {
+    s with
+    properties =
+      Option.map
+        (List.filter (fun (k, _) -> not (List.mem k keys)))
+        s.properties;
+  }
 
 (* The roots ([Roots]), each the schema of the file its reference
    names, with each file it refers to that no generation names written in its
@@ -93,6 +112,40 @@ let titled ids records (r : Decode.reference) =
 let derive (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
   let* roots = components spec in
   let components = List.map (fun (name, (typed, _)) -> (name, typed)) roots in
+  (* What is derived from a root's shape is validated as that shape: a root
+     whose shape drops what its validator reads ([Normalize.dropped]) is
+     refused. *)
+  let shaped name =
+    match List.assoc_opt name roots with
+    | Some (_, validated) -> (
+        match Normalize.dropped validated with
+        | [] -> Ok ()
+        | keyword :: _ ->
+            Error
+              (name ^ " states " ^ keyword
+             ^ ", which what is derived from its shape drops"))
+    | None -> Error (name ^ " schema missing")
+  in
+  let* () = shaped "ResourceUpload" in
+  let component name =
+    match List.assoc_opt name components with
+    | Some s -> Ok s
+    | None -> Error (name ^ " schema missing")
+  in
+  let* upload =
+    Result.bind (component "ResourceUpload") (layer "ResourceUpload")
+  in
+  let* _ = property "ResourceUpload" "file" upload in
+  let* required =
+    Option.to_result ~none:"ResourceUpload has no required list" upload.required
+  in
+  let metadata =
+    Schema.Schema
+      {
+        (without_properties [ "file" ] upload) with
+        required = Some (List.filter (( <> ) "file") required);
+      }
+  in
   let* table_records = Table_records.all spec in
   let* records =
     match
@@ -120,7 +173,10 @@ let derive (spec : Spec.t) ~adapters ~carrier ~http ~envelopes =
     List.sort (fun (a, _) (b, _) -> String.compare a b) (adapters @ records)
     @ [ ("SignIn", sign_in) ]
   in
-  let derived = [ ("TraceCarrier", carrier) ] @ stored @ http @ envelopes in
+  let derived =
+    [ ("ResourceUploadMetadata", metadata); ("TraceCarrier", carrier) ]
+    @ stored @ http @ envelopes
+  in
   let* () =
     match List.find_opt (fun (n, _) -> List.mem_assoc n components) derived with
     | Some (n, _) -> Error ("adapter schema name is owned by OpenAPI: " ^ n)

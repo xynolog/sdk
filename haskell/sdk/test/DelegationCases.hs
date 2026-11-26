@@ -96,7 +96,7 @@ newRig samples clock = do
       unexpected = ioError (userError "unexpected content call in follower test")
       content =
         Content.ContentTransport
-          (\_ _ _ -> unexpected)
+          (\_ _ _ _ -> unexpected)
           (\_ _ -> unexpected)
           (\_ _ _ -> unexpected)
           (\_ _ -> unexpected)

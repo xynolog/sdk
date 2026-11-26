@@ -5,7 +5,7 @@ module Xynolog.Internal.HttpContent (newContent) where
 
 import Control.Concurrent.STM
 import Control.Exception (bracket_, throwIO)
-import Control.Monad (unless)
+import Control.Monad (unless, when)
 import Control.Monad.IO.Class (liftIO)
 import Data.Aeson (Value (..), encode, object, toJSON, (.=))
 import Data.Aeson.Key qualified as Key
@@ -14,6 +14,7 @@ import Data.ByteString qualified as Bytes
 import Data.ByteString.Lazy qualified as Lazy
 import Data.Char (ord)
 import Data.IORef
+import Data.Int (Int64)
 import Data.Text qualified as Text
 import Data.Text.Encoding (decodeUtf8With, encodeUtf8)
 import Data.Text.Encoding.Error (lenientDecode)
@@ -65,18 +66,18 @@ newContent http = do
                     brRead (responseBody response)
                   unless (Bytes.null bytes) (Stream.yield bytes >> chunks)
             bracket_ (pure ()) (atomically (writeTVar active False)) (consume (decodeUtf8With lenientDecode media) chunks)
-      upload override asked progress = owned $ report http $ do
-        let file = binaryValue (putBinaryRequestFile asked)
-            format = putBinaryRequestFormat asked
-            total = toInteger (Bytes.length file)
-        fields <- case toJSON asked of Object fields -> pure (KM.delete "file" fields); _ -> throwIO (TransportError Code.TransportBadRequest "Upload request is not an object" Nothing Nothing)
-        BusLog.content (logger http) "PUT" (Object fields)
-        Telemetry.withUpload format (pure total) $ do
-          _ <- checked asked
+      upload override metadata source progress = owned $ report http $ do
+        BusLog.content (logger http) "PUT" (toJSON metadata)
+        high <- newIORef (0 :: Integer)
+        Telemetry.withUpload (resourceUploadMetadataFormat metadata) (maybe (readIORef high) (pure . toInteger) (Content.bodyLength source)) $ do
+          _ <- checked metadata
+          when
+            (maybe False (< 0) (Content.bodyLength source))
+            (throwIO (TransportError Code.TransportBadRequest "Negative upload length" Nothing Nothing))
           key <- UUID.toText <$> httpNewId (options http)
           boundary <- UUID.toText <$> httpNewId (options http)
           unless
-            (Text.all (\c -> c >= ' ' && c <= '~') format && not (Text.null format))
+            (Text.all (\c -> c >= ' ' && c <= '~') (resourceUploadMetadataFormat metadata) && not (Text.null (resourceUploadMetadataFormat metadata)))
             (throwIO (TransportError Code.TransportBadRequest "Invalid multipart header value" Nothing Nothing))
           let quoted =
                 encodeUtf8
@@ -88,25 +89,53 @@ newContent http = do
                     )
               marker = encodeUtf8 boundary
               part name value = "--" <> marker <> "\r\nContent-Disposition: form-data; name=\"" <> quoted name <> "\"\r\n\r\n" <> value <> "\r\n"
-              prefix =
+          fields <- case toJSON metadata of Object fields -> pure fields; _ -> throwIO (TransportError Code.TransportBadRequest "Upload metadata is not an object" Nothing Nothing)
+          when (KM.member "file" fields) (throwIO (TransportError Code.TransportBadRequest "Upload metadata includes the file part" Nothing Nothing))
+          let prefix =
                 Bytes.concat [part (Key.toText name) (case value of String text -> encodeUtf8 text; _ -> Lazy.toStrict (encode value)) | (name, value) <- KM.toList fields]
                   <> "--"
                   <> marker
                   <> "\r\nContent-Disposition: form-data; name=\"file\"; filename=\""
-                  <> quoted (putBinaryRequestName asked)
+                  <> quoted (resourceUploadMetadataName metadata)
                   <> "\"\r\nContent-Type: "
-                  <> encodeUtf8 format
+                  <> encodeUtf8 (resourceUploadMetadataFormat metadata)
                   <> "\r\n\r\n"
               suffix = "\r\n--" <> marker <> "--\r\n"
+              total = maybe 0 fromIntegral (Content.bodyLength source)
+          when
+            (maybe False (\size -> toInteger size + toInteger (Bytes.length prefix + Bytes.length suffix) > toInteger (maxBound :: Int64)) (Content.bodyLength source))
+            (throwIO (TransportError Code.TransportBadRequest "Upload length exceeds the HTTP body's range" Nothing Nothing))
           progress (UploadStarted total)
-          let give consume = do
-                remaining <- newIORef [(prefix, pure ()), (file, progress (UploadProgress total total)), (suffix, pure ())]
-                consume $ do
-                  next <- atomicModifyIORef' remaining (\parts -> case dropWhile (Bytes.null . fst) parts of [] -> ([], Nothing); chunk : rest -> (rest, Just chunk))
-                  case next of
-                    Nothing -> pure Bytes.empty
-                    Just (chunk, sent) -> sent >> pure chunk
-              body = RequestBodyStream (fromIntegral (Bytes.length prefix + Bytes.length file + Bytes.length suffix)) give
+          let give consume = Content.openBody source $ \popper -> do
+                stage <- newIORef (0 :: Int)
+                count <- newIORef (0 :: Integer)
+                let next = do
+                      step <- readIORef stage
+                      case step of
+                        0 -> writeIORef stage 1 >> pure prefix
+                        1 -> do
+                          chunk <- popper
+                          if Bytes.null chunk
+                            then do
+                              actual <- readIORef count
+                              when
+                                (Content.bodyLength source /= Nothing && actual /= total)
+                                (throwIO (TransportError Code.TransportBadRequest "Upload length differs from its source" Nothing Nothing))
+                              writeIORef stage 2
+                              pure suffix
+                            else do
+                              actual <- atomicModifyIORef' count (\n -> let value = n + fromIntegral (Bytes.length chunk) in (value, value))
+                              when
+                                (Content.bodyLength source /= Nothing && actual > total)
+                                (throwIO (TransportError Code.TransportBadRequest "Upload length differs from its source" Nothing Nothing))
+                              previous <- readIORef high
+                              when (actual > previous) (writeIORef high actual >> progress (UploadProgress actual total))
+                              pure chunk
+                        _ -> pure Bytes.empty
+                consume next
+              body = case Content.bodyLength source of
+                Nothing -> RequestBodyStreamChunked give
+                Just size -> RequestBodyStream (size + fromIntegral (Bytes.length prefix + Bytes.length suffix)) give
           let uploadRoute = UploadResource :: HttpRoute ResourceUpload CreateResourceResponse
           media <- case routeRequestMediaType uploadRoute of
             Just value | value == "multipart/form-data" -> pure value

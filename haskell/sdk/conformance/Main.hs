@@ -17,12 +17,13 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.ByteString qualified as Bytes
 import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Char8 qualified as Char8
+import Data.ByteString.Lazy qualified as Lazy
 import Data.HashMap.Strict qualified as HashMap
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as Text
-import Data.Text.Encoding (decodeUtf8)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.UUID.Types qualified as UUID
 import Data.UUID.V4 qualified as UUID
 import DriverProtocol
@@ -175,14 +176,17 @@ upload :: Driver -> Integer -> Bool -> Object -> IO Value
 upload driver identifier progress args = do
   http <- opened driver
   encoded <- need args "bytes"
-  asked <- decode (Object (KM.insert "file" (String encoded) (foldr KM.delete args ["id", "op", "bytes"])))
+  bytes <- either (throwIO . Misuse) pure (Base64.decode (encodeUtf8 encoded))
+  let fields = foldr KM.delete args ["id", "op", "bytes"]
+      formValue key value = if key `elem` ["entityTypes", "isDraft"] then String (decodeUtf8 (Lazy.toStrict (encode value))) else value
+  metadata <- decode (Object (KM.mapWithKey formValue fields))
   -- The driver protocol reports the bytes sent: the upload's start and its end are its answer's.
   let notice (UploadProgress sent total) =
         when progress
           $ say driver
           $ ConformanceDriverLineProgress (MkConformanceDriverLineProgress (ConformanceDriverLineProgressProgress {conformanceDriverLineProgressProgressBytesUploaded = sent, conformanceDriverLineProgressProgressTotalBytes = total, conformanceDriverLineProgressProgressUpload = identifier}))
       notice _ = pure ()
-  created <- Content.putBinary (Http.content http) Nothing asked notice
+  created <- Content.putBinary (Http.content http) Nothing metadata (Content.bytesBody bytes) notice
   pure (toJSON created)
 
 perform :: Driver -> Integer -> Text -> Object -> Maybe (IO Value)

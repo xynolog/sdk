@@ -166,7 +166,7 @@ clientCases fixtures = do
       options = configuration identifier
       contents =
         Content.ContentTransport
-          (\_ _ _ -> ioError (userError "Unexpected upload"))
+          (\_ _ _ _ -> ioError (userError "Unexpected upload"))
           (\_ _ -> ioError (userError "Unexpected binary read"))
           (\_ _ _ -> ioError (userError "Unexpected streamed read"))
           (\_ _ -> fixture fixtures "GetResourceResponse")

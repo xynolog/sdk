@@ -25,8 +25,8 @@ data YieldNamespace = YieldNamespace Bus.Bus LocalBus.EventBus Content.ContentTr
 newYield :: Bus.Bus -> LocalBus.EventBus -> Content.ContentTransport -> Timing.Settings -> Delegation.Follower -> YieldNamespace
 newYield = YieldNamespace
 
-resource :: YieldNamespace -> PutBinaryRequest -> IO (Running.Running Delegation.UploadEvent CreateResourceResponse)
-resource (YieldNamespace _ _ content _ follower) request = Running.newRunning $ \report -> Delegation.run follower (Content.putBinary content Nothing request report)
+resource :: YieldNamespace -> ResourceUploadMetadata -> Content.ReplayableBody -> IO (Running.Running Delegation.UploadEvent CreateResourceResponse)
+resource (YieldNamespace _ _ content _ follower) metadata body = Running.newRunning $ \report -> Delegation.run follower (Content.putBinary content Nothing metadata body report)
 
 delegate :: YieldNamespace -> GenerationJobParams -> Maybe Scientific -> IO (Running.Running (Delegation.JobEvent YieldJobCompleteCommand) YieldJobCompleteCommand)
 delegate (YieldNamespace _ _ _ timing follower) params stall =
@@ -56,24 +56,23 @@ createFromToken namespace@(YieldNamespace _ _ content _ follower) (CreateFromTok
   source <- fromToken namespace token
   let format = Media.cloneFormat (Resources.getPrimaryMediaType source)
   file <- either (ioError . userError . show) pure (Media.storageFileName name format)
-  let request =
-        PutBinaryRequest
-          { putBinaryRequestArchiveOriginal = archiveOriginal,
-            putBinaryRequestCloneToken = Just token,
-            putBinaryRequestEntityTypes = Nothing,
-            putBinaryRequestFile = Binary (encodeUtf8 text),
-            putBinaryRequestFormat = format,
-            putBinaryRequestGenerationPrompt = Nothing,
-            putBinaryRequestGenerator = Nothing,
-            putBinaryRequestIsDraft = Nothing,
-            putBinaryRequestJobId = Nothing,
-            putBinaryRequestLanguage = Nothing,
-            putBinaryRequestName = name,
-            putBinaryRequestSourceAnnotationId = Nothing,
-            putBinaryRequestSourceResourceId = Nothing,
-            putBinaryRequestStorageUri = "file://" <> file
+  let metadata =
+        ResourceUploadMetadata
+          { resourceUploadMetadataArchiveOriginal = fmap (\value -> if value then "true" else "false") archiveOriginal,
+            resourceUploadMetadataCloneToken = Just token,
+            resourceUploadMetadataEntityTypes = Nothing,
+            resourceUploadMetadataFormat = format,
+            resourceUploadMetadataGenerationPrompt = Nothing,
+            resourceUploadMetadataGenerator = Nothing,
+            resourceUploadMetadataIsDraft = Nothing,
+            resourceUploadMetadataJobId = Nothing,
+            resourceUploadMetadataLanguage = Nothing,
+            resourceUploadMetadataName = name,
+            resourceUploadMetadataSourceAnnotationId = Nothing,
+            resourceUploadMetadataSourceResourceId = Nothing,
+            resourceUploadMetadataStorageUri = "file://" <> file
           }
-  Content.putBinary content Nothing request (const (pure ()))
+  Content.putBinary content Nothing metadata (Content.bytesBody (encodeUtf8 text)) (const (pure ()))
 
 clone :: YieldNamespace -> STM ()
 clone (YieldNamespace _ local _ _ _) = Local.signal local YieldClone EmptyBusPayload NoScope

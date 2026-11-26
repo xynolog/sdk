@@ -141,7 +141,7 @@ sessionCases fixtures = do
   let contents _ =
         pure
           ( Content.ContentTransport
-              (\_ _ _ -> unexpected)
+              (\_ _ _ _ -> unexpected)
               (\_ _ -> unexpected)
               (\_ _ _ -> unexpected)
               (\_ _ -> unexpected)

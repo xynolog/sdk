@@ -258,11 +258,11 @@ and completes the local bus. `Client.wire` is its typed wire bus; the namespace
 getters include `Client.browse`, `Client.gather` and `Client.match`.
 
 HTTP content supports scoped binary streams, buffered binary reads, metadata,
-annotations and anchored text. Uploads take a generated `PutBinaryRequest`,
-its bytes held whole. An upload is sent again when a refused credential is
-renewed. Its idempotency key stays the same and progress never decreases
-across replay. An upload reports `UploadStarted` with the body's size before
-any bytes are sent;
+annotations and anchored text. Uploads take generated `ResourceUploadMetadata`
+and a `ReplayableBody`; `bytesBody` builds a byte source. A source opens again
+when a refused credential is renewed. Its idempotency key stays the same and
+progress never decreases across replay. An upload reports `UploadStarted` with
+the body's size, 0 for a body of unknown length, before any bytes are sent;
 `UploadProgress` as they are sent; and `UploadFinished` with the resource the
 gateway's answer names. One that fails reports no resource. A stream retained
 beyond its callback refuses further reads.

@@ -38,6 +38,10 @@ the coming release's, and gathers its changes as they land.
   `ArchivistRoute`, typed by what each is asked and answers, with its method,
   path, status, media types and required headers, as `Xynolog.Http.Routes`
   states the gateway's.
+- `PutBinaryRequest`, the type of Protocol's
+  `client/types/PutBinaryRequest.json`. Uploads still take a
+  `ResourceUploadMetadata` and a `ReplayableBody`, so a body of unknown length,
+  or one larger than memory, is read from its source as it is sent.
 
 ### Changed
 
@@ -48,11 +52,6 @@ the coming release's, and gathers its changes as they land.
   and its media type its `resourceRepresentationContentType`.
 - `Binary`, Protocol's bytes held whole, holds a `ByteString`, where it held
   `Text`; as JSON, which Protocol never sends bytes as, it is their base64.
-- `Yield.resource` and `Content.putBinary` take a `PutBinaryRequest`, the type
-  of Protocol's `client/types/PutBinaryRequest.json`, its bytes held whole in
-  `putBinaryRequestFile`, where they took a `ResourceUploadMetadata` and a
-  `ReplayableBody`. An upload's size is always known: `UploadStarted` states
-  it.
 - `Browse.engines` is a `Cache.Query EnginesWithLimits`, the type of
   Protocol's `client/types/EnginesWithLimits.json`, where it was a list of
   `EngineWithLimits`; `enginesWithLimitsValue` is that list.
@@ -138,9 +137,6 @@ the coming release's, and gathers its changes as they land.
 
 ### Removed
 
-- `ResourceUploadMetadata`, `Content.ReplayableBody` and `Content.bytesBody`.
-  An upload no longer reads its bytes from a source as it sends them, so a
-  body of unknown length, or one larger than memory, is not uploaded.
 - `Session.signInAgent` takes no `RetryBudget`, and signs the agent in once,
   as every SDK does: a failure is thrown as it came, and starting the sign-in
   again is the service's, on its own backoff (Protocol's WORKER-SERVICE R3).

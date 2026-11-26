@@ -84,9 +84,13 @@ withAnswers fixtures answerOverride action = do
       recordContent name identity = atomically (writeTQueue calls (Called ("content:" <> name) (Object (KM.singleton "resourceId" (toJSON identity)))))
       contents =
         Content.ContentTransport
-          ( \_ request progress -> do
-              let bytes = binaryValue (putBinaryRequestFile request)
-                  sent = case toJSON request of Object fields -> Object (KM.insert "content" (String (decodeUtf8 bytes)) (KM.delete "file" fields)); _ -> error "upload request is not an object"
+          ( \_ metadata source progress -> do
+              captured <- newEmptyTMVarIO
+              Content.openBody source $ \popper -> do
+                let readAll = do chunk <- popper; if Bytes.null chunk then pure Bytes.empty else (chunk <>) <$> readAll
+                readAll >>= atomically . putTMVar captured
+              bytes <- atomically (takeTMVar captured)
+              let sent = case toJSON metadata of Object fields -> Object (KM.insert "content" (String (decodeUtf8 bytes)) fields); _ -> error "upload metadata is not an object"
               atomically (writeTQueue calls (Called "content:putBinary" sent))
               let size = fromIntegral (Bytes.length bytes)
               progress (UploadStarted size)
@@ -356,8 +360,8 @@ invoke (Rig client _ _ _) namespace member args = case (namespace, member) of
   ("yield", "resource") -> do
     input <- field "data" args
     text <- field "file" input
-    request <- case input of Object fields -> decode (Object (KM.insert "file" (toJSON (Binary (encodeUtf8 text))) fields)); _ -> ioError (userError "resource data is not an object")
-    Yield.resource (Client.yield client) request >>= void . Running.await
+    metadata <- case input of Object fields -> decode (Object (KM.delete "file" fields)); _ -> ioError (userError "resource data is not an object")
+    Yield.resource (Client.yield client) metadata (Content.bytesBody (encodeUtf8 text)) >>= void . Running.await
   ("yield", "delegate") -> do
     params <- field "params" args
     stall <- optional "stallDeadlineMs" args
