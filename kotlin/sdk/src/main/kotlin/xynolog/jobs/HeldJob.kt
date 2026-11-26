@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import xynolog.bus.Operation
 import xynolog.bus.Operations
+import xynolog.bus.readOf
 import xynolog.bus.resultOf
 import xynolog.channels.Channels
 import xynolog.errors.BusRequestError
@@ -68,8 +69,10 @@ private fun weakness(evidence: DurabilityEvidence): Int = when (evidence) {
 private fun anchorOf(jobType: JobType, params: JobParams): AnnotationId? {
     if (jobType != JobType.Yield) return null
     val written = params.rest["context"] ?: return null
+    val read = readOf(GatheredContext.serializer().descriptor, written)
+    if (read.fault != null) return null
     val context = try {
-        wireJson.decodeFromJsonElement(GatheredContext.serializer(), written)
+        wireJson.decodeFromJsonElement(GatheredContext.serializer(), read.value)
     } catch (_: IllegalArgumentException) {
         return null
     }

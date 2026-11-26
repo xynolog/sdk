@@ -10,11 +10,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import xynolog.Timings
 import xynolog.bus.BusLog
 import xynolog.bus.Logged
+import xynolog.bus.faultIn
 import xynolog.channels.RESOURCE_SCOPED_CHANNELS
 import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
@@ -187,14 +187,16 @@ public class HttpTransport @JvmOverloads constructor(
         }
     }
 
-    private fun accepted(body: ByteArray): Long? =
-        try {
-            wireJson.decodeFromString(BusEmitAccepted.serializer(), body.toString(Charsets.UTF_8)).subscribers
-        } catch (_: SerializationException) {
-            null
+    /** The count an accepted emit's body states; none when it states none, or is no BusEmitAccepted, as the table holds it. */
+    private fun accepted(body: ByteArray): Long? {
+        val text = body.toString(Charsets.UTF_8)
+        if (faultIn(BusEmitAccepted.serializer().descriptor, text) != null) return null
+        return try {
+            wireJson.decodeFromString(BusEmitAccepted.serializer(), text).subscribers
         } catch (_: IllegalArgumentException) {
             null
         }
+    }
 
     @JvmExposeBoxed
     override fun emitFuture(channel: String, payload: JsonObject, scope: ResourceId?, correlationId: String?): CompletableFuture<Long?> =
