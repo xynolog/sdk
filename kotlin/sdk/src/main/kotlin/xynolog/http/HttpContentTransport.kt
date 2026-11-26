@@ -11,7 +11,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.jdk9.asFlow
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -24,17 +23,17 @@ import xynolog.identifiers.ResourceId
 import xynolog.telemetry.Telemetry
 import xynolog.telemetry.callersTrace
 import xynolog.telemetry.futureOf
-import xynolog.transport.Content
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.Events
-import xynolog.transport.PutBinaryRequest
 import xynolog.transport.Upload
-import xynolog.types.Agent
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.CreateResourceResponse
 import xynolog.types.GetAnnotationsResponse
 import xynolog.types.GetResourceResponse
+import xynolog.types.OneOrMoreAgents
+import xynolog.types.PutBinaryRequest
+import xynolog.types.ResourceRepresentation
 import xynolog.types.ResourceUpload
 import xynolog.types.UploadProgress
 import xynolog.types.UploadProgressFinished
@@ -70,15 +69,15 @@ private class Form(request: PutBinaryRequest) {
             ResourceUpload.serializer(),
             ResourceUpload(
                 name = request.name,
-                file = "",
+                file = ByteArray(0),
                 format = request.format,
                 storageUri = request.storageUri,
                 language = request.language?.takeIf { it.isNotEmpty() },
-                entityTypes = request.entityTypes.takeIf { it.isNotEmpty() }?.let { names -> JsonArray(names.map(::JsonPrimitive)).toString() },
+                entityTypes = request.entityTypes?.takeIf { it.isNotEmpty() }?.let { names -> JsonArray(names.map(::JsonPrimitive)).toString() },
                 sourceAnnotationId = request.sourceAnnotationId,
                 sourceResourceId = request.sourceResourceId,
                 generationPrompt = request.generationPrompt?.takeIf { it.isNotEmpty() },
-                generator = request.generator.takeIf { it.isNotEmpty() }?.let { wireJson.encodeToString(ListSerializer(Agent.serializer()), it) },
+                generator = request.generator?.let { wireJson.encodeToString(OneOrMoreAgents.serializer(), it) },
                 jobId = request.jobId,
                 isDraft = request.isDraft?.toString(),
                 cloneToken = request.cloneToken?.takeIf { it.isNotEmpty() },
@@ -198,23 +197,23 @@ public class HttpContentTransport(private val transport: HttpTransport) : Conten
         return response.headers().firstValue("content-type").orElse("application/octet-stream") to response.body()
     }
 
-    override suspend fun getBinary(resourceId: ResourceId): Content {
+    override suspend fun getBinary(resourceId: ResourceId): ResourceRepresentation {
         BusLog.line(Logged.GET, "content", asked(resourceId, null), null, null)
         return Telemetry.getting(resourceId, stream = false) { whole(resourceId) }
     }
 
-    private suspend fun whole(resourceId: ResourceId): Content {
+    private suspend fun whole(resourceId: ResourceId): ResourceRepresentation {
         val (contentType, body) = arriving(resourceId)
         val bytes = try {
             readAll(body)
         } catch (error: IOException) {
             throw exchange.failed(TransportError.withoutResponse("${GET_RESOURCE_REPRESENTATION.method} ${GET_RESOURCE_REPRESENTATION.pathOf(resourceId)} ended before its bytes did: ${error.message}"))
         }
-        return Content(contentType, bytes)
+        return ResourceRepresentation(data = bytes, contentType = contentType)
     }
 
     @JvmExposeBoxed
-    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<Content> = scope.futureOf { getBinary(resourceId) }
+    override fun getBinaryFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation> = scope.futureOf { getBinary(resourceId) }
 
     override suspend fun getBinaryStream(resourceId: ResourceId): ContentStream {
         BusLog.line(Logged.GET, "content", asked(resourceId, "stream"), null, null)

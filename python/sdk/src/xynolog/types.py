@@ -294,6 +294,8 @@ __all__ = [
     "EngineEntry",
     "EngineLimits",
     "EngineProvider",
+    "EngineWithLimits",
+    "EnginesWithLimits",
     "EnrichedResourceEvent",
     "EntityTagChangedPayload",
     "EntityTypeAddedPayload",
@@ -620,6 +622,7 @@ __all__ = [
     "ProjectConfigSite",
     "ProtectedResourceMetadata",
     "Provider",
+    "PutBinaryRequest",
     "QdrantVectorsConfig",
     "QuotedText",
     "ReconciledSpan",
@@ -645,6 +648,7 @@ __all__ = [
     "ResourceDescriptorIdentifierObject",
     "ResourceErrorEvent",
     "ResourceMovedPayload",
+    "ResourceRepresentation",
     "ResourceSearchFilters",
     "ResourceUnarchivedPayload",
     "ResourceUpdatedPayload",
@@ -4594,6 +4598,29 @@ class EngineLimits(WireModel, frozen=True, extra="forbid"):
 
     engine: Engine
     limits: InferenceLimits
+
+
+class EngineWithLimits(WireModel, frozen=True, extra="forbid"):
+    """
+    One of the knowledge base's engines as a client joins it: the entry `browse:engines-result` names, with the inference limits the service holding its credentials reported. A client asks each such service for its limits; an engine no service reported has no `limits`.
+    """
+
+    engine: Engine
+    jobs: Annotated[
+        list[JobFilter] | None,
+        Field(
+            description="The jobs the knowledge base's Inference document has this engine used for, as a claim names them. Absent for an engine only Librarian actors ask."
+        ),
+    ] = None
+    limits: InferenceLimits | None = None
+
+
+type EnginesWithLimits = Annotated[
+    list[EngineWithLimits],
+    Field(
+        description="The knowledge base's engines, in the order `browse:engines-result` names them, each with the limits reported for it."
+    ),
+]
 
 
 class EnrichedResourceEvent(StoredEventResponse, frozen=True):
@@ -8587,6 +8614,46 @@ class ProtectedResourceMetadata(WireModel, frozen=True, extra="forbid"):
     resource_name: Annotated[str | None, Field(description="The knowledge base's name, for a client's sign-in prompt.")] = None
 
 
+class PutBinaryRequest(WireModel, frozen=True, extra="forbid"):
+    """
+    What uploading a resource is handed: its bytes, what the upload states of them, and, for a clone, its token. Each member is as a caller holds it; ResourceUpload is the multipart body the content transport sends of it.
+    """
+
+    name: Annotated[str, Field(description="Human-readable resource name")]
+    file: Annotated[Binary, Field(description="Binary content")]
+    format: Annotated[str, Field(description="Media type of the content (e.g. text/plain, text/markdown, image/png)")]
+    storage_uri: Annotated[
+        str,
+        Field(
+            alias="storageUri",
+            description="Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.",
+        ),
+    ]
+    language: Annotated[str | None, Field(description="ISO 639-1 language code")] = None
+    entity_types: Annotated[list[str] | None, Field(alias="entityTypes")] = None
+    source_annotation_id: Annotated[AnnotationId | None, Field(alias="sourceAnnotationId")] = None
+    source_resource_id: Annotated[ResourceId | None, Field(alias="sourceResourceId")] = None
+    generation_prompt: Annotated[
+        str | None, Field(alias="generationPrompt", description="For AI-generated resources: the prompt that drove generation")
+    ] = None
+    generator: Annotated[
+        OneOrMoreAgents | None,
+        Field(
+            description="The Software peer that produced the content, when software did. Its identity must be the emitter's own — the knowledge base refuses a generator naming anyone else, and supplies it from the verified emitter when omitted. `creator` and `wasAttributedTo` are never sent; the knowledge base derives them from the emitter and the cited job."
+        ),
+    ] = None
+    job_id: Annotated[JobId | None, Field(alias="jobId")] = None
+    is_draft: Annotated[bool | None, Field(alias="isDraft")] = None
+    clone_token: Annotated[
+        str | None,
+        Field(
+            alias="cloneToken",
+            description="A clone token from `yield:clone-token-requested`. With it, the resource is created as a clone of the token's source, inheriting its entity types; `language`, `entityTypes` and the generation fields are then not read.",
+        ),
+    ] = None
+    archive_original: Annotated[bool | None, Field(alias="archiveOriginal")] = None
+
+
 class QuotedText(WireModel, frozen=True, extra="forbid"):
     """
     Words of a text, as a selection quotes them: the words themselves, and maybe the text just before and just after them, which tell apart the places they occur.
@@ -8820,6 +8887,15 @@ class ResourceMovedPayload(WireModel, frozen=True):
 
     from_uri: Annotated[str, Field(alias="fromUri", description="Previous file:// URI")]
     to_uri: Annotated[str, Field(alias="toUri", description="New file:// URI")]
+
+
+class ResourceRepresentation(WireModel, frozen=True, extra="forbid"):
+    """
+    A resource's bytes as the content transport answers them, whole, with the media type it answered with.
+    """
+
+    data: Annotated[Binary, Field(description="The bytes, whole.")]
+    content_type: Annotated[str, Field(alias="contentType", description="The media type the content transport answered with.")]
 
 
 class ResourceSearchFilters(WireModel, frozen=True, extra="forbid"):

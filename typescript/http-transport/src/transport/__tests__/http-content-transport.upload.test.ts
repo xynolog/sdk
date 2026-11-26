@@ -115,7 +115,7 @@ function contentOf(
 
 const upload = (file: Buffer) => ({
   name: 'Every byte',
-  file,
+  file: new Blob([new Uint8Array(file)]),
   format: 'image/png' as const,
   storageUri: 'file://uploads/every-byte.png',
   language: 'en',

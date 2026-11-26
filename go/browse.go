@@ -11,24 +11,16 @@ import (
 	"github.com/xynolog/sdk/go/bus"
 )
 
-// EngineWithLimits is one of the knowledge base's engines: its entry, and
-// its model's limits when the service holding that model's credentials
-// reported them (nil when none did).
-type EngineWithLimits struct {
-	Entry  api.EngineEntry
-	Limits *api.InferenceLimits
-}
-
 // joined is the engines, each with the limits it was reported to have. The
 // first report of an engine is the one that stands.
-func joined(entries []api.EngineEntry, reported []api.EngineLimits) []EngineWithLimits {
+func joined(entries []api.EngineEntry, reported []api.EngineLimits) api.EnginesWithLimits {
 	byEngine := map[api.Engine]api.InferenceLimits{}
 	for i := len(reported) - 1; i >= 0; i-- {
 		byEngine[reported[i].Engine] = reported[i].Limits
 	}
-	engines := make([]EngineWithLimits, 0, len(entries))
+	engines := make(api.EnginesWithLimits, 0, len(entries))
 	for _, entry := range entries {
-		engine := EngineWithLimits{Entry: entry}
+		engine := api.EngineWithLimits{Engine: entry.Engine, Jobs: entry.Jobs}
 		if limits, ok := byEngine[entry.Engine]; ok {
 			engine.Limits = &limits
 		}
@@ -86,7 +78,7 @@ func (n *BrowseNamespace) TagSchemas() *Cached[[]api.TagSchema] {
 // model's limits as the services holding its credentials report them. A
 // service that is down, silent or mistaken reports none: its models show no
 // limits. Engines that cannot be had fail the read at once.
-func (n *BrowseNamespace) Engines() *Cached[[]EngineWithLimits] {
+func (n *BrowseNamespace) Engines() *Cached[api.EnginesWithLimits] {
 	return n.live.enginesWithLimits()
 }
 
@@ -103,7 +95,7 @@ func (n *BrowseNamespace) ResourceContent(ctx context.Context, resourceID api.Re
 	if err != nil {
 		return "", err
 	}
-	return DecodeRepresentation(content.Bytes, content.ContentType)
+	return DecodeRepresentation(content.Data, content.ContentType)
 }
 
 // ResourceGraph is a resource's description as linked data.
@@ -118,7 +110,7 @@ func (n *BrowseNamespace) ResourceAnchoredText(ctx context.Context, resourceID a
 }
 
 // ResourceRepresentation is a resource's bytes, with their media type.
-func (n *BrowseNamespace) ResourceRepresentation(ctx context.Context, resourceID api.ResourceId) (Content, error) {
+func (n *BrowseNamespace) ResourceRepresentation(ctx context.Context, resourceID api.ResourceId) (api.ResourceRepresentation, error) {
 	return n.content.GetBinary(ctx, resourceID)
 }
 

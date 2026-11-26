@@ -11,7 +11,6 @@ import xynolog.mediatypes.cloneFormat
 import xynolog.mediatypes.storageUri
 import xynolog.resources.primaryMediaType
 import xynolog.transport.ContentTransport
-import xynolog.transport.PutBinaryRequest
 import xynolog.transport.Upload
 import xynolog.types.CloneResourceWithTokenResponse
 import xynolog.types.CreateFromTokenOptions
@@ -20,6 +19,7 @@ import xynolog.types.EmptyObject
 import xynolog.types.GatheredContextFocusAnnotation
 import xynolog.types.GatheredContextFocusResource
 import xynolog.types.GenerationJobParams
+import xynolog.types.PutBinaryRequest
 import xynolog.types.ResourceDescriptor
 import xynolog.types.YieldCloneResourceRequest
 import xynolog.types.YieldCloneTokenRequest

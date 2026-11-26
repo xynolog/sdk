@@ -381,17 +381,30 @@ let with_content t ?(streaming = true) resource consume =
           in
           consume ~content_type stream))
 
-let put t ~fields ~bytes ~on_progress =
+let upload_parts (request : Records.Put_binary_request.t) =
+  match Records.Put_binary_request.to_json request with
+  | `Assoc members ->
+      List.filter_map
+        (fun name ->
+          if name = Gateway_http.Upload_field.file then None
+          else
+            match List.assoc_opt name members with
+            | None | Some (`List []) -> None
+            | Some (`String value) -> Some (name, value)
+            | Some value -> Some (name, Yojson.Safe.to_string value))
+        Gateway_http.Upload_field.all
+  | json ->
+      invalid_arg ("PutBinaryRequest encodes as " ^ Yojson.Safe.to_string json)
+
+let put t (request : Records.Put_binary_request.t) ~on_progress =
+  let fields = upload_parts request in
+  let bytes = request.file in
   if Bus_log.active () then
     Bus_log.write "PUT" ~channel:"content"
       (`Assoc (List.map (fun (key, value) -> (key, `String value)) fields));
   let attrs =
     [
-      ( Telemetry_facts.attr_content_format,
-        Telemetry.String
-          (Option.value
-             (List.assoc_opt Gateway_http.Upload_field.format fields)
-             ~default:"") );
+      (Telemetry_facts.attr_content_format, Telemetry.String request.format);
       ( Telemetry_facts.attr_content_size_bytes,
         Telemetry.Int (String.length bytes) );
     ]
@@ -407,11 +420,7 @@ let put t ~fields ~bytes ~on_progress =
         Buffer.add_string buffer value;
         Buffer.add_string buffer "\r\n"
       in
-      List.iter
-        (fun name ->
-          if name <> Gateway_http.Upload_field.file then
-            Option.iter (part name) (List.assoc_opt name fields))
-        Gateway_http.Upload_field.all;
+      List.iter (fun (name, value) -> part name value) fields;
       Buffer.add_string buffer
         ("--" ^ boundary ^ "\r\nContent-Disposition: form-data; name=\""
        ^ Gateway_http.Upload_field.file

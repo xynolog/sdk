@@ -13,7 +13,7 @@ from typing import Final
 from pydantic import TypeAdapter
 
 from spec import JsonObject
-from surface_arguments import Args, Client, first_payload, fresh, given, maybe, member, PUT_BINARY_REQUEST
+from surface_arguments import Args, Client, first_payload, fresh, given, maybe, member
 from xynolog.identifiers import AnnotationId, JobId, ResourceId
 from xynolog.types import (
     AnchorRect,
@@ -30,6 +30,7 @@ from xynolog.types import (
     MarkSubmitEvent,
     MatchSearchRequest,
     Motivation,
+    PutBinaryRequest,
     ResourceErrorEvent,
     TagSchema,
 )
@@ -54,6 +55,7 @@ MARK_JOB_PARAMS: Final = TypeAdapter[MarkJobParams](MarkJobParams)
 MARK_SUBMIT_EVENT: Final = TypeAdapter[MarkSubmitEvent](MarkSubmitEvent)
 MATCH_SEARCH_REQUEST: Final = TypeAdapter[MatchSearchRequest](MatchSearchRequest)
 MOTIVATION: Final = TypeAdapter[Motivation](Motivation)
+PUT_BINARY_REQUEST: Final = TypeAdapter[PutBinaryRequest](PutBinaryRequest)
 RESOURCE_ERROR_EVENT: Final = TypeAdapter[ResourceErrorEvent](ResourceErrorEvent)
 RESOURCE_ID: Final = TypeAdapter[ResourceId](ResourceId)
 STR: Final = TypeAdapter[str](str)

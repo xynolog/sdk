@@ -124,7 +124,7 @@ const REQUESTS: ReadonlyArray<readonly [string, Asking]> = [
     (_transport, content) =>
       content.putBinary({
         name: 'a note',
-        file: Buffer.from('a note'),
+        file: new Blob(['a note']),
         format: 'text/plain',
         storageUri: 'file://a-note.txt',
       }),

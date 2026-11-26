@@ -85,7 +85,7 @@ func reading(t *testing.T) func(data []byte, contentType string) (string, error)
 	})
 	resource := resourceOf(t, "res-1")
 	return func(data []byte, contentType string) (string, error) {
-		made.Content.Seed(resource, xynolog.Content{Bytes: data, ContentType: contentType})
+		made.Content.Seed(resource, api.ResourceRepresentation{Data: data, ContentType: contentType})
 		return made.Client.Browse.ResourceContent(context.Background(), resource)
 	}
 }

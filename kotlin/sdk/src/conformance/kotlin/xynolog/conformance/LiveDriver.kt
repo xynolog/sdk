@@ -21,7 +21,6 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
 import xynolog.ClientTiming
 import xynolog.JobAttemptFailed
@@ -40,7 +39,6 @@ import xynolog.http.HttpTransport
 import xynolog.http.Timing
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
-import xynolog.namespaces.EngineWithLimits
 import xynolog.registry.personKey
 import xynolog.storage.CachePersistence
 import xynolog.storage.MemoryStorage
@@ -48,10 +46,9 @@ import xynolog.transport.ConnectionState
 import xynolog.types.Annotation
 import xynolog.types.AttributedEvent
 import xynolog.types.BrowseResourcesRequest
-import xynolog.types.EngineEntry
+import xynolog.types.EngineWithLimits
 import xynolog.types.GenerationJobParams
 import xynolog.types.GetReferencedByResponseReferencedByItem
-import xynolog.types.InferenceLimits
 import xynolog.types.JobCompleteCommand
 import xynolog.types.JobCreatedResultResponse
 import xynolog.types.JobFailCommand
@@ -86,19 +83,6 @@ private fun <T> state(state: CacheState<T>, written: (T) -> JsonElement): JsonOb
     is CacheState.Pending -> Say.of("status" to JsonPrimitive("pending"))
     is CacheState.Ready -> Say.of("status" to JsonPrimitive("ready"), "value" to written(state.value))
     is CacheState.Failed -> Say.of("status" to JsonPrimitive("failed"), "error" to failure(state.error))
-}
-
-/** An engine as the suite reads one: its entry, with its limits beside its fields when it has them. */
-private object EngineWithLimitsWritten : KSerializer<EngineWithLimits> {
-    override val descriptor = EngineEntry.serializer().descriptor
-
-    override fun serialize(encoder: kotlinx.serialization.encoding.Encoder, value: EngineWithLimits) {
-        val entry = wire.encodeToJsonElement(EngineEntry.serializer(), value.entry).jsonObject
-        val limits = value.limits?.let { "limits" to wire.encodeToJsonElement(InferenceLimits.serializer(), it) }
-        encoder.encodeSerializableValue(JsonObject.serializer(), JsonObject(entry + listOfNotNull(limits)))
-    }
-
-    override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): EngineWithLimits = throw UnsupportedOperationException("the suite sends no engine")
 }
 
 /** A job event as the suite reads one: its kind, and what it carries. */
@@ -239,7 +223,7 @@ private class LiveDriver : Driver {
             "referencedBy" -> Query(client.gather.referencedBy(of()), ListSerializer(GetReferencedByResponseReferencedByItem.serializer()))
             "entityTypes" -> Query(client.browse.entityTypes(), ListSerializer(String.serializer()))
             "tagSchemas" -> Query(client.browse.tagSchemas(), ListSerializer(TagSchema.serializer()))
-            "engines" -> Query(client.browse.engines(), ListSerializer(EngineWithLimitsWritten))
+            "engines" -> Query(client.browse.engines(), ListSerializer(EngineWithLimits.serializer()))
             "resources" -> Query(client.browse.resources(filters(stated, BrowseResourcesRequest.serializer())), ListResourcesResponse.serializer())
             "matchedResources" -> Query(client.match.resources(stated.text("search"), filters(stated, ResourceSearchFilters.serializer())), MatchResourcesResponse.serializer())
             else -> throw Misuse("$name is no query of client/refresh.json")

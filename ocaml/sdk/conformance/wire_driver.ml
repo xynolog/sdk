@@ -879,15 +879,20 @@ let run mode env =
                    ("bytes", text (Base64.encode_exn (body_text stream)));
                  ]))
     | ("put" | "upload") as op ->
-        let fields =
-          J.to_assoc input
-          |> List.filter_map (fun (name, value) ->
-              match value with
-              | `Null -> None
-              | `String value -> Some (name, value)
-              | value -> Some (name, Yojson.Safe.to_string value))
+        let request =
+          let members =
+            J.to_assoc input
+            |> List.filter (fun (name, value) ->
+                value <> `Null && not (List.mem name [ "bytes"; "id"; "op" ]))
+          in
+          let file = Base64.decode_exn (string "bytes" input) in
+          match
+            Xynolog.Records.Put_binary_request.of_json
+              (`Assoc (("file", `String file) :: members))
+          with
+          | Ok request -> request
+          | Error _ -> failwith "upload input is not a PutBinaryRequest"
         in
-        let bytes = Base64.decode_exn (string "bytes" input) in
         (* The driver protocol reports the bytes sent: the upload's start and
            its end are its answer's. *)
         let on_progress : Xynolog.Records.Upload_progress.t -> unit = function
@@ -907,7 +912,7 @@ let run mode env =
         in
         ok
           (Yojson.Safe.from_string
-             (H.put (get_client ()).http ~fields ~bytes ~on_progress))
+             (H.put (get_client ()).http request ~on_progress))
     | "abandon" ->
         Option.iter
           (fun cancel -> Eio.Cancel.cancel cancel Exit)

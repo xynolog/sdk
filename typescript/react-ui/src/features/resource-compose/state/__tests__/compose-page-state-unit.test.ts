@@ -64,7 +64,7 @@ function mockClient(
     getResourceRepresentation:
       overrides.getResourceRepresentation ??
       vi.fn().mockResolvedValue({
-        data: new TextEncoder().encode('source content').buffer,
+        data: new Blob(['source content']),
         contentType: 'text/plain',
       }),
   } as unknown as XynologClient;

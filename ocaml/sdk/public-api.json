@@ -107,8 +107,8 @@
     "lib/auth.ml": "95cbd3eef3820adfbff02c0ace52d195c7fd35022c2a2a7c6a49d7402880e4f2",
     "lib/beckon_state.ml": "3b37bcacd3c2fc058e2040672ffa1e5e5a456d2bb7e061559df3107cfe180b2b",
     "lib/beckon_state.mli": "fa367fbd741509c89d05c49b9a8c45eb507ae5e4aaef46ba295e5045014b1820",
-    "lib/browse.ml": "736758be0fd662c59235815d636df0878dfa407c5e8aec6a9956f7f48cf9cfc0",
-    "lib/browse.mli": "c57e5ff1c98e598cb6c438e781d135c0ff0c76498e1b93455f2c5e870f3b2858",
+    "lib/browse.ml": "3fb2151cf9e901a38b2f1208eb4a3b7991d9a60b07511e5be80101dacb3501cc",
+    "lib/browse.mli": "7dddea6c86b80254154f5cc53dea06f67d34983c53cf1ae80be8aa977da51c52",
     "lib/bus.ml": "54ba701ac02716ff273039f323e1d4193e966047c5909c9607ed10995cb48cfa",
     "lib/bus_log.ml": "00e4974f4e6dd715a28ae8e7a7488e122a5cc961103db1dafa34119489216731",
     "lib/bus_registry.ml": "6599d9192513bfa3c9a4587426d9e2c58418b817fc3ee65926f169fb004a51b1",
@@ -153,8 +153,8 @@
     "lib/hover_dwell.ml": "2a8e9fef90c75ce18569793c04f553523e3dc523d53d869ceef4dab6a7702122",
     "lib/hover_dwell.mli": "3bf63911f6482ad960a6e4d3881e4a637caa0d9929dc8d62dbf7b69421fa19af",
     "lib/http_facts.ml": "22bb288902aa4a0b628b9d02e7b694480c375b2b9e7ae856c3e27965055271d8",
-    "lib/http_wire.ml": "7c916035aef345dd18fd1b16ef6c6179a0203714ac50a45ec27283dadc0550b9",
-    "lib/http_wire.mli": "1d6a3e793b9f05e69cf09b0e77a1ece8dc967eb10b09ba603552bb85fd5f5d5d",
+    "lib/http_wire.ml": "c16987ae2a68e3c0c5032456780bf4aeac6c3f2fa4aca028f60f1d7329a10d72",
+    "lib/http_wire.mli": "7eea10dae63be96409cf8be44a9656177f8aadee5d68a66a4dd09d2048a2e595",
     "lib/identifiers.ml": "1ee61e8298715512590d2e8045869efb0687ace6df642970da0d54baffe26448",
     "lib/identifiers.mli": "d344831d9323c9ab0934e9027f4e8269b5d3554ef347c1d71b04cedc65d6a92b",
     "lib/identity.ml": "926a5ae2b89b08a294af2bbee6975347194bdaea78109f82a777b9fcff388e58",
@@ -180,8 +180,8 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "18571795f6f95ab941d32ddc666e4d37fd573a5b76297810fd67cbb5718ce5b7",
-    "lib/models.mli": "7f0f72e796d174eb48c651d9cc728cdc114961f5b692d441305cda1844bdb8a2",
+    "lib/models.ml": "055ae2eedf1039a9e463258c1aedec60909e49ea0bb5cc884250c4f1dc754658",
+    "lib/models.mli": "274216df0b5534a46697f7106134b2ea7b27818ebcad21ff83e4495d09d87715",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "d908e2497f7a14f92a98e35cd9be8b92f717faaa2e20480e703efd6fb8ef09a0",
     "lib/oauth.mli": "b535175120377dd42d5d60ce71dbf893b51839f4fe61db06135f6f525728543d",
@@ -189,7 +189,7 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "5df3cced397b84bd6d3244acaf2a527035e28bfe8ff2e483bb4bbdeab2da3bcf",
+    "lib/records.ml": "41ad9300865f3d5426cd3ccc562db726b781d58b5232461979bec2d6c35fa5ee",
     "lib/redirect_sign_in.ml": "80c9bafb2de127baf0cd4f7148041d5445e442b17737be235afdee854eb821e9",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "bcdbad6e3fd5d932886ce97c6dbe4b6d6c5a414e348c37bdc7adb2ec9271d788",
@@ -203,7 +203,7 @@
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "0d3608c3534359b78ea3ebecf05ef11d1c0af156657ecde47fd86271ac451002",
+    "lib/schema_shapes.ml": "1695b47348167ac3bf314e106084cdbc4a9a6ebd03de269f6fdb59f8c66ebf72",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "f631bad7d16a82910665c02614d271aa21ec4e8f8262848c82b360f95072e07a",
@@ -267,8 +267,8 @@
     "lib/worker_messages.ml": "f1afd7b85f6a93528e39a878d15d51c8047c00320f07417fd85ccef28554cfc7",
     "lib/xynolog.ml": "ccc4740213b707ba9592ad6a22806169da7e100b90ed81840a1cb5d74976476d",
     "lib/xynolog.mli": "b0e32d5d046398887addfbf5fa70cc028a1ecc8d19156fe6d088c3d96c6652a8",
-    "lib/yield.ml": "76f76577b4dcba8b4b9d94367e11179a430b5d3187d2d378f0854a684ddbeac4",
-    "lib/yield.mli": "da4db7e1cc2177b532bf7e95c864e3e636e911d31fe86763235a25373930a744",
+    "lib/yield.ml": "ff8a51de25737c5b7efc70837e8494690021c360f93e29c1a35a7b3b8f329a7c",
+    "lib/yield.mli": "f1955bb72f1d202e3ff0323ea5ca0053b9b7ad05d944212ddc96aa0e39719cf1",
     "lib/yield_state.ml": "a309edbd34cbc30d13e6d4475e0e8f8ee7c8d025ff851e76daa4e3e03dc72472",
     "lib/yield_state.mli": "fe746d0f5b1657d53c8a2856e1ee7b0626dd570e0c855ba57fe502958686b978",
     "probes/api_inventory.ml": "97b819335b2d6d55f2f4a7c73422ad4df34ca5e459fe4df300f01a0ff5efb36a",
@@ -4318,6 +4318,16 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.engine_with_limits",
+      "declaration": "val engine_with_limits : [ `EngineWithLimits ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.engines_with_limits",
+      "declaration": "val engines_with_limits : [ `EnginesWithLimits ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.enriched_resource_event",
       "declaration": "val enriched_resource_event : [ `EnrichedResourceEvent ] descriptor"
     },
@@ -5378,6 +5388,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.put_binary_request",
+      "declaration": "val put_binary_request : [ `PutBinaryRequest ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.qdrant_vectors_config",
       "declaration": "val qdrant_vectors_config : [ `QdrantVectorsConfig ] descriptor"
     },
@@ -5460,6 +5475,11 @@
       "kind": "value",
       "path": "Xynolog.Models.resource_moved_payload",
       "declaration": "val resource_moved_payload : [ `ResourceMovedPayload ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.resource_representation",
+      "declaration": "val resource_representation : [ `ResourceRepresentation ] descriptor"
     },
     {
       "kind": "value",
@@ -6512,6 +6532,32 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Engine_with_limits",
+      "declaration": "module Engine_with_limits :\n  sig\n    type t = {\n      engine : [ `Engine ] Xynolog__.Models.t;\n      jobs : [ `JobFilter ] Xynolog__.Models.t list option;\n      limits : [ `InferenceLimits ] Xynolog__.Models.t option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Engine_with_limits.t",
+      "declaration": "type t = {\n  engine : [ `Engine ] Xynolog__.Models.t;\n  jobs : [ `JobFilter ] Xynolog__.Models.t list option;\n  limits : [ `InferenceLimits ] Xynolog__.Models.t option;\n}",
+      "representation": "record",
+      "fields": [
+        "engine",
+        "jobs",
+        "limits"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Engine_with_limits.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Engine_with_limits.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Gather_resource_options",
       "declaration": "module Gather_resource_options :\n  sig\n    type t = {\n      depth : int option;\n      max_resources : int option;\n      include_content : bool option;\n      include_summary : bool option;\n      exclude_entity_types : string list option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6668,6 +6714,43 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Put_binary_request",
+      "declaration": "module Put_binary_request :\n  sig\n    type t = {\n      name : string;\n      file : string;\n      format : string;\n      storage_uri : string;\n      language : string option;\n      entity_types : string list option;\n      source_annotation_id : string option;\n      source_resource_id : string option;\n      generation_prompt : string option;\n      generator : [ `OneOrMoreAgents ] Xynolog__.Models.t option;\n      job_id : string option;\n      is_draft : bool option;\n      clone_token : string option;\n      archive_original : bool option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Put_binary_request.t",
+      "declaration": "type t = {\n  name : string;\n  file : string;\n  format : string;\n  storage_uri : string;\n  language : string option;\n  entity_types : string list option;\n  source_annotation_id : string option;\n  source_resource_id : string option;\n  generation_prompt : string option;\n  generator : [ `OneOrMoreAgents ] Xynolog__.Models.t option;\n  job_id : string option;\n  is_draft : bool option;\n  clone_token : string option;\n  archive_original : bool option;\n}",
+      "representation": "record",
+      "fields": [
+        "name",
+        "file",
+        "format",
+        "storage_uri",
+        "language",
+        "entity_types",
+        "source_annotation_id",
+        "source_resource_id",
+        "generation_prompt",
+        "generator",
+        "job_id",
+        "is_draft",
+        "clone_token",
+        "archive_original"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Put_binary_request.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Put_binary_request.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Quoted_text",
       "declaration": "module Quoted_text :\n  sig\n    type t = {\n      exact : string;\n      prefix : string option;\n      suffix : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6764,6 +6847,31 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Reconciled_span.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Resource_representation",
+      "declaration": "module Resource_representation :\n  sig\n    type t = { data : string; content_type : string; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Resource_representation.t",
+      "declaration": "type t = { data : string; content_type : string; }",
+      "representation": "record",
+      "fields": [
+        "data",
+        "content_type"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Resource_representation.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Resource_representation.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -6954,6 +7062,27 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Pending_authorization.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Engines_with_limits",
+      "declaration": "module Engines_with_limits :\n  sig\n    type t = Engine_with_limits.t list\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Engines_with_limits.t",
+      "declaration": "type t = Engine_with_limits.t list",
+      "representation": "abstract"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Engines_with_limits.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Engines_with_limits.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -34982,7 +35111,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Http_wire.put",
-      "declaration": "val put :\n  t ->\n  fields:(string * string) list ->\n  bytes:string ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) -> string"
+      "declaration": "val put :\n  t ->\n  Xynolog__.Records.Put_binary_request.t ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) -> string"
     },
     {
       "kind": "value",
@@ -36241,7 +36370,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Yield.resource",
-      "declaration": "val resource :\n  Xynolog__.Client_core.t ->\n  fields:(string * string) list ->\n  bytes:string ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) ->\n  Xynolog__.Upload.t"
+      "declaration": "val resource :\n  Xynolog__.Client_core.t ->\n  Xynolog__.Records.Put_binary_request.t ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) ->\n  Xynolog__.Upload.t"
     },
     {
       "kind": "value",
@@ -36527,7 +36656,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client.Browse.resource_representation",
-      "declaration": "val resource_representation :\n  Xynolog__.Client_core.t ->\n  Xynolog__.Identifiers.Resource_id.t ->\n  (string * string, Xynolog__.Client_core.error) result"
+      "declaration": "val resource_representation :\n  Xynolog__.Client_core.t ->\n  Xynolog__.Identifiers.Resource_id.t ->\n  (Xynolog__.Records.Resource_representation.t, Xynolog__.Client_core.error)\n  result"
     },
     {
       "kind": "value",
@@ -36727,7 +36856,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client.Yield.resource",
-      "declaration": "val resource :\n  Xynolog__.Client_core.t ->\n  fields:(string * string) list ->\n  bytes:string ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) ->\n  Xynolog__.Upload.t"
+      "declaration": "val resource :\n  Xynolog__.Client_core.t ->\n  Xynolog__.Records.Put_binary_request.t ->\n  on_progress:(Xynolog__.Records.Upload_progress.t -> unit) ->\n  Xynolog__.Upload.t"
     },
     {
       "kind": "value",
@@ -38787,7 +38916,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Browse.resource_representation",
-      "declaration": "val resource_representation :\n  Xynolog__.Client_core.t ->\n  Xynolog__.Identifiers.Resource_id.t ->\n  (string * string, Xynolog__.Client_core.error) result"
+      "declaration": "val resource_representation :\n  Xynolog__.Client_core.t ->\n  Xynolog__.Identifiers.Resource_id.t ->\n  (Xynolog__.Records.Resource_representation.t, Xynolog__.Client_core.error)\n  result"
     },
     {
       "kind": "value",

@@ -13,7 +13,7 @@ public struct BrowseNamespace: Sendable {
   > {
     live.listedResources.observe(filters.paged)
   }
-  public func engines() -> Cached<[EngineWithLimits]> { live.enginesWithLimits }
+  public func engines() -> Cached<EnginesWithLimits> { live.enginesWithLimits }
 
   public func resource(_ resourceId: ResourceId) -> Cached<ResourceDescriptor> {
     live.resources.observe(resourceId)
@@ -37,7 +37,7 @@ public struct BrowseNamespace: Sendable {
   }
   public func resourceContent(_ resourceId: ResourceId) async throws -> String {
     let representation = try await resourceRepresentation(resourceId)
-    return try decodeRepresentation(representation.bytes, contentType: representation.contentType)
+    return try decodeRepresentation(representation.data, contentType: representation.contentType)
   }
   public func resourceGraph(_ resourceId: ResourceId) async throws -> GetResourceResponse {
     try await contentTransport.getResourceGraph(resourceId)
@@ -45,7 +45,9 @@ public struct BrowseNamespace: Sendable {
   public func resourceAnchoredText(_ resourceId: ResourceId) async throws -> AnchoredTextAnswer {
     try await contentTransport.getAnchoredText(resourceId)
   }
-  public func resourceRepresentation(_ resourceId: ResourceId) async throws -> Content {
+  public func resourceRepresentation(_ resourceId: ResourceId) async throws
+    -> ResourceRepresentation
+  {
     try await contentTransport.getBinary(resourceId)
   }
   public func resourceRepresentationStream(_ resourceId: ResourceId) async throws -> ContentStream {

@@ -21,7 +21,7 @@ use serde_json::Value;
 use xynolog::errors::{TransportErrorCode, XynologError};
 use xynolog::media_types::{TextSource, text_source_of};
 use xynolog::testing::{InMemoryContent, TestClientOptions, as_id, create_test_client};
-use xynolog::transport::Content;
+use xynolog::types::ResourceRepresentation;
 
 fn table(text: &str) -> Value {
     serde_json::from_str(text).expect("the table is JSON")
@@ -50,8 +50,8 @@ async fn read(content_type: &str, bytes: Vec<u8>) -> Result<String, XynologError
     let content = InMemoryContent::new();
     content.seed(
         &resource_id,
-        Content {
-            bytes: bytes.into(),
+        ResourceRepresentation {
+            data: bytes.into(),
             content_type: content_type.to_owned(),
         },
     );

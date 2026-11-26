@@ -32,7 +32,6 @@ import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Delivered
 import xynolog.transport.FrameRefusal
-import xynolog.transport.PutBinaryRequest
 import xynolog.types.AnchorRect
 import xynolog.types.AnnotationSelector
 import xynolog.types.BindBodyOperation
@@ -52,6 +51,7 @@ import xynolog.types.MarkSubmitEvent
 import xynolog.types.MatchSearchOptions
 import xynolog.types.MatchSearchRequest
 import xynolog.types.Motivation
+import xynolog.types.PutBinaryRequest
 import xynolog.types.ResourceErrorEvent
 import xynolog.types.ResourceSearchFilters
 import xynolog.types.TagSchema

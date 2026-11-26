@@ -106,12 +106,7 @@ internal sealed class WireDriver : IDisposable
                     upload.Remove("bytes");
                     upload.Remove("id");
                     upload.Remove("op");
-                    // A form field is text: a value the command states as JSON goes as its JSON text.
-                    foreach (var (field, value) in upload.ToList())
-                    {
-                        if (value is not null && value.GetValueKind() != JsonValueKind.String) upload[field] = value.ToJsonString();
-                    }
-                    var request = upload.Deserialize<ResourceUpload>() ?? throw new InvalidOperationException("Null upload request");
+                    var request = upload.Deserialize<PutBinaryRequest>() ?? throw new InvalidOperationException("Null upload request");
                     var resourceId = await new HttpContentTransport(Current).PutBinaryAsync(request, op == "upload" ? new UploadReporter(id) : null, cancellation.Token);
                     answer = new { resourceId = resourceId.Value };
                     break;
@@ -126,7 +121,7 @@ internal sealed class WireDriver : IDisposable
                 case "get":
                     var content = new HttpContentTransport(Current);
                     var bytes = await content.GetBinaryAsync(ResourceId.Parse(Text(args, "resource")), cancellation.Token);
-                    answer = new { contentType = bytes.ContentType, bytes = Convert.ToBase64String(bytes.Bytes) };
+                    answer = new { contentType = bytes.ContentType, bytes = Convert.ToBase64String(bytes.Data) };
                     break;
                 case "abandon":
                     lock (gate)

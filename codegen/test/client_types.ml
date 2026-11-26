@@ -191,6 +191,30 @@ let cases =
                       M.Fields
                         [ member ~required:false "selector" (Scalar String) ] );
                   ])));
+    case "an adapter states a list as its schema read whole" (fun () ->
+        let list =
+          Schema.Schema
+            {
+              Schema.empty with
+              type_ = Some [ Array ];
+              items =
+                Some
+                  (Schema.Schema { Schema.empty with type_ = Some [ String ] });
+            }
+        in
+        match
+          W.adapters ~names:[ "Things" ]
+            ~whole:(fun _ -> Ok list)
+            ~shape:(shapes [ ("Things", M.Items (Scalar String)) ])
+        with
+        | Ok
+            [
+              ( "Things",
+                Schema.Schema { title = Some "Things"; items = Some _; _ } );
+            ] ->
+            ()
+        | Ok _ -> Alcotest.fail "Things is not its list, titled"
+        | Error _ -> Alcotest.fail "refused");
     case "an adapter states an object as its schema read whole" (fun () ->
         match
           W.adapters ~names:adapted_names ~whole:read_whole
