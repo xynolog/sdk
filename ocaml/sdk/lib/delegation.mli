@@ -4,8 +4,17 @@ type t
 type release = unit -> unit
 type report_kind = Created | Progress | Complete | Retrying | Refused
 
+(** What a delegated job failed with: the job's own code, or the code of a
+    request made to follow it. *)
+type failure_code =
+  | Job of Error_codes.Job.t
+  | Request of Http_wire.request_code
+
+val failure_code : failure_code -> string
+(** The code, as protocol/specs/src/errors/codes.json states it. *)
+
 type failure = {
-  code : string;
+  code : failure_code;
   message : string option;
   failure_class : Enums.Failure_class.t option;
 }

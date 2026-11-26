@@ -17,7 +17,9 @@ type session_factory_options = {
 
 type session_factory =
   session_factory_options ->
-  (State_units.Session.t * Records.Connection_identity.t, string) result
+  ( State_units.Session.t * Records.Connection_identity.t,
+    Client.session_error )
+  result
 
 type xynolog_browser_config = {
   storage : storage;
@@ -42,9 +44,19 @@ type xynolog_browser = {
 }
 
 type activation_error =
-  | Unavailable of string
+  | Unknown_kb
+  | Unavailable of Client.session_error
   | Identity_conflict of string
   | Superseded
+
+type identity_unverifiable_error =
+  | Kb_identity of Error_codes.Kb_identity.t
+  | Transport of Error_codes.Transport.t
+
+type sign_in_error =
+  | Sign_in of Error_codes.Sign_in.t
+  | Identity of Error_codes.Kb_identity.t
+  | Id_conflict
 
 let knowledge_bases_key = Registry_facts.knowledge_bases_key
 let active_key = Registry_facts.active_key
@@ -175,7 +187,7 @@ let read browser { session; signals } =
       ~on_value:(function
         | Client.Own error -> Kept_for_first_reader.say browser.said error
         | Client.Transport_failure { code; message; _ }
-          when code = Error_codes.Transport.forbidden ->
+          when code = Error_codes.Transport.Forbidden ->
             State_units.Session_signals.notify_permission_denied signals
               ~detail:(Some message)
         | Client.Transport_failure _ -> ())
@@ -213,22 +225,23 @@ let endpoint kb =
 
 let describe_connection client =
   match Bus_registry.decode Bus_registry.Channels.browse_kb_requested "{}" with
-  | Error _ -> Error Error_codes.Transport.bad_request
+  | Error _ -> Error (Transport Error_codes.Transport.Bad_request)
   | Ok payload -> (
       match Client.Browse.kb client payload with
-      | Error _ -> Error Error_codes.Kb_identity.unreachable
+      | Error _ -> Error (Kb_identity Error_codes.Kb_identity.Unreachable)
       | Ok reply -> (
           let response =
             Bus_registry.encode reply |> Yojson.Safe.from_string
             |> member "response"
           in
           match Models.decode Models.kb_description (json response) with
-          | Error _ -> Error Error_codes.Kb_identity.not_reported
+          | Error _ -> Error (Kb_identity Error_codes.Kb_identity.Not_reported)
           | Ok description ->
               let domain =
                 (Records.Kb_description.of_model description).domain
               in
-              if domain = "" then Error Error_codes.Kb_identity.not_reported
+              if domain = "" then
+                Error (Kb_identity Error_codes.Kb_identity.Not_reported)
               else
                 Ok
                   {
@@ -252,7 +265,7 @@ let with_identity ~id ~endpoint (identity : Records.Connection_identity.t) =
 
 let record_sign_in browser (signed : Records.Signed_in.t) =
   let info = Records.Kb_description.of_model signed.description in
-  if info.domain = "" then Error Error_codes.Kb_identity.not_reported
+  if info.domain = "" then Error (Identity Error_codes.Kb_identity.Not_reported)
   else
     let identity =
       {
@@ -282,7 +295,7 @@ let record_sign_in browser (signed : Records.Signed_in.t) =
           | None -> browser.config.fresh_id ()
         in
         if prior = None && List.exists (fun kb -> id kb = key) values then
-          Error "kb.id-conflict"
+          Error Id_conflict
         else
           let kb = with_identity ~id:key ~endpoint:signed.endpoint identity in
           let values =
@@ -319,22 +332,22 @@ let activate browser key =
   | None -> Error Superseded
   | Some (generation, before) -> (
       match List.find_opt (fun kb -> id kb = key) (knowledge_bases browser) with
-      | None -> Error (Unavailable "kb.not-found")
+      | None -> Error Unknown_kb
       | Some kb -> (
           let storage = browser.config.storage in
           let signals = State_units.Session_signals.make () in
           match browser.config.factory { kb; storage; signals } with
-          | Error code ->
+          | Error (refused : Client.session_error) ->
               State_units.Session_signals.dispose signals;
               if not (locked browser (fun () -> browser.closed)) then
                 Kept_for_first_reader.say browser.said
                   {
-                    Client.code = Error_codes.Session.construct_failed;
+                    Client.code = Error_codes.Session.Construct_failed;
                     message =
                       "Could not construct the knowledge base's session: "
-                      ^ code;
+                      ^ refused.message;
                   };
-              Error (Unavailable code)
+              Error (Unavailable refused)
           | Ok (session, identity) ->
               let connection = { session; signals } in
               read browser connection;
@@ -386,11 +399,18 @@ let http_session_factory connect options =
       let client = State_units.Session.client session in
       match describe_connection client with
       | Ok identity -> Ok (session, identity)
-      | Error code ->
+      | Error unverifiable ->
           Fun.protect
             ~finally:(fun () -> State_units.Session.dispose session)
             (fun () -> Client.close client);
-          Error code)
+          Error
+            {
+              Client.code = Error_codes.Session.Construct_failed;
+              message =
+                (match unverifiable with
+                | Kb_identity code -> Error_codes.Kb_identity.code code
+                | Transport code -> Error_codes.Transport.code code);
+            })
 
 let by_kb browser key =
   let storage = browser.config.storage in
@@ -575,22 +595,25 @@ let complete_sign_in browser ~http ~callback ~describe =
   let* pending =
     match pending with
     | Some pending -> Ok pending
-    | None -> Error Error_codes.Sign_in.no_pending
+    | None -> Error (Sign_in Error_codes.Sign_in.No_pending)
   in
   let* endpoint =
     Models.decode Models.kb_endpoint (Models.encode pending.target)
-    |> Result.map_error (fun _ -> Error_codes.Sign_in.no_pending)
+    |> Result.map_error (fun _ -> Sign_in Error_codes.Sign_in.No_pending)
   in
   let* tokens =
     Oauth.finish_redirect http pending ~callback
-    |> Result.map_error (fun (error : Oauth.error) -> error.code)
+    |> Result.map_error (fun (error : Oauth.error) -> Sign_in error.code)
   in
   let* refresh =
     match tokens.refresh_token with
     | Some value -> Ok value
-    | None -> Error Error_codes.Sign_in.exchange
+    | None -> Error (Sign_in Error_codes.Sign_in.Exchange)
   in
-  let* description = describe endpoint ~access:tokens.access_token in
+  let* description =
+    describe endpoint ~access:tokens.access_token
+    |> Result.map_error (fun code -> Identity code)
+  in
   record_sign_in browser
     {
       Records.Signed_in.endpoint;

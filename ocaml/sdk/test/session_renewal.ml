@@ -525,8 +525,9 @@ let lifecycle ~stored ~refusal ~gateway ~issuer ~asks ~renewals ~ends
         reported :=
           Some
             (match said with
-            | Client.Own { code; _ } | Client.Transport_failure { code; _ } ->
-                code))
+            | Client.Own { code; _ } -> Error_codes.Session.code code
+            | Client.Transport_failure { code; _ } ->
+                Error_codes.Transport.code code))
       ~on_close:ignore
   in
   S.ready session;

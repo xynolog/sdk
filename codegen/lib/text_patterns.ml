@@ -308,6 +308,54 @@ let meet a b =
 let disjoint p q =
   match (read p, read q) with Some a, Some b -> not (meet a b) | _ -> false
 
+(* A shortest text [pattern] admits, where it is read and such a text is of
+   ASCII alone: each character the first its move admits of the lower case
+   letters, the digits, the upper case letters, and then the rest of ASCII. *)
+let admitted pattern =
+  let preferred =
+    List.init 26 (fun i -> Char.code 'a' + i)
+    @ List.init 10 (fun i -> Char.code '0' + i)
+    @ List.init 26 (fun i -> Char.code 'A' + i)
+    @ List.init 128 Fun.id
+  in
+  match read pattern with
+  | None -> None
+  | Some a ->
+      let seen = Hashtbl.create 64 in
+      (* The states [reached] and those they reach silently, each with the
+         text, reversed, that first reaches it. *)
+      let close reached =
+        let closed = ref [] in
+        let rec go (s, text) =
+          if not (Hashtbl.mem seen s) then (
+            Hashtbl.replace seen s ();
+            closed := (s, text) :: !closed;
+            List.iter (fun t -> go (t, text)) a.silent.(s))
+        in
+        List.iter go reached;
+        List.rev !closed
+      in
+      let rec level = function
+        | [] -> None
+        | frontier -> (
+            match List.assoc_opt a.final frontier with
+            | Some text ->
+                Some (String.of_seq (List.to_seq (List.rev_map Char.chr text)))
+            | None ->
+                level
+                  (close
+                     (List.concat_map
+                        (fun (s, text) ->
+                          List.filter_map
+                            (fun (set, t) ->
+                              Option.map
+                                (fun c -> (t, c :: text))
+                                (List.find_opt (fun c -> set.(c)) preferred))
+                            a.moves.(s))
+                        frontier)))
+      in
+      level (close [ (a.start, []) ])
+
 (* Whether [pattern], read, refuses [text]. *)
 let refuses pattern text =
   match read pattern with

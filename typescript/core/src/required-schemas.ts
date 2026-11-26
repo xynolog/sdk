@@ -1073,6 +1073,587 @@ export const REQUIRED_SCHEMAS: {
       'markCommitTimeoutMs',
     ],
   },
+  ClientDiscoveryAbsent: {
+    kinds: ['object'],
+    required: ['$comment', 'reasons'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      reasons: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['reason', 'docs'],
+          members: {
+            docs: { kinds: ['string'], minLength: 1 },
+            reason: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[97, 122]], min: 1 },
+                {
+                  either: [
+                    [
+                      { of: [[45, 45]], min: 1, max: 1 },
+                      { of: [[97, 122]], min: 1 },
+                    ],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+          },
+          closed: ['docs', 'reason'],
+        },
+      },
+    },
+    closed: ['$comment', 'reasons'],
+  },
+  ClientRefresh: {
+    kinds: ['object'],
+    required: ['$comment', 'queries', 'refresh'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      queries: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          oneOf: [
+            {
+              kinds: ['object'],
+              required: ['name', 'asks', 'value', 'docs'],
+              members: {
+                asks: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    { of: [[58, 58]], min: 1, max: 1 },
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 45]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: { kinds: ['string'], minLength: 1 },
+                name: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1, max: 1 },
+                    {
+                      of: [
+                        [65, 90],
+                        [97, 122],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                per: {
+                  kinds: ['string'],
+                  enum: ['resource', 'annotation', 'filters'],
+                },
+                persisted: { kinds: ['boolean'], enum: [true] },
+                value: {
+                  kinds: ['object'],
+                  required: ['$ref'],
+                  members: {
+                    $ref: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[104, 104]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[112, 112]], min: 1, max: 1 },
+                        { of: [[115, 115]], min: 1, max: 1 },
+                        { of: [[58, 58]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[120, 120]], min: 1, max: 1 },
+                        { of: [[121, 121]], min: 1, max: 1 },
+                        { of: [[110, 110]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[108, 108]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[103, 103]], min: 1, max: 1 },
+                        { of: [[46, 46]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[114, 114]], min: 1, max: 1 },
+                        { of: [[103, 103]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[112, 112]], min: 1, max: 1 },
+                        { of: [[114, 114]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[99, 99]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[108, 108]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[65, 90]], min: 1, max: 1 },
+                        {
+                          of: [
+                            [65, 90],
+                            [97, 122],
+                          ],
+                          min: 0,
+                        },
+                        { of: [[46, 46]], min: 1, max: 1 },
+                        { of: [[106, 106]], min: 1, max: 1 },
+                        { of: [[115, 115]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[110, 110]], min: 1, max: 1 },
+                        {
+                          either: [
+                            [
+                              { of: [[35, 35]], min: 1, max: 1 },
+                              {
+                                either: [
+                                  [
+                                    { of: [[47, 47]], min: 1, max: 1 },
+                                    { of: [[112, 112]], min: 1, max: 1 },
+                                    { of: [[114, 114]], min: 1, max: 1 },
+                                    { of: [[111, 111]], min: 1, max: 1 },
+                                    { of: [[112, 112]], min: 1, max: 1 },
+                                    { of: [[101, 101]], min: 1, max: 1 },
+                                    { of: [[114, 114]], min: 1, max: 1 },
+                                    { of: [[116, 116]], min: 1, max: 1 },
+                                    { of: [[105, 105]], min: 1, max: 1 },
+                                    { of: [[101, 101]], min: 1, max: 1 },
+                                    { of: [[115, 115]], min: 1, max: 1 },
+                                    { of: [[47, 47]], min: 1, max: 1 },
+                                    { of: [[97, 122]], min: 1, max: 1 },
+                                    {
+                                      of: [
+                                        [65, 90],
+                                        [97, 122],
+                                      ],
+                                      min: 0,
+                                    },
+                                  ],
+                                ],
+                                min: 1,
+                              },
+                            ],
+                          ],
+                          min: 0,
+                          max: 1,
+                        },
+                      ],
+                    },
+                  },
+                  closed: ['$ref'],
+                },
+              },
+              closed: ['asks', 'docs', 'name', 'per', 'persisted', 'value'],
+            },
+            {
+              kinds: ['object'],
+              required: ['name', 'reads', 'value', 'docs'],
+              members: {
+                docs: { kinds: ['string'], minLength: 1 },
+                name: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1, max: 1 },
+                    {
+                      of: [
+                        [65, 90],
+                        [97, 122],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                per: {
+                  kinds: ['string'],
+                  enum: ['resource', 'annotation', 'filters'],
+                },
+                persisted: { kinds: ['boolean'], enum: [true] },
+                reads: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[71, 71]], min: 1, max: 1 },
+                    { of: [[69, 69]], min: 1, max: 1 },
+                    { of: [[84, 84]], min: 1, max: 1 },
+                    { of: [[32, 32]], min: 1, max: 1 },
+                    { of: [[47, 47]], min: 1, max: 1 },
+                    {
+                      of: [
+                        [0, 31],
+                        [33, 1114111],
+                      ],
+                      min: 1,
+                    },
+                  ],
+                },
+                value: {
+                  kinds: ['object'],
+                  required: ['$ref'],
+                  members: {
+                    $ref: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[104, 104]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[112, 112]], min: 1, max: 1 },
+                        { of: [[115, 115]], min: 1, max: 1 },
+                        { of: [[58, 58]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[120, 120]], min: 1, max: 1 },
+                        { of: [[121, 121]], min: 1, max: 1 },
+                        { of: [[110, 110]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[108, 108]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[103, 103]], min: 1, max: 1 },
+                        { of: [[46, 46]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[114, 114]], min: 1, max: 1 },
+                        { of: [[103, 103]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[112, 112]], min: 1, max: 1 },
+                        { of: [[114, 114]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[99, 99]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[108, 108]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[65, 90]], min: 1, max: 1 },
+                        {
+                          of: [
+                            [65, 90],
+                            [97, 122],
+                          ],
+                          min: 0,
+                        },
+                        { of: [[46, 46]], min: 1, max: 1 },
+                        { of: [[106, 106]], min: 1, max: 1 },
+                        { of: [[115, 115]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[110, 110]], min: 1, max: 1 },
+                        {
+                          either: [
+                            [
+                              { of: [[35, 35]], min: 1, max: 1 },
+                              {
+                                either: [
+                                  [
+                                    { of: [[47, 47]], min: 1, max: 1 },
+                                    { of: [[112, 112]], min: 1, max: 1 },
+                                    { of: [[114, 114]], min: 1, max: 1 },
+                                    { of: [[111, 111]], min: 1, max: 1 },
+                                    { of: [[112, 112]], min: 1, max: 1 },
+                                    { of: [[101, 101]], min: 1, max: 1 },
+                                    { of: [[114, 114]], min: 1, max: 1 },
+                                    { of: [[116, 116]], min: 1, max: 1 },
+                                    { of: [[105, 105]], min: 1, max: 1 },
+                                    { of: [[101, 101]], min: 1, max: 1 },
+                                    { of: [[115, 115]], min: 1, max: 1 },
+                                    { of: [[47, 47]], min: 1, max: 1 },
+                                    { of: [[97, 122]], min: 1, max: 1 },
+                                    {
+                                      of: [
+                                        [65, 90],
+                                        [97, 122],
+                                      ],
+                                      min: 0,
+                                    },
+                                  ],
+                                ],
+                                min: 1,
+                              },
+                            ],
+                          ],
+                          min: 0,
+                          max: 1,
+                        },
+                      ],
+                    },
+                  },
+                  closed: ['$ref'],
+                },
+              },
+              closed: ['docs', 'name', 'per', 'persisted', 'reads', 'value'],
+            },
+          ],
+        },
+      },
+      refresh: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          oneOf: [
+            {
+              kinds: ['object'],
+              required: ['on', 'docs'],
+              members: {
+                carries: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1, max: 1 },
+                    {
+                      of: [
+                        [65, 90],
+                        [97, 122],
+                      ],
+                      min: 0,
+                    },
+                    {
+                      either: [
+                        [
+                          { of: [[46, 46]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1, max: 1 },
+                          {
+                            of: [
+                              [65, 90],
+                              [97, 122],
+                            ],
+                            min: 0,
+                          },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: { kinds: ['string'], minLength: 1 },
+                names: {
+                  kinds: ['object'],
+                  members: {
+                    annotation: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[97, 122]], min: 1, max: 1 },
+                        {
+                          of: [
+                            [65, 90],
+                            [97, 122],
+                          ],
+                          min: 0,
+                        },
+                        {
+                          either: [
+                            [
+                              { of: [[46, 46]], min: 1, max: 1 },
+                              { of: [[97, 122]], min: 1, max: 1 },
+                              {
+                                of: [
+                                  [65, 90],
+                                  [97, 122],
+                                ],
+                                min: 0,
+                              },
+                            ],
+                          ],
+                          min: 0,
+                        },
+                      ],
+                    },
+                    resource: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[97, 122]], min: 1, max: 1 },
+                        {
+                          of: [
+                            [65, 90],
+                            [97, 122],
+                          ],
+                          min: 0,
+                        },
+                        {
+                          either: [
+                            [
+                              { of: [[46, 46]], min: 1, max: 1 },
+                              { of: [[97, 122]], min: 1, max: 1 },
+                              {
+                                of: [
+                                  [65, 90],
+                                  [97, 122],
+                                ],
+                                min: 0,
+                              },
+                            ],
+                          ],
+                          min: 0,
+                        },
+                      ],
+                    },
+                  },
+                  closed: ['annotation', 'resource'],
+                },
+                on: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    { of: [[58, 58]], min: 1, max: 1 },
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 45]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                reach: { kinds: ['string'], enum: ['subject', 'held'] },
+                refetches: {
+                  kinds: ['array'],
+                  minItems: 1,
+                  items: {
+                    kinds: ['string'],
+                    pattern: [
+                      { of: [[97, 122]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 0,
+                      },
+                    ],
+                  },
+                },
+                removes: {
+                  kinds: ['array'],
+                  minItems: 1,
+                  items: {
+                    kinds: ['string'],
+                    pattern: [
+                      { of: [[97, 122]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 0,
+                      },
+                    ],
+                  },
+                },
+                when: { kinds: ['string'], enum: ['enriched', 'unenriched'] },
+                writes: {
+                  kinds: ['array'],
+                  minItems: 1,
+                  items: {
+                    kinds: ['string'],
+                    pattern: [
+                      { of: [[97, 122]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 0,
+                      },
+                    ],
+                  },
+                },
+              },
+              closed: [
+                'carries',
+                'docs',
+                'names',
+                'on',
+                'reach',
+                'refetches',
+                'removes',
+                'when',
+                'writes',
+              ],
+            },
+            {
+              kinds: ['object'],
+              required: ['stream', 'docs'],
+              members: {
+                docs: { kinds: ['string'], minLength: 1 },
+                reach: { kinds: ['string'], enum: ['subject', 'held'] },
+                refetches: {
+                  kinds: ['array'],
+                  minItems: 1,
+                  items: {
+                    kinds: ['string'],
+                    pattern: [
+                      { of: [[97, 122]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 0,
+                      },
+                    ],
+                  },
+                },
+                stream: { kinds: ['string'], enum: ['reopened', 'unreadable'] },
+              },
+              closed: ['docs', 'reach', 'refetches', 'stream'],
+            },
+          ],
+        },
+      },
+    },
+    closed: ['$comment', 'queries', 'refresh'],
+  },
   ClientSecretForm: {
     kinds: ['object'],
     required: ['grant_type', 'client_id', 'client_secret'],
@@ -1081,6 +1662,196 @@ export const REQUIRED_SCHEMAS: {
       client_secret: { kinds: ['string'] },
       grant_type: { kinds: ['string'], enum: ['client_credentials'] },
     },
+  },
+  ClientTesting: {
+    kinds: ['object'],
+    required: [
+      '$comment',
+      'faultActions',
+      'delayMs',
+      'scheduleLength',
+      'slack',
+      'deliveryOps',
+      'records',
+    ],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      delayMs: {
+        kinds: ['object'],
+        required: ['docs', 'minimum', 'maximum'],
+        members: {
+          docs: { kinds: ['string'], minLength: 1 },
+          maximum: { kinds: ['integer'], minimum: 0 },
+          minimum: { kinds: ['integer'], minimum: 0 },
+        },
+        closed: ['docs', 'maximum', 'minimum'],
+      },
+      deliveryOps: {
+        kinds: ['object'],
+        required: ['docs', 'ops'],
+        members: {
+          docs: { kinds: ['string'], minLength: 1 },
+          ops: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['string'],
+              pattern: [{ of: [[97, 122]], min: 1 }],
+            },
+          },
+        },
+        closed: ['docs', 'ops'],
+      },
+      faultActions: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['name', 'kind', 'docs', 'holds'],
+          members: {
+            docs: { kinds: ['string'], minLength: 1 },
+            holds: {
+              kinds: ['array'],
+              items: {
+                kinds: ['string'],
+                pattern: [
+                  { of: [[97, 122]], min: 1, max: 1 },
+                  {
+                    of: [
+                      [65, 90],
+                      [97, 122],
+                    ],
+                    min: 0,
+                  },
+                ],
+              },
+            },
+            kind: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[97, 122]], min: 1 },
+                {
+                  either: [
+                    [
+                      { of: [[45, 45]], min: 1, max: 1 },
+                      { of: [[97, 122]], min: 1 },
+                    ],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+            name: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[65, 90]], min: 1, max: 1 },
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+          },
+          closed: ['docs', 'holds', 'kind', 'name'],
+        },
+      },
+      records: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['name', 'docs', 'members'],
+          members: {
+            docs: { kinds: ['string'], minLength: 1 },
+            members: {
+              kinds: ['array'],
+              minItems: 1,
+              items: {
+                kinds: ['string'],
+                pattern: [
+                  { of: [[97, 122]], min: 1, max: 1 },
+                  {
+                    of: [
+                      [65, 90],
+                      [97, 122],
+                    ],
+                    min: 0,
+                  },
+                ],
+              },
+            },
+            name: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[65, 90]], min: 1, max: 1 },
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+          },
+          closed: ['docs', 'members', 'name'],
+        },
+      },
+      scheduleLength: {
+        kinds: ['object'],
+        required: ['docs', 'minimum', 'maximum'],
+        members: {
+          docs: { kinds: ['string'], minLength: 1 },
+          maximum: { kinds: ['integer'], minimum: 0 },
+          minimum: { kinds: ['integer'], minimum: 1 },
+        },
+        closed: ['docs', 'maximum', 'minimum'],
+      },
+      slack: {
+        kinds: ['object'],
+        required: ['docs', 'times'],
+        members: {
+          docs: { kinds: ['string'], minLength: 1 },
+          times: { kinds: ['integer'], minimum: 1 },
+        },
+        closed: ['docs', 'times'],
+      },
+    },
+    closed: [
+      '$comment',
+      'delayMs',
+      'deliveryOps',
+      'faultActions',
+      'records',
+      'scheduleLength',
+      'slack',
+    ],
   },
   CloneResourceWithTokenResponse: {
     kinds: ['object'],
@@ -2064,6 +2835,238 @@ export const REQUIRED_SCHEMAS: {
       summary: { kinds: ['string'] },
     },
   },
+  ControlCli: {
+    kinds: ['object'],
+    required: ['$comment', 'commands'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      commands: {
+        kinds: ['object'],
+        values: {
+          kinds: ['object'],
+          required: ['parser', 'method', 'flags'],
+          members: {
+            flags: {
+              kinds: ['object'],
+              values: {
+                kinds: ['object'],
+                oneOf: [
+                  {
+                    kinds: ['object'],
+                    required: ['fields'],
+                    members: {
+                      fields: {
+                        kinds: ['array'],
+                        minItems: 1,
+                        items: {
+                          kinds: ['string'],
+                          pattern: [
+                            { of: [[97, 122]], min: 1, max: 1 },
+                            {
+                              of: [
+                                [65, 90],
+                                [97, 122],
+                              ],
+                              min: 0,
+                            },
+                            {
+                              either: [
+                                [
+                                  { of: [[46, 46]], min: 1, max: 1 },
+                                  { of: [[97, 122]], min: 1, max: 1 },
+                                  {
+                                    of: [
+                                      [65, 90],
+                                      [97, 122],
+                                    ],
+                                    min: 0,
+                                  },
+                                ],
+                              ],
+                              min: 1,
+                            },
+                          ],
+                        },
+                      },
+                      notes: { kinds: ['string'], minLength: 1 },
+                    },
+                    closed: ['fields', 'notes'],
+                  },
+                  {
+                    kinds: ['object'],
+                    required: ['method'],
+                    members: {
+                      method: {
+                        kinds: ['string'],
+                        pattern: [
+                          { of: [[97, 122]], min: 1, max: 1 },
+                          {
+                            of: [
+                              [65, 90],
+                              [97, 122],
+                            ],
+                            min: 0,
+                          },
+                          {
+                            either: [
+                              [
+                                { of: [[46, 46]], min: 1, max: 1 },
+                                { of: [[97, 122]], min: 1, max: 1 },
+                                {
+                                  of: [
+                                    [65, 90],
+                                    [97, 122],
+                                  ],
+                                  min: 0,
+                                },
+                              ],
+                            ],
+                            min: 1,
+                          },
+                        ],
+                      },
+                    },
+                    closed: ['method'],
+                  },
+                  {
+                    kinds: ['object'],
+                    required: ['cliOnly'],
+                    members: { cliOnly: { kinds: ['string'], minLength: 1 } },
+                    closed: ['cliOnly'],
+                  },
+                ],
+              },
+            },
+            method: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[97, 122]], min: 1, max: 1 },
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+                {
+                  either: [
+                    [
+                      { of: [[46, 46]], min: 1, max: 1 },
+                      { of: [[97, 122]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 0,
+                      },
+                    ],
+                  ],
+                  min: 1,
+                },
+              ],
+            },
+            parser: {
+              kinds: ['string'],
+              pattern: [
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 1,
+                },
+              ],
+            },
+            positionals: {
+              kinds: ['array'],
+              minItems: 1,
+              items: {
+                kinds: ['object'],
+                oneOf: [
+                  {
+                    kinds: ['object'],
+                    required: ['name', 'fields'],
+                    members: {
+                      fields: {
+                        kinds: ['array'],
+                        minItems: 1,
+                        items: {
+                          kinds: ['string'],
+                          pattern: [
+                            { of: [[97, 122]], min: 1, max: 1 },
+                            {
+                              of: [
+                                [65, 90],
+                                [97, 122],
+                              ],
+                              min: 0,
+                            },
+                            {
+                              either: [
+                                [
+                                  { of: [[46, 46]], min: 1, max: 1 },
+                                  { of: [[97, 122]], min: 1, max: 1 },
+                                  {
+                                    of: [
+                                      [65, 90],
+                                      [97, 122],
+                                    ],
+                                    min: 0,
+                                  },
+                                ],
+                              ],
+                              min: 1,
+                            },
+                          ],
+                        },
+                      },
+                      name: { kinds: ['string'], minLength: 1 },
+                    },
+                    closed: ['fields', 'name'],
+                  },
+                  {
+                    kinds: ['object'],
+                    required: ['name', 'cliOnly'],
+                    members: {
+                      cliOnly: { kinds: ['string'], minLength: 1 },
+                      name: { kinds: ['string'], minLength: 1 },
+                    },
+                    closed: ['cliOnly', 'name'],
+                  },
+                ],
+              },
+            },
+          },
+          closed: ['flags', 'method', 'parser', 'positionals'],
+        },
+      },
+    },
+    closed: ['$comment', 'commands'],
+  },
   CreateAnnotationRequest: {
     kinds: ['object'],
     required: ['target', 'motivation'],
@@ -2382,6 +3385,843 @@ export const REQUIRED_SCHEMAS: {
       error: { kinds: ['string'] },
       hint: { kinds: ['string'] },
     },
+  },
+  ErrorsCodes: {
+    kinds: ['object'],
+    required: [
+      '$comment',
+      'busRequest',
+      'transport',
+      'job',
+      'session',
+      'signIn',
+      'kbIdentity',
+      'spanRefusal',
+      'control',
+    ],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      busRequest: {
+        kinds: ['object'],
+        required: ['docs', 'unrecognizedFailure', 'codes'],
+        members: {
+          codes: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['object'],
+              required: ['code', 'docs'],
+              members: {
+                code: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 46]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[0, 1114111]], min: 0 },
+                    {
+                      of: [
+                        [0, 8],
+                        [14, 31],
+                        [33, 159],
+                        [161, 5759],
+                        [5761, 8191],
+                        [8203, 8231],
+                        [8234, 8238],
+                        [8240, 8286],
+                        [8288, 12287],
+                        [12289, 65278],
+                        [65280, 1114111],
+                      ],
+                      min: 1,
+                      max: 1,
+                    },
+                    { of: [[0, 1114111]], min: 0 },
+                  ],
+                },
+                wire: {
+                  kinds: ['string'],
+                  enum: [
+                    'peer-unavailable',
+                    'not-found',
+                    'unauthorized',
+                    'none-pending',
+                  ],
+                },
+              },
+              closed: ['code', 'docs', 'wire'],
+            },
+          },
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+          unrecognizedFailure: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[97, 122]], min: 1 },
+              {
+                either: [
+                  [
+                    { of: [[45, 46]], min: 1, max: 1 },
+                    { of: [[97, 122]], min: 1 },
+                  ],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['codes', 'docs', 'unrecognizedFailure'],
+      },
+      control: {
+        kinds: ['object'],
+        required: ['docs', 'codes'],
+        members: {
+          codes: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['object'],
+              required: ['code', 'docs'],
+              members: {
+                code: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 46]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[0, 1114111]], min: 0 },
+                    {
+                      of: [
+                        [0, 8],
+                        [14, 31],
+                        [33, 159],
+                        [161, 5759],
+                        [5761, 8191],
+                        [8203, 8231],
+                        [8234, 8238],
+                        [8240, 8286],
+                        [8288, 12287],
+                        [12289, 65278],
+                        [65280, 1114111],
+                      ],
+                      min: 1,
+                      max: 1,
+                    },
+                    { of: [[0, 1114111]], min: 0 },
+                  ],
+                },
+              },
+              closed: ['code', 'docs'],
+            },
+          },
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+        },
+        closed: ['codes', 'docs'],
+      },
+      job: {
+        kinds: ['object'],
+        required: ['docs', 'codes'],
+        members: {
+          codes: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['object'],
+              required: ['code', 'docs'],
+              members: {
+                code: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 46]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[0, 1114111]], min: 0 },
+                    {
+                      of: [
+                        [0, 8],
+                        [14, 31],
+                        [33, 159],
+                        [161, 5759],
+                        [5761, 8191],
+                        [8203, 8231],
+                        [8234, 8238],
+                        [8240, 8286],
+                        [8288, 12287],
+                        [12289, 65278],
+                        [65280, 1114111],
+                      ],
+                      min: 1,
+                      max: 1,
+                    },
+                    { of: [[0, 1114111]], min: 0 },
+                  ],
+                },
+              },
+              closed: ['code', 'docs'],
+            },
+          },
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+        },
+        closed: ['codes', 'docs'],
+      },
+      kbIdentity: {
+        kinds: ['object'],
+        required: ['docs', 'codes'],
+        members: {
+          codes: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['object'],
+              required: ['code', 'docs'],
+              members: {
+                code: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 46]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[0, 1114111]], min: 0 },
+                    {
+                      of: [
+                        [0, 8],
+                        [14, 31],
+                        [33, 159],
+                        [161, 5759],
+                        [5761, 8191],
+                        [8203, 8231],
+                        [8234, 8238],
+                        [8240, 8286],
+                        [8288, 12287],
+                        [12289, 65278],
+                        [65280, 1114111],
+                      ],
+                      min: 1,
+                      max: 1,
+                    },
+                    { of: [[0, 1114111]], min: 0 },
+                  ],
+                },
+              },
+              closed: ['code', 'docs'],
+            },
+          },
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+        },
+        closed: ['codes', 'docs'],
+      },
+      session: {
+        kinds: ['object'],
+        required: ['docs', 'codes'],
+        members: {
+          codes: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['object'],
+              required: ['code', 'docs'],
+              members: {
+                code: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 46]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[0, 1114111]], min: 0 },
+                    {
+                      of: [
+                        [0, 8],
+                        [14, 31],
+                        [33, 159],
+                        [161, 5759],
+                        [5761, 8191],
+                        [8203, 8231],
+                        [8234, 8238],
+                        [8240, 8286],
+                        [8288, 12287],
+                        [12289, 65278],
+                        [65280, 1114111],
+                      ],
+                      min: 1,
+                      max: 1,
+                    },
+                    { of: [[0, 1114111]], min: 0 },
+                  ],
+                },
+              },
+              closed: ['code', 'docs'],
+            },
+          },
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+        },
+        closed: ['codes', 'docs'],
+      },
+      signIn: {
+        kinds: ['object'],
+        required: ['docs', 'codes'],
+        members: {
+          codes: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['object'],
+              required: ['code', 'docs'],
+              members: {
+                code: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 46]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[0, 1114111]], min: 0 },
+                    {
+                      of: [
+                        [0, 8],
+                        [14, 31],
+                        [33, 159],
+                        [161, 5759],
+                        [5761, 8191],
+                        [8203, 8231],
+                        [8234, 8238],
+                        [8240, 8286],
+                        [8288, 12287],
+                        [12289, 65278],
+                        [65280, 1114111],
+                      ],
+                      min: 1,
+                      max: 1,
+                    },
+                    { of: [[0, 1114111]], min: 0 },
+                  ],
+                },
+              },
+              closed: ['code', 'docs'],
+            },
+          },
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+        },
+        closed: ['codes', 'docs'],
+      },
+      spanRefusal: {
+        kinds: ['object'],
+        required: ['docs', 'codes'],
+        members: {
+          codes: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['object'],
+              required: ['code', 'docs'],
+              members: {
+                code: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[97, 122]], min: 1 },
+                    {
+                      either: [
+                        [
+                          { of: [[45, 46]], min: 1, max: 1 },
+                          { of: [[97, 122]], min: 1 },
+                        ],
+                      ],
+                      min: 0,
+                    },
+                  ],
+                },
+                docs: {
+                  kinds: ['string'],
+                  pattern: [
+                    { of: [[0, 1114111]], min: 0 },
+                    {
+                      of: [
+                        [0, 8],
+                        [14, 31],
+                        [33, 159],
+                        [161, 5759],
+                        [5761, 8191],
+                        [8203, 8231],
+                        [8234, 8238],
+                        [8240, 8286],
+                        [8288, 12287],
+                        [12289, 65278],
+                        [65280, 1114111],
+                      ],
+                      min: 1,
+                      max: 1,
+                    },
+                    { of: [[0, 1114111]], min: 0 },
+                  ],
+                },
+              },
+              closed: ['code', 'docs'],
+            },
+          },
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+        },
+        closed: ['codes', 'docs'],
+      },
+      transport: {
+        kinds: ['object'],
+        required: ['docs', 'unclassified', 'codes'],
+        members: {
+          codes: {
+            kinds: ['array'],
+            minItems: 1,
+            items: {
+              kinds: ['object'],
+              oneOf: [
+                {
+                  kinds: ['object'],
+                  required: ['code', 'docs', 'status'],
+                  members: {
+                    code: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[97, 122]], min: 1 },
+                        {
+                          either: [
+                            [
+                              { of: [[45, 46]], min: 1, max: 1 },
+                              { of: [[97, 122]], min: 1 },
+                            ],
+                          ],
+                          min: 0,
+                        },
+                      ],
+                    },
+                    docs: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[0, 1114111]], min: 0 },
+                        {
+                          of: [
+                            [0, 8],
+                            [14, 31],
+                            [33, 159],
+                            [161, 5759],
+                            [5761, 8191],
+                            [8203, 8231],
+                            [8234, 8238],
+                            [8240, 8286],
+                            [8288, 12287],
+                            [12289, 65278],
+                            [65280, 1114111],
+                          ],
+                          min: 1,
+                          max: 1,
+                        },
+                        { of: [[0, 1114111]], min: 0 },
+                      ],
+                    },
+                    status: { ref: 'HttpStatus' },
+                  },
+                  closed: ['code', 'docs', 'status'],
+                },
+                {
+                  kinds: ['object'],
+                  required: ['code', 'docs', 'statusFrom'],
+                  members: {
+                    code: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[97, 122]], min: 1 },
+                        {
+                          either: [
+                            [
+                              { of: [[45, 46]], min: 1, max: 1 },
+                              { of: [[97, 122]], min: 1 },
+                            ],
+                          ],
+                          min: 0,
+                        },
+                      ],
+                    },
+                    docs: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[0, 1114111]], min: 0 },
+                        {
+                          of: [
+                            [0, 8],
+                            [14, 31],
+                            [33, 159],
+                            [161, 5759],
+                            [5761, 8191],
+                            [8203, 8231],
+                            [8234, 8238],
+                            [8240, 8286],
+                            [8288, 12287],
+                            [12289, 65278],
+                            [65280, 1114111],
+                          ],
+                          min: 1,
+                          max: 1,
+                        },
+                        { of: [[0, 1114111]], min: 0 },
+                      ],
+                    },
+                    statusFrom: { ref: 'HttpStatus' },
+                  },
+                  closed: ['code', 'docs', 'statusFrom'],
+                },
+                {
+                  kinds: ['object'],
+                  required: ['code', 'docs'],
+                  members: {
+                    code: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[97, 122]], min: 1 },
+                        {
+                          either: [
+                            [
+                              { of: [[45, 46]], min: 1, max: 1 },
+                              { of: [[97, 122]], min: 1 },
+                            ],
+                          ],
+                          min: 0,
+                        },
+                      ],
+                    },
+                    docs: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[0, 1114111]], min: 0 },
+                        {
+                          of: [
+                            [0, 8],
+                            [14, 31],
+                            [33, 159],
+                            [161, 5759],
+                            [5761, 8191],
+                            [8203, 8231],
+                            [8234, 8238],
+                            [8240, 8286],
+                            [8288, 12287],
+                            [12289, 65278],
+                            [65280, 1114111],
+                          ],
+                          min: 1,
+                          max: 1,
+                        },
+                        { of: [[0, 1114111]], min: 0 },
+                      ],
+                    },
+                  },
+                  closed: ['code', 'docs'],
+                },
+              ],
+            },
+          },
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+          unclassified: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[97, 122]], min: 1 },
+              {
+                either: [
+                  [
+                    { of: [[45, 46]], min: 1, max: 1 },
+                    { of: [[97, 122]], min: 1 },
+                  ],
+                ],
+                min: 0,
+              },
+            ],
+          },
+        },
+        closed: ['codes', 'docs', 'unclassified'],
+      },
+    },
+    closed: [
+      '$comment',
+      'busRequest',
+      'control',
+      'job',
+      'kbIdentity',
+      'session',
+      'signIn',
+      'spanRefusal',
+      'transport',
+    ],
   },
   EventMetadata: {
     kinds: ['object'],
@@ -2966,6 +4806,202 @@ export const REQUIRED_SCHEMAS: {
     },
   },
   HttpStatus: { kinds: ['integer'], minimum: 100, maximum: 599 },
+  IdentifiersKinds: {
+    kinds: ['object'],
+    required: ['$comment', 'kinds', 'others'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      kinds: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['schema', 'properties', 'accepts', 'refuses'],
+          members: {
+            accepts: {
+              kinds: ['array'],
+              minItems: 1,
+              items: {
+                kinds: ['object'],
+                required: ['id', 'why'],
+                members: {
+                  id: { kinds: ['string'] },
+                  why: {
+                    kinds: ['string'],
+                    pattern: [
+                      { of: [[0, 1114111]], min: 0 },
+                      {
+                        of: [
+                          [0, 8],
+                          [14, 31],
+                          [33, 159],
+                          [161, 5759],
+                          [5761, 8191],
+                          [8203, 8231],
+                          [8234, 8238],
+                          [8240, 8286],
+                          [8288, 12287],
+                          [12289, 65278],
+                          [65280, 1114111],
+                        ],
+                        min: 1,
+                        max: 1,
+                      },
+                      { of: [[0, 1114111]], min: 0 },
+                    ],
+                  },
+                },
+                closed: ['id', 'why'],
+              },
+            },
+            properties: {
+              kinds: ['array'],
+              minItems: 1,
+              items: {
+                kinds: ['string'],
+                pattern: [
+                  { of: [[95, 95]], min: 0, max: 1 },
+                  { of: [[97, 122]], min: 1, max: 1 },
+                  {
+                    of: [
+                      [48, 57],
+                      [65, 90],
+                      [97, 122],
+                    ],
+                    min: 0,
+                  },
+                ],
+              },
+            },
+            refuses: {
+              kinds: ['array'],
+              minItems: 1,
+              items: {
+                kinds: ['object'],
+                required: ['id', 'why'],
+                members: {
+                  id: { kinds: ['string'] },
+                  why: {
+                    kinds: ['string'],
+                    pattern: [
+                      { of: [[0, 1114111]], min: 0 },
+                      {
+                        of: [
+                          [0, 8],
+                          [14, 31],
+                          [33, 159],
+                          [161, 5759],
+                          [5761, 8191],
+                          [8203, 8231],
+                          [8234, 8238],
+                          [8240, 8286],
+                          [8288, 12287],
+                          [12289, 65278],
+                          [65280, 1114111],
+                        ],
+                        min: 1,
+                        max: 1,
+                      },
+                      { of: [[0, 1114111]], min: 0 },
+                    ],
+                  },
+                },
+                closed: ['id', 'why'],
+              },
+            },
+            schema: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[65, 90]], min: 1, max: 1 },
+                {
+                  of: [
+                    [48, 57],
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+          },
+          closed: ['accepts', 'properties', 'refuses', 'schema'],
+        },
+      },
+      others: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['property', 'docs'],
+          members: {
+            docs: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[0, 1114111]], min: 0 },
+                {
+                  of: [
+                    [0, 8],
+                    [14, 31],
+                    [33, 159],
+                    [161, 5759],
+                    [5761, 8191],
+                    [8203, 8231],
+                    [8234, 8238],
+                    [8240, 8286],
+                    [8288, 12287],
+                    [12289, 65278],
+                    [65280, 1114111],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+                { of: [[0, 1114111]], min: 0 },
+              ],
+            },
+            property: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[97, 122]], min: 1, max: 1 },
+                {
+                  of: [
+                    [48, 57],
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+          },
+          closed: ['docs', 'property'],
+        },
+      },
+    },
+    closed: ['$comment', 'kinds', 'others'],
+  },
   IdentityUser: {
     kinds: ['object'],
     required: ['email', 'identity', 'enabled'],
@@ -4697,6 +6733,262 @@ export const REQUIRED_SCHEMAS: {
     required: ['token'],
     members: { token: { kinds: ['string'] } },
   },
+  MediaTypesRegistry: {
+    kinds: ['object'],
+    required: [
+      '$comment',
+      'render',
+      'anchoring',
+      'textSource',
+      'extensionAliases',
+      'mediaTypes',
+    ],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      anchoring: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['string'],
+          pattern: [
+            { of: [[97, 122]], min: 1, max: 1 },
+            {
+              of: [
+                [45, 45],
+                [97, 122],
+              ],
+              min: 0,
+            },
+          ],
+        },
+      },
+      extensionAliases: {
+        kinds: ['object'],
+        values: {
+          kinds: ['string'],
+          pattern: [
+            { of: [[46, 46]], min: 1, max: 1 },
+            {
+              of: [
+                [48, 57],
+                [97, 122],
+              ],
+              min: 1,
+            },
+          ],
+        },
+      },
+      mediaTypes: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: [
+            'mediaType',
+            'extension',
+            'label',
+            'render',
+            'anchoring',
+            'textSource',
+            'authorable',
+            'uploadable',
+            'generatable',
+          ],
+          members: {
+            anchoring: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[0, 1114111]], min: 0 },
+                {
+                  of: [
+                    [0, 8],
+                    [14, 31],
+                    [33, 159],
+                    [161, 5759],
+                    [5761, 8191],
+                    [8203, 8231],
+                    [8234, 8238],
+                    [8240, 8286],
+                    [8288, 12287],
+                    [12289, 65278],
+                    [65280, 1114111],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+                { of: [[0, 1114111]], min: 0 },
+              ],
+            },
+            authorable: { kinds: ['boolean'] },
+            extension: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[46, 46]], min: 1, max: 1 },
+                {
+                  of: [
+                    [48, 57],
+                    [97, 122],
+                  ],
+                  min: 1,
+                },
+              ],
+            },
+            generatable: { kinds: ['boolean'] },
+            label: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[0, 1114111]], min: 0 },
+                {
+                  of: [
+                    [0, 8],
+                    [14, 31],
+                    [33, 159],
+                    [161, 5759],
+                    [5761, 8191],
+                    [8203, 8231],
+                    [8234, 8238],
+                    [8240, 8286],
+                    [8288, 12287],
+                    [12289, 65278],
+                    [65280, 1114111],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+                { of: [[0, 1114111]], min: 0 },
+              ],
+            },
+            mediaType: { ref: 'SupportedMediaType' },
+            render: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[0, 1114111]], min: 0 },
+                {
+                  of: [
+                    [0, 8],
+                    [14, 31],
+                    [33, 159],
+                    [161, 5759],
+                    [5761, 8191],
+                    [8203, 8231],
+                    [8234, 8238],
+                    [8240, 8286],
+                    [8288, 12287],
+                    [12289, 65278],
+                    [65280, 1114111],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+                { of: [[0, 1114111]], min: 0 },
+              ],
+            },
+            textSource: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[0, 1114111]], min: 0 },
+                {
+                  of: [
+                    [0, 8],
+                    [14, 31],
+                    [33, 159],
+                    [161, 5759],
+                    [5761, 8191],
+                    [8203, 8231],
+                    [8234, 8238],
+                    [8240, 8286],
+                    [8288, 12287],
+                    [12289, 65278],
+                    [65280, 1114111],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+                { of: [[0, 1114111]], min: 0 },
+              ],
+            },
+            uploadable: { kinds: ['boolean'] },
+          },
+          closed: [
+            'anchoring',
+            'authorable',
+            'extension',
+            'generatable',
+            'label',
+            'mediaType',
+            'render',
+            'textSource',
+            'uploadable',
+          ],
+        },
+      },
+      render: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['string'],
+          pattern: [
+            { of: [[97, 122]], min: 1, max: 1 },
+            {
+              of: [
+                [45, 45],
+                [97, 122],
+              ],
+              min: 0,
+            },
+          ],
+        },
+      },
+      textSource: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['string'],
+          pattern: [
+            { of: [[97, 122]], min: 1, max: 1 },
+            {
+              of: [
+                [45, 45],
+                [97, 122],
+              ],
+              min: 0,
+            },
+          ],
+        },
+      },
+    },
+    closed: [
+      '$comment',
+      'anchoring',
+      'extensionAliases',
+      'mediaTypes',
+      'render',
+      'textSource',
+    ],
+  },
   MemoryGraphConfig: {
     kinds: ['object'],
     required: ['type'],
@@ -5759,6 +8051,181 @@ export const REQUIRED_SCHEMAS: {
       },
     ],
   },
+  SdkTelemetryTelemetry: {
+    kinds: ['object'],
+    required: ['$comment', 'spans', 'metrics'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      metrics: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: [
+            'name',
+            'transport',
+            'instrument',
+            'meaning',
+            'attributes',
+          ],
+          members: {
+            attributes: {
+              kinds: ['array'],
+              items: {
+                kinds: ['object'],
+                required: ['key'],
+                members: {
+                  key: {
+                    kinds: ['string'],
+                    pattern: [
+                      { of: [[97, 122]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [95, 95],
+                          [97, 122],
+                        ],
+                        min: 0,
+                      },
+                      {
+                        either: [
+                          [
+                            { of: [[46, 46]], min: 1, max: 1 },
+                            { of: [[97, 122]], min: 1, max: 1 },
+                            {
+                              of: [
+                                [95, 95],
+                                [97, 122],
+                              ],
+                              min: 0,
+                            },
+                          ],
+                        ],
+                        min: 0,
+                      },
+                    ],
+                  },
+                  only: { kinds: ['string'], minLength: 1 },
+                  values: {
+                    kinds: ['array'],
+                    minItems: 1,
+                    items: {
+                      kinds: ['string', 'boolean'],
+                      oneOf: [
+                        { kinds: ['string'], minLength: 1 },
+                        { kinds: ['boolean'] },
+                      ],
+                    },
+                  },
+                },
+                closed: ['key', 'only', 'values'],
+              },
+            },
+            instrument: {
+              kinds: ['string'],
+              enum: ['counter', 'up-down counter', 'gauge', 'histogram'],
+            },
+            meaning: { kinds: ['string'], minLength: 1 },
+            name: { kinds: ['string'], minLength: 1 },
+            transport: { kinds: ['string'], enum: ['bus', 'content'] },
+          },
+          closed: ['attributes', 'instrument', 'meaning', 'name', 'transport'],
+        },
+      },
+      spans: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['name', 'transport', 'kind', 'meaning', 'attributes'],
+          members: {
+            attributes: {
+              kinds: ['array'],
+              items: {
+                kinds: ['object'],
+                required: ['key'],
+                members: {
+                  key: {
+                    kinds: ['string'],
+                    pattern: [
+                      { of: [[97, 122]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [95, 95],
+                          [97, 122],
+                        ],
+                        min: 0,
+                      },
+                      {
+                        either: [
+                          [
+                            { of: [[46, 46]], min: 1, max: 1 },
+                            { of: [[97, 122]], min: 1, max: 1 },
+                            {
+                              of: [
+                                [95, 95],
+                                [97, 122],
+                              ],
+                              min: 0,
+                            },
+                          ],
+                        ],
+                        min: 0,
+                      },
+                    ],
+                  },
+                  only: { kinds: ['string'], minLength: 1 },
+                  values: {
+                    kinds: ['array'],
+                    minItems: 1,
+                    items: {
+                      kinds: ['string', 'boolean'],
+                      oneOf: [
+                        { kinds: ['string'], minLength: 1 },
+                        { kinds: ['boolean'] },
+                      ],
+                    },
+                  },
+                },
+                closed: ['key', 'only', 'values'],
+              },
+            },
+            kind: {
+              kinds: ['string'],
+              enum: ['client', 'consumer', 'internal', 'producer', 'server'],
+            },
+            meaning: { kinds: ['string'], minLength: 1 },
+            name: { kinds: ['string'], minLength: 1 },
+            transport: { kinds: ['string'], enum: ['bus', 'content'] },
+          },
+          closed: ['attributes', 'kind', 'meaning', 'name', 'transport'],
+        },
+      },
+    },
+    closed: ['$comment', 'metrics', 'spans'],
+  },
   SecretRef: {
     kinds: ['object'],
     required: ['fromEnv'],
@@ -6052,6 +8519,106 @@ export const REQUIRED_SCHEMAS: {
       participant: { ref: 'UserId' },
     },
   },
+  SessionOauth: {
+    kinds: ['object'],
+    required: ['$comment', 'clients', 'scopes'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      clients: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['name', 'id', 'docs'],
+          members: {
+            docs: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[0, 1114111]], min: 0 },
+                {
+                  of: [
+                    [0, 8],
+                    [14, 31],
+                    [33, 159],
+                    [161, 5759],
+                    [5761, 8191],
+                    [8203, 8231],
+                    [8234, 8238],
+                    [8240, 8286],
+                    [8288, 12287],
+                    [12289, 65278],
+                    [65280, 1114111],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+                { of: [[0, 1114111]], min: 0 },
+              ],
+            },
+            id: { kinds: ['string'], minLength: 1 },
+            name: { kinds: ['string'], minLength: 1 },
+          },
+          closed: ['docs', 'id', 'name'],
+        },
+      },
+      scopes: {
+        kinds: ['object'],
+        required: ['value', 'docs'],
+        members: {
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+          value: { kinds: ['string'], minLength: 1 },
+        },
+        closed: ['docs', 'value'],
+      },
+    },
+    closed: ['$comment', 'clients', 'scopes'],
+  },
   Setting: {
     kinds: ['object'],
     required: ['name', 'default', 'appliesTo', 'values', 'settable'],
@@ -6164,6 +8731,233 @@ export const REQUIRED_SCHEMAS: {
     required: ['kb'],
     members: { expected: { ref: 'Expected' }, kb: { ref: 'KnowledgeBase' } },
     closed: ['expected', 'kb'],
+  },
+  SignInStoreOwnerOnly: {
+    kinds: ['object'],
+    required: [
+      '$comment',
+      'directoryMode',
+      'fileMode',
+      'directoryAccessList',
+      'fileAccessList',
+    ],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      directoryAccessList: {
+        kinds: ['object'],
+        required: ['value', 'docs'],
+        members: {
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+          value: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[68, 68]], min: 1, max: 1 },
+              { of: [[58, 58]], min: 1, max: 1 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+              },
+            ],
+          },
+        },
+        closed: ['docs', 'value'],
+      },
+      directoryMode: {
+        kinds: ['object'],
+        required: ['value', 'docs'],
+        members: {
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+          value: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[48, 48]], min: 1, max: 1 },
+              { of: [[48, 55]], min: 3, max: 3 },
+            ],
+          },
+        },
+        closed: ['docs', 'value'],
+      },
+      fileAccessList: {
+        kinds: ['object'],
+        required: ['value', 'docs'],
+        members: {
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+          value: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[68, 68]], min: 1, max: 1 },
+              { of: [[58, 58]], min: 1, max: 1 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+              },
+            ],
+          },
+        },
+        closed: ['docs', 'value'],
+      },
+      fileMode: {
+        kinds: ['object'],
+        required: ['value', 'docs'],
+        members: {
+          docs: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[0, 1114111]], min: 0 },
+              {
+                of: [
+                  [0, 8],
+                  [14, 31],
+                  [33, 159],
+                  [161, 5759],
+                  [5761, 8191],
+                  [8203, 8231],
+                  [8234, 8238],
+                  [8240, 8286],
+                  [8288, 12287],
+                  [12289, 65278],
+                  [65280, 1114111],
+                ],
+                min: 1,
+                max: 1,
+              },
+              { of: [[0, 1114111]], min: 0 },
+            ],
+          },
+          value: {
+            kinds: ['string'],
+            pattern: [
+              { of: [[48, 48]], min: 1, max: 1 },
+              { of: [[48, 55]], min: 3, max: 3 },
+            ],
+          },
+        },
+        closed: ['docs', 'value'],
+      },
+    },
+    closed: [
+      '$comment',
+      'directoryAccessList',
+      'directoryMode',
+      'fileAccessList',
+      'fileMode',
+    ],
   },
   SignedIn: {
     kinds: ['object'],

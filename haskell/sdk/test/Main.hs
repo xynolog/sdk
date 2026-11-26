@@ -65,10 +65,11 @@ import TokenStorageCases (tokenStorageCases)
 import WorkerCases (workerCases)
 import Xynolog.Channels qualified as Channels
 import Xynolog.ErrorCodes qualified as Errors
+import Xynolog.Internal.Codec (Kind (..), Signature (..), admittedBy, readMember)
 import Xynolog.Internal.Generated.ChannelRoundTrip (channelMetadata, operationMetadata, roundTripChannel)
 import Xynolog.Internal.Generated.DiscoveryReasonRoundTrip qualified as DiscoveryReasons
 import Xynolog.Internal.Generated.ErrorRoundTrip (roundTripError)
-import Xynolog.Internal.Generated.RoundTrip (enumerationCases, roundTrip)
+import Xynolog.Internal.Generated.RoundTrip (enumerationCases, roundTrip, unionMembers)
 import Xynolog.Internal.Generated.Schemas (schemas)
 import Xynolog.Internal.Generated.ServiceEnvironmentValues (serviceEnvironmentValues)
 import Xynolog.Internal.Generated.TimingValues (timingValues)
@@ -310,6 +311,27 @@ enumerationValueCases = forM_ enumerationCases $ \(name, wire, written, readBack
   require (label ++ " is written as " ++ show written) (written == wire)
   require (label ++ " is read back as " ++ show readBack) (readBack == Right wire)
   require (label ++ " has the word " ++ show word) (maybe True ((== wire) . String) word)
+
+-- Every union the models declare reads a value each of its members'
+-- signatures admits as that member, and a value none admits as none.
+unionMemberCases :: IO ()
+unionMemberCases = do
+  require "the models declare no union" (not (null unionMembers))
+  forM_ unionMembers $ \(name, members) -> do
+    let indexed = [(map fst signed, pure index) | (index, (_, signed)) <- zip [0 :: Int ..] members]
+    forM_ (zip [0 ..] members) $ \(index, (memberName, signed)) -> forM_ signed $ \(signature, value) -> do
+      let label = T.unpack name ++ "'s member " ++ T.unpack memberName
+      require (label ++ " does not admit " ++ show value) (admittedBy signature value == Right True)
+      require (label ++ " reads " ++ show value ++ " as another member") (parseEither (readMember name indexed) value == Right index)
+  let unstated kind = Signature kind [] Nothing [] Nothing Nothing
+  require "a value no member admits was read" (isLeft (parseEither (readMember "Union" [([unstated ObjectKind], pure ())]) Null))
+  require "a pattern that cannot be read was not said" (isLeft (admittedBy (unstated TextKind) {signaturePattern = Just "("} (String "x")))
+  require "a text its pattern refuses was admitted" (admittedBy (unstated TextKind) {signaturePattern = Just "^a$"} (String "b") == Right False)
+  require "a whole number was not admitted as an integer" (admittedBy (unstated IntegerKind) (Number 2.0) == Right True)
+  require "a fraction was admitted as an integer" (admittedBy (unstated IntegerKind) (Number 2.5) == Right False)
+  forM_ [(BooleanKind, Bool True), (NullKind, Null), (AnyKind, String "x"), (NumberKind, Number 0.5), (ListKind, Array V.empty)] $ \(kind, value) ->
+    require (show kind ++ " did not admit " ++ show value) (admittedBy (unstated kind) value == Right True)
+  require "a boolean was admitted as text" (admittedBy (unstated TextKind) (Bool True) == Right False)
 
 identifierCases :: FilePath -> IO ()
 identifierCases root = do
@@ -619,6 +641,7 @@ runCases root = do
     require "ECMAScript dot matched line terminator" (isLeft (validate schemas dot (String ("x" <> separator <> "z"))))
   schemaCases root
   enumerationValueCases
+  unionMemberCases
   specification <- readJSON (root </> "protocol/specs/src/openapi.json")
   forM_ (KM.keys (object (at "schemas" (at "components" specification)))) $ \key -> do
     let name = Key.toText key

@@ -7,6 +7,7 @@ module H = Xynolog.Http_wire
 module L = Xynolog.Live_query
 module D = Xynolog.Delegation
 module W = Xynolog.Worker
+module C = Xynolog.Error_codes
 
 exception Misuse of string
 
@@ -279,7 +280,11 @@ let run mode env =
     in
     let on_error (failure : H.failure) =
       output_json
-        (`Assoc [ ("error", error ?status:failure.status failure.code) ])
+        (`Assoc
+           [
+             ( "error",
+               error ?status:failure.status (C.Transport.code failure.code) );
+           ])
     in
     let client_id = uuid env in
     let global =
@@ -321,7 +326,8 @@ let run mode env =
               ~on_value:(function
                 | Xynolog.Client.Transport_failure failure -> on_error failure
                 | Xynolog.Client.Own { code; _ } ->
-                    output_json (`Assoc [ ("error", error code) ]))
+                    output_json
+                      (`Assoc [ ("error", error (C.Session.code code)) ]))
               ~on_close:ignore
           in
           if mode = Worker then worker_facade := Some facade
@@ -341,7 +347,7 @@ let run mode env =
               ~on_refused:(fun status ->
                 on_error
                   {
-                    code = Xynolog.Error_codes.Transport.unauthorized;
+                    code = Xynolog.Error_codes.Transport.Unauthorized;
                     status = Some status;
                     message = "The gateway refused the stream's credential";
                   })
@@ -412,7 +418,8 @@ let run mode env =
     | L.Pending -> `Assoc [ ("status", text "pending") ]
     | L.Ready value -> `Assoc [ ("status", text "ready"); ("value", value) ]
     | L.Failed code ->
-        `Assoc [ ("status", text "failed"); ("error", error code) ]
+        `Assoc
+          [ ("status", text "failed"); ("error", error (H.request_code code)) ]
   in
   let delegate ~verb input =
     let follower = Option.get !delegation in
@@ -453,7 +460,10 @@ let run mode env =
              ("status", text "failed");
              ( "error",
                `Assoc
-                 ([ ("code", text failure.code); ("detail", text failure.code) ]
+                 ([
+                    ("code", text (D.failure_code failure.code));
+                    ("detail", text (D.failure_code failure.code));
+                  ]
                  @ details) );
            ])
     in
@@ -509,6 +519,7 @@ let run mode env =
         telemetry
     in
     let on_refused code =
+      let code = Option.map H.request_code code in
       let fields =
         ("detail", text (Option.value code ~default:"invalid claim reply"))
         :: Option.to_list (Option.map (fun code -> ("code", text code)) code)
@@ -673,7 +684,7 @@ let run mode env =
             ()
         with
         | Ok () -> done_
-        | Error code -> ("error", error code))
+        | Error code -> ("error", error (C.Bus_request.code code)))
     | "complete" when mode = Worker ->
         settle (fun job -> W.complete job (field "result" input));
         done_
@@ -704,11 +715,13 @@ let run mode env =
         in
         match Xynolog.Client.Mark.delete (facade ()) payload with
         | Ok _ -> done_
-        | Error (Xynolog.Client.Refused code) -> ("error", error code)
+        | Error (Xynolog.Client.Refused code) ->
+            ("error", error (H.request_code code))
         | Error (Xynolog.Client.Http failure) ->
-            ("error", error ?status:failure.status failure.code)
+            ( "error",
+              error ?status:failure.status (C.Transport.code failure.code) )
         | Error (Xynolog.Client.Transport _) ->
-            ("error", error Xynolog.Error_codes.Bus_request.closed))
+            ("error", error C.Bus_request.(code Closed)))
     | "markDelegate" when mode = Live ->
         delegate ~verb:"mark" input;
         done_
@@ -749,11 +762,11 @@ let run mode env =
         Hashtbl.remove observers observer;
         done_
     | "fresh" when mode = Live && !stopping ->
-        ("error", error Xynolog.Error_codes.Bus_request.closed)
+        ("error", error C.Bus_request.(code Closed))
     | "fresh" when mode = Live -> (
         match Xynolog.Client.fresh (live_query (field "query" input)) with
         | Ok value -> ok (`Assoc [ ("value", value) ])
-        | Error code -> ("error", error code))
+        | Error code -> ("error", error (H.request_code code)))
     | "invalidate" when mode = Live ->
         Xynolog.Client.invalidate (live_query (field "query" input));
         done_
@@ -796,8 +809,7 @@ let run mode env =
                   "scope" input)
              ?correlation_id:(optional J.to_string "correlationId" input)
              channel (field "payload" input))
-    | "request" when !stopping ->
-        ("error", error Xynolog.Error_codes.Bus_request.closed)
+    | "request" when !stopping -> ("error", error C.Bus_request.(code Closed))
     | "request" -> (
         let (B.Operation operation) = operation (string "operation" input) in
         let client = get_client () in
@@ -818,16 +830,16 @@ let run mode env =
             in
             ok
               (`Assoc (List.filter (fun (name, _) -> name = "response") fields))
-        | Ok (S.Failure payload) -> ("error", error (H.bus_failure payload))
-        | Error S.Timeout ->
-            ("error", error Xynolog.Error_codes.Bus_request.timeout)
+        | Ok (S.Failure payload) ->
+            ("error", error (C.Bus_request.code (H.bus_failure payload)))
+        | Error S.Timeout -> ("error", error C.Bus_request.(code Timeout))
         | Error S.Transport_closed ->
-            ("error", error Xynolog.Error_codes.Bus_request.closed)
+            ("error", error C.Bus_request.(code Closed))
         | Error S.Unsubscribed ->
-            ("error", error Xynolog.Error_codes.Bus_request.unsubscribed)
+            ("error", error C.Bus_request.(code Unsubscribed))
         | Error S.Unrecognized_failure ->
-            ("error", error Xynolog.Error_codes.Bus_request.rejected)
-        | Error _ -> ("error", error Xynolog.Error_codes.Transport.error))
+            ("error", error C.Bus_request.(code Rejected))
+        | Error _ -> ("error", error C.Transport.(code Error)))
     | "health" -> ok (Yojson.Safe.from_string (H.health (get_client ()).http))
     | "status" -> ok (Yojson.Safe.from_string (H.status (get_client ()).http))
     | "current-user" ->
@@ -928,8 +940,10 @@ let run mode env =
               | Misuse message | J.Type_error (message, _) ->
                   ("misuse", text message)
               | H.Failed failure ->
-                  ("error", error ?status:failure.status failure.code)
-              | Eio.Io _ -> ("error", error Xynolog.Error_codes.Transport.error)
+                  ( "error",
+                    error ?status:failure.status (C.Transport.code failure.code)
+                  )
+              | Eio.Io _ -> ("error", error C.Transport.(code Error))
             in
             output_json (`Assoc [ ("id", `Int id); answer ]));
         loop ()

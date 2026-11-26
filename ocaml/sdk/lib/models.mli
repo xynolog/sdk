@@ -123,7 +123,10 @@ val bus_stream_message : [ `BusStreamMessage ] descriptor
 val bus_subscribe_request : [ `BusSubscribeRequest ] descriptor
 val cancelled : [ `Cancelled ] descriptor
 val claim_options : [ `ClaimOptions ] descriptor
+val client_discovery_absent : [ `ClientDiscoveryAbsent ] descriptor
+val client_refresh : [ `ClientRefresh ] descriptor
 val client_secret_form : [ `ClientSecretForm ] descriptor
+val client_testing : [ `ClientTesting ] descriptor
 
 val clone_resource_with_token_response :
   [ `CloneResourceWithTokenResponse ] descriptor
@@ -140,6 +143,7 @@ val conformance_step : [ `ConformanceStep ] descriptor
 val connection_identity : [ `ConnectionIdentity ] descriptor
 val content_format : [ `ContentFormat ] descriptor
 val contextual_summary_response : [ `ContextualSummaryResponse ] descriptor
+val control_cli : [ `ControlCli ] descriptor
 val create_annotation_request : [ `CreateAnnotationRequest ] descriptor
 val create_from_token_options : [ `CreateFromTokenOptions ] descriptor
 val create_resource_response : [ `CreateResourceResponse ] descriptor
@@ -166,6 +170,7 @@ val entity_types_projection : [ `EntityTypesProjection ] descriptor
 val ephemeral_event_id : [ `EphemeralEventId ] descriptor
 val error_data : [ `ErrorData ] descriptor
 val error_response : [ `ErrorResponse ] descriptor
+val errors_codes : [ `ErrorsCodes ] descriptor
 val event_metadata : [ `EventMetadata ] descriptor
 val expected : [ `Expected ] descriptor
 val extracted_text : [ `ExtractedText ] descriptor
@@ -224,6 +229,7 @@ val highlighting_job_params : [ `HighlightingJobParams ] descriptor
 val host_port : [ `HostPort ] descriptor
 val http_endpoint : [ `HttpEndpoint ] descriptor
 val http_status : [ `HttpStatus ] descriptor
+val identifiers_kinds : [ `IdentifiersKinds ] descriptor
 val identity_user : [ `IdentityUser ] descriptor
 val identity_useradd_params : [ `IdentityUseraddParams ] descriptor
 val identity_useradd_result : [ `IdentityUseraddResult ] descriptor
@@ -363,6 +369,7 @@ val match_search_request : [ `MatchSearchRequest ] descriptor
 val match_search_result : [ `MatchSearchResult ] descriptor
 val media_token_request : [ `MediaTokenRequest ] descriptor
 val media_token_response : [ `MediaTokenResponse ] descriptor
+val media_types_registry : [ `MediaTypesRegistry ] descriptor
 val memory_graph_config : [ `MemoryGraphConfig ] descriptor
 val memory_vectors_config : [ `MemoryVectorsConfig ] descriptor
 val metadata : [ `Metadata ] descriptor
@@ -434,6 +441,7 @@ val runner : [ `Runner ] descriptor
 val runtime : [ `Runtime ] descriptor
 val runtime_state : [ `RuntimeState ] descriptor
 val scored_resource : [ `ScoredResource ] descriptor
+val sdk_telemetry_telemetry : [ `SdkTelemetryTelemetry ] descriptor
 val secret_ref : [ `SecretRef ] descriptor
 val selector : [ `Selector ] descriptor
 val semantic_match : [ `SemanticMatch ] descriptor
@@ -454,6 +462,7 @@ val session_end_reason : [ `SessionEndReason ] descriptor
 val session_ended : [ `SessionEnded ] descriptor
 val session_joined_event : [ `SessionJoinedEvent ] descriptor
 val session_left_event : [ `SessionLeftEvent ] descriptor
+val session_oauth : [ `SessionOauth ] descriptor
 val setting : [ `Setting ] descriptor
 val setting_line : [ `SettingLine ] descriptor
 val settings_get_params : [ `SettingsGetParams ] descriptor
@@ -470,6 +479,7 @@ val settings_set_params : [ `SettingsSetParams ] descriptor
 val settings_theme_changed_event : [ `SettingsThemeChangedEvent ] descriptor
 val settings_unset_params : [ `SettingsUnsetParams ] descriptor
 val sign_in_outcome : [ `SignInOutcome ] descriptor
+val sign_in_store_owner_only : [ `SignInStoreOwnerOnly ] descriptor
 val signed_in : [ `SignedIn ] descriptor
 val smelt_rebuild_anchors_command : [ `SmeltRebuildAnchorsCommand ] descriptor
 val smelt_settled : [ `SmeltSettled ] descriptor

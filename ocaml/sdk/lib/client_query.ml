@@ -23,14 +23,16 @@ let request ?(on_sent = ignore) bus http ~client_id ~key operation payload =
     match Subscription.request bus ~correlation_id operation ~send with
     | Ok (Subscription.Result response) ->
         Ok (J.member "response" (Yojson.Safe.from_string (B.encode response)))
-    | Ok (Subscription.Failure failure) -> Error (Http_wire.bus_failure failure)
-    | Error Subscription.Timeout -> Error Error_codes.Bus_request.timeout
+    | Ok (Subscription.Failure failure) ->
+        Error (Http_wire.Bus (Http_wire.bus_failure failure))
+    | Error Subscription.Timeout ->
+        Error (Http_wire.Bus Error_codes.Bus_request.Timeout)
     | Error Subscription.Transport_closed ->
-        Error Error_codes.Bus_request.closed
+        Error (Http_wire.Bus Error_codes.Bus_request.Closed)
     | Error Subscription.Unsubscribed ->
-        Error Error_codes.Bus_request.unsubscribed
-    | Error _ -> Error Error_codes.Bus_request.rejected
-  with Http_wire.Failed failure -> Error failure.code
+        Error (Http_wire.Bus Error_codes.Bus_request.Unsubscribed)
+    | Error _ -> Error (Http_wire.Bus Error_codes.Bus_request.Rejected)
+  with Http_wire.Failed failure -> Error (Http_wire.Transport failure.code)
 
 let join_limits engines limits =
   let list = function `List values -> values | _ -> [] in
@@ -58,14 +60,15 @@ let make ?window_ms ?restore ?save ~sw ~clock ~bus ~http ~client_id ~key () =
           Option.bind resource (fun id ->
               Result.to_option (Identifiers.Resource_id.of_string id))
         with
-        | None -> Error Error_codes.Transport.bad_request
+        | None -> Error (Http_wire.Transport Error_codes.Transport.Bad_request)
         | Some id -> (
             try
               Ok
                 (J.member "annotations"
                    (Yojson.Safe.from_string (Http_wire.annotations http id)))
-            with Http_wire.Failed failure -> Error failure.code))
-    | None -> Error Error_codes.Transport.bad_request
+            with Http_wire.Failed failure ->
+              Error (Http_wire.Transport failure.code)))
+    | None -> Error (Http_wire.Transport Error_codes.Transport.Bad_request)
     | Some (B.Operation operation) ->
         let field name = Option.map (fun value -> (name, `String value)) in
         let payload =
@@ -82,7 +85,9 @@ let make ?window_ms ?restore ?save ~sw ~clock ~bus ~http ~client_id ~key () =
           request ?on_sent bus http ~client_id ~key operation payload
         in
         if name = Live_facts.Query.engines then (
-          let answer = ref (Error Error_codes.Bus_request.closed) in
+          let answer =
+            ref (Error (Http_wire.Bus Error_codes.Bus_request.Closed))
+          in
           let limits = ref [] in
           let sent, mark_sent = Promise.create () in
           let ready () =

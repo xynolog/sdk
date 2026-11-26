@@ -31,7 +31,7 @@ type vitals = {
 
 val refused :
   t ->
-  on_value:(string option -> unit) ->
+  on_value:(Http_wire.request_code option -> unit) ->
   on_close:(unit -> unit) ->
   unit ->
   unit

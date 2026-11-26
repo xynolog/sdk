@@ -356,7 +356,8 @@ let controlled () =
                 Client.Mark.delegate (Client.delegation client) ~resource
                   ~params
                   ~on_report:(fun _ _ -> ())
-                  ~on_failure:(fun failure -> failwith failure.Delegation.code)
+                  ~on_failure:(fun failure ->
+                    failwith (Delegation.failure_code failure.Delegation.code))
                   ~on_close:ignore ()
               in
               act :=
@@ -474,7 +475,7 @@ let controlled () =
                         {|{"annotationId":"ann-1"}|})
                  else ignore (Http_wire.health http)
                with Http_wire.Failed failure ->
-                 assert (failure.code = "unavailable");
+                 assert (failure.code = Error_codes.Transport.Unavailable);
                  if not emit then (
                    assert (!attempts = 1);
                    incr count));
@@ -595,26 +596,26 @@ let sign_in () =
     decode Models.kb_description
       (`Assoc [ ("name", text domain); ("domain", text domain) ])
   in
-  let sign port domain access =
-    Result.get_ok
-      (R.record_sign_in browser
-         {
-           endpoint = endpoint port;
-           description = description domain;
-           session =
-             {
-               access;
-               refresh = "refresh";
-               client_id = "script";
-               token_endpoint = "https://issuer.example/token";
-               revocation_endpoint = None;
-               person_key = None;
-             };
-           kb_id = Some "kb-1";
-           expected_did = Some "did:web:one.example";
-           expected_name = None;
-         })
+  let record port domain access =
+    R.record_sign_in browser
+      {
+        endpoint = endpoint port;
+        description = description domain;
+        session =
+          {
+            access;
+            refresh = "refresh";
+            client_id = "script";
+            token_endpoint = "https://issuer.example/token";
+            revocation_endpoint = None;
+            person_key = None;
+          };
+        kb_id = Some "kb-1";
+        expected_did = Some "did:web:one.example";
+        expected_name = None;
+      }
   in
+  let sign port domain access = Result.get_ok (record port domain access) in
   let id (outcome : Records.Sign_in_outcome.t) =
     (Records.Knowledge_base.of_model outcome.kb).id
   in
@@ -624,7 +625,13 @@ let sign_in () =
   assert (id (sign 4010 "other.example" "different-identity") = "kb-3");
   assert ((Option.get (R.stored_session storage "kb-1")).access = "new");
   R.sign_out browser "kb-3";
-  assert (R.active_id browser = None && R.stored_session storage "kb-3" = None)
+  assert (R.active_id browser = None && R.stored_session storage "kb-3" = None);
+  assert (
+    record 4012 "" "no-domain"
+    = Error (R.Identity Error_codes.Kb_identity.Not_reported));
+  serial := 1;
+  assert (record 4012 "third.example" "taken-id" = Error R.Id_conflict);
+  assert (R.activate browser "kb-unknown" = Error R.Unknown_kb)
 
 let redirect () =
   Eio_mock.Backend.run @@ fun () ->
@@ -670,7 +677,7 @@ let redirect () =
     decode Models.kb_description
       (Yojson.Safe.from_string {|{"name":"Actual","domain":"kb.example"}|})
   in
-  let discovery = ref 0 and exchanges = ref 0 in
+  let discovery = ref 0 and exchanges = ref 0 and refreshes = ref true in
   let http (request : OAuth.request) =
     match request.meth with
     | "GET" ->
@@ -683,7 +690,9 @@ let redirect () =
         assert (request.url = "https://issuer.example/token");
         assert (List.assoc "code" request.form = "one");
         assert (List.assoc "code_verifier" request.form <> "");
-        (200, {|{"access_token":"access","refresh_token":"refresh"}|})
+        if !refreshes then
+          (200, {|{"access_token":"access","refresh_token":"refresh"}|})
+        else (200, {|{"access_token":"access"}|})
     | _ -> assert false
   in
   let origin = "http://localhost:4010/callback" in
@@ -702,17 +711,21 @@ let redirect () =
       ~expected_did:"did:web:expected.example" ()
     |> Result.get_ok |> Uri.of_string
   in
-  let complete callback =
-    R.complete_sign_in (R.new_xynolog_browser ~storage:atomic_storage config)
-      ~http ~callback ~describe:(fun endpoint ~access ->
-        assert (R.same_place endpoint target && access = "access");
-        Ok description)
+  let described endpoint ~access =
+    assert (R.same_place endpoint target && access = "access");
+    Ok description
+  in
+  let complete ?(describe = described) callback =
+    R.complete_sign_in
+      (R.new_xynolog_browser ~storage:atomic_storage config)
+      ~http ~callback ~describe
   in
   let location = begin_ () in
   let state = Option.get (Uri.get_query_param location "state") in
   let callback = origin ^ "?code=one&state=" ^ state in
-  assert (complete (callback ^ "bad") = Error Error_codes.Sign_in.state);
-  assert (complete callback = Error Error_codes.Sign_in.no_pending);
+  assert (
+    complete (callback ^ "bad") = Error (R.Sign_in Error_codes.Sign_in.State));
+  assert (complete callback = Error (R.Sign_in Error_codes.Sign_in.No_pending));
   assert (!exchanges = 0);
   ignore (begin_ ());
   let outcome = Result.get_ok (complete callback) in
@@ -721,8 +734,17 @@ let redirect () =
   let kept = Option.get ((R.kept_in storage "kb-redirect").held ()) in
   assert (kept.access = "access" && kept.refresh = "refresh");
   assert (kept.revocation_endpoint = Some "https://issuer.example/revoke");
-  assert (complete callback = Error Error_codes.Sign_in.no_pending);
-  assert (!discovery = 2 && !exchanges = 1 && !takes = 4)
+  assert (complete callback = Error (R.Sign_in Error_codes.Sign_in.No_pending));
+  assert (!discovery = 2 && !exchanges = 1 && !takes = 4);
+  ignore (begin_ ());
+  assert (
+    complete
+      ~describe:(fun _ ~access:_ -> Error Error_codes.Kb_identity.Unreachable)
+      callback
+    = Error (R.Identity Error_codes.Kb_identity.Unreachable));
+  refreshes := false;
+  ignore (begin_ ());
+  assert (complete callback = Error (R.Sign_in Error_codes.Sign_in.Exchange))
 
 (* A writer held to [schema] both ways: what it wrote, [written], holds
    every member the schema states and no other, and a stored value without
@@ -1015,6 +1037,42 @@ let kept =
   | Integer count -> count
   | Object _ -> failwith "errorsKeptForFirstReaderCount is no count"
 
+(* A query the bus refuses is refused with the bus's code. *)
+let query_refused () =
+  Eio_mock.Backend.run @@ fun () ->
+  Switch.run @@ fun sw ->
+  let mono, clock = mock_clock () in
+  let testing =
+    Testing.transport ~sw ~clock ~schedule:[] ~respond:(fun ~channel _ ->
+        assert (channel = Bus_registry.(name Channels.browse_resource_requested));
+        Some
+          ( Bus_registry.(name Channels.browse_resource_failed),
+            `Assoc [ ("message", text "absent"); ("code", text "not-found") ] ))
+  in
+  let session =
+    Session.start ~sw ~clock ~initial_token:(Some "token")
+      ~renew:(fun ~holding:_ -> Session.Refused)
+      ()
+  in
+  let client =
+    Client.connect ~sw ~clock ~session ~client_id:"query"
+      ~key:(fun () -> "query-1")
+      ~call:(Testing.call testing)
+      ~global:
+        Bus_registry.
+          [
+            Channel Channels.browse_resource_result;
+            Channel Channels.browse_resource_failed;
+          ]
+      ~on_event:ignore ()
+  in
+  pass mono clock 0;
+  let resource = Result.get_ok (Identifiers.Resource_id.of_string "res-1") in
+  assert (
+    Client.fresh (Client.Browse.resource client resource)
+    = Error (Http_wire.Bus Error_codes.Bus_request.Not_found));
+  Client.close client
+
 let claims_refused () =
   Eio_mock.Backend.run @@ fun () ->
   Switch.run @@ fun sw ->
@@ -1055,12 +1113,15 @@ let claims_refused () =
   let first = ref [] and later = Eio.Stream.create max_int and ended = ref [] in
   let _release =
     Claims.refused claims
-      ~on_value:(fun code -> first := code :: !first)
+      ~on_value:(fun code ->
+        first := Option.map Http_wire.request_code code :: !first)
       ~on_close:(fun () -> ended := "first" :: !ended)
   in
   let _release =
-    Claims.refused claims ~on_value:(Eio.Stream.add later) ~on_close:(fun () ->
-        ended := "later" :: !ended)
+    Claims.refused claims
+      ~on_value:(fun code ->
+        Eio.Stream.add later (Option.map Http_wire.request_code code))
+      ~on_close:(fun () -> ended := "later" :: !ended)
   in
   let let_go =
     Claims.refused claims
@@ -1277,9 +1338,19 @@ let scripted_session ~sw ~clock ~handed ?persister
   State_units.Session.make ~id:"session-a" ~kb:options.kb client
 
 let saying : Errors_cases.said_item -> Client.said = function
-  | Own { own = code } -> Own { code; message = "the session says " ^ code }
+  | Own { own = code } ->
+      Own
+        {
+          code = Option.get (Error_codes.Session.of_code code);
+          message = "the session says " ^ code;
+        }
   | Transport { transport = code; message } ->
-      Transport_failure { code; status = None; message }
+      Transport_failure
+        {
+          code = Option.get (Error_codes.Transport.of_code code);
+          status = None;
+          message;
+        }
 
 let registry_errors_case (row : Errors_cases.cases_item) () =
   Eio_mock.Backend.run @@ fun () ->
@@ -1301,7 +1372,8 @@ let registry_errors_case (row : Errors_cases.cases_item) () =
   let _release =
     R.errors browser
       ~on_value:(fun (error : Client.session_error) ->
-        registry_said := !registry_said @ [ error.code ])
+        registry_said :=
+          !registry_said @ [ Error_codes.Session.code error.code ])
       ~on_close:ignore
   in
   (match R.activate browser "kb-a" with
@@ -1356,7 +1428,8 @@ let registry_closing (row : Errors_cases.closing_item) () =
   let _release =
     R.errors browser
       ~on_value:(fun (error : Client.session_error) ->
-        registry_said := !registry_said @ [ error.code ])
+        registry_said :=
+          !registry_said @ [ Error_codes.Session.code error.code ])
       ~on_close:(fun () -> ended := true)
   in
   (match R.activate browser "kb-a" with
@@ -1386,25 +1459,30 @@ let registry_construct_failed () =
   Eio_mock.Backend.run @@ fun () ->
   let _, clock = mock_clock () in
   let script = Testing.scripted_sessions () in
-  Testing.queue_session script "kb-a" (fun _ ->
-      Error Error_codes.Transport.unavailable);
+  let unavailable =
+    {
+      Client.code = Error_codes.Session.Construct_failed;
+      message = "The knowledge base is unavailable";
+    }
+  in
+  Testing.queue_session script "kb-a" (fun _ -> Error unavailable);
   let browser = errors_browser ~clock (Testing.factory script) in
   let registry_said = ref [] in
   let _release =
     R.errors browser
       ~on_value:(fun (error : Client.session_error) ->
-        registry_said := !registry_said @ [ error.code ])
+        registry_said :=
+          !registry_said @ [ Error_codes.Session.code error.code ])
       ~on_close:ignore
   in
   (match R.activate browser "kb-a" with
-  | Error (R.Unavailable code) when code = Error_codes.Transport.unavailable ->
-      ()
+  | Error (R.Unavailable refused) when refused = unavailable -> ()
   | _ ->
       Alcotest.fail
         "an activation whose factory failed was not unavailable for its reason");
   Alcotest.(check (list string))
     "said on the registry's errors"
-    [ Error_codes.Session.construct_failed ]
+    [ Error_codes.Session.(code Construct_failed) ]
     !registry_said;
   R.close browser
 
@@ -1416,7 +1494,11 @@ let registry_closed_activation () =
   let browser =
     errors_browser ~clock (fun _ ->
         built := true;
-        Error Error_codes.Session.construct_failed)
+        Error
+          {
+            Client.code = Error_codes.Session.Construct_failed;
+            message = "A session built after the close";
+          })
   in
   R.close browser;
   (match R.activate browser "kb-a" with
@@ -1469,7 +1551,9 @@ let client_errors_kept () =
   done;
   let heard said =
     match (said : Client.said) with
-    | Transport_failure { code = "forbidden"; status = Some 403; message } ->
+    | Transport_failure
+        { code = Error_codes.Transport.Forbidden; status = Some 403; message }
+      ->
         message
     | Transport_failure _ ->
         Alcotest.fail "a refusal was said as other than a lack of permission"
@@ -1534,7 +1618,7 @@ let registry_errors_kept () =
   let say () =
     incr said;
     Testing.say_on session
-      (Own { code = "session.save-refused"; message = refusal !said })
+      (Own { code = Error_codes.Session.Save_refused; message = refusal !said })
   in
   for _ = 1 to kept + 3 do
     say ()
@@ -1602,6 +1686,8 @@ let () =
           Alcotest.test_case "document and diff" `Quick discovery;
           Alcotest.test_case "shared clock" `Quick controlled;
         ] );
+      ( "queries",
+        [ Alcotest.test_case "refused by the bus" `Quick query_refused ] );
       ( "claims",
         [
           Alcotest.test_case "refusals kept for the first reader" `Quick

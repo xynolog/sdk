@@ -304,7 +304,6 @@ reportJobs driver worker = do
                 say driver
                   $ ConformanceDriverLineClaimed
                   $ MkConformanceDriverLineClaimed
-                  $ ConformanceDriverLineClaimedClaimed
                   $ KM.fromList
                     [ "jobId" .= Worker.jobId job,
                       "jobType" .= Worker.jobType job,

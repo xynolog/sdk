@@ -156,7 +156,32 @@ __all__ = [
     "BusSubscribeRequestScopedItem",
     "Cancelled",
     "ClaimOptions",
+    "ClientDiscoveryAbsent",
+    "ClientDiscoveryAbsentReasonsItem",
+    "ClientRefresh",
+    "ClientRefreshQueriesItem",
+    "ClientRefreshQueriesItemAsks",
+    "ClientRefreshQueriesItemAsksPer",
+    "ClientRefreshQueriesItemAsksValue",
+    "ClientRefreshQueriesItemReads",
+    "ClientRefreshQueriesItemReadsPer",
+    "ClientRefreshQueriesItemReadsValue",
+    "ClientRefreshRefreshItem",
+    "ClientRefreshRefreshItemOn",
+    "ClientRefreshRefreshItemOnNames",
+    "ClientRefreshRefreshItemOnReach",
+    "ClientRefreshRefreshItemOnWhen",
+    "ClientRefreshRefreshItemStream",
+    "ClientRefreshRefreshItemStreamReach",
+    "ClientRefreshRefreshItemStreamStream",
     "ClientSecretForm",
+    "ClientTesting",
+    "ClientTestingDelayMs",
+    "ClientTestingDeliveryOps",
+    "ClientTestingFaultActionsItem",
+    "ClientTestingRecordsItem",
+    "ClientTestingScheduleLength",
+    "ClientTestingSlack",
     "CloneResourceWithTokenResponse",
     "CommandError",
     "CommandErrorCode",
@@ -233,6 +258,14 @@ __all__ = [
     "ContextualSummaryResponse",
     "ContextualSummaryResponseContext",
     "ContextualSummaryResponseRelevantFields",
+    "ControlCli",
+    "ControlCliCommandsValue",
+    "ControlCliCommandsValueFlagsValueCliOnly",
+    "ControlCliCommandsValueFlagsValueFields",
+    "ControlCliCommandsValueFlagsValueMethod",
+    "ControlCliCommandsValuePositionalsItem",
+    "ControlCliCommandsValuePositionalsItemCliOnly",
+    "ControlCliCommandsValuePositionalsItemFields",
     "CreateAnnotationRequest",
     "CreateFromTokenOptions",
     "CreateResourceResponse",
@@ -270,6 +303,27 @@ __all__ = [
     "EphemeralEventId",
     "ErrorData",
     "ErrorResponse",
+    "ErrorsCodes",
+    "ErrorsCodesBusRequest",
+    "ErrorsCodesBusRequestCodesItem",
+    "ErrorsCodesBusRequestCodesItemWire",
+    "ErrorsCodesControl",
+    "ErrorsCodesControlCodesItem",
+    "ErrorsCodesJob",
+    "ErrorsCodesJobCodesItem",
+    "ErrorsCodesKbIdentity",
+    "ErrorsCodesKbIdentityCodesItem",
+    "ErrorsCodesSession",
+    "ErrorsCodesSessionCodesItem",
+    "ErrorsCodesSignIn",
+    "ErrorsCodesSignInCodesItem",
+    "ErrorsCodesSpanRefusal",
+    "ErrorsCodesSpanRefusalCodesItem",
+    "ErrorsCodesTransport",
+    "ErrorsCodesTransportCodesItem",
+    "ErrorsCodesTransportCodesItemNoStatus",
+    "ErrorsCodesTransportCodesItemStatus",
+    "ErrorsCodesTransportCodesItemStatusFrom",
     "EventMetadata",
     "Expected",
     "ExtractedText",
@@ -356,6 +410,11 @@ __all__ = [
     "HttpEndpoint",
     "HttpEndpointProtocol",
     "HttpStatus",
+    "IdentifiersKinds",
+    "IdentifiersKindsKindsItem",
+    "IdentifiersKindsKindsItemAcceptsItem",
+    "IdentifiersKindsKindsItemRefusesItem",
+    "IdentifiersKindsOthersItem",
     "IdentityUser",
     "IdentityUseraddParams",
     "IdentityUseraddResult",
@@ -527,6 +586,8 @@ __all__ = [
     "MatchSearchResult",
     "MediaTokenRequest",
     "MediaTokenResponse",
+    "MediaTypesRegistry",
+    "MediaTypesRegistryMediaTypesItem",
     "MemoryGraphConfig",
     "MemoryVectorsConfig",
     "Metadata",
@@ -612,6 +673,17 @@ __all__ = [
     "Runtime",
     "RuntimeState",
     "ScoredResource",
+    "SdkTelemetryTelemetry",
+    "SdkTelemetryTelemetryMetricsItem",
+    "SdkTelemetryTelemetryMetricsItemAttributesItem",
+    "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem",
+    "SdkTelemetryTelemetryMetricsItemInstrument",
+    "SdkTelemetryTelemetryMetricsItemTransport",
+    "SdkTelemetryTelemetrySpansItem",
+    "SdkTelemetryTelemetrySpansItemAttributesItem",
+    "SdkTelemetryTelemetrySpansItemAttributesItemValuesItem",
+    "SdkTelemetryTelemetrySpansItemKind",
+    "SdkTelemetryTelemetrySpansItemTransport",
     "SecretRef",
     "Selector",
     "SemanticMatch",
@@ -666,6 +738,9 @@ __all__ = [
     "SessionEnded",
     "SessionJoinedEvent",
     "SessionLeftEvent",
+    "SessionOauth",
+    "SessionOauthClientsItem",
+    "SessionOauthScopes",
     "SessionState",
     "Setting",
     "SettingAppliesTo",
@@ -683,6 +758,11 @@ __all__ = [
     "SettingsThemeChangedEventTheme",
     "SettingsUnsetParams",
     "SignInOutcome",
+    "SignInStoreOwnerOnly",
+    "SignInStoreOwnerOnlyDirectoryAccessList",
+    "SignInStoreOwnerOnlyDirectoryMode",
+    "SignInStoreOwnerOnlyFileAccessList",
+    "SignInStoreOwnerOnlyFileMode",
     "SignedIn",
     "SmeltRebuildAnchorsCommand",
     "SmeltSettled",
@@ -3074,6 +3154,157 @@ class ClaimOptions(WireModel, frozen=True, extra="forbid"):
     ] = None
 
 
+class ClientDiscoveryAbsentReasonsItem(WireModel, frozen=True, extra="forbid"):
+    reason: Annotated[str, Field(description="The reason, as every SDK spells it.")]
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+
+
+class ClientDiscoveryAbsent(WireModel, frozen=True, extra="forbid"):
+    """
+    client/discovery-absent.json: why a client that read a launcher's discovery document found no launcher.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    reasons: Annotated[list[ClientDiscoveryAbsentReasonsItem], Field(description="Each reason, and what it means.")]
+
+
+type ClientRefreshQueriesItemAsksPer = Annotated[
+    Literal["resource", "annotation", "filters"], Field(description="What one is kept per; absent, the knowledge base has one.")
+]
+
+
+class ClientRefreshQueriesItemAsksValue(WireModel, frozen=True, extra="forbid"):
+    """
+    A reference to the schema of its value.
+    """
+
+    ref: Annotated[
+        str,
+        Field(alias="$ref", description="The $id of the schema of what its cache holds for a key: a component, or a member within one."),
+    ]
+
+
+class ClientRefreshQueriesItemAsks(WireModel, frozen=True, extra="forbid"):
+    """
+    A live query that asks an operation of the registry, by its request's channel.
+    """
+
+    name: Annotated[str, Field(description="A query, by its name.")]
+    per: ClientRefreshQueriesItemAsksPer | None = None
+    asks: Annotated[str, Field(description="The channel's name.")]
+    persisted: Annotated[Literal[True] | None, Field(description="Its answers are kept across a client's lives.")] = None
+    value: ClientRefreshQueriesItemAsksValue
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+
+
+type ClientRefreshQueriesItemReadsPer = Annotated[
+    Literal["resource", "annotation", "filters"], Field(description="What one is kept per; absent, the knowledge base has one.")
+]
+
+
+class ClientRefreshQueriesItemReadsValue(WireModel, frozen=True, extra="forbid"):
+    """
+    A reference to the schema of its value.
+    """
+
+    ref: Annotated[
+        str,
+        Field(alias="$ref", description="The $id of the schema of what its cache holds for a key: a component, or a member within one."),
+    ]
+
+
+class ClientRefreshQueriesItemReads(WireModel, frozen=True, extra="forbid"):
+    """
+    A live query that reads a GET of the gateway's API.
+    """
+
+    name: Annotated[str, Field(description="A query, by its name.")]
+    per: ClientRefreshQueriesItemReadsPer | None = None
+    reads: Annotated[str, Field(description="The GET of the gateway's API it reads.")]
+    persisted: Annotated[Literal[True] | None, Field(description="Its answers are kept across a client's lives.")] = None
+    value: ClientRefreshQueriesItemReadsValue
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+
+
+type ClientRefreshQueriesItem = ClientRefreshQueriesItemAsks | ClientRefreshQueriesItemReads
+
+type ClientRefreshRefreshItemOnWhen = Annotated[
+    Literal["enriched", "unenriched"], Field(description="Which of a channel's two ways of event the row is for.")
+]
+
+type ClientRefreshRefreshItemOnReach = Annotated[
+    Literal["subject", "held"], Field(description="Which keys the row reaches: the event's subject, or every key held.")
+]
+
+
+class ClientRefreshRefreshItemOnNames(WireModel, frozen=True, extra="forbid"):
+    """
+    Where in the event a subject row finds the resource and the annotation it names.
+    """
+
+    resource: Annotated[
+        str | None,
+        Field(description="A way into the event's payload: the names of the members it passes through and of its own, joined by dots."),
+    ] = None
+    annotation: Annotated[
+        str | None,
+        Field(description="A way into the event's payload: the names of the members it passes through and of its own, joined by dots."),
+    ] = None
+
+
+class ClientRefreshRefreshItemOn(WireModel, frozen=True, extra="forbid"):
+    """
+    A row for a channel's events.
+    """
+
+    on: Annotated[str, Field(description="The channel's name.")]
+    when: ClientRefreshRefreshItemOnWhen | None = None
+    reach: ClientRefreshRefreshItemOnReach | None = None
+    names: ClientRefreshRefreshItemOnNames | None = None
+    carries: Annotated[
+        str | None,
+        Field(description="A way into the event's payload: the names of the members it passes through and of its own, joined by dots."),
+    ] = None
+    refetches: Annotated[list[str] | None, Field(description="The queries asked again.")] = None
+    writes: Annotated[list[str] | None, Field(description="The queries whose new value the event carries.")] = None
+    removes: Annotated[list[str] | None, Field(description="The queries whose entity the event says is gone.")] = None
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+
+
+type ClientRefreshRefreshItemStreamStream = Annotated[
+    Literal["reopened", "unreadable"],
+    Field(description="`reopened`, the stream open again after a drop; or `unreadable`, an event that cannot be read."),
+]
+
+type ClientRefreshRefreshItemStreamReach = Annotated[
+    Literal["subject", "held"], Field(description="Which keys the row reaches: the event's subject, or every key held.")
+]
+
+
+class ClientRefreshRefreshItemStream(WireModel, frozen=True, extra="forbid"):
+    """
+    A row for what befalls the stream itself.
+    """
+
+    stream: ClientRefreshRefreshItemStreamStream
+    reach: ClientRefreshRefreshItemStreamReach | None = None
+    refetches: Annotated[list[str] | None, Field(description="The queries asked again.")] = None
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+
+
+type ClientRefreshRefreshItem = ClientRefreshRefreshItemOn | ClientRefreshRefreshItemStream
+
+
+class ClientRefresh(WireModel, frozen=True, extra="forbid"):
+    """
+    client/refresh.json: what a Xynolog client asks again for, and when.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    queries: Annotated[list[ClientRefreshQueriesItem], Field(description="The live queries.")]
+    refresh: Annotated[list[ClientRefreshRefreshItem], Field(description="A row per trigger.")]
+
+
 class ClientSecretForm(WireModel, frozen=True):
     """
     The form a service account that holds a client secret posts to its issuer's token endpoint for a client-credentials grant: its client id and secret in the body (RFC 6749 §2.3.1). An account that holds a key proves itself by the client assertion of client-assertion-cases.json instead.
@@ -3082,6 +3313,57 @@ class ClientSecretForm(WireModel, frozen=True):
     grant_type: Annotated[Literal["client_credentials"], Field(description="The grant, client-assertion-cases.json's grantType.")]
     client_id: Annotated[str, Field(description="The account's client id.")]
     client_secret: Annotated[str, Field(description="The account's client secret.")]
+
+
+class ClientTestingFaultActionsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The fault's type's name.")]
+    kind: Annotated[str, Field(description="The word that names the fault in a request log.")]
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+    holds: Annotated[list[str], Field(description="The whole numbers the fault carries, by name.")]
+
+
+class ClientTestingDelayMs(WireModel, frozen=True, extra="forbid"):
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+    minimum: Annotated[int, Field(description="The fewest milliseconds a drawn delay is.")]
+    maximum: Annotated[int, Field(description="The most milliseconds a drawn delay is.")]
+
+
+class ClientTestingScheduleLength(WireModel, frozen=True, extra="forbid"):
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+    minimum: Annotated[int, Field(description="The fewest faults a drawn schedule is of.")]
+    maximum: Annotated[int, Field(description="The most faults a drawn schedule is of.")]
+
+
+class ClientTestingSlack(WireModel, frozen=True, extra="forbid"):
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+    times: Annotated[int, Field(description="How many times its reckoned bound a case is given.")]
+
+
+class ClientTestingDeliveryOps(WireModel, frozen=True, extra="forbid"):
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+    ops: Annotated[list[str], Field(description="The steps an interleaving is of.")]
+
+
+class ClientTestingRecordsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The record's type's name.")]
+    docs: Annotated[str, Field(description="What it is, in prose.")]
+    members: Annotated[list[str], Field(description="The record's members, named as surface.json names members.")]
+
+
+class ClientTesting(WireModel, frozen=True, extra="forbid"):
+    """
+    client/testing.json: the testing kit every SDK ships.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    fault_actions: Annotated[
+        list[ClientTestingFaultActionsItem], Field(alias="faultActions", description="What a faulty transport does to a request.")
+    ]
+    delay_ms: Annotated[ClientTestingDelayMs, Field(alias="delayMs")]
+    schedule_length: Annotated[ClientTestingScheduleLength, Field(alias="scheduleLength")]
+    slack: ClientTestingSlack
+    delivery_ops: Annotated[ClientTestingDeliveryOps, Field(alias="deliveryOps")]
+    records: Annotated[list[ClientTestingRecordsItem], Field(description="The kit's records.")]
 
 
 class CloneResourceWithTokenResponse(WireModel, frozen=True):
@@ -3849,6 +4131,80 @@ class ContextualSummaryResponse(WireModel, frozen=True):
     context: ContextualSummaryResponseContext
 
 
+class ControlCliCommandsValuePositionalsItemFields(WireModel, frozen=True, extra="forbid"):
+    """
+    An operand that becomes params fields.
+    """
+
+    name: Annotated[str, Field(description="The operand, as its usage writes it.")]
+    fields: Annotated[list[str], Field(description="The params fields it becomes, each `<method>.<field path>`.")]
+
+
+class ControlCliCommandsValuePositionalsItemCliOnly(WireModel, frozen=True, extra="forbid"):
+    """
+    An operand the API has no place for.
+    """
+
+    name: Annotated[str, Field(description="The operand, as its usage writes it.")]
+    cli_only: Annotated[str, Field(alias="cliOnly", description="Why it has no place in the API.")]
+
+
+type ControlCliCommandsValuePositionalsItem = ControlCliCommandsValuePositionalsItemFields | ControlCliCommandsValuePositionalsItemCliOnly
+
+
+class ControlCliCommandsValueFlagsValueFields(WireModel, frozen=True, extra="forbid"):
+    """
+    An option that becomes params fields.
+    """
+
+    fields: Annotated[list[str], Field(description="The params fields it becomes, each `<method>.<field path>`.")]
+    notes: Annotated[str | None, Field(description="What else a reader of the row must know.")] = None
+
+
+class ControlCliCommandsValueFlagsValueMethod(WireModel, frozen=True, extra="forbid"):
+    """
+    An option that selects a method.
+    """
+
+    method: Annotated[str, Field(description="The method's name.")]
+
+
+class ControlCliCommandsValueFlagsValueCliOnly(WireModel, frozen=True, extra="forbid"):
+    """
+    An option the API has no place for.
+    """
+
+    cli_only: Annotated[str, Field(alias="cliOnly", description="Why it has no place in the API.")]
+
+
+class ControlCliCommandsValue(WireModel, frozen=True, extra="forbid"):
+    """
+    A command.
+    """
+
+    parser: Annotated[str, Field(description="The Go function in cli/internal/launcher whose switch reads the command's options.")]
+    method: Annotated[str, Field(description="The method's name.")]
+    positionals: Annotated[
+        list[ControlCliCommandsValuePositionalsItem] | None, Field(description="The command's operands, which no switch reads by name.")
+    ] = None
+    flags: Annotated[
+        dict[
+            str,
+            ControlCliCommandsValueFlagsValueFields | ControlCliCommandsValueFlagsValueMethod | ControlCliCommandsValueFlagsValueCliOnly,
+        ],
+        Field(description="Each option, by its flag."),
+    ]
+
+
+class ControlCli(WireModel, frozen=True, extra="forbid"):
+    """
+    control/cli.json: every option of the launcher commands the control API covers, and what it is in the API.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    commands: Annotated[dict[str, ControlCliCommandsValue], Field(description="Each command, by its name.")]
+
+
 class CreateAnnotationRequest(WireModel, frozen=True):
     motivation: Motivation
     target: AnnotationTarget
@@ -4355,6 +4711,177 @@ class ErrorResponse(WireModel, frozen=True):
     code: Annotated[str | None, Field(description="A machine-readable class, when the route defines one.")] = None
     hint: Annotated[str | None, Field(description="What the caller can do about it, when there is something to say.")] = None
     details: JsonValue | None = None
+
+
+type ErrorsCodesBusRequestCodesItemWire = Annotated[
+    Literal["peer-unavailable", "not-found", "unauthorized", "none-pending"],
+    Field(
+        description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
+    ),
+]
+
+
+class ErrorsCodesBusRequestCodesItem(WireModel, frozen=True, extra="forbid"):
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    wire: ErrorsCodesBusRequestCodesItemWire | None = None
+
+
+class ErrorsCodesBusRequest(WireModel, frozen=True, extra="forbid"):
+    """
+    Why a bus request did not resolve.
+    """
+
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    unrecognized_failure: Annotated[str, Field(alias="unrecognizedFailure", description="The code, as every SDK names it.")]
+    codes: Annotated[
+        list[ErrorsCodesBusRequestCodesItem],
+        Field(description="Each code, and the wire's `CommandError.code` it restates, where it restates one."),
+    ]
+
+
+class ErrorsCodesTransportCodesItemStatus(WireModel, frozen=True, extra="forbid"):
+    """
+    A code read from one HTTP status.
+    """
+
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    status: HttpStatus
+
+
+class ErrorsCodesTransportCodesItemStatusFrom(WireModel, frozen=True, extra="forbid"):
+    """
+    A code read from every HTTP status at or above one.
+    """
+
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    status_from: Annotated[HttpStatus, Field(alias="statusFrom")]
+
+
+class ErrorsCodesTransportCodesItemNoStatus(WireModel, frozen=True, extra="forbid"):
+    """
+    A code no HTTP status is read as.
+    """
+
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+
+
+type ErrorsCodesTransportCodesItem = (
+    ErrorsCodesTransportCodesItemStatus | ErrorsCodesTransportCodesItemStatusFrom | ErrorsCodesTransportCodesItemNoStatus
+)
+
+
+class ErrorsCodesTransport(WireModel, frozen=True, extra="forbid"):
+    """
+    The transport-neutral failure vocabulary.
+    """
+
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    unclassified: Annotated[str, Field(description="The code, as every SDK names it.")]
+    codes: Annotated[list[ErrorsCodesTransportCodesItem], Field(description="Each code, and the HTTP statuses it is read from.")]
+
+
+class ErrorsCodesJobCodesItem(WireModel, frozen=True, extra="forbid"):
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+
+
+class ErrorsCodesJob(WireModel, frozen=True, extra="forbid"):
+    """
+    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    """
+
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    codes: list[ErrorsCodesJobCodesItem]
+
+
+class ErrorsCodesSessionCodesItem(WireModel, frozen=True, extra="forbid"):
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+
+
+class ErrorsCodesSession(WireModel, frozen=True, extra="forbid"):
+    """
+    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    """
+
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    codes: list[ErrorsCodesSessionCodesItem]
+
+
+class ErrorsCodesSignInCodesItem(WireModel, frozen=True, extra="forbid"):
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+
+
+class ErrorsCodesSignIn(WireModel, frozen=True, extra="forbid"):
+    """
+    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    """
+
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    codes: list[ErrorsCodesSignInCodesItem]
+
+
+class ErrorsCodesKbIdentityCodesItem(WireModel, frozen=True, extra="forbid"):
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+
+
+class ErrorsCodesKbIdentity(WireModel, frozen=True, extra="forbid"):
+    """
+    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    """
+
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    codes: list[ErrorsCodesKbIdentityCodesItem]
+
+
+class ErrorsCodesSpanRefusalCodesItem(WireModel, frozen=True, extra="forbid"):
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+
+
+class ErrorsCodesSpanRefusal(WireModel, frozen=True, extra="forbid"):
+    """
+    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    """
+
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    codes: list[ErrorsCodesSpanRefusalCodesItem]
+
+
+class ErrorsCodesControlCodesItem(WireModel, frozen=True, extra="forbid"):
+    code: Annotated[str, Field(description="The code, as every SDK names it.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+
+
+class ErrorsCodesControl(WireModel, frozen=True, extra="forbid"):
+    """
+    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    """
+
+    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
+    codes: list[ErrorsCodesControlCodesItem]
+
+
+class ErrorsCodes(WireModel, frozen=True, extra="forbid"):
+    """
+    errors/codes.json: the error codes a Xynolog client reports, in one vocabulary for each kind of failure.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    bus_request: Annotated[ErrorsCodesBusRequest, Field(alias="busRequest")]
+    transport: ErrorsCodesTransport
+    job: ErrorsCodesJob
+    session: ErrorsCodesSession
+    sign_in: Annotated[ErrorsCodesSignIn, Field(alias="signIn")]
+    kb_identity: Annotated[ErrorsCodesKbIdentity, Field(alias="kbIdentity")]
+    span_refusal: Annotated[ErrorsCodesSpanRefusal, Field(alias="spanRefusal")]
+    control: ErrorsCodesControl
 
 
 class Expected(WireModel, frozen=True, extra="forbid"):
@@ -5409,6 +5936,38 @@ class HostPort(WireModel, frozen=True, extra="forbid"):
 
     host: Annotated[str, Field(description="A host name or address the stack's containers can reach.")]
     port: Annotated[int, Field(description="The port it listens on.")]
+
+
+class IdentifiersKindsKindsItemAcceptsItem(WireModel, frozen=True, extra="forbid"):
+    id: Annotated[str, Field(description="A string the kind's rule is asked about.")]
+    why: Annotated[str, Field(description="What the case shows, in prose.")]
+
+
+class IdentifiersKindsKindsItemRefusesItem(WireModel, frozen=True, extra="forbid"):
+    id: Annotated[str, Field(description="A string the kind's rule is asked about.")]
+    why: Annotated[str, Field(description="What the case shows, in prose.")]
+
+
+class IdentifiersKindsKindsItem(WireModel, frozen=True, extra="forbid"):
+    schema_: Annotated[str, Field(alias="schema", description="The component under components/schemas that states the kind, by name.")]
+    properties: Annotated[list[str], Field(description="The property names that always carry the kind.")]
+    accepts: Annotated[list[IdentifiersKindsKindsItemAcceptsItem], Field(description="Strings the kind's rule takes.")]
+    refuses: Annotated[list[IdentifiersKindsKindsItemRefusesItem], Field(description="Strings the kind's rule does not take.")]
+
+
+class IdentifiersKindsOthersItem(WireModel, frozen=True, extra="forbid"):
+    property: Annotated[str, Field(description="A property named like an id.")]
+    docs: Annotated[str, Field(description="What it carries instead.")]
+
+
+class IdentifiersKinds(WireModel, frozen=True, extra="forbid"):
+    """
+    identifiers/kinds.json: the kinds of id the protocol names, the properties that carry each, and the properties named like an id that carry something else.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    kinds: list[IdentifiersKindsKindsItem]
+    others: list[IdentifiersKindsOthersItem]
 
 
 class IdentityUser(WireModel, frozen=True, extra="forbid"):
@@ -7797,6 +8356,36 @@ class MediaTokenResponse(WireModel, frozen=True):
     token: Annotated[str, Field(description="Short-lived media token for use as ?token= query parameter on resource URLs")]
 
 
+class MediaTypesRegistryMediaTypesItem(WireModel, frozen=True, extra="forbid"):
+    media_type: Annotated[SupportedMediaType, Field(alias="mediaType")]
+    extension: Annotated[str, Field(description="A file extension, with its dot.")]
+    label: Annotated[str, Field(description="The name a person reads.")]
+    render: Annotated[str, Field(description="The viewer a reader mounts, one of `render`.")]
+    anchoring: Annotated[str, Field(description="The annotation model, one of `anchoring`.")]
+    text_source: Annotated[str, Field(alias="textSource", description="Where its text comes from, one of `textSource`.")]
+    authorable: bool
+    uploadable: bool
+    generatable: bool
+
+
+class MediaTypesRegistry(WireModel, frozen=True, extra="forbid"):
+    """
+    media-types/registry.json: the media types a knowledge base admits, and what the system can do with each.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    render: Annotated[list[str], Field(description="The viewers a reader mounts.")]
+    anchoring: Annotated[list[str], Field(description="The annotation models.")]
+    text_source: Annotated[list[str], Field(alias="textSource", description="Where a type's text comes from.")]
+    extension_aliases: Annotated[
+        dict[str, str],
+        Field(alias="extensionAliases", description="Each extension another stands for, by the extension that stands for it."),
+    ]
+    media_types: Annotated[
+        list[MediaTypesRegistryMediaTypesItem], Field(alias="mediaTypes", description="One row for each member of SupportedMediaType.")
+    ]
+
+
 class OpenResource(WireModel, frozen=True):
     """
     A resource open in a knowledge base: which resource, the name it is shown by, when it was opened and its place among the others open there. A registry shows them by their places, and two in one place by when each was opened, first first.
@@ -8595,6 +9184,86 @@ type RunService = Annotated[
     ),
 ]
 
+type SdkTelemetryTelemetrySpansItemTransport = Annotated[
+    Literal["bus", "content"],
+    Field(description="The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads."),
+]
+
+type SdkTelemetryTelemetrySpansItemKind = Annotated[
+    Literal["client", "consumer", "internal", "producer", "server"], Field(description="The span's kind, in OTLP's words.")
+]
+
+type SdkTelemetryTelemetrySpansItemAttributesItemValuesItem = str | bool
+
+
+class SdkTelemetryTelemetrySpansItemAttributesItem(WireModel, frozen=True, extra="forbid"):
+    """
+    An attribute a row carries.
+    """
+
+    key: Annotated[str, Field(description="The attribute's key.")]
+    only: Annotated[
+        str | None, Field(description="When alone the attribute is carried: a row's attribute without it is carried every time.")
+    ] = None
+    values: Annotated[
+        list[SdkTelemetryTelemetrySpansItemAttributesItemValuesItem] | None,
+        Field(description="The only values it carries, each of the type it is carried as: a string or a boolean."),
+    ] = None
+
+
+class SdkTelemetryTelemetrySpansItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.")]
+    transport: SdkTelemetryTelemetrySpansItemTransport
+    kind: SdkTelemetryTelemetrySpansItemKind
+    meaning: Annotated[str, Field(description="What the row says.")]
+    attributes: Annotated[list[SdkTelemetryTelemetrySpansItemAttributesItem], Field(description="The attributes the span carries.")]
+
+
+type SdkTelemetryTelemetryMetricsItemTransport = Annotated[
+    Literal["bus", "content"],
+    Field(description="The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads."),
+]
+
+type SdkTelemetryTelemetryMetricsItemInstrument = Annotated[
+    Literal["counter", "up-down counter", "gauge", "histogram"], Field(description="The metric's instrument.")
+]
+
+type SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem = str | bool
+
+
+class SdkTelemetryTelemetryMetricsItemAttributesItem(WireModel, frozen=True, extra="forbid"):
+    """
+    An attribute a row carries.
+    """
+
+    key: Annotated[str, Field(description="The attribute's key.")]
+    only: Annotated[
+        str | None, Field(description="When alone the attribute is carried: a row's attribute without it is carried every time.")
+    ] = None
+    values: Annotated[
+        list[SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem] | None,
+        Field(description="The only values it carries, each of the type it is carried as: a string or a boolean."),
+    ] = None
+
+
+class SdkTelemetryTelemetryMetricsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.")]
+    transport: SdkTelemetryTelemetryMetricsItemTransport
+    instrument: SdkTelemetryTelemetryMetricsItemInstrument
+    meaning: Annotated[str, Field(description="What the row says.")]
+    attributes: Annotated[list[SdkTelemetryTelemetryMetricsItemAttributesItem], Field(description="The attributes the span carries.")]
+
+
+class SdkTelemetryTelemetry(WireModel, frozen=True, extra="forbid"):
+    """
+    sdk-telemetry/telemetry.json: the telemetry a Xynolog SDK's transports export over OTLP: its spans and metrics, the transport each comes from, and the attributes each carries.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    spans: list[SdkTelemetryTelemetrySpansItem]
+    metrics: list[SdkTelemetryTelemetryMetricsItem]
+
+
 type ServiceEnvironmentBootRefusalsServicesItem = Annotated[
     Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
     Field(description="A Xynolog service, by its name."),
@@ -9065,6 +9734,31 @@ class SessionLeftEvent(WireModel, frozen=True):
     connection_id: Annotated[str, Field(alias="connectionId", description="The connectionId announced by the matching session:joined.")]
 
 
+class SessionOauthClientsItem(WireModel, frozen=True, extra="forbid"):
+    name: Annotated[str, Field(description="What the client is named by in every SDK.")]
+    id: Annotated[str, Field(description="The client id the realm registers.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose.")]
+
+
+class SessionOauthScopes(WireModel, frozen=True, extra="forbid"):
+    """
+    What every sign-in asks for.
+    """
+
+    value: Annotated[str, Field(description="The scopes, separated by a space.")]
+    docs: Annotated[str, Field(description="Its documentation, in prose.")]
+
+
+class SessionOauth(WireModel, frozen=True, extra="forbid"):
+    """
+    session/oauth.json: the clients a Xynolog client signs in to the issuer as, and the scope every sign-in asks for.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    clients: Annotated[list[SessionOauthClientsItem], Field(description="The clients the realm registers.")]
+    scopes: SessionOauthScopes
+
+
 type SettingAppliesTo = Annotated[
     Literal["machine", "knowledge-base"], Field(description="What it applies to: every knowledge base on this machine, or one.")
 ]
@@ -9228,6 +9922,54 @@ class SignInOutcome(WireModel, frozen=True, extra="forbid"):
     expected: Annotated[
         Expected | None, Field(description="What the person believed they were signing in to. Absent when they named nothing.")
     ] = None
+
+
+class SignInStoreOwnerOnlyDirectoryMode(WireModel, frozen=True, extra="forbid"):
+    """
+    A mode, on a system that has modes.
+    """
+
+    value: Annotated[str, Field(description="The mode, in octal.")]
+    docs: str
+
+
+class SignInStoreOwnerOnlyFileMode(WireModel, frozen=True, extra="forbid"):
+    """
+    A mode, on a system that has modes.
+    """
+
+    value: Annotated[str, Field(description="The mode, in octal.")]
+    docs: str
+
+
+class SignInStoreOwnerOnlyDirectoryAccessList(WireModel, frozen=True, extra="forbid"):
+    """
+    An access list, on Windows.
+    """
+
+    value: Annotated[str, Field(description="The access list in SDDL, with `{owner}` where the owner's SID goes.")]
+    docs: str
+
+
+class SignInStoreOwnerOnlyFileAccessList(WireModel, frozen=True, extra="forbid"):
+    """
+    An access list, on Windows.
+    """
+
+    value: Annotated[str, Field(description="The access list in SDDL, with `{owner}` where the owner's SID goes.")]
+    docs: str
+
+
+class SignInStoreOwnerOnly(WireModel, frozen=True, extra="forbid"):
+    """
+    sign-in-store/owner-only.json: how a writer keeps a directory and a file to its owner.
+    """
+
+    comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
+    directory_mode: Annotated[SignInStoreOwnerOnlyDirectoryMode, Field(alias="directoryMode")]
+    file_mode: Annotated[SignInStoreOwnerOnlyFileMode, Field(alias="fileMode")]
+    directory_access_list: Annotated[SignInStoreOwnerOnlyDirectoryAccessList, Field(alias="directoryAccessList")]
+    file_access_list: Annotated[SignInStoreOwnerOnlyFileAccessList, Field(alias="fileAccessList")]
 
 
 class StoredSession(WireModel, frozen=True):

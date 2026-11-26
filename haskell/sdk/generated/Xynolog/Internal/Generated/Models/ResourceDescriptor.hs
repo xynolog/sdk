@@ -4,7 +4,6 @@
 
 module Xynolog.Internal.Generated.Models.ResourceDescriptor (ResourceDescriptor (..), ResourceDescriptorContext (..), ResourceDescriptorContextItem (..), ResourceDescriptorContextItemObject (..), ResourceDescriptorContextObject (..), ResourceDescriptorIdentifier (..), ResourceDescriptorIdentifierObject (..), ResourceDescriptorRepresentations (..), ResourceDescriptorWasDerivedFrom (..)) where
 
-import Control.Applicative ((<|>))
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
@@ -53,7 +52,7 @@ instance ToJSON ResourceDescriptor where toJSON value = Object (KM.fromList (con
 
 data ResourceDescriptorContext = ResourceDescriptorContextText Text | ResourceDescriptorContextObject ResourceDescriptorContextObject | ResourceDescriptorContextList [ResourceDescriptorContextItem] deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorContext where parseJSON = checked "ResourceDescriptorContext" $ \value -> (ResourceDescriptorContextText <$> parseJSON value) <|> (ResourceDescriptorContextObject <$> parseJSON value) <|> (ResourceDescriptorContextList <$> parseJSON value)
+instance FromJSON ResourceDescriptorContext where parseJSON = checked "ResourceDescriptorContext" $ \value -> readMember "ResourceDescriptorContext" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorContextText <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorContextObject <$> parseJSON value), ([Signature {signatureKind = ListKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorContextList <$> parseJSON value)] value
 
 instance ToJSON ResourceDescriptorContext where
   toJSON (ResourceDescriptorContextText value) = toJSON value
@@ -62,7 +61,7 @@ instance ToJSON ResourceDescriptorContext where
 
 data ResourceDescriptorContextItem = ResourceDescriptorContextItemText Text | ResourceDescriptorContextItemObject ResourceDescriptorContextItemObject deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorContextItem where parseJSON = checked "ResourceDescriptorContextItem" $ \value -> (ResourceDescriptorContextItemText <$> parseJSON value) <|> (ResourceDescriptorContextItemObject <$> parseJSON value)
+instance FromJSON ResourceDescriptorContextItem where parseJSON = checked "ResourceDescriptorContextItem" $ \value -> readMember "ResourceDescriptorContextItem" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorContextItemText <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorContextItemObject <$> parseJSON value)] value
 
 instance ToJSON ResourceDescriptorContextItem where
   toJSON (ResourceDescriptorContextItemText value) = toJSON value
@@ -88,7 +87,7 @@ instance ToJSON ResourceDescriptorContextObject where toJSON value = Object (KM.
 
 data ResourceDescriptorIdentifier = ResourceDescriptorIdentifierText Text | ResourceDescriptorIdentifierList [Text] | ResourceDescriptorIdentifierObject ResourceDescriptorIdentifierObject deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorIdentifier where parseJSON = checked "ResourceDescriptorIdentifier" $ \value -> (ResourceDescriptorIdentifierText <$> parseJSON value) <|> (ResourceDescriptorIdentifierList <$> parseJSON value) <|> (ResourceDescriptorIdentifierObject <$> parseJSON value)
+instance FromJSON ResourceDescriptorIdentifier where parseJSON = checked "ResourceDescriptorIdentifier" $ \value -> readMember "ResourceDescriptorIdentifier" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorIdentifierText <$> parseJSON value), ([Signature {signatureKind = ListKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorIdentifierList <$> parseJSON value), ([Signature {signatureKind = ObjectKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorIdentifierObject <$> parseJSON value)] value
 
 instance ToJSON ResourceDescriptorIdentifier where
   toJSON (ResourceDescriptorIdentifierText value) = toJSON value
@@ -109,7 +108,7 @@ instance ToJSON ResourceDescriptorIdentifierObject where toJSON value = Object (
 
 data ResourceDescriptorRepresentations = ResourceDescriptorRepresentationsRepresentation Representation | ResourceDescriptorRepresentationsList [Representation] deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorRepresentations where parseJSON = checked "ResourceDescriptorRepresentations" $ \value -> (ResourceDescriptorRepresentationsRepresentation <$> parseJSON value) <|> (ResourceDescriptorRepresentationsList <$> parseJSON value)
+instance FromJSON ResourceDescriptorRepresentations where parseJSON = checked "ResourceDescriptorRepresentations" $ \value -> readMember "ResourceDescriptorRepresentations" [([Signature {signatureKind = ObjectKind, signatureRequired = ["mediaType"], signatureAllowed = Nothing, signatureFixed = [("rel", [String "original", String "thumbnail", String "preview", String "optimized", String "derived", String "other"])], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorRepresentationsRepresentation <$> parseJSON value), ([Signature {signatureKind = ListKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorRepresentationsList <$> parseJSON value)] value
 
 instance ToJSON ResourceDescriptorRepresentations where
   toJSON (ResourceDescriptorRepresentationsRepresentation value) = toJSON value
@@ -117,7 +116,7 @@ instance ToJSON ResourceDescriptorRepresentations where
 
 data ResourceDescriptorWasDerivedFrom = ResourceDescriptorWasDerivedFromResourceId ResourceId | ResourceDescriptorWasDerivedFromList [ResourceId] deriving (Eq, Show)
 
-instance FromJSON ResourceDescriptorWasDerivedFrom where parseJSON = checked "ResourceDescriptorWasDerivedFrom" $ \value -> (ResourceDescriptorWasDerivedFromResourceId <$> parseJSON value) <|> (ResourceDescriptorWasDerivedFromList <$> parseJSON value)
+instance FromJSON ResourceDescriptorWasDerivedFrom where parseJSON = checked "ResourceDescriptorWasDerivedFrom" $ \value -> readMember "ResourceDescriptorWasDerivedFrom" [([Signature {signatureKind = TextKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Just "^[A-Za-z0-9_-]{1,128}$", signatureValues = Nothing}], ResourceDescriptorWasDerivedFromResourceId <$> parseJSON value), ([Signature {signatureKind = ListKind, signatureRequired = [], signatureAllowed = Nothing, signatureFixed = [], signaturePattern = Nothing, signatureValues = Nothing}], ResourceDescriptorWasDerivedFromList <$> parseJSON value)] value
 
 instance ToJSON ResourceDescriptorWasDerivedFrom where
   toJSON (ResourceDescriptorWasDerivedFromResourceId value) = toJSON value

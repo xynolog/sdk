@@ -17,7 +17,7 @@ let schema json =
   | Error e -> Alcotest.fail (Decode.error_to_string e)
 
 let generated definitions =
-  M.generate ~banner:[] ~ids ~identifiers:[]
+  M.generate ~banner:[] ~ids ~identifiers:[] ~keys:[]
     (List.map (fun (name, json) -> (name, schema json)) definitions)
 
 let written definitions =
