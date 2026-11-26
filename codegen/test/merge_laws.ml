@@ -89,6 +89,8 @@ let part : Schema.schema Gen.t =
   let* one_of = stated [ [ text ]; [ long; text ] ] in
   let* not_ = stated [ text; long ] in
   let* defs = stated [ [ ("D", text) ]; [ ("D", long) ] ] in
+  let* type_parameters = stated [ [ "V" ]; [ "K"; "V" ] ] in
+  let* type_parameter = stated [ "V"; "K" ] in
   let+ discriminator =
     stated
       [
@@ -132,6 +134,8 @@ let part : Schema.schema Gen.t =
     not_;
     defs;
     discriminator;
+    type_parameters;
+    type_parameter;
   }
 
 (* [later] without each keyword the merge takes from the later part where
@@ -175,6 +179,8 @@ let undisputed (earlier : Schema.schema)
        not_;
        defs;
        discriminator;
+       type_parameters;
+       type_parameter;
      } :
       Schema.schema) : Schema.schema =
   let disputed theirs ours =
@@ -227,6 +233,8 @@ let undisputed (earlier : Schema.schema)
     not_ = disputed earlier.not_ not_;
     defs = disputed earlier.defs defs;
     discriminator = disputed earlier.discriminator discriminator;
+    type_parameters = disputed earlier.type_parameters type_parameters;
+    type_parameter = disputed earlier.type_parameter type_parameter;
   }
 
 (* What a schema requires of a value: an allOf that states nothing else is

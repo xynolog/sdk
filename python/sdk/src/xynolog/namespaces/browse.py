@@ -8,7 +8,6 @@ wire.
 
 import asyncio
 from collections.abc import AsyncIterator, Callable, Hashable
-from dataclasses import dataclass
 from typing import Final, Self, final, override
 
 from xynolog.cache import Cache, CacheState, Ready
@@ -16,12 +15,13 @@ from xynolog.cached import Cached, Keyed, Source, itself, shown
 from xynolog.channels import BROWSE_CLICK, BROWSE_RESOURCE_OPEN, BROWSE_RESOURCE_VIEWED
 from xynolog.errors import XynologError
 from xynolog.identifiers import AnnotationId, ResourceId
+from xynolog.model import stated
 from xynolog.namespaces.links import Links
 from xynolog.namespaces.live import LIMITS_HOLDERS, Live
 from xynolog.operations import BROWSE_ANNOTATION_HISTORY_REQUESTED, BROWSE_DIRECTORY_REQUESTED, BROWSE_KB_REQUESTED
 from xynolog.resources import decode_representation
 from xynolog.stored import WHOLE_KEY
-from xynolog.transport import Content, ContentStream, ContentTransport, ResourceHold
+from xynolog.transport import ContentStream, ContentTransport, ResourceHold
 from xynolog.types import (
     AnchoredTextAnswer,
     AnchorRect,
@@ -38,36 +38,25 @@ from xynolog.types import (
     BrowseResourceViewedEvent,
     EngineEntry,
     EngineLimits,
+    EnginesWithLimits,
+    EngineWithLimits,
     GetAnnotationHistoryResponse,
     GetAnnotationsResponse,
     GetResourceResponse,
-    InferenceLimits,
     KbDescription,
     ListResourcesResponse,
     ResourceDescriptor,
+    ResourceRepresentation,
     TagSchema,
 )
 
-__all__ = ["BrowseNamespace", "EngineWithLimits"]
+__all__ = ["BrowseNamespace"]
 
 
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class EngineWithLimits:
-    """One of the knowledge base's engines.
-
-    Its entry, and the engine's limits when the service holding its
-    provider's credentials reported them.
-    """
-
-    entry: EngineEntry
-    limits: InferenceLimits | None
-
-
-def _joined(engines: list[EngineEntry], reported: list[EngineLimits]) -> list[EngineWithLimits]:
+def _joined(engines: list[EngineEntry], reported: list[EngineLimits]) -> EnginesWithLimits:
     """The engines with each reported engine's limits on its entries."""
     by_engine = {each.engine: each.limits for each in reversed(reported)}
-    return [EngineWithLimits(entry=entry, limits=by_engine.get(entry.engine)) for entry in engines]
+    return [stated(EngineWithLimits(engine=entry.engine, jobs=entry.jobs, limits=by_engine.get(entry.engine))) for entry in engines]
 
 
 def _listed(answer: GetAnnotationsResponse) -> list[Annotation]:
@@ -95,13 +84,13 @@ class _Joined:
         self._reports: Final = reports
         self._entries: CacheState[list[EngineEntry]] | None = None
         self._reported: Final[list[list[EngineLimits]]] = [[] for _ in reports]
-        self._shown: CacheState[list[EngineWithLimits]] | None = None
+        self._shown: CacheState[EnginesWithLimits] | None = None
         """The state last given: a report that changes nothing a watcher is shown is not a state."""
 
     def __aiter__(self) -> Self:
         return self
 
-    async def __anext__(self) -> CacheState[list[EngineWithLimits]]:
+    async def __anext__(self) -> CacheState[EnginesWithLimits]:
         while True:
             engines = asyncio.ensure_future(_next(self._engines))
             reports = [asyncio.ensure_future(_next(report)) for report in self._reports]
@@ -133,19 +122,19 @@ class _Joined:
                     self._shown = joined
                     return joined
 
-    def _with_limits(self, entries: list[EngineEntry]) -> list[EngineWithLimits]:
+    def _with_limits(self, entries: list[EngineEntry]) -> EnginesWithLimits:
         return _joined(entries, [each for report in self._reported for each in report])
 
 
 @final
-class _EnginesWithLimits(Source[list[EngineWithLimits]]):
+class _EnginesWithLimits(Source[EnginesWithLimits]):
     """The engines with each key holder's limits joined on."""
 
     def __init__(self, live: Live) -> None:
         self._live: Final = live
 
     @override
-    async def fresh(self) -> list[EngineWithLimits]:
+    async def fresh(self) -> EnginesWithLimits:
         try:
             async with asyncio.TaskGroup() as asking:
                 # The engines are asked for first; each key holder's limits after them.
@@ -157,7 +146,7 @@ class _EnginesWithLimits(Source[list[EngineWithLimits]]):
         return _joined(engines.result(), [each for report in reports for each in report.result()])
 
     @override
-    def watch(self) -> AsyncIterator[CacheState[list[EngineWithLimits]]]:
+    def watch(self) -> AsyncIterator[CacheState[EnginesWithLimits]]:
         engines = self._live.engines.observe(WHOLE_KEY)
         return _Joined(engines, [self._live.limits.observe(holder) for holder in LIMITS_HOLDERS])
 
@@ -220,7 +209,7 @@ class BrowseNamespace:
         """The knowledge base's tag schemas."""
         return self._live.query(Keyed(self._live.tag_schemas, WHOLE_KEY, itself))
 
-    def engines(self) -> Cached[list[EngineWithLimits]]:
+    def engines(self) -> Cached[EnginesWithLimits]:
         """The knowledge base's engines.
 
         The engines its Inference document names, asked for first, with each
@@ -254,7 +243,7 @@ class BrowseNamespace:
         """A resource's anchored text: the text of its content with where each run is on a page, a stored decline, or why there is none."""
         return await self._content.get_anchored_text(resource_id)
 
-    async def resource_representation(self, resource_id: ResourceId) -> Content:
+    async def resource_representation(self, resource_id: ResourceId) -> ResourceRepresentation:
         """A resource's bytes, unchanged, with their media type."""
         return await self._content.get_binary(resource_id)
 

@@ -8,7 +8,7 @@ val resource_content :
 val resource_representation :
   Client_core.t ->
   Identifiers.Resource_id.t ->
-  (string * string, Client_core.error) result
+  (Records.Resource_representation.t, Client_core.error) result
 
 val resource_representation_stream :
   Client_core.t ->

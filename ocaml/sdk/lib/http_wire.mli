@@ -83,8 +83,7 @@ val with_content :
 
 val put :
   t ->
-  fields:(string * string) list ->
-  bytes:string ->
+  Records.Put_binary_request.t ->
   on_progress:(Records.Upload_progress.t -> unit) ->
   string
 

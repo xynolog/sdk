@@ -135,7 +135,11 @@ let rec named state name =
   let d = state.find name in
   match d.form with
   | T.Identifier _ -> C.T ("global::Xynolog.Identifiers." ^ name)
-  (* C# has no alias a library exports: a map of its own is the map. *)
+  (* C# has no alias a library exports: a map or a list of its own is the
+     map or the list. *)
+  | T.Alias (T.List (Some items)) ->
+      generic "IReadOnlyList"
+        [ type_of state name "Item" (items, items_of (validated state name)) ]
   | T.Map { key; value } ->
       generic "IReadOnlyDictionary"
         [

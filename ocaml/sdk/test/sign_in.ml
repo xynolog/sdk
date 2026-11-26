@@ -135,6 +135,20 @@ let store () =
         | _ -> failwith "the poll issued no tokens"
       in
       save "first";
+      let refused error =
+        O.poll_device
+          (fun _ -> (400, {|{"error":"|} ^ error ^ {|"}|}))
+          issuer device
+      in
+      assert (
+        refused "access_denied"
+        = Error { O.code = Error_codes.Sign_in.Denied; status = Some 400 });
+      assert (
+        refused "expired_token"
+        = Error { O.code = Error_codes.Sign_in.Expired; status = Some 400 });
+      assert (
+        refused "invalid_grant"
+        = Error { O.code = Error_codes.Sign_in.Exchange; status = Some 400 });
       assert ((Unix.stat path).st_perm = 0o600);
       assert (
         (Unix.stat (Filename.concat directory "tokens.lock")).st_perm = 0o600);

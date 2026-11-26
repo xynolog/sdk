@@ -362,12 +362,14 @@ let run_case ~fixture (row : Units.cases_item) =
                        stated.Records.Gather_annotation_options.context_window))
                 ?include_source_context:
                   (Option.bind options (fun stated ->
-                       stated.Records.Gather_annotation_options
-                         .include_source_context))
+                       stated
+                         .Records.Gather_annotation_options
+                          .include_source_context))
                 ?include_target_context:
                   (Option.bind options (fun stated ->
-                       stated.Records.Gather_annotation_options
-                         .include_target_context))
+                       stated
+                         .Records.Gather_annotation_options
+                          .include_target_context))
                 (id (field "annotationId" args))
           | "gatherResource" ->
               G.gather_resource unit (resource "resourceId" args)

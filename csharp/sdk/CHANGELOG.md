@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A type for ten of Protocol's tables that no service keeps, each typed by
+  the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+  `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
+  `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
+  `SignInStoreOwnerOnly`.
 - `Xynolog.Control`: the launcher's control API. `ControlMethods` holds each
   method as a `ControlMethod<TParams, TResult>` and each notification as a
   `ControlNotification<TParams>`, typed by the models of what it carries, and
@@ -43,6 +48,29 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- An upload is a `PutBinaryRequest` (`Xynolog.Types`), the type of
+  Protocol's `client/types/PutBinaryRequest.json`, where it was the
+  multipart body's `ResourceUpload`: `Yield.Resource` and
+  `HttpContentTransport.PutBinaryAsync` take one. Its members are as a
+  caller holds them, where `ResourceUpload`'s are the form's text:
+  `EntityTypes` is a list of names, `Generator` a `OneOrMoreAgents`, and
+  `IsDraft` and `ArchiveOriginal` are `bool?`.
+- A resource's bytes, read whole, are a `ResourceRepresentation`
+  (`Xynolog.Types`), the type of Protocol's
+  `client/types/ResourceRepresentation.json`, where they were
+  `Xynolog.Http.BinaryContent`: `Browse.ResourceRepresentationAsync` and
+  `HttpContentTransport.GetBinaryAsync` answer one, and its bytes are its
+  `Data`, where they were `Bytes`.
+- `BrowseNamespace.Engines()` is a
+  `Cached<IReadOnlyList<Xynolog.Types.EngineWithLimits>>`, the type of
+  Protocol's `client/types/EnginesWithLimits.json`, where it was of
+  `Xynolog.EngineWithLimits`: an engine's `Engine` and `Jobs` are its own,
+  where they were its `Entry`'s.
+- The SDK reads the refresh table, the media types, the OAuth clients, the
+  sign-in store's owner-only permissions and its telemetry as their
+  generated types (`ClientRefresh`, `MediaTypesRegistry`, `SessionOauth`,
+  `SignInStoreOwnerOnly`, `SdkTelemetryTelemetry`), each held to its schema
+  when first read, where it read their JSON by member name.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `Xynolog.Http.RetryPolicy`:
   `Timing.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes one. It

@@ -5,8 +5,8 @@
  * That it names refresh.json's rows is the generator's to hold, and `make check-generated`'s. Held here, at
  * compile time (`shownCensus`): that what each live query shows, which namespaces/types.ts writes by hand in
  * the names consumers read (`ResourceDescriptor`, `ListResourcesResponse`, …), is its cache's value. `annotations`
- * shows its value's annotations. `engines` shows a view no component is, each engine joined with its limits
- * (`EngineWithLimits`), so generation cannot name it, and nothing here holds it.
+ * shows its value's annotations. `engines` shows each engine joined with its limits (`EnginesWithLimits`), which
+ * is no cache's value, and nothing here holds it.
  */
 
 import { describe, it, expect } from 'vitest';

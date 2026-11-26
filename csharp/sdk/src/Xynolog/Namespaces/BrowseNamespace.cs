@@ -52,7 +52,7 @@ public sealed class BrowseNamespace
     public async Task<string> ResourceContentAsync(ResourceId resourceId, CancellationToken cancellation = default)
     {
         var representation = await content.GetBinaryAsync(resourceId, cancellation).ConfigureAwait(Spawning.Captures);
-        return RepresentationText.Decode(representation.Bytes, representation.ContentType);
+        return RepresentationText.Decode(representation.Data, representation.ContentType);
     }
 
     /// <summary>Fetches the resource with all of its annotations.</summary>
@@ -64,7 +64,7 @@ public sealed class BrowseNamespace
         content.GetAnchoredTextAsync(resourceId, cancellation);
 
     /// <summary>Fetches the resource's representation whole: its bytes and media type.</summary>
-    public Task<BinaryContent> ResourceRepresentationAsync(ResourceId resourceId, CancellationToken cancellation = default) =>
+    public Task<ResourceRepresentation> ResourceRepresentationAsync(ResourceId resourceId, CancellationToken cancellation = default) =>
         content.GetBinaryAsync(resourceId, cancellation);
 
     /// <summary>Opens the resource's representation as a stream, for content too large to hold in memory.</summary>

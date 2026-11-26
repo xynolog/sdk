@@ -1,14 +1,21 @@
 include Namespace_methods.Browse
 
-let resource_content client id =
+let resource_representation client id =
   Client_core.content (fun () ->
       Http_wire.with_content (Client_core.http client) ~streaming:false id
         (fun ~content_type body ->
-          ( content_type,
-            Eio.Buf_read.parse_exn ~max_size:max_int Eio.Buf_read.take_all body
-          )))
+          {
+            Records.Resource_representation.data =
+              Eio.Buf_read.parse_exn ~max_size:max_int Eio.Buf_read.take_all
+                body;
+            content_type;
+          }))
 
-let resource_representation = resource_content
+let resource_content client id =
+  Result.map
+    (fun { Records.Resource_representation.content_type; data } ->
+      (content_type, data))
+    (resource_representation client id)
 
 let resource_representation_stream client id read =
   Client_core.content (fun () ->

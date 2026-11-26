@@ -19,14 +19,6 @@ module H = Haskell_syntax
 
 let ( let* ) = Result.bind
 
-let path ~under name =
-  "haskell/sdk/" ^ under ^ "/"
-  ^ String.concat "/" (String.split_on_char '.' name)
-  ^ ".hs"
-
-let file ~under (m : H.module_) =
-  { Output.path = path ~under m.name; text = H.text m }
-
 let banner from_ = Banner.lines ~from_ __FILE__
 
 (* The client types the SDK models, as their group states them. *)
@@ -126,7 +118,7 @@ let files ~root (spec : Spec.t) =
   let* adapters = adapters spec in
   let* definitions, validated_roots =
     within "openapi.json"
-      (Definitions.derive ~root spec ~adapters
+      (Definitions.derive spec ~adapters
          ~http:(http.schemas @ archivist.schemas)
          ~envelopes:bus.envelopes)
   in
@@ -145,7 +137,7 @@ let files ~root (spec : Spec.t) =
     within "openapi.json"
       (stale ~root
          (List.map
-            (fun (m : H.module_) -> path ~under:"generated" m.name)
+            (fun (m : H.module_) -> H.path ~under:"generated" m.name)
             models.modules))
   in
   let named = List.map fst definitions in
@@ -233,47 +225,47 @@ let files ~root (spec : Spec.t) =
          (List.map fst models.definitions))
   in
   let unrecognized =
-    Error_codes.Haskell.code_constructor "busRequest"
+    Error_codes.Haskell.bus_constructor
       spec.tables.errors_codes.bus_request.unrecognized_failure
   in
   Ok
-    (List.map (file ~under:"generated") models.modules
+    (List.map (H.file ~under:"generated") models.modules
     @ [
-        file ~under:"src"
+        H.file ~under:"src"
           (Companions.types_module
              ~banner:(banner "protocol/specs/src")
              models.module_names);
-        file ~under:"generated"
+        H.file ~under:"generated"
           (Companions.schemas_module
              ~banner:(banner "protocol/specs/src")
              ~vocabularies:(Error_codes.Table.vocabularies codes)
              validated);
-        file ~under:"test" round_trip;
-        file ~under:"src"
+        H.file ~under:"test" round_trip;
+        H.file ~under:"src"
           (Http.file
              ~banner:(banner "protocol/specs/src/openapi.json and its paths")
              http ~bus_event);
-        file ~under:"src"
+        H.file ~under:"src"
           (Http.archivist_file
              ~banner:
                (banner "protocol/specs/src/archivist/openapi.json and its paths")
              archivist);
-        file ~under:"src"
+        H.file ~under:"src"
           (Transport.file
              ~banner:
                (banner
                   "client/connection-states.json, bus/registry.json and \
                    identifiers/kinds.json")
              transport);
-        file ~under:"src"
+        H.file ~under:"src"
           (Channels.channels_file
              ~banner:(banner "protocol/specs/src/bus/registry.json")
              bus ~limits);
-        file ~under:"test"
+        H.file ~under:"test"
           (Channels.round_trip_file
              ~banner:(banner "protocol/specs/src/bus/registry.json")
              bus);
-        file ~under:"generated"
+        H.file ~under:"generated"
           (Channels.failure_file
              ~banner:
                (banner
@@ -281,10 +273,10 @@ let files ~root (spec : Spec.t) =
                    protocol/specs/src/errors/codes.json")
              ~unrecognized readers);
       ]
-    @ List.map (file ~under:"src") (control :: tables)
-    @ List.map (file ~under:"generated") constants
+    @ List.map (H.file ~under:"src") (control :: tables)
+    @ List.map (H.file ~under:"generated") constants
     @ [
-        file ~under:"generated" (Worker.file spec);
-        file ~under:"generated" held_job;
+        H.file ~under:"generated" (Worker.file spec);
+        H.file ~under:"generated" held_job;
       ]
     @ manifest)

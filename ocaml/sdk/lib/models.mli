@@ -122,11 +122,17 @@ val bus_ping_message : [ `BusPingMessage ] descriptor
 val bus_resume_gap : [ `BusResumeGap ] descriptor
 val bus_stream_message : [ `BusStreamMessage ] descriptor
 val bus_subscribe_request : [ `BusSubscribeRequest ] descriptor
+val byte_source : [ `ByteSource ] descriptor
 val cache_status : [ `CacheStatus ] descriptor
 val cancelled : [ `Cancelled ] descriptor
 val claim_options : [ `ClaimOptions ] descriptor
 val claim_refusal : [ `ClaimRefusal ] descriptor
+val client_connection_states : [ `ClientConnectionStates ] descriptor
+val client_discovery_absent : [ `ClientDiscoveryAbsent ] descriptor
+val client_option_defaults : [ `ClientOptionDefaults ] descriptor
+val client_refresh : [ `ClientRefresh ] descriptor
 val client_secret_form : [ `ClientSecretForm ] descriptor
+val client_testing : [ `ClientTesting ] descriptor
 
 val clone_resource_with_token_response :
   [ `CloneResourceWithTokenResponse ] descriptor
@@ -144,6 +150,8 @@ val connection_identity : [ `ConnectionIdentity ] descriptor
 val connection_state : [ `ConnectionState ] descriptor
 val content_format : [ `ContentFormat ] descriptor
 val contextual_summary_response : [ `ContextualSummaryResponse ] descriptor
+val control_cli : [ `ControlCli ] descriptor
+val control_rpc_codes : [ `ControlRpcCodes ] descriptor
 val control_sender : [ `ControlSender ] descriptor
 val create_annotation_request : [ `CreateAnnotationRequest ] descriptor
 val create_from_token_options : [ `CreateFromTokenOptions ] descriptor
@@ -168,6 +176,8 @@ val embedding_config : [ `EmbeddingConfig ] descriptor
 val engine : [ `Engine ] descriptor
 val engine_entry : [ `EngineEntry ] descriptor
 val engine_limits : [ `EngineLimits ] descriptor
+val engine_with_limits : [ `EngineWithLimits ] descriptor
+val engines_with_limits : [ `EnginesWithLimits ] descriptor
 val enriched_resource_event : [ `EnrichedResourceEvent ] descriptor
 val entity_tag_changed_payload : [ `EntityTagChangedPayload ] descriptor
 val entity_type_added_payload : [ `EntityTypeAddedPayload ] descriptor
@@ -175,6 +185,7 @@ val entity_types_projection : [ `EntityTypesProjection ] descriptor
 val ephemeral_event_id : [ `EphemeralEventId ] descriptor
 val error_data : [ `ErrorData ] descriptor
 val error_response : [ `ErrorResponse ] descriptor
+val errors_codes : [ `ErrorsCodes ] descriptor
 val event_metadata : [ `EventMetadata ] descriptor
 val expected : [ `Expected ] descriptor
 val extracted_text : [ `ExtractedText ] descriptor
@@ -237,6 +248,7 @@ val highlighting_job_params : [ `HighlightingJobParams ] descriptor
 val host_port : [ `HostPort ] descriptor
 val http_endpoint : [ `HttpEndpoint ] descriptor
 val http_status : [ `HttpStatus ] descriptor
+val identifiers_kinds : [ `IdentifiersKinds ] descriptor
 val identity_user : [ `IdentityUser ] descriptor
 val identity_useradd_params : [ `IdentityUseraddParams ] descriptor
 val identity_useradd_result : [ `IdentityUseraddResult ] descriptor
@@ -381,6 +393,7 @@ val match_search_request : [ `MatchSearchRequest ] descriptor
 val match_search_result : [ `MatchSearchResult ] descriptor
 val media_token_request : [ `MediaTokenRequest ] descriptor
 val media_token_response : [ `MediaTokenResponse ] descriptor
+val media_types_registry : [ `MediaTypesRegistry ] descriptor
 val memory_graph_config : [ `MemoryGraphConfig ] descriptor
 val memory_vectors_config : [ `MemoryVectorsConfig ] descriptor
 val metadata : [ `Metadata ] descriptor
@@ -404,12 +417,14 @@ val permission_denied : [ `PermissionDenied ] descriptor
 val persisted_event_id : [ `PersistedEventId ] descriptor
 val principal_profile_command : [ `PrincipalProfileCommand ] descriptor
 val principal_profiled_payload : [ `PrincipalProfiledPayload ] descriptor
+val principals_roles : [ `PrincipalsRoles ] descriptor
 val profile : [ `Profile ] descriptor
 val profiles_projection : [ `ProfilesProjection ] descriptor
 val progress : [ `Progress ] descriptor
 val project_config : [ `ProjectConfig ] descriptor
 val protected_resource_metadata : [ `ProtectedResourceMetadata ] descriptor
 val provider : [ `Provider ] descriptor
+val put_binary_request : [ `PutBinaryRequest ] descriptor
 val qdrant_vectors_config : [ `QdrantVectorsConfig ] descriptor
 val quoted_text : [ `QuotedText ] descriptor
 val reconciled_span : [ `ReconciledSpan ] descriptor
@@ -430,6 +445,7 @@ val resource_descriptor : [ `ResourceDescriptor ] descriptor
 val resource_error_event : [ `ResourceErrorEvent ] descriptor
 val resource_id : [ `ResourceId ] descriptor
 val resource_moved_payload : [ `ResourceMovedPayload ] descriptor
+val resource_representation : [ `ResourceRepresentation ] descriptor
 val resource_search_filters : [ `ResourceSearchFilters ] descriptor
 val resource_unarchived_payload : [ `ResourceUnarchivedPayload ] descriptor
 val resource_updated_payload : [ `ResourceUpdatedPayload ] descriptor
@@ -450,6 +466,7 @@ val runner : [ `Runner ] descriptor
 val runtime : [ `Runtime ] descriptor
 val runtime_state : [ `RuntimeState ] descriptor
 val scored_resource : [ `ScoredResource ] descriptor
+val sdk_telemetry_telemetry : [ `SdkTelemetryTelemetry ] descriptor
 val secret_ref : [ `SecretRef ] descriptor
 val selector : [ `Selector ] descriptor
 val semantic_match : [ `SemanticMatch ] descriptor
@@ -470,6 +487,7 @@ val session_end_reason : [ `SessionEndReason ] descriptor
 val session_ended : [ `SessionEnded ] descriptor
 val session_joined_event : [ `SessionJoinedEvent ] descriptor
 val session_left_event : [ `SessionLeftEvent ] descriptor
+val session_oauth : [ `SessionOauth ] descriptor
 val setting : [ `Setting ] descriptor
 val setting_line : [ `SettingLine ] descriptor
 val settings_get_params : [ `SettingsGetParams ] descriptor
@@ -486,6 +504,7 @@ val settings_set_params : [ `SettingsSetParams ] descriptor
 val settings_theme_changed_event : [ `SettingsThemeChangedEvent ] descriptor
 val settings_unset_params : [ `SettingsUnsetParams ] descriptor
 val sign_in_outcome : [ `SignInOutcome ] descriptor
+val sign_in_store_owner_only : [ `SignInStoreOwnerOnly ] descriptor
 val signed_in : [ `SignedIn ] descriptor
 val smelt_rebuild_anchors_command : [ `SmeltRebuildAnchorsCommand ] descriptor
 val smelt_settled : [ `SmeltSettled ] descriptor

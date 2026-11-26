@@ -461,7 +461,7 @@ let readers t ~normalize ~definition ~typing (codes : Tables.Errors_codes.t) =
         Option.map
           (fun w ->
             ( Tables.Errors_codes.command_error_code_value w,
-              Error_codes.Haskell.code_constructor "busRequest" c.code ))
+              Error_codes.Haskell.bus_constructor c.code ))
           c.wire)
       codes.bus_request.codes
   in
@@ -542,7 +542,8 @@ let failure_file ~banner ~unrecognized readers =
       [
         H.import "Data.Text" ~items:[ Plain "Text" ];
         H.import "Xynolog.Channels";
-        H.import "Xynolog.ErrorCodes" ~items:[ All "BusRequestCode" ];
+        H.import "Xynolog.ErrorCodes"
+          ~items:[ All Error_codes.Haskell.bus_type ];
         H.import "Xynolog.Types" ~qualified:"Types";
       ];
     body =
@@ -569,7 +570,7 @@ let failure_file ~banner ~unrecognized readers =
                  "unrecognized failure's.";
                ];
              name = "code";
-             type_ = operation_failure (t_name "BusRequestCode");
+             type_ = operation_failure (t_name Error_codes.Haskell.bus_type);
              clauses =
                List.map
                  (fun r ->
@@ -593,7 +594,7 @@ let failure_file ~banner ~unrecognized readers =
                     type_ =
                       T_fun
                         ( T_apply ("Maybe", [ types code_type ]),
-                          t_name "BusRequestCode" );
+                          t_name Error_codes.Haskell.bus_type );
                     clauses =
                       [
                         {

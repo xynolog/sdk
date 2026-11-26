@@ -46,6 +46,10 @@ public data class ResourceUpload(
     /** With `cloneToken`: 'true' archives the source once the clone exists. */
     public val archiveOriginal: String? = null,
 ) {
+    override fun equals(other: Any?): Boolean = other is ResourceUpload && name == other.name && file.contentEquals(other.file) && format == other.format && storageUri == other.storageUri && language == other.language && entityTypes == other.entityTypes && sourceAnnotationId == other.sourceAnnotationId && sourceResourceId == other.sourceResourceId && generationPrompt == other.generationPrompt && generator == other.generator && jobId == other.jobId && isDraft == other.isDraft && cloneToken == other.cloneToken && archiveOriginal == other.archiveOriginal
+
+    override fun hashCode(): Int = listOf(name, file.contentHashCode(), format, storageUri, language, entityTypes, sourceAnnotationId, sourceResourceId, generationPrompt, generator, jobId, isDraft, cloneToken, archiveOriginal).hashCode()
+
     /** How Java makes a `ResourceUpload`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val name: String,

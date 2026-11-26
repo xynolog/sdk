@@ -152,8 +152,8 @@ func uploader(t *testing.T, gateway *uploadGateway) *xynolog.HTTPContentTranspor
 	return xynolog.NewHTTPContentTransport(transport)
 }
 
-func anUpload() xynolog.PutBinaryRequest {
-	return xynolog.PutBinaryRequest{Name: "notes.txt", Bytes: []byte("hello"), Format: "text/plain", StorageURI: "file://notes.txt"}
+func anUpload() api.PutBinaryRequest {
+	return api.PutBinaryRequest{Name: "notes.txt", File: []byte("hello"), Format: "text/plain", StorageUri: "file://notes.txt"}
 }
 
 // waitFor is what upload is answered, within ten seconds.
@@ -184,7 +184,7 @@ func reported(t *testing.T, upload *xynolog.Upload) []any {
 func TestAnUploadReportsItsSizeWhatIsSentAndTheResourceMade(t *testing.T) {
 	gateway := newUploadGateway(t, create)
 	request := anUpload()
-	request.Bytes = bytes.Repeat([]byte("every byte "), 20000)
+	request.File = bytes.Repeat([]byte("every byte "), 20000)
 	upload := uploader(t, gateway).PutBinary(context.Background(), request)
 	reports := reported(t, upload)
 	created, err := waitFor(t, upload)

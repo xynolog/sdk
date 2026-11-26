@@ -17,7 +17,7 @@ import xynolog.XynologClient
 import xynolog.errors.TransportError
 import xynolog.identifiers.ResourceId
 import xynolog.mediatypes.textSourceOf
-import xynolog.transport.Content
+import xynolog.types.ResourceRepresentation
 
 private val RESOURCE = ResourceId("res-1")
 private val EVERY_BYTE = ByteArray(256) { it.toByte() }
@@ -28,7 +28,7 @@ private fun bytesOf(hexadecimal: String): ByteArray =
 /** What a client reads of some bytes, served with a content type. */
 private fun read(contentType: String, data: ByteArray): String = runBlocking {
     val recording = Recording()
-    recording.serves = Content(contentType, data)
+    recording.serves = ResourceRepresentation(data = data, contentType = contentType)
     XynologClient(recording, recording, recording).use { it.browse.resourceContent(RESOURCE) }
 }
 

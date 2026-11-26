@@ -642,3 +642,13 @@ let text m =
       @ (imports :: List.map decl m.body))
   in
   String.concat "\n\n" (List.map (String.concat "\n") blocks) ^ "\n"
+
+(* Where module [name] is in the sdk checkout, under the SDK's [under]
+   directory: Xynolog.Types under src is haskell/sdk/src/Xynolog/Types.hs. *)
+let path ~under name =
+  "haskell/sdk/" ^ under ^ "/"
+  ^ String.concat "/" (String.split_on_char '.' name)
+  ^ ".hs"
+
+(* A module, written at its path under [under]. *)
+let file ~under m = { Output.path = path ~under m.name; text = text m }

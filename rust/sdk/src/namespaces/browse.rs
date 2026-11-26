@@ -30,18 +30,18 @@ use crate::resources::decode_representation;
 use crate::session::{WHOLE_KEY, cache_key};
 use crate::state_unit::StateUnit;
 use crate::timing::MAX_STORED_BYTES_COUNT;
-use crate::transport::{BoxFuture, Content, ContentStream, ContentTransport, Envelope};
+use crate::transport::{BoxFuture, ContentStream, ContentTransport, Envelope};
 use crate::types::{
     AnchorRect, AnchoredTextAnswer, Annotation, AttributedEvent, BrowseAnnotationHistoryRequest,
     BrowseAnnotationRequest, BrowseClickEvent, BrowseDirectoryRequest, BrowseDirectoryRequestSort,
     BrowseDirectoryResultResponse, BrowseEnginesRequest, BrowseEntityTypesRequest,
     BrowseEventsRequest, BrowseKbRequest, BrowseResourceOpenEvent, BrowseResourceRequest,
     BrowseResourceViewedEvent, BrowseResourcesRequest, BrowseTagSchemasRequest, EngineEntry,
-    EngineLimits, GetAnnotationHistoryResponse, GetAnnotationsResponse, GetResourceResponse,
-    InferenceLimits, InferenceLimitsResultResponse, KbDescription, ListResourcesResponse,
-    ResourceDescriptor, TagSchema,
+    EngineLimits, EngineWithLimits, EnginesWithLimits, GetAnnotationHistoryResponse,
+    GetAnnotationsResponse, GetResourceResponse, InferenceLimitsResultResponse, KbDescription,
+    ListResourcesResponse, ResourceDescriptor, TagSchema,
 };
-use crate::types::{AnnotationId, ResourceId};
+use crate::types::{AnnotationId, ResourceId, ResourceRepresentation};
 use futures_core::Stream;
 use serde::de::{DeserializeOwned, Error as _, Unexpected};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -80,19 +80,8 @@ impl<'de> Deserialize<'de> for WholeKey {
     }
 }
 
-/// One of the knowledge base's engines: its entry, and its limits when the
-/// service holding its credentials reported them. As JSON the limits sit
-/// beside the entry's own fields.
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct EngineWithLimits {
-    #[serde(flatten)]
-    pub entry: EngineEntry,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub limits: Option<InferenceLimits>,
-}
-
 /// The engines, each with the limits reported of it.
-fn joined(engines: Vec<EngineEntry>, reported: &[EngineLimits]) -> Vec<EngineWithLimits> {
+fn joined(engines: Vec<EngineEntry>, reported: &[EngineLimits]) -> EnginesWithLimits {
     engines
         .into_iter()
         .map(|entry| {
@@ -100,7 +89,11 @@ fn joined(engines: Vec<EngineEntry>, reported: &[EngineLimits]) -> Vec<EngineWit
                 .iter()
                 .find(|report| report.engine == entry.engine)
                 .map(|report| report.limits.clone());
-            EngineWithLimits { entry, limits }
+            EngineWithLimits {
+                engine: entry.engine,
+                jobs: entry.jobs,
+                limits,
+            }
         })
         .collect()
 }
@@ -625,7 +618,7 @@ struct Joined {
 }
 
 impl Stream for Joined {
-    type Item = CacheState<Vec<EngineWithLimits>>;
+    type Item = CacheState<EnginesWithLimits>;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = &mut *self;
@@ -657,10 +650,10 @@ impl Stream for Joined {
     }
 }
 
-impl Source<Vec<EngineWithLimits>> for Engines {
+impl Source<EnginesWithLimits> for Engines {
     fn fresh(
         &self,
-    ) -> BoxFuture<'static, Result<Vec<EngineWithLimits>, Arc<dyn std::error::Error + Send + Sync>>>
+    ) -> BoxFuture<'static, Result<EnginesWithLimits, Arc<dyn std::error::Error + Send + Sync>>>
     {
         enum Answer {
             Engines(Result<Vec<EngineEntry>, Arc<dyn std::error::Error + Send + Sync>>),
@@ -690,7 +683,7 @@ impl Source<Vec<EngineWithLimits>> for Engines {
         })
     }
 
-    fn watch(&self) -> Observed<Vec<EngineWithLimits>> {
+    fn watch(&self) -> Observed<EnginesWithLimits> {
         Observed::new(
             Joined {
                 engines: self.engines.observe(&WholeKey),
@@ -870,7 +863,7 @@ impl BrowseNamespace {
 
     /// The knowledge base's engines, asked for first, each with its limits
     /// as the service holding its credentials reports them.
-    pub fn engines(&self) -> Cached<Vec<EngineWithLimits>> {
+    pub fn engines(&self) -> Cached<EnginesWithLimits> {
         Cached::of(Engines {
             engines: self.live.engines.clone(),
             limits: self.live.limits.clone(),
@@ -892,10 +885,7 @@ impl BrowseNamespace {
     /// an image, which has none.
     pub async fn resource_content(&self, resource_id: &ResourceId) -> Result<String, XynologError> {
         let content = self.content.get_binary(resource_id).await?;
-        Ok(decode_representation(
-            &content.bytes,
-            &content.content_type,
-        )?)
+        Ok(decode_representation(&content.data, &content.content_type)?)
     }
 
     /// A resource's description as linked data: itself and its annotations.
@@ -920,7 +910,7 @@ impl BrowseNamespace {
     pub async fn resource_representation(
         &self,
         resource_id: &ResourceId,
-    ) -> Result<Content, XynologError> {
+    ) -> Result<ResourceRepresentation, XynologError> {
         Ok(self.content.get_binary(resource_id).await?)
     }
 

@@ -21,8 +21,8 @@ use xynolog::testing::{
     ContentCall, FaultyTransport, InMemoryContent, StubGateway, TestClientOptions,
     create_test_client,
 };
-use xynolog::transport::{Envelope, Frame, PutBinaryRequest};
-use xynolog::types::{AnchorRect, GatherAnnotationOptions};
+use xynolog::transport::{Envelope, Frame};
+use xynolog::types::{AnchorRect, GatherAnnotationOptions, PutBinaryRequest};
 
 fn table() -> Value {
     serde_json::from_str(include_str!("../specs/client/surface.json"))
@@ -465,10 +465,10 @@ fn call(world: &World, namespace: &str, method: &str, args: Args) {
             };
             let upload = client.yield_.resource(PutBinaryRequest {
                 name: stated("name"),
-                bytes: Bytes::from(stated("file")),
+                file: Bytes::from(stated("file")),
                 format: stated("format"),
                 storage_uri: stated("storageUri"),
-                entity_types: Vec::new(),
+                entity_types: None,
                 language: None,
                 source_annotation_id: None,
                 source_resource_id: None,
@@ -635,7 +635,7 @@ fn content_call(call: &ContentCall) -> (&'static str, Value) {
         ContentCall::PutBinary(request) => {
             let mut given = json!({
                 "name": request.name,
-                "content": String::from_utf8_lossy(&request.bytes),
+                "content": String::from_utf8_lossy(&request.file),
                 "format": request.format,
                 "storageUri": request.storage_uri,
             });

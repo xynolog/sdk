@@ -189,6 +189,7 @@ and type_of t what (ty : T.ty) =
   | T.Any -> json_value
   | T.Nullable inner -> type_of t what inner
   | T.Inline i -> in_place t what i
+  | T.Scalar (T.Text { binary = true; _ }) -> S.Named "Data"
   | T.Scalar (T.Text _) -> string_type
   | T.Scalar (T.Code vocabulary) -> S.Named (snd (Code_names.named vocabulary))
   | T.Scalar (T.Integer _) -> S.Named "Int"

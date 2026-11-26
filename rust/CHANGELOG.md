@@ -8,6 +8,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- A type for ten of Protocol's tables that no service keeps, each typed by
+  the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
+  `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
+  `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
+  `SignInStoreOwnerOnly`.
 - `service_environment`: every environment variable a Xynolog service reads,
   beside its configuration document, a constant of its name
   (`service_environment::XYNOLOG_BUS_LOG`). The bus log reads its variable by
@@ -76,6 +81,23 @@ the coming release's, and gathers its changes as they land.
   `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
   and `TargetKind`; `InferenceProvider` names an inference provider, in
   place of `EngineProvider`.
+- An upload is a `types::PutBinaryRequest`, the type of Protocol's
+  `client/types/PutBinaryRequest.json`, where it was
+  `transport::PutBinaryRequest`: its bytes are its `file`, a `types::Binary`,
+  where they were `bytes`; `entity_types` is an `Option<Vec<String>>`, `None`
+  when it is left out, where it was a `Vec` that was empty; and `generator` is
+  an `Option<types::OneOrMoreAgents>`, where it was an
+  `Option<serde_json::Value>`. `PutBinaryRequest::new` takes what it took.
+  What an upload sends is as it was.
+- A resource's bytes, read whole, are a `types::ResourceRepresentation`, the
+  type of Protocol's `client/types/ResourceRepresentation.json`, where they
+  were `transport::Content`: `browse.resource_representation` and
+  `ContentTransport::get_binary` answer one, and its bytes are its `data`,
+  where they were `bytes`.
+- `BrowseNamespace::engines` is a `Cached<types::EnginesWithLimits>`, the type
+  of Protocol's `client/types/EnginesWithLimits.json`, where it was of
+  `namespaces::EngineWithLimits`: an engine's `engine` and `jobs` are its own
+  fields, where they were its `entry`'s.
 - A retry budget is `types::RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `retry::RetryPolicy`:
   `timing::EMIT_RETRY` and `timing::REFRESH_RETRY` are one, a transport's
@@ -85,7 +107,8 @@ the coming release's, and gathers its changes as they land.
   `initial_delay` and `max_delay`, and its `attempts` is a `u64`. The
   transport's `Timing` is no longer `Copy`.
 - `ResourceUpload::file` is a `types::Binary`, the type of Protocol's bytes
-  held whole, which is a `String`; `ResourceUpload::new` takes one.
+  held whole, which is a `bytes::Bytes`, the type the SDK's transport holds
+  bytes as, where `file` was a `String`; `ResourceUpload::new` takes one.
 - The keys a registry keeps what it keeps under, and the prefixes of the
   keys made per knowledge base, are generated from Protocol's
   `session/stored.json`, with the names and values they had

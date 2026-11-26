@@ -23,7 +23,9 @@ let schemas spec =
 
 let refusal file message = [ { Decode.file; pointer = ""; message } ]
 
-let table ~root file =
+(* [file] read once, when its class is first used, as the type its own
+   schema is. *)
+let table ~modifiers ~root file =
   let source = Filename.concat root (specs ^ file) in
   let name = type_of file in
   let type_ = C.T ("global::Xynolog.Types." ^ name) in
@@ -32,14 +34,14 @@ let table ~root file =
       C.Property
         {
           attributes = [];
-          modifiers = [ Public; Static ];
+          modifiers;
           type_;
           name;
           accessors = [ Get ];
           value =
             Some
               (C.Call
-                 ( Name "global::Xynolog.Services.ServiceTable.Read",
+                 ( Name "global::Xynolog.Protocol.ProtocolTable.Read",
                    [ type_ ],
                    [
                      Arg
@@ -51,48 +53,34 @@ let table ~root file =
 (* An archivist operation's property on ArchivistRoutes. *)
 let route_name operation_id = Text.pascal operation_id
 
-let route (spec : Spec.t) (path, reference) =
-  let file, _ = Decode.resolve spec.ids reference in
-  match List.assoc_opt file spec.path_items with
-  | None ->
-      Error (refusal "archivist/openapi.json" ("names no path item " ^ file))
-  | Some (item : Openapi.path_item) ->
-      Ok
-        (List.filter_map
-           (fun (method_, operation) ->
-             Option.map
-               (fun (o : Openapi.operation) ->
-                 C.Documented
-                   ( method_ ^ " " ^ path ^ ", the archivist's "
-                     ^ o.operation_id ^ ".",
-                     C.Property
-                       {
-                         attributes = [];
-                         modifiers = [ Public; Static ];
-                         type_ = C.T "global::Xynolog.Services.ServiceRoute";
-                         name = route_name o.operation_id;
-                         accessors = [ Get ];
-                         value =
-                           Some
-                             (C.New
-                                {
-                                  type_ = None;
-                                  args =
-                                    Some
-                                      [
-                                        Arg
-                                          (Name
-                                             ("global::System.Net.Http.HttpMethod."
-                                             ^ String.capitalize_ascii
-                                                 (String.lowercase_ascii method_)
-                                             ));
-                                        Arg (Str path);
-                                      ];
-                                  init = None;
-                                });
-                       } ))
-               operation)
-           [ ("GET", item.get); ("PUT", item.put); ("POST", item.post) ])
+let route { Archivist_routes.method_; path; operation = o } =
+  C.Documented
+    ( method_ ^ " " ^ path ^ ", the archivist's " ^ o.operation_id ^ ".",
+      C.Property
+        {
+          attributes = [];
+          modifiers = [ Public; Static ];
+          type_ = C.T "global::Xynolog.Services.ServiceRoute";
+          name = route_name o.operation_id;
+          accessors = [ Get ];
+          value =
+            Some
+              (C.New
+                 {
+                   type_ = None;
+                   args =
+                     Some
+                       [
+                         Arg
+                           (Name
+                              ("global::System.Net.Http.HttpMethod."
+                              ^ String.capitalize_ascii
+                                  (String.lowercase_ascii method_)));
+                         Arg (Str path);
+                       ];
+                   init = None;
+                 });
+        } )
 
 let static_class name members =
   C.Type
@@ -108,7 +96,12 @@ let static_class name members =
 
 let file ~root (spec : Spec.t) =
   let tables = Roots.service_tables spec in
-  let* routes = Spec.all (List.map (route spec) spec.archivist.paths) in
+  let* routes =
+    match Archivist_routes.all spec with
+    | found -> Ok (List.map route found)
+    | exception Definitions.Refused message ->
+        Error (refusal "archivist/openapi.json" message)
+  in
   Ok
     {
       Output.path;
@@ -126,8 +119,9 @@ let file ~root (spec : Spec.t) =
             namespace = "Xynolog.Services";
             decls =
               [
-                static_class "ServiceTables" (List.map (table ~root) tables);
-                static_class "ArchivistRoutes" (List.concat routes);
+                static_class "ServiceTables"
+                  (List.map (table ~modifiers:[ Public; Static ] ~root) tables);
+                static_class "ArchivistRoutes" routes;
               ];
           };
     }

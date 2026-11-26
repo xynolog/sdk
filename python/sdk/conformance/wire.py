@@ -26,7 +26,7 @@ from xynolog.http import HttpTransport, Timing, TokenRefresher
 from xynolog.identifiers import AnnotationId, InvalidIdentifier, JobId, ResourceId
 from xynolog.model import WireModel, stated
 from xynolog.operations import OPERATIONS
-from xynolog.transport import ConnectionState, Frame, FrameRefusal, PutBinaryRequest, ResourceHold
+from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold
 from xynolog.types import (
     ConformanceDriverLineErrorStream,
     ConformanceDriverLineFrame,
@@ -34,6 +34,7 @@ from xynolog.types import (
     ConformanceDriverLineProgress,
     ConformanceDriverLineProgressProgress,
     ConformanceDriverLineState,
+    PutBinaryRequest,
     RetryBudget,
     UploadProgressProgress,
 )
@@ -55,7 +56,7 @@ def _upload_of(args: Arguments) -> PutBinaryRequest:
             file=base64.b64decode(text(args, "bytes"), validate=True),
             format=text(args, "format"),
             storage_uri=text(args, "storageUri"),
-            entity_types=texts(args, "entityTypes") if "entityTypes" in args else (),
+            entity_types=texts(args, "entityTypes") if "entityTypes" in args else None,
             language=optional_text(args, "language"),
             source_resource_id=None if args.get("sourceResourceId") is None else ResourceId(text(args, "sourceResourceId")),
             source_annotation_id=None if args.get("sourceAnnotationId") is None else AnnotationId(text(args, "sourceAnnotationId")),

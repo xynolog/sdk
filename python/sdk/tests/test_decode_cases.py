@@ -23,7 +23,7 @@ from xynolog.errors import TransportError
 from xynolog.identifiers import ResourceId
 from xynolog.media_types import text_source_of
 from xynolog.testing import create_test_client
-from xynolog.transport import Content
+from xynolog.types import ResourceRepresentation
 
 RESOURCE: Final = ResourceId("res-1")
 EVERY_BYTE: Final = bytes(range(256))
@@ -90,7 +90,7 @@ def read(content_type: str, data: bytes) -> str:
 
     async def scenario() -> str:
         made = create_test_client()
-        made.content.seed(RESOURCE, Content(data=data, content_type=content_type))
+        made.content.seed(RESOURCE, ResourceRepresentation(data=data, content_type=content_type))
         try:
             return await made.client.browse.resource_content(RESOURCE)
         finally:

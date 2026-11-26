@@ -28,13 +28,13 @@ use xynolog::gateway_http::{
     GET_RESOURCE_ANCHORED_TEXT, GET_RESOURCE_ANNOTATIONS, GET_RESOURCE_JSON_LD,
     GET_RESOURCE_REPRESENTATION, IDEMPOTENCY_KEY, UPLOAD_RESOURCE, UploadField,
 };
-use xynolog::transport::{
-    BoxFuture, Content, ContentStream, ContentTransport, PutBinaryRequest, Upload,
-};
+use xynolog::transport::{BoxFuture, ContentStream, ContentTransport, Upload};
 use xynolog::types::AnchoredTextAnswer;
 use xynolog::types::GetAnnotationsResponse;
 use xynolog::types::GetResourceResponse;
+use xynolog::types::PutBinaryRequest;
 use xynolog::types::ResourceId;
+use xynolog::types::ResourceRepresentation;
 use xynolog::types::{AnnotationId, JobId};
 use xynolog::types::{UploadProgress, UploadProgressProgress, UploadProgressStarted};
 
@@ -75,9 +75,11 @@ fn sent(request: &PutBinaryRequest, member: UploadField) -> Option<String> {
         UploadField::Format => Some(request.format.to_string()),
         UploadField::StorageUri => Some(request.storage_uri.to_string()),
         UploadField::Language => stated(request.language.as_deref()),
-        UploadField::EntityTypes => {
-            (!request.entity_types.is_empty()).then(|| json!(request.entity_types).to_string())
-        }
+        UploadField::EntityTypes => request
+            .entity_types
+            .as_ref()
+            .filter(|entity_types| !entity_types.is_empty())
+            .map(|entity_types| json!(entity_types).to_string()),
         UploadField::SourceAnnotationId => stated(
             request
                 .source_annotation_id
@@ -88,7 +90,10 @@ fn sent(request: &PutBinaryRequest, member: UploadField) -> Option<String> {
             stated(request.source_resource_id.as_ref().map(ResourceId::as_str))
         }
         UploadField::GenerationPrompt => stated(request.generation_prompt.as_deref()),
-        UploadField::Generator => request.generator.as_ref().map(ToString::to_string),
+        UploadField::Generator => request
+            .generator
+            .as_ref()
+            .map(|generator| json!(generator).to_string()),
         UploadField::JobId => stated(request.job_id.as_ref().map(JobId::as_str)),
         UploadField::IsDraft => request.is_draft.map(|value| value.to_string()),
         UploadField::CloneToken => stated(request.clone_token.as_deref()),
@@ -134,7 +139,7 @@ impl Form {
             boundary,
             parts: [
                 Bytes::from(before),
-                request.bytes.clone(),
+                request.file.clone(),
                 Bytes::from(after),
             ],
         }
@@ -184,7 +189,7 @@ impl ContentTransport for HttpContentTransport {
         let (progress, reports) = mpsc::unbounded_channel();
         let reported = Arc::new(AtomicU64::new(0));
         let sending = async move {
-            let size = request.bytes.len();
+            let size = request.file.len();
             bus_log(
                 "PUT",
                 "content",
@@ -235,7 +240,7 @@ impl ContentTransport for HttpContentTransport {
     fn get_binary<'a>(
         &'a self,
         resource_id: &'a ResourceId,
-    ) -> BoxFuture<'a, Result<Content, TransportError>> {
+    ) -> BoxFuture<'a, Result<ResourceRepresentation, TransportError>> {
         Box::pin(async move {
             bus_log(
                 "GET",
@@ -251,8 +256,8 @@ impl ContentTransport for HttpContentTransport {
                     .bytes()
                     .await
                     .map_err(|error| self.shared.failed(interrupted(resource_id, &error)))?;
-                Ok(Content {
-                    bytes,
+                Ok(ResourceRepresentation {
+                    data: bytes,
                     content_type,
                 })
             })
@@ -413,10 +418,10 @@ mod tests {
     fn request() -> PutBinaryRequest {
         PutBinaryRequest {
             name: "A \"quoted\" name".to_owned(),
-            bytes: Bytes::from_static(&[0, 1, 2, 255]),
+            file: Bytes::from_static(&[0, 1, 2, 255]),
             format: "image/png".to_owned(),
             storage_uri: "file://uploads/a.png".to_owned(),
-            entity_types: vec!["Person".to_owned(), "Place".to_owned()],
+            entity_types: Some(vec!["Person".to_owned(), "Place".to_owned()]),
             language: Some("en".to_owned()),
             source_annotation_id: None,
             source_resource_id: None,
@@ -453,7 +458,7 @@ mod tests {
     #[tokio::test]
     async fn the_body_is_the_form_and_its_progress_ends_at_its_length() {
         let mut large = request();
-        large.bytes = Bytes::from(vec![7u8; UPLOAD_CHUNK * 2 + 10]);
+        large.file = Bytes::from(vec![7u8; UPLOAD_CHUNK * 2 + 10]);
         let form = Form::of(&large);
         let (progress, mut reported) = mpsc::unbounded_channel();
         let body = form.body(progress, Arc::default());

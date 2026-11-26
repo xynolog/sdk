@@ -238,9 +238,9 @@ func (v *live) invalidateEngines() {
 
 // enginesWithLimits is the engines, asked for first, with each model's
 // limits as the services holding its credentials report them.
-func (v *live) enginesWithLimits() *Cached[[]EngineWithLimits] {
-	return &Cached[[]EngineWithLimits]{
-		fresh: func(ctx context.Context) ([]EngineWithLimits, error) {
+func (v *live) enginesWithLimits() *Cached[api.EnginesWithLimits] {
+	return &Cached[api.EnginesWithLimits]{
+		fresh: func(ctx context.Context) (api.EnginesWithLimits, error) {
 			asked := v.nextEnginesAsk()
 			listed := make(chan outcome[[]api.EngineEntry], 1)
 			go func() {
@@ -379,7 +379,7 @@ func (v *live) engineStates(ctx context.Context) iter.Seq[CacheState] {
 			if state == nil {
 				continue
 			}
-			now := shown(state, func(entries []api.EngineEntry) []EngineWithLimits { return joined(entries, limits) })
+			now := shown(state, func(entries []api.EngineEntry) api.EnginesWithLimits { return joined(entries, limits) })
 			if reflect.DeepEqual(now, last) {
 				continue
 			}

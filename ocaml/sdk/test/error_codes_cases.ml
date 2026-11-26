@@ -35,6 +35,8 @@ let () =
     (Model.code Model.None_pending);
   Alcotest.check Alcotest.bool "Bus_request of_code" true
     (Model.of_code "bus.none-pending" = Some Model.None_pending);
+  Alcotest.check Alcotest.bool "Bus_request of_code of no code" true
+    (Model.of_code "" = None);
   let module Model = Xynolog.Error_codes.Transport in
   Alcotest.check Alcotest.string "Transport code" "unauthorized"
     (Model.code Model.Unauthorized);
@@ -72,6 +74,8 @@ let () =
     (Model.code Model.Error);
   Alcotest.check Alcotest.bool "Transport of_code" true
     (Model.of_code "error" = Some Model.Error);
+  Alcotest.check Alcotest.bool "Transport of_code of no code" true
+    (Model.of_code "" = None);
   let module Model = Xynolog.Error_codes.Job in
   Alcotest.check Alcotest.string "Job code" "job.failed"
     (Model.code Model.Failed);
@@ -85,6 +89,8 @@ let () =
     (Model.code Model.Stalled);
   Alcotest.check Alcotest.bool "Job of_code" true
     (Model.of_code "job.stalled" = Some Model.Stalled);
+  Alcotest.check Alcotest.bool "Job of_code of no code" true
+    (Model.of_code "" = None);
   let module Model = Xynolog.Error_codes.Session in
   Alcotest.check Alcotest.string "Session code" "session.construct-failed"
     (Model.code Model.Construct_failed);
@@ -110,6 +116,8 @@ let () =
     (Model.code Model.Save_refused);
   Alcotest.check Alcotest.bool "Session of_code" true
     (Model.of_code "session.save-refused" = Some Model.Save_refused);
+  Alcotest.check Alcotest.bool "Session of_code of no code" true
+    (Model.of_code "" = None);
   let module Model = Xynolog.Error_codes.Sign_in in
   Alcotest.check Alcotest.string "Sign_in code" "no-issuer"
     (Model.code Model.No_issuer);
@@ -142,6 +150,8 @@ let () =
     (Model.code Model.Exchange);
   Alcotest.check Alcotest.bool "Sign_in of_code" true
     (Model.of_code "exchange" = Some Model.Exchange);
+  Alcotest.check Alcotest.bool "Sign_in of_code of no code" true
+    (Model.of_code "" = None);
   let module Model = Xynolog.Error_codes.Kb_identity in
   Alcotest.check Alcotest.string "Kb_identity code" "unreachable"
     (Model.code Model.Unreachable);
@@ -151,6 +161,8 @@ let () =
     (Model.code Model.Not_reported);
   Alcotest.check Alcotest.bool "Kb_identity of_code" true
     (Model.of_code "not-reported" = Some Model.Not_reported);
+  Alcotest.check Alcotest.bool "Kb_identity of_code of no code" true
+    (Model.of_code "" = None);
   let module Model = Xynolog.Error_codes.Span_refusal in
   Alcotest.check Alcotest.string "Span_refusal code" "span-out-of-range"
     (Model.code Model.Span_out_of_range);
@@ -180,6 +192,8 @@ let () =
     (Model.code Model.Item_out_of_range);
   Alcotest.check Alcotest.bool "Span_refusal of_code" true
     (Model.of_code "item-out-of-range" = Some Model.Item_out_of_range);
+  Alcotest.check Alcotest.bool "Span_refusal of_code of no code" true
+    (Model.of_code "" = None);
   let module Model = Xynolog.Error_codes.Control in
   Alcotest.check Alcotest.string "Control code" "control.invalid-params"
     (Model.code Model.Invalid_params);
@@ -283,4 +297,6 @@ let () =
     (Model.code Model.Failed);
   Alcotest.check Alcotest.bool "Control of_code" true
     (Model.of_code "control.failed" = Some Model.Failed);
+  Alcotest.check Alcotest.bool "Control of_code of no code" true
+    (Model.of_code "" = None);
   ()

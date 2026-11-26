@@ -71,15 +71,6 @@ export {
 export function inMemoryContent(): IContentTransport {
   const store = new Map<string, ResourceRepresentation>();
   let seq = 0;
-  const toBuffer = (file: File | Buffer): Promise<ArrayBuffer> =>
-    file instanceof Uint8Array
-      ? Promise.resolve(
-          file.buffer.slice(
-            file.byteOffset,
-            file.byteOffset + file.byteLength,
-          ) as ArrayBuffer,
-        )
-      : file.arrayBuffer();
 
   return {
     async putBinary(
@@ -87,9 +78,8 @@ export function inMemoryContent(): IContentTransport {
       _options?: PutBinaryOptions,
     ): Promise<{ resourceId: ResourceId }> {
       const rId = makeResourceId(`test-content-${++seq}`);
-      const data = await toBuffer(request.file);
       store.set(rId as string, {
-        data,
+        data: request.file,
         contentType: String(request.format),
       });
       return { resourceId: rId };
@@ -106,10 +96,11 @@ export function inMemoryContent(): IContentTransport {
       rId: ResourceId,
     ): Promise<ResourceRepresentationStream> {
       const { data, contentType } = await this.getBinary(rId);
+      const bytes = new Uint8Array(await data.arrayBuffer());
       return {
         stream: new ReadableStream<Uint8Array>({
           start(controller) {
-            controller.enqueue(new Uint8Array(data));
+            controller.enqueue(bytes);
             controller.close();
           },
         }),

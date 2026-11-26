@@ -23,7 +23,6 @@ import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
 import xynolog.registry.WHOLE_KEY
 import xynolog.resources.decodeRepresentation
-import xynolog.transport.Content
 import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.ResourceHold
@@ -43,22 +42,21 @@ import xynolog.types.BrowseResourceViewedEvent
 import xynolog.types.BrowseResourcesRequest
 import xynolog.types.EngineEntry
 import xynolog.types.EngineLimits
+import xynolog.types.EngineWithLimits
+import xynolog.types.EnginesWithLimits
 import xynolog.types.GetAnnotationHistoryResponse
 import xynolog.types.GetResourceResponse
-import xynolog.types.InferenceLimits
 import xynolog.types.KbDescription
 import xynolog.types.ListResourcesResponse
 import xynolog.types.ResourceDescriptor
+import xynolog.types.ResourceRepresentation
 import xynolog.types.TagSchema
 import java.util.concurrent.CompletableFuture
 
-/** One of the knowledge base's engines: its entry, and the engine's limits when the service holding its provider's credentials reported them. */
-public data class EngineWithLimits(public val entry: EngineEntry, public val limits: InferenceLimits?)
-
 /** The engines with each reported engine's limits on its entries. */
-private fun joined(engines: List<EngineEntry>, reported: List<EngineLimits>): List<EngineWithLimits> {
+private fun joined(engines: List<EngineEntry>, reported: List<EngineLimits>): EnginesWithLimits {
     val byEngine = reported.reversed().associate { it.engine to it.limits }
-    return engines.map { entry -> EngineWithLimits(entry, byEngine[entry.engine]) }
+    return engines.map { entry -> EngineWithLimits(engine = entry.engine, jobs = entry.jobs, limits = byEngine[entry.engine]) }
 }
 
 /**
@@ -66,14 +64,14 @@ private fun joined(engines: List<EngineEntry>, reported: List<EngineLimits>): Li
  * for first; a holder that has not answered delays only its own engines'
  * limits, and one that answered nothing reports none.
  */
-private class Engines(private val live: Live) : Source<List<EngineWithLimits>> {
-    override suspend fun fresh(): List<EngineWithLimits> = coroutineScope {
+private class Engines(private val live: Live) : Source<EnginesWithLimits> {
+    override suspend fun fresh(): EnginesWithLimits = coroutineScope {
         val engines = async(start = CoroutineStart.UNDISPATCHED) { live.engines.fetch(WHOLE_KEY) }
         val reports = LIMITS_HOLDERS.map { async(start = CoroutineStart.UNDISPATCHED) { live.limits.fetch(it) } }
         joined(engines.await(), reports.awaitAll().flatten())
     }
 
-    override fun watch(): Flow<CacheState<List<EngineWithLimits>>> {
+    override fun watch(): Flow<CacheState<EnginesWithLimits>> {
         val engines = live.engines.observe(WHOLE_KEY)
         // A holder's report is pending, then what it reported: it never fails (`Live`).
         val reports = LIMITS_HOLDERS.map { holder ->
@@ -128,7 +126,7 @@ public class BrowseNamespace internal constructor(private val links: Links, priv
     public fun tagSchemas(): Cached<List<TagSchema>> = live.query(Keyed(live.tagSchemas, WHOLE_KEY, { it }))
 
     /** The knowledge base's engines, with each engine's limits as the services holding its provider's credentials report them: a live query. */
-    public fun engines(): Cached<List<EngineWithLimits>> = live.query(Engines(live))
+    public fun engines(): Cached<EnginesWithLimits> = live.query(Engines(live))
 
     /** A resource's events, each with who it is attributed to: a live query. */
     @JvmExposeBoxed
@@ -156,7 +154,7 @@ public class BrowseNamespace internal constructor(private val links: Links, priv
      */
     public suspend fun resourceContent(resourceId: ResourceId): String {
         val read = content.getBinary(resourceId)
-        return decodeRepresentation(read.bytes, read.contentType)
+        return decodeRepresentation(read.data, read.contentType)
     }
 
     /** `resourceContent`, for Java. */
@@ -164,11 +162,11 @@ public class BrowseNamespace internal constructor(private val links: Links, priv
     public fun resourceContentFuture(resourceId: ResourceId): CompletableFuture<String> = links.future { resourceContent(resourceId) }
 
     /** A resource's bytes, unchanged, with their media type. */
-    public suspend fun resourceRepresentation(resourceId: ResourceId): Content = content.getBinary(resourceId)
+    public suspend fun resourceRepresentation(resourceId: ResourceId): ResourceRepresentation = content.getBinary(resourceId)
 
     /** `resourceRepresentation`, for Java. */
     @JvmExposeBoxed
-    public fun resourceRepresentationFuture(resourceId: ResourceId): CompletableFuture<Content> = links.future { resourceRepresentation(resourceId) }
+    public fun resourceRepresentationFuture(resourceId: ResourceId): CompletableFuture<ResourceRepresentation> = links.future { resourceRepresentation(resourceId) }
 
     /** The same, as they arrive. */
     public suspend fun resourceRepresentationStream(resourceId: ResourceId): ContentStream = content.getBinaryStream(resourceId)

@@ -233,18 +233,11 @@ let tests env ~name ~(via : Surface.item_via) ~(row : Surface.cases_item) =
       (Bus (B.name channel, None, Yojson.Safe.from_string (B.encode payload)))
   in
   let send_upload data =
-    let bytes = string "file" data in
-    let fields =
-      List.filter_map
-        (function
-          | "file", _ -> None
-          | key, `String value -> Some (key, value)
-          | _ -> None)
-        (fields data)
-    in
-    ignore
-      (Upload.await
-         (C.Yield.resource client ~fields ~bytes ~on_progress:ignore))
+    match Records.Put_binary_request.of_json data with
+    | Ok request ->
+        ignore
+          (Upload.await (C.Yield.resource client request ~on_progress:ignore))
+    | Error _ -> failwith "upload arguments are not a PutBinaryRequest"
   in
   let invoke () =
     match name with

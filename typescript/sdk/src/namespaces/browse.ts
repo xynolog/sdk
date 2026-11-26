@@ -12,7 +12,7 @@ import type {
   AttributedEvent,
   TagSchema,
   EngineEntry,
-  EngineWithLimits,
+  EnginesWithLimits,
   KbDescription,
   LimitsOperation,
   components,
@@ -82,7 +82,7 @@ type BrowseQuery = (typeof BROWSE_QUERIES)[number];
 function joinLimits(
   engines: EngineEntry[],
   reported: EngineLimits[],
-): EngineWithLimits[] {
+): EnginesWithLimits {
   return engines.map((entry) => {
     const report = reported.find(
       (r) =>
@@ -130,7 +130,7 @@ export class BrowseNamespace implements IBrowseNamespace {
   /** Each key holder's limits report, by the operation it answers. */
   private readonly limitsCache: Cache<LimitsOperation, EngineLimits[]>;
   /** The engines, joined with the limits reports as each arrives. */
-  private readonly engines$: Observable<CacheState<EngineWithLimits[]>>;
+  private readonly engines$: Observable<CacheState<EnginesWithLimits>>;
   private readonly resourceEventsCache: Cache<
     ResourceId,
     CacheValues['events']
@@ -393,7 +393,7 @@ export class BrowseNamespace implements IBrowseNamespace {
         this.limitsCache.observe(operation),
       ),
     ]).pipe(
-      map(([engines, ...reports]): CacheState<EngineWithLimits[]> =>
+      map(([engines, ...reports]): CacheState<EnginesWithLimits> =>
         engines.status === 'ready'
           ? {
               status: 'ready',
@@ -507,7 +507,7 @@ export class BrowseNamespace implements IBrowseNamespace {
    * triggers are the stream reopening after a drop (a gateway restart with
    * changed engines presents as one) and `.fresh()` (which always fetches).
    */
-  engines(): CacheObservable<EngineWithLimits[]> {
+  engines(): CacheObservable<EnginesWithLimits> {
     return CacheObservable.from(this.engines$, async () => {
       const [engines, ...reports] = await Promise.all([
         this.enginesCache.fetch(WHOLE_KEY),
@@ -533,7 +533,10 @@ export class BrowseNamespace implements IBrowseNamespace {
     // The text the bytes are, as protocol/contract/W3C-SELECTORS.md states it: a byte-order mark decides, then the
     // charset the response states, then UTF-8. A media type whose text is not its bytes (a PDF, an image) is
     // refused: its bytes are read with `resourceRepresentation`, and a PDF's text with `resourceAnchoredText`.
-    return decodeRepresentation(result.data, result.contentType);
+    return decodeRepresentation(
+      await result.data.arrayBuffer(),
+      result.contentType,
+    );
   }
 
   /**

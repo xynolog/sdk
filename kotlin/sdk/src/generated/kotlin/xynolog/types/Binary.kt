@@ -4,4 +4,4 @@
 package xynolog.types
 
 /** Bytes held whole: all of them at once, read as often as wanted. */
-public typealias Binary = String
+public typealias Binary = ByteArray

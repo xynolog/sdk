@@ -201,26 +201,18 @@ let typed (spec : Spec.t) =
 
 (* The client types each SDK writes by hand: SearchState, CacheState and
    JobEvent, each held to its schema by a census in every SDK, CacheState
-   because its failure is the SDK's own error, which no schema states; PutBinaryRequest, whose file
-   is bytes, which the Swift, Kotlin and Haskell writers state as text;
-   what the engines and content methods return, which waits on each SDK's
-   methods returning what client/surface.json says they return; and
-   ByteStream, bytes read once as they arrive, which only the stream a
-   content method returns names, and which each SDK holds as its language's
-   stream of bytes; and ByteSource, bytes opened afresh for each sending,
-   which each SDK holds as what its language opens a stream of bytes from. *)
+   because its failure is the SDK's own error, which no schema states;
+   ResourceRepresentationStream, which the content methods return, which
+   waits on each SDK's methods returning what client/surface.json says they
+   return; ByteStream, bytes read once as they arrive, which only
+   ResourceRepresentationStream holds, as each SDK's own read-once stream. *)
 let hand_written_client_types =
   [
     "SearchState";
     "CacheState";
     "JobEvent";
-    "PutBinaryRequest";
-    "EngineWithLimits";
-    "EnginesWithLimits";
-    "ResourceRepresentation";
     "ResourceRepresentationStream";
     "ByteStream";
-    "ByteSource";
   ]
 
 (* The client types every SDK generates, by name: each file of

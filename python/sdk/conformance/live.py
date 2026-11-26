@@ -22,7 +22,6 @@ from xynolog.events import Events
 from xynolog.http import HttpTransport, Timing
 from xynolog.identifiers import AnnotationId, InvalidIdentifier, ResourceId
 from xynolog.model import WireModel
-from xynolog.namespaces.browse import EngineWithLimits
 from xynolog.namespaces.follow import Delegation, JobRefused
 from xynolog.refresh import CACHE_QUERIES, CacheQuery
 from xynolog.storage import MemoryStorage
@@ -44,7 +43,7 @@ from xynolog.types import (
 )
 from xynolog.watched import Variable
 
-type _Shown = WireModel | EngineWithLimits | str | Sequence[_Shown]
+type _Shown = WireModel | str | Sequence[_Shown]
 """What a live query's value is made of."""
 
 _MARK_PARAMS: Final = TypeAdapter[MarkJobParams](MarkJobParams)
@@ -74,12 +73,6 @@ def _as_the_wire_had_it(value: _Shown) -> JsonValue:
         return value
     if isinstance(value, WireModel):
         return value.model_dump(mode="json", exclude_unset=True)
-    if isinstance(value, EngineWithLimits):
-        # The limits sit beside the entry's own fields.
-        entry: dict[str, JsonValue] = value.entry.model_dump(mode="json", exclude_unset=True)
-        if value.limits is not None:
-            entry["limits"] = value.limits.model_dump(mode="json", exclude_unset=True)
-        return entry
     return [_as_the_wire_had_it(item) for item in value]
 
 

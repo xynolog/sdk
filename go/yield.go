@@ -35,7 +35,7 @@ type YieldNamespace struct {
 
 // Resource uploads bytes as a new resource: the upload's progress, and the
 // resource created.
-func (n *YieldNamespace) Resource(ctx context.Context, data PutBinaryRequest) *Upload {
+func (n *YieldNamespace) Resource(ctx context.Context, data api.PutBinaryRequest) *Upload {
 	return n.content.PutBinary(ctx, data)
 }
 
@@ -105,12 +105,12 @@ func (n *YieldNamespace) CreateFromToken(ctx context.Context, options api.Create
 	if ok {
 		format = mediatypes.CloneFormat(primary)
 	}
-	return n.content.PutBinary(ctx, PutBinaryRequest{
+	return n.content.PutBinary(ctx, api.PutBinaryRequest{
 		Name:            options.Name,
-		Bytes:           []byte(options.Content),
+		File:            []byte(options.Content),
 		Format:          format.MediaType,
-		StorageURI:      mediatypes.StorageURI(options.Name, format),
-		CloneToken:      options.Token,
+		StorageUri:      mediatypes.StorageURI(options.Name, format),
+		CloneToken:      &options.Token,
 		ArchiveOriginal: options.ArchiveOriginal,
 	}).Wait(ctx)
 }

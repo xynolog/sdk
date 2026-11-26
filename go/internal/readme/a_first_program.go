@@ -12,11 +12,11 @@ import (
 // is false when the job declined, and made nothing.
 func Summarize(ctx context.Context, client *xynolog.Client, paper []byte) (summary api.ResourceId, ok bool, err error) {
 	// Ingest: the paper's bytes become a resource.
-	created, err := client.Yield.Resource(ctx, xynolog.PutBinaryRequest{
+	created, err := client.Yield.Resource(ctx, api.PutBinaryRequest{
 		Name:       "Attention Is All You Need",
-		Bytes:      paper,
+		File:       paper,
 		Format:     "application/pdf",
-		StorageURI: "file://papers/attention-is-all-you-need.pdf",
+		StorageUri: "file://papers/attention-is-all-you-need.pdf",
 	}).Wait(ctx)
 	if err != nil {
 		return api.ResourceId{}, false, err

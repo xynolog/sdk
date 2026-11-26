@@ -2260,7 +2260,7 @@ impl BeginAuthorizationOptions {
 schema!(BeginAuthorizationOptions);
 
 /// Bytes held whole: all of them at once, read as often as wanted.
-pub type Binary = String;
+pub type Binary = bytes::Bytes;
 
 /// One edit to a linking annotation's body list: add or remove a body item, or replace an existing one.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -3466,6 +3466,9 @@ impl BusSubscribeRequestScopedItem {
     }
 }
 
+/// Bytes opened afresh each time they are to be sent. Each opening reads them from the first byte, in order, once, and gives the same bytes as every other; whoever opened them releases what they opened. Their length is stated when it is known and stated by nothing when it is not. An upload takes its bytes so: held whole, a file larger than memory could not be sent at all, and read once, as a ByteStream is, an upload sent again would have nothing left to send.
+pub type ByteSource = bytes::Bytes;
+
 /// Where a live query's key stands (contract/CACHE-SEMANTICS.md): pending, with no value yet; ready, with a stored value; or failed, a value-less key's failure, which is an emission and not the stream's end.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -3566,6 +3569,777 @@ pub struct ClaimRefusal {
 
 schema!(ClaimRefusal);
 
+/// client/connection-states.json: where a client's stream can be, and where it can move from each.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientConnectionStates {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each state, in ConnectionState's order, what it means, and the states it can move to.
+    pub states: Vec<ClientConnectionStatesStatesItem>,
+}
+
+schema!(ClientConnectionStates);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientConnectionStatesStatesItem {
+    pub state: ConnectionState,
+    /// What the state is, in prose.
+    pub meaning: String,
+    /// The states it can move to, in ConnectionState's order; none for a terminal state.
+    pub moves: Vec<ConnectionState>,
+}
+
+/// client/discovery-absent.json: why a client that read a launcher's discovery document found no launcher.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientDiscoveryAbsent {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each reason, in DiscoveryAbsentReason's order, and what it means.
+    pub reasons: Vec<ClientDiscoveryAbsentReasonsItem>,
+}
+
+schema!(ClientDiscoveryAbsent);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientDiscoveryAbsentReasonsItem {
+    pub reason: DiscoveryAbsentReason,
+    /// What it is, in prose.
+    pub docs: String,
+}
+
+/// client/option-defaults.json: what a public option of a Xynolog client is when its caller leaves it out, where the client, not the service, decides.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaults {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each default, once.
+    pub defaults: Vec<ClientOptionDefaultsDefaultsItem>,
+}
+
+schema!(ClientOptionDefaults);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItem {
+    /// What takes the option, as client/surface.json names it: a namespace's method, or a module's function, the two joined by a dot.
+    pub method: String,
+    /// The parameter it is, or the parameter whose member it is.
+    pub parameter: String,
+    /// The member of the parameter it is, where the parameter is an object of options. Absent: the parameter itself.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub option: Option<String>,
+    pub value: serde_json::Value,
+    /// What the parameter is. Left out where it is the SDK's own: its error, which no schema states.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schema: Option<ClientOptionDefaultsDefaultsItemSchema>,
+    /// Where in the request the method sends it, as a JSON Pointer into a case's `sends`. Absent: the option is not sent, and only changes what the client does.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sends: Option<String>,
+    /// What the option is, in prose.
+    pub docs: String,
+}
+
+impl ClientOptionDefaultsDefaultsItem {
+    /// The `ClientOptionDefaultsDefaultsItem` that states these and nothing else.
+    pub fn new(
+        method: impl Into<String>,
+        parameter: impl Into<String>,
+        value: serde_json::Value,
+        docs: impl Into<String>,
+    ) -> Self {
+        Self {
+            method: method.into(),
+            parameter: parameter.into(),
+            option: None,
+            value,
+            schema: None,
+            sends: None,
+            docs: docs.into(),
+        }
+    }
+}
+
+/// What the parameter is. Left out where it is the SDK's own: its error, which no schema states.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum ClientOptionDefaultsDefaultsItemSchema {
+    Reference(ClientOptionDefaultsDefaultsItemSchemaReference),
+    DateTime(ClientOptionDefaultsDefaultsItemSchemaDateTime),
+    TypeParameter(ClientOptionDefaultsDefaultsItemSchemaTypeParameter),
+    Decided(ClientOptionDefaultsDefaultsItemSchemaDecided),
+}
+
+impl ClientOptionDefaultsDefaultsItemSchema {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["$ref"],
+            allowed: Some(&["$ref", "typeArguments"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["type", "description"],
+            allowed: Some(&["type", "minimum", "format", "description"]),
+            fixed: &[
+                (
+                    "type",
+                    &[
+                        Literal::Text("integer"),
+                        Literal::Text("string"),
+                        Literal::Text("boolean"),
+                    ],
+                ),
+                ("format", &[Literal::Text("date-time")]),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["typeParameter"],
+            allowed: Some(&["typeParameter"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["decided"],
+            allowed: Some(&["decided"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    ClientOptionDefaultsDefaultsItemSchema,
+    Reference,
+    DateTime,
+    TypeParameter,
+    Decided,
+);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaDateTime {
+    /// The value's type, where no component states one.
+    pub r#type: ClientOptionDefaultsDefaultsItemSchemaDateTimeType,
+    /// The least an integer may be.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub minimum: Option<i64>,
+    /// The string's format, where it has one: `date-time` is an RFC 3339 time.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub format: Option<ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat>,
+    /// What the value is.
+    pub description: String,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaDateTime {
+    /// The `ClientOptionDefaultsDefaultsItemSchemaDateTime` that states these and nothing else.
+    pub fn new(
+        r#type: ClientOptionDefaultsDefaultsItemSchemaDateTimeType,
+        description: impl Into<String>,
+    ) -> Self {
+        Self {
+            r#type,
+            minimum: None,
+            format: None,
+            description: description.into(),
+        }
+    }
+}
+
+/// The string's format, where it has one: `date-time` is an RFC 3339 time.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat {
+    #[serde(rename = "date-time")]
+    DateTime,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat::DateTime => "date-time",
+        }
+    }
+}
+
+/// The value's type, where no component states one.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientOptionDefaultsDefaultsItemSchemaDateTimeType {
+    #[serde(rename = "integer")]
+    Integer,
+    #[serde(rename = "string")]
+    String,
+    #[serde(rename = "boolean")]
+    Boolean,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaDateTimeType {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientOptionDefaultsDefaultsItemSchemaDateTimeType::Integer => "integer",
+            ClientOptionDefaultsDefaultsItemSchemaDateTimeType::String => "string",
+            ClientOptionDefaultsDefaultsItemSchemaDateTimeType::Boolean => "boolean",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaDecided {
+    /// What a value decides: the schema a table names for it.
+    pub decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided,
+}
+
+/// What a value decides: the schema a table names for it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaDecidedDecided {
+    /// What decides it.
+    pub by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy,
+    /// The table that names the schema: `takes`, the function's own, by each of the enum's values in its order.
+    pub r#in: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaDecidedDecided {
+    /// The `ClientOptionDefaultsDefaultsItemSchemaDecidedDecided` that states these and nothing else.
+    pub fn new(by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy) -> Self {
+        Self {
+            by,
+            r#in: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn::Takes,
+        }
+    }
+}
+
+/// What decides it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy {
+    /// A member beside the function, whose value is of an enum.
+    pub member: String,
+}
+
+/// The table that names the schema: `takes`, the function's own, by each of the enum's values in its order.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn {
+    #[serde(rename = "takes")]
+    Takes,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn::Takes => "takes",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaReference {
+    /// The $id of a component, a member within one, or a client type of specs/src/client/types: an object is always one of these, so that it is named.
+    #[serde(rename = "$ref")]
+    pub _ref: String,
+    /// What each of the client type's type parameters is here, by its name: a type parameter of the unit it is given in, one for each the client type's x-xynolog-typeParameters states, and only where it states any.
+    #[serde(rename = "typeArguments")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub type_arguments: Option<
+        std::collections::BTreeMap<
+            String,
+            ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue,
+        >,
+    >,
+}
+
+impl ClientOptionDefaultsDefaultsItemSchemaReference {
+    /// The `ClientOptionDefaultsDefaultsItemSchemaReference` that states these and nothing else.
+    pub fn new(_ref: impl Into<String>) -> Self {
+        Self {
+            _ref: _ref.into(),
+            type_arguments: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue {
+    /// A type parameter of the state unit the member is of, by its name: what it is, the unit's maker says.
+    #[serde(rename = "typeParameter")]
+    pub type_parameter: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientOptionDefaultsDefaultsItemSchemaTypeParameter {
+    /// A type parameter of the state unit the member is of, by its name: what it is, the unit's maker says.
+    #[serde(rename = "typeParameter")]
+    pub type_parameter: String,
+}
+
+/// client/refresh.json: what a Xynolog client asks again for, and when.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientRefresh {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The live queries.
+    pub queries: Vec<ClientRefreshQueriesItem>,
+    /// A row per trigger.
+    pub refresh: Vec<ClientRefreshRefreshItem>,
+}
+
+schema!(ClientRefresh);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum ClientRefreshQueriesItem {
+    Asks(ClientRefreshQueriesItemAsks),
+    Reads(ClientRefreshQueriesItemReads),
+}
+
+impl ClientRefreshQueriesItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["name", "asks", "value", "docs"],
+            allowed: Some(&["name", "per", "asks", "persisted", "value", "docs"]),
+            fixed: &[
+                (
+                    "per",
+                    &[
+                        Literal::Text("resource"),
+                        Literal::Text("annotation"),
+                        Literal::Text("filters"),
+                    ],
+                ),
+                ("persisted", &[Literal::Boolean(true)]),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["name", "reads", "value", "docs"],
+            allowed: Some(&["name", "per", "reads", "persisted", "value", "docs"]),
+            fixed: &[
+                (
+                    "per",
+                    &[
+                        Literal::Text("resource"),
+                        Literal::Text("annotation"),
+                        Literal::Text("filters"),
+                    ],
+                ),
+                ("persisted", &[Literal::Boolean(true)]),
+            ],
+            values: None,
+        }],
+    ];
+}
+
+union!(ClientRefreshQueriesItem, Asks, Reads);
+
+/// A live query that asks an operation of the registry, by its request's channel.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientRefreshQueriesItemAsks {
+    /// A query, by its name.
+    pub name: String,
+    /// What one is kept per; absent, the knowledge base has one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub per: Option<ClientRefreshQueriesItemAsksPer>,
+    /// The channel's name.
+    pub asks: String,
+    /// Its answers are kept across a client's lives.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub persisted: Option<ClientRefreshQueriesItemAsksPersisted>,
+    /// A reference to the schema of its value.
+    pub value: ClientRefreshQueriesItemAsksValue,
+    /// What it is, in prose.
+    pub docs: String,
+}
+
+impl ClientRefreshQueriesItemAsks {
+    /// The `ClientRefreshQueriesItemAsks` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        asks: impl Into<String>,
+        value: ClientRefreshQueriesItemAsksValue,
+        docs: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            per: None,
+            asks: asks.into(),
+            persisted: None,
+            value,
+            docs: docs.into(),
+        }
+    }
+}
+
+/// What one is kept per; absent, the knowledge base has one.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientRefreshQueriesItemAsksPer {
+    #[serde(rename = "resource")]
+    Resource,
+    #[serde(rename = "annotation")]
+    Annotation,
+    #[serde(rename = "filters")]
+    Filters,
+}
+
+impl ClientRefreshQueriesItemAsksPer {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientRefreshQueriesItemAsksPer::Resource => "resource",
+            ClientRefreshQueriesItemAsksPer::Annotation => "annotation",
+            ClientRefreshQueriesItemAsksPer::Filters => "filters",
+        }
+    }
+}
+
+/// Its answers are kept across a client's lives.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ClientRefreshQueriesItemAsksPersisted;
+
+constant!(ClientRefreshQueriesItemAsksPersisted, bool, true);
+
+/// A reference to the schema of its value.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientRefreshQueriesItemAsksValue {
+    /// The $id of the schema of what its cache holds for a key: a component, or a member within one.
+    #[serde(rename = "$ref")]
+    pub _ref: String,
+}
+
+/// A live query that reads a GET of the gateway's API.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientRefreshQueriesItemReads {
+    /// A query, by its name.
+    pub name: String,
+    /// What one is kept per; absent, the knowledge base has one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub per: Option<ClientRefreshQueriesItemReadsPer>,
+    /// The GET of the gateway's API it reads.
+    pub reads: String,
+    /// Its answers are kept across a client's lives.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub persisted: Option<ClientRefreshQueriesItemReadsPersisted>,
+    /// A reference to the schema of its value.
+    pub value: ClientRefreshQueriesItemReadsValue,
+    /// What it is, in prose.
+    pub docs: String,
+}
+
+impl ClientRefreshQueriesItemReads {
+    /// The `ClientRefreshQueriesItemReads` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        reads: impl Into<String>,
+        value: ClientRefreshQueriesItemReadsValue,
+        docs: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            per: None,
+            reads: reads.into(),
+            persisted: None,
+            value,
+            docs: docs.into(),
+        }
+    }
+}
+
+/// What one is kept per; absent, the knowledge base has one.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientRefreshQueriesItemReadsPer {
+    #[serde(rename = "resource")]
+    Resource,
+    #[serde(rename = "annotation")]
+    Annotation,
+    #[serde(rename = "filters")]
+    Filters,
+}
+
+impl ClientRefreshQueriesItemReadsPer {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientRefreshQueriesItemReadsPer::Resource => "resource",
+            ClientRefreshQueriesItemReadsPer::Annotation => "annotation",
+            ClientRefreshQueriesItemReadsPer::Filters => "filters",
+        }
+    }
+}
+
+/// Its answers are kept across a client's lives.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ClientRefreshQueriesItemReadsPersisted;
+
+constant!(ClientRefreshQueriesItemReadsPersisted, bool, true);
+
+/// A reference to the schema of its value.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientRefreshQueriesItemReadsValue {
+    /// The $id of the schema of what its cache holds for a key: a component, or a member within one.
+    #[serde(rename = "$ref")]
+    pub _ref: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum ClientRefreshRefreshItem {
+    On(ClientRefreshRefreshItemOn),
+    Stream(ClientRefreshRefreshItemStream),
+}
+
+impl ClientRefreshRefreshItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["on", "docs"],
+            allowed: Some(&[
+                "on",
+                "when",
+                "reach",
+                "names",
+                "carries",
+                "refetches",
+                "writes",
+                "removes",
+                "docs",
+            ]),
+            fixed: &[
+                (
+                    "when",
+                    &[Literal::Text("enriched"), Literal::Text("unenriched")],
+                ),
+                ("reach", &[Literal::Text("subject"), Literal::Text("held")]),
+            ],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["stream", "docs"],
+            allowed: Some(&["stream", "reach", "refetches", "docs"]),
+            fixed: &[
+                (
+                    "stream",
+                    &[Literal::Text("reopened"), Literal::Text("unreadable")],
+                ),
+                ("reach", &[Literal::Text("subject"), Literal::Text("held")]),
+            ],
+            values: None,
+        }],
+    ];
+}
+
+union!(ClientRefreshRefreshItem, On, Stream);
+
+/// A row for a channel's events.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientRefreshRefreshItemOn {
+    /// The channel's name.
+    pub on: String,
+    /// Which of a channel's two ways of event the row is for.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub when: Option<ClientRefreshRefreshItemOnWhen>,
+    /// Which keys the row reaches: the event's subject, or every key held.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reach: Option<ClientRefreshRefreshItemOnReach>,
+    /// Where in the event a subject row finds the resource and the annotation it names.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub names: Option<ClientRefreshRefreshItemOnNames>,
+    /// A way into the event's payload: the names of the members it passes through and of its own, joined by dots.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub carries: Option<String>,
+    /// The queries asked again.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refetches: Option<Vec<String>>,
+    /// The queries whose new value the event carries.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub writes: Option<Vec<String>>,
+    /// The queries whose entity the event says is gone.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub removes: Option<Vec<String>>,
+    /// What it is, in prose.
+    pub docs: String,
+}
+
+impl ClientRefreshRefreshItemOn {
+    /// The `ClientRefreshRefreshItemOn` that states these and nothing else.
+    pub fn new(on: impl Into<String>, docs: impl Into<String>) -> Self {
+        Self {
+            on: on.into(),
+            when: None,
+            reach: None,
+            names: None,
+            carries: None,
+            refetches: None,
+            writes: None,
+            removes: None,
+            docs: docs.into(),
+        }
+    }
+}
+
+/// Where in the event a subject row finds the resource and the annotation it names.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientRefreshRefreshItemOnNames {
+    /// A way into the event's payload: the names of the members it passes through and of its own, joined by dots.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource: Option<String>,
+    /// A way into the event's payload: the names of the members it passes through and of its own, joined by dots.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub annotation: Option<String>,
+}
+
+/// Which keys the row reaches: the event's subject, or every key held.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientRefreshRefreshItemOnReach {
+    #[serde(rename = "subject")]
+    Subject,
+    #[serde(rename = "held")]
+    Held,
+}
+
+impl ClientRefreshRefreshItemOnReach {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientRefreshRefreshItemOnReach::Subject => "subject",
+            ClientRefreshRefreshItemOnReach::Held => "held",
+        }
+    }
+}
+
+/// Which of a channel's two ways of event the row is for.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientRefreshRefreshItemOnWhen {
+    #[serde(rename = "enriched")]
+    Enriched,
+    #[serde(rename = "unenriched")]
+    Unenriched,
+}
+
+impl ClientRefreshRefreshItemOnWhen {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientRefreshRefreshItemOnWhen::Enriched => "enriched",
+            ClientRefreshRefreshItemOnWhen::Unenriched => "unenriched",
+        }
+    }
+}
+
+/// A row for what befalls the stream itself.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientRefreshRefreshItemStream {
+    /// `reopened`, the stream open again after a drop; or `unreadable`, an event that cannot be read.
+    pub stream: ClientRefreshRefreshItemStreamStream,
+    /// Which keys the row reaches: the event's subject, or every key held.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reach: Option<ClientRefreshRefreshItemStreamReach>,
+    /// The queries asked again.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refetches: Option<Vec<String>>,
+    /// What it is, in prose.
+    pub docs: String,
+}
+
+impl ClientRefreshRefreshItemStream {
+    /// The `ClientRefreshRefreshItemStream` that states these and nothing else.
+    pub fn new(stream: ClientRefreshRefreshItemStreamStream, docs: impl Into<String>) -> Self {
+        Self {
+            stream,
+            reach: None,
+            refetches: None,
+            docs: docs.into(),
+        }
+    }
+}
+
+/// Which keys the row reaches: the event's subject, or every key held.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientRefreshRefreshItemStreamReach {
+    #[serde(rename = "subject")]
+    Subject,
+    #[serde(rename = "held")]
+    Held,
+}
+
+impl ClientRefreshRefreshItemStreamReach {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientRefreshRefreshItemStreamReach::Subject => "subject",
+            ClientRefreshRefreshItemStreamReach::Held => "held",
+        }
+    }
+}
+
+/// `reopened`, the stream open again after a drop; or `unreadable`, an event that cannot be read.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ClientRefreshRefreshItemStreamStream {
+    #[serde(rename = "reopened")]
+    Reopened,
+    #[serde(rename = "unreadable")]
+    Unreadable,
+}
+
+impl ClientRefreshRefreshItemStreamStream {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ClientRefreshRefreshItemStreamStream::Reopened => "reopened",
+            ClientRefreshRefreshItemStreamStream::Unreadable => "unreadable",
+        }
+    }
+}
+
 /// The form a service account that holds a client secret posts to its issuer's token endpoint for a client-credentials grant: its client id and secret in the body (RFC 6749 §2.3.1). An account that holds a key proves itself by the client assertion of client-assertion-cases.json instead.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct ClientSecretForm {
@@ -3606,6 +4380,93 @@ impl ClientSecretFormGrantType {
             ClientSecretFormGrantType::ClientCredentials => "client_credentials",
         }
     }
+}
+
+/// client/testing.json: the testing kit every SDK ships.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientTesting {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// What a faulty transport does to a request.
+    #[serde(rename = "faultActions")]
+    pub fault_actions: Vec<ClientTestingFaultActionsItem>,
+    #[serde(rename = "delayMs")]
+    pub delay_ms: ClientTestingDelayMs,
+    #[serde(rename = "scheduleLength")]
+    pub schedule_length: ClientTestingScheduleLength,
+    pub slack: ClientTestingSlack,
+    #[serde(rename = "deliveryOps")]
+    pub delivery_ops: ClientTestingDeliveryOps,
+    /// The kit's records.
+    pub records: Vec<ClientTestingRecordsItem>,
+}
+
+schema!(ClientTesting);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientTestingDelayMs {
+    /// What it is, in prose.
+    pub docs: String,
+    /// The fewest milliseconds a drawn delay is.
+    pub minimum: u64,
+    /// The most milliseconds a drawn delay is.
+    pub maximum: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientTestingDeliveryOps {
+    /// What it is, in prose.
+    pub docs: String,
+    /// The steps an interleaving is of.
+    pub ops: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientTestingFaultActionsItem {
+    /// The fault's type's name.
+    pub name: String,
+    /// The word that names the fault in a request log.
+    pub kind: String,
+    /// What it is, in prose.
+    pub docs: String,
+    /// The whole numbers the fault carries, by name.
+    pub holds: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientTestingRecordsItem {
+    /// The record's type's name.
+    pub name: String,
+    /// What it is, in prose.
+    pub docs: String,
+    /// The record's members, named as surface.json names members.
+    pub members: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientTestingScheduleLength {
+    /// What it is, in prose.
+    pub docs: String,
+    /// The fewest faults a drawn schedule is of.
+    pub minimum: u64,
+    /// The most faults a drawn schedule is of.
+    pub maximum: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientTestingSlack {
+    /// What it is, in prose.
+    pub docs: String,
+    /// How many times its reckoned bound a case is given.
+    pub times: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -5487,6 +6348,213 @@ pub struct ContextualSummaryResponseRelevantFields {
     pub entity_types: Vec<String>,
 }
 
+/// control/cli.json: every option of the launcher commands the control API covers, and what it is in the API.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlCli {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Each command, by its name.
+    pub commands: std::collections::BTreeMap<String, ControlCliCommandsValue>,
+}
+
+schema!(ControlCli);
+
+/// A command.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlCliCommandsValue {
+    /// The Go function in cli/internal/launcher whose switch reads the command's options.
+    pub parser: String,
+    /// The method's name.
+    pub method: String,
+    /// The command's operands, which no switch reads by name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub positionals: Option<Vec<ControlCliCommandsValuePositionalsItem>>,
+    /// Each option, by its flag.
+    pub flags: std::collections::BTreeMap<String, ControlCliCommandsValueFlagsValue>,
+}
+
+impl ControlCliCommandsValue {
+    /// The `ControlCliCommandsValue` that states these and nothing else.
+    pub fn new(
+        parser: impl Into<String>,
+        method: impl Into<String>,
+        flags: std::collections::BTreeMap<String, ControlCliCommandsValueFlagsValue>,
+    ) -> Self {
+        Self {
+            parser: parser.into(),
+            method: method.into(),
+            positionals: None,
+            flags,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum ControlCliCommandsValueFlagsValue {
+    Fields(ControlCliCommandsValueFlagsValueFields),
+    Method(ControlCliCommandsValueFlagsValueMethod),
+    CliOnly(ControlCliCommandsValueFlagsValueCliOnly),
+}
+
+impl ControlCliCommandsValueFlagsValue {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["fields"],
+            allowed: Some(&["fields", "notes"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["method"],
+            allowed: Some(&["method"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["cliOnly"],
+            allowed: Some(&["cliOnly"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(ControlCliCommandsValueFlagsValue, Fields, Method, CliOnly);
+
+/// An option the API has no place for.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlCliCommandsValueFlagsValueCliOnly {
+    /// Why it has no place in the API.
+    #[serde(rename = "cliOnly")]
+    pub cli_only: String,
+}
+
+/// An option that becomes params fields.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlCliCommandsValueFlagsValueFields {
+    /// The params fields it becomes, each `<method>.<field path>`.
+    pub fields: Vec<String>,
+    /// What else a reader of the row must know.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+}
+
+impl ControlCliCommandsValueFlagsValueFields {
+    /// The `ControlCliCommandsValueFlagsValueFields` that states these and nothing else.
+    pub fn new(fields: Vec<String>) -> Self {
+        Self {
+            fields,
+            notes: None,
+        }
+    }
+}
+
+/// An option that selects a method.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlCliCommandsValueFlagsValueMethod {
+    /// The method's name.
+    pub method: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum ControlCliCommandsValuePositionalsItem {
+    Fields(ControlCliCommandsValuePositionalsItemFields),
+    CliOnly(ControlCliCommandsValuePositionalsItemCliOnly),
+}
+
+impl ControlCliCommandsValuePositionalsItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["name", "fields"],
+            allowed: Some(&["name", "fields"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["name", "cliOnly"],
+            allowed: Some(&["name", "cliOnly"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(ControlCliCommandsValuePositionalsItem, Fields, CliOnly);
+
+/// An operand the API has no place for.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlCliCommandsValuePositionalsItemCliOnly {
+    /// The operand, as its usage writes it.
+    pub name: String,
+    /// Why it has no place in the API.
+    #[serde(rename = "cliOnly")]
+    pub cli_only: String,
+}
+
+/// An operand that becomes params fields.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlCliCommandsValuePositionalsItemFields {
+    /// The operand, as its usage writes it.
+    pub name: String,
+    /// The params fields it becomes, each `<method>.<field path>`.
+    pub fields: Vec<String>,
+}
+
+/// control/rpc-codes.json: the JSON-RPC error codes the control API answers with.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlRpcCodes {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    pub codes: Vec<ControlRpcCodesCodesItem>,
+}
+
+schema!(ControlRpcCodes);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ControlRpcCodesCodesItem {
+    /// The JSON-RPC error's code.
+    pub number: i64,
+    /// Its name, as every SDK names it.
+    pub name: String,
+    /// When the launcher answers with it, in prose, by the contract's rules.
+    pub docs: String,
+    /// The data every answer under it carries, whatever failed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data: Option<ErrorData>,
+}
+
+impl ControlRpcCodesCodesItem {
+    /// The `ControlRpcCodesCodesItem` that states these and nothing else.
+    pub fn new(number: i64, name: impl Into<String>, docs: impl Into<String>) -> Self {
+        Self {
+            number,
+            name: name.into(),
+            docs: docs.into(),
+            data: None,
+        }
+    }
+}
+
 /// Which side of the control API sends a message: the client, whose notifications arrive on the launcher's stdin, or the launcher, whose notifications leave on its stdout (LAUNCHER-CONTROL.md F1).
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -6437,6 +7505,34 @@ pub struct EngineLimits {
 
 schema!(EngineLimits);
 
+/// One of the knowledge base's engines as a client joins it: the entry `browse:engines-result` names, with the inference limits the service holding its credentials reported. A client asks each such service for its limits; an engine no service reported has no `limits`.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EngineWithLimits {
+    pub engine: Engine,
+    /// The jobs the knowledge base's Inference document has this engine used for, as a claim names them. Absent for an engine only Librarian actors ask.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub jobs: Option<Vec<JobFilter>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limits: Option<InferenceLimits>,
+}
+
+impl EngineWithLimits {
+    /// The `EngineWithLimits` that states these and nothing else.
+    pub fn new(engine: Engine) -> Self {
+        Self {
+            engine,
+            jobs: None,
+            limits: None,
+        }
+    }
+}
+
+schema!(EngineWithLimits);
+
+/// The knowledge base's engines, in the order `browse:engines-result` names them, each with the limits reported for it.
+pub type EnginesWithLimits = Vec<EngineWithLimits>;
+
 /// Wire format for persisted events delivered over the bus SSE stream (GET /bus/subscribe). Extends StoredEventResponse with optional enrichment fields the EventStore populates from the materialized view at publish time (persistence → view → enrich → notification). Subscribers read the enrichment fields directly to update local caches without an additional fetch.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub struct EnrichedResourceEvent {
@@ -6589,6 +7685,350 @@ impl ErrorResponse {
 }
 
 schema!(ErrorResponse);
+
+/// errors/codes.json: the error codes a Xynolog client reports, in one vocabulary for each kind of failure.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodes {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// Why a bus request did not resolve.
+    #[serde(rename = "busRequest")]
+    pub bus_request: ErrorsCodesBusRequest,
+    /// The transport-neutral failure vocabulary.
+    pub transport: ErrorsCodesTransport,
+    /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    pub job: ErrorsCodesJob,
+    /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    pub session: ErrorsCodesSession,
+    /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    #[serde(rename = "signIn")]
+    pub sign_in: ErrorsCodesSignIn,
+    /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    #[serde(rename = "kbIdentity")]
+    pub kb_identity: ErrorsCodesKbIdentity,
+    /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+    #[serde(rename = "spanRefusal")]
+    pub span_refusal: ErrorsCodesSpanRefusal,
+    /// Why a request of the launcher's control API failed: each code, the JSON-RPC code an answer carries it under, and whether a request that fails with it is retryable.
+    pub control: ErrorsCodesControl,
+}
+
+schema!(ErrorsCodes);
+
+/// Why a bus request did not resolve.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesBusRequest {
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    /// The code, as every SDK names it.
+    #[serde(rename = "unrecognizedFailure")]
+    pub unrecognized_failure: String,
+    /// Each code, and the wire's `CommandError.code` it restates, where it restates one.
+    pub codes: Vec<ErrorsCodesBusRequestCodesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesBusRequestCodesItem {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wire: Option<ErrorsCodesBusRequestCodesItemWire>,
+}
+
+impl ErrorsCodesBusRequestCodesItem {
+    /// The `ErrorsCodesBusRequestCodesItem` that states these and nothing else.
+    pub fn new(code: impl Into<String>, docs: impl Into<String>) -> Self {
+        Self {
+            code: code.into(),
+            docs: docs.into(),
+            wire: None,
+        }
+    }
+}
+
+/// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ErrorsCodesBusRequestCodesItemWire {
+    #[serde(rename = "peer-unavailable")]
+    PeerUnavailable,
+    #[serde(rename = "not-found")]
+    NotFound,
+    #[serde(rename = "unauthorized")]
+    Unauthorized,
+    #[serde(rename = "none-pending")]
+    NonePending,
+}
+
+impl ErrorsCodesBusRequestCodesItemWire {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ErrorsCodesBusRequestCodesItemWire::PeerUnavailable => "peer-unavailable",
+            ErrorsCodesBusRequestCodesItemWire::NotFound => "not-found",
+            ErrorsCodesBusRequestCodesItemWire::Unauthorized => "unauthorized",
+            ErrorsCodesBusRequestCodesItemWire::NonePending => "none-pending",
+        }
+    }
+}
+
+/// Why a request of the launcher's control API failed: each code, the JSON-RPC code an answer carries it under, and whether a request that fails with it is retryable.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesControl {
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    pub codes: Vec<ErrorsCodesControlCodesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesControlCodesItem {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    /// The JSON-RPC error's code an answer carries it under: a number of control/rpc-codes.json.
+    pub rpc: i64,
+    /// Whether the same request can succeed sent again unchanged, once something outside it changes (contract/LAUNCHER-CONTROL.md E3): what ErrorData's retryable says of it when it is answered under its rpc. Under a code of control/rpc-codes.json that states its data, the data is that row's.
+    pub retryable: bool,
+}
+
+/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesJob {
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    pub codes: Vec<ErrorsCodesJobCodesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesJobCodesItem {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+}
+
+/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesKbIdentity {
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    pub codes: Vec<ErrorsCodesKbIdentityCodesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesKbIdentityCodesItem {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+}
+
+/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesSession {
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    pub codes: Vec<ErrorsCodesSessionCodesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesSessionCodesItem {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+}
+
+/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesSignIn {
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    pub codes: Vec<ErrorsCodesSignInCodesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesSignInCodesItem {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+}
+
+/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesSpanRefusal {
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    pub codes: Vec<ErrorsCodesSpanRefusalCodesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesSpanRefusalCodesItem {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+}
+
+/// The transport-neutral failure vocabulary.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesTransport {
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    /// The code, as every SDK names it.
+    pub unclassified: String,
+    /// Each code, and the HTTP statuses it is read from.
+    pub codes: Vec<ErrorsCodesTransportCodesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum ErrorsCodesTransportCodesItem {
+    Status(ErrorsCodesTransportCodesItemStatus),
+    StatusFrom(ErrorsCodesTransportCodesItemStatusFrom),
+    NoStatus(ErrorsCodesTransportCodesItemNoStatus),
+}
+
+impl ErrorsCodesTransportCodesItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code", "docs", "status"],
+            allowed: Some(&["code", "docs", "status", "limitRefusals"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code", "docs", "statusFrom"],
+            allowed: Some(&["code", "docs", "statusFrom"]),
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Object,
+            required: &["code", "docs"],
+            allowed: Some(&["code", "docs"]),
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(ErrorsCodesTransportCodesItem, Status, StatusFrom, NoStatus);
+
+/// A code no HTTP status is read as.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesTransportCodesItemNoStatus {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+}
+
+/// A code read from one HTTP status.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesTransportCodesItemStatus {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    pub status: HttpStatus,
+    /// The limit refusals read as this code and not as the code of their status: each a status and the LimitRefusal `code` it carries, as a row of gateway/messages.json states them.
+    #[serde(rename = "limitRefusals")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limit_refusals: Option<Vec<ErrorsCodesTransportCodesItemStatusLimitRefusalsItem>>,
+}
+
+impl ErrorsCodesTransportCodesItemStatus {
+    /// The `ErrorsCodesTransportCodesItemStatus` that states these and nothing else.
+    pub fn new(code: impl Into<String>, docs: impl Into<String>, status: HttpStatus) -> Self {
+        Self {
+            code: code.into(),
+            docs: docs.into(),
+            status,
+            limit_refusals: None,
+        }
+    }
+}
+
+/// A code read from every HTTP status at or above one.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesTransportCodesItemStatusFrom {
+    /// The code, as every SDK names it.
+    pub code: String,
+    /// Its documentation, in prose: what a generated type or member says of it.
+    pub docs: String,
+    #[serde(rename = "statusFrom")]
+    pub status_from: HttpStatus,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorsCodesTransportCodesItemStatusLimitRefusalsItem {
+    pub status: HttpStatus,
+    /// `streams`: the principal already holds as many streams as its coefficient of `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the principal's emits have used its bucket, whose rate and burst are its coefficient of `x-xynolog-limits.emitsPerPrincipal`, per gateway process. `unanswered-requests`: the client already awaits as many replies as `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway holds as many queued bytes as it can. `refusal-rate`: the request's credential was refused, and the requests its holder has had refused have used their allowance; it answers only a request whose token has already failed verification, so it says what a 401 says, and a client that can renew its token renews it and sends the request again rather than waiting (contract/TRANSPORT-CONTRACT.md § A refused credential).
+    pub code: ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode,
+}
+
+/// `streams`: the principal already holds as many streams as its coefficient of `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the principal's emits have used its bucket, whose rate and burst are its coefficient of `x-xynolog-limits.emitsPerPrincipal`, per gateway process. `unanswered-requests`: the client already awaits as many replies as `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway holds as many queued bytes as it can. `refusal-rate`: the request's credential was refused, and the requests its holder has had refused have used their allowance; it answers only a request whose token has already failed verification, so it says what a 401 says, and a client that can renew its token renews it and sends the request again rather than waiting (contract/TRANSPORT-CONTRACT.md § A refused credential).
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode {
+    #[serde(rename = "streams")]
+    Streams,
+    #[serde(rename = "emit-rate")]
+    EmitRate,
+    #[serde(rename = "unanswered-requests")]
+    UnansweredRequests,
+    #[serde(rename = "capacity")]
+    Capacity,
+    #[serde(rename = "refusal-rate")]
+    RefusalRate,
+}
+
+impl ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode::Streams => "streams",
+            ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode::EmitRate => "emit-rate",
+            ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode::UnansweredRequests => {
+                "unanswered-requests"
+            }
+            ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode::Capacity => "capacity",
+            ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode::RefusalRate => "refusal-rate",
+        }
+    }
+}
 
 /// Metadata added at persistence time. Part of every StoredEvent. Integrity is provided by git at the commit level (when gitSync is enabled), not by in-event metadata fields.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -8872,6 +10312,59 @@ impl HttpEndpointProtocol {
 
 /// An HTTP response's status code, as the tables state one. No API states it, so it is no component.
 pub type HttpStatus = u16;
+
+/// identifiers/kinds.json: the kinds of id the protocol names, the properties that carry each, and the properties named like an id that carry something else.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentifiersKinds {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    pub kinds: Vec<IdentifiersKindsKindsItem>,
+    pub others: Vec<IdentifiersKindsOthersItem>,
+}
+
+schema!(IdentifiersKinds);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentifiersKindsKindsItem {
+    /// The component under components/schemas that states the kind, by name.
+    pub schema: String,
+    /// The property names that always carry the kind.
+    pub properties: Vec<String>,
+    /// Strings the kind's rule takes.
+    pub accepts: Vec<IdentifiersKindsKindsItemAcceptsItem>,
+    /// Strings the kind's rule does not take.
+    pub refuses: Vec<IdentifiersKindsKindsItemRefusesItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentifiersKindsKindsItemAcceptsItem {
+    /// A string the kind's rule is asked about.
+    pub id: String,
+    /// What the case shows, in prose.
+    pub why: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentifiersKindsKindsItemRefusesItem {
+    /// A string the kind's rule is asked about.
+    pub id: String,
+    /// What the case shows, in prose.
+    pub why: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdentifiersKindsOthersItem {
+    /// A property named like an id.
+    pub property: String,
+    /// What it carries instead.
+    pub docs: String,
+}
 
 /// An account in a knowledge base's launcher-managed identity realm. Passwords and tokens are never included.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -13904,6 +15397,51 @@ pub struct MediaTokenResponse {
 
 schema!(MediaTokenResponse);
 
+/// media-types/registry.json: the media types a knowledge base admits, and what the system can do with each.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct MediaTypesRegistry {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The viewers a reader mounts.
+    pub render: Vec<String>,
+    /// The annotation models.
+    pub anchoring: Vec<String>,
+    /// Where a type's text comes from.
+    #[serde(rename = "textSource")]
+    pub text_source: Vec<String>,
+    /// Each extension another stands for, by the extension that stands for it.
+    #[serde(rename = "extensionAliases")]
+    pub extension_aliases: std::collections::BTreeMap<String, String>,
+    /// One row for each member of SupportedMediaType.
+    #[serde(rename = "mediaTypes")]
+    pub media_types: Vec<MediaTypesRegistryMediaTypesItem>,
+}
+
+schema!(MediaTypesRegistry);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct MediaTypesRegistryMediaTypesItem {
+    #[serde(rename = "mediaType")]
+    pub media_type: SupportedMediaType,
+    /// A file extension, with its dot.
+    pub extension: String,
+    /// The name a person reads.
+    pub label: String,
+    /// The viewer a reader mounts, one of `render`.
+    pub render: String,
+    /// The annotation model, one of `anchoring`.
+    pub anchoring: String,
+    /// Where its text comes from, one of `textSource`.
+    #[serde(rename = "textSource")]
+    pub text_source: String,
+    pub authorable: bool,
+    pub uploadable: bool,
+    pub generatable: bool,
+}
+
 /// A graph held in the memory of the one process that is given it: for a test. It cannot be shared between processes, so a service that writes the graph for another to read, or reads what another wrote, refuses it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -14612,6 +16150,37 @@ pub struct PrincipalProfiledPayload {
 
 schema!(PrincipalProfiledPayload);
 
+/// principals/roles.json: the claims a token carries for the gateway to read its holder's roles and kind by, and each role.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PrincipalsRoles {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The claim whose value is a flat array of the account's roles.
+    #[serde(rename = "rolesClaim")]
+    pub roles_claim: String,
+    /// Each role the gateway reads.
+    pub roles: Vec<PrincipalsRolesRolesItem>,
+    /// The claim that says what kind of account the token's is.
+    #[serde(rename = "kindClaim")]
+    pub kind_claim: String,
+    /// What the kind claim holds on an agent's account. A person's account carries any other value, or none.
+    #[serde(rename = "agentKind")]
+    pub agent_kind: String,
+}
+
+schema!(PrincipalsRoles);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PrincipalsRolesRolesItem {
+    /// The role, as the token carries it.
+    pub role: String,
+    /// What it grants, in prose.
+    pub docs: String,
+}
+
 /// What a principal last said it is called, and when: the profile a `principal:profiled` event gives.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -14811,6 +16380,82 @@ pub struct Provider {
 }
 
 schema!(Provider);
+
+/// What uploading a resource is handed: its bytes, what the upload states of them, and, for a clone, its token. Each member is as a caller holds it; ResourceUpload is the multipart body the content transport sends of it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PutBinaryRequest {
+    /// Human-readable resource name
+    pub name: String,
+    /// The bytes, opened for each sending of the upload: the multipart body's `file` part each time.
+    pub file: ByteSource,
+    /// Media type of the content (e.g. text/plain, text/markdown, image/png)
+    pub format: String,
+    /// Where the content lives (file://... for local). Required — the client names the location; the server does not derive one.
+    #[serde(rename = "storageUri")]
+    pub storage_uri: String,
+    /// ISO 639-1 language code
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+    #[serde(rename = "entityTypes")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub entity_types: Option<Vec<String>>,
+    #[serde(rename = "sourceAnnotationId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_annotation_id: Option<AnnotationId>,
+    #[serde(rename = "sourceResourceId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_resource_id: Option<ResourceId>,
+    /// For AI-generated resources: the prompt that drove generation
+    #[serde(rename = "generationPrompt")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generation_prompt: Option<String>,
+    /// The Software peer that produced the content, when software did. Its identity must be the emitter's own — the knowledge base refuses a generator naming anyone else, and supplies it from the verified emitter when omitted. `creator` and `wasAttributedTo` are never sent; the knowledge base derives them from the emitter and the cited job.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generator: Option<OneOrMoreAgents>,
+    #[serde(rename = "jobId")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<JobId>,
+    #[serde(rename = "isDraft")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub is_draft: Option<bool>,
+    /// A clone token from `yield:clone-token-requested`. With it, the resource is created as a clone of the token's source, inheriting its entity types; `language`, `entityTypes` and the generation fields are then not read.
+    #[serde(rename = "cloneToken")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clone_token: Option<String>,
+    #[serde(rename = "archiveOriginal")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub archive_original: Option<bool>,
+}
+
+impl PutBinaryRequest {
+    /// The `PutBinaryRequest` that states these and nothing else.
+    pub fn new(
+        name: impl Into<String>,
+        file: ByteSource,
+        format: impl Into<String>,
+        storage_uri: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            file,
+            format: format.into(),
+            storage_uri: storage_uri.into(),
+            language: None,
+            entity_types: None,
+            source_annotation_id: None,
+            source_resource_id: None,
+            generation_prompt: None,
+            generator: None,
+            job_id: None,
+            is_draft: None,
+            clone_token: None,
+            archive_original: None,
+        }
+    }
+}
+
+schema!(PutBinaryRequest);
 
 /// A vector index kept in a Qdrant server, asked over its REST API with a token.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -16006,6 +17651,19 @@ pub struct ResourceMovedPayload {
 
 schema!(ResourceMovedPayload);
 
+/// A resource's bytes as the content transport answers them, whole, with the media type it answered with.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResourceRepresentation {
+    /// The bytes, whole.
+    pub data: Binary,
+    /// The media type the content transport answered with.
+    #[serde(rename = "contentType")]
+    pub content_type: String,
+}
+
+schema!(ResourceRepresentation);
+
 /// What a text search for resources is told beside its text: MatchResourcesRequest's other members. client/surface.json's `match.resources` cases state what is sent for one left out.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -16697,6 +18355,264 @@ impl ScoredResource {
 }
 
 schema!(ScoredResource);
+
+/// sdk-telemetry/telemetry.json: the telemetry a Xynolog SDK's transports export over OTLP: its spans and metrics, the transport each comes from, and the attributes each carries.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SdkTelemetryTelemetry {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    pub spans: Vec<SdkTelemetryTelemetrySpansItem>,
+    pub metrics: Vec<SdkTelemetryTelemetryMetricsItem>,
+}
+
+schema!(SdkTelemetryTelemetry);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SdkTelemetryTelemetryMetricsItem {
+    /// The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.
+    pub name: String,
+    /// The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads.
+    pub transport: SdkTelemetryTelemetryMetricsItemTransport,
+    /// The metric's instrument.
+    pub instrument: SdkTelemetryTelemetryMetricsItemInstrument,
+    /// What the row says.
+    pub meaning: String,
+    /// The attributes the span carries.
+    pub attributes: Vec<SdkTelemetryTelemetryMetricsItemAttributesItem>,
+}
+
+/// An attribute a row carries.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SdkTelemetryTelemetryMetricsItemAttributesItem {
+    /// The attribute's key.
+    pub key: String,
+    /// When alone the attribute is carried: a row's attribute without it is carried every time.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub only: Option<String>,
+    /// The only values it carries, each of the type it is carried as: a string or a boolean.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub values: Option<Vec<SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem>>,
+}
+
+impl SdkTelemetryTelemetryMetricsItemAttributesItem {
+    /// The `SdkTelemetryTelemetryMetricsItemAttributesItem` that states these and nothing else.
+    pub fn new(key: impl Into<String>) -> Self {
+        Self {
+            key: key.into(),
+            only: None,
+            values: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem {
+    Text(String),
+    Boolean(bool),
+}
+
+impl SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Boolean,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem,
+    Text,
+    Boolean,
+);
+
+/// The metric's instrument.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum SdkTelemetryTelemetryMetricsItemInstrument {
+    #[serde(rename = "counter")]
+    Counter,
+    #[serde(rename = "up-down counter")]
+    UpDownCounter,
+    #[serde(rename = "gauge")]
+    Gauge,
+    #[serde(rename = "histogram")]
+    Histogram,
+}
+
+impl SdkTelemetryTelemetryMetricsItemInstrument {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            SdkTelemetryTelemetryMetricsItemInstrument::Counter => "counter",
+            SdkTelemetryTelemetryMetricsItemInstrument::UpDownCounter => "up-down counter",
+            SdkTelemetryTelemetryMetricsItemInstrument::Gauge => "gauge",
+            SdkTelemetryTelemetryMetricsItemInstrument::Histogram => "histogram",
+        }
+    }
+}
+
+/// The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum SdkTelemetryTelemetryMetricsItemTransport {
+    #[serde(rename = "bus")]
+    Bus,
+    #[serde(rename = "content")]
+    Content,
+}
+
+impl SdkTelemetryTelemetryMetricsItemTransport {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            SdkTelemetryTelemetryMetricsItemTransport::Bus => "bus",
+            SdkTelemetryTelemetryMetricsItemTransport::Content => "content",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SdkTelemetryTelemetrySpansItem {
+    /// The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.
+    pub name: String,
+    /// The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads.
+    pub transport: SdkTelemetryTelemetrySpansItemTransport,
+    /// The span's kind, in OTLP's words.
+    pub kind: SdkTelemetryTelemetrySpansItemKind,
+    /// What the row says.
+    pub meaning: String,
+    /// The attributes the span carries.
+    pub attributes: Vec<SdkTelemetryTelemetrySpansItemAttributesItem>,
+}
+
+/// An attribute a row carries.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SdkTelemetryTelemetrySpansItemAttributesItem {
+    /// The attribute's key.
+    pub key: String,
+    /// When alone the attribute is carried: a row's attribute without it is carried every time.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub only: Option<String>,
+    /// The only values it carries, each of the type it is carried as: a string or a boolean.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub values: Option<Vec<SdkTelemetryTelemetrySpansItemAttributesItemValuesItem>>,
+}
+
+impl SdkTelemetryTelemetrySpansItemAttributesItem {
+    /// The `SdkTelemetryTelemetrySpansItemAttributesItem` that states these and nothing else.
+    pub fn new(key: impl Into<String>) -> Self {
+        Self {
+            key: key.into(),
+            only: None,
+            values: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize)]
+#[serde(untagged)]
+pub enum SdkTelemetryTelemetrySpansItemAttributesItemValuesItem {
+    Text(String),
+    Boolean(bool),
+}
+
+impl SdkTelemetryTelemetrySpansItemAttributesItemValuesItem {
+    /// What each of its members admits, in the order of its variants.
+    pub const MEMBERS: &'static [&'static [Signature]] = &[
+        &[Signature {
+            kind: Kind::Text,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+        &[Signature {
+            kind: Kind::Boolean,
+            required: &[],
+            allowed: None,
+            fixed: &[],
+            values: None,
+        }],
+    ];
+}
+
+union!(
+    SdkTelemetryTelemetrySpansItemAttributesItemValuesItem,
+    Text,
+    Boolean,
+);
+
+/// The span's kind, in OTLP's words.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum SdkTelemetryTelemetrySpansItemKind {
+    #[serde(rename = "client")]
+    Client,
+    #[serde(rename = "consumer")]
+    Consumer,
+    #[serde(rename = "internal")]
+    Internal,
+    #[serde(rename = "producer")]
+    Producer,
+    #[serde(rename = "server")]
+    Server,
+}
+
+impl SdkTelemetryTelemetrySpansItemKind {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            SdkTelemetryTelemetrySpansItemKind::Client => "client",
+            SdkTelemetryTelemetrySpansItemKind::Consumer => "consumer",
+            SdkTelemetryTelemetrySpansItemKind::Internal => "internal",
+            SdkTelemetryTelemetrySpansItemKind::Producer => "producer",
+            SdkTelemetryTelemetrySpansItemKind::Server => "server",
+        }
+    }
+}
+
+/// The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
+)]
+pub enum SdkTelemetryTelemetrySpansItemTransport {
+    #[serde(rename = "bus")]
+    Bus,
+    #[serde(rename = "content")]
+    Content,
+}
+
+impl SdkTelemetryTelemetrySpansItemTransport {
+    /// The value as the wire spells it.
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            SdkTelemetryTelemetrySpansItemTransport::Bus => "bus",
+            SdkTelemetryTelemetrySpansItemTransport::Content => "content",
+        }
+    }
+}
 
 /// A secret the document names and does not hold. The launcher hands it to the service that needs it, from where the reference says it is.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -18043,6 +19959,42 @@ pub struct SessionLeftEvent {
 
 schema!(SessionLeftEvent);
 
+/// session/oauth.json: the clients a Xynolog client signs in to the issuer as, and the scope every sign-in asks for.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SessionOauth {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// The clients the realm registers.
+    pub clients: Vec<SessionOauthClientsItem>,
+    /// What every sign-in asks for.
+    pub scopes: SessionOauthScopes,
+}
+
+schema!(SessionOauth);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SessionOauthClientsItem {
+    /// What the client is named by in every SDK.
+    pub name: String,
+    /// The client id the realm registers.
+    pub id: String,
+    /// Its documentation, in prose.
+    pub docs: String,
+}
+
+/// What every sign-in asks for.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SessionOauthScopes {
+    /// The scopes, separated by a space.
+    pub value: String,
+    /// Its documentation, in prose.
+    pub docs: String,
+}
+
 /// valid: the stack's gateway accepts the stored token. expired: it refuses it (a refresh, or xynolog login, renews it). unverified: the stack did not answer. none: nothing is stored.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
@@ -18410,6 +20362,65 @@ impl SignInOutcome {
 }
 
 schema!(SignInOutcome);
+
+/// sign-in-store/owner-only.json: how a writer keeps a directory and a file to its owner.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SignInStoreOwnerOnly {
+    /// The rule the table states, in prose.
+    #[serde(rename = "$comment")]
+    pub _comment: String,
+    /// A mode, on a system that has modes.
+    #[serde(rename = "directoryMode")]
+    pub directory_mode: SignInStoreOwnerOnlyDirectoryMode,
+    /// A mode, on a system that has modes.
+    #[serde(rename = "fileMode")]
+    pub file_mode: SignInStoreOwnerOnlyFileMode,
+    /// An access list, on Windows.
+    #[serde(rename = "directoryAccessList")]
+    pub directory_access_list: SignInStoreOwnerOnlyDirectoryAccessList,
+    /// An access list, on Windows.
+    #[serde(rename = "fileAccessList")]
+    pub file_access_list: SignInStoreOwnerOnlyFileAccessList,
+}
+
+schema!(SignInStoreOwnerOnly);
+
+/// An access list, on Windows.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SignInStoreOwnerOnlyDirectoryAccessList {
+    /// The access list in SDDL, with `{owner}` where the owner's SID goes.
+    pub value: String,
+    pub docs: String,
+}
+
+/// A mode, on a system that has modes.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SignInStoreOwnerOnlyDirectoryMode {
+    /// The mode, in octal.
+    pub value: String,
+    pub docs: String,
+}
+
+/// An access list, on Windows.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SignInStoreOwnerOnlyFileAccessList {
+    /// The access list in SDDL, with `{owner}` where the owner's SID goes.
+    pub value: String,
+    pub docs: String,
+}
+
+/// A mode, on a system that has modes.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SignInStoreOwnerOnlyFileMode {
+    /// The mode, in octal.
+    pub value: String,
+    pub docs: String,
+}
 
 /// What a completed sign-in learned, as a registry is handed it to record: where it was, who the knowledge base there says it is, the tokens, and what the person believed they were signing in to.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]

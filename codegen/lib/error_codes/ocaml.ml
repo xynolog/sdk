@@ -25,7 +25,8 @@ let is_constructor name =
        (String.sub name 1 (String.length name - 1))
 
 (* Each of a vocabulary's constructors is the code Protocol states, and the
-   code reads as it, with [rest] after. *)
+   code reads as it; a text that is no code reads as none; with [rest]
+   after. *)
 let test (module_, values) rest =
   Ocaml_syntax.let_module "Model"
     ("Xynolog.Error_codes." ^ module_)
@@ -57,7 +58,21 @@ let test (module_, values) rest =
                 ];
             ])
           values
-       @ [ rest ]))
+       @ [
+           Ocaml_syntax.apply
+             (Ocaml_syntax.ident "Alcotest.check")
+             [
+               Ocaml_syntax.ident "Alcotest.bool";
+               Ocaml_syntax.string (module_ ^ " of_code of no code");
+               Ocaml_syntax.construct "true";
+               Ocaml_syntax.infix "="
+                 (Ocaml_syntax.apply
+                    (Ocaml_syntax.ident "Model.of_code")
+                    [ Ocaml_syntax.string "" ])
+                 (Ocaml_syntax.construct "None");
+             ];
+           rest;
+         ]))
 
 let files (t : Table.t) =
   let refusals = ref [] in

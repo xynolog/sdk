@@ -26,8 +26,7 @@ from xynolog.errors import XynologError
 from xynolog.http import HttpTransport, Timing
 from xynolog.identifiers import ResourceId
 from xynolog.model import WireModel
-from xynolog.transport import PutBinaryRequest
-from xynolog.types import RetryBudget, TraceCarrier
+from xynolog.types import PutBinaryRequest, RetryBudget, TraceCarrier
 from xynolog.watched import Variable, reached
 
 QUICK: Final = Timing(
