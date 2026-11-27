@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ArchivistLayoutSystemStream
 {
-    [global::Xynolog.Serialization.Wire("tree")] public required global::Xynolog.Types.ArchivistLayoutSystemStreamTree Tree { get; init; }
+    [global::Xynolog.Serialization.Wire("tree")] public required global::Xynolog.Types.ArchivistLayoutEventStreamTree Tree { get; init; }
     [global::Xynolog.Serialization.Wire("path")] public required string Path { get; init; }
 }

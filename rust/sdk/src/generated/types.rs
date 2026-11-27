@@ -1453,35 +1453,11 @@ schema!(ArchivistLayout);
 #[serde(deny_unknown_fields)]
 pub struct ArchivistLayoutAnchoredTextEntry {
     /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-    pub tree: ArchivistLayoutAnchoredTextEntryTree,
+    pub tree: ArchivistLayoutEventStreamTree,
     /// Its path in its tree, `/`-separated.
     pub path: String,
     /// The schema an entry is.
     pub schema: serde_json::Value,
-}
-
-/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ArchivistLayoutAnchoredTextEntryTree {
-    #[serde(rename = "root")]
-    Root,
-    #[serde(rename = "stateHome")]
-    StateHome,
-    #[serde(rename = "anchoredTextDir")]
-    AnchoredTextDir,
-}
-
-impl ArchivistLayoutAnchoredTextEntryTree {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ArchivistLayoutAnchoredTextEntryTree::Root => "root",
-            ArchivistLayoutAnchoredTextEntryTree::StateHome => "stateHome",
-            ArchivistLayoutAnchoredTextEntryTree::AnchoredTextDir => "anchoredTextDir",
-        }
-    }
 }
 
 /// The file holding the stamp the anchored-text store's entries are taken under: the stamp, followed by a newline.
@@ -1489,33 +1465,9 @@ impl ArchivistLayoutAnchoredTextEntryTree {
 #[serde(deny_unknown_fields)]
 pub struct ArchivistLayoutAnchoredTextStamp {
     /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-    pub tree: ArchivistLayoutAnchoredTextStampTree,
+    pub tree: ArchivistLayoutEventStreamTree,
     /// Its path in its tree, `/`-separated.
     pub path: String,
-}
-
-/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ArchivistLayoutAnchoredTextStampTree {
-    #[serde(rename = "root")]
-    Root,
-    #[serde(rename = "stateHome")]
-    StateHome,
-    #[serde(rename = "anchoredTextDir")]
-    AnchoredTextDir,
-}
-
-impl ArchivistLayoutAnchoredTextStampTree {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ArchivistLayoutAnchoredTextStampTree::Root => "root",
-            ArchivistLayoutAnchoredTextStampTree::StateHome => "stateHome",
-            ArchivistLayoutAnchoredTextStampTree::AnchoredTextDir => "anchoredTextDir",
-        }
-    }
 }
 
 /// The files of a stream.
@@ -1572,35 +1524,11 @@ impl ArchivistLayoutEventStreamTree {
 #[serde(deny_unknown_fields)]
 pub struct ArchivistLayoutStorageUriIndex {
     /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-    pub tree: ArchivistLayoutStorageUriIndexTree,
+    pub tree: ArchivistLayoutEventStreamTree,
     /// Its path in its tree, `/`-separated.
     pub path: String,
     /// The schema an entry is.
     pub schema: serde_json::Value,
-}
-
-/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ArchivistLayoutStorageUriIndexTree {
-    #[serde(rename = "root")]
-    Root,
-    #[serde(rename = "stateHome")]
-    StateHome,
-    #[serde(rename = "anchoredTextDir")]
-    AnchoredTextDir,
-}
-
-impl ArchivistLayoutStorageUriIndexTree {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ArchivistLayoutStorageUriIndexTree::Root => "root",
-            ArchivistLayoutStorageUriIndexTree::StateHome => "stateHome",
-            ArchivistLayoutStorageUriIndexTree::AnchoredTextDir => "anchoredTextDir",
-        }
-    }
 }
 
 /// The projections of what the `__system__` stream adds up to, in the state directory.
@@ -1608,7 +1536,7 @@ impl ArchivistLayoutStorageUriIndexTree {
 #[serde(deny_unknown_fields)]
 pub struct ArchivistLayoutSystemProjections {
     /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-    pub tree: ArchivistLayoutSystemProjectionsTree,
+    pub tree: ArchivistLayoutEventStreamTree,
     /// The directory that holds them, in its tree, `/`-separated.
     pub path: String,
     /// Each projection's file.
@@ -1624,62 +1552,14 @@ pub struct ArchivistLayoutSystemProjectionsFilesItem {
     pub schema: serde_json::Value,
 }
 
-/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ArchivistLayoutSystemProjectionsTree {
-    #[serde(rename = "root")]
-    Root,
-    #[serde(rename = "stateHome")]
-    StateHome,
-    #[serde(rename = "anchoredTextDir")]
-    AnchoredTextDir,
-}
-
-impl ArchivistLayoutSystemProjectionsTree {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ArchivistLayoutSystemProjectionsTree::Root => "root",
-            ArchivistLayoutSystemProjectionsTree::StateHome => "stateHome",
-            ArchivistLayoutSystemProjectionsTree::AnchoredTextDir => "anchoredTextDir",
-        }
-    }
-}
-
 /// The knowledge base's own stream, of the events that name no resource. It is not sharded.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArchivistLayoutSystemStream {
     /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-    pub tree: ArchivistLayoutSystemStreamTree,
+    pub tree: ArchivistLayoutEventStreamTree,
     /// Its path in its tree, `/`-separated.
     pub path: String,
-}
-
-/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ArchivistLayoutSystemStreamTree {
-    #[serde(rename = "root")]
-    Root,
-    #[serde(rename = "stateHome")]
-    StateHome,
-    #[serde(rename = "anchoredTextDir")]
-    AnchoredTextDir,
-}
-
-impl ArchivistLayoutSystemStreamTree {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ArchivistLayoutSystemStreamTree::Root => "root",
-            ArchivistLayoutSystemStreamTree::StateHome => "stateHome",
-            ArchivistLayoutSystemStreamTree::AnchoredTextDir => "anchoredTextDir",
-        }
-    }
 }
 
 /// A resource's view, in the state directory.
@@ -1687,35 +1567,11 @@ impl ArchivistLayoutSystemStreamTree {
 #[serde(deny_unknown_fields)]
 pub struct ArchivistLayoutView {
     /// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-    pub tree: ArchivistLayoutViewTree,
+    pub tree: ArchivistLayoutEventStreamTree,
     /// Its path in its tree, `/`-separated.
     pub path: String,
     /// The schema a view is.
     pub schema: serde_json::Value,
-}
-
-/// The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ArchivistLayoutViewTree {
-    #[serde(rename = "root")]
-    Root,
-    #[serde(rename = "stateHome")]
-    StateHome,
-    #[serde(rename = "anchoredTextDir")]
-    AnchoredTextDir,
-}
-
-impl ArchivistLayoutViewTree {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ArchivistLayoutViewTree::Root => "root",
-            ArchivistLayoutViewTree::StateHome => "stateHome",
-            ArchivistLayoutViewTree::AnchoredTextDir => "anchoredTextDir",
-        }
-    }
 }
 
 /// archivist/messages.json: the words of the Archivist's own refusals, and of the messages it logs that a reader relies on.
@@ -1840,7 +1696,7 @@ pub struct ArchivistMessagesRefusalsItem {
     pub operations: Vec<String>,
     /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub code: Option<ArchivistMessagesRefusalsItemCode>,
+    pub code: Option<CommandErrorCode>,
     /// When it is written, and what fills each `{name}` of its text.
     pub situation: String,
     /// The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
@@ -1861,33 +1717,6 @@ impl ArchivistMessagesRefusalsItem {
             code: None,
             situation: situation.into(),
             message: message.into(),
-        }
-    }
-}
-
-/// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ArchivistMessagesRefusalsItemCode {
-    #[serde(rename = "peer-unavailable")]
-    PeerUnavailable,
-    #[serde(rename = "not-found")]
-    NotFound,
-    #[serde(rename = "unauthorized")]
-    Unauthorized,
-    #[serde(rename = "none-pending")]
-    NonePending,
-}
-
-impl ArchivistMessagesRefusalsItemCode {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ArchivistMessagesRefusalsItemCode::PeerUnavailable => "peer-unavailable",
-            ArchivistMessagesRefusalsItemCode::NotFound => "not-found",
-            ArchivistMessagesRefusalsItemCode::Unauthorized => "unauthorized",
-            ArchivistMessagesRefusalsItemCode::NonePending => "none-pending",
         }
     }
 }
@@ -3928,7 +3757,7 @@ pub struct ClientRefreshRefreshItemStream {
     pub stream: ClientRefreshRefreshItemStreamStream,
     /// Which keys the row reaches: the event's subject, or every key held.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub reach: Option<ClientRefreshRefreshItemStreamReach>,
+    pub reach: Option<ClientRefreshRefreshItemOnReach>,
     /// The queries asked again.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub refetches: Option<Vec<String>>,
@@ -3944,27 +3773,6 @@ impl ClientRefreshRefreshItemStream {
             reach: None,
             refetches: None,
             docs: docs.into(),
-        }
-    }
-}
-
-/// Which keys the row reaches: the event's subject, or every key held.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ClientRefreshRefreshItemStreamReach {
-    #[serde(rename = "subject")]
-    Subject,
-    #[serde(rename = "held")]
-    Held,
-}
-
-impl ClientRefreshRefreshItemStreamReach {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ClientRefreshRefreshItemStreamReach::Subject => "subject",
-            ClientRefreshRefreshItemStreamReach::Held => "held",
         }
     }
 }
@@ -4308,7 +4116,7 @@ pub struct ConformanceCase {
     pub source: String,
     /// The signal planes the case runs on. Absent, it runs on both.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub planes: Option<Vec<ConformanceCasePlanesItem>>,
+    pub planes: Option<Vec<GatewayConfigSignalType>>,
     /// A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tier: Option<ConformanceCaseTier>,
@@ -4338,26 +4146,6 @@ impl ConformanceCase {
 }
 
 schema!(ConformanceCase);
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ConformanceCasePlanesItem {
-    #[serde(rename = "in-process")]
-    InProcess,
-    #[serde(rename = "nats")]
-    Nats,
-}
-
-impl ConformanceCasePlanesItem {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ConformanceCasePlanesItem::InProcess => "in-process",
-            ConformanceCasePlanesItem::Nats => "nats",
-        }
-    }
-}
 
 /// Run the client exporting to an OTLP receiver, and once it has exited hold what it exported to specs/src/sdk-telemetry/telemetry.json. A worker case also holds the worker to a trace of its own for each job it ran (conformance/worker/README.md).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -5059,28 +4847,7 @@ pub struct ConformanceImplementationsSdksValueLive {
     /// How its live driver is started. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written.
     pub command: Vec<String>,
     /// A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does.
-    pub tier: ConformanceImplementationsSdksValueLiveTier,
-}
-
-/// A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ConformanceImplementationsSdksValueLiveTier {
-    #[serde(rename = "fleet")]
-    Fleet,
-    #[serde(rename = "parity")]
-    Parity,
-}
-
-impl ConformanceImplementationsSdksValueLiveTier {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ConformanceImplementationsSdksValueLiveTier::Fleet => "fleet",
-            ConformanceImplementationsSdksValueLiveTier::Parity => "parity",
-        }
-    }
+    pub tier: ConformanceCaseTier,
 }
 
 /// One step of a case of the conformance corpus (ConformanceCase.json): each is told apart by the member only it requires. conformance/sdk/README.md, "A case", says what each does.
@@ -6650,7 +6417,7 @@ pub struct DispatcherMessagesRefusalsItem {
     pub operation: String,
     /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub code: Option<DispatcherMessagesRefusalsItemCode>,
+    pub code: Option<CommandErrorCode>,
     /// When it is written, and what fills each `{name}` of its text.
     pub situation: String,
     /// The failure's `message`. A `{name}` in it is filled with what the row's `situation` names, and nothing else in it varies.
@@ -6671,33 +6438,6 @@ impl DispatcherMessagesRefusalsItem {
             code: None,
             situation: situation.into(),
             message: message.into(),
-        }
-    }
-}
-
-/// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum DispatcherMessagesRefusalsItemCode {
-    #[serde(rename = "peer-unavailable")]
-    PeerUnavailable,
-    #[serde(rename = "not-found")]
-    NotFound,
-    #[serde(rename = "unauthorized")]
-    Unauthorized,
-    #[serde(rename = "none-pending")]
-    NonePending,
-}
-
-impl DispatcherMessagesRefusalsItemCode {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            DispatcherMessagesRefusalsItemCode::PeerUnavailable => "peer-unavailable",
-            DispatcherMessagesRefusalsItemCode::NotFound => "not-found",
-            DispatcherMessagesRefusalsItemCode::Unauthorized => "unauthorized",
-            DispatcherMessagesRefusalsItemCode::NonePending => "none-pending",
         }
     }
 }
@@ -7095,18 +6835,18 @@ pub struct ErrorsCodes {
     /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
     pub job: ErrorsCodesJob,
     /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-    pub session: ErrorsCodesSession,
+    pub session: ErrorsCodesJob,
     /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
     #[serde(rename = "signIn")]
-    pub sign_in: ErrorsCodesSignIn,
+    pub sign_in: ErrorsCodesJob,
     /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
     #[serde(rename = "kbIdentity")]
-    pub kb_identity: ErrorsCodesKbIdentity,
+    pub kb_identity: ErrorsCodesJob,
     /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
     #[serde(rename = "spanRefusal")]
-    pub span_refusal: ErrorsCodesSpanRefusal,
+    pub span_refusal: ErrorsCodesJob,
     /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-    pub control: ErrorsCodesControl,
+    pub control: ErrorsCodesJob,
 }
 
 schema!(ErrorsCodes);
@@ -7133,7 +6873,7 @@ pub struct ErrorsCodesBusRequestCodesItem {
     pub docs: String,
     /// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub wire: Option<ErrorsCodesBusRequestCodesItemWire>,
+    pub wire: Option<CommandErrorCode>,
 }
 
 impl ErrorsCodesBusRequestCodesItem {
@@ -7145,51 +6885,6 @@ impl ErrorsCodesBusRequestCodesItem {
             wire: None,
         }
     }
-}
-
-/// Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ErrorsCodesBusRequestCodesItemWire {
-    #[serde(rename = "peer-unavailable")]
-    PeerUnavailable,
-    #[serde(rename = "not-found")]
-    NotFound,
-    #[serde(rename = "unauthorized")]
-    Unauthorized,
-    #[serde(rename = "none-pending")]
-    NonePending,
-}
-
-impl ErrorsCodesBusRequestCodesItemWire {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ErrorsCodesBusRequestCodesItemWire::PeerUnavailable => "peer-unavailable",
-            ErrorsCodesBusRequestCodesItemWire::NotFound => "not-found",
-            ErrorsCodesBusRequestCodesItemWire::Unauthorized => "unauthorized",
-            ErrorsCodesBusRequestCodesItemWire::NonePending => "none-pending",
-        }
-    }
-}
-
-/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesControl {
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-    pub codes: Vec<ErrorsCodesControlCodesItem>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesControlCodesItem {
-    /// The code, as every SDK names it.
-    pub code: String,
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
 }
 
 /// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
@@ -7204,78 +6899,6 @@ pub struct ErrorsCodesJob {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ErrorsCodesJobCodesItem {
-    /// The code, as every SDK names it.
-    pub code: String,
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-}
-
-/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesKbIdentity {
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-    pub codes: Vec<ErrorsCodesKbIdentityCodesItem>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesKbIdentityCodesItem {
-    /// The code, as every SDK names it.
-    pub code: String,
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-}
-
-/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesSession {
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-    pub codes: Vec<ErrorsCodesSessionCodesItem>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesSessionCodesItem {
-    /// The code, as every SDK names it.
-    pub code: String,
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-}
-
-/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesSignIn {
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-    pub codes: Vec<ErrorsCodesSignInCodesItem>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesSignInCodesItem {
-    /// The code, as every SDK names it.
-    pub code: String,
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-}
-
-/// A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesSpanRefusal {
-    /// Its documentation, in prose: what a generated type or member says of it.
-    pub docs: String,
-    pub codes: Vec<ErrorsCodesSpanRefusalCodesItem>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ErrorsCodesSpanRefusalCodesItem {
     /// The code, as every SDK names it.
     pub code: String,
     /// Its documentation, in prose: what a generated type or member says of it.
@@ -9245,64 +8868,10 @@ pub struct GraphSchemaNodes {
     /// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
     pub resource: GraphSchemaNodesResource,
     /// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
-    pub annotation: GraphSchemaNodesAnnotation,
+    pub annotation: GraphSchemaNodesResource,
     /// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
     #[serde(rename = "entityType")]
-    pub entity_type: GraphSchemaNodesEntityType,
-}
-
-/// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct GraphSchemaNodesAnnotation {
-    /// Its label.
-    pub label: String,
-    /// The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub row: Option<String>,
-    /// The property no two nodes of its kind share.
-    pub key: String,
-    /// The properties other than its key that a reader finds a node of its kind by.
-    pub lookups: Vec<String>,
-}
-
-impl GraphSchemaNodesAnnotation {
-    /// The `GraphSchemaNodesAnnotation` that states these and nothing else.
-    pub fn new(label: impl Into<String>, key: impl Into<String>, lookups: Vec<String>) -> Self {
-        Self {
-            label: label.into(),
-            row: None,
-            key: key.into(),
-            lookups,
-        }
-    }
-}
-
-/// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct GraphSchemaNodesEntityType {
-    /// Its label.
-    pub label: String,
-    /// The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub row: Option<String>,
-    /// The property no two nodes of its kind share.
-    pub key: String,
-    /// The properties other than its key that a reader finds a node of its kind by.
-    pub lookups: Vec<String>,
-}
-
-impl GraphSchemaNodesEntityType {
-    /// The `GraphSchemaNodesEntityType` that states these and nothing else.
-    pub fn new(label: impl Into<String>, key: impl Into<String>, lookups: Vec<String>) -> Self {
-        Self {
-            label: label.into(),
-            row: None,
-            key: key.into(),
-            lookups,
-        }
-    }
+    pub entity_type: GraphSchemaNodesResource,
 }
 
 /// A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
@@ -9340,44 +8909,16 @@ pub struct GraphSchemaRelationships {
     #[serde(rename = "belongsTo")]
     pub belongs_to: GraphSchemaRelationshipsBelongsTo,
     /// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
-    pub references: GraphSchemaRelationshipsReferences,
+    pub references: GraphSchemaRelationshipsBelongsTo,
     /// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
     #[serde(rename = "taggedAs")]
-    pub tagged_as: GraphSchemaRelationshipsTaggedAs,
+    pub tagged_as: GraphSchemaRelationshipsBelongsTo,
 }
 
 /// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct GraphSchemaRelationshipsBelongsTo {
-    /// Its type.
-    pub r#type: String,
-    /// The kind of node it goes from, by its name under `nodes`.
-    pub from: String,
-    /// The kind of node it goes to, by its name under `nodes`.
-    pub to: String,
-    /// What one says.
-    pub says: String,
-}
-
-/// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct GraphSchemaRelationshipsReferences {
-    /// Its type.
-    pub r#type: String,
-    /// The kind of node it goes from, by its name under `nodes`.
-    pub from: String,
-    /// The kind of node it goes to, by its name under `nodes`.
-    pub to: String,
-    /// What one says.
-    pub says: String,
-}
-
-/// A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct GraphSchemaRelationshipsTaggedAs {
     /// Its type.
     pub r#type: String,
     /// The kind of node it goes from, by its name under `nodes`.
@@ -9567,21 +9108,12 @@ pub struct IdentifiersKindsKindsItem {
     /// Strings the kind's rule takes.
     pub accepts: Vec<IdentifiersKindsKindsItemAcceptsItem>,
     /// Strings the kind's rule does not take.
-    pub refuses: Vec<IdentifiersKindsKindsItemRefusesItem>,
+    pub refuses: Vec<IdentifiersKindsKindsItemAcceptsItem>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IdentifiersKindsKindsItemAcceptsItem {
-    /// A string the kind's rule is asked about.
-    pub id: String,
-    /// What the case shows, in prose.
-    pub why: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct IdentifiersKindsKindsItemRefusesItem {
     /// A string the kind's rule is asked about.
     pub id: String,
     /// What the case shows, in prose.
@@ -12670,7 +12202,7 @@ pub struct KnowledgeBaseStatus {
     /// Whether a stack of it is recorded. When none is, its services are found by name.
     pub recorded: bool,
     /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-    pub placement: KnowledgeBaseStatusPlacement,
+    pub placement: DiscoveredKBPlacement,
     /// Its clone, for a local stack.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub root: Option<String>,
@@ -12723,7 +12255,7 @@ impl KnowledgeBaseStatus {
         name: impl Into<String>,
         key: impl Into<String>,
         recorded: bool,
-        placement: KnowledgeBaseStatusPlacement,
+        placement: DiscoveredKBPlacement,
         starting: bool,
         healthy: bool,
         services: Vec<ServiceStatus>,
@@ -12753,27 +12285,6 @@ impl KnowledgeBaseStatus {
 }
 
 schema!(KnowledgeBaseStatus);
-
-/// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum KnowledgeBaseStatusPlacement {
-    #[serde(rename = "local")]
-    Local,
-    #[serde(rename = "codespace")]
-    Codespace,
-}
-
-impl KnowledgeBaseStatusPlacement {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            KnowledgeBaseStatusPlacement::Local => "local",
-            KnowledgeBaseStatusPlacement::Codespace => "codespace",
-        }
-    }
-}
 
 /// Knowledge graph gathered for an LLM context — a shared backbone in which resources AND annotations are typed nodes, connected by typed (optionally bidirectional) edges. Flattened views the matcher/generation read (connections, citedBy, siblings) are derived from these nodes/edges.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
@@ -16946,7 +16457,7 @@ schema!(RetryBudget);
 #[serde(deny_unknown_fields)]
 pub struct Root {
     /// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-    pub placement: RootPlacement,
+    pub placement: DiscoveredKBPlacement,
     /// For a local root: the clone's path.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -17005,7 +16516,7 @@ pub struct Root {
 
 impl Root {
     /// The `Root` that states these and nothing else.
-    pub fn new(placement: RootPlacement, registered: bool, running: bool) -> Self {
+    pub fn new(placement: DiscoveredKBPlacement, registered: bool, running: bool) -> Self {
         Self {
             placement,
             path: None,
@@ -17048,27 +16559,6 @@ impl RootCurrent {
         match self {
             RootCurrent::Cwd => "cwd",
             RootCurrent::XynologRoot => "xynolog-root",
-        }
-    }
-}
-
-/// Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum RootPlacement {
-    #[serde(rename = "local")]
-    Local,
-    #[serde(rename = "codespace")]
-    Codespace,
-}
-
-impl RootPlacement {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            RootPlacement::Local => "local",
-            RootPlacement::Codespace => "codespace",
         }
     }
 }
@@ -17498,9 +16988,9 @@ pub struct SdkTelemetryTelemetryMetricsItem {
     /// The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.
     pub name: String,
     /// The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads.
-    pub transport: SdkTelemetryTelemetryMetricsItemTransport,
+    pub transport: SdkTelemetryTelemetrySpansItemTransport,
     /// The metric's instrument.
-    pub instrument: SdkTelemetryTelemetryMetricsItemInstrument,
+    pub instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
     /// What the row says.
     pub meaning: String,
     /// The attributes the span carries.
@@ -17565,54 +17055,6 @@ union!(
     Boolean,
 );
 
-/// The metric's instrument.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum SdkTelemetryTelemetryMetricsItemInstrument {
-    #[serde(rename = "counter")]
-    Counter,
-    #[serde(rename = "up-down counter")]
-    UpDownCounter,
-    #[serde(rename = "gauge")]
-    Gauge,
-    #[serde(rename = "histogram")]
-    Histogram,
-}
-
-impl SdkTelemetryTelemetryMetricsItemInstrument {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            SdkTelemetryTelemetryMetricsItemInstrument::Counter => "counter",
-            SdkTelemetryTelemetryMetricsItemInstrument::UpDownCounter => "up-down counter",
-            SdkTelemetryTelemetryMetricsItemInstrument::Gauge => "gauge",
-            SdkTelemetryTelemetryMetricsItemInstrument::Histogram => "histogram",
-        }
-    }
-}
-
-/// The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum SdkTelemetryTelemetryMetricsItemTransport {
-    #[serde(rename = "bus")]
-    Bus,
-    #[serde(rename = "content")]
-    Content,
-}
-
-impl SdkTelemetryTelemetryMetricsItemTransport {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            SdkTelemetryTelemetryMetricsItemTransport::Bus => "bus",
-            SdkTelemetryTelemetryMetricsItemTransport::Content => "content",
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SdkTelemetryTelemetrySpansItem {
@@ -17621,7 +17063,7 @@ pub struct SdkTelemetryTelemetrySpansItem {
     /// The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads.
     pub transport: SdkTelemetryTelemetrySpansItemTransport,
     /// The span's kind, in OTLP's words.
-    pub kind: SdkTelemetryTelemetrySpansItemKind,
+    pub kind: ServiceTelemetryTelemetrySpansItemKind,
     /// What the row says.
     pub meaning: String,
     /// The attributes the span carries.
@@ -17685,36 +17127,6 @@ union!(
     Text,
     Boolean,
 );
-
-/// The span's kind, in OTLP's words.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum SdkTelemetryTelemetrySpansItemKind {
-    #[serde(rename = "client")]
-    Client,
-    #[serde(rename = "consumer")]
-    Consumer,
-    #[serde(rename = "internal")]
-    Internal,
-    #[serde(rename = "producer")]
-    Producer,
-    #[serde(rename = "server")]
-    Server,
-}
-
-impl SdkTelemetryTelemetrySpansItemKind {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            SdkTelemetryTelemetrySpansItemKind::Client => "client",
-            SdkTelemetryTelemetrySpansItemKind::Consumer => "consumer",
-            SdkTelemetryTelemetrySpansItemKind::Internal => "internal",
-            SdkTelemetryTelemetrySpansItemKind::Producer => "producer",
-            SdkTelemetryTelemetrySpansItemKind::Server => "server",
-        }
-    }
-}
 
 /// The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads.
 #[derive(
@@ -17871,7 +17283,7 @@ pub struct ServiceEnvironmentBootRefusals {
     #[serde(rename = "$comment")]
     pub _comment: String,
     /// The services that refuse to start so.
-    pub services: Vec<ServiceEnvironmentBootRefusalsServicesItem>,
+    pub services: Vec<ServiceTelemetryTelemetrySpansItemServicesItem>,
     /// The one line the service writes to stderr, its refusal in place of `{refusal}`, before it exits.
     pub line: String,
     /// The status it exits with.
@@ -17907,42 +17319,6 @@ pub struct ServiceEnvironmentBootRefusalsRefusalsItem {
     pub refusal: String,
 }
 
-/// A Xynolog service, by its name.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ServiceEnvironmentBootRefusalsServicesItem {
-    #[serde(rename = "archivist")]
-    Archivist,
-    #[serde(rename = "dispatcher")]
-    Dispatcher,
-    #[serde(rename = "gateway")]
-    Gateway,
-    #[serde(rename = "librarian")]
-    Librarian,
-    #[serde(rename = "smelter")]
-    Smelter,
-    #[serde(rename = "weaver")]
-    Weaver,
-    #[serde(rename = "worker")]
-    Worker,
-}
-
-impl ServiceEnvironmentBootRefusalsServicesItem {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ServiceEnvironmentBootRefusalsServicesItem::Archivist => "archivist",
-            ServiceEnvironmentBootRefusalsServicesItem::Dispatcher => "dispatcher",
-            ServiceEnvironmentBootRefusalsServicesItem::Gateway => "gateway",
-            ServiceEnvironmentBootRefusalsServicesItem::Librarian => "librarian",
-            ServiceEnvironmentBootRefusalsServicesItem::Smelter => "smelter",
-            ServiceEnvironmentBootRefusalsServicesItem::Weaver => "weaver",
-            ServiceEnvironmentBootRefusalsServicesItem::Worker => "worker",
-        }
-    }
-}
-
 /// service-environment/variables.json: every environment variable a Xynolog service reads, beside its configuration document.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -17961,7 +17337,7 @@ pub struct ServiceEnvironmentVariablesVariablesItem {
     /// The variable's name.
     pub name: String,
     /// The services that read it.
-    pub services: Vec<ServiceEnvironmentVariablesVariablesItemServicesItem>,
+    pub services: Vec<ServiceTelemetryTelemetrySpansItemServicesItem>,
     /// What reads it: the service's own code, or the OpenTelemetry SDK.
     #[serde(rename = "readBy")]
     pub read_by: ServiceEnvironmentVariablesVariablesItemReadBy,
@@ -18015,42 +17391,6 @@ impl ServiceEnvironmentVariablesVariablesItemReadBy {
         match self {
             ServiceEnvironmentVariablesVariablesItemReadBy::Service => "service",
             ServiceEnvironmentVariablesVariablesItemReadBy::Opentelemetry => "opentelemetry",
-        }
-    }
-}
-
-/// A Xynolog service, by its name.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ServiceEnvironmentVariablesVariablesItemServicesItem {
-    #[serde(rename = "archivist")]
-    Archivist,
-    #[serde(rename = "dispatcher")]
-    Dispatcher,
-    #[serde(rename = "gateway")]
-    Gateway,
-    #[serde(rename = "librarian")]
-    Librarian,
-    #[serde(rename = "smelter")]
-    Smelter,
-    #[serde(rename = "weaver")]
-    Weaver,
-    #[serde(rename = "worker")]
-    Worker,
-}
-
-impl ServiceEnvironmentVariablesVariablesItemServicesItem {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ServiceEnvironmentVariablesVariablesItemServicesItem::Archivist => "archivist",
-            ServiceEnvironmentVariablesVariablesItemServicesItem::Dispatcher => "dispatcher",
-            ServiceEnvironmentVariablesVariablesItemServicesItem::Gateway => "gateway",
-            ServiceEnvironmentVariablesVariablesItemServicesItem::Librarian => "librarian",
-            ServiceEnvironmentVariablesVariablesItemServicesItem::Smelter => "smelter",
-            ServiceEnvironmentVariablesVariablesItemServicesItem::Weaver => "weaver",
-            ServiceEnvironmentVariablesVariablesItemServicesItem::Worker => "worker",
         }
     }
 }
@@ -18566,14 +17906,14 @@ pub struct ServiceTelemetryTelemetryMetricsItem {
     /// The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.
     pub name: String,
     /// The services that export the row.
-    pub services: Vec<ServiceTelemetryTelemetryMetricsItemServicesItem>,
+    pub services: Vec<ServiceTelemetryTelemetrySpansItemServicesItem>,
     /// The metric's instrument.
     pub instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
     /// When the row arrives.
-    pub when: ServiceTelemetryTelemetryMetricsItemWhen,
+    pub when: ServiceTelemetryTelemetrySpansItemWhen,
     /// The only signal planes a gateway row arrives on.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub planes: Option<Vec<ServiceTelemetryTelemetryMetricsItemPlanesItem>>,
+    pub planes: Option<Vec<GatewayConfigSignalType>>,
     /// What the row says.
     pub meaning: String,
     /// The attributes the span carries.
@@ -18584,9 +17924,9 @@ impl ServiceTelemetryTelemetryMetricsItem {
     /// The `ServiceTelemetryTelemetryMetricsItem` that states these and nothing else.
     pub fn new(
         name: impl Into<String>,
-        services: Vec<ServiceTelemetryTelemetryMetricsItemServicesItem>,
+        services: Vec<ServiceTelemetryTelemetrySpansItemServicesItem>,
         instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
-        when: ServiceTelemetryTelemetryMetricsItemWhen,
+        when: ServiceTelemetryTelemetrySpansItemWhen,
         meaning: impl Into<String>,
         attributes: Vec<ServiceTelemetryTelemetryMetricsItemAttributesItem>,
     ) -> Self {
@@ -18687,89 +18027,6 @@ impl ServiceTelemetryTelemetryMetricsItemInstrument {
     }
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ServiceTelemetryTelemetryMetricsItemPlanesItem {
-    #[serde(rename = "in-process")]
-    InProcess,
-    #[serde(rename = "nats")]
-    Nats,
-}
-
-impl ServiceTelemetryTelemetryMetricsItemPlanesItem {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ServiceTelemetryTelemetryMetricsItemPlanesItem::InProcess => "in-process",
-            ServiceTelemetryTelemetryMetricsItemPlanesItem::Nats => "nats",
-        }
-    }
-}
-
-/// A Xynolog service, by its name.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ServiceTelemetryTelemetryMetricsItemServicesItem {
-    #[serde(rename = "archivist")]
-    Archivist,
-    #[serde(rename = "dispatcher")]
-    Dispatcher,
-    #[serde(rename = "gateway")]
-    Gateway,
-    #[serde(rename = "librarian")]
-    Librarian,
-    #[serde(rename = "smelter")]
-    Smelter,
-    #[serde(rename = "weaver")]
-    Weaver,
-    #[serde(rename = "worker")]
-    Worker,
-}
-
-impl ServiceTelemetryTelemetryMetricsItemServicesItem {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ServiceTelemetryTelemetryMetricsItemServicesItem::Archivist => "archivist",
-            ServiceTelemetryTelemetryMetricsItemServicesItem::Dispatcher => "dispatcher",
-            ServiceTelemetryTelemetryMetricsItemServicesItem::Gateway => "gateway",
-            ServiceTelemetryTelemetryMetricsItemServicesItem::Librarian => "librarian",
-            ServiceTelemetryTelemetryMetricsItemServicesItem::Smelter => "smelter",
-            ServiceTelemetryTelemetryMetricsItemServicesItem::Weaver => "weaver",
-            ServiceTelemetryTelemetryMetricsItemServicesItem::Worker => "worker",
-        }
-    }
-}
-
-/// When the row arrives.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ServiceTelemetryTelemetryMetricsItemWhen {
-    #[serde(rename = "export")]
-    Export,
-    #[serde(rename = "traffic")]
-    Traffic,
-    #[serde(rename = "supervised")]
-    Supervised,
-    #[serde(rename = "fatal")]
-    Fatal,
-}
-
-impl ServiceTelemetryTelemetryMetricsItemWhen {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ServiceTelemetryTelemetryMetricsItemWhen::Export => "export",
-            ServiceTelemetryTelemetryMetricsItemWhen::Traffic => "traffic",
-            ServiceTelemetryTelemetryMetricsItemWhen::Supervised => "supervised",
-            ServiceTelemetryTelemetryMetricsItemWhen::Fatal => "fatal",
-        }
-    }
-}
-
 /// An attribute of the resource the services' spans and metrics are exported under.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -18777,7 +18034,7 @@ pub struct ServiceTelemetryTelemetryResourceItem {
     /// The attribute's key.
     pub key: String,
     /// The services that export the row.
-    pub services: Vec<ServiceTelemetryTelemetryResourceItemServicesItem>,
+    pub services: Vec<ServiceTelemetryTelemetrySpansItemServicesItem>,
     /// What the attribute says.
     pub meaning: String,
     /// Its value when nothing says another, with `{service}` the service's name.
@@ -18789,7 +18046,7 @@ impl ServiceTelemetryTelemetryResourceItem {
     /// The `ServiceTelemetryTelemetryResourceItem` that states these and nothing else.
     pub fn new(
         key: impl Into<String>,
-        services: Vec<ServiceTelemetryTelemetryResourceItemServicesItem>,
+        services: Vec<ServiceTelemetryTelemetrySpansItemServicesItem>,
         meaning: impl Into<String>,
     ) -> Self {
         Self {
@@ -18797,42 +18054,6 @@ impl ServiceTelemetryTelemetryResourceItem {
             services,
             meaning: meaning.into(),
             default: None,
-        }
-    }
-}
-
-/// A Xynolog service, by its name.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ServiceTelemetryTelemetryResourceItemServicesItem {
-    #[serde(rename = "archivist")]
-    Archivist,
-    #[serde(rename = "dispatcher")]
-    Dispatcher,
-    #[serde(rename = "gateway")]
-    Gateway,
-    #[serde(rename = "librarian")]
-    Librarian,
-    #[serde(rename = "smelter")]
-    Smelter,
-    #[serde(rename = "weaver")]
-    Weaver,
-    #[serde(rename = "worker")]
-    Worker,
-}
-
-impl ServiceTelemetryTelemetryResourceItemServicesItem {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ServiceTelemetryTelemetryResourceItemServicesItem::Archivist => "archivist",
-            ServiceTelemetryTelemetryResourceItemServicesItem::Dispatcher => "dispatcher",
-            ServiceTelemetryTelemetryResourceItemServicesItem::Gateway => "gateway",
-            ServiceTelemetryTelemetryResourceItemServicesItem::Librarian => "librarian",
-            ServiceTelemetryTelemetryResourceItemServicesItem::Smelter => "smelter",
-            ServiceTelemetryTelemetryResourceItemServicesItem::Weaver => "weaver",
-            ServiceTelemetryTelemetryResourceItemServicesItem::Worker => "worker",
         }
     }
 }
@@ -19498,13 +18719,13 @@ pub struct SignInStoreOwnerOnly {
     pub directory_mode: SignInStoreOwnerOnlyDirectoryMode,
     /// A mode, on a system that has modes.
     #[serde(rename = "fileMode")]
-    pub file_mode: SignInStoreOwnerOnlyFileMode,
+    pub file_mode: SignInStoreOwnerOnlyDirectoryMode,
     /// An access list, on Windows.
     #[serde(rename = "directoryAccessList")]
     pub directory_access_list: SignInStoreOwnerOnlyDirectoryAccessList,
     /// An access list, on Windows.
     #[serde(rename = "fileAccessList")]
-    pub file_access_list: SignInStoreOwnerOnlyFileAccessList,
+    pub file_access_list: SignInStoreOwnerOnlyDirectoryAccessList,
 }
 
 schema!(SignInStoreOwnerOnly);
@@ -19522,24 +18743,6 @@ pub struct SignInStoreOwnerOnlyDirectoryAccessList {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SignInStoreOwnerOnlyDirectoryMode {
-    /// The mode, in octal.
-    pub value: String,
-    pub docs: String,
-}
-
-/// An access list, on Windows.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct SignInStoreOwnerOnlyFileAccessList {
-    /// The access list in SDDL, with `{owner}` where the owner's SID goes.
-    pub value: String,
-    pub docs: String,
-}
-
-/// A mode, on a system that has modes.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct SignInStoreOwnerOnlyFileMode {
     /// The mode, in octal.
     pub value: String,
     pub docs: String,
@@ -22278,7 +21481,7 @@ pub struct WorkerMessages {
     /// Each `{said}` of `wait-stated`.
     pub waits: Vec<WorkerMessagesWaitsItem>,
     /// Each message a Worker service logs that a reader of its output relies on.
-    pub logged: Vec<WorkerMessagesLoggedItem>,
+    pub logged: Vec<SmelterMessagesLoggedItem>,
 }
 
 schema!(WorkerMessages);
@@ -22363,22 +21566,6 @@ pub struct WorkerMessagesErrorsItem {
 pub struct WorkerMessagesJob {
     pub mark: String,
     pub r#yield: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct WorkerMessagesLoggedItem {
-    /// The situation's name.
-    pub name: String,
-    pub level: LogLevel,
-    /// When it is written, what fills each `{name}` of its fields, and what each fact it carries says.
-    pub situation: String,
-    /// The line's message, word for word.
-    pub message: String,
-    /// The facts the line is logged with whose form is stated, by name: each a text whose `{name}` is filled as the row's `situation` says. A fact that is a number is its decimal digits.
-    pub fields: std::collections::BTreeMap<String, String>,
-    /// The facts the line is logged with beside `fields`, whose value the row's `situation` says and whose form is not stated. The line may carry others.
-    pub carries: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]

@@ -60,7 +60,8 @@ let unrooted_tables =
        generates; a ControlMethods of an SDK's is the catalog of methods
        generated from it. *)
     "control/methods.json";
-    (* The Haskell SDK carries it, typed by its schema, in Xynolog.Tables. *)
+    (* The Haskell SDK carries it, typed by its schema, in Xynolog.Tables, and
+       the Kotlin SDK in xynolog.Tables. *)
     "locales/registry.json";
     (* The TypeScript, Swift and Haskell SDKs carry it, typed by its schema. *)
     "retry/rules.json";

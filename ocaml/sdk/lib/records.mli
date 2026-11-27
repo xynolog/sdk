@@ -3934,36 +3934,6 @@ module Errors_codes_job_codes_item : sig
   val to_json : t -> Yojson.Raw.t
 end
 
-module Errors_codes_session_codes_item : sig
-  type t = { code : string; docs : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Errors_codes_sign_in_codes_item : sig
-  type t = { code : string; docs : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Errors_codes_kb_identity_codes_item : sig
-  type t = { code : string; docs : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Errors_codes_span_refusal_codes_item : sig
-  type t = { code : string; docs : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Errors_codes_control_codes_item : sig
-  type t = { code : string; docs : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
 module Gateway_config_identity : sig
   type t = { issuer : string; subject_claim : string }
 
@@ -3995,12 +3965,6 @@ module Gateway_config_capacity : sig
 end
 
 module Identifiers_kinds_kinds_item_accepts_item : sig
-  type t = { id : string; why : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Identifiers_kinds_kinds_item_refuses_item : sig
   type t = { id : string; why : string }
 
   val to_json : t -> Yojson.Raw.t
@@ -4088,19 +4052,7 @@ module Sign_in_store_owner_only_directory_mode : sig
   val to_json : t -> Yojson.Raw.t
 end
 
-module Sign_in_store_owner_only_file_mode : sig
-  type t = { value : string; docs : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
 module Sign_in_store_owner_only_directory_access_list : sig
-  type t = { value : string; docs : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Sign_in_store_owner_only_file_access_list : sig
   type t = { value : string; docs : string }
 
   val to_json : t -> Yojson.Raw.t
@@ -5204,9 +5156,9 @@ module Sign_in_store_owner_only : sig
   type t = {
     field_comment : string;
     directory_mode : Sign_in_store_owner_only_directory_mode.t;
-    file_mode : Sign_in_store_owner_only_file_mode.t;
+    file_mode : Sign_in_store_owner_only_directory_mode.t;
     directory_access_list : Sign_in_store_owner_only_directory_access_list.t;
-    file_access_list : Sign_in_store_owner_only_file_access_list.t;
+    file_access_list : Sign_in_store_owner_only_directory_access_list.t;
   }
 
   val of_model : [ `SignInStoreOwnerOnly ] Models.t -> t
@@ -5550,45 +5502,12 @@ module Errors_codes_job : sig
   val to_json : t -> Yojson.Raw.t
 end
 
-module Errors_codes_session : sig
-  type t = { docs : string; codes : Errors_codes_session_codes_item.t list }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Errors_codes_sign_in : sig
-  type t = { docs : string; codes : Errors_codes_sign_in_codes_item.t list }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Errors_codes_kb_identity : sig
-  type t = { docs : string; codes : Errors_codes_kb_identity_codes_item.t list }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Errors_codes_span_refusal : sig
-  type t = {
-    docs : string;
-    codes : Errors_codes_span_refusal_codes_item.t list;
-  }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
-module Errors_codes_control : sig
-  type t = { docs : string; codes : Errors_codes_control_codes_item.t list }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
 module Identifiers_kinds_kinds_item : sig
   type t = {
     schema : string;
     properties : string list;
     accepts : Identifiers_kinds_kinds_item_accepts_item.t list;
-    refuses : Identifiers_kinds_kinds_item_refuses_item.t list;
+    refuses : Identifiers_kinds_kinds_item_accepts_item.t list;
   }
 
   val to_json : t -> Yojson.Raw.t
@@ -7176,11 +7095,11 @@ module Errors_codes : sig
     bus_request : Errors_codes_bus_request.t;
     transport : Errors_codes_transport.t;
     job : Errors_codes_job.t;
-    session : Errors_codes_session.t;
-    sign_in : Errors_codes_sign_in.t;
-    kb_identity : Errors_codes_kb_identity.t;
-    span_refusal : Errors_codes_span_refusal.t;
-    control : Errors_codes_control.t;
+    session : Errors_codes_job.t;
+    sign_in : Errors_codes_job.t;
+    kb_identity : Errors_codes_job.t;
+    span_refusal : Errors_codes_job.t;
+    control : Errors_codes_job.t;
   }
 
   val of_model : [ `ErrorsCodes ] Models.t -> t

@@ -33,7 +33,7 @@ let returning pairs =
   List.map (fun (case, result) -> (case, [ P.Return result ])) pairs
 
 let text (t : Table.t) =
-  let vocabularies = (t.bus :: t.transport :: t.others) @ [ t.control ] in
+  let vocabularies = Table.vocabularies t in
   let exported =
     List.sort compare
       (List.concat_map

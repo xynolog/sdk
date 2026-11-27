@@ -2,12 +2,13 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.CommandError (CommandError (..), CommandErrorCode (..), commandErrorCodeText) where
+module Xynolog.Internal.Generated.Models.CommandError (CommandError (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.ArchivistMessages
 
 data CommandError = CommandError
   { commandErrorCode :: Maybe CommandErrorCode,
@@ -19,19 +20,3 @@ data CommandError = CommandError
 instance FromJSON CommandError where parseJSON = checked "CommandError" $ withObject "CommandError" (\fields -> CommandError <$> optional fields "code" <*> (fields .: "message") <*> optional fields "details")
 
 instance ToJSON CommandError where toJSON value = Object (KM.fromList (concat [optionalPair "code" (commandErrorCode value), [("message", toJSON (commandErrorMessage value))], optionalPair "details" (commandErrorDetails value)]))
-
-data CommandErrorCode = CommandErrorCodePeerUnavailable | CommandErrorCodeNotFound | CommandErrorCodeUnauthorized | CommandErrorCodeNonePending deriving (Eq, Show)
-
-instance FromJSON CommandErrorCode where parseJSON = checked "CommandErrorCode" $ \value -> if value == String "peer-unavailable" then pure CommandErrorCodePeerUnavailable else if value == String "not-found" then pure CommandErrorCodeNotFound else if value == String "unauthorized" then pure CommandErrorCodeUnauthorized else if value == String "none-pending" then pure CommandErrorCodeNonePending else fail "unknown enumeration member"
-
-instance ToJSON CommandErrorCode where
-  toJSON CommandErrorCodePeerUnavailable = String "peer-unavailable"
-  toJSON CommandErrorCodeNotFound = String "not-found"
-  toJSON CommandErrorCodeUnauthorized = String "unauthorized"
-  toJSON CommandErrorCodeNonePending = String "none-pending"
-
-commandErrorCodeText :: CommandErrorCode -> Text
-commandErrorCodeText CommandErrorCodePeerUnavailable = "peer-unavailable"
-commandErrorCodeText CommandErrorCodeNotFound = "not-found"
-commandErrorCodeText CommandErrorCodeUnauthorized = "unauthorized"
-commandErrorCodeText CommandErrorCodeNonePending = "none-pending"

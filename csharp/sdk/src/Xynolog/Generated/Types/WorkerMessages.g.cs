@@ -14,5 +14,5 @@ public sealed record WorkerMessages
     [global::Xynolog.Serialization.Wire("errors")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesErrorsItem> Errors { get; init; }
     [global::Xynolog.Serialization.Wire("details")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesDetailsItem> Details { get; init; }
     [global::Xynolog.Serialization.Wire("waits")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesWaitsItem> Waits { get; init; }
-    [global::Xynolog.Serialization.Wire("logged")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.WorkerMessagesLoggedItem> Logged { get; init; }
+    [global::Xynolog.Serialization.Wire("logged")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.SmelterMessagesLoggedItem> Logged { get; init; }
 }

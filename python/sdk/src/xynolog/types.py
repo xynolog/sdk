@@ -51,28 +51,21 @@ __all__ = [
     "ArchivistHealthActorsItem",
     "ArchivistLayout",
     "ArchivistLayoutAnchoredTextEntry",
-    "ArchivistLayoutAnchoredTextEntryTree",
     "ArchivistLayoutAnchoredTextStamp",
-    "ArchivistLayoutAnchoredTextStampTree",
     "ArchivistLayoutEventFile",
     "ArchivistLayoutEventStream",
     "ArchivistLayoutEventStreamTree",
     "ArchivistLayoutStorageUriIndex",
-    "ArchivistLayoutStorageUriIndexTree",
     "ArchivistLayoutSystemProjections",
     "ArchivistLayoutSystemProjectionsFilesItem",
-    "ArchivistLayoutSystemProjectionsTree",
     "ArchivistLayoutSystemStream",
-    "ArchivistLayoutSystemStreamTree",
     "ArchivistLayoutView",
-    "ArchivistLayoutViewTree",
     "ArchivistMessages",
     "ArchivistMessagesBootItem",
     "ArchivistMessagesHttpItem",
     "ArchivistMessagesHttpItemMethod",
     "ArchivistMessagesLoggedItem",
     "ArchivistMessagesRefusalsItem",
-    "ArchivistMessagesRefusalsItemCode",
     "ArchivistMessagesUnauthorized",
     "ArchivistMessagesUnsentItem",
     "ArchivistStream",
@@ -172,7 +165,6 @@ __all__ = [
     "ClientRefreshRefreshItemOnReach",
     "ClientRefreshRefreshItemOnWhen",
     "ClientRefreshRefreshItemStream",
-    "ClientRefreshRefreshItemStreamReach",
     "ClientRefreshRefreshItemStreamStream",
     "ClientSecretForm",
     "ClientTesting",
@@ -189,7 +181,6 @@ __all__ = [
     "CommentingJobParamsTone",
     "ConformanceBusFetch",
     "ConformanceCase",
-    "ConformanceCasePlanesItem",
     "ConformanceCaseTier",
     "ConformanceDriverLine",
     "ConformanceDriverLineAbandoned",
@@ -219,7 +210,6 @@ __all__ = [
     "ConformanceImplementations",
     "ConformanceImplementationsSdksValue",
     "ConformanceImplementationsSdksValueLive",
-    "ConformanceImplementationsSdksValueLiveTier",
     "ConformanceStep",
     "ConformanceStepAbandon",
     "ConformanceStepBackend",
@@ -284,7 +274,6 @@ __all__ = [
     "DispatcherMessages",
     "DispatcherMessagesErrorsItem",
     "DispatcherMessagesRefusalsItem",
-    "DispatcherMessagesRefusalsItemCode",
     "DurabilityEvidence",
     "EmbeddingConfig",
     "EmbeddingRequests",
@@ -306,19 +295,8 @@ __all__ = [
     "ErrorsCodes",
     "ErrorsCodesBusRequest",
     "ErrorsCodesBusRequestCodesItem",
-    "ErrorsCodesBusRequestCodesItemWire",
-    "ErrorsCodesControl",
-    "ErrorsCodesControlCodesItem",
     "ErrorsCodesJob",
     "ErrorsCodesJobCodesItem",
-    "ErrorsCodesKbIdentity",
-    "ErrorsCodesKbIdentityCodesItem",
-    "ErrorsCodesSession",
-    "ErrorsCodesSessionCodesItem",
-    "ErrorsCodesSignIn",
-    "ErrorsCodesSignInCodesItem",
-    "ErrorsCodesSpanRefusal",
-    "ErrorsCodesSpanRefusalCodesItem",
     "ErrorsCodesTransport",
     "ErrorsCodesTransportCodesItem",
     "ErrorsCodesTransportCodesItemNoStatus",
@@ -396,13 +374,9 @@ __all__ = [
     "GraphResourceNode",
     "GraphSchema",
     "GraphSchemaNodes",
-    "GraphSchemaNodesAnnotation",
-    "GraphSchemaNodesEntityType",
     "GraphSchemaNodesResource",
     "GraphSchemaRelationships",
     "GraphSchemaRelationshipsBelongsTo",
-    "GraphSchemaRelationshipsReferences",
-    "GraphSchemaRelationshipsTaggedAs",
     "GraphSchemaStub",
     "HealthResponse",
     "HighlightingJobParams",
@@ -413,7 +387,6 @@ __all__ = [
     "IdentifiersKinds",
     "IdentifiersKindsKindsItem",
     "IdentifiersKindsKindsItemAcceptsItem",
-    "IdentifiersKindsKindsItemRefusesItem",
     "IdentifiersKindsOthersItem",
     "IdentityUser",
     "IdentityUseraddParams",
@@ -514,7 +487,6 @@ __all__ = [
     "KbTarget",
     "KnowledgeBase",
     "KnowledgeBaseStatus",
-    "KnowledgeBaseStatusPlacement",
     "KnowledgeGraph",
     "KnowledgeGraphEdgesItem",
     "KnowledgeGraphNodesItem",
@@ -659,7 +631,6 @@ __all__ = [
     "RetryBudget",
     "Root",
     "RootCurrent",
-    "RootPlacement",
     "RootsForgetParams",
     "RootsForgetResult",
     "RootsInitParams",
@@ -677,12 +648,9 @@ __all__ = [
     "SdkTelemetryTelemetryMetricsItem",
     "SdkTelemetryTelemetryMetricsItemAttributesItem",
     "SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem",
-    "SdkTelemetryTelemetryMetricsItemInstrument",
-    "SdkTelemetryTelemetryMetricsItemTransport",
     "SdkTelemetryTelemetrySpansItem",
     "SdkTelemetryTelemetrySpansItemAttributesItem",
     "SdkTelemetryTelemetrySpansItemAttributesItemValuesItem",
-    "SdkTelemetryTelemetrySpansItemKind",
     "SdkTelemetryTelemetrySpansItemTransport",
     "SecretRef",
     "Selector",
@@ -691,12 +659,10 @@ __all__ = [
     "ServiceEnvironmentBootRefusals",
     "ServiceEnvironmentBootRefusalsMembersItem",
     "ServiceEnvironmentBootRefusalsRefusalsItem",
-    "ServiceEnvironmentBootRefusalsServicesItem",
     "ServiceEnvironmentVariables",
     "ServiceEnvironmentVariablesVariablesItem",
     "ServiceEnvironmentVariablesVariablesItemProvidedBy",
     "ServiceEnvironmentVariablesVariablesItemReadBy",
-    "ServiceEnvironmentVariablesVariablesItemServicesItem",
     "ServiceGroup",
     "ServiceHostParams",
     "ServiceHostResult",
@@ -722,11 +688,7 @@ __all__ = [
     "ServiceTelemetryTelemetryMetricsItemAttributesItem",
     "ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem",
     "ServiceTelemetryTelemetryMetricsItemInstrument",
-    "ServiceTelemetryTelemetryMetricsItemPlanesItem",
-    "ServiceTelemetryTelemetryMetricsItemServicesItem",
-    "ServiceTelemetryTelemetryMetricsItemWhen",
     "ServiceTelemetryTelemetryResourceItem",
-    "ServiceTelemetryTelemetryResourceItemServicesItem",
     "ServiceTelemetryTelemetrySpansItem",
     "ServiceTelemetryTelemetrySpansItemAttributesItem",
     "ServiceTelemetryTelemetrySpansItemAttributesItemValuesItem",
@@ -761,8 +723,6 @@ __all__ = [
     "SignInStoreOwnerOnly",
     "SignInStoreOwnerOnlyDirectoryAccessList",
     "SignInStoreOwnerOnlyDirectoryMode",
-    "SignInStoreOwnerOnlyFileAccessList",
-    "SignInStoreOwnerOnlyFileMode",
     "SignedIn",
     "SmeltRebuildAnchorsCommand",
     "SmeltSettled",
@@ -862,7 +822,6 @@ __all__ = [
     "WorkerMessagesDetailsItem",
     "WorkerMessagesErrorsItem",
     "WorkerMessagesJob",
-    "WorkerMessagesLoggedItem",
     "WorkerMessagesReasonsItem",
     "WorkerMessagesWaitsItem",
     "WorkerPool",
@@ -1698,20 +1657,17 @@ class ArchivistLayoutEventStream(WireModel, frozen=True, extra="forbid"):
     path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
 
 
-type ArchivistLayoutSystemStreamTree = Annotated[
-    Literal["root", "stateHome", "anchoredTextDir"],
-    Field(
-        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
-    ),
-]
-
-
 class ArchivistLayoutSystemStream(WireModel, frozen=True, extra="forbid"):
     """
     The knowledge base's own stream, of the events that name no resource. It is not sharded.
     """
 
-    tree: ArchivistLayoutSystemStreamTree
+    tree: Annotated[
+        ArchivistLayoutEventStreamTree,
+        Field(
+            description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+        ),
+    ]
     path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
 
 
@@ -1726,30 +1682,19 @@ class ArchivistLayoutEventFile(WireModel, frozen=True, extra="forbid"):
     max_events: Annotated[int, Field(alias="maxEvents", description="The most events a file holds.")]
 
 
-type ArchivistLayoutViewTree = Annotated[
-    Literal["root", "stateHome", "anchoredTextDir"],
-    Field(
-        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
-    ),
-]
-
-
 class ArchivistLayoutView(WireModel, frozen=True, extra="forbid"):
     """
     A resource's view, in the state directory.
     """
 
-    tree: ArchivistLayoutViewTree
+    tree: Annotated[
+        ArchivistLayoutEventStreamTree,
+        Field(
+            description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+        ),
+    ]
     path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
     schema_: Annotated[JsonValue, Field(alias="schema", description="The schema a view is.")]
-
-
-type ArchivistLayoutSystemProjectionsTree = Annotated[
-    Literal["root", "stateHome", "anchoredTextDir"],
-    Field(
-        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
-    ),
-]
 
 
 class ArchivistLayoutSystemProjectionsFilesItem(WireModel, frozen=True, extra="forbid"):
@@ -1762,17 +1707,14 @@ class ArchivistLayoutSystemProjections(WireModel, frozen=True, extra="forbid"):
     The projections of what the `__system__` stream adds up to, in the state directory.
     """
 
-    tree: ArchivistLayoutSystemProjectionsTree
+    tree: Annotated[
+        ArchivistLayoutEventStreamTree,
+        Field(
+            description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+        ),
+    ]
     path: Annotated[str, Field(description="The directory that holds them, in its tree, `/`-separated.")]
     files: Annotated[list[ArchivistLayoutSystemProjectionsFilesItem], Field(description="Each projection's file.")]
-
-
-type ArchivistLayoutStorageUriIndexTree = Annotated[
-    Literal["root", "stateHome", "anchoredTextDir"],
-    Field(
-        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
-    ),
-]
 
 
 class ArchivistLayoutStorageUriIndex(WireModel, frozen=True, extra="forbid"):
@@ -1780,17 +1722,14 @@ class ArchivistLayoutStorageUriIndex(WireModel, frozen=True, extra="forbid"):
     An entry of the storage-uri index, which names the resource whose content is at a storage URI.
     """
 
-    tree: ArchivistLayoutStorageUriIndexTree
+    tree: Annotated[
+        ArchivistLayoutEventStreamTree,
+        Field(
+            description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+        ),
+    ]
     path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
     schema_: Annotated[JsonValue, Field(alias="schema", description="The schema an entry is.")]
-
-
-type ArchivistLayoutAnchoredTextEntryTree = Annotated[
-    Literal["root", "stateHome", "anchoredTextDir"],
-    Field(
-        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
-    ),
-]
 
 
 class ArchivistLayoutAnchoredTextEntry(WireModel, frozen=True, extra="forbid"):
@@ -1798,17 +1737,14 @@ class ArchivistLayoutAnchoredTextEntry(WireModel, frozen=True, extra="forbid"):
     An entry of the anchored-text store, keyed by the checksum of the content it was extracted from.
     """
 
-    tree: ArchivistLayoutAnchoredTextEntryTree
+    tree: Annotated[
+        ArchivistLayoutEventStreamTree,
+        Field(
+            description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+        ),
+    ]
     path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
     schema_: Annotated[JsonValue, Field(alias="schema", description="The schema an entry is.")]
-
-
-type ArchivistLayoutAnchoredTextStampTree = Annotated[
-    Literal["root", "stateHome", "anchoredTextDir"],
-    Field(
-        description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
-    ),
-]
 
 
 class ArchivistLayoutAnchoredTextStamp(WireModel, frozen=True, extra="forbid"):
@@ -1816,7 +1752,12 @@ class ArchivistLayoutAnchoredTextStamp(WireModel, frozen=True, extra="forbid"):
     The file holding the stamp the anchored-text store's entries are taken under: the stamp, followed by a newline.
     """
 
-    tree: ArchivistLayoutAnchoredTextStampTree
+    tree: Annotated[
+        ArchivistLayoutEventStreamTree,
+        Field(
+            description="The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store."
+        ),
+    ]
     path: Annotated[str, Field(description="Its path in its tree, `/`-separated.")]
 
 
@@ -1859,7 +1800,7 @@ class ArchivistMessagesUnsentItem(WireModel, frozen=True, extra="forbid"):
     ]
 
 
-type ArchivistMessagesRefusalsItemCode = Annotated[
+type CommandErrorCode = Annotated[
     Literal["peer-unavailable", "not-found", "unauthorized", "none-pending"],
     Field(
         description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
@@ -1875,7 +1816,7 @@ class ArchivistMessagesRefusalsItem(WireModel, frozen=True, extra="forbid"):
             description="The operations it refuses: requests of bus/registry.json's operations that the Archivist answers. `{channel}` in the message is the one refused."
         ),
     ]
-    code: ArchivistMessagesRefusalsItemCode | None = None
+    code: CommandErrorCode | None = None
     situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
     message: Annotated[
         str,
@@ -2387,20 +2328,17 @@ class BrowseClickEvent(WireModel, frozen=True):
     anchor_rect: Annotated[AnchorRect | None, Field(alias="anchorRect")] = None
 
 
-type CommandErrorCode = Annotated[
-    Literal["peer-unavailable", "not-found", "unauthorized", "none-pending"],
-    Field(
-        description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
-    ),
-]
-
-
 class CommandError(WireModel, frozen=True):
     """
     Error response for failed bus commands. Replaces native Error objects on the EventBus so payloads are serializable and OpenAPI-typed.
     """
 
-    code: CommandErrorCode | None = None
+    code: Annotated[
+        CommandErrorCode | None,
+        Field(
+            description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
+        ),
+    ] = None
     message: Annotated[str, Field(description="Human-readable error message")]
     details: Annotated[str | None, Field(description="Optional additional context (stack trace, field name, etc.)")] = None
 
@@ -3276,10 +3214,6 @@ type ClientRefreshRefreshItemStreamStream = Annotated[
     Field(description="`reopened`, the stream open again after a drop; or `unreadable`, an event that cannot be read."),
 ]
 
-type ClientRefreshRefreshItemStreamReach = Annotated[
-    Literal["subject", "held"], Field(description="Which keys the row reaches: the event's subject, or every key held.")
-]
-
 
 class ClientRefreshRefreshItemStream(WireModel, frozen=True, extra="forbid"):
     """
@@ -3287,7 +3221,9 @@ class ClientRefreshRefreshItemStream(WireModel, frozen=True, extra="forbid"):
     """
 
     stream: ClientRefreshRefreshItemStreamStream
-    reach: ClientRefreshRefreshItemStreamReach | None = None
+    reach: Annotated[
+        ClientRefreshRefreshItemOnReach | None, Field(description="Which keys the row reaches: the event's subject, or every key held.")
+    ] = None
     refetches: Annotated[list[str] | None, Field(description="The queries asked again.")] = None
     docs: Annotated[str, Field(description="What it is, in prose.")]
 
@@ -3402,7 +3338,7 @@ class ConformanceBusFetch(WireModel, frozen=True, extra="forbid"):
     as_: Annotated[str, Field(alias="as", description="The request's correlation id, for the backend's answer.")]
 
 
-type ConformanceCasePlanesItem = Literal["in-process", "nats"]
+type GatewayConfigSignalType = Literal["in-process", "nats"]
 
 type ConformanceCaseTier = Annotated[
     Literal["fleet", "parity"],
@@ -3760,7 +3696,7 @@ class ConformanceCase(WireModel, frozen=True, extra="forbid"):
     about: Annotated[str, Field(description="What the case holds a client to, in a sentence.")]
     source: Annotated[str, Field(description="Where the protocol or the spec states it.")]
     planes: Annotated[
-        list[ConformanceCasePlanesItem] | None, Field(description="The signal planes the case runs on. Absent, it runs on both.")
+        list[GatewayConfigSignalType] | None, Field(description="The signal planes the case runs on. Absent, it runs on both.")
     ] = None
     tier: ConformanceCaseTier | None = None
     telemetry: Annotated[
@@ -4012,14 +3948,6 @@ class LocalTarget(WireModel, frozen=True, extra="forbid"):
     root: Annotated[str, Field(description="The knowledge base's clone, by its path.")]
 
 
-type ConformanceImplementationsSdksValueLiveTier = Annotated[
-    Literal["fleet", "parity"],
-    Field(
-        description="A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does."
-    ),
-]
-
-
 class ConformanceImplementationsSdksValueLive(WireModel, frozen=True, extra="forbid"):
     """
     How its live driver is started, and the tier of the live corpus the SDK is held to.
@@ -4031,7 +3959,12 @@ class ConformanceImplementationsSdksValueLive(WireModel, frozen=True, extra="for
             description="How its live driver is started. A command and its arguments, as the harness starts it. An argument that starts with ./ or ../ is a path, resolved against the manifest's own directory; every other is passed as written."
         ),
     ]
-    tier: ConformanceImplementationsSdksValueLiveTier
+    tier: Annotated[
+        ConformanceCaseTier,
+        Field(
+            description="A live case's tier: `fleet`, what every SDK with a live layer does, or `parity`, what one that implements all of CACHE-SEMANTICS does."
+        ),
+    ]
 
 
 class ConformanceImplementationsSdksValue(WireModel, frozen=True, extra="forbid"):
@@ -4422,20 +4355,17 @@ class DispatcherHealth(WireModel, frozen=True, extra="forbid"):
     queue: Annotated[Literal["jetstream"], Field(description="The queue it holds.")]
 
 
-type DispatcherMessagesRefusalsItemCode = Annotated[
-    Literal["peer-unavailable", "not-found", "unauthorized", "none-pending"],
-    Field(
-        description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
-    ),
-]
-
-
 class DispatcherMessagesRefusalsItem(WireModel, frozen=True, extra="forbid"):
     name: Annotated[str, Field(description="The situation's name.")]
     operation: Annotated[
         str, Field(description="The operation it refuses: a request of bus/registry.json's operations that the dispatcher answers.")
     ]
-    code: DispatcherMessagesRefusalsItemCode | None = None
+    code: Annotated[
+        CommandErrorCode | None,
+        Field(
+            description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
+        ),
+    ] = None
     situation: Annotated[str, Field(description="When it is written, and what fills each `{name}` of its text.")]
     message: Annotated[
         str,
@@ -4713,18 +4643,15 @@ class ErrorResponse(WireModel, frozen=True):
     details: JsonValue | None = None
 
 
-type ErrorsCodesBusRequestCodesItemWire = Annotated[
-    Literal["peer-unavailable", "not-found", "unauthorized", "none-pending"],
-    Field(
-        description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
-    ),
-]
-
-
 class ErrorsCodesBusRequestCodesItem(WireModel, frozen=True, extra="forbid"):
     code: Annotated[str, Field(description="The code, as every SDK names it.")]
     docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-    wire: ErrorsCodesBusRequestCodesItemWire | None = None
+    wire: Annotated[
+        CommandErrorCode | None,
+        Field(
+            description="Machine-readable failure class, for consumers that must BRANCH on why a command failed rather than log it. Optional and deliberately sparse: absent means 'no class declared', and every existing failure stays that way. An enum rather than a free string so the vocabulary has an owner — an unconstrained code is a mirror with no gate, and adding one should be a deliberate spec change. `message` remains the human-readable text and is unaffected. Members: `peer-unavailable` — the channel this command was sent on has no subscriber, i.e. the service that answers it has not connected yet. Transient by nature (a peer still starting), which is what distinguishes it from a refusal: retrying is the correct response. `not-found` — the resource this command addressed does not exist in this knowledge base. A verdict, not a symptom: it is emitted only where the answer comes from the event store, which is the system of record, and never from a projection that may merely be lagging. Deterministic, so unlike `peer-unavailable` retrying is pointless — and consumers may act destructively on it (the SDK deletes a restored tab). Absence is not denial: a future 'exists, but not for you' must travel as its own code, never as this one. `unauthorized` — that code: the caller is authenticated but not permitted to do what it asked. A verdict about the CALLER, not the resource, so retrying under the same credential cannot succeed and a consumer must never spin on it; emitted by `job:claim` for a caller whose token carries no worker role. `none-pending` — a declined claim, not an error: the queue holds no pending job of the requested types. Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying neither is unclassified — a malformed record or a missing injection — and a consumer treats it as 'log it, assume nothing'."
+        ),
+    ] = None
 
 
 class ErrorsCodesBusRequest(WireModel, frozen=True, extra="forbid"):
@@ -4798,76 +4725,6 @@ class ErrorsCodesJob(WireModel, frozen=True, extra="forbid"):
     codes: list[ErrorsCodesJobCodesItem]
 
 
-class ErrorsCodesSessionCodesItem(WireModel, frozen=True, extra="forbid"):
-    code: Annotated[str, Field(description="The code, as every SDK names it.")]
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-
-
-class ErrorsCodesSession(WireModel, frozen=True, extra="forbid"):
-    """
-    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-    """
-
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-    codes: list[ErrorsCodesSessionCodesItem]
-
-
-class ErrorsCodesSignInCodesItem(WireModel, frozen=True, extra="forbid"):
-    code: Annotated[str, Field(description="The code, as every SDK names it.")]
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-
-
-class ErrorsCodesSignIn(WireModel, frozen=True, extra="forbid"):
-    """
-    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-    """
-
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-    codes: list[ErrorsCodesSignInCodesItem]
-
-
-class ErrorsCodesKbIdentityCodesItem(WireModel, frozen=True, extra="forbid"):
-    code: Annotated[str, Field(description="The code, as every SDK names it.")]
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-
-
-class ErrorsCodesKbIdentity(WireModel, frozen=True, extra="forbid"):
-    """
-    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-    """
-
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-    codes: list[ErrorsCodesKbIdentityCodesItem]
-
-
-class ErrorsCodesSpanRefusalCodesItem(WireModel, frozen=True, extra="forbid"):
-    code: Annotated[str, Field(description="The code, as every SDK names it.")]
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-
-
-class ErrorsCodesSpanRefusal(WireModel, frozen=True, extra="forbid"):
-    """
-    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-    """
-
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-    codes: list[ErrorsCodesSpanRefusalCodesItem]
-
-
-class ErrorsCodesControlCodesItem(WireModel, frozen=True, extra="forbid"):
-    code: Annotated[str, Field(description="The code, as every SDK names it.")]
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-
-
-class ErrorsCodesControl(WireModel, frozen=True, extra="forbid"):
-    """
-    A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.
-    """
-
-    docs: Annotated[str, Field(description="Its documentation, in prose: what a generated type or member says of it.")]
-    codes: list[ErrorsCodesControlCodesItem]
-
-
 class ErrorsCodes(WireModel, frozen=True, extra="forbid"):
     """
     errors/codes.json: the error codes a Xynolog client reports, in one vocabulary for each kind of failure.
@@ -4877,11 +4734,39 @@ class ErrorsCodes(WireModel, frozen=True, extra="forbid"):
     bus_request: Annotated[ErrorsCodesBusRequest, Field(alias="busRequest")]
     transport: ErrorsCodesTransport
     job: ErrorsCodesJob
-    session: ErrorsCodesSession
-    sign_in: Annotated[ErrorsCodesSignIn, Field(alias="signIn")]
-    kb_identity: Annotated[ErrorsCodesKbIdentity, Field(alias="kbIdentity")]
-    span_refusal: Annotated[ErrorsCodesSpanRefusal, Field(alias="spanRefusal")]
-    control: ErrorsCodesControl
+    session: Annotated[
+        ErrorsCodesJob,
+        Field(
+            description="A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result."
+        ),
+    ]
+    sign_in: Annotated[
+        ErrorsCodesJob,
+        Field(
+            alias="signIn",
+            description="A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.",
+        ),
+    ]
+    kb_identity: Annotated[
+        ErrorsCodesJob,
+        Field(
+            alias="kbIdentity",
+            description="A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.",
+        ),
+    ]
+    span_refusal: Annotated[
+        ErrorsCodesJob,
+        Field(
+            alias="spanRefusal",
+            description="A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result.",
+        ),
+    ]
+    control: Annotated[
+        ErrorsCodesJob,
+        Field(
+            description="A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result."
+        ),
+    ]
 
 
 class Expected(WireModel, frozen=True, extra="forbid"):
@@ -4970,9 +4855,6 @@ class ServiceAddress(WireModel, frozen=True, extra="forbid"):
 
     host: str
     port: int
-
-
-type GatewayConfigSignalType = Literal["in-process", "nats"]
 
 
 class GatewayConfigSignal(WireModel, frozen=True, extra="forbid"):
@@ -5800,71 +5682,28 @@ class GraphSchemaNodesResource(WireModel, frozen=True, extra="forbid"):
     lookups: Annotated[list[str], Field(description="The properties other than its key that a reader finds a node of its kind by.")]
 
 
-class GraphSchemaNodesAnnotation(WireModel, frozen=True, extra="forbid"):
-    """
-    A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
-    """
-
-    label: Annotated[str, Field(description="Its label.")]
-    row: Annotated[
-        str | None,
-        Field(
-            description="The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone."
-        ),
-    ] = None
-    key: Annotated[str, Field(description="The property no two nodes of its kind share.")]
-    lookups: Annotated[list[str], Field(description="The properties other than its key that a reader finds a node of its kind by.")]
-
-
-class GraphSchemaNodesEntityType(WireModel, frozen=True, extra="forbid"):
-    """
-    A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.
-    """
-
-    label: Annotated[str, Field(description="Its label.")]
-    row: Annotated[
-        str | None,
-        Field(
-            description="The part of graph/codec-cases.json whose `properties` and `json` are the node's properties. A node without one holds its key alone."
-        ),
-    ] = None
-    key: Annotated[str, Field(description="The property no two nodes of its kind share.")]
-    lookups: Annotated[list[str], Field(description="The properties other than its key that a reader finds a node of its kind by.")]
-
-
 class GraphSchemaNodes(WireModel, frozen=True, extra="forbid"):
     """
     Each kind of node the graph holds.
     """
 
     resource: GraphSchemaNodesResource
-    annotation: GraphSchemaNodesAnnotation
-    entity_type: Annotated[GraphSchemaNodesEntityType, Field(alias="entityType")]
+    annotation: Annotated[
+        GraphSchemaNodesResource,
+        Field(
+            description="A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by."
+        ),
+    ]
+    entity_type: Annotated[
+        GraphSchemaNodesResource,
+        Field(
+            alias="entityType",
+            description="A kind of node: its label, the codec row it holds, the property it is one of its kind by, and the properties a reader finds one by.",
+        ),
+    ]
 
 
 class GraphSchemaRelationshipsBelongsTo(WireModel, frozen=True, extra="forbid"):
-    """
-    A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
-    """
-
-    type: Annotated[str, Field(description="Its type.")]
-    from_: Annotated[str, Field(alias="from", description="The kind of node it goes from, by its name under `nodes`.")]
-    to: Annotated[str, Field(description="The kind of node it goes to, by its name under `nodes`.")]
-    says: Annotated[str, Field(description="What one says.")]
-
-
-class GraphSchemaRelationshipsReferences(WireModel, frozen=True, extra="forbid"):
-    """
-    A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
-    """
-
-    type: Annotated[str, Field(description="Its type.")]
-    from_: Annotated[str, Field(alias="from", description="The kind of node it goes from, by its name under `nodes`.")]
-    to: Annotated[str, Field(description="The kind of node it goes to, by its name under `nodes`.")]
-    says: Annotated[str, Field(description="What one says.")]
-
-
-class GraphSchemaRelationshipsTaggedAs(WireModel, frozen=True, extra="forbid"):
     """
     A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.
     """
@@ -5881,8 +5720,17 @@ class GraphSchemaRelationships(WireModel, frozen=True, extra="forbid"):
     """
 
     belongs_to: Annotated[GraphSchemaRelationshipsBelongsTo, Field(alias="belongsTo")]
-    references: GraphSchemaRelationshipsReferences
-    tagged_as: Annotated[GraphSchemaRelationshipsTaggedAs, Field(alias="taggedAs")]
+    references: Annotated[
+        GraphSchemaRelationshipsBelongsTo,
+        Field(description="A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says."),
+    ]
+    tagged_as: Annotated[
+        GraphSchemaRelationshipsBelongsTo,
+        Field(
+            alias="taggedAs",
+            description="A kind of relationship: its type, the kind of node it goes from and the kind it goes to, and what it says.",
+        ),
+    ]
 
 
 class GraphSchemaStub(WireModel, frozen=True, extra="forbid"):
@@ -5943,16 +5791,11 @@ class IdentifiersKindsKindsItemAcceptsItem(WireModel, frozen=True, extra="forbid
     why: Annotated[str, Field(description="What the case shows, in prose.")]
 
 
-class IdentifiersKindsKindsItemRefusesItem(WireModel, frozen=True, extra="forbid"):
-    id: Annotated[str, Field(description="A string the kind's rule is asked about.")]
-    why: Annotated[str, Field(description="What the case shows, in prose.")]
-
-
 class IdentifiersKindsKindsItem(WireModel, frozen=True, extra="forbid"):
     schema_: Annotated[str, Field(alias="schema", description="The component under components/schemas that states the kind, by name.")]
     properties: Annotated[list[str], Field(description="The property names that always carry the kind.")]
     accepts: Annotated[list[IdentifiersKindsKindsItemAcceptsItem], Field(description="Strings the kind's rule takes.")]
-    refuses: Annotated[list[IdentifiersKindsKindsItemRefusesItem], Field(description="Strings the kind's rule does not take.")]
+    refuses: Annotated[list[IdentifiersKindsKindsItemAcceptsItem], Field(description="Strings the kind's rule does not take.")]
 
 
 class IdentifiersKindsOthersItem(WireModel, frozen=True, extra="forbid"):
@@ -7482,13 +7325,6 @@ class KnowledgeBase(KbTarget, NewKnowledgeBase, frozen=True):
     """
 
 
-type KnowledgeBaseStatusPlacement = Annotated[
-    Literal["local", "codespace"],
-    Field(
-        description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
-    ),
-]
-
 type SessionState = Annotated[
     Literal["valid", "expired", "unverified", "none"],
     Field(
@@ -7613,7 +7449,12 @@ class KnowledgeBaseStatus(WireModel, frozen=True, extra="forbid"):
     ]
     key: Annotated[str, Field(description="The knowledge base's key on this machine, which names its containers and its state.")]
     recorded: Annotated[bool, Field(description="Whether a stack of it is recorded. When none is, its services are found by name.")]
-    placement: KnowledgeBaseStatusPlacement
+    placement: Annotated[
+        DiscoveredKBPlacement,
+        Field(
+            description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
+        ),
+    ]
     root: Annotated[str | None, Field(description="Its clone, for a local stack.")] = None
     repo: Annotated[
         str | None, Field(description="owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity")
@@ -9012,13 +8853,6 @@ class RetryBudget(WireModel, frozen=True, extra="forbid"):
     max_delay_ms: Annotated[int, Field(alias="maxDelayMs", description="The longest delay between attempts, in milliseconds.")]
 
 
-type RootPlacement = Annotated[
-    Literal["local", "codespace"],
-    Field(
-        description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
-    ),
-]
-
 type RootCurrent = Annotated[
     Literal["cwd", "xynolog-root"],
     Field(
@@ -9032,7 +8866,12 @@ class Root(WireModel, frozen=True, extra="forbid"):
     One knowledge base this machine knows: a registered or running local clone, or a codespace stack recorded here. Registration, the directory, the stack and the forward are separate facts, each stated as it is.
     """
 
-    placement: RootPlacement
+    placement: Annotated[
+        DiscoveredKBPlacement,
+        Field(
+            description='Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here.'
+        ),
+    ]
     path: Annotated[str | None, Field(description="For a local root: the clone's path.")] = None
     present: Annotated[
         bool | None,
@@ -9189,7 +9028,7 @@ type SdkTelemetryTelemetrySpansItemTransport = Annotated[
     Field(description="The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads."),
 ]
 
-type SdkTelemetryTelemetrySpansItemKind = Annotated[
+type ServiceTelemetryTelemetrySpansItemKind = Annotated[
     Literal["client", "consumer", "internal", "producer", "server"], Field(description="The span's kind, in OTLP's words.")
 ]
 
@@ -9214,17 +9053,12 @@ class SdkTelemetryTelemetrySpansItemAttributesItem(WireModel, frozen=True, extra
 class SdkTelemetryTelemetrySpansItem(WireModel, frozen=True, extra="forbid"):
     name: Annotated[str, Field(description="The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.")]
     transport: SdkTelemetryTelemetrySpansItemTransport
-    kind: SdkTelemetryTelemetrySpansItemKind
+    kind: ServiceTelemetryTelemetrySpansItemKind
     meaning: Annotated[str, Field(description="What the row says.")]
     attributes: Annotated[list[SdkTelemetryTelemetrySpansItemAttributesItem], Field(description="The attributes the span carries.")]
 
 
-type SdkTelemetryTelemetryMetricsItemTransport = Annotated[
-    Literal["bus", "content"],
-    Field(description="The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads."),
-]
-
-type SdkTelemetryTelemetryMetricsItemInstrument = Annotated[
+type ServiceTelemetryTelemetryMetricsItemInstrument = Annotated[
     Literal["counter", "up-down counter", "gauge", "histogram"], Field(description="The metric's instrument.")
 ]
 
@@ -9248,8 +9082,11 @@ class SdkTelemetryTelemetryMetricsItemAttributesItem(WireModel, frozen=True, ext
 
 class SdkTelemetryTelemetryMetricsItem(WireModel, frozen=True, extra="forbid"):
     name: Annotated[str, Field(description="The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.")]
-    transport: SdkTelemetryTelemetryMetricsItemTransport
-    instrument: SdkTelemetryTelemetryMetricsItemInstrument
+    transport: Annotated[
+        SdkTelemetryTelemetrySpansItemTransport,
+        Field(description="The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads."),
+    ]
+    instrument: ServiceTelemetryTelemetryMetricsItemInstrument
     meaning: Annotated[str, Field(description="What the row says.")]
     attributes: Annotated[list[SdkTelemetryTelemetryMetricsItemAttributesItem], Field(description="The attributes the span carries.")]
 
@@ -9264,7 +9101,7 @@ class SdkTelemetryTelemetry(WireModel, frozen=True, extra="forbid"):
     metrics: list[SdkTelemetryTelemetryMetricsItem]
 
 
-type ServiceEnvironmentBootRefusalsServicesItem = Annotated[
+type ServiceTelemetryTelemetrySpansItemServicesItem = Annotated[
     Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
     Field(description="A Xynolog service, by its name."),
 ]
@@ -9290,7 +9127,7 @@ class ServiceEnvironmentBootRefusals(WireModel, frozen=True, extra="forbid"):
     """
 
     comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
-    services: Annotated[list[ServiceEnvironmentBootRefusalsServicesItem], Field(description="The services that refuse to start so.")]
+    services: Annotated[list[ServiceTelemetryTelemetrySpansItemServicesItem], Field(description="The services that refuse to start so.")]
     line: Annotated[
         str, Field(description="The one line the service writes to stderr, its refusal in place of `{refusal}`, before it exits.")
     ]
@@ -9301,11 +9138,6 @@ class ServiceEnvironmentBootRefusals(WireModel, frozen=True, extra="forbid"):
         Field(description="Each line of the refusal `invalid`: one for each way the document is not its schema's."),
     ]
 
-
-type ServiceEnvironmentVariablesVariablesItemServicesItem = Annotated[
-    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
-    Field(description="A Xynolog service, by its name."),
-]
 
 type ServiceEnvironmentVariablesVariablesItemReadBy = Annotated[
     Literal["service", "opentelemetry"], Field(description="What reads it: the service's own code, or the OpenTelemetry SDK.")
@@ -9318,7 +9150,7 @@ type ServiceEnvironmentVariablesVariablesItemProvidedBy = Annotated[
 
 class ServiceEnvironmentVariablesVariablesItem(WireModel, frozen=True, extra="forbid"):
     name: Annotated[str, Field(description="The variable's name.")]
-    services: Annotated[list[ServiceEnvironmentVariablesVariablesItemServicesItem], Field(description="The services that read it.")]
+    services: Annotated[list[ServiceTelemetryTelemetrySpansItemServicesItem], Field(description="The services that read it.")]
     read_by: Annotated[ServiceEnvironmentVariablesVariablesItemReadBy, Field(alias="readBy")]
     provided_by: Annotated[ServiceEnvironmentVariablesVariablesItemProvidedBy, Field(alias="providedBy")]
     required: Annotated[bool, Field(description="Whether the service refuses to start without it.")]
@@ -9570,31 +9402,16 @@ class ServiceTelemetryLogLines(WireModel, frozen=True, extra="forbid"):
     supervisor: ServiceTelemetryLogLinesSupervisor
 
 
-type ServiceTelemetryTelemetryResourceItemServicesItem = Annotated[
-    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
-    Field(description="A Xynolog service, by its name."),
-]
-
-
 class ServiceTelemetryTelemetryResourceItem(WireModel, frozen=True, extra="forbid"):
     """
     An attribute of the resource the services' spans and metrics are exported under.
     """
 
     key: Annotated[str, Field(description="The attribute's key.")]
-    services: Annotated[list[ServiceTelemetryTelemetryResourceItemServicesItem], Field(description="The services that export the row.")]
+    services: Annotated[list[ServiceTelemetryTelemetrySpansItemServicesItem], Field(description="The services that export the row.")]
     meaning: Annotated[str, Field(description="What the attribute says.")]
     default: Annotated[str | None, Field(description="Its value when nothing says another, with `{service}` the service's name.")] = None
 
-
-type ServiceTelemetryTelemetrySpansItemServicesItem = Annotated[
-    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
-    Field(description="A Xynolog service, by its name."),
-]
-
-type ServiceTelemetryTelemetrySpansItemKind = Annotated[
-    Literal["client", "consumer", "internal", "producer", "server"], Field(description="The span's kind, in OTLP's words.")
-]
 
 type ServiceTelemetryTelemetrySpansItemWhen = Annotated[
     Literal["export", "traffic", "supervised", "fatal"], Field(description="When the row arrives.")
@@ -9621,26 +9438,11 @@ class ServiceTelemetryTelemetrySpansItemAttributesItem(WireModel, frozen=True, e
 class ServiceTelemetryTelemetrySpansItem(WireModel, frozen=True, extra="forbid"):
     name: Annotated[str, Field(description="The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.")]
     services: Annotated[list[ServiceTelemetryTelemetrySpansItemServicesItem], Field(description="The services that export the row.")]
-    kind: ServiceTelemetryTelemetrySpansItemKind
+    kind: Annotated[ServiceTelemetryTelemetrySpansItemKind, Field(description="The span's kind, in OTLP's words.")]
     when: ServiceTelemetryTelemetrySpansItemWhen
     meaning: Annotated[str, Field(description="What the row says.")]
     attributes: Annotated[list[ServiceTelemetryTelemetrySpansItemAttributesItem], Field(description="The attributes the span carries.")]
 
-
-type ServiceTelemetryTelemetryMetricsItemServicesItem = Annotated[
-    Literal["archivist", "dispatcher", "gateway", "librarian", "smelter", "weaver", "worker"],
-    Field(description="A Xynolog service, by its name."),
-]
-
-type ServiceTelemetryTelemetryMetricsItemInstrument = Annotated[
-    Literal["counter", "up-down counter", "gauge", "histogram"], Field(description="The metric's instrument.")
-]
-
-type ServiceTelemetryTelemetryMetricsItemWhen = Annotated[
-    Literal["export", "traffic", "supervised", "fatal"], Field(description="When the row arrives.")
-]
-
-type ServiceTelemetryTelemetryMetricsItemPlanesItem = Literal["in-process", "nats"]
 
 type ServiceTelemetryTelemetryMetricsItemAttributesItemValuesItem = str | bool
 
@@ -9662,12 +9464,10 @@ class ServiceTelemetryTelemetryMetricsItemAttributesItem(WireModel, frozen=True,
 
 class ServiceTelemetryTelemetryMetricsItem(WireModel, frozen=True, extra="forbid"):
     name: Annotated[str, Field(description="The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type.")]
-    services: Annotated[list[ServiceTelemetryTelemetryMetricsItemServicesItem], Field(description="The services that export the row.")]
-    instrument: ServiceTelemetryTelemetryMetricsItemInstrument
-    when: ServiceTelemetryTelemetryMetricsItemWhen
-    planes: Annotated[
-        list[ServiceTelemetryTelemetryMetricsItemPlanesItem] | None, Field(description="The only signal planes a gateway row arrives on.")
-    ] = None
+    services: Annotated[list[ServiceTelemetryTelemetrySpansItemServicesItem], Field(description="The services that export the row.")]
+    instrument: Annotated[ServiceTelemetryTelemetryMetricsItemInstrument, Field(description="The metric's instrument.")]
+    when: Annotated[ServiceTelemetryTelemetrySpansItemWhen, Field(description="When the row arrives.")]
+    planes: Annotated[list[GatewayConfigSignalType] | None, Field(description="The only signal planes a gateway row arrives on.")] = None
     meaning: Annotated[str, Field(description="What the row says.")]
     attributes: Annotated[list[ServiceTelemetryTelemetryMetricsItemAttributesItem], Field(description="The attributes the span carries.")]
 
@@ -9933,25 +9733,7 @@ class SignInStoreOwnerOnlyDirectoryMode(WireModel, frozen=True, extra="forbid"):
     docs: str
 
 
-class SignInStoreOwnerOnlyFileMode(WireModel, frozen=True, extra="forbid"):
-    """
-    A mode, on a system that has modes.
-    """
-
-    value: Annotated[str, Field(description="The mode, in octal.")]
-    docs: str
-
-
 class SignInStoreOwnerOnlyDirectoryAccessList(WireModel, frozen=True, extra="forbid"):
-    """
-    An access list, on Windows.
-    """
-
-    value: Annotated[str, Field(description="The access list in SDDL, with `{owner}` where the owner's SID goes.")]
-    docs: str
-
-
-class SignInStoreOwnerOnlyFileAccessList(WireModel, frozen=True, extra="forbid"):
     """
     An access list, on Windows.
     """
@@ -9967,9 +9749,11 @@ class SignInStoreOwnerOnly(WireModel, frozen=True, extra="forbid"):
 
     comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
     directory_mode: Annotated[SignInStoreOwnerOnlyDirectoryMode, Field(alias="directoryMode")]
-    file_mode: Annotated[SignInStoreOwnerOnlyFileMode, Field(alias="fileMode")]
+    file_mode: Annotated[SignInStoreOwnerOnlyDirectoryMode, Field(alias="fileMode", description="A mode, on a system that has modes.")]
     directory_access_list: Annotated[SignInStoreOwnerOnlyDirectoryAccessList, Field(alias="directoryAccessList")]
-    file_access_list: Annotated[SignInStoreOwnerOnlyFileAccessList, Field(alias="fileAccessList")]
+    file_access_list: Annotated[
+        SignInStoreOwnerOnlyDirectoryAccessList, Field(alias="fileAccessList", description="An access list, on Windows.")
+    ]
 
 
 class StoredSession(WireModel, frozen=True):
@@ -11126,27 +10910,6 @@ class WorkerMessagesWaitsItem(WireModel, frozen=True, extra="forbid"):
     ]
 
 
-class WorkerMessagesLoggedItem(WireModel, frozen=True, extra="forbid"):
-    name: Annotated[str, Field(description="The situation's name.")]
-    level: LogLevel
-    situation: Annotated[
-        str, Field(description="When it is written, what fills each `{name}` of its fields, and what each fact it carries says.")
-    ]
-    message: Annotated[str, Field(description="The line's message, word for word.")]
-    fields: Annotated[
-        dict[str, str],
-        Field(
-            description="The facts the line is logged with whose form is stated, by name: each a text whose `{name}` is filled as the row's `situation` says. A fact that is a number is its decimal digits."
-        ),
-    ]
-    carries: Annotated[
-        list[str],
-        Field(
-            description="The facts the line is logged with beside `fields`, whose value the row's `situation` says and whose form is not stated. The line may carry others."
-        ),
-    ]
-
-
 class WorkerMessages(WireModel, frozen=True, extra="forbid"):
     """
     worker/messages.json: the words of a Worker service's refusals to start, of the errors it fails a job with, and of the messages it logs that a reader relies on.
@@ -11166,7 +10929,7 @@ class WorkerMessages(WireModel, frozen=True, extra="forbid"):
     details: Annotated[list[WorkerMessagesDetailsItem], Field(description="Each `{detail}` of `unreadable`.")]
     waits: Annotated[list[WorkerMessagesWaitsItem], Field(description="Each `{said}` of `wait-stated`.")]
     logged: Annotated[
-        list[WorkerMessagesLoggedItem], Field(description="Each message a Worker service logs that a reader of its output relies on.")
+        list[SmelterMessagesLoggedItem], Field(description="Each message a Worker service logs that a reader of its output relies on.")
     ]
 
 

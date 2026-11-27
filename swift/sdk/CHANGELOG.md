@@ -59,6 +59,18 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema a `$ref` names at a place within a file is one type, named where
+  that place is stated, wherever it is referred to: the Archivist layout's
+  trees are all `ArchivistLayoutEventStreamTree`, a placement is
+  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
+  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
+  and the rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
+  gone.
+- Two failure vocabularies are named as every SDK names them, from the error
+  codes' shared table: `SpanRefusal`, where it was `SpanRefusalErrorCode`
+  (`SpanRefusedError.reason`), and `IdentityUnverifiableReason`, where it was
+  `KbIdentityErrorCode` (`IdentityUnverifiableError.reason`).
 - `PutBinaryRequest` is the type of Protocol's
   `client/types/PutBinaryRequest.json`, where it was the SDK's own: `Codable`
   and `Hashable` as every generated type is, its four required members `var`s

@@ -10,6 +10,9 @@ type fault_action =
 
 type delivery_op = Write | Transition
 
+let delivery_op_name = function Write -> "write" | Transition -> "transition"
+let every_delivery_op = [ Write; Transition ]
+
 let fault_actions random =
   match Random.State.int random 5 with
   | 0 -> Deliver

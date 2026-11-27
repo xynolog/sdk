@@ -10,5 +10,5 @@ public sealed record IdentifiersKindsKindsItem
     [global::Xynolog.Serialization.Wire("schema")] public required string Schema { get; init; }
     [global::Xynolog.Serialization.Wire("properties")] public required global::System.Collections.Generic.IReadOnlyList<string> Properties { get; init; }
     [global::Xynolog.Serialization.Wire("accepts")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.IdentifiersKindsKindsItemAcceptsItem> Accepts { get; init; }
-    [global::Xynolog.Serialization.Wire("refuses")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.IdentifiersKindsKindsItemRefusesItem> Refuses { get; init; }
+    [global::Xynolog.Serialization.Wire("refuses")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.IdentifiersKindsKindsItemAcceptsItem> Refuses { get; init; }
 }

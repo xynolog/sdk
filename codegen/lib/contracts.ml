@@ -304,7 +304,7 @@ let error_codes t (spec : Spec.t) =
   let codes =
     List.concat_map
       (fun (v : E.vocabulary) -> List.map (fun c -> (v, c)) v.codes)
-      ((table.bus :: table.transport :: table.others) @ [ table.control ])
+      (E.vocabularies table)
   in
   kind "error codes" codes
     ~item:(fun (_, (c : E.code)) -> c.code)
@@ -336,10 +336,7 @@ let error_codes t (spec : Spec.t) =
       | Swift ->
           declares
             (block
-               ~opening:
-                 ("public enum "
-                 ^ Swift_sdk.Table_decls.error_code_enum v.member
-                 ^ ":")
+               ~opening:("public enum " ^ v.go_name ^ ":")
                ~closing:"\n}" (t.generated swift_models))
             ("case ", " = ")
             (Swift_sdk.Models.enum_case c.code)

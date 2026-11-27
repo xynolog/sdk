@@ -23,10 +23,11 @@ internal static class TestingKit
     internal const int Slack = 4;
 }
 
+[global::System.Text.Json.Serialization.JsonConverter(typeof(global::System.Text.Json.Serialization.JsonStringEnumConverter<DeliveryOp>))]
 public enum DeliveryOp
 {
-    Write,
-    Transition,
+    [global::System.Text.Json.Serialization.JsonStringEnumMemberName("write")] Write,
+    [global::System.Text.Json.Serialization.JsonStringEnumMemberName("transition")] Transition,
 }
 
 public sealed record RequestLogEntry(string Channel, FaultAction Action, string? CorrelationId, string RetryKey, global::System.Text.Json.JsonElement Payload);

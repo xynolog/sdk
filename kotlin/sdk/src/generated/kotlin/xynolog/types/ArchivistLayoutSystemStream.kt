@@ -9,13 +9,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 public data class ArchivistLayoutSystemStream(
     /** The tree the file is in: `root`, the working tree, `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text store. */
-    public val tree: ArchivistLayoutSystemStreamTree,
+    public val tree: ArchivistLayoutEventStreamTree,
     /** Its path in its tree, `/`-separated. */
     public val path: String,
 ) {
     /** How Java makes a `ArchivistLayoutSystemStream`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val tree: ArchivistLayoutSystemStreamTree,
+        private val tree: ArchivistLayoutEventStreamTree,
         private val path: String,
     ) {
         public fun build(): ArchivistLayoutSystemStream = ArchivistLayoutSystemStream(tree = tree, path = path)
@@ -24,6 +24,6 @@ public data class ArchivistLayoutSystemStream(
     public companion object {
         /** A builder of a `ArchivistLayoutSystemStream` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(tree: ArchivistLayoutSystemStreamTree, path: String): Builder = Builder(tree, path)
+        public fun builder(tree: ArchivistLayoutEventStreamTree, path: String): Builder = Builder(tree, path)
     }
 }

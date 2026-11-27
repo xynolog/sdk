@@ -15,19 +15,19 @@ public data class SignInStoreOwnerOnly(
     /** A mode, on a system that has modes. */
     public val directoryMode: SignInStoreOwnerOnlyDirectoryMode,
     /** A mode, on a system that has modes. */
-    public val fileMode: SignInStoreOwnerOnlyFileMode,
+    public val fileMode: SignInStoreOwnerOnlyDirectoryMode,
     /** An access list, on Windows. */
     public val directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList,
     /** An access list, on Windows. */
-    public val fileAccessList: SignInStoreOwnerOnlyFileAccessList,
+    public val fileAccessList: SignInStoreOwnerOnlyDirectoryAccessList,
 ) {
     /** How Java makes a `SignInStoreOwnerOnly`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val comment: String,
         private val directoryMode: SignInStoreOwnerOnlyDirectoryMode,
-        private val fileMode: SignInStoreOwnerOnlyFileMode,
+        private val fileMode: SignInStoreOwnerOnlyDirectoryMode,
         private val directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList,
-        private val fileAccessList: SignInStoreOwnerOnlyFileAccessList,
+        private val fileAccessList: SignInStoreOwnerOnlyDirectoryAccessList,
     ) {
         public fun build(): SignInStoreOwnerOnly = SignInStoreOwnerOnly(comment = comment, directoryMode = directoryMode, fileMode = fileMode, directoryAccessList = directoryAccessList, fileAccessList = fileAccessList)
     }
@@ -35,6 +35,6 @@ public data class SignInStoreOwnerOnly(
     public companion object {
         /** A builder of a `SignInStoreOwnerOnly` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(comment: String, directoryMode: SignInStoreOwnerOnlyDirectoryMode, fileMode: SignInStoreOwnerOnlyFileMode, directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList, fileAccessList: SignInStoreOwnerOnlyFileAccessList): Builder = Builder(comment, directoryMode, fileMode, directoryAccessList, fileAccessList)
+        public fun builder(comment: String, directoryMode: SignInStoreOwnerOnlyDirectoryMode, fileMode: SignInStoreOwnerOnlyDirectoryMode, directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList, fileAccessList: SignInStoreOwnerOnlyDirectoryAccessList): Builder = Builder(comment, directoryMode, fileMode, directoryAccessList, fileAccessList)
     }
 }

@@ -1332,10 +1332,10 @@ public struct ArchivistLayout: Codable, Sendable, Hashable {
 }
 
 public struct ArchivistLayoutAnchoredTextEntry: Codable, Sendable, Hashable {
-  public var tree: ArchivistLayoutAnchoredTextEntryTree
+  public var tree: ArchivistLayoutEventStreamTree
   public var path: String
   public var schema: JSONValue
-  public init(tree: ArchivistLayoutAnchoredTextEntryTree, path: String, schema: JSONValue) {
+  public init(tree: ArchivistLayoutEventStreamTree, path: String, schema: JSONValue) {
     self.tree = tree
     self.path = path
     self.schema = schema
@@ -1355,16 +1355,10 @@ public struct ArchivistLayoutAnchoredTextEntry: Codable, Sendable, Hashable {
   }
 }
 
-public enum ArchivistLayoutAnchoredTextEntryTree: String, Codable, Sendable, CaseIterable {
-  case root = "root"
-  case stateHome = "stateHome"
-  case anchoredTextDir = "anchoredTextDir"
-}
-
 public struct ArchivistLayoutAnchoredTextStamp: Codable, Sendable, Hashable {
-  public var tree: ArchivistLayoutAnchoredTextStampTree
+  public var tree: ArchivistLayoutEventStreamTree
   public var path: String
-  public init(tree: ArchivistLayoutAnchoredTextStampTree, path: String) {
+  public init(tree: ArchivistLayoutEventStreamTree, path: String) {
     self.tree = tree
     self.path = path
   }
@@ -1379,12 +1373,6 @@ public struct ArchivistLayoutAnchoredTextStamp: Codable, Sendable, Hashable {
     try c.encode(self.tree, as: "tree")
     try c.encode(self.path, as: "path")
   }
-}
-
-public enum ArchivistLayoutAnchoredTextStampTree: String, Codable, Sendable, CaseIterable {
-  case root = "root"
-  case stateHome = "stateHome"
-  case anchoredTextDir = "anchoredTextDir"
 }
 
 public struct ArchivistLayoutEventFile: Codable, Sendable, Hashable {
@@ -1442,10 +1430,10 @@ public enum ArchivistLayoutEventStreamTree: String, Codable, Sendable, CaseItera
 }
 
 public struct ArchivistLayoutStorageUriIndex: Codable, Sendable, Hashable {
-  public var tree: ArchivistLayoutStorageUriIndexTree
+  public var tree: ArchivistLayoutEventStreamTree
   public var path: String
   public var schema: JSONValue
-  public init(tree: ArchivistLayoutStorageUriIndexTree, path: String, schema: JSONValue) {
+  public init(tree: ArchivistLayoutEventStreamTree, path: String, schema: JSONValue) {
     self.tree = tree
     self.path = path
     self.schema = schema
@@ -1465,18 +1453,12 @@ public struct ArchivistLayoutStorageUriIndex: Codable, Sendable, Hashable {
   }
 }
 
-public enum ArchivistLayoutStorageUriIndexTree: String, Codable, Sendable, CaseIterable {
-  case root = "root"
-  case stateHome = "stateHome"
-  case anchoredTextDir = "anchoredTextDir"
-}
-
 public struct ArchivistLayoutSystemProjections: Codable, Sendable, Hashable {
-  public var tree: ArchivistLayoutSystemProjectionsTree
+  public var tree: ArchivistLayoutEventStreamTree
   public var path: String
   public var files: [ArchivistLayoutSystemProjectionsFilesItem]
   public init(
-    tree: ArchivistLayoutSystemProjectionsTree, path: String,
+    tree: ArchivistLayoutEventStreamTree, path: String,
     files: [ArchivistLayoutSystemProjectionsFilesItem]
   ) {
     self.tree = tree
@@ -1518,16 +1500,10 @@ public struct ArchivistLayoutSystemProjectionsFilesItem: Codable, Sendable, Hash
   }
 }
 
-public enum ArchivistLayoutSystemProjectionsTree: String, Codable, Sendable, CaseIterable {
-  case root = "root"
-  case stateHome = "stateHome"
-  case anchoredTextDir = "anchoredTextDir"
-}
-
 public struct ArchivistLayoutSystemStream: Codable, Sendable, Hashable {
-  public var tree: ArchivistLayoutSystemStreamTree
+  public var tree: ArchivistLayoutEventStreamTree
   public var path: String
-  public init(tree: ArchivistLayoutSystemStreamTree, path: String) {
+  public init(tree: ArchivistLayoutEventStreamTree, path: String) {
     self.tree = tree
     self.path = path
   }
@@ -1544,17 +1520,11 @@ public struct ArchivistLayoutSystemStream: Codable, Sendable, Hashable {
   }
 }
 
-public enum ArchivistLayoutSystemStreamTree: String, Codable, Sendable, CaseIterable {
-  case root = "root"
-  case stateHome = "stateHome"
-  case anchoredTextDir = "anchoredTextDir"
-}
-
 public struct ArchivistLayoutView: Codable, Sendable, Hashable {
-  public var tree: ArchivistLayoutViewTree
+  public var tree: ArchivistLayoutEventStreamTree
   public var path: String
   public var schema: JSONValue
-  public init(tree: ArchivistLayoutViewTree, path: String, schema: JSONValue) {
+  public init(tree: ArchivistLayoutEventStreamTree, path: String, schema: JSONValue) {
     self.tree = tree
     self.path = path
     self.schema = schema
@@ -1572,12 +1542,6 @@ public struct ArchivistLayoutView: Codable, Sendable, Hashable {
     try c.encode(self.path, as: "path")
     try c.encode(self.schema, as: "schema")
   }
-}
-
-public enum ArchivistLayoutViewTree: String, Codable, Sendable, CaseIterable {
-  case root = "root"
-  case stateHome = "stateHome"
-  case anchoredTextDir = "anchoredTextDir"
 }
 
 public struct ArchivistMessages: Codable, Sendable, Hashable {
@@ -1739,12 +1703,12 @@ public struct ArchivistMessagesLoggedItem: Codable, Sendable, Hashable {
 public struct ArchivistMessagesRefusalsItem: Codable, Sendable, Hashable {
   public var name: String
   public var operations: [String]
-  public var code: ArchivistMessagesRefusalsItemCode?
+  public var code: CommandErrorCode?
   public var situation: String
   public var message: String
   public init(
-    name: String, operations: [String], code: ArchivistMessagesRefusalsItemCode? = nil,
-    situation: String, message: String
+    name: String, operations: [String], code: CommandErrorCode? = nil, situation: String,
+    message: String
   ) {
     self.name = name
     self.operations = operations
@@ -1770,13 +1734,6 @@ public struct ArchivistMessagesRefusalsItem: Codable, Sendable, Hashable {
     try c.encode(self.situation, as: "situation")
     try c.encode(self.message, as: "message")
   }
-}
-
-public enum ArchivistMessagesRefusalsItemCode: String, Codable, Sendable, CaseIterable {
-  case peerUnavailable = "peer-unavailable"
-  case notFound = "not-found"
-  case unauthorized = "unauthorized"
-  case nonePending = "none-pending"
 }
 
 public struct ArchivistMessagesUnauthorized: Codable, Sendable, Hashable {
@@ -3924,11 +3881,11 @@ public enum ClientRefreshRefreshItemOnWhen: String, Codable, Sendable, CaseItera
 
 public struct ClientRefreshRefreshItemStream: Codable, Sendable, Hashable {
   public var stream: ClientRefreshRefreshItemStreamStream
-  public var reach: ClientRefreshRefreshItemStreamReach?
+  public var reach: ClientRefreshRefreshItemOnReach?
   public var refetches: [String]?
   public var docs: String
   public init(
-    stream: ClientRefreshRefreshItemStreamStream, reach: ClientRefreshRefreshItemStreamReach? = nil,
+    stream: ClientRefreshRefreshItemStreamStream, reach: ClientRefreshRefreshItemOnReach? = nil,
     refetches: [String]? = nil, docs: String
   ) {
     self.stream = stream
@@ -3952,11 +3909,6 @@ public struct ClientRefreshRefreshItemStream: Codable, Sendable, Hashable {
     try c.encodeIfPresent(self.refetches, as: "refetches")
     try c.encode(self.docs, as: "docs")
   }
-}
-
-public enum ClientRefreshRefreshItemStreamReach: String, Codable, Sendable, CaseIterable {
-  case subject = "subject"
-  case held = "held"
 }
 
 public enum ClientRefreshRefreshItemStreamStream: String, Codable, Sendable, CaseIterable {
@@ -4309,12 +4261,12 @@ public struct ConformanceBusFetch: Codable, Sendable, Hashable {
 public struct ConformanceCase: Codable, Sendable, Hashable {
   public var about: String
   public var source: String
-  public var planes: [ConformanceCasePlanesItem]?
+  public var planes: [GatewayConfigSignalType]?
   public var tier: ConformanceCaseTier?
   public var telemetry: ConformanceCaseTelemetry?
   public var steps: [ConformanceStep]
   public init(
-    about: String, source: String, planes: [ConformanceCasePlanesItem]? = nil,
+    about: String, source: String, planes: [GatewayConfigSignalType]? = nil,
     tier: ConformanceCaseTier? = nil, telemetry: ConformanceCaseTelemetry? = nil,
     steps: [ConformanceStep]
   ) {
@@ -4345,11 +4297,6 @@ public struct ConformanceCase: Codable, Sendable, Hashable {
     try c.encodeIfPresent(self.telemetry, as: "telemetry")
     try c.encode(self.steps, as: "steps")
   }
-}
-
-public enum ConformanceCasePlanesItem: String, Codable, Sendable, CaseIterable {
-  case inProcess = "in-process"
-  case nats = "nats"
 }
 
 public enum ConformanceCaseTelemetry: Codable, Sendable, Hashable {
@@ -5165,8 +5112,8 @@ public struct ConformanceImplementationsSdksValue: Codable, Sendable, Hashable {
 
 public struct ConformanceImplementationsSdksValueLive: Codable, Sendable, Hashable {
   public var command: [String]
-  public var tier: ConformanceImplementationsSdksValueLiveTier
-  public init(command: [String], tier: ConformanceImplementationsSdksValueLiveTier) {
+  public var tier: ConformanceCaseTier
+  public init(command: [String], tier: ConformanceCaseTier) {
     self.command = command
     self.tier = tier
   }
@@ -5181,11 +5128,6 @@ public struct ConformanceImplementationsSdksValueLive: Codable, Sendable, Hashab
     try c.encode(self.command, as: "command")
     try c.encode(self.tier, as: "tier")
   }
-}
-
-public enum ConformanceImplementationsSdksValueLiveTier: String, Codable, Sendable, CaseIterable {
-  case fleet = "fleet"
-  case parity = "parity"
 }
 
 public indirect enum ConformanceStep: Codable, Sendable, Hashable {
@@ -6886,12 +6828,12 @@ public struct DispatcherMessagesErrorsItem: Codable, Sendable, Hashable {
 public struct DispatcherMessagesRefusalsItem: Codable, Sendable, Hashable {
   public var name: String
   public var operation: String
-  public var code: DispatcherMessagesRefusalsItemCode?
+  public var code: CommandErrorCode?
   public var situation: String
   public var message: String
   public init(
-    name: String, operation: String, code: DispatcherMessagesRefusalsItemCode? = nil,
-    situation: String, message: String
+    name: String, operation: String, code: CommandErrorCode? = nil, situation: String,
+    message: String
   ) {
     self.name = name
     self.operation = operation
@@ -6917,13 +6859,6 @@ public struct DispatcherMessagesRefusalsItem: Codable, Sendable, Hashable {
     try c.encode(self.situation, as: "situation")
     try c.encode(self.message, as: "message")
   }
-}
-
-public enum DispatcherMessagesRefusalsItemCode: String, Codable, Sendable, CaseIterable {
-  case peerUnavailable = "peer-unavailable"
-  case notFound = "not-found"
-  case unauthorized = "unauthorized"
-  case nonePending = "none-pending"
 }
 
 public enum DurabilityEvidence: String, Codable, Sendable, CaseIterable {
@@ -7315,16 +7250,15 @@ public struct ErrorsCodes: Codable, Sendable, Hashable {
   public var busRequest: ErrorsCodesBusRequest
   public var transport: ErrorsCodesTransport
   public var job: ErrorsCodesJob
-  public var session: ErrorsCodesSession
-  public var signIn: ErrorsCodesSignIn
-  public var kbIdentity: ErrorsCodesKbIdentity
-  public var spanRefusal: ErrorsCodesSpanRefusal
-  public var control: ErrorsCodesControl
+  public var session: ErrorsCodesJob
+  public var signIn: ErrorsCodesJob
+  public var kbIdentity: ErrorsCodesJob
+  public var spanRefusal: ErrorsCodesJob
+  public var control: ErrorsCodesJob
   public init(
     comment: String, busRequest: ErrorsCodesBusRequest, transport: ErrorsCodesTransport,
-    job: ErrorsCodesJob, session: ErrorsCodesSession, signIn: ErrorsCodesSignIn,
-    kbIdentity: ErrorsCodesKbIdentity, spanRefusal: ErrorsCodesSpanRefusal,
-    control: ErrorsCodesControl
+    job: ErrorsCodesJob, session: ErrorsCodesJob, signIn: ErrorsCodesJob,
+    kbIdentity: ErrorsCodesJob, spanRefusal: ErrorsCodesJob, control: ErrorsCodesJob
   ) {
     self.comment = comment
     self.busRequest = busRequest
@@ -7394,8 +7328,8 @@ public struct ErrorsCodesBusRequest: Codable, Sendable, Hashable {
 public struct ErrorsCodesBusRequestCodesItem: Codable, Sendable, Hashable {
   public var code: String
   public var docs: String
-  public var wire: ErrorsCodesBusRequestCodesItemWire?
-  public init(code: String, docs: String, wire: ErrorsCodesBusRequestCodesItemWire? = nil) {
+  public var wire: CommandErrorCode?
+  public init(code: String, docs: String, wire: CommandErrorCode? = nil) {
     self.code = code
     self.docs = docs
     self.wire = wire
@@ -7412,53 +7346,6 @@ public struct ErrorsCodesBusRequestCodesItem: Codable, Sendable, Hashable {
     try c.encode(self.code, as: "code")
     try c.encode(self.docs, as: "docs")
     try c.encodeIfPresent(self.wire, as: "wire")
-  }
-}
-
-public enum ErrorsCodesBusRequestCodesItemWire: String, Codable, Sendable, CaseIterable {
-  case peerUnavailable = "peer-unavailable"
-  case notFound = "not-found"
-  case unauthorized = "unauthorized"
-  case nonePending = "none-pending"
-}
-
-public struct ErrorsCodesControl: Codable, Sendable, Hashable {
-  public var docs: String
-  public var codes: [ErrorsCodesControlCodesItem]
-  public init(docs: String, codes: [ErrorsCodesControlCodesItem]) {
-    self.docs = docs
-    self.codes = codes
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesControl")
-    self.docs = try c.value("docs")
-    self.codes = try c.value("codes")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.docs, as: "docs")
-    try c.encode(self.codes, as: "codes")
-  }
-}
-
-public struct ErrorsCodesControlCodesItem: Codable, Sendable, Hashable {
-  public var code: String
-  public var docs: String
-  public init(code: String, docs: String) {
-    self.code = code
-    self.docs = docs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesControlCodesItem")
-    self.code = try c.value("code")
-    self.docs = try c.value("docs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.code, as: "code")
-    try c.encode(self.docs, as: "docs")
   }
 }
 
@@ -7492,166 +7379,6 @@ public struct ErrorsCodesJobCodesItem: Codable, Sendable, Hashable {
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesJobCodesItem")
-    self.code = try c.value("code")
-    self.docs = try c.value("docs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.code, as: "code")
-    try c.encode(self.docs, as: "docs")
-  }
-}
-
-public struct ErrorsCodesKbIdentity: Codable, Sendable, Hashable {
-  public var docs: String
-  public var codes: [ErrorsCodesKbIdentityCodesItem]
-  public init(docs: String, codes: [ErrorsCodesKbIdentityCodesItem]) {
-    self.docs = docs
-    self.codes = codes
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesKbIdentity")
-    self.docs = try c.value("docs")
-    self.codes = try c.value("codes")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.docs, as: "docs")
-    try c.encode(self.codes, as: "codes")
-  }
-}
-
-public struct ErrorsCodesKbIdentityCodesItem: Codable, Sendable, Hashable {
-  public var code: String
-  public var docs: String
-  public init(code: String, docs: String) {
-    self.code = code
-    self.docs = docs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesKbIdentityCodesItem")
-    self.code = try c.value("code")
-    self.docs = try c.value("docs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.code, as: "code")
-    try c.encode(self.docs, as: "docs")
-  }
-}
-
-public struct ErrorsCodesSession: Codable, Sendable, Hashable {
-  public var docs: String
-  public var codes: [ErrorsCodesSessionCodesItem]
-  public init(docs: String, codes: [ErrorsCodesSessionCodesItem]) {
-    self.docs = docs
-    self.codes = codes
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesSession")
-    self.docs = try c.value("docs")
-    self.codes = try c.value("codes")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.docs, as: "docs")
-    try c.encode(self.codes, as: "codes")
-  }
-}
-
-public struct ErrorsCodesSessionCodesItem: Codable, Sendable, Hashable {
-  public var code: String
-  public var docs: String
-  public init(code: String, docs: String) {
-    self.code = code
-    self.docs = docs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesSessionCodesItem")
-    self.code = try c.value("code")
-    self.docs = try c.value("docs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.code, as: "code")
-    try c.encode(self.docs, as: "docs")
-  }
-}
-
-public struct ErrorsCodesSignIn: Codable, Sendable, Hashable {
-  public var docs: String
-  public var codes: [ErrorsCodesSignInCodesItem]
-  public init(docs: String, codes: [ErrorsCodesSignInCodesItem]) {
-    self.docs = docs
-    self.codes = codes
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesSignIn")
-    self.docs = try c.value("docs")
-    self.codes = try c.value("codes")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.docs, as: "docs")
-    try c.encode(self.codes, as: "codes")
-  }
-}
-
-public struct ErrorsCodesSignInCodesItem: Codable, Sendable, Hashable {
-  public var code: String
-  public var docs: String
-  public init(code: String, docs: String) {
-    self.code = code
-    self.docs = docs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesSignInCodesItem")
-    self.code = try c.value("code")
-    self.docs = try c.value("docs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.code, as: "code")
-    try c.encode(self.docs, as: "docs")
-  }
-}
-
-public struct ErrorsCodesSpanRefusal: Codable, Sendable, Hashable {
-  public var docs: String
-  public var codes: [ErrorsCodesSpanRefusalCodesItem]
-  public init(docs: String, codes: [ErrorsCodesSpanRefusalCodesItem]) {
-    self.docs = docs
-    self.codes = codes
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesSpanRefusal")
-    self.docs = try c.value("docs")
-    self.codes = try c.value("codes")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.docs, as: "docs")
-    try c.encode(self.codes, as: "codes")
-  }
-}
-
-public struct ErrorsCodesSpanRefusalCodesItem: Codable, Sendable, Hashable {
-  public var code: String
-  public var docs: String
-  public init(code: String, docs: String) {
-    self.code = code
-    self.docs = docs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["code", "docs"], in: "ErrorsCodesSpanRefusalCodesItem")
     self.code = try c.value("code")
     self.docs = try c.value("docs")
   }
@@ -9788,11 +9515,11 @@ public struct GraphSchema: Codable, Sendable, Hashable {
 
 public struct GraphSchemaNodes: Codable, Sendable, Hashable {
   public var resource: GraphSchemaNodesResource
-  public var annotation: GraphSchemaNodesAnnotation
-  public var entityType: GraphSchemaNodesEntityType
+  public var annotation: GraphSchemaNodesResource
+  public var entityType: GraphSchemaNodesResource
   public init(
-    resource: GraphSchemaNodesResource, annotation: GraphSchemaNodesAnnotation,
-    entityType: GraphSchemaNodesEntityType
+    resource: GraphSchemaNodesResource, annotation: GraphSchemaNodesResource,
+    entityType: GraphSchemaNodesResource
   ) {
     self.resource = resource
     self.annotation = annotation
@@ -9810,62 +9537,6 @@ public struct GraphSchemaNodes: Codable, Sendable, Hashable {
     try c.encode(self.resource, as: "resource")
     try c.encode(self.annotation, as: "annotation")
     try c.encode(self.entityType, as: "entityType")
-  }
-}
-
-public struct GraphSchemaNodesAnnotation: Codable, Sendable, Hashable {
-  public var label: String
-  public var row: String?
-  public var key: String
-  public var lookups: [String]
-  public init(label: String, row: String? = nil, key: String, lookups: [String]) {
-    self.label = label
-    self.row = row
-    self.key = key
-    self.lookups = lookups
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["label", "row", "key", "lookups"], in: "GraphSchemaNodesAnnotation")
-    self.label = try c.value("label")
-    self.row = try c.ifPresent("row")
-    self.key = try c.value("key")
-    self.lookups = try c.value("lookups")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.label, as: "label")
-    try c.encodeIfPresent(self.row, as: "row")
-    try c.encode(self.key, as: "key")
-    try c.encode(self.lookups, as: "lookups")
-  }
-}
-
-public struct GraphSchemaNodesEntityType: Codable, Sendable, Hashable {
-  public var label: String
-  public var row: String?
-  public var key: String
-  public var lookups: [String]
-  public init(label: String, row: String? = nil, key: String, lookups: [String]) {
-    self.label = label
-    self.row = row
-    self.key = key
-    self.lookups = lookups
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["label", "row", "key", "lookups"], in: "GraphSchemaNodesEntityType")
-    self.label = try c.value("label")
-    self.row = try c.ifPresent("row")
-    self.key = try c.value("key")
-    self.lookups = try c.value("lookups")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.label, as: "label")
-    try c.encodeIfPresent(self.row, as: "row")
-    try c.encode(self.key, as: "key")
-    try c.encode(self.lookups, as: "lookups")
   }
 }
 
@@ -9899,11 +9570,11 @@ public struct GraphSchemaNodesResource: Codable, Sendable, Hashable {
 
 public struct GraphSchemaRelationships: Codable, Sendable, Hashable {
   public var belongsTo: GraphSchemaRelationshipsBelongsTo
-  public var references: GraphSchemaRelationshipsReferences
-  public var taggedAs: GraphSchemaRelationshipsTaggedAs
+  public var references: GraphSchemaRelationshipsBelongsTo
+  public var taggedAs: GraphSchemaRelationshipsBelongsTo
   public init(
-    belongsTo: GraphSchemaRelationshipsBelongsTo, references: GraphSchemaRelationshipsReferences,
-    taggedAs: GraphSchemaRelationshipsTaggedAs
+    belongsTo: GraphSchemaRelationshipsBelongsTo, references: GraphSchemaRelationshipsBelongsTo,
+    taggedAs: GraphSchemaRelationshipsBelongsTo
   ) {
     self.belongsTo = belongsTo
     self.references = references
@@ -9938,62 +9609,6 @@ public struct GraphSchemaRelationshipsBelongsTo: Codable, Sendable, Hashable {
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(["type", "from", "to", "says"], in: "GraphSchemaRelationshipsBelongsTo")
-    self.type = try c.value("type")
-    self.from = try c.value("from")
-    self.to = try c.value("to")
-    self.says = try c.value("says")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.type, as: "type")
-    try c.encode(self.from, as: "from")
-    try c.encode(self.to, as: "to")
-    try c.encode(self.says, as: "says")
-  }
-}
-
-public struct GraphSchemaRelationshipsReferences: Codable, Sendable, Hashable {
-  public var type: String
-  public var from: String
-  public var to: String
-  public var says: String
-  public init(type: String, from: String, to: String, says: String) {
-    self.type = type
-    self.from = from
-    self.to = to
-    self.says = says
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["type", "from", "to", "says"], in: "GraphSchemaRelationshipsReferences")
-    self.type = try c.value("type")
-    self.from = try c.value("from")
-    self.to = try c.value("to")
-    self.says = try c.value("says")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.type, as: "type")
-    try c.encode(self.from, as: "from")
-    try c.encode(self.to, as: "to")
-    try c.encode(self.says, as: "says")
-  }
-}
-
-public struct GraphSchemaRelationshipsTaggedAs: Codable, Sendable, Hashable {
-  public var type: String
-  public var from: String
-  public var to: String
-  public var says: String
-  public init(type: String, from: String, to: String, says: String) {
-    self.type = type
-    self.from = from
-    self.to = to
-    self.says = says
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["type", "from", "to", "says"], in: "GraphSchemaRelationshipsTaggedAs")
     self.type = try c.value("type")
     self.from = try c.value("from")
     self.to = try c.value("to")
@@ -10176,10 +9791,10 @@ public struct IdentifiersKindsKindsItem: Codable, Sendable, Hashable {
   public var schema: String
   public var properties: [String]
   public var accepts: [IdentifiersKindsKindsItemAcceptsItem]
-  public var refuses: [IdentifiersKindsKindsItemRefusesItem]
+  public var refuses: [IdentifiersKindsKindsItemAcceptsItem]
   public init(
     schema: String, properties: [String], accepts: [IdentifiersKindsKindsItemAcceptsItem],
-    refuses: [IdentifiersKindsKindsItemRefusesItem]
+    refuses: [IdentifiersKindsKindsItemAcceptsItem]
   ) {
     self.schema = schema
     self.properties = properties
@@ -10214,26 +9829,6 @@ public struct IdentifiersKindsKindsItemAcceptsItem: Codable, Sendable, Hashable 
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(["id", "why"], in: "IdentifiersKindsKindsItemAcceptsItem")
-    self.id = try c.value("id")
-    self.why = try c.value("why")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.id, as: "id")
-    try c.encode(self.why, as: "why")
-  }
-}
-
-public struct IdentifiersKindsKindsItemRefusesItem: Codable, Sendable, Hashable {
-  public var id: String
-  public var why: String
-  public init(id: String, why: String) {
-    self.id = id
-    self.why = why
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["id", "why"], in: "IdentifiersKindsKindsItemRefusesItem")
     self.id = try c.value("id")
     self.why = try c.value("why")
   }
@@ -13018,7 +12613,7 @@ public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
   public var name: String
   public var key: String
   public var recorded: Bool
-  public var placement: KnowledgeBaseStatusPlacement
+  public var placement: DiscoveredKBPlacement
   public var root: String?
   public var repo: String?
   public var did: String?
@@ -13035,7 +12630,7 @@ public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
   public var services: [ServiceStatus]
   public var workload: WorkloadStatus?
   public init(
-    name: String, key: String, recorded: Bool, placement: KnowledgeBaseStatusPlacement,
+    name: String, key: String, recorded: Bool, placement: DiscoveredKBPlacement,
     root: String? = nil, repo: String? = nil, did: String? = nil, siteName: String? = nil,
     identityError: String? = nil, kb: DiscoveredKB? = nil, runtime: Runtime? = nil,
     gateway: String? = nil, secretStore: String? = nil, lan: String? = nil, starting: Bool,
@@ -13112,11 +12707,6 @@ public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
     try c.encode(self.services, as: "services")
     try c.encodeIfPresent(self.workload, as: "workload")
   }
-}
-
-public enum KnowledgeBaseStatusPlacement: String, Codable, Sendable, CaseIterable {
-  case local = "local"
-  case codespace = "codespace"
 }
 
 public struct KnowledgeGraph: Codable, Sendable, Hashable {
@@ -17353,7 +16943,7 @@ public struct RetryRulesTransport: Codable, Sendable, Hashable {
 }
 
 public struct Root: Codable, Sendable, Hashable {
-  public var placement: RootPlacement
+  public var placement: DiscoveredKBPlacement
   public var path: String?
   public var present: Bool?
   public var current: RootCurrent?
@@ -17372,7 +16962,7 @@ public struct Root: Codable, Sendable, Hashable {
   public var forwarded: Bool?
   public var reachable: Bool?
   public init(
-    placement: RootPlacement, path: String? = nil, present: Bool? = nil,
+    placement: DiscoveredKBPlacement, path: String? = nil, present: Bool? = nil,
     current: RootCurrent? = nil, registered: Bool, running: Bool, lastUsed: String? = nil,
     did: String? = nil, siteName: String? = nil, identityError: String? = nil,
     config: String? = nil, configs: [String]? = nil, repo: String? = nil, codespace: String? = nil,
@@ -17451,11 +17041,6 @@ public struct Root: Codable, Sendable, Hashable {
 public enum RootCurrent: String, Codable, Sendable, CaseIterable {
   case cwd = "cwd"
   case xynologRoot = "xynolog-root"
-}
-
-public enum RootPlacement: String, Codable, Sendable, CaseIterable {
-  case local = "local"
-  case codespace = "codespace"
 }
 
 public struct RootsForgetParams: Codable, Sendable, Hashable {
@@ -17864,13 +17449,13 @@ public struct SdkTelemetryTelemetry: Codable, Sendable, Hashable {
 
 public struct SdkTelemetryTelemetryMetricsItem: Codable, Sendable, Hashable {
   public var name: String
-  public var transport: SdkTelemetryTelemetryMetricsItemTransport
-  public var instrument: SdkTelemetryTelemetryMetricsItemInstrument
+  public var transport: SdkTelemetryTelemetrySpansItemTransport
+  public var instrument: ServiceTelemetryTelemetryMetricsItemInstrument
   public var meaning: String
   public var attributes: [SdkTelemetryTelemetryMetricsItemAttributesItem]
   public init(
-    name: String, transport: SdkTelemetryTelemetryMetricsItemTransport,
-    instrument: SdkTelemetryTelemetryMetricsItemInstrument, meaning: String,
+    name: String, transport: SdkTelemetryTelemetrySpansItemTransport,
+    instrument: ServiceTelemetryTelemetryMetricsItemInstrument, meaning: String,
     attributes: [SdkTelemetryTelemetryMetricsItemAttributesItem]
   ) {
     self.name = name
@@ -17958,27 +17543,15 @@ public indirect enum SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem: C
   }
 }
 
-public enum SdkTelemetryTelemetryMetricsItemInstrument: String, Codable, Sendable, CaseIterable {
-  case counter = "counter"
-  case upDownCounter = "up-down counter"
-  case gauge = "gauge"
-  case histogram = "histogram"
-}
-
-public enum SdkTelemetryTelemetryMetricsItemTransport: String, Codable, Sendable, CaseIterable {
-  case bus = "bus"
-  case content = "content"
-}
-
 public struct SdkTelemetryTelemetrySpansItem: Codable, Sendable, Hashable {
   public var name: String
   public var transport: SdkTelemetryTelemetrySpansItemTransport
-  public var kind: SdkTelemetryTelemetrySpansItemKind
+  public var kind: ServiceTelemetryTelemetrySpansItemKind
   public var meaning: String
   public var attributes: [SdkTelemetryTelemetrySpansItemAttributesItem]
   public init(
     name: String, transport: SdkTelemetryTelemetrySpansItemTransport,
-    kind: SdkTelemetryTelemetrySpansItemKind, meaning: String,
+    kind: ServiceTelemetryTelemetrySpansItemKind, meaning: String,
     attributes: [SdkTelemetryTelemetrySpansItemAttributesItem]
   ) {
     self.name = name
@@ -18063,14 +17636,6 @@ public indirect enum SdkTelemetryTelemetrySpansItemAttributesItemValuesItem: Cod
     case .boolean(let value): try value.encode(to: encoder)
     }
   }
-}
-
-public enum SdkTelemetryTelemetrySpansItemKind: String, Codable, Sendable, CaseIterable {
-  case client = "client"
-  case consumer = "consumer"
-  case `internal` = "internal"
-  case producer = "producer"
-  case server = "server"
 }
 
 public enum SdkTelemetryTelemetrySpansItemTransport: String, Codable, Sendable, CaseIterable {
@@ -18214,13 +17779,13 @@ public struct ServiceAddress: Codable, Sendable, Hashable {
 
 public struct ServiceEnvironmentBootRefusals: Codable, Sendable, Hashable {
   public var comment: String
-  public var services: [ServiceEnvironmentBootRefusalsServicesItem]
+  public var services: [ServiceTelemetryTelemetrySpansItemServicesItem]
   public var line: String
   public var exitCode: Int
   public var refusals: [ServiceEnvironmentBootRefusalsRefusalsItem]
   public var members: [ServiceEnvironmentBootRefusalsMembersItem]
   public init(
-    comment: String, services: [ServiceEnvironmentBootRefusalsServicesItem], line: String,
+    comment: String, services: [ServiceTelemetryTelemetrySpansItemServicesItem], line: String,
     exitCode: Int, refusals: [ServiceEnvironmentBootRefusalsRefusalsItem],
     members: [ServiceEnvironmentBootRefusalsMembersItem]
   ) {
@@ -18304,16 +17869,6 @@ public struct ServiceEnvironmentBootRefusalsRefusalsItem: Codable, Sendable, Has
   }
 }
 
-public enum ServiceEnvironmentBootRefusalsServicesItem: String, Codable, Sendable, CaseIterable {
-  case archivist = "archivist"
-  case dispatcher = "dispatcher"
-  case gateway = "gateway"
-  case librarian = "librarian"
-  case smelter = "smelter"
-  case weaver = "weaver"
-  case worker = "worker"
-}
-
 public struct ServiceEnvironmentVariables: Codable, Sendable, Hashable {
   public var comment: String
   public var variables: [ServiceEnvironmentVariablesVariablesItem]
@@ -18336,13 +17891,13 @@ public struct ServiceEnvironmentVariables: Codable, Sendable, Hashable {
 
 public struct ServiceEnvironmentVariablesVariablesItem: Codable, Sendable, Hashable {
   public var name: String
-  public var services: [ServiceEnvironmentVariablesVariablesItemServicesItem]
+  public var services: [ServiceTelemetryTelemetrySpansItemServicesItem]
   public var readBy: ServiceEnvironmentVariablesVariablesItemReadBy
   public var providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy
   public var required: Bool
   public var effect: String
   public init(
-    name: String, services: [ServiceEnvironmentVariablesVariablesItemServicesItem],
+    name: String, services: [ServiceTelemetryTelemetrySpansItemServicesItem],
     readBy: ServiceEnvironmentVariablesVariablesItemReadBy,
     providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy, required: Bool, effect: String
   ) {
@@ -18388,18 +17943,6 @@ public enum ServiceEnvironmentVariablesVariablesItemReadBy: String, Codable, Sen
 {
   case service = "service"
   case opentelemetry = "opentelemetry"
-}
-
-public enum ServiceEnvironmentVariablesVariablesItemServicesItem: String, Codable, Sendable,
-  CaseIterable
-{
-  case archivist = "archivist"
-  case dispatcher = "dispatcher"
-  case gateway = "gateway"
-  case librarian = "librarian"
-  case smelter = "smelter"
-  case weaver = "weaver"
-  case worker = "worker"
 }
 
 public enum ServiceGroup: String, Codable, Sendable, CaseIterable {
@@ -18953,18 +18496,17 @@ public struct ServiceTelemetryTelemetry: Codable, Sendable, Hashable {
 
 public struct ServiceTelemetryTelemetryMetricsItem: Codable, Sendable, Hashable {
   public var name: String
-  public var services: [ServiceTelemetryTelemetryMetricsItemServicesItem]
+  public var services: [ServiceTelemetryTelemetrySpansItemServicesItem]
   public var instrument: ServiceTelemetryTelemetryMetricsItemInstrument
-  public var when: ServiceTelemetryTelemetryMetricsItemWhen
-  public var planes: [ServiceTelemetryTelemetryMetricsItemPlanesItem]?
+  public var when: ServiceTelemetryTelemetrySpansItemWhen
+  public var planes: [GatewayConfigSignalType]?
   public var meaning: String
   public var attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem]
   public init(
-    name: String, services: [ServiceTelemetryTelemetryMetricsItemServicesItem],
+    name: String, services: [ServiceTelemetryTelemetrySpansItemServicesItem],
     instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
-    when: ServiceTelemetryTelemetryMetricsItemWhen,
-    planes: [ServiceTelemetryTelemetryMetricsItemPlanesItem]? = nil, meaning: String,
-    attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem]
+    when: ServiceTelemetryTelemetrySpansItemWhen, planes: [GatewayConfigSignalType]? = nil,
+    meaning: String, attributes: [ServiceTelemetryTelemetryMetricsItemAttributesItem]
   ) {
     self.name = name
     self.services = services
@@ -19065,38 +18607,13 @@ public enum ServiceTelemetryTelemetryMetricsItemInstrument: String, Codable, Sen
   case histogram = "histogram"
 }
 
-public enum ServiceTelemetryTelemetryMetricsItemPlanesItem: String, Codable, Sendable, CaseIterable
-{
-  case inProcess = "in-process"
-  case nats = "nats"
-}
-
-public enum ServiceTelemetryTelemetryMetricsItemServicesItem: String, Codable, Sendable,
-  CaseIterable
-{
-  case archivist = "archivist"
-  case dispatcher = "dispatcher"
-  case gateway = "gateway"
-  case librarian = "librarian"
-  case smelter = "smelter"
-  case weaver = "weaver"
-  case worker = "worker"
-}
-
-public enum ServiceTelemetryTelemetryMetricsItemWhen: String, Codable, Sendable, CaseIterable {
-  case export = "export"
-  case traffic = "traffic"
-  case supervised = "supervised"
-  case fatal = "fatal"
-}
-
 public struct ServiceTelemetryTelemetryResourceItem: Codable, Sendable, Hashable {
   public var key: String
-  public var services: [ServiceTelemetryTelemetryResourceItemServicesItem]
+  public var services: [ServiceTelemetryTelemetrySpansItemServicesItem]
   public var meaning: String
   public var `default`: String?
   public init(
-    key: String, services: [ServiceTelemetryTelemetryResourceItemServicesItem], meaning: String,
+    key: String, services: [ServiceTelemetryTelemetrySpansItemServicesItem], meaning: String,
     `default`: String? = nil
   ) {
     self.key = key
@@ -19120,18 +18637,6 @@ public struct ServiceTelemetryTelemetryResourceItem: Codable, Sendable, Hashable
     try c.encode(self.meaning, as: "meaning")
     try c.encodeIfPresent(self.`default`, as: "default")
   }
-}
-
-public enum ServiceTelemetryTelemetryResourceItemServicesItem: String, Codable, Sendable,
-  CaseIterable
-{
-  case archivist = "archivist"
-  case dispatcher = "dispatcher"
-  case gateway = "gateway"
-  case librarian = "librarian"
-  case smelter = "smelter"
-  case weaver = "weaver"
-  case worker = "worker"
 }
 
 public struct ServiceTelemetryTelemetrySpansItem: Codable, Sendable, Hashable {
@@ -19778,14 +19283,14 @@ public struct SignInOutcome: Codable, Sendable, Hashable {
 public struct SignInStoreOwnerOnly: Codable, Sendable, Hashable {
   public var comment: String
   public var directoryMode: SignInStoreOwnerOnlyDirectoryMode
-  public var fileMode: SignInStoreOwnerOnlyFileMode
+  public var fileMode: SignInStoreOwnerOnlyDirectoryMode
   public var directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList
-  public var fileAccessList: SignInStoreOwnerOnlyFileAccessList
+  public var fileAccessList: SignInStoreOwnerOnlyDirectoryAccessList
   public init(
     comment: String, directoryMode: SignInStoreOwnerOnlyDirectoryMode,
-    fileMode: SignInStoreOwnerOnlyFileMode,
+    fileMode: SignInStoreOwnerOnlyDirectoryMode,
     directoryAccessList: SignInStoreOwnerOnlyDirectoryAccessList,
-    fileAccessList: SignInStoreOwnerOnlyFileAccessList
+    fileAccessList: SignInStoreOwnerOnlyDirectoryAccessList
   ) {
     self.comment = comment
     self.directoryMode = directoryMode
@@ -19844,46 +19349,6 @@ public struct SignInStoreOwnerOnlyDirectoryMode: Codable, Sendable, Hashable {
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(["value", "docs"], in: "SignInStoreOwnerOnlyDirectoryMode")
-    self.value = try c.value("value")
-    self.docs = try c.value("docs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.value, as: "value")
-    try c.encode(self.docs, as: "docs")
-  }
-}
-
-public struct SignInStoreOwnerOnlyFileAccessList: Codable, Sendable, Hashable {
-  public var value: String
-  public var docs: String
-  public init(value: String, docs: String) {
-    self.value = value
-    self.docs = docs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["value", "docs"], in: "SignInStoreOwnerOnlyFileAccessList")
-    self.value = try c.value("value")
-    self.docs = try c.value("docs")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.value, as: "value")
-    try c.encode(self.docs, as: "docs")
-  }
-}
-
-public struct SignInStoreOwnerOnlyFileMode: Codable, Sendable, Hashable {
-  public var value: String
-  public var docs: String
-  public init(value: String, docs: String) {
-    self.value = value
-    self.docs = docs
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["value", "docs"], in: "SignInStoreOwnerOnlyFileMode")
     self.value = try c.value("value")
     self.docs = try c.value("docs")
   }
@@ -22767,12 +22232,12 @@ public struct WorkerMessages: Codable, Sendable, Hashable {
   public var errors: [WorkerMessagesErrorsItem]
   public var details: [WorkerMessagesDetailsItem]
   public var waits: [WorkerMessagesWaitsItem]
-  public var logged: [WorkerMessagesLoggedItem]
+  public var logged: [SmelterMessagesLoggedItem]
   public init(
     comment: String, boot: [WorkerMessagesBootItem], reasons: [WorkerMessagesReasonsItem],
     job: WorkerMessagesJob, errors: [WorkerMessagesErrorsItem],
     details: [WorkerMessagesDetailsItem], waits: [WorkerMessagesWaitsItem],
-    logged: [WorkerMessagesLoggedItem]
+    logged: [SmelterMessagesLoggedItem]
   ) {
     self.comment = comment
     self.boot = boot
@@ -22965,47 +22430,6 @@ public struct WorkerMessagesJob: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.mark, as: "mark")
     try c.encode(self.yield, as: "yield")
-  }
-}
-
-public struct WorkerMessagesLoggedItem: Codable, Sendable, Hashable {
-  public var name: String
-  public var level: LogLevel
-  public var situation: String
-  public var message: String
-  public var fields: [String: String]
-  public var carries: [String]
-  public init(
-    name: String, level: LogLevel, situation: String, message: String, fields: [String: String],
-    carries: [String]
-  ) {
-    self.name = name
-    self.level = level
-    self.situation = situation
-    self.message = message
-    self.fields = fields
-    self.carries = carries
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(
-      ["name", "level", "situation", "message", "fields", "carries"], in: "WorkerMessagesLoggedItem"
-    )
-    self.name = try c.value("name")
-    self.level = try c.value("level")
-    self.situation = try c.value("situation")
-    self.message = try c.value("message")
-    self.fields = try c.value("fields")
-    self.carries = try c.value("carries")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.name, as: "name")
-    try c.encode(self.level, as: "level")
-    try c.encode(self.situation, as: "situation")
-    try c.encode(self.message, as: "message")
-    try c.encode(self.fields, as: "fields")
-    try c.encode(self.carries, as: "carries")
   }
 }
 
@@ -23847,7 +23271,7 @@ public enum JobErrorCode: String, Codable, Sendable, CaseIterable {
   case jobCancelled = "job.cancelled"
   case jobStalled = "job.stalled"
 }
-public enum KbIdentityErrorCode: String, Codable, Sendable, CaseIterable {
+public enum IdentityUnverifiableReason: String, Codable, Sendable, CaseIterable {
   case unreachable = "unreachable"
   case notReported = "not-reported"
 }
@@ -23869,7 +23293,7 @@ public enum SignInErrorCode: String, Codable, Sendable, CaseIterable {
   case aborted = "aborted"
   case exchange = "exchange"
 }
-public enum SpanRefusalErrorCode: String, Codable, Sendable, CaseIterable {
+public enum SpanRefusal: String, Codable, Sendable, CaseIterable {
   case spanOutOfRange = "span-out-of-range"
   case exactMismatch = "exact-mismatch"
   case prefixMismatch = "prefix-mismatch"

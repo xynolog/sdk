@@ -144,9 +144,11 @@ let files ~root (spec : Spec.t) =
   in
   let* models =
     within "openapi.json"
-      (Models.generate
-         ~banner:(banner "protocol/specs/src")
-         ~ids:spec.ids ~identifiers ~keys:(Typing.D.map_keys spec) definitions)
+      (Result.bind (Schema_names.referred_places spec) (fun referred ->
+           Models.generate
+             ~banner:(banner "protocol/specs/src")
+             ~ids:spec.ids ~sources:spec.schemas ~referred ~identifiers
+             ~keys:(Typing.D.map_keys spec) definitions))
   in
   let* () =
     within "openapi.json"
@@ -219,24 +221,46 @@ let files ~root (spec : Spec.t) =
   in
   let* validated =
     (* A root is validated as Protocol states it; what the models mint
-       beside the roots, as they type it. *)
+       beside the roots, as they type it, with each place within a file they
+       name once written where it is referred to. *)
+    let places = Schema_names.places_in_place spec in
     let find name =
       match
         ( List.assoc_opt name validated_roots,
           List.assoc_opt name models.definitions )
       with
-      | Some s, _ | None, Some s -> Ok s
+      | Some s, _ -> Ok s
+      | None, Some s -> places s
       | None, None -> Error ("unknown schema reference: " ^ name)
     in
     let merged =
       Normalize.everywhere spec.Spec.ids ~referenced:Definitions.referenced
         ~find
     in
+    (* The SDK's validator finds what a [$ref] names by a schema's name in
+       the table, which names no place within a file. *)
+    let place_named =
+      Schema.cata
+        ~boolean:(fun _ -> None)
+        ~schema:(fun (l : string option Schema.layer) ->
+          match l.ref_ with
+          | Some (r : Decode.reference) when String.contains r.target '#' ->
+              Some r.target
+          | _ -> List.find_map Fun.id (Schema.children l))
+    in
     Spec.all
       (List.map
          (fun (name, _) ->
            match merged name with
-           | Ok s -> Ok (name, s)
+           | Ok s -> (
+               match place_named s with
+               | None -> Ok (name, s)
+               | Some target ->
+                   Error
+                     (refused "openapi.json"
+                        (name ^ ": $ref " ^ target
+                       ^ " names a place within a file, which the validated \
+                          table holds no schema of")))
            | Error message ->
                Error (refused "openapi.json" (name ^ ": " ^ message)))
          models.definitions)

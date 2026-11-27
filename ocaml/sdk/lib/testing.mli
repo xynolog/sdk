@@ -11,6 +11,10 @@ type respond =
   channel:string -> Yojson.Safe.t -> (string * Yojson.Safe.t) option
 
 val fault_actions : Random.State.t -> fault_action
+
+val delivery_op_name : delivery_op -> string
+(** The step as every SDK spells it: client/testing.json's word for it. *)
+
 val fault_schedules : Random.State.t -> fault_action list
 val delivery_ops : Random.State.t -> max_length:int -> delivery_op list
 

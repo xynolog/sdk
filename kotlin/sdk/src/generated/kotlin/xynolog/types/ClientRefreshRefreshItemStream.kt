@@ -11,7 +11,7 @@ public data class ClientRefreshRefreshItemStream(
     /** `reopened`, the stream open again after a drop; or `unreadable`, an event that cannot be read. */
     public val stream: ClientRefreshRefreshItemStreamStream,
     /** Which keys the row reaches: the event's subject, or every key held. */
-    public val reach: ClientRefreshRefreshItemStreamReach? = null,
+    public val reach: ClientRefreshRefreshItemOnReach? = null,
     /** The queries asked again. */
     public val refetches: kotlin.collections.List<String>? = null,
     /** What it is, in prose. */
@@ -22,10 +22,10 @@ public data class ClientRefreshRefreshItemStream(
         private val stream: ClientRefreshRefreshItemStreamStream,
         private val docs: String,
     ) {
-        private var reach: ClientRefreshRefreshItemStreamReach? = null
+        private var reach: ClientRefreshRefreshItemOnReach? = null
         private var refetches: kotlin.collections.List<String>? = null
 
-        public fun reach(reach: ClientRefreshRefreshItemStreamReach?): Builder = apply { this.reach = reach }
+        public fun reach(reach: ClientRefreshRefreshItemOnReach?): Builder = apply { this.reach = reach }
         public fun refetches(refetches: kotlin.collections.List<String>?): Builder = apply { this.refetches = refetches }
 
         public fun build(): ClientRefreshRefreshItemStream = ClientRefreshRefreshItemStream(stream = stream, reach = reach, refetches = refetches, docs = docs)

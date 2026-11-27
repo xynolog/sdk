@@ -23,7 +23,9 @@ let each f xs =
 exception Unresolved of string
 
 (* [schema] as the models name it: a reference by what it names, rewritten by
-   [rewrite] if that names it otherwise. *)
+   [rewrite] if that names it otherwise. A reference to a place within a file
+   that [rewrite] leaves as it is keeps where the place is, which the models
+   name once ([Schema_names.referred_places]). *)
 let canonical ~rewrite : Schema.t -> Schema.t =
   Schema.cata
     ~boolean:(fun b -> Schema.Boolean_schema b)
@@ -33,7 +35,10 @@ let canonical ~rewrite : Schema.t -> Schema.t =
           s with
           ref_ =
             Option.map
-              (fun r -> { Decode.target = rewrite r; file = ""; pointer = "" })
+              (fun (r : Decode.reference) ->
+                let target = rewrite r in
+                if r.pointer <> "" && target = r.target then r
+                else { Decode.target; file = ""; pointer = "" })
               s.ref_;
           examples = Option.map (List.map Yojson.Safe.sort) s.examples;
         })
@@ -69,10 +74,11 @@ let without_properties keys (s : Schema.schema) =
    place of several types the [anyOf] of each
    ([Normalize.several_types_throughout]). *)
 let components (spec : Spec.t) =
-  let in_place = Schema_names.in_place spec in
+  let typed_in_place = Schema_names.in_place spec ~places:false in
+  let in_place = Schema_names.in_place spec ~places:true in
   let rooted name s =
     let validated = Normalize.several_types_throughout s in
-    let* typed = in_place (Normalize.shape_only validated) in
+    let* typed = typed_in_place (Normalize.shape_only validated) in
     let* validated = in_place validated in
     Ok (name, (typed, validated))
   in

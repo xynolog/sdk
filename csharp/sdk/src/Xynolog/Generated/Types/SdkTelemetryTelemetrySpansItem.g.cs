@@ -9,7 +9,7 @@ public sealed record SdkTelemetryTelemetrySpansItem
 {
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("transport")] public required global::Xynolog.Types.SdkTelemetryTelemetrySpansItemTransport Transport { get; init; }
-    [global::Xynolog.Serialization.Wire("kind")] public required global::Xynolog.Types.SdkTelemetryTelemetrySpansItemKind Kind { get; init; }
+    [global::Xynolog.Serialization.Wire("kind")] public required global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemKind Kind { get; init; }
     [global::Xynolog.Serialization.Wire("meaning")] public required string Meaning { get; init; }
     [global::Xynolog.Serialization.Wire("attributes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.SdkTelemetryTelemetrySpansItemAttributesItem> Attributes { get; init; }
 }

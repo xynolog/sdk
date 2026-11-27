@@ -82,7 +82,7 @@ import Testing
           } catch is DecodingError {
             // An offset in fractions is no TextSpan's: the span type refuses it before any builder
             // is called, and that is the table's refusal of a span out of range.
-            #expect(row["refused"] == .string(SpanRefusalErrorCode.spanOutOfRange.rawValue))
+            #expect(row["refused"] == .string(SpanRefusal.spanOutOfRange.rawValue))
             continue
           }
           annotation = try annotationOfSpan(

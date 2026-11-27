@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.IdentifiersKinds (IdentifiersKinds (..), IdentifiersKindsKindsItem (..), IdentifiersKindsKindsItemAcceptsItem (..), IdentifiersKindsKindsItemRefusesItem (..), IdentifiersKindsOthersItem (..)) where
+module Xynolog.Internal.Generated.Models.IdentifiersKinds (IdentifiersKinds (..), IdentifiersKindsKindsItem (..), IdentifiersKindsKindsItemAcceptsItem (..), IdentifiersKindsOthersItem (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -24,7 +24,7 @@ data IdentifiersKindsKindsItem = IdentifiersKindsKindsItem
   { identifiersKindsKindsItemSchema :: Text,
     identifiersKindsKindsItemProperties :: [Text],
     identifiersKindsKindsItemAccepts :: [IdentifiersKindsKindsItemAcceptsItem],
-    identifiersKindsKindsItemRefuses :: [IdentifiersKindsKindsItemRefusesItem]
+    identifiersKindsKindsItemRefuses :: [IdentifiersKindsKindsItemAcceptsItem]
   }
   deriving (Eq, Show)
 
@@ -41,16 +41,6 @@ data IdentifiersKindsKindsItemAcceptsItem = IdentifiersKindsKindsItemAcceptsItem
 instance FromJSON IdentifiersKindsKindsItemAcceptsItem where parseJSON = checked "IdentifiersKindsKindsItemAcceptsItem" $ withObject "IdentifiersKindsKindsItemAcceptsItem" (\fields -> IdentifiersKindsKindsItemAcceptsItem <$> (fields .: "id") <*> (fields .: "why"))
 
 instance ToJSON IdentifiersKindsKindsItemAcceptsItem where toJSON value = Object (KM.fromList (concat [[("id", toJSON (identifiersKindsKindsItemAcceptsItemId value))], [("why", toJSON (identifiersKindsKindsItemAcceptsItemWhy value))]]))
-
-data IdentifiersKindsKindsItemRefusesItem = IdentifiersKindsKindsItemRefusesItem
-  { identifiersKindsKindsItemRefusesItemId :: Text,
-    identifiersKindsKindsItemRefusesItemWhy :: Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON IdentifiersKindsKindsItemRefusesItem where parseJSON = checked "IdentifiersKindsKindsItemRefusesItem" $ withObject "IdentifiersKindsKindsItemRefusesItem" (\fields -> IdentifiersKindsKindsItemRefusesItem <$> (fields .: "id") <*> (fields .: "why"))
-
-instance ToJSON IdentifiersKindsKindsItemRefusesItem where toJSON value = Object (KM.fromList (concat [[("id", toJSON (identifiersKindsKindsItemRefusesItemId value))], [("why", toJSON (identifiersKindsKindsItemRefusesItemWhy value))]]))
 
 data IdentifiersKindsOthersItem = IdentifiersKindsOthersItem
   { identifiersKindsOthersItemProperty :: Text,

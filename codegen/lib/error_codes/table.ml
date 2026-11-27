@@ -51,6 +51,10 @@ type t = {
   control : vocabulary;  (** The control plane's codes. *)
 }
 
+(* Every vocabulary: the bus's, the transport's, the others and the control
+   plane's. *)
+let vocabularies t = (t.bus :: t.transport :: t.others) @ [ t.control ]
+
 (* A code's part after its last dot, which names its Go constant: lower-case
    words of letters and digits joined by hyphens. *)
 let segment code =
