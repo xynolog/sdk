@@ -1762,30 +1762,6 @@ public final class xynolog/transport/Frame : xynolog/transport/Carried {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class xynolog/transport/FrameRefusal : xynolog/transport/Carried, xynolog/transport/Heard {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lxynolog/types/FrameRefusalReason;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/BoxingConstructorMarker;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lxynolog/types/FrameRefusalReason;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Lxynolog/identifiers/ResourceId;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Lxynolog/types/FrameRefusalReason;
-	public final fun component4 ()Lkotlinx/serialization/json/JsonElement;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6-3LCPUrU ()Ljava/lang/String;
-	public final fun copy-T8liQTM (Ljava/lang/String;Ljava/lang/String;Lxynolog/types/FrameRefusalReason;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;)Lxynolog/transport/FrameRefusal;
-	public static synthetic fun copy-T8liQTM$default (Lxynolog/transport/FrameRefusal;Ljava/lang/String;Ljava/lang/String;Lxynolog/types/FrameRefusalReason;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lxynolog/transport/FrameRefusal;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getChannel ()Ljava/lang/String;
-	public fun getCorrelationId ()Ljava/lang/String;
-	public final fun getMember ()Ljava/lang/String;
-	public final fun getPayload ()Lkotlinx/serialization/json/JsonElement;
-	public final fun getReason ()Lxynolog/types/FrameRefusalReason;
-	public final fun getScope ()Lxynolog/identifiers/ResourceId;
-	public final fun getScope-3LCPUrU ()Ljava/lang/String;
-	public fun getStatus ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public abstract interface class xynolog/transport/FrameSink {
 	public abstract fun deliver (Lxynolog/transport/Carried;)V
 }
@@ -1811,6 +1787,20 @@ public final class xynolog/transport/PendingReply : java/lang/AutoCloseable {
 	public fun close ()V
 	public final fun frame (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun frameFuture ()Ljava/util/concurrent/CompletableFuture;
+}
+
+public final class xynolog/transport/Refused : xynolog/transport/Carried, xynolog/transport/Heard {
+	public fun <init> (Lxynolog/types/FrameRefusal;)V
+	public final fun component1 ()Lxynolog/types/FrameRefusal;
+	public final fun copy (Lxynolog/types/FrameRefusal;)Lxynolog/transport/Refused;
+	public static synthetic fun copy$default (Lxynolog/transport/Refused;Lxynolog/types/FrameRefusal;ILjava/lang/Object;)Lxynolog/transport/Refused;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getChannel ()Ljava/lang/String;
+	public fun getCorrelationId ()Ljava/lang/String;
+	public final fun getRefusal ()Lxynolog/types/FrameRefusal;
+	public fun getStatus ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class xynolog/transport/ResourceHold : java/lang/AutoCloseable {

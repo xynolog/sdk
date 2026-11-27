@@ -318,7 +318,7 @@ class BusTest {
             """{"id":"e-1","type":"job:started","timestamp":"2026-10-29T00:00:00Z","userId":"$ALICE","resourceId":"${ONE.value}","version":1,"payload":{},"metadata":{}}""",
         )
         wire.deliver(Frame("job:started", unsequenced, null, ONE))
-        assertEquals(FrameRefusal("job:started", "payload.metadata.sequenceNumber", FrameRefusalReason.Lacks, unsequenced, null, ONE), withTimeout(5_000) { frames.first() })
+        assertEquals(Refused(FrameRefusal("job:started", "payload.metadata.sequenceNumber", FrameRefusalReason.Lacks, payload = unsequenced, scope = ONE)), withTimeout(5_000) { frames.first() })
     }
 
     @Test
@@ -408,7 +408,7 @@ class BusTest {
     fun aReplyRefusedWithTheRequestsCorrelationIdFailsTheRequestAtOnce() = runBlocking {
         val wire = Wire(replyChannelsFor(ADD).toSet())
         wire.answer = { sent ->
-            wire.deliver(FrameRefusal("frame:entity-type-add-ok", "addedByALaterGateway", FrameRefusalReason.Malformed, json("{}"), sent.correlationId, null))
+            wire.deliver(Refused(FrameRefusal("frame:entity-type-add-ok", "addedByALaterGateway", FrameRefusalReason.Malformed, payload = json("{}"), correlationId = sent.correlationId)))
         }
         // Long before the request's own timeout.
         val error = assertThrows(TransportError::class.java) {

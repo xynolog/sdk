@@ -115,13 +115,13 @@
     "lib/bus_registry.mli": "ecad6838058b809e98ad9cc872bf2c3e519ba8dc744d791b12d06a4c38a67254",
     "lib/bus_reply_bounds.ml": "f2b227aadf8284d8a8060f036e4d159f057d26f7ee21dc97af938c699b53d66c",
     "lib/cache_state.ml": "b270721df6ee9432f61bfa450fb280036a1c1a1f880de8eabed84aec0fab8c5a",
-    "lib/cache_state.mli": "0453793e8b7bcc4873b255d34f12d4f230b7d5bf28b32f571bf3b6dc0cb5067b",
+    "lib/cache_state.mli": "a7055acae435c47fd3534166a789b6316aaefb36b60a549e38b1f30187e2890f",
     "lib/claims.ml": "b3588f1c699659d33d1cd067485db060e12b04a63bf039b2f366fcefcbe59c26",
     "lib/claims.mli": "4996e729b6dc400b97b4854e7f00e3b07e8a5a956d67441d2bd6f54d0250cf2d",
     "lib/client.ml": "bd8b8934d2931bd1037c34763287324828ae26e726ecaa832e3e11cbc91340ad",
     "lib/client.mli": "6e08b6b7851820acced98ca320e6ec093455f2d0340828149b2f43e255d30e39",
     "lib/client_core.ml": "57e9fbee449ba234b23404593bd1a97d997de3d832dfc1a1c4658f68b472707f",
-    "lib/client_core.mli": "35aaaed3e6d2e409e9edb07120415a24b999bf98b686543938e60b2a978a974e",
+    "lib/client_core.mli": "4084cc272d79b25a0848c9fed33d6ed40e0379c74742555f03c58aadb4358f57",
     "lib/client_query.ml": "3b6ac0b18f6355d48c820f630413af174a5cb395a3dce5af93d9f4f8a55e2785",
     "lib/client_record.ml": "d09a4ac6b0d5158b9250a03ae798ff8237d2f2ef5c1482990ffb1f3f9b207f77",
     "lib/client_timing.ml": "d2e1c504c3f2fc6a9f5941244cb241b4d12aaacf236e3195b447b3e19bd6fe84",
@@ -167,8 +167,8 @@
     "lib/kept_for_first_reader.ml": "6f853f2a44415317489ea3e910cbab9aaf6df0ba1960bed261f3503332f341ae",
     "lib/kept_renewal.ml": "3c69043d8304fa35dcbe80e5322ea71bb0f39d7ee57e4d772cc789b1de36ddee",
     "lib/live_facts.ml": "9f647efbe44a37bc76eb655ce6cbd34bd7f1ce8ea14e1fbf197bd5fc23e0411c",
-    "lib/live_query.ml": "337bb3af5c7656bb4fed114100b015f41d190b795d867b16086e04ea70bf0df5",
-    "lib/live_query.mli": "88416dae432b7e62f8a851812a40885477a8872652ce1798fa2c7dea9266d579",
+    "lib/live_query.ml": "06f931d479042da32ca4c1fbaf3e9e41e163f0034b98288da4e47d40bf16466e",
+    "lib/live_query.mli": "3e642d4315969fa1fbd8157a0545576eabbcf80934e673e3b0baaab1ad904701",
     "lib/log_facts.ml": "1bf6dc1bb379d78ebf88e28eaad640364552b8f2f469926f7f62333313d04d97",
     "lib/mark.ml": "7bb5dc6de229d81c29c5349f719a2902263b1026d02a10e274facc4781d82b82",
     "lib/mark.mli": "daa70a35284997cf8b5796bda5f3262c19e8690a40090dc415729c4e3dddbbb3",
@@ -33215,8 +33215,8 @@
     },
     {
       "kind": "type",
-      "path": "Xynolog.Live_query.state",
-      "declaration": "type 'value state =\n    Pending\n  | Ready of 'value\n  | Failed of Xynolog__.Http_wire.request_code",
+      "path": "Xynolog.Live_query.cache_state",
+      "declaration": "type 'value cache_state =\n    Pending\n  | Ready of 'value\n  | Failed of Xynolog__.Http_wire.request_code",
       "representation": "variant",
       "constructors": [
         "Pending",
@@ -33249,7 +33249,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Live_query.observe",
-      "declaration": "val observe :\n  ('key, 'value) t ->\n  'key ->\n  on_state:('value state -> unit) -> on_close:(unit -> unit) -> unit -> unit"
+      "declaration": "val observe :\n  ('key, 'value) t ->\n  'key ->\n  on_state:('value cache_state -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
     },
     {
       "kind": "value",
@@ -33916,7 +33916,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client.observe",
-      "declaration": "val observe :\n  query ->\n  on_state:(Yojson.Safe.t Xynolog__.Live_query.state -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
+      "declaration": "val observe :\n  query ->\n  on_state:(Yojson.Safe.t Xynolog__.Live_query.cache_state -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
     },
     {
       "kind": "value",
@@ -38813,7 +38813,7 @@
     {
       "kind": "value",
       "path": "Xynolog.State_units.Cache.observe",
-      "declaration": "val observe :\n  t ->\n  string ->\n  on_state:(Yojson.Safe.t Xynolog__.Live_query.state -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
+      "declaration": "val observe :\n  t ->\n  string ->\n  on_state:(Yojson.Safe.t Xynolog__.Live_query.cache_state -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
     },
     {
       "kind": "value",
