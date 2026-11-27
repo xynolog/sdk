@@ -2,13 +2,13 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.WorkerMessages (WorkerMessages (..), WorkerMessagesBootItem (..), WorkerMessagesBootItemOwnBootRefusal (..), WorkerMessagesBootItemSharedBootRefusal (..), WorkerMessagesDetailsItem (..), WorkerMessagesErrorsItem (..), WorkerMessagesJob (..), WorkerMessagesLoggedItem (..), WorkerMessagesReasonsItem (..), WorkerMessagesWaitsItem (..)) where
+module Xynolog.Internal.Generated.Models.WorkerMessages (WorkerMessages (..), WorkerMessagesBootItem (..), WorkerMessagesBootItemOwnBootRefusal (..), WorkerMessagesBootItemSharedBootRefusal (..), WorkerMessagesDetailsItem (..), WorkerMessagesErrorsItem (..), WorkerMessagesJob (..), WorkerMessagesReasonsItem (..), WorkerMessagesWaitsItem (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
-import Xynolog.Internal.Generated.Models.LogLevel
+import Xynolog.Internal.Generated.Models.SmelterMessages
 
 data WorkerMessages = WorkerMessages
   { workerMessagesComment :: Text,
@@ -18,7 +18,7 @@ data WorkerMessages = WorkerMessages
     workerMessagesErrors :: [WorkerMessagesErrorsItem],
     workerMessagesDetails :: [WorkerMessagesDetailsItem],
     workerMessagesWaits :: [WorkerMessagesWaitsItem],
-    workerMessagesLogged :: [WorkerMessagesLoggedItem]
+    workerMessagesLogged :: [SmelterMessagesLoggedItem]
   }
   deriving (Eq, Show)
 
@@ -87,20 +87,6 @@ data WorkerMessagesJob = WorkerMessagesJob
 instance FromJSON WorkerMessagesJob where parseJSON = checked "WorkerMessagesJob" $ withObject "WorkerMessagesJob" (\fields -> WorkerMessagesJob <$> (fields .: "mark") <*> (fields .: "yield"))
 
 instance ToJSON WorkerMessagesJob where toJSON value = Object (KM.fromList (concat [[("mark", toJSON (workerMessagesJobMark value))], [("yield", toJSON (workerMessagesJobYield value))]]))
-
-data WorkerMessagesLoggedItem = WorkerMessagesLoggedItem
-  { workerMessagesLoggedItemName :: Text,
-    workerMessagesLoggedItemLevel :: LogLevel,
-    workerMessagesLoggedItemSituation :: Text,
-    workerMessagesLoggedItemMessage :: Text,
-    workerMessagesLoggedItemFields :: KM.KeyMap Text,
-    workerMessagesLoggedItemCarries :: [Text]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON WorkerMessagesLoggedItem where parseJSON = checked "WorkerMessagesLoggedItem" $ withObject "WorkerMessagesLoggedItem" (\fields -> WorkerMessagesLoggedItem <$> (fields .: "name") <*> (fields .: "level") <*> (fields .: "situation") <*> (fields .: "message") <*> (fields .: "fields") <*> (fields .: "carries"))
-
-instance ToJSON WorkerMessagesLoggedItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (workerMessagesLoggedItemName value))], [("level", toJSON (workerMessagesLoggedItemLevel value))], [("situation", toJSON (workerMessagesLoggedItemSituation value))], [("message", toJSON (workerMessagesLoggedItemMessage value))], [("fields", toJSON (workerMessagesLoggedItemFields value))], [("carries", toJSON (workerMessagesLoggedItemCarries value))]]))
 
 data WorkerMessagesReasonsItem = WorkerMessagesReasonsItem
   { workerMessagesReasonsItemName :: Text,

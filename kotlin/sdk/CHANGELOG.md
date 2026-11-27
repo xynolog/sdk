@@ -13,6 +13,9 @@ the coming release's, and gathers its changes as they land.
   `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
   `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
   `SignInStoreOwnerOnly`.
+- `xynolog.Tables`: the languages Xynolog supports, `LOCALES_REGISTRY`, read
+  from protocol/specs/src/locales/registry.json as its schema's type,
+  `LocalesRegistry`; `TABLES` holds it by its file.
 - `xynolog.services.ServiceEnvironmentVariable`: every environment variable a
   Xynolog service reads, beside its configuration document, a constant of its
   name (`XYNOLOG_BUS_LOG`). The bus log reads its variable by it.
@@ -41,6 +44,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema a `$ref` names at a place within a file is one type, named where
+  that place is stated, wherever it is referred to: the Archivist layout's
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - `PutBinaryRequest` is `xynolog.types.PutBinaryRequest`, the type of
   Protocol's `client/types/PutBinaryRequest.json`, where it was
   `xynolog.transport.PutBinaryRequest`: `yield.resource`,

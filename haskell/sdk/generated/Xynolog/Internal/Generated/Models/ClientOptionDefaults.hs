@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ClientOptionDefaults (ClientOptionDefaults (..), ClientOptionDefaultsDefaultsItem (..), ClientOptionDefaultsDefaultsItemSchema (..), ClientOptionDefaultsDefaultsItemSchemaDateTime (..), ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat (..), clientOptionDefaultsDefaultsItemSchemaDateTimeFormatText, ClientOptionDefaultsDefaultsItemSchemaDateTimeType (..), clientOptionDefaultsDefaultsItemSchemaDateTimeTypeText, ClientOptionDefaultsDefaultsItemSchemaDecided (..), ClientOptionDefaultsDefaultsItemSchemaDecidedDecided (..), ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy (..), ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn (..), clientOptionDefaultsDefaultsItemSchemaDecidedDecidedInText, ClientOptionDefaultsDefaultsItemSchemaReference (..), ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments (..), ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue (..), ClientOptionDefaultsDefaultsItemSchemaTypeParameter (..)) where
+module Xynolog.Internal.Generated.Models.ClientOptionDefaults (ClientOptionDefaults (..), ClientOptionDefaultsDefaultsItem (..), ClientOptionDefaultsDefaultsItemSchema (..), ClientOptionDefaultsDefaultsItemSchemaDateTime (..), ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat (..), clientOptionDefaultsDefaultsItemSchemaDateTimeFormatText, ClientOptionDefaultsDefaultsItemSchemaDateTimeType (..), clientOptionDefaultsDefaultsItemSchemaDateTimeTypeText, ClientOptionDefaultsDefaultsItemSchemaDecided (..), ClientOptionDefaultsDefaultsItemSchemaDecidedDecided (..), ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy (..), ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn (..), clientOptionDefaultsDefaultsItemSchemaDecidedDecidedInText, ClientOptionDefaultsDefaultsItemSchemaReference (..), ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue (..), ClientOptionDefaultsDefaultsItemSchemaTypeParameter (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -118,22 +118,13 @@ clientOptionDefaultsDefaultsItemSchemaDecidedDecidedInText ClientOptionDefaultsD
 
 data ClientOptionDefaultsDefaultsItemSchemaReference = MkClientOptionDefaultsDefaultsItemSchemaReference
   { clientOptionDefaultsDefaultsItemSchemaReferenceRef :: Text,
-    clientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments :: Maybe ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments
+    clientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments :: Maybe (KM.KeyMap ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue)
   }
   deriving (Eq, Show)
 
 instance FromJSON ClientOptionDefaultsDefaultsItemSchemaReference where parseJSON = checked "ClientOptionDefaultsDefaultsItemSchemaReference" $ withObject "ClientOptionDefaultsDefaultsItemSchemaReference" (\fields -> MkClientOptionDefaultsDefaultsItemSchemaReference <$> (fields .: "$ref") <*> optional fields "typeArguments")
 
 instance ToJSON ClientOptionDefaultsDefaultsItemSchemaReference where toJSON value = Object (KM.fromList (concat [[("$ref", toJSON (clientOptionDefaultsDefaultsItemSchemaReferenceRef value))], optionalPair "typeArguments" (clientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments value)]))
-
-data ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments = ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments
-  { clientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsAdditionalProperties :: KM.KeyMap ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments where parseJSON = checked "ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments" $ withObject "ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments" (\fields -> ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments <$> traverse parseJSON (withoutFields [] fields))
-
-instance ToJSON ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArguments where toJSON value = Object (KM.fromList (concat []) <> fmap toJSON (withoutFields [] (clientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsAdditionalProperties value)))
 
 data ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue = ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue
   { clientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValueTypeParameter :: Text

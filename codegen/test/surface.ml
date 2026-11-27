@@ -34,8 +34,8 @@ let decoded =
   t
 
 let named f = if Hashtbl.mem decoded f then Some (D.stem f) else None
-let view = D.view ~ids ~named ~schemas:decoded
-let schema name = view (Hashtbl.find decoded (file name))
+let view = D.view ~ids ~named ~schemas:decoded ~referred:(fun _ -> false)
+let schema name = view ~at:None (Hashtbl.find decoded (file name))
 let definitions = { D.names = [ "Filters"; "Command" ]; schema }
 
 let reference target : S.schema =
@@ -68,7 +68,7 @@ let row ?(shape = S.Promise) method_ parameters : S.methods_item =
   }
 
 let methods rows =
-  M.methods ~ids ~view ~schema
+  M.methods ~ids ~view:(view ~at:None) ~schema
     [ { namespace = "frame"; docs = "d"; methods = rows } ]
 
 let taken rows =

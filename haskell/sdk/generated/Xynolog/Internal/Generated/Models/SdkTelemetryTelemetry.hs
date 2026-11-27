@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry (SdkTelemetryTelemetry (..), SdkTelemetryTelemetryMetricsItem (..), SdkTelemetryTelemetryMetricsItemAttributesItem (..), SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem (..), SdkTelemetryTelemetryMetricsItemInstrument (..), sdkTelemetryTelemetryMetricsItemInstrumentText, SdkTelemetryTelemetryMetricsItemTransport (..), sdkTelemetryTelemetryMetricsItemTransportText, SdkTelemetryTelemetrySpansItem (..), SdkTelemetryTelemetrySpansItemAttributesItem (..), SdkTelemetryTelemetrySpansItemAttributesItemValuesItem (..), SdkTelemetryTelemetrySpansItemKind (..), sdkTelemetryTelemetrySpansItemKindText, SdkTelemetryTelemetrySpansItemTransport (..), sdkTelemetryTelemetrySpansItemTransportText) where
+module Xynolog.Internal.Generated.Models.SdkTelemetryTelemetry (SdkTelemetryTelemetry (..), SdkTelemetryTelemetryMetricsItem (..), SdkTelemetryTelemetryMetricsItemAttributesItem (..), SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem (..), SdkTelemetryTelemetrySpansItem (..), SdkTelemetryTelemetrySpansItemAttributesItem (..), SdkTelemetryTelemetrySpansItemAttributesItemValuesItem (..), SdkTelemetryTelemetrySpansItemTransport (..), sdkTelemetryTelemetrySpansItemTransportText, ServiceTelemetryTelemetryMetricsItemInstrument (..), serviceTelemetryTelemetryMetricsItemInstrumentText, ServiceTelemetryTelemetrySpansItemKind (..), serviceTelemetryTelemetrySpansItemKindText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -22,8 +22,8 @@ instance ToJSON SdkTelemetryTelemetry where toJSON value = Object (KM.fromList (
 
 data SdkTelemetryTelemetryMetricsItem = SdkTelemetryTelemetryMetricsItem
   { sdkTelemetryTelemetryMetricsItemName :: Text,
-    sdkTelemetryTelemetryMetricsItemTransport :: SdkTelemetryTelemetryMetricsItemTransport,
-    sdkTelemetryTelemetryMetricsItemInstrument :: SdkTelemetryTelemetryMetricsItemInstrument,
+    sdkTelemetryTelemetryMetricsItemTransport :: SdkTelemetryTelemetrySpansItemTransport,
+    sdkTelemetryTelemetryMetricsItemInstrument :: ServiceTelemetryTelemetryMetricsItemInstrument,
     sdkTelemetryTelemetryMetricsItemMeaning :: Text,
     sdkTelemetryTelemetryMetricsItemAttributes :: [SdkTelemetryTelemetryMetricsItemAttributesItem]
   }
@@ -52,38 +52,10 @@ instance ToJSON SdkTelemetryTelemetryMetricsItemAttributesItemValuesItem where
   toJSON (SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText value) = toJSON value
   toJSON (SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemBoolean value) = toJSON value
 
-data SdkTelemetryTelemetryMetricsItemInstrument = SdkTelemetryTelemetryMetricsItemInstrumentCounter | SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter | SdkTelemetryTelemetryMetricsItemInstrumentGauge | SdkTelemetryTelemetryMetricsItemInstrumentHistogram deriving (Eq, Show)
-
-instance FromJSON SdkTelemetryTelemetryMetricsItemInstrument where parseJSON = checked "SdkTelemetryTelemetryMetricsItemInstrument" $ \value -> if value == String "counter" then pure SdkTelemetryTelemetryMetricsItemInstrumentCounter else if value == String "up-down counter" then pure SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter else if value == String "gauge" then pure SdkTelemetryTelemetryMetricsItemInstrumentGauge else if value == String "histogram" then pure SdkTelemetryTelemetryMetricsItemInstrumentHistogram else fail "unknown enumeration member"
-
-instance ToJSON SdkTelemetryTelemetryMetricsItemInstrument where
-  toJSON SdkTelemetryTelemetryMetricsItemInstrumentCounter = String "counter"
-  toJSON SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter = String "up-down counter"
-  toJSON SdkTelemetryTelemetryMetricsItemInstrumentGauge = String "gauge"
-  toJSON SdkTelemetryTelemetryMetricsItemInstrumentHistogram = String "histogram"
-
-sdkTelemetryTelemetryMetricsItemInstrumentText :: SdkTelemetryTelemetryMetricsItemInstrument -> Text
-sdkTelemetryTelemetryMetricsItemInstrumentText SdkTelemetryTelemetryMetricsItemInstrumentCounter = "counter"
-sdkTelemetryTelemetryMetricsItemInstrumentText SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter = "up-down counter"
-sdkTelemetryTelemetryMetricsItemInstrumentText SdkTelemetryTelemetryMetricsItemInstrumentGauge = "gauge"
-sdkTelemetryTelemetryMetricsItemInstrumentText SdkTelemetryTelemetryMetricsItemInstrumentHistogram = "histogram"
-
-data SdkTelemetryTelemetryMetricsItemTransport = SdkTelemetryTelemetryMetricsItemTransportBus | SdkTelemetryTelemetryMetricsItemTransportContent deriving (Eq, Show)
-
-instance FromJSON SdkTelemetryTelemetryMetricsItemTransport where parseJSON = checked "SdkTelemetryTelemetryMetricsItemTransport" $ \value -> if value == String "bus" then pure SdkTelemetryTelemetryMetricsItemTransportBus else if value == String "content" then pure SdkTelemetryTelemetryMetricsItemTransportContent else fail "unknown enumeration member"
-
-instance ToJSON SdkTelemetryTelemetryMetricsItemTransport where
-  toJSON SdkTelemetryTelemetryMetricsItemTransportBus = String "bus"
-  toJSON SdkTelemetryTelemetryMetricsItemTransportContent = String "content"
-
-sdkTelemetryTelemetryMetricsItemTransportText :: SdkTelemetryTelemetryMetricsItemTransport -> Text
-sdkTelemetryTelemetryMetricsItemTransportText SdkTelemetryTelemetryMetricsItemTransportBus = "bus"
-sdkTelemetryTelemetryMetricsItemTransportText SdkTelemetryTelemetryMetricsItemTransportContent = "content"
-
 data SdkTelemetryTelemetrySpansItem = SdkTelemetryTelemetrySpansItem
   { sdkTelemetryTelemetrySpansItemName :: Text,
     sdkTelemetryTelemetrySpansItemTransport :: SdkTelemetryTelemetrySpansItemTransport,
-    sdkTelemetryTelemetrySpansItemKind :: SdkTelemetryTelemetrySpansItemKind,
+    sdkTelemetryTelemetrySpansItemKind :: ServiceTelemetryTelemetrySpansItemKind,
     sdkTelemetryTelemetrySpansItemMeaning :: Text,
     sdkTelemetryTelemetrySpansItemAttributes :: [SdkTelemetryTelemetrySpansItemAttributesItem]
   }
@@ -112,24 +84,6 @@ instance ToJSON SdkTelemetryTelemetrySpansItemAttributesItemValuesItem where
   toJSON (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText value) = toJSON value
   toJSON (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean value) = toJSON value
 
-data SdkTelemetryTelemetrySpansItemKind = SdkTelemetryTelemetrySpansItemKindClient | SdkTelemetryTelemetrySpansItemKindConsumer | SdkTelemetryTelemetrySpansItemKindInternal | SdkTelemetryTelemetrySpansItemKindProducer | SdkTelemetryTelemetrySpansItemKindServer deriving (Eq, Show)
-
-instance FromJSON SdkTelemetryTelemetrySpansItemKind where parseJSON = checked "SdkTelemetryTelemetrySpansItemKind" $ \value -> if value == String "client" then pure SdkTelemetryTelemetrySpansItemKindClient else if value == String "consumer" then pure SdkTelemetryTelemetrySpansItemKindConsumer else if value == String "internal" then pure SdkTelemetryTelemetrySpansItemKindInternal else if value == String "producer" then pure SdkTelemetryTelemetrySpansItemKindProducer else if value == String "server" then pure SdkTelemetryTelemetrySpansItemKindServer else fail "unknown enumeration member"
-
-instance ToJSON SdkTelemetryTelemetrySpansItemKind where
-  toJSON SdkTelemetryTelemetrySpansItemKindClient = String "client"
-  toJSON SdkTelemetryTelemetrySpansItemKindConsumer = String "consumer"
-  toJSON SdkTelemetryTelemetrySpansItemKindInternal = String "internal"
-  toJSON SdkTelemetryTelemetrySpansItemKindProducer = String "producer"
-  toJSON SdkTelemetryTelemetrySpansItemKindServer = String "server"
-
-sdkTelemetryTelemetrySpansItemKindText :: SdkTelemetryTelemetrySpansItemKind -> Text
-sdkTelemetryTelemetrySpansItemKindText SdkTelemetryTelemetrySpansItemKindClient = "client"
-sdkTelemetryTelemetrySpansItemKindText SdkTelemetryTelemetrySpansItemKindConsumer = "consumer"
-sdkTelemetryTelemetrySpansItemKindText SdkTelemetryTelemetrySpansItemKindInternal = "internal"
-sdkTelemetryTelemetrySpansItemKindText SdkTelemetryTelemetrySpansItemKindProducer = "producer"
-sdkTelemetryTelemetrySpansItemKindText SdkTelemetryTelemetrySpansItemKindServer = "server"
-
 data SdkTelemetryTelemetrySpansItemTransport = SdkTelemetryTelemetrySpansItemTransportBus | SdkTelemetryTelemetrySpansItemTransportContent deriving (Eq, Show)
 
 instance FromJSON SdkTelemetryTelemetrySpansItemTransport where parseJSON = checked "SdkTelemetryTelemetrySpansItemTransport" $ \value -> if value == String "bus" then pure SdkTelemetryTelemetrySpansItemTransportBus else if value == String "content" then pure SdkTelemetryTelemetrySpansItemTransportContent else fail "unknown enumeration member"
@@ -141,3 +95,37 @@ instance ToJSON SdkTelemetryTelemetrySpansItemTransport where
 sdkTelemetryTelemetrySpansItemTransportText :: SdkTelemetryTelemetrySpansItemTransport -> Text
 sdkTelemetryTelemetrySpansItemTransportText SdkTelemetryTelemetrySpansItemTransportBus = "bus"
 sdkTelemetryTelemetrySpansItemTransportText SdkTelemetryTelemetrySpansItemTransportContent = "content"
+
+data ServiceTelemetryTelemetryMetricsItemInstrument = ServiceTelemetryTelemetryMetricsItemInstrumentCounter | ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter | ServiceTelemetryTelemetryMetricsItemInstrumentGauge | ServiceTelemetryTelemetryMetricsItemInstrumentHistogram deriving (Eq, Show)
+
+instance FromJSON ServiceTelemetryTelemetryMetricsItemInstrument where parseJSON = checked "ServiceTelemetryTelemetryMetricsItemInstrument" $ \value -> if value == String "counter" then pure ServiceTelemetryTelemetryMetricsItemInstrumentCounter else if value == String "up-down counter" then pure ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter else if value == String "gauge" then pure ServiceTelemetryTelemetryMetricsItemInstrumentGauge else if value == String "histogram" then pure ServiceTelemetryTelemetryMetricsItemInstrumentHistogram else fail "unknown enumeration member"
+
+instance ToJSON ServiceTelemetryTelemetryMetricsItemInstrument where
+  toJSON ServiceTelemetryTelemetryMetricsItemInstrumentCounter = String "counter"
+  toJSON ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter = String "up-down counter"
+  toJSON ServiceTelemetryTelemetryMetricsItemInstrumentGauge = String "gauge"
+  toJSON ServiceTelemetryTelemetryMetricsItemInstrumentHistogram = String "histogram"
+
+serviceTelemetryTelemetryMetricsItemInstrumentText :: ServiceTelemetryTelemetryMetricsItemInstrument -> Text
+serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentCounter = "counter"
+serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentUpDownCounter = "up-down counter"
+serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentGauge = "gauge"
+serviceTelemetryTelemetryMetricsItemInstrumentText ServiceTelemetryTelemetryMetricsItemInstrumentHistogram = "histogram"
+
+data ServiceTelemetryTelemetrySpansItemKind = ServiceTelemetryTelemetrySpansItemKindClient | ServiceTelemetryTelemetrySpansItemKindConsumer | ServiceTelemetryTelemetrySpansItemKindInternal | ServiceTelemetryTelemetrySpansItemKindProducer | ServiceTelemetryTelemetrySpansItemKindServer deriving (Eq, Show)
+
+instance FromJSON ServiceTelemetryTelemetrySpansItemKind where parseJSON = checked "ServiceTelemetryTelemetrySpansItemKind" $ \value -> if value == String "client" then pure ServiceTelemetryTelemetrySpansItemKindClient else if value == String "consumer" then pure ServiceTelemetryTelemetrySpansItemKindConsumer else if value == String "internal" then pure ServiceTelemetryTelemetrySpansItemKindInternal else if value == String "producer" then pure ServiceTelemetryTelemetrySpansItemKindProducer else if value == String "server" then pure ServiceTelemetryTelemetrySpansItemKindServer else fail "unknown enumeration member"
+
+instance ToJSON ServiceTelemetryTelemetrySpansItemKind where
+  toJSON ServiceTelemetryTelemetrySpansItemKindClient = String "client"
+  toJSON ServiceTelemetryTelemetrySpansItemKindConsumer = String "consumer"
+  toJSON ServiceTelemetryTelemetrySpansItemKindInternal = String "internal"
+  toJSON ServiceTelemetryTelemetrySpansItemKindProducer = String "producer"
+  toJSON ServiceTelemetryTelemetrySpansItemKindServer = String "server"
+
+serviceTelemetryTelemetrySpansItemKindText :: ServiceTelemetryTelemetrySpansItemKind -> Text
+serviceTelemetryTelemetrySpansItemKindText ServiceTelemetryTelemetrySpansItemKindClient = "client"
+serviceTelemetryTelemetrySpansItemKindText ServiceTelemetryTelemetrySpansItemKindConsumer = "consumer"
+serviceTelemetryTelemetrySpansItemKindText ServiceTelemetryTelemetrySpansItemKindInternal = "internal"
+serviceTelemetryTelemetrySpansItemKindText ServiceTelemetryTelemetrySpansItemKindProducer = "producer"
+serviceTelemetryTelemetrySpansItemKindText ServiceTelemetryTelemetrySpansItemKindServer = "server"

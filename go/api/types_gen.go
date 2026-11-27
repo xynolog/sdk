@@ -1046,32 +1046,11 @@ type ArchivistLayout struct {
 type ArchivistLayoutAnchoredTextEntry struct {
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutAnchoredTextEntryTree `json:"tree"`
+	Tree ArchivistLayoutEventStreamTree `json:"tree"`
 	// Path Its path in its tree, `/`-separated.
 	Path string `json:"path"`
 	// Schema The schema an entry is.
 	Schema any `json:"schema"`
-}
-
-// ArchivistLayoutAnchoredTextEntryTree The tree the file is in: `root`, the
-// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
-// anchored-text store.
-type ArchivistLayoutAnchoredTextEntryTree string
-
-// The values of ArchivistLayoutAnchoredTextEntryTree.
-const (
-	ArchivistLayoutAnchoredTextEntryTreeRoot            ArchivistLayoutAnchoredTextEntryTree = "root"
-	ArchivistLayoutAnchoredTextEntryTreeStateHome       ArchivistLayoutAnchoredTextEntryTree = "stateHome"
-	ArchivistLayoutAnchoredTextEntryTreeAnchoredTextDir ArchivistLayoutAnchoredTextEntryTree = "anchoredTextDir"
-)
-
-// Valid is whether e is one of ArchivistLayoutAnchoredTextEntryTree's values.
-func (e ArchivistLayoutAnchoredTextEntryTree) Valid() bool {
-	switch e {
-	case ArchivistLayoutAnchoredTextEntryTreeRoot, ArchivistLayoutAnchoredTextEntryTreeStateHome, ArchivistLayoutAnchoredTextEntryTreeAnchoredTextDir:
-		return true
-	}
-	return false
 }
 
 // ArchivistLayoutAnchoredTextStamp The file holding the stamp the
@@ -1080,30 +1059,9 @@ func (e ArchivistLayoutAnchoredTextEntryTree) Valid() bool {
 type ArchivistLayoutAnchoredTextStamp struct {
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutAnchoredTextStampTree `json:"tree"`
+	Tree ArchivistLayoutEventStreamTree `json:"tree"`
 	// Path Its path in its tree, `/`-separated.
 	Path string `json:"path"`
-}
-
-// ArchivistLayoutAnchoredTextStampTree The tree the file is in: `root`, the
-// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
-// anchored-text store.
-type ArchivistLayoutAnchoredTextStampTree string
-
-// The values of ArchivistLayoutAnchoredTextStampTree.
-const (
-	ArchivistLayoutAnchoredTextStampTreeRoot            ArchivistLayoutAnchoredTextStampTree = "root"
-	ArchivistLayoutAnchoredTextStampTreeStateHome       ArchivistLayoutAnchoredTextStampTree = "stateHome"
-	ArchivistLayoutAnchoredTextStampTreeAnchoredTextDir ArchivistLayoutAnchoredTextStampTree = "anchoredTextDir"
-)
-
-// Valid is whether e is one of ArchivistLayoutAnchoredTextStampTree's values.
-func (e ArchivistLayoutAnchoredTextStampTree) Valid() bool {
-	switch e {
-	case ArchivistLayoutAnchoredTextStampTreeRoot, ArchivistLayoutAnchoredTextStampTreeStateHome, ArchivistLayoutAnchoredTextStampTreeAnchoredTextDir:
-		return true
-	}
-	return false
 }
 
 // ArchivistLayoutEventFile The files of a stream.
@@ -1156,32 +1114,11 @@ func (e ArchivistLayoutEventStreamTree) Valid() bool {
 type ArchivistLayoutStorageUriIndex struct {
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutStorageUriIndexTree `json:"tree"`
+	Tree ArchivistLayoutEventStreamTree `json:"tree"`
 	// Path Its path in its tree, `/`-separated.
 	Path string `json:"path"`
 	// Schema The schema an entry is.
 	Schema any `json:"schema"`
-}
-
-// ArchivistLayoutStorageUriIndexTree The tree the file is in: `root`, the
-// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
-// anchored-text store.
-type ArchivistLayoutStorageUriIndexTree string
-
-// The values of ArchivistLayoutStorageUriIndexTree.
-const (
-	ArchivistLayoutStorageUriIndexTreeRoot            ArchivistLayoutStorageUriIndexTree = "root"
-	ArchivistLayoutStorageUriIndexTreeStateHome       ArchivistLayoutStorageUriIndexTree = "stateHome"
-	ArchivistLayoutStorageUriIndexTreeAnchoredTextDir ArchivistLayoutStorageUriIndexTree = "anchoredTextDir"
-)
-
-// Valid is whether e is one of ArchivistLayoutStorageUriIndexTree's values.
-func (e ArchivistLayoutStorageUriIndexTree) Valid() bool {
-	switch e {
-	case ArchivistLayoutStorageUriIndexTreeRoot, ArchivistLayoutStorageUriIndexTreeStateHome, ArchivistLayoutStorageUriIndexTreeAnchoredTextDir:
-		return true
-	}
-	return false
 }
 
 // ArchivistLayoutSystemProjections The projections of what the `__system__`
@@ -1189,7 +1126,7 @@ func (e ArchivistLayoutStorageUriIndexTree) Valid() bool {
 type ArchivistLayoutSystemProjections struct {
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutSystemProjectionsTree `json:"tree"`
+	Tree ArchivistLayoutEventStreamTree `json:"tree"`
 	// Path The directory that holds them, in its tree, `/`-separated.
 	Path string `json:"path"`
 	// Files Each projection's file.
@@ -1211,88 +1148,25 @@ type ArchivistLayoutSystemProjectionsFilesItem struct {
 	Schema any `json:"schema"`
 }
 
-// ArchivistLayoutSystemProjectionsTree The tree the file is in: `root`, the
-// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
-// anchored-text store.
-type ArchivistLayoutSystemProjectionsTree string
-
-// The values of ArchivistLayoutSystemProjectionsTree.
-const (
-	ArchivistLayoutSystemProjectionsTreeRoot            ArchivistLayoutSystemProjectionsTree = "root"
-	ArchivistLayoutSystemProjectionsTreeStateHome       ArchivistLayoutSystemProjectionsTree = "stateHome"
-	ArchivistLayoutSystemProjectionsTreeAnchoredTextDir ArchivistLayoutSystemProjectionsTree = "anchoredTextDir"
-)
-
-// Valid is whether e is one of ArchivistLayoutSystemProjectionsTree's values.
-func (e ArchivistLayoutSystemProjectionsTree) Valid() bool {
-	switch e {
-	case ArchivistLayoutSystemProjectionsTreeRoot, ArchivistLayoutSystemProjectionsTreeStateHome, ArchivistLayoutSystemProjectionsTreeAnchoredTextDir:
-		return true
-	}
-	return false
-}
-
 // ArchivistLayoutSystemStream The knowledge base's own stream, of the events
 // that name no resource. It is not sharded.
 type ArchivistLayoutSystemStream struct {
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutSystemStreamTree `json:"tree"`
+	Tree ArchivistLayoutEventStreamTree `json:"tree"`
 	// Path Its path in its tree, `/`-separated.
 	Path string `json:"path"`
-}
-
-// ArchivistLayoutSystemStreamTree The tree the file is in: `root`, the
-// working tree, `stateHome`, the state directory, or `anchoredTextDir`, the
-// anchored-text store.
-type ArchivistLayoutSystemStreamTree string
-
-// The values of ArchivistLayoutSystemStreamTree.
-const (
-	ArchivistLayoutSystemStreamTreeRoot            ArchivistLayoutSystemStreamTree = "root"
-	ArchivistLayoutSystemStreamTreeStateHome       ArchivistLayoutSystemStreamTree = "stateHome"
-	ArchivistLayoutSystemStreamTreeAnchoredTextDir ArchivistLayoutSystemStreamTree = "anchoredTextDir"
-)
-
-// Valid is whether e is one of ArchivistLayoutSystemStreamTree's values.
-func (e ArchivistLayoutSystemStreamTree) Valid() bool {
-	switch e {
-	case ArchivistLayoutSystemStreamTreeRoot, ArchivistLayoutSystemStreamTreeStateHome, ArchivistLayoutSystemStreamTreeAnchoredTextDir:
-		return true
-	}
-	return false
 }
 
 // ArchivistLayoutView A resource's view, in the state directory.
 type ArchivistLayoutView struct {
 	// Tree The tree the file is in: `root`, the working tree, `stateHome`, the
 	// state directory, or `anchoredTextDir`, the anchored-text store.
-	Tree ArchivistLayoutViewTree `json:"tree"`
+	Tree ArchivistLayoutEventStreamTree `json:"tree"`
 	// Path Its path in its tree, `/`-separated.
 	Path string `json:"path"`
 	// Schema The schema a view is.
 	Schema any `json:"schema"`
-}
-
-// ArchivistLayoutViewTree The tree the file is in: `root`, the working tree,
-// `stateHome`, the state directory, or `anchoredTextDir`, the anchored-text
-// store.
-type ArchivistLayoutViewTree string
-
-// The values of ArchivistLayoutViewTree.
-const (
-	ArchivistLayoutViewTreeRoot            ArchivistLayoutViewTree = "root"
-	ArchivistLayoutViewTreeStateHome       ArchivistLayoutViewTree = "stateHome"
-	ArchivistLayoutViewTreeAnchoredTextDir ArchivistLayoutViewTree = "anchoredTextDir"
-)
-
-// Valid is whether e is one of ArchivistLayoutViewTree's values.
-func (e ArchivistLayoutViewTree) Valid() bool {
-	switch e {
-	case ArchivistLayoutViewTreeRoot, ArchivistLayoutViewTreeStateHome, ArchivistLayoutViewTreeAnchoredTextDir:
-		return true
-	}
-	return false
 }
 
 // ArchivistMessages archivist/messages.json: the words of the Archivist's own
@@ -1426,7 +1300,7 @@ type ArchivistMessagesRefusalsItem struct {
 	// wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
-	Code *ArchivistMessagesRefusalsItemCode `json:"code,omitempty"`
+	Code *CommandErrorCode `json:"code,omitempty"`
 	// Situation When it is written, and what fills each `{name}` of its text.
 	Situation string `json:"situation"`
 	// Message The failure's `message`. A `{name}` in it is filled with what the
@@ -1440,52 +1314,6 @@ func (v ArchivistMessagesRefusalsItem) MarshalJSON() ([]byte, error) {
 	type written ArchivistMessagesRefusalsItem
 	v.Operations = listOf(v.Operations)
 	return json.Marshal(written(v))
-}
-
-// ArchivistMessagesRefusalsItemCode Machine-readable failure class, for
-// consumers that must BRANCH on why a command failed rather than log it.
-// Optional and deliberately sparse: absent means 'no class declared', and
-// every existing failure stays that way. An enum rather than a free string so
-// the vocabulary has an owner — an unconstrained code is a mirror with no
-// gate, and adding one should be a deliberate spec change. `message` remains
-// the human-readable text and is unaffected. Members: `peer-unavailable` —
-// the channel this command was sent on has no subscriber, i.e. the service
-// that answers it has not connected yet. Transient by nature (a peer still
-// starting), which is what distinguishes it from a refusal: retrying is the
-// correct response. `not-found` — the resource this command addressed does
-// not exist in this knowledge base. A verdict, not a symptom: it is emitted
-// only where the answer comes from the event store, which is the system of
-// record, and never from a projection that may merely be lagging.
-// Deterministic, so unlike `peer-unavailable` retrying is pointless — and
-// consumers may act destructively on it (the SDK deletes a restored tab).
-// Absence is not denial: a future 'exists, but not for you' must travel as
-// its own code, never as this one. `unauthorized` — that code: the caller is
-// authenticated but not permitted to do what it asked. A verdict about the
-// CALLER, not the resource, so retrying under the same credential cannot
-// succeed and a consumer must never spin on it; emitted by `job:claim` for a
-// caller whose token carries no worker role. `none-pending` — a declined
-// claim, not an error: the queue holds no pending job of the requested types.
-// Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to
-// do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal
-// carrying neither is unclassified — a malformed record or a missing
-// injection — and a consumer treats it as 'log it, assume nothing'.
-type ArchivistMessagesRefusalsItemCode string
-
-// The values of ArchivistMessagesRefusalsItemCode.
-const (
-	ArchivistMessagesRefusalsItemCodePeerUnavailable ArchivistMessagesRefusalsItemCode = "peer-unavailable"
-	ArchivistMessagesRefusalsItemCodeNotFound        ArchivistMessagesRefusalsItemCode = "not-found"
-	ArchivistMessagesRefusalsItemCodeUnauthorized    ArchivistMessagesRefusalsItemCode = "unauthorized"
-	ArchivistMessagesRefusalsItemCodeNonePending     ArchivistMessagesRefusalsItemCode = "none-pending"
-)
-
-// Valid is whether e is one of ArchivistMessagesRefusalsItemCode's values.
-func (e ArchivistMessagesRefusalsItemCode) Valid() bool {
-	switch e {
-	case ArchivistMessagesRefusalsItemCodePeerUnavailable, ArchivistMessagesRefusalsItemCodeNotFound, ArchivistMessagesRefusalsItemCodeUnauthorized, ArchivistMessagesRefusalsItemCodeNonePending:
-		return true
-	}
-	return false
 }
 
 // ArchivistMessagesUnauthorized The refusal of every route of the HTTP
@@ -3180,7 +3008,7 @@ type ClientRefreshRefreshItemStream struct {
 	// event that cannot be read.
 	Stream ClientRefreshRefreshItemStreamStream `json:"stream"`
 	// Reach Which keys the row reaches: the event's subject, or every key held.
-	Reach *ClientRefreshRefreshItemStreamReach `json:"reach,omitempty"`
+	Reach *ClientRefreshRefreshItemOnReach `json:"reach,omitempty"`
 	// Refetches The queries asked again.
 	Refetches *[]string `json:"refetches,omitempty"`
 	// Docs What it is, in prose.
@@ -3188,25 +3016,6 @@ type ClientRefreshRefreshItemStream struct {
 }
 
 func (ClientRefreshRefreshItemStream) memberOfClientRefreshRefreshItem() {}
-
-// ClientRefreshRefreshItemStreamReach Which keys the row reaches: the event's
-// subject, or every key held.
-type ClientRefreshRefreshItemStreamReach string
-
-// The values of ClientRefreshRefreshItemStreamReach.
-const (
-	ClientRefreshRefreshItemStreamReachSubject ClientRefreshRefreshItemStreamReach = "subject"
-	ClientRefreshRefreshItemStreamReachHeld    ClientRefreshRefreshItemStreamReach = "held"
-)
-
-// Valid is whether e is one of ClientRefreshRefreshItemStreamReach's values.
-func (e ClientRefreshRefreshItemStreamReach) Valid() bool {
-	switch e {
-	case ClientRefreshRefreshItemStreamReachSubject, ClientRefreshRefreshItemStreamReachHeld:
-		return true
-	}
-	return false
-}
 
 // ClientRefreshRefreshItemStreamStream `reopened`, the stream open again
 // after a drop; or `unreadable`, an event that cannot be read.
@@ -3530,7 +3339,7 @@ type ConformanceCase struct {
 	// Source Where the protocol or the spec states it.
 	Source string `json:"source"`
 	// Planes The signal planes the case runs on. Absent, it runs on both.
-	Planes *[]ConformanceCasePlanesItem `json:"planes,omitempty"`
+	Planes *[]GatewayConfigSignalType `json:"planes,omitempty"`
 	// Tier A live case's tier: `fleet`, what every SDK with a live layer does,
 	// or `parity`, what one that implements all of CACHE-SEMANTICS does.
 	Tier *ConformanceCaseTier `json:"tier,omitempty"`
@@ -3549,23 +3358,6 @@ func (v ConformanceCase) MarshalJSON() ([]byte, error) {
 	type written ConformanceCase
 	v.Steps = listOf(v.Steps)
 	return json.Marshal(written(v))
-}
-
-type ConformanceCasePlanesItem string
-
-// The values of ConformanceCasePlanesItem.
-const (
-	ConformanceCasePlanesItemInProcess ConformanceCasePlanesItem = "in-process"
-	ConformanceCasePlanesItemNats      ConformanceCasePlanesItem = "nats"
-)
-
-// Valid is whether e is one of ConformanceCasePlanesItem's values.
-func (e ConformanceCasePlanesItem) Valid() bool {
-	switch e {
-	case ConformanceCasePlanesItemInProcess, ConformanceCasePlanesItemNats:
-		return true
-	}
-	return false
 }
 
 // ConformanceCaseTelemetry Run the client exporting to an OTLP receiver, and
@@ -4097,7 +3889,7 @@ type ConformanceImplementationsSdksValueLive struct {
 	Command []string `json:"command"`
 	// Tier A live case's tier: `fleet`, what every SDK with a live layer does,
 	// or `parity`, what one that implements all of CACHE-SEMANTICS does.
-	Tier ConformanceImplementationsSdksValueLiveTier `json:"tier"`
+	Tier ConformanceCaseTier `json:"tier"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -4106,27 +3898,6 @@ func (v ConformanceImplementationsSdksValueLive) MarshalJSON() ([]byte, error) {
 	type written ConformanceImplementationsSdksValueLive
 	v.Command = listOf(v.Command)
 	return json.Marshal(written(v))
-}
-
-// ConformanceImplementationsSdksValueLiveTier A live case's tier: `fleet`,
-// what every SDK with a live layer does, or `parity`, what one that
-// implements all of CACHE-SEMANTICS does.
-type ConformanceImplementationsSdksValueLiveTier string
-
-// The values of ConformanceImplementationsSdksValueLiveTier.
-const (
-	ConformanceImplementationsSdksValueLiveTierFleet  ConformanceImplementationsSdksValueLiveTier = "fleet"
-	ConformanceImplementationsSdksValueLiveTierParity ConformanceImplementationsSdksValueLiveTier = "parity"
-)
-
-// Valid is whether e is one of ConformanceImplementationsSdksValueLiveTier's
-// values.
-func (e ConformanceImplementationsSdksValueLiveTier) Valid() bool {
-	switch e {
-	case ConformanceImplementationsSdksValueLiveTierFleet, ConformanceImplementationsSdksValueLiveTierParity:
-		return true
-	}
-	return false
 }
 
 // ConformanceStep One step of a case of the conformance corpus
@@ -5403,58 +5174,12 @@ type DispatcherMessagesRefusalsItem struct {
 	// wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
-	Code *DispatcherMessagesRefusalsItemCode `json:"code,omitempty"`
+	Code *CommandErrorCode `json:"code,omitempty"`
 	// Situation When it is written, and what fills each `{name}` of its text.
 	Situation string `json:"situation"`
 	// Message The failure's `message`. A `{name}` in it is filled with what the
 	// row's `situation` names, and nothing else in it varies.
 	Message string `json:"message"`
-}
-
-// DispatcherMessagesRefusalsItemCode Machine-readable failure class, for
-// consumers that must BRANCH on why a command failed rather than log it.
-// Optional and deliberately sparse: absent means 'no class declared', and
-// every existing failure stays that way. An enum rather than a free string so
-// the vocabulary has an owner — an unconstrained code is a mirror with no
-// gate, and adding one should be a deliberate spec change. `message` remains
-// the human-readable text and is unaffected. Members: `peer-unavailable` —
-// the channel this command was sent on has no subscriber, i.e. the service
-// that answers it has not connected yet. Transient by nature (a peer still
-// starting), which is what distinguishes it from a refusal: retrying is the
-// correct response. `not-found` — the resource this command addressed does
-// not exist in this knowledge base. A verdict, not a symptom: it is emitted
-// only where the answer comes from the event store, which is the system of
-// record, and never from a projection that may merely be lagging.
-// Deterministic, so unlike `peer-unavailable` retrying is pointless — and
-// consumers may act destructively on it (the SDK deletes a restored tab).
-// Absence is not denial: a future 'exists, but not for you' must travel as
-// its own code, never as this one. `unauthorized` — that code: the caller is
-// authenticated but not permitted to do what it asked. A verdict about the
-// CALLER, not the resource, so retrying under the same credential cannot
-// succeed and a consumer must never spin on it; emitted by `job:claim` for a
-// caller whose token carries no worker role. `none-pending` — a declined
-// claim, not an error: the queue holds no pending job of the requested types.
-// Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to
-// do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal
-// carrying neither is unclassified — a malformed record or a missing
-// injection — and a consumer treats it as 'log it, assume nothing'.
-type DispatcherMessagesRefusalsItemCode string
-
-// The values of DispatcherMessagesRefusalsItemCode.
-const (
-	DispatcherMessagesRefusalsItemCodePeerUnavailable DispatcherMessagesRefusalsItemCode = "peer-unavailable"
-	DispatcherMessagesRefusalsItemCodeNotFound        DispatcherMessagesRefusalsItemCode = "not-found"
-	DispatcherMessagesRefusalsItemCodeUnauthorized    DispatcherMessagesRefusalsItemCode = "unauthorized"
-	DispatcherMessagesRefusalsItemCodeNonePending     DispatcherMessagesRefusalsItemCode = "none-pending"
-)
-
-// Valid is whether e is one of DispatcherMessagesRefusalsItemCode's values.
-func (e DispatcherMessagesRefusalsItemCode) Valid() bool {
-	switch e {
-	case DispatcherMessagesRefusalsItemCodePeerUnavailable, DispatcherMessagesRefusalsItemCodeNotFound, DispatcherMessagesRefusalsItemCodeUnauthorized, DispatcherMessagesRefusalsItemCodeNonePending:
-		return true
-	}
-	return false
 }
 
 // DurabilityEvidence How a job's annotations were established as durable —
@@ -5745,16 +5470,16 @@ type ErrorsCodes struct {
 	Job ErrorsCodesJob `json:"job"`
 	// Session A vocabulary that states nothing of its codes but each one's docs:
 	// here, why a job its client follows ended without a result.
-	Session ErrorsCodesSession `json:"session"`
+	Session ErrorsCodesJob `json:"session"`
 	// SignIn A vocabulary that states nothing of its codes but each one's docs:
 	// here, why a job its client follows ended without a result.
-	SignIn ErrorsCodesSignIn `json:"signIn"`
+	SignIn ErrorsCodesJob `json:"signIn"`
 	// KbIdentity A vocabulary that states nothing of its codes but each one's
 	// docs: here, why a job its client follows ended without a result.
-	KbIdentity ErrorsCodesKbIdentity `json:"kbIdentity"`
+	KbIdentity ErrorsCodesJob `json:"kbIdentity"`
 	// SpanRefusal A vocabulary that states nothing of its codes but each one's
 	// docs: here, why a job its client follows ended without a result.
-	SpanRefusal ErrorsCodesSpanRefusal `json:"spanRefusal"`
+	SpanRefusal ErrorsCodesJob `json:"spanRefusal"`
 	// Control Why a request of the launcher's control API failed: each code, the
 	// JSON-RPC code an answer carries it under, and whether a request that fails
 	// with it is retryable.
@@ -5814,53 +5539,7 @@ type ErrorsCodesBusRequestCodesItem struct {
 	// wake-up'. Emitted by `job:claim` only. A `job:claim` refusal carrying
 	// neither is unclassified — a malformed record or a missing injection — and
 	// a consumer treats it as 'log it, assume nothing'.
-	Wire *ErrorsCodesBusRequestCodesItemWire `json:"wire,omitempty"`
-}
-
-// ErrorsCodesBusRequestCodesItemWire Machine-readable failure class, for
-// consumers that must BRANCH on why a command failed rather than log it.
-// Optional and deliberately sparse: absent means 'no class declared', and
-// every existing failure stays that way. An enum rather than a free string so
-// the vocabulary has an owner — an unconstrained code is a mirror with no
-// gate, and adding one should be a deliberate spec change. `message` remains
-// the human-readable text and is unaffected. Members: `peer-unavailable` —
-// the channel this command was sent on has no subscriber, i.e. the service
-// that answers it has not connected yet. Transient by nature (a peer still
-// starting), which is what distinguishes it from a refusal: retrying is the
-// correct response. `not-found` — the resource this command addressed does
-// not exist in this knowledge base. A verdict, not a symptom: it is emitted
-// only where the answer comes from the event store, which is the system of
-// record, and never from a projection that may merely be lagging.
-// Deterministic, so unlike `peer-unavailable` retrying is pointless — and
-// consumers may act destructively on it (the SDK deletes a restored tab).
-// Absence is not denial: a future 'exists, but not for you' must travel as
-// its own code, never as this one. `unauthorized` — that code: the caller is
-// authenticated but not permitted to do what it asked. A verdict about the
-// CALLER, not the resource, so retrying under the same credential cannot
-// succeed and a consumer must never spin on it; emitted by `job:claim` for a
-// caller whose token carries no worker role. `none-pending` — a declined
-// claim, not an error: the queue holds no pending job of the requested types.
-// Nothing went wrong; the one code a consumer PARKS on, meaning 'nothing to
-// do until a wake-up'. Emitted by `job:claim` only. A `job:claim` refusal
-// carrying neither is unclassified — a malformed record or a missing
-// injection — and a consumer treats it as 'log it, assume nothing'.
-type ErrorsCodesBusRequestCodesItemWire string
-
-// The values of ErrorsCodesBusRequestCodesItemWire.
-const (
-	ErrorsCodesBusRequestCodesItemWirePeerUnavailable ErrorsCodesBusRequestCodesItemWire = "peer-unavailable"
-	ErrorsCodesBusRequestCodesItemWireNotFound        ErrorsCodesBusRequestCodesItemWire = "not-found"
-	ErrorsCodesBusRequestCodesItemWireUnauthorized    ErrorsCodesBusRequestCodesItemWire = "unauthorized"
-	ErrorsCodesBusRequestCodesItemWireNonePending     ErrorsCodesBusRequestCodesItemWire = "none-pending"
-)
-
-// Valid is whether e is one of ErrorsCodesBusRequestCodesItemWire's values.
-func (e ErrorsCodesBusRequestCodesItemWire) Valid() bool {
-	switch e {
-	case ErrorsCodesBusRequestCodesItemWirePeerUnavailable, ErrorsCodesBusRequestCodesItemWireNotFound, ErrorsCodesBusRequestCodesItemWireUnauthorized, ErrorsCodesBusRequestCodesItemWireNonePending:
-		return true
-	}
-	return false
+	Wire *CommandErrorCode `json:"wire,omitempty"`
 }
 
 // ErrorsCodesControl Why a request of the launcher's control API failed: each
@@ -5916,106 +5595,6 @@ func (v ErrorsCodesJob) MarshalJSON() ([]byte, error) {
 }
 
 type ErrorsCodesJobCodesItem struct {
-	// Code The code, as every SDK names it.
-	Code string `json:"code"`
-	// Docs Its documentation, in prose: what a generated type or member says of
-	// it.
-	Docs string `json:"docs"`
-}
-
-// ErrorsCodesKbIdentity A vocabulary that states nothing of its codes but
-// each one's docs: here, why a job its client follows ended without a result.
-type ErrorsCodesKbIdentity struct {
-	// Docs Its documentation, in prose: what a generated type or member says of
-	// it.
-	Docs  string                           `json:"docs"`
-	Codes []ErrorsCodesKbIdentityCodesItem `json:"codes"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ErrorsCodesKbIdentity) MarshalJSON() ([]byte, error) {
-	type written ErrorsCodesKbIdentity
-	v.Codes = listOf(v.Codes)
-	return json.Marshal(written(v))
-}
-
-type ErrorsCodesKbIdentityCodesItem struct {
-	// Code The code, as every SDK names it.
-	Code string `json:"code"`
-	// Docs Its documentation, in prose: what a generated type or member says of
-	// it.
-	Docs string `json:"docs"`
-}
-
-// ErrorsCodesSession A vocabulary that states nothing of its codes but each
-// one's docs: here, why a job its client follows ended without a result.
-type ErrorsCodesSession struct {
-	// Docs Its documentation, in prose: what a generated type or member says of
-	// it.
-	Docs  string                        `json:"docs"`
-	Codes []ErrorsCodesSessionCodesItem `json:"codes"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ErrorsCodesSession) MarshalJSON() ([]byte, error) {
-	type written ErrorsCodesSession
-	v.Codes = listOf(v.Codes)
-	return json.Marshal(written(v))
-}
-
-type ErrorsCodesSessionCodesItem struct {
-	// Code The code, as every SDK names it.
-	Code string `json:"code"`
-	// Docs Its documentation, in prose: what a generated type or member says of
-	// it.
-	Docs string `json:"docs"`
-}
-
-// ErrorsCodesSignIn A vocabulary that states nothing of its codes but each
-// one's docs: here, why a job its client follows ended without a result.
-type ErrorsCodesSignIn struct {
-	// Docs Its documentation, in prose: what a generated type or member says of
-	// it.
-	Docs  string                       `json:"docs"`
-	Codes []ErrorsCodesSignInCodesItem `json:"codes"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ErrorsCodesSignIn) MarshalJSON() ([]byte, error) {
-	type written ErrorsCodesSignIn
-	v.Codes = listOf(v.Codes)
-	return json.Marshal(written(v))
-}
-
-type ErrorsCodesSignInCodesItem struct {
-	// Code The code, as every SDK names it.
-	Code string `json:"code"`
-	// Docs Its documentation, in prose: what a generated type or member says of
-	// it.
-	Docs string `json:"docs"`
-}
-
-// ErrorsCodesSpanRefusal A vocabulary that states nothing of its codes but
-// each one's docs: here, why a job its client follows ended without a result.
-type ErrorsCodesSpanRefusal struct {
-	// Docs Its documentation, in prose: what a generated type or member says of
-	// it.
-	Docs  string                            `json:"docs"`
-	Codes []ErrorsCodesSpanRefusalCodesItem `json:"codes"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v ErrorsCodesSpanRefusal) MarshalJSON() ([]byte, error) {
-	type written ErrorsCodesSpanRefusal
-	v.Codes = listOf(v.Codes)
-	return json.Marshal(written(v))
-}
-
-type ErrorsCodesSpanRefusalCodesItem struct {
 	// Code The code, as every SDK names it.
 	Code string `json:"code"`
 	// Docs Its documentation, in prose: what a generated type or member says of
@@ -6121,41 +5700,7 @@ type ErrorsCodesTransportCodesItemStatusLimitRefusalsItem struct {
 	// failed verification, so it says what a 401 says, and a client that can
 	// renew its token renews it and sends the request again rather than waiting
 	// (contract/TRANSPORT-CONTRACT.md § A refused credential).
-	Code ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode `json:"code"`
-}
-
-// ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode `streams`: the
-// principal already holds as many streams as its coefficient of
-// `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the principal's
-// emits have used its bucket, whose rate and burst are its coefficient of
-// `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
-// `unanswered-requests`: the client already awaits as many replies as
-// `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway
-// holds as many queued bytes as it can. `refusal-rate`: the request's
-// credential was refused, and the requests its holder has had refused have
-// used their allowance; it answers only a request whose token has already
-// failed verification, so it says what a 401 says, and a client that can
-// renew its token renews it and sends the request again rather than waiting
-// (contract/TRANSPORT-CONTRACT.md § A refused credential).
-type ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode string
-
-// The values of ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode.
-const (
-	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams            ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "streams"
-	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeEmitRate           ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "emit-rate"
-	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeUnansweredRequests ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "unanswered-requests"
-	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeCapacity           ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "capacity"
-	ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeRefusalRate        ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = "refusal-rate"
-)
-
-// Valid is whether e is one of
-// ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode's values.
-func (e ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode) Valid() bool {
-	switch e {
-	case ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams, ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeEmitRate, ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeUnansweredRequests, ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeCapacity, ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeRefusalRate:
-		return true
-	}
-	return false
+	Code LimitRefusalValueCode `json:"code"`
 }
 
 // EventMetadata Metadata added at persistence time. Part of every
@@ -7652,58 +7197,10 @@ type GraphSchemaNodes struct {
 	Resource GraphSchemaNodesResource `json:"resource"`
 	// Annotation A kind of node: its label, the codec row it holds, the property
 	// it is one of its kind by, and the properties a reader finds one by.
-	Annotation GraphSchemaNodesAnnotation `json:"annotation"`
+	Annotation GraphSchemaNodesResource `json:"annotation"`
 	// EntityType A kind of node: its label, the codec row it holds, the property
 	// it is one of its kind by, and the properties a reader finds one by.
-	EntityType GraphSchemaNodesEntityType `json:"entityType"`
-}
-
-// GraphSchemaNodesAnnotation A kind of node: its label, the codec row it
-// holds, the property it is one of its kind by, and the properties a reader
-// finds one by.
-type GraphSchemaNodesAnnotation struct {
-	// Label Its label.
-	Label string `json:"label"`
-	// Row The part of graph/codec-cases.json whose `properties` and `json` are
-	// the node's properties. A node without one holds its key alone.
-	Row *string `json:"row,omitempty"`
-	// Key The property no two nodes of its kind share.
-	Key string `json:"key"`
-	// Lookups The properties other than its key that a reader finds a node of
-	// its kind by.
-	Lookups []string `json:"lookups"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v GraphSchemaNodesAnnotation) MarshalJSON() ([]byte, error) {
-	type written GraphSchemaNodesAnnotation
-	v.Lookups = listOf(v.Lookups)
-	return json.Marshal(written(v))
-}
-
-// GraphSchemaNodesEntityType A kind of node: its label, the codec row it
-// holds, the property it is one of its kind by, and the properties a reader
-// finds one by.
-type GraphSchemaNodesEntityType struct {
-	// Label Its label.
-	Label string `json:"label"`
-	// Row The part of graph/codec-cases.json whose `properties` and `json` are
-	// the node's properties. A node without one holds its key alone.
-	Row *string `json:"row,omitempty"`
-	// Key The property no two nodes of its kind share.
-	Key string `json:"key"`
-	// Lookups The properties other than its key that a reader finds a node of
-	// its kind by.
-	Lookups []string `json:"lookups"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v GraphSchemaNodesEntityType) MarshalJSON() ([]byte, error) {
-	type written GraphSchemaNodesEntityType
-	v.Lookups = listOf(v.Lookups)
-	return json.Marshal(written(v))
+	EntityType GraphSchemaNodesResource `json:"entityType"`
 }
 
 // GraphSchemaNodesResource A kind of node: its label, the codec row it holds,
@@ -7737,41 +7234,15 @@ type GraphSchemaRelationships struct {
 	BelongsTo GraphSchemaRelationshipsBelongsTo `json:"belongsTo"`
 	// References A kind of relationship: its type, the kind of node it goes from
 	// and the kind it goes to, and what it says.
-	References GraphSchemaRelationshipsReferences `json:"references"`
+	References GraphSchemaRelationshipsBelongsTo `json:"references"`
 	// TaggedAs A kind of relationship: its type, the kind of node it goes from
 	// and the kind it goes to, and what it says.
-	TaggedAs GraphSchemaRelationshipsTaggedAs `json:"taggedAs"`
+	TaggedAs GraphSchemaRelationshipsBelongsTo `json:"taggedAs"`
 }
 
 // GraphSchemaRelationshipsBelongsTo A kind of relationship: its type, the
 // kind of node it goes from and the kind it goes to, and what it says.
 type GraphSchemaRelationshipsBelongsTo struct {
-	// Type Its type.
-	Type string `json:"type"`
-	// From The kind of node it goes from, by its name under `nodes`.
-	From string `json:"from"`
-	// To The kind of node it goes to, by its name under `nodes`.
-	To string `json:"to"`
-	// Says What one says.
-	Says string `json:"says"`
-}
-
-// GraphSchemaRelationshipsReferences A kind of relationship: its type, the
-// kind of node it goes from and the kind it goes to, and what it says.
-type GraphSchemaRelationshipsReferences struct {
-	// Type Its type.
-	Type string `json:"type"`
-	// From The kind of node it goes from, by its name under `nodes`.
-	From string `json:"from"`
-	// To The kind of node it goes to, by its name under `nodes`.
-	To string `json:"to"`
-	// Says What one says.
-	Says string `json:"says"`
-}
-
-// GraphSchemaRelationshipsTaggedAs A kind of relationship: its type, the kind
-// of node it goes from and the kind it goes to, and what it says.
-type GraphSchemaRelationshipsTaggedAs struct {
 	// Type Its type.
 	Type string `json:"type"`
 	// From The kind of node it goes from, by its name under `nodes`.
@@ -7978,7 +7449,7 @@ type IdentifiersKindsKindsItem struct {
 	// Accepts Strings the kind's rule takes.
 	Accepts []IdentifiersKindsKindsItemAcceptsItem `json:"accepts"`
 	// Refuses Strings the kind's rule does not take.
-	Refuses []IdentifiersKindsKindsItemRefusesItem `json:"refuses"`
+	Refuses []IdentifiersKindsKindsItemAcceptsItem `json:"refuses"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -7992,13 +7463,6 @@ func (v IdentifiersKindsKindsItem) MarshalJSON() ([]byte, error) {
 }
 
 type IdentifiersKindsKindsItemAcceptsItem struct {
-	// Id A string the kind's rule is asked about.
-	Id string `json:"id"`
-	// Why What the case shows, in prose.
-	Why string `json:"why"`
-}
-
-type IdentifiersKindsKindsItemRefusesItem struct {
 	// Id A string the kind's rule is asked about.
 	Id string `json:"id"`
 	// Why What the case shows, in prose.
@@ -10597,6 +10061,38 @@ const (
 func (e LimitRefusalCode) Valid() bool {
 	switch e {
 	case LimitRefusalCodeStreams, LimitRefusalCodeEmitRate, LimitRefusalCodeUnansweredRequests, LimitRefusalCodeCapacity, LimitRefusalCodeRefusalRate:
+		return true
+	}
+	return false
+}
+
+// LimitRefusalValueCode `streams`: the principal already holds as many
+// streams as its coefficient of `x-xynolog-limits.streamsPerPrincipal`
+// allows. `emit-rate`: the principal's emits have used its bucket, whose rate
+// and burst are its coefficient of `x-xynolog-limits.emitsPerPrincipal`, per
+// gateway process. `unanswered-requests`: the client already awaits as many
+// replies as `BusSubscribeRequest.pendingReplies` may name. `capacity`: the
+// gateway holds as many queued bytes as it can. `refusal-rate`: the request's
+// credential was refused, and the requests its holder has had refused have
+// used their allowance; it answers only a request whose token has already
+// failed verification, so it says what a 401 says, and a client that can
+// renew its token renews it and sends the request again rather than waiting
+// (contract/TRANSPORT-CONTRACT.md § A refused credential).
+type LimitRefusalValueCode string
+
+// The values of LimitRefusalValueCode.
+const (
+	LimitRefusalValueCodeStreams            LimitRefusalValueCode = "streams"
+	LimitRefusalValueCodeEmitRate           LimitRefusalValueCode = "emit-rate"
+	LimitRefusalValueCodeUnansweredRequests LimitRefusalValueCode = "unanswered-requests"
+	LimitRefusalValueCodeCapacity           LimitRefusalValueCode = "capacity"
+	LimitRefusalValueCodeRefusalRate        LimitRefusalValueCode = "refusal-rate"
+)
+
+// Valid is whether e is one of LimitRefusalValueCode's values.
+func (e LimitRefusalValueCode) Valid() bool {
+	switch e {
+	case LimitRefusalValueCodeStreams, LimitRefusalValueCodeEmitRate, LimitRefusalValueCodeUnansweredRequests, LimitRefusalValueCodeCapacity, LimitRefusalValueCodeRefusalRate:
 		return true
 	}
 	return false
@@ -13479,9 +12975,9 @@ type SdkTelemetryTelemetryMetricsItem struct {
 	Name string `json:"name"`
 	// Transport The transport the row comes from: `bus`, the stream and emits;
 	// `content`, uploads and reads.
-	Transport SdkTelemetryTelemetryMetricsItemTransport `json:"transport"`
+	Transport SdkTelemetryTelemetrySpansItemTransport `json:"transport"`
 	// Instrument The metric's instrument.
-	Instrument SdkTelemetryTelemetryMetricsItemInstrument `json:"instrument"`
+	Instrument ServiceTelemetryTelemetryMetricsItemInstrument `json:"instrument"`
 	// Meaning What the row says.
 	Meaning string `json:"meaning"`
 	// Attributes The attributes the span carries.
@@ -13547,47 +13043,6 @@ type SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText string
 func (SdkTelemetryTelemetryMetricsItemAttributesItemValuesItemText) memberOfSdkTelemetryTelemetryMetricsItemAttributesItemValuesItem() {
 }
 
-// SdkTelemetryTelemetryMetricsItemInstrument The metric's instrument.
-type SdkTelemetryTelemetryMetricsItemInstrument string
-
-// The values of SdkTelemetryTelemetryMetricsItemInstrument.
-const (
-	SdkTelemetryTelemetryMetricsItemInstrumentCounter       SdkTelemetryTelemetryMetricsItemInstrument = "counter"
-	SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter SdkTelemetryTelemetryMetricsItemInstrument = "up-down counter"
-	SdkTelemetryTelemetryMetricsItemInstrumentGauge         SdkTelemetryTelemetryMetricsItemInstrument = "gauge"
-	SdkTelemetryTelemetryMetricsItemInstrumentHistogram     SdkTelemetryTelemetryMetricsItemInstrument = "histogram"
-)
-
-// Valid is whether e is one of SdkTelemetryTelemetryMetricsItemInstrument's
-// values.
-func (e SdkTelemetryTelemetryMetricsItemInstrument) Valid() bool {
-	switch e {
-	case SdkTelemetryTelemetryMetricsItemInstrumentCounter, SdkTelemetryTelemetryMetricsItemInstrumentUpDownCounter, SdkTelemetryTelemetryMetricsItemInstrumentGauge, SdkTelemetryTelemetryMetricsItemInstrumentHistogram:
-		return true
-	}
-	return false
-}
-
-// SdkTelemetryTelemetryMetricsItemTransport The transport the row comes from:
-// `bus`, the stream and emits; `content`, uploads and reads.
-type SdkTelemetryTelemetryMetricsItemTransport string
-
-// The values of SdkTelemetryTelemetryMetricsItemTransport.
-const (
-	SdkTelemetryTelemetryMetricsItemTransportBus     SdkTelemetryTelemetryMetricsItemTransport = "bus"
-	SdkTelemetryTelemetryMetricsItemTransportContent SdkTelemetryTelemetryMetricsItemTransport = "content"
-)
-
-// Valid is whether e is one of SdkTelemetryTelemetryMetricsItemTransport's
-// values.
-func (e SdkTelemetryTelemetryMetricsItemTransport) Valid() bool {
-	switch e {
-	case SdkTelemetryTelemetryMetricsItemTransportBus, SdkTelemetryTelemetryMetricsItemTransportContent:
-		return true
-	}
-	return false
-}
-
 type SdkTelemetryTelemetrySpansItem struct {
 	// Name The row's name; `{channel}` in it is the bus channel, and `{jobType}`
 	// the job's type.
@@ -13596,7 +13051,7 @@ type SdkTelemetryTelemetrySpansItem struct {
 	// `content`, uploads and reads.
 	Transport SdkTelemetryTelemetrySpansItemTransport `json:"transport"`
 	// Kind The span's kind, in OTLP's words.
-	Kind SdkTelemetryTelemetrySpansItemKind `json:"kind"`
+	Kind ServiceTelemetryTelemetrySpansItemKind `json:"kind"`
 	// Meaning What the row says.
 	Meaning string `json:"meaning"`
 	// Attributes The attributes the span carries.
@@ -13660,27 +13115,6 @@ func (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemBoolean) memberOfSdk
 type SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText string
 
 func (SdkTelemetryTelemetrySpansItemAttributesItemValuesItemText) memberOfSdkTelemetryTelemetrySpansItemAttributesItemValuesItem() {
-}
-
-// SdkTelemetryTelemetrySpansItemKind The span's kind, in OTLP's words.
-type SdkTelemetryTelemetrySpansItemKind string
-
-// The values of SdkTelemetryTelemetrySpansItemKind.
-const (
-	SdkTelemetryTelemetrySpansItemKindClient   SdkTelemetryTelemetrySpansItemKind = "client"
-	SdkTelemetryTelemetrySpansItemKindConsumer SdkTelemetryTelemetrySpansItemKind = "consumer"
-	SdkTelemetryTelemetrySpansItemKindInternal SdkTelemetryTelemetrySpansItemKind = "internal"
-	SdkTelemetryTelemetrySpansItemKindProducer SdkTelemetryTelemetrySpansItemKind = "producer"
-	SdkTelemetryTelemetrySpansItemKindServer   SdkTelemetryTelemetrySpansItemKind = "server"
-)
-
-// Valid is whether e is one of SdkTelemetryTelemetrySpansItemKind's values.
-func (e SdkTelemetryTelemetrySpansItemKind) Valid() bool {
-	switch e {
-	case SdkTelemetryTelemetrySpansItemKindClient, SdkTelemetryTelemetrySpansItemKindConsumer, SdkTelemetryTelemetrySpansItemKindInternal, SdkTelemetryTelemetrySpansItemKindProducer, SdkTelemetryTelemetrySpansItemKindServer:
-		return true
-	}
-	return false
 }
 
 // SdkTelemetryTelemetrySpansItemTransport The transport the row comes from:
@@ -13779,7 +13213,7 @@ type ServiceEnvironmentBootRefusals struct {
 	// Comment The rule the table states, in prose.
 	Comment string `json:"$comment"`
 	// Services The services that refuse to start so.
-	Services []ServiceEnvironmentBootRefusalsServicesItem `json:"services"`
+	Services []ServiceTelemetryTelemetrySpansItemServicesItem `json:"services"`
 	// Line The one line the service writes to stderr, its refusal in place of
 	// `{refusal}`, before it exits.
 	Line string `json:"line"`
@@ -13821,30 +13255,6 @@ type ServiceEnvironmentBootRefusalsRefusalsItem struct {
 	Refusal string `json:"refusal"`
 }
 
-// ServiceEnvironmentBootRefusalsServicesItem A Xynolog service, by its name.
-type ServiceEnvironmentBootRefusalsServicesItem string
-
-// The values of ServiceEnvironmentBootRefusalsServicesItem.
-const (
-	ServiceEnvironmentBootRefusalsServicesItemArchivist  ServiceEnvironmentBootRefusalsServicesItem = "archivist"
-	ServiceEnvironmentBootRefusalsServicesItemDispatcher ServiceEnvironmentBootRefusalsServicesItem = "dispatcher"
-	ServiceEnvironmentBootRefusalsServicesItemGateway    ServiceEnvironmentBootRefusalsServicesItem = "gateway"
-	ServiceEnvironmentBootRefusalsServicesItemLibrarian  ServiceEnvironmentBootRefusalsServicesItem = "librarian"
-	ServiceEnvironmentBootRefusalsServicesItemSmelter    ServiceEnvironmentBootRefusalsServicesItem = "smelter"
-	ServiceEnvironmentBootRefusalsServicesItemWeaver     ServiceEnvironmentBootRefusalsServicesItem = "weaver"
-	ServiceEnvironmentBootRefusalsServicesItemWorker     ServiceEnvironmentBootRefusalsServicesItem = "worker"
-)
-
-// Valid is whether e is one of ServiceEnvironmentBootRefusalsServicesItem's
-// values.
-func (e ServiceEnvironmentBootRefusalsServicesItem) Valid() bool {
-	switch e {
-	case ServiceEnvironmentBootRefusalsServicesItemArchivist, ServiceEnvironmentBootRefusalsServicesItemDispatcher, ServiceEnvironmentBootRefusalsServicesItemGateway, ServiceEnvironmentBootRefusalsServicesItemLibrarian, ServiceEnvironmentBootRefusalsServicesItemSmelter, ServiceEnvironmentBootRefusalsServicesItemWeaver, ServiceEnvironmentBootRefusalsServicesItemWorker:
-		return true
-	}
-	return false
-}
-
 // ServiceEnvironmentVariables service-environment/variables.json: every
 // environment variable a Xynolog service reads, beside its configuration
 // document.
@@ -13866,7 +13276,7 @@ type ServiceEnvironmentVariablesVariablesItem struct {
 	// Name The variable's name.
 	Name string `json:"name"`
 	// Services The services that read it.
-	Services []ServiceEnvironmentVariablesVariablesItemServicesItem `json:"services"`
+	Services []ServiceTelemetryTelemetrySpansItemServicesItem `json:"services"`
 	// ReadBy What reads it: the service's own code, or the OpenTelemetry SDK.
 	ReadBy ServiceEnvironmentVariablesVariablesItemReadBy `json:"readBy"`
 	// ProvidedBy What sets it where the launcher runs the service.
@@ -13921,31 +13331,6 @@ const (
 func (e ServiceEnvironmentVariablesVariablesItemReadBy) Valid() bool {
 	switch e {
 	case ServiceEnvironmentVariablesVariablesItemReadByService, ServiceEnvironmentVariablesVariablesItemReadByOpentelemetry:
-		return true
-	}
-	return false
-}
-
-// ServiceEnvironmentVariablesVariablesItemServicesItem A Xynolog service, by
-// its name.
-type ServiceEnvironmentVariablesVariablesItemServicesItem string
-
-// The values of ServiceEnvironmentVariablesVariablesItemServicesItem.
-const (
-	ServiceEnvironmentVariablesVariablesItemServicesItemArchivist  ServiceEnvironmentVariablesVariablesItemServicesItem = "archivist"
-	ServiceEnvironmentVariablesVariablesItemServicesItemDispatcher ServiceEnvironmentVariablesVariablesItemServicesItem = "dispatcher"
-	ServiceEnvironmentVariablesVariablesItemServicesItemGateway    ServiceEnvironmentVariablesVariablesItemServicesItem = "gateway"
-	ServiceEnvironmentVariablesVariablesItemServicesItemLibrarian  ServiceEnvironmentVariablesVariablesItemServicesItem = "librarian"
-	ServiceEnvironmentVariablesVariablesItemServicesItemSmelter    ServiceEnvironmentVariablesVariablesItemServicesItem = "smelter"
-	ServiceEnvironmentVariablesVariablesItemServicesItemWeaver     ServiceEnvironmentVariablesVariablesItemServicesItem = "weaver"
-	ServiceEnvironmentVariablesVariablesItemServicesItemWorker     ServiceEnvironmentVariablesVariablesItemServicesItem = "worker"
-)
-
-// Valid is whether e is one of
-// ServiceEnvironmentVariablesVariablesItemServicesItem's values.
-func (e ServiceEnvironmentVariablesVariablesItemServicesItem) Valid() bool {
-	switch e {
-	case ServiceEnvironmentVariablesVariablesItemServicesItemArchivist, ServiceEnvironmentVariablesVariablesItemServicesItemDispatcher, ServiceEnvironmentVariablesVariablesItemServicesItemGateway, ServiceEnvironmentVariablesVariablesItemServicesItemLibrarian, ServiceEnvironmentVariablesVariablesItemServicesItemSmelter, ServiceEnvironmentVariablesVariablesItemServicesItemWeaver, ServiceEnvironmentVariablesVariablesItemServicesItemWorker:
 		return true
 	}
 	return false
@@ -14347,13 +13732,13 @@ type ServiceTelemetryTelemetryMetricsItem struct {
 	// the job's type.
 	Name string `json:"name"`
 	// Services The services that export the row.
-	Services []ServiceTelemetryTelemetryMetricsItemServicesItem `json:"services"`
+	Services []ServiceTelemetryTelemetrySpansItemServicesItem `json:"services"`
 	// Instrument The metric's instrument.
 	Instrument ServiceTelemetryTelemetryMetricsItemInstrument `json:"instrument"`
 	// When When the row arrives.
-	When ServiceTelemetryTelemetryMetricsItemWhen `json:"when"`
+	When ServiceTelemetryTelemetrySpansItemWhen `json:"when"`
 	// Planes The only signal planes a gateway row arrives on.
-	Planes *[]ServiceTelemetryTelemetryMetricsItemPlanesItem `json:"planes,omitempty"`
+	Planes *[]GatewayConfigSignalType `json:"planes,omitempty"`
 	// Meaning What the row says.
 	Meaning string `json:"meaning"`
 	// Attributes The attributes the span carries.
@@ -14443,77 +13828,13 @@ func (e ServiceTelemetryTelemetryMetricsItemInstrument) Valid() bool {
 	return false
 }
 
-type ServiceTelemetryTelemetryMetricsItemPlanesItem string
-
-// The values of ServiceTelemetryTelemetryMetricsItemPlanesItem.
-const (
-	ServiceTelemetryTelemetryMetricsItemPlanesItemInProcess ServiceTelemetryTelemetryMetricsItemPlanesItem = "in-process"
-	ServiceTelemetryTelemetryMetricsItemPlanesItemNats      ServiceTelemetryTelemetryMetricsItemPlanesItem = "nats"
-)
-
-// Valid is whether e is one of
-// ServiceTelemetryTelemetryMetricsItemPlanesItem's values.
-func (e ServiceTelemetryTelemetryMetricsItemPlanesItem) Valid() bool {
-	switch e {
-	case ServiceTelemetryTelemetryMetricsItemPlanesItemInProcess, ServiceTelemetryTelemetryMetricsItemPlanesItemNats:
-		return true
-	}
-	return false
-}
-
-// ServiceTelemetryTelemetryMetricsItemServicesItem A Xynolog service, by its
-// name.
-type ServiceTelemetryTelemetryMetricsItemServicesItem string
-
-// The values of ServiceTelemetryTelemetryMetricsItemServicesItem.
-const (
-	ServiceTelemetryTelemetryMetricsItemServicesItemArchivist  ServiceTelemetryTelemetryMetricsItemServicesItem = "archivist"
-	ServiceTelemetryTelemetryMetricsItemServicesItemDispatcher ServiceTelemetryTelemetryMetricsItemServicesItem = "dispatcher"
-	ServiceTelemetryTelemetryMetricsItemServicesItemGateway    ServiceTelemetryTelemetryMetricsItemServicesItem = "gateway"
-	ServiceTelemetryTelemetryMetricsItemServicesItemLibrarian  ServiceTelemetryTelemetryMetricsItemServicesItem = "librarian"
-	ServiceTelemetryTelemetryMetricsItemServicesItemSmelter    ServiceTelemetryTelemetryMetricsItemServicesItem = "smelter"
-	ServiceTelemetryTelemetryMetricsItemServicesItemWeaver     ServiceTelemetryTelemetryMetricsItemServicesItem = "weaver"
-	ServiceTelemetryTelemetryMetricsItemServicesItemWorker     ServiceTelemetryTelemetryMetricsItemServicesItem = "worker"
-)
-
-// Valid is whether e is one of
-// ServiceTelemetryTelemetryMetricsItemServicesItem's values.
-func (e ServiceTelemetryTelemetryMetricsItemServicesItem) Valid() bool {
-	switch e {
-	case ServiceTelemetryTelemetryMetricsItemServicesItemArchivist, ServiceTelemetryTelemetryMetricsItemServicesItemDispatcher, ServiceTelemetryTelemetryMetricsItemServicesItemGateway, ServiceTelemetryTelemetryMetricsItemServicesItemLibrarian, ServiceTelemetryTelemetryMetricsItemServicesItemSmelter, ServiceTelemetryTelemetryMetricsItemServicesItemWeaver, ServiceTelemetryTelemetryMetricsItemServicesItemWorker:
-		return true
-	}
-	return false
-}
-
-// ServiceTelemetryTelemetryMetricsItemWhen When the row arrives.
-type ServiceTelemetryTelemetryMetricsItemWhen string
-
-// The values of ServiceTelemetryTelemetryMetricsItemWhen.
-const (
-	ServiceTelemetryTelemetryMetricsItemWhenExport     ServiceTelemetryTelemetryMetricsItemWhen = "export"
-	ServiceTelemetryTelemetryMetricsItemWhenTraffic    ServiceTelemetryTelemetryMetricsItemWhen = "traffic"
-	ServiceTelemetryTelemetryMetricsItemWhenSupervised ServiceTelemetryTelemetryMetricsItemWhen = "supervised"
-	ServiceTelemetryTelemetryMetricsItemWhenFatal      ServiceTelemetryTelemetryMetricsItemWhen = "fatal"
-)
-
-// Valid is whether e is one of ServiceTelemetryTelemetryMetricsItemWhen's
-// values.
-func (e ServiceTelemetryTelemetryMetricsItemWhen) Valid() bool {
-	switch e {
-	case ServiceTelemetryTelemetryMetricsItemWhenExport, ServiceTelemetryTelemetryMetricsItemWhenTraffic, ServiceTelemetryTelemetryMetricsItemWhenSupervised, ServiceTelemetryTelemetryMetricsItemWhenFatal:
-		return true
-	}
-	return false
-}
-
 // ServiceTelemetryTelemetryResourceItem An attribute of the resource the
 // services' spans and metrics are exported under.
 type ServiceTelemetryTelemetryResourceItem struct {
 	// Key The attribute's key.
 	Key string `json:"key"`
 	// Services The services that export the row.
-	Services []ServiceTelemetryTelemetryResourceItemServicesItem `json:"services"`
+	Services []ServiceTelemetryTelemetrySpansItemServicesItem `json:"services"`
 	// Meaning What the attribute says.
 	Meaning string `json:"meaning"`
 	// Default Its value when nothing says another, with `{service}` the
@@ -14527,31 +13848,6 @@ func (v ServiceTelemetryTelemetryResourceItem) MarshalJSON() ([]byte, error) {
 	type written ServiceTelemetryTelemetryResourceItem
 	v.Services = listOf(v.Services)
 	return json.Marshal(written(v))
-}
-
-// ServiceTelemetryTelemetryResourceItemServicesItem A Xynolog service, by its
-// name.
-type ServiceTelemetryTelemetryResourceItemServicesItem string
-
-// The values of ServiceTelemetryTelemetryResourceItemServicesItem.
-const (
-	ServiceTelemetryTelemetryResourceItemServicesItemArchivist  ServiceTelemetryTelemetryResourceItemServicesItem = "archivist"
-	ServiceTelemetryTelemetryResourceItemServicesItemDispatcher ServiceTelemetryTelemetryResourceItemServicesItem = "dispatcher"
-	ServiceTelemetryTelemetryResourceItemServicesItemGateway    ServiceTelemetryTelemetryResourceItemServicesItem = "gateway"
-	ServiceTelemetryTelemetryResourceItemServicesItemLibrarian  ServiceTelemetryTelemetryResourceItemServicesItem = "librarian"
-	ServiceTelemetryTelemetryResourceItemServicesItemSmelter    ServiceTelemetryTelemetryResourceItemServicesItem = "smelter"
-	ServiceTelemetryTelemetryResourceItemServicesItemWeaver     ServiceTelemetryTelemetryResourceItemServicesItem = "weaver"
-	ServiceTelemetryTelemetryResourceItemServicesItemWorker     ServiceTelemetryTelemetryResourceItemServicesItem = "worker"
-)
-
-// Valid is whether e is one of
-// ServiceTelemetryTelemetryResourceItemServicesItem's values.
-func (e ServiceTelemetryTelemetryResourceItemServicesItem) Valid() bool {
-	switch e {
-	case ServiceTelemetryTelemetryResourceItemServicesItemArchivist, ServiceTelemetryTelemetryResourceItemServicesItemDispatcher, ServiceTelemetryTelemetryResourceItemServicesItemGateway, ServiceTelemetryTelemetryResourceItemServicesItemLibrarian, ServiceTelemetryTelemetryResourceItemServicesItemSmelter, ServiceTelemetryTelemetryResourceItemServicesItemWeaver, ServiceTelemetryTelemetryResourceItemServicesItemWorker:
-		return true
-	}
-	return false
 }
 
 type ServiceTelemetryTelemetrySpansItem struct {
@@ -15041,11 +14337,11 @@ type SignInStoreOwnerOnly struct {
 	// DirectoryMode A mode, on a system that has modes.
 	DirectoryMode SignInStoreOwnerOnlyDirectoryMode `json:"directoryMode"`
 	// FileMode A mode, on a system that has modes.
-	FileMode SignInStoreOwnerOnlyFileMode `json:"fileMode"`
+	FileMode SignInStoreOwnerOnlyDirectoryMode `json:"fileMode"`
 	// DirectoryAccessList An access list, on Windows.
 	DirectoryAccessList SignInStoreOwnerOnlyDirectoryAccessList `json:"directoryAccessList"`
 	// FileAccessList An access list, on Windows.
-	FileAccessList SignInStoreOwnerOnlyFileAccessList `json:"fileAccessList"`
+	FileAccessList SignInStoreOwnerOnlyDirectoryAccessList `json:"fileAccessList"`
 }
 
 // SignInStoreOwnerOnlyDirectoryAccessList An access list, on Windows.
@@ -15057,20 +14353,6 @@ type SignInStoreOwnerOnlyDirectoryAccessList struct {
 
 // SignInStoreOwnerOnlyDirectoryMode A mode, on a system that has modes.
 type SignInStoreOwnerOnlyDirectoryMode struct {
-	// Value The mode, in octal.
-	Value string `json:"value"`
-	Docs  string `json:"docs"`
-}
-
-// SignInStoreOwnerOnlyFileAccessList An access list, on Windows.
-type SignInStoreOwnerOnlyFileAccessList struct {
-	// Value The access list in SDDL, with `{owner}` where the owner's SID goes.
-	Value string `json:"value"`
-	Docs  string `json:"docs"`
-}
-
-// SignInStoreOwnerOnlyFileMode A mode, on a system that has modes.
-type SignInStoreOwnerOnlyFileMode struct {
 	// Value The mode, in octal.
 	Value string `json:"value"`
 	Docs  string `json:"docs"`
@@ -17051,7 +16333,7 @@ type WorkerMessages struct {
 	Waits []WorkerMessagesWaitsItem `json:"waits"`
 	// Logged Each message a Worker service logs that a reader of its output
 	// relies on.
-	Logged []WorkerMessagesLoggedItem `json:"logged"`
+	Logged []SmelterMessagesLoggedItem `json:"logged"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil
@@ -17142,33 +16424,6 @@ type WorkerMessagesErrorsItem struct {
 type WorkerMessagesJob struct {
 	Mark  string `json:"mark"`
 	Yield string `json:"yield"`
-}
-
-type WorkerMessagesLoggedItem struct {
-	// Name The situation's name.
-	Name  string   `json:"name"`
-	Level LogLevel `json:"level"`
-	// Situation When it is written, what fills each `{name}` of its fields, and
-	// what each fact it carries says.
-	Situation string `json:"situation"`
-	// Message The line's message, word for word.
-	Message string `json:"message"`
-	// Fields The facts the line is logged with whose form is stated, by name:
-	// each a text whose `{name}` is filled as the row's `situation` says. A fact
-	// that is a number is its decimal digits.
-	Fields map[string]string `json:"fields"`
-	// Carries The facts the line is logged with beside `fields`, whose value the
-	// row's `situation` says and whose form is not stated. The line may carry
-	// others.
-	Carries []string `json:"carries"`
-}
-
-// MarshalJSON writes v, each list its schema requires that Go holds as nil
-// written as the empty list.
-func (v WorkerMessagesLoggedItem) MarshalJSON() ([]byte, error) {
-	type written WorkerMessagesLoggedItem
-	v.Carries = listOf(v.Carries)
-	return json.Marshal(written(v))
 }
 
 type WorkerMessagesReasonsItem struct {

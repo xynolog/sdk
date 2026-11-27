@@ -8,5 +8,5 @@ namespace Xynolog.Types;
 public sealed record ErrorsCodesTransportCodesItemStatusLimitRefusalsItem
 {
     [global::Xynolog.Serialization.Wire("status")] public required long Status { get; init; }
-    [global::Xynolog.Serialization.Wire("code")] public required global::Xynolog.Types.ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode Code { get; init; }
+    [global::Xynolog.Serialization.Wire("code")] public required global::Xynolog.Types.LimitRefusalValueCode Code { get; init; }
 }

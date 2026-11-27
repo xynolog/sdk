@@ -2,12 +2,13 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.GatewayConfig (GatewayConfig (..), GatewayConfigCapacity (..), GatewayConfigIdentity (..), GatewayConfigSignal (..), GatewayConfigSignalType (..), gatewayConfigSignalTypeText) where
+module Xynolog.Internal.Generated.Models.GatewayConfig (GatewayConfig (..), GatewayConfigCapacity (..), GatewayConfigIdentity (..), GatewayConfigSignal (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.ConformanceCase
 import Xynolog.Internal.Generated.Models.KbIdentity
 import Xynolog.Internal.Generated.Models.LogFormat
 import Xynolog.Internal.Generated.Models.LogLevel
@@ -61,15 +62,3 @@ data GatewayConfigSignal = GatewayConfigSignal
 instance FromJSON GatewayConfigSignal where parseJSON = checked "GatewayConfigSignal" $ withObject "GatewayConfigSignal" (\fields -> GatewayConfigSignal <$> (fields .: "type") <*> optional fields "servers" <*> optional fields "userEnv" <*> optional fields "passwordEnv")
 
 instance ToJSON GatewayConfigSignal where toJSON value = Object (KM.fromList (concat [[("type", toJSON (gatewayConfigSignalType value))], optionalPair "servers" (gatewayConfigSignalServers value), optionalPair "userEnv" (gatewayConfigSignalUserEnv value), optionalPair "passwordEnv" (gatewayConfigSignalPasswordEnv value)]))
-
-data GatewayConfigSignalType = GatewayConfigSignalTypeInProcess | GatewayConfigSignalTypeNats deriving (Eq, Show)
-
-instance FromJSON GatewayConfigSignalType where parseJSON = checked "GatewayConfigSignalType" $ \value -> if value == String "in-process" then pure GatewayConfigSignalTypeInProcess else if value == String "nats" then pure GatewayConfigSignalTypeNats else fail "unknown enumeration member"
-
-instance ToJSON GatewayConfigSignalType where
-  toJSON GatewayConfigSignalTypeInProcess = String "in-process"
-  toJSON GatewayConfigSignalTypeNats = String "nats"
-
-gatewayConfigSignalTypeText :: GatewayConfigSignalType -> Text
-gatewayConfigSignalTypeText GatewayConfigSignalTypeInProcess = "in-process"
-gatewayConfigSignalTypeText GatewayConfigSignalTypeNats = "nats"

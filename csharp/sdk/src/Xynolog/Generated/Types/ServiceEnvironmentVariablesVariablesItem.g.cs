@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ServiceEnvironmentVariablesVariablesItem
 {
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("services")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceEnvironmentVariablesVariablesItemServicesItem> Services { get; init; }
+    [global::Xynolog.Serialization.Wire("services")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemServicesItem> Services { get; init; }
     [global::Xynolog.Serialization.Wire("readBy")] public required global::Xynolog.Types.ServiceEnvironmentVariablesVariablesItemReadBy ReadBy { get; init; }
     [global::Xynolog.Serialization.Wire("providedBy")] public required global::Xynolog.Types.ServiceEnvironmentVariablesVariablesItemProvidedBy ProvidedBy { get; init; }
     [global::Xynolog.Serialization.Wire("required")] public required bool Required { get; init; }

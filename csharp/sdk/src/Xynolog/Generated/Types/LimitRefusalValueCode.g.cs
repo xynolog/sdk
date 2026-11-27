@@ -5,7 +5,7 @@
 namespace Xynolog.Types;
 
 [global::Xynolog.Serialization.WireEnum]
-public enum ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode
+public enum LimitRefusalValueCode
 {
     [global::System.Text.Json.Serialization.JsonStringEnumMemberName("streams")] Streams,
     [global::System.Text.Json.Serialization.JsonStringEnumMemberName("emit-rate")] EmitRate,

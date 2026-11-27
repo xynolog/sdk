@@ -128,7 +128,7 @@ let in_place_schemas =
 let named key = if key = request then Some "Request" else None
 
 let written text =
-  Schema_names.files_in_place ~ids ~schemas:in_place_schemas ~named
+  Schema_names.files_in_place ~ids ~schemas:in_place_schemas ~named ~places:true
     (schema "Health.json" text)
 
 let property name = function

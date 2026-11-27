@@ -19,13 +19,13 @@ public data class ErrorsCodes(
     /** A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result. */
     public val job: ErrorsCodesJob,
     /** A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result. */
-    public val session: ErrorsCodesSession,
+    public val session: ErrorsCodesJob,
     /** A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result. */
-    public val signIn: ErrorsCodesSignIn,
+    public val signIn: ErrorsCodesJob,
     /** A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result. */
-    public val kbIdentity: ErrorsCodesKbIdentity,
+    public val kbIdentity: ErrorsCodesJob,
     /** A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result. */
-    public val spanRefusal: ErrorsCodesSpanRefusal,
+    public val spanRefusal: ErrorsCodesJob,
     /** Why a request of the launcher's control API failed: each code, the JSON-RPC code an answer carries it under, and whether a request that fails with it is retryable. */
     public val control: ErrorsCodesControl,
 ) {
@@ -35,10 +35,10 @@ public data class ErrorsCodes(
         private val busRequest: ErrorsCodesBusRequest,
         private val transport: ErrorsCodesTransport,
         private val job: ErrorsCodesJob,
-        private val session: ErrorsCodesSession,
-        private val signIn: ErrorsCodesSignIn,
-        private val kbIdentity: ErrorsCodesKbIdentity,
-        private val spanRefusal: ErrorsCodesSpanRefusal,
+        private val session: ErrorsCodesJob,
+        private val signIn: ErrorsCodesJob,
+        private val kbIdentity: ErrorsCodesJob,
+        private val spanRefusal: ErrorsCodesJob,
         private val control: ErrorsCodesControl,
     ) {
         public fun build(): ErrorsCodes = ErrorsCodes(comment = comment, busRequest = busRequest, transport = transport, job = job, session = session, signIn = signIn, kbIdentity = kbIdentity, spanRefusal = spanRefusal, control = control)
@@ -47,6 +47,6 @@ public data class ErrorsCodes(
     public companion object {
         /** A builder of a `ErrorsCodes` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(comment: String, busRequest: ErrorsCodesBusRequest, transport: ErrorsCodesTransport, job: ErrorsCodesJob, session: ErrorsCodesSession, signIn: ErrorsCodesSignIn, kbIdentity: ErrorsCodesKbIdentity, spanRefusal: ErrorsCodesSpanRefusal, control: ErrorsCodesControl): Builder = Builder(comment, busRequest, transport, job, session, signIn, kbIdentity, spanRefusal, control)
+        public fun builder(comment: String, busRequest: ErrorsCodesBusRequest, transport: ErrorsCodesTransport, job: ErrorsCodesJob, session: ErrorsCodesJob, signIn: ErrorsCodesJob, kbIdentity: ErrorsCodesJob, spanRefusal: ErrorsCodesJob, control: ErrorsCodesControl): Builder = Builder(comment, busRequest, transport, job, session, signIn, kbIdentity, spanRefusal, control)
     }
 }

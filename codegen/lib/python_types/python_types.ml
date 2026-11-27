@@ -147,14 +147,16 @@ let wires (form : T.form) =
   | T.Record { members; _ } -> List.map (fun (m : T.member) -> m.wire) members
   | _ -> []
 
-(* The name of a type declared in place, which no other declared in place
-   has. *)
-let named st name =
-  if List.mem_assoc name st.declared then
-    refuse "two schemas written in place would both be named %s" name;
-  name
-
 let declare st name decl = st.declared <- (name, decl) :: st.declared
+
+(* A type declared in place, by [name]: declared once, where a schema
+   written in the place of a [$ref] to a place is the one stated there
+   ([Typing]), and any other two of one name refused. *)
+let declare_in_place st name decl =
+  match List.assoc_opt name st.declared with
+  | Some declared when declared = decl -> ()
+  | Some _ -> refuse "two schemas written in place would both be named %s" name
+  | None -> declare st name decl
 
 (* The Python type of a value of [ty], [what] holding it: [tag] when it is
    the property its class's union tells its members apart by. *)
@@ -179,9 +181,9 @@ let rec placed st ~what ?(tag = false) (ty : T.ty) : P.expr =
    otherwise what it merges to, described as its merge is. *)
 and in_place st ~what ~tag (i : T.inline) =
   let declared composition description =
-    let name = named st i.name in
-    declare st name (declaration st name i.form composition description);
-    P.Name name
+    declare_in_place st i.name
+      (declaration st i.name i.form composition description);
+    P.Name i.name
   in
   match i.form with
   | form when is_class form -> declared i.composition i.description
@@ -208,9 +210,9 @@ and item st ~what items =
   | None -> json
   | Some (T.Inline ({ form = T.Union u; _ } as i) as items) ->
       let t = placed st ~what items in
-      let name = named st i.name in
-      declare st name (typed_alias name ~description:i.description ~union:u t);
-      P.Name name
+      declare_in_place st i.name
+        (typed_alias i.name ~description:i.description ~union:u t);
+      P.Name i.name
   | Some items -> placed st ~what items
 
 (* [name] for [t], with its description, and the property the union [t] is
@@ -234,9 +236,9 @@ and typed_alias name ~description ?union t =
 and member st ~what (b : T.branch) =
   match b.ty with
   | T.Inline ({ form; _ } as i) when is_class form ->
-      let name = named st i.name in
-      declare st name (declaration st name form i.composition i.description);
-      P.Name name
+      declare_in_place st i.name
+        (declaration st i.name form i.composition i.description);
+      P.Name i.name
   | T.List items -> sub "list" [ item st ~what items ]
   | ty -> placed st ~what ty
 

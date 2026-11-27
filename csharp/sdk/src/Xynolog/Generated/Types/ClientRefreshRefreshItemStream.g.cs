@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ClientRefreshRefreshItemStream
 {
     [global::Xynolog.Serialization.Wire("stream")] public required global::Xynolog.Types.ClientRefreshRefreshItemStreamStream Stream { get; init; }
-    [global::Xynolog.Serialization.Wire("reach")] public global::Xynolog.Types.ClientRefreshRefreshItemStreamReach? Reach { get; init; }
+    [global::Xynolog.Serialization.Wire("reach")] public global::Xynolog.Types.ClientRefreshRefreshItemOnReach? Reach { get; init; }
     [global::Xynolog.Serialization.Wire("refetches")] public global::System.Collections.Generic.IReadOnlyList<string>? Refetches { get; init; }
     [global::Xynolog.Serialization.Wire("docs")] public required string Docs { get; init; }
 }
