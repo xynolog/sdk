@@ -356,7 +356,7 @@ let client = client(
         refresher: Some(agent.clone()),
         channels,
         http,
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: None,
     },
     ClientOptions::default(),

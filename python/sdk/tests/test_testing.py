@@ -661,7 +661,7 @@ def test_a_test_client_is_a_real_client_over_the_doubles_it_is_given_or_makes() 
             InMemoryContent(),
             StubGateway(),
         )
-        given = create_test_client(transport=transport, content=content, gateway=gateway, timing=ClientTiming(bus_request_ms=30))
+        given = create_test_client(transport=transport, content=content, gateway=gateway, timing=ClientTiming(bus_request_timeout_ms=30))
         assert (given.transport, given.content, given.gateway) == (transport, content, gateway)
         with pytest.raises(BusRequestError) as late:
             await soon(given.client.mark.delete(RESOURCE, AnnotationId("ann-1")))

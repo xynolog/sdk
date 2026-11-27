@@ -31,7 +31,7 @@ import Xynolog.Types
 
 -- | The caller owns its HTTP pool. Reads are serial and bounded by the
 -- caller's clock; only a complete managed document replaces the saved ETag.
-httpDiscovery :: HttpClient -> Retry.RetryOptions -> Timing.Settings -> Text -> IO DiscoveryTransport
+httpDiscovery :: HttpClient -> Retry.RetryOptions -> Timing.TransportTiming -> Text -> IO DiscoveryTransport
 httpDiscovery (HttpClient manager) time timing url = do
   case parseURI (Text.unpack url) of
     Just uri

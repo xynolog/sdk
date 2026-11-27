@@ -70,6 +70,7 @@ import Xynolog.Internal.Schema (validateNamed)
 import Xynolog.Internal.Telemetry qualified as Telemetry
 import Xynolog.Internal.Transport qualified as Transport
 import Xynolog.Retry qualified as Retry
+import Xynolog.Timing qualified as Timing
 import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types
 
@@ -118,7 +119,7 @@ data HttpOptions = HttpOptions
     httpToken :: IO (Maybe Text),
     httpRenewToken :: Text -> IO (Maybe Text),
     httpTime :: Retry.RetryOptions,
-    httpTiming :: Settings.Settings,
+    httpTiming :: Settings.TransportTiming,
     -- | A fresh UUID on each call for routing and idempotency keys.
     httpNewId :: IO UUID,
     httpGlobalChannels :: Set.Set Text,
@@ -315,7 +316,7 @@ exchange http route resource body key override headers consume = do
                 else Left <$> refusal http response
             one = case route of
               GetResourceRepresentation -> openScoped http (Settings.httpRequestTimeoutMs (httpTiming (options http))) asked consumeAnswer
-              EmitOnBus -> openScoped http (Settings.emitTimeoutMs (httpTiming (options http))) asked consumeAnswer
+              EmitOnBus -> openScoped http Timing.emitTimeoutMs asked consumeAnswer
               _ -> bracket (open http asked) responseClose consumeAnswer
         let bounded = case route of
               UploadResource -> one
@@ -349,7 +350,7 @@ exchange http route resource body key override headers consume = do
                          || (httpStatus problemError == Nothing && (key /= Nothing || repeatableMethod (decodeUtf8With lenientDecode (routeMethod route))))
                      )
                   then do
-                    pause http (max (Settings.requestRetryPauseMs (httpTiming (options http))) (maybe 0 id (retryAfterMs problemError)))
+                    pause http (max Timing.requestRetryPauseMs (maybe 0 id (retryAfterMs problemError)))
                     attempt 1
                   else throwIO problem
       emitBudget =
@@ -446,7 +447,7 @@ emit http frame = Telemetry.sending frame $ do
         BusEmitRequest {busEmitRequestChannel = (busFrameChannel frame), busEmitRequestClientId = (Just (clientId http)), busEmitRequestCorrelationId = (busFrameCorrelationId frame), busEmitRequestPayload = (BusEmitRequestPayload (busFramePayloadAdditionalProperties (busFramePayload frame))), busEmitRequestScope = (busFrameScope frame)}
       sending = exchange http EmitOnBus Nothing (jsonBody EmitOnBus body) (Just key) Nothing [] $ \response -> do
         let count = do
-              bytes <- deadline http (Settings.emitTimeoutMs (httpTiming (options http))) (Bytes.concat <$> brConsume (responseBody response))
+              bytes <- deadline http Timing.emitTimeoutMs (Bytes.concat <$> brConsume (responseBody response))
               pure $ either (const Nothing) busEmitAcceptedSubscribers (eitherDecodeStrict' bytes)
         count `catch` (\(_ :: HttpFailure) -> pure Nothing) `catch` (\(_ :: HttpException) -> pure Nothing)
   Lifetime.run (lifetime http) (Transport.ownAction (transport http) sending)

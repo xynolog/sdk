@@ -91,7 +91,7 @@ the coming release's, and gathers its changes as they land.
 - A retry budget is `xynolog.types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
   `EMIT_RETRY` and `REFRESH_RETRY` are one, and `retry_with_backoff` and
-  `Timing.emit_retry` take one. Its members are as they were.
+  `TransportTiming.emit_retry` take one. Its members are as they were.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
   whole, which is `bytes`.
 - A member that holds null where its schema does not allow null is refused
@@ -178,6 +178,26 @@ the coming release's, and gathers its changes as they land.
   `ConformanceDriverLineProgressProgress`, state `total_bytes` as an
   `int | None`: the total is stated when the source states its length, as
   every upload's does today.
+- The timing a caller may set is two records generated from
+  `client/timing.json`, `xynolog.timing.ClientTiming` and
+  `xynolog.timing.TransportTiming`, each member named as its row is.
+  `xynolog.client` still exports `ClientTiming`, whose `bus_request_ms` is now
+  `bus_request_timeout_ms`. `TransportTiming`, which `xynolog.http` exports,
+  replaces `xynolog.http.Timing`: `http_request_ms` is now
+  `http_request_timeout_ms`, and `stream_open_ms` is
+  `stream_open_timeout_ms`.
+- `session_from_kept` and `HttpSessionFactory` take `client_timing` and
+  `transport_timing`, the timing of the client and of the transport they build.
+- `Cache` no longer takes `save_debounce_ms`: it saves `SAVE_DEBOUNCE_MS`
+  after its values last changed.
+- `StoragePersister` no longer takes `max_bytes`: a document larger than
+  `MAX_STORED_BYTES_COUNT` loses the entries received longest ago, until it
+  fits.
+- `subscribe_discovery` takes `interval_ms`, in milliseconds, where it took
+  `interval`, in seconds, and may be left out: it is then
+  `DISCOVERY_INTERVAL_MS`. `xynolog.discovery.DISCOVERY_INTERVAL_MS` replaces
+  `xynolog.discovery.DISCOVERY_INTERVAL`, which was in seconds.
+- `HoverDwell`'s `delay_ms` may be left out: it is then `HOVER_DELAY_MS`.
 
 ## 0.8.1
 

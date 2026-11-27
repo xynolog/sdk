@@ -61,6 +61,14 @@ the coming release's, and gathers its changes as they land.
   table (`SPAN_CONTENT_GET`, `SPAN_BUS_EMIT`, `METRIC_XYNOLOG_BUS_SENT`, …,
   and `TELEMETRY_CHANNEL`, what stands for the channel in a span's name), and
   the transports name their spans and their count by them.
+- `ClientTiming` and `TransportTiming`, which `@xynolog/core` and
+  `@xynolog/sdk` export: the timing a caller may set of a client and of an
+  HTTP transport, each member the entry of Protocol's `client/timing.json` of
+  its name. `DEFAULT_CLIENT_TIMING` and `DEFAULT_TRANSPORT_TIMING`, from
+  `@xynolog/core`, hold the table's values.
+- `XynologClient.fromHttp`, `XynologSession.fromHttp` and
+  `XynologSession.fromKept` take `clientTiming` and `transportTiming`, and
+  `createHttpSessionFactory` takes both in a second argument, after `fetch`.
 
 ### Changed
 
@@ -173,6 +181,19 @@ the coming release's, and gathers its changes as they land.
   optional. Every upload holds its bytes whole and still reports it.
   `UploadProgressBar` shows a `progress` report with no `totalBytes` as it
   shows one whose total is unknown.
+- `XynologClient`'s options `busTimeoutMs`, `invalidationWindowMs`,
+  `jobSilenceMs` and `jobStatusPollMs` are one, `timing`, a
+  `Partial<ClientTiming>`; `busTimeoutMs` is its `busRequestTimeoutMs`.
+  `BrowseNamespace`, `GatherNamespace` and `MatchNamespace` take it as the
+  `timing` of their options, in place of `busTimeoutMs` and
+  `invalidationWindowMs`, and `MarkNamespace` and `YieldNamespace` take it as
+  their last argument. `createTestClient` and `createTestSession` take
+  `timing` in place of `busTimeoutMs`.
+- `HttpTransport`'s config members `timeout`, `reconnectMs`,
+  `streamOpenTimeoutMs`, `lazyRemoveMs`, `lingerMs`, `emitRetry` and
+  `seenEventIdsCount` are one, `timing`, a `Partial<TransportTiming>`;
+  `timeout` is its `httpRequestTimeoutMs`.
+- `createHoverDwell`'s delay may be left out, and is then `HOVER_DELAY_MS`.
 
 ### Removed
 
@@ -186,6 +207,8 @@ the coming release's, and gathers its changes as they land.
 - `IssuerEndpoints`, for `PendingAuthorization['issuer']`.
 - `Brand`, and `EventSignature` with `StoredEvent`'s `signature`, which
   nothing wrote or read.
+- `createCache`'s `saveDebounceMs`: a cache saves `SAVE_DEBOUNCE_MS` after
+  its values change.
 
 ## 0.8.1
 

@@ -11,7 +11,7 @@ import (
 
 // Work signs the agent in, and opens a stream as it.
 func Work(ctx context.Context, gateway, issuer, secret string) error {
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	service := xynolog.NewServiceToken(
 		xynolog.SecretCredential{Issuer: issuer, ClientID: "xynolog-smelter", ClientSecret: secret},
 		xynolog.Issuer{HTTP: http.DefaultClient, Timing: timing},

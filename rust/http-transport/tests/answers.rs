@@ -16,7 +16,7 @@ use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::errors::{TransportError, TransportErrorCode};
 use xynolog::gateway_http::{GET_CURRENT_USER, SUBSCRIBE_TO_BUS};
 use xynolog::transport::{GatewayOperations, Transport};
-use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
+use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, TransportTiming};
 
 /// The media type and the body the stand-in answers `GET /api/users/me` with.
 type Answering = Arc<Mutex<(&'static str, &'static str)>>;
@@ -54,7 +54,7 @@ async fn an_answer_that_is_not_its_declared_body_fails_as_error_naming_its_first
         refresher: None,
         channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
         http: reqwest::Client::new(),
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: None,
     });
     let mut failures = transport.failures();

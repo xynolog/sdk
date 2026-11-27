@@ -21,6 +21,7 @@ import (
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/timing"
 	"github.com/xynolog/sdk/go/state"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
@@ -38,7 +39,7 @@ func idOf[T any](t *testing.T, text string) T {
 // does, closed when the case is over.
 func clientOf(t *testing.T, config xynologtest.FaultyConfig) *xynolog.Client {
 	config.Channels = bus.BridgedChannels
-	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Transport: xynologtest.NewFaultyTransport(config), Timing: xynolog.DefaultTiming()})
+	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Transport: xynologtest.NewFaultyTransport(config), Timing: xynolog.DefaultClientTiming()})
 	t.Cleanup(func() {
 		made.Client.Close()
 		made.Transport.Close()
@@ -169,7 +170,7 @@ func TestTheDwellKeepsTheStateUnitAxioms(t *testing.T) {
 	xynologtest.AssertStateUnitAxioms(t, xynologtest.AxiomSubject[*state.HoverDwell]{
 		Setup: func(t *testing.T) xynologtest.Fresh[*state.HoverDwell] {
 			// What it says is said to nobody.
-			return xynologtest.Fresh[*state.HoverDwell]{Unit: state.NewHoverDwell(func(*api.AnnotationId) {}, xynolog.DefaultTiming().HoverDelay)}
+			return xynologtest.Fresh[*state.HoverDwell]{Unit: state.NewHoverDwell(func(*api.AnnotationId) {}, timing.HoverDelay)}
 		},
 		Invocations: func(unit *state.HoverDwell) []func() {
 			return []func(){func() { unit.Enter(annotation) }, unit.Leave}
@@ -185,7 +186,7 @@ func neverAnswered(ctx context.Context, _ string) iter.Seq2[[]string, bool] {
 func TestTheSearchPipelineKeepsTheStateUnitAxioms(t *testing.T) {
 	xynologtest.AssertStateUnitAxioms(t, xynologtest.AxiomSubject[*state.SearchPipeline[string]]{
 		Setup: func(t *testing.T) xynologtest.Fresh[*state.SearchPipeline[string]] {
-			return xynologtest.Fresh[*state.SearchPipeline[string]]{Unit: state.NewSearchPipeline(neverAnswered, xynolog.DefaultTiming().SearchDebounce, "")}
+			return xynologtest.Fresh[*state.SearchPipeline[string]]{Unit: state.NewSearchPipeline(neverAnswered, timing.SearchDebounce, "")}
 		},
 		Surfaces: func(unit *state.SearchPipeline[string]) []xynologtest.Surface {
 			return []xynologtest.Surface{xynologtest.Watching(unit.Query()), xynologtest.Watching(unit.State())}
@@ -253,8 +254,8 @@ func TestASearchThatIsAbandonedIsLetGo(t *testing.T) {
 			defer mu.Unlock()
 			return slices.Clone(letGo)
 		}
-		settled := xynolog.DefaultTiming().SearchDebounce + 2*time.Millisecond
-		pipeline := state.NewSearchPipeline(remembered, xynolog.DefaultTiming().SearchDebounce, "paris")
+		settled := timing.SearchDebounce + 2*time.Millisecond
+		pipeline := state.NewSearchPipeline(remembered, timing.SearchDebounce, "paris")
 		time.Sleep(settled)
 		if got := released(); len(got) != 0 {
 			t.Fatalf("a search under way was let go: %v", got)
@@ -283,7 +284,7 @@ func TestMarkParamsThatStateNoMotivationTheUnionMapsAreNoJobs(t *testing.T) {
 				if err := json.Unmarshal([]byte(stated.params), &params); err != nil {
 					t.Fatal(err)
 				}
-				made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Transport: xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{Channels: bus.BridgedChannels}), Timing: xynolog.DefaultTiming()})
+				made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Transport: xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{Channels: bus.BridgedChannels}), Timing: xynolog.DefaultClientTiming()})
 				defer made.Transport.Close()
 				defer made.Client.Close()
 				unit := state.NewMarkStateUnit(made.Client, idOf[api.ResourceId](t, "res-1"))

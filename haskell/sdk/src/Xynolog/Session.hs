@@ -60,7 +60,8 @@ import Xynolog.Retry qualified as Retry
 import Xynolog.ServiceToken qualified as Service
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Tokens qualified as Tokens
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types (AccessToken (..), DeviceCode, HttpEndpoint, IssuedTokens (..), KbEndpoint (..), KbTarget (..), PendingAuthorizationIssuer (..), SessionEndReason (..), StoredSession (..), UserResponse (..), userIdValue)
@@ -88,7 +89,7 @@ data Session = Session
   { configuration :: SessionOptions,
     owner :: Client.Client,
     clock :: Retry.RetryOptions,
-    timings :: Timing.Settings,
+    timings :: Settings.TransportTiming,
     life :: Lifetime.Lifetime,
     heldToken :: State.StateValue (Maybe Text),
     -- | Handed to each renewal: the token held, expired or not, the one found
@@ -160,7 +161,7 @@ ready session = atomically (readTMVar (initialized session)) >>= either throwIO 
 expiresAt :: Session -> STM (Maybe Scientific)
 expiresAt session = (>>= Tokens.tokenExpiry) <$> State.current (token session)
 
-newSession :: Client.Client -> SessionOptions -> Retry.RetryOptions -> Timing.Settings -> IO Session
+newSession :: Client.Client -> SessionOptions -> Retry.RetryOptions -> Settings.TransportTiming -> IO Session
 newSession owned options time settings = do
   initial <- SignIn.held (sessionKept options) >>= seed options
   shared <- atomically (State.newStateValue initial)
@@ -206,8 +207,8 @@ seed options stored = do
 -- the person, is said once as session.keep-failed, and nothing more is kept.
 -- Each write the storage refuses is said as session.save-refused, and stays
 -- owed. The session's own forget of its sign-in waits for a write being made.
-fromHttp :: Http.HttpOptions -> Maybe Storage.SessionStorage -> SessionOptions -> IO OpenedSession
-fromHttp http storage options = mask $ \restore -> do
+fromHttp :: Http.HttpOptions -> Settings.ClientTiming -> Maybe Storage.SessionStorage -> SessionOptions -> IO OpenedSession
+fromHttp http timing storage options = mask $ \restore -> do
   stored <- restore (SignIn.held (sessionKept options))
   initial <- restore (seed options stored)
   shared <- atomically (State.newStateValue initial)
@@ -217,7 +218,7 @@ fromHttp http storage options = mask $ \restore -> do
         session <- atomically (readTMVar holder) >>= either throwIO pure
         refresh session (Just refused)
       actual = http {Http.httpToken = readToken, Http.httpRenewToken = refreshRefused}
-  owned <- restore (Client.fromHttp actual Nothing)
+  owned <- restore (Client.fromHttp actual timing Nothing)
   -- Before the keeper, so nothing it says comes before what the transport met first.
   (stream, unrelay) <- atomically (saying owned)
   keeps <- case storage of
@@ -341,18 +342,18 @@ tell keeper code message = atomically (Broadcast.publish (keeperSaid keeper) (Le
 
 -- | Persist an issued grant and own its rotating refresh callback. A person's
 -- confirmation, when required, is the validate callback in SessionOptions.
-fromIssuedSession :: Http.HttpOptions -> Maybe Storage.SessionStorage -> SessionOptions -> StoredSession -> IO OpenedSession
-fromIssuedSession http storage options issued = do
+fromIssuedSession :: Http.HttpOptions -> Settings.ClientTiming -> Maybe Storage.SessionStorage -> SessionOptions -> StoredSession -> IO OpenedSession
+fromIssuedSession http timing storage options issued = do
   SignIn.keep (sessionKept options) issued
-  openKept http storage options (Just (accessTokenValue (storedSessionAccess issued)))
+  openKept http timing storage options (Just (accessTokenValue (storedSessionAccess issued)))
 
 -- | Open the actual kept grant, renewing it only when due or refused. An
 -- absent grant opens a signed-out session without manufacturing credentials.
-fromKeptSession :: Http.HttpOptions -> Maybe Storage.SessionStorage -> SessionOptions -> IO OpenedSession
-fromKeptSession http storage options = openKept http storage options Nothing
+fromKeptSession :: Http.HttpOptions -> Settings.ClientTiming -> Maybe Storage.SessionStorage -> SessionOptions -> IO OpenedSession
+fromKeptSession http timing storage options = openKept http timing storage options Nothing
 
-openKept :: Http.HttpOptions -> Maybe Storage.SessionStorage -> SessionOptions -> Maybe Text -> IO OpenedSession
-openKept http storage options initial = do
+openKept :: Http.HttpOptions -> Settings.ClientTiming -> Maybe Storage.SessionStorage -> SessionOptions -> Maybe Text -> IO OpenedSession
+openKept http timing storage options initial = do
   endpoint <- httpTarget options
   base <-
     either
@@ -366,7 +367,7 @@ openKept http storage options initial = do
           { sessionInitialToken = initial,
             sessionRefresh = Just (\holding -> Issuer.refreshSession issuer kept holding (sessionWallNow options))
           }
-  opened <- fromHttp http {Http.httpBaseUrl = base} storage actual
+  opened <- fromHttp http {Http.httpBaseUrl = base} timing storage actual
   ready (openedSession opened) `onException` closeOpenedSession opened
   pure opened
 
@@ -379,22 +380,22 @@ signOut http kept = do
   SignIn.forget kept
   pure revoked
 
-signInDevice :: Http.HttpOptions -> Maybe Storage.SessionStorage -> SessionOptions -> (DeviceCode -> IO ()) -> IO OpenedSession
-signInDevice http storage options onCode = do
+signInDevice :: Http.HttpOptions -> Settings.ClientTiming -> Maybe Storage.SessionStorage -> SessionOptions -> (DeviceCode -> IO ()) -> IO OpenedSession
+signInDevice http timing storage options onCode = do
   endpoint <- httpTarget options
   let issuerOptions = Issuer.IssuerOptions (Http.httpClient http) (Http.httpTime http) (Http.httpTiming http)
   (issuer, issued) <- Issuer.signInWithDeviceGrant issuerOptions endpoint onCode
   let stored =
         StoredSession {storedSessionAccess = AccessToken (issuedTokensAccess issued), storedSessionClientId = Issuer.scriptClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = (issuedTokensRefresh issued), storedSessionRevocationEndpoint = (pendingAuthorizationIssuerRevocation issuer), storedSessionTokenEndpoint = (pendingAuthorizationIssuerToken issuer)}
-  fromIssuedSession http storage options stored
+  fromIssuedSession http timing storage options stored
 
 -- | An account proves itself to its issuer, and the gateway names that account.
 -- This factory owns the credential callbacks; its ServiceToken remains borrowed.
 -- Its sign-in is the session's own, and names no person, so it keeps nothing.
 -- It is made once: a sign-in that fails is the service's to start again, on its
 -- own backoff (protocol/contract/WORKER-SERVICE.md, R3).
-signInAgent :: Http.HttpOptions -> SessionOptions -> Service.ServiceToken -> IO OpenedSession
-signInAgent http options service = do
+signInAgent :: Http.HttpOptions -> Settings.ClientTiming -> SessionOptions -> Service.ServiceToken -> IO OpenedSession
+signInAgent http timing options service = do
   endpoint <- httpTarget options
   base <-
     either
@@ -418,7 +419,7 @@ signInAgent http options service = do
             sessionRefresh = Just (\held -> Just <$> maybe (Service.token service) (Service.renew service) held),
             sessionValidate = Just validateAgent
           }
-  opened <- fromHttp http {Http.httpBaseUrl = base} Nothing actual
+  opened <- fromHttp http {Http.httpBaseUrl = base} timing Nothing actual
   ready (openedSession opened) `onException` closeOpenedSession opened
   person <- atomically (State.current (user (openedSession opened)))
   case person of
@@ -446,7 +447,7 @@ construct ::
   Client.Client ->
   SessionOptions ->
   Retry.RetryOptions ->
-  Timing.Settings ->
+  Settings.TransportTiming ->
   State.StateValue (Maybe Text) ->
   Broadcast.Broadcast (Either SessionError TransportError) ->
   STM () ->
@@ -488,7 +489,7 @@ construct owned options time settings shared stream unrelay = mask $ \restore ->
                         `finally` Lifetime.close lifetime
                     )
       work = do
-        schedule <- newIORef (Schedule Nothing (Timing.reconnectMs settings))
+        schedule <- newIORef (Schedule Nothing (Settings.reconnectMs settings))
         started <- try (startup session schedule)
         atomically (putTMVar done started)
         either throwIO (const (loop session schedule)) started
@@ -705,12 +706,12 @@ report :: Session -> Code.SessionCode -> Text -> IO ()
 report session code message = atomically (Broadcast.publish (said session) (Left (SessionError code message (kbTargetId (kb session)))))
 
 clear :: Session -> IORef Schedule -> IO ()
-clear session schedule = writeIORef schedule (Schedule Nothing (Timing.reconnectMs (timings session)))
+clear session schedule = writeIORef schedule (Schedule Nothing (Settings.reconnectMs (timings session)))
 
 scheduleToken :: Session -> IORef Schedule -> Text -> IO ()
 scheduleToken session schedule access = do
   now <- sessionWallNow (configuration session)
-  due <- case Tokens.refreshDelay (timings session) access now of
+  due <- case Tokens.refreshDelay access now of
     Nothing -> pure Nothing
     Just delay -> do
       instant <- Retry.retryNow (clock session)
@@ -724,7 +725,7 @@ later session schedule = do
   unless (draw >= 0 && draw <= 1) (throwIO Retry.InvalidJitter)
   now <- Retry.retryNow (clock session)
   let wait = ceiling (fromInteger (step * 1000000) * (1 + toRational draw) / 2)
-  writeIORef schedule (Schedule (Just (now + wait, Unanswered)) (min (2 * step) (Timing.maxReconnectMs (timings session))))
+  writeIORef schedule (Schedule (Just (now + wait, Unanswered)) (min (2 * step) Timing.maxReconnectMs))
 
 -- | Ends the session's work, observations and errors stream. The client
 -- stays its owner's: closed first, what its transport said, its close's

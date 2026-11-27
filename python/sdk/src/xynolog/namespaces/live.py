@@ -36,7 +36,6 @@ from xynolog.refresh import CacheQuery, CacheRefreshWhen
 from xynolog.storage import SessionStorage, StoragePersister
 from xynolog.storage_keys import cache_key
 from xynolog.stored import WHOLE_KEY, KeptQuery, WholeKey
-from xynolog.timing import MAX_STORED_BYTES_COUNT
 from xynolog.transport import ContentTransport
 from xynolog.types import (
     Annotation,
@@ -140,7 +139,7 @@ def _persister[K: Hashable, V](
 ) -> StoragePersister[K, V]:
     """What keeps the cache of `query` where `persistence` says."""
     kept_under = cache_key(persistence.kb_id, persistence.person_key, query)
-    return StoragePersister(persistence.storage, kept_under, key=key, value=value, max_bytes=MAX_STORED_BYTES_COUNT)
+    return StoragePersister(persistence.storage, kept_under, key=key, value=value)
 
 
 @final

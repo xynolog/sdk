@@ -78,7 +78,7 @@ func refusedNaming(t *testing.T, why string, err error, named string) {
 // Rust runners read it, through the client's content transport.
 func reading(t *testing.T) func(data []byte, contentType string) (string, error) {
 	t.Helper()
-	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 	t.Cleanup(func() {
 		made.Client.Close()
 		made.Transport.Close()

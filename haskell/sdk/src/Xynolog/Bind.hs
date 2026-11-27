@@ -8,9 +8,9 @@ import Xynolog.Internal.Local qualified as Local
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Types
 
-data BindNamespace = BindNamespace Bus.Bus EventBus Timing.Settings
+data BindNamespace = BindNamespace Bus.Bus EventBus Timing.ClientTiming
 
-newBind :: Bus.Bus -> EventBus -> Timing.Settings -> BindNamespace
+newBind :: Bus.Bus -> EventBus -> Timing.ClientTiming -> BindNamespace
 newBind = BindNamespace
 
 body :: BindNamespace -> ResourceId -> AnnotationId -> [BindBodyOperation] -> IO BindBodyUpdated

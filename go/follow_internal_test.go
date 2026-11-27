@@ -15,6 +15,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/required"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 func TestAFollowerThatEndsOnAnythingButACompletionIsNoCompletion(t *testing.T) {
@@ -32,7 +33,6 @@ func TestAFollowerThatEndsOnAnythingButACompletionIsNoCompletion(t *testing.T) {
 }
 
 func TestHowLongAGenerationMayBeSilentGrowsWithWhatWasAskedOfIt(t *testing.T) {
-	timing := DefaultTiming()
 	tokens := func(n float64) *float64 { return &n }
 	for _, c := range []struct {
 		name      string
@@ -45,7 +45,7 @@ func TestHowLongAGenerationMayBeSilentGrowsWithWhatWasAskedOfIt(t *testing.T) {
 		{"a length with a fraction", tokens(4000.4), 300_030},
 		{"a length below nothing", tokens(-5), timing.GenerationStallFloor.Milliseconds()},
 	} {
-		if got := generationStallDeadline(timing, c.maxTokens).Milliseconds(); got != c.wantMs {
+		if got := generationStallDeadline(c.maxTokens).Milliseconds(); got != c.wantMs {
 			t.Errorf("%s: a generation may be silent for %dms, want %dms", c.name, got, c.wantMs)
 		}
 	}

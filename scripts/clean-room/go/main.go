@@ -10,12 +10,11 @@ import (
 )
 
 func main() {
-	timing := xynolog.DefaultTiming()
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{
-		BaseURL: "https://kb.example.org", Token: xynolog.NewVariable("a token"), Channels: bus.BridgedChannels, HTTP: http.DefaultClient, Timing: timing,
+		BaseURL: "https://kb.example.org", Token: xynolog.NewVariable("a token"), Channels: bus.BridgedChannels, HTTP: http.DefaultClient, Timing: xynolog.DefaultTransportTiming(),
 	})
 	client := xynolog.NewClient(xynolog.ClientConfig{
-		Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: timing,
+		Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: xynolog.DefaultClientTiming(),
 	})
 	defer transport.Close()
 	defer client.Close()

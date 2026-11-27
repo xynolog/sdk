@@ -28,7 +28,6 @@ use xynolog::storage::{
     InMemorySessionStorage, SessionStorage, StorageChange, StorageSubscription,
 };
 use xynolog::testing::{FaultyTransport, InMemoryContent, TestClientOptions, create_test_client};
-use xynolog::timing::MAX_STORED_BYTES_COUNT;
 use xynolog::types::{
     Annotation, AnnotationId, GetAnnotationsResponse, ResourceDescriptor, ResourceId, TagSchema,
 };
@@ -181,8 +180,7 @@ where
     K: Serialize + DeserializeOwned + Eq + Hash + 'static,
     V: Serialize + DeserializeOwned + 'static,
 {
-    let persister: StoragePersister<K, V> =
-        StoragePersister::new(storage.clone(), key, MAX_STORED_BYTES_COUNT);
+    let persister: StoragePersister<K, V> = StoragePersister::new(storage.clone(), key);
     persister
         .load()
         .into_iter()

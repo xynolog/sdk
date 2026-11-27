@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import xynolog.TransportTiming
 import xynolog.errors.TransportError
 import xynolog.errors.XynologError
 import xynolog.identifiers.ResourceId
@@ -127,7 +128,7 @@ class HttpTransportTest {
     @Test
     fun aTransportThatCarriesNothingOpensNoStreamUntilAScopeGivesItSomething() = runBlocking {
         Realm().use { realm ->
-            HttpTransport(realm.origin, MutableStateFlow("token"), emptyList(), Timing(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)).use { transport ->
+            HttpTransport(realm.origin, MutableStateFlow("token"), emptyList(), TransportTiming(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)).use { transport ->
                 // Held only for the gateway's own operations, or to ask who a token is: no request of the bus.
                 delay(300)
                 assertEquals(emptyList<String>(), realm.of("/bus/subscribe").map { it.path })
@@ -163,7 +164,7 @@ class HttpTransportTest {
     @Test
     fun anOpenTheGatewayDoesNotAnswerHasFailedAtItsDeadlineAndTheStreamIsOpenedAgain() = runBlocking {
         Silent().use { gateway ->
-            HttpTransport(gateway.origin, MutableStateFlow("token"), emptyList(), Timing(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10, streamOpenMs = 200)).use { transport ->
+            HttpTransport(gateway.origin, MutableStateFlow("token"), emptyList(), TransportTiming(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10, streamOpenTimeoutMs = 200)).use { transport ->
                 transport.subscribeToResource(ResourceId("res-1")).use {
                     withTimeout(5_000) {
                         while (gateway.asked.size < 2) delay(5)
@@ -175,7 +176,7 @@ class HttpTransportTest {
     }
 
     /** What a transport with `timing` reports of the stream's first refused open, through `gateway`. */
-    private suspend fun firstRefusal(gateway: String, timing: Timing): XynologError =
+    private suspend fun firstRefusal(gateway: String, timing: TransportTiming): XynologError =
         HttpTransport(gateway, MutableStateFlow("token"), emptyList(), timing).use { transport ->
             transport.subscribeToResource(ResourceId("res-1")).use {
                 withTimeout(5_000) { transport.failures().use { it.first() } }
@@ -186,21 +187,21 @@ class HttpTransportTest {
     fun aRefusedOpenIsReportedInTheGatewaysWords() = runBlocking {
         val words = """{"error":"the gateway is draining"}"""
         Answering(unavailable(words, words.length)).use { gateway ->
-            assertEquals("SSE connect failed: 503: the gateway is draining", firstRefusal(gateway.origin, Timing(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)).message)
+            assertEquals("SSE connect failed: 503: the gateway is draining", firstRefusal(gateway.origin, TransportTiming(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)).message)
         }
     }
 
     @Test
     fun aRefusedOpenWhoseBodySaysNothingIsReportedByItsStatus() = runBlocking {
         Answering(unavailable("", 0)).use { gateway ->
-            assertEquals("SSE connect failed: 503", firstRefusal(gateway.origin, Timing(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)).message)
+            assertEquals("SSE connect failed: 503", firstRefusal(gateway.origin, TransportTiming(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)).message)
         }
     }
 
     @Test
     fun aRefusedOpenWhoseBodyNeverEndsIsReportedAtTheRequestDeadlineWithNoWords() = runBlocking {
         Answering(unavailable("""{"error":"ne""", 100)).use { gateway ->
-            val refused = firstRefusal(gateway.origin, Timing(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10, httpRequestMs = 200))
+            val refused = firstRefusal(gateway.origin, TransportTiming(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10, httpRequestTimeoutMs = 200))
             assertEquals("SSE connect failed: 503", refused.message)
         }
     }
@@ -209,7 +210,7 @@ class HttpTransportTest {
     fun aRefusedEmitWhoseBodySaysNothingIsReportedByItsStatus() = runBlocking {
         Answering(unavailable("", 0)).use { gateway ->
             // Carrying nothing, the transport opens no stream: the emit is its only request.
-            HttpTransport(gateway.origin, MutableStateFlow("token"), emptyList(), Timing(emitRetry = RetryBudget(attempts = 1, initialDelayMs = 1, maxDelayMs = 1))).use { transport ->
+            HttpTransport(gateway.origin, MutableStateFlow("token"), emptyList(), TransportTiming(emitRetry = RetryBudget(attempts = 1, initialDelayMs = 1, maxDelayMs = 1))).use { transport ->
                 val refused = try {
                     transport.emit("beckon:focus", JsonObject(emptyMap()), null, null)
                     null
@@ -224,7 +225,7 @@ class HttpTransportTest {
     @Test
     fun aRefusedRequestWhoseBodyNeverEndsIsReportedAtTheRequestDeadlineWithNoWords() = runBlocking {
         Answering(unavailable("""{"error":"ne""", 100)).use { gateway ->
-            HttpTransport(gateway.origin, MutableStateFlow("token"), emptyList(), Timing(httpRequestMs = 200)).use { transport ->
+            HttpTransport(gateway.origin, MutableStateFlow("token"), emptyList(), TransportTiming(httpRequestTimeoutMs = 200)).use { transport ->
                 val refused = withTimeout(5_000) {
                     try {
                         transport.getCurrentUser()

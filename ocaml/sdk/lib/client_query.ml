@@ -11,7 +11,8 @@ let limits_operations =
       String.ends_with ~suffix:":limits-requested" (B.name (B.request op)))
     B.operations
 
-let request ?(on_sent = ignore) bus http ~client_id ~key operation payload =
+let request ?(on_sent = ignore) ~timeout_ms bus http ~client_id ~key operation
+    payload =
   let correlation_id = key () in
   let send () =
     ignore
@@ -20,7 +21,9 @@ let request ?(on_sent = ignore) bus http ~client_id ~key operation payload =
     on_sent ()
   in
   try
-    match Subscription.request bus ~correlation_id operation ~send with
+    match
+      Subscription.request bus ~timeout_ms ~correlation_id operation ~send
+    with
     | Ok (Subscription.Result response) ->
         Ok (J.member "response" (Yojson.Safe.from_string (B.encode response)))
     | Ok (Subscription.Failure failure) ->
@@ -52,7 +55,9 @@ let join_limits engines limits =
 let listing name =
   name = Live_facts.Query.resources || name = Live_facts.Query.matched_resources
 
-let make ?window_ms ?restore ?save ~sw ~clock ~bus ~http ~client_id ~key () =
+let make ~(timing : Client_timing.client) ?restore ?save ~sw ~clock ~bus ~http
+    ~client_id ~key () =
+  let timeout_ms = timing.bus_request_timeout_ms in
   let load (name, resource, argument) =
     match List.assoc_opt name Live_query.operations with
     | None when name = Live_facts.Query.annotations -> (
@@ -82,7 +87,8 @@ let make ?window_ms ?restore ?save ~sw ~clock ~bus ~http ~client_id ~key () =
                    ])
         in
         let read ?on_sent () =
-          request ?on_sent bus http ~client_id ~key operation payload
+          request ?on_sent ~timeout_ms bus http ~client_id ~key operation
+            payload
         in
         if name = Live_facts.Query.engines then (
           let answer =
@@ -102,7 +108,10 @@ let make ?window_ms ?restore ?save ~sw ~clock ~bus ~http ~client_id ~key () =
               Fiber.all
                 (List.map
                    (fun (B.Operation op) () ->
-                     match request bus http ~client_id ~key op (`Assoc []) with
+                     match
+                       request ~timeout_ms bus http ~client_id ~key op
+                         (`Assoc [])
+                     with
                      | Ok response -> (
                          match J.member "limits" response with
                          | `List values -> limits := values @ !limits
@@ -126,7 +135,8 @@ let make ?window_ms ?restore ?save ~sw ~clock ~bus ~http ~client_id ~key () =
     | Some resource ->
         Subscription.hold_scope bus { resource; channels = scoped_channels }
   in
-  Live_query.make ?window_ms ?restore ?save ~sw ~clock ~load ~hold ()
+  Live_query.make ~window_ms:timing.invalidation_window_ms ?restore ?save ~sw
+    ~clock ~load ~hold ()
 
 let on_frame cache = function
   | Ok (Wire_stream.Frame { route; payload; _ }) ->

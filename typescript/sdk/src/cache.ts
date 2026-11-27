@@ -209,11 +209,9 @@ export function createCache<K, V>(
   options?: {
     /** B17 — persistence seam. Omitted = in-memory only. */
     persister?: CachePersister<K, V>;
-    /** Debounce window for persister.save. Default `SAVE_DEBOUNCE_MS`. */
-    saveDebounceMs?: number;
   },
 ): Cache<K, V> {
-  const made = createPersistableCache(fetchFn, options?.saveDebounceMs);
+  const made = createPersistableCache(fetchFn);
   if (options?.persister) made.attach(options.persister, warnRefusedSave);
   return made.cache;
 }
@@ -258,8 +256,6 @@ export interface PersistableCache<K, V> {
 
 export function createPersistableCache<K, V>(
   fetchFn: (key: K) => Promise<V>,
-  /** Debounce window for persister.save. Default `SAVE_DEBOUNCE_MS`. */
-  saveDebounceMs: number = SAVE_DEBOUNCE_MS,
 ): PersistableCache<K, V> {
   const store$ = new BehaviorSubject<Map<K, V>>(new Map());
 
@@ -508,7 +504,7 @@ export function createPersistableCache<K, V>(
           refused(e);
         }
       };
-      pendingSave = { timer: setTimeout(save, saveDebounceMs), save };
+      pendingSave = { timer: setTimeout(save, SAVE_DEBOUNCE_MS), save };
     });
   };
 

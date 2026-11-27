@@ -12,8 +12,9 @@
  * across concurrent session reactivations for the same KB id.
  *
  * Every request of every session it builds, of the gateway and of the
- * issuer, is sent with `fetch`, or the runtime's own. It reads none of a
- * session's errors: the registry that calls it does.
+ * issuer, is sent with `fetch`, or the runtime's own. Each session's client
+ * is given `clientTiming` and its transport `transportTiming`. It reads none
+ * of a session's errors: the registry that calls it does.
  */
 
 import { BehaviorSubject } from 'rxjs';
@@ -22,7 +23,13 @@ import {
   HttpContentTransport,
   currentUserOf,
 } from '@xynolog/http-transport';
-import { BRIDGED_CHANNELS, baseUrl, type AccessToken } from '@xynolog/core';
+import {
+  BRIDGED_CHANNELS,
+  baseUrl,
+  type AccessToken,
+  type ClientTiming,
+  type TransportTiming,
+} from '@xynolog/core';
 import { XynologClient } from '../client';
 import { personKeeping } from '../cache-persister';
 import { XynologSession, sayOn, type UserInfo } from './xynolog-session';
@@ -33,7 +40,12 @@ import type { SessionFactory, SessionFactoryOptions } from './session-factory';
 
 export function createHttpSessionFactory(
   fetch?: typeof globalThis.fetch,
+  timing: {
+    clientTiming?: Partial<ClientTiming>;
+    transportTiming?: Partial<TransportTiming>;
+  } = {},
 ): SessionFactory {
+  const { clientTiming, transportTiming } = timing;
   const inFlightRefreshes = new Map<string, Promise<string | null>>();
 
   return (opts: SessionFactoryOptions): XynologSession => {
@@ -97,16 +109,15 @@ export function createHttpSessionFactory(
         : { loadLastEventIds: keeps.fromStart.places.loadLastEventIds }),
       saveLastEventId: keeps.saveLastEventId,
       ...(fetch ? { fetch } : {}),
+      ...(transportTiming ? { timing: transportTiming } : {}),
     });
     const content = new HttpContentTransport(transport);
-    const client = new XynologClient(
-      transport,
-      content,
-      transport,
-      keeps.fromStart === null
+    const client = new XynologClient(transport, content, transport, {
+      ...(keeps.fromStart === null
         ? {}
-        : { cachePersistence: keeps.fromStart.persistence },
-    );
+        : { cachePersistence: keeps.fromStart.persistence }),
+      ...(clientTiming ? { timing: clientTiming } : {}),
+    });
     // B17-Q (C1): the places wait for what the client keeps to be at rest —
     // a bystander document write must not carry an id whose event some other
     // cache is still absorbing (mid-refetch, mid-debounce, or a refetch the

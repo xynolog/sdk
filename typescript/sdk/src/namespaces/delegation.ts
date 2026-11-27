@@ -1,6 +1,7 @@
 import { merge } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import type {
+  ClientTiming,
   EventBus,
   EventMap,
   ITransport,
@@ -16,7 +17,6 @@ import {
   JobFailedError,
   JobFrames,
   JobStatusPoll,
-  type JobFollowTiming,
 } from './job-status-poll';
 
 /**
@@ -75,7 +75,7 @@ export interface DelegatedVerb<C extends JobCompletion> {
 export function delegated<C extends JobCompletion>(
   transport: ITransport,
   bus: EventBus,
-  timing: JobFollowTiming,
+  timing: ClientTiming,
   job: EventMap['job:create'],
   verb: DelegatedVerb<C>,
   resourceId: ResourceId,

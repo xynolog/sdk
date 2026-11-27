@@ -10,6 +10,7 @@ import (
 
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
 
@@ -19,7 +20,7 @@ import (
 func TestTheFirstListenerOfTheDoublesFailuresIsToldTheLatestFailedBeforeIt(t *testing.T) {
 	transport := xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{})
 	defer transport.Close()
-	most := xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount
+	most := timing.ErrorsKeptForFirstReaderCount
 	beyond := 5
 	failed := make([]*xynolog.TransportError, most+beyond)
 	for n := range failed {

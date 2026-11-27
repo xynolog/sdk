@@ -12,14 +12,19 @@ import { createInterface } from 'node:readline';
 import { BehaviorSubject, type Subscription } from 'rxjs';
 import {
   BRIDGED_CHANNELS,
+  DEFAULT_CLIENT_TIMING,
+  DEFAULT_TRANSPORT_TIMING,
   XynologError,
   accessToken,
   annotationId,
   baseUrl,
   resourceId,
   type AccessToken,
+  type ClientTiming,
   type GenerationJobParams,
   type MarkJobParams,
+  type RetryBudget,
+  type TransportTiming,
   type components,
 } from '@xynolog/core';
 import type { Observable } from 'rxjs';
@@ -61,6 +66,21 @@ function object(args: Arguments, name: string): Arguments {
     throw new Misuse(`${name} must be an object`);
   return value as Arguments;
 }
+
+function budget(args: Arguments, name: string): RetryBudget {
+  const stated = object(args, name);
+  return {
+    attempts: count(stated, 'attempts'),
+    initialDelayMs: count(stated, 'initialDelayMs'),
+    maxDelayMs: count(stated, 'maxDelayMs'),
+  };
+}
+
+const isClientTiming = (name: string): name is keyof ClientTiming =>
+  Object.hasOwn(DEFAULT_CLIENT_TIMING, name);
+
+const isTransportTiming = (name: string): name is keyof TransportTiming =>
+  Object.hasOwn(DEFAULT_TRANSPORT_TIMING, name);
 
 /** A failure as the protocol carries it: the SDK's code, the status when a server stated one, and a job failure's class when it has one. */
 function failure(error: unknown): components['schemas']['ConformanceFailure'] {
@@ -173,27 +193,15 @@ const operations: Record<
   open(args) {
     if (client && !closed) throw new Misuse('a client is already open');
     const timing = args['timing'] === undefined ? {} : object(args, 'timing');
-    const known = [
-      'busRequestTimeoutMs',
-      'invalidationWindowMs',
-      'reconnectMs',
-      'lazyRemoveMs',
-      'lingerMs',
-      'jobSilenceMs',
-      'jobStatusPollMs',
-    ];
-    for (const name of Object.keys(timing))
-      if (!known.includes(name))
-        throw new Misuse(`this driver cannot override ${name}`);
-    const override = (name: string) =>
-      timing[name] === undefined ? undefined : count(timing, name);
-    const reconnectMs = override('reconnectMs');
-    const lazyRemoveMs = override('lazyRemoveMs');
-    const lingerMs = override('lingerMs');
-    const busTimeoutMs = override('busRequestTimeoutMs');
-    const invalidationWindowMs = override('invalidationWindowMs');
-    const jobSilenceMs = override('jobSilenceMs');
-    const jobStatusPollMs = override('jobStatusPollMs');
+    const clientTiming: Partial<ClientTiming> = {};
+    const transportTiming: Partial<TransportTiming> = {};
+    for (const name of Object.keys(timing)) {
+      if (isClientTiming(name)) clientTiming[name] = count(timing, name);
+      else if (isTransportTiming(name)) {
+        if (name === 'emitRetry') transportTiming[name] = budget(timing, name);
+        else transportTiming[name] = count(timing, name);
+      } else throw new Misuse(`this driver cannot override ${name}`);
+    }
 
     const transport = new HttpTransport({
       baseUrl: baseUrl(text(args, 'baseUrl')),
@@ -201,19 +209,14 @@ const operations: Record<
         accessToken(text(args, 'token')),
       ),
       channels: BRIDGED_CHANNELS,
-      ...(reconnectMs === undefined ? {} : { reconnectMs }),
-      ...(lazyRemoveMs === undefined ? {} : { lazyRemoveMs }),
-      ...(lingerMs === undefined ? {} : { lingerMs }),
+      timing: transportTiming,
     });
     client = new XynologClient(
       transport,
       new HttpContentTransport(transport),
       transport,
       {
-        ...(busTimeoutMs === undefined ? {} : { busTimeoutMs }),
-        ...(invalidationWindowMs === undefined ? {} : { invalidationWindowMs }),
-        ...(jobSilenceMs === undefined ? {} : { jobSilenceMs }),
-        ...(jobStatusPollMs === undefined ? {} : { jobStatusPollMs }),
+        timing: clientTiming,
         ...(args['persist'] === true
           ? {
               cachePersistence: {

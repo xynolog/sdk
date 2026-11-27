@@ -1,6 +1,6 @@
 (* The timing as the Python SDK reads it (python/sdk/src/xynolog): a constant
-   per entry under its name in upper case, and the names as the table states
-   them, by which a caller overrides one. *)
+   per entry under its name in upper case, the records of what a caller may
+   set, and the names as the table states them. *)
 
 module P = Python_syntax
 
@@ -18,6 +18,20 @@ let value (e : Table.entry) =
           P.keyword "max_delay_ms" (P.Int max_delay_ms);
         ]
 
+let record_field (e : Table.entry) =
+  let type_ =
+    match e.value with
+    | Duration _ | Count _ -> "int"
+    | Budget _ -> "RetryBudget"
+  in
+  P.field ~doc:e.docs
+    ~default:(P.Name (name e))
+    (Text.snake e.name) (P.Name type_)
+
+let record (t : Table.t) record =
+  P.frozen_dataclass (Table.record_name record) (Table.record_docs record)
+    (List.map record_field (Table.members record t))
+
 let text (t : Table.t) =
   P.text
     {
@@ -31,12 +45,16 @@ let text (t : Table.t) =
            cadence of its stream, and what it keeps count of.\n\n\
            Each constant is an entry of the table every SDK generates from, \
            under the\n\
-           entry's own name: `emitRetry` is `EMIT_RETRY`. `TIMING_NAMES` lists \
-           the names\n\
-           as the table states them, which is how a caller overrides one.\n";
+           entry's own name: `emitRetry` is `EMIT_RETRY`. `ClientTiming` and\n\
+           `TransportTiming` hold the entries a caller may set. `TIMING_NAMES` \
+           lists\n\
+           the names as the table states them.\n";
       imports =
         [
-          [ P.From ("typing", [ "Final" ]) ];
+          [
+            P.From ("dataclasses", [ "dataclass" ]);
+            P.From ("typing", [ "Final"; "final" ]);
+          ];
           [ P.From ("xynolog.types", [ "RetryBudget" ]) ];
         ];
       body =
@@ -46,7 +64,10 @@ let text (t : Table.t) =
                (P.items ~magic:true
                   (List.map
                      (fun n -> P.item (P.Str n))
-                     (List.sort compare ("TIMING_NAMES" :: List.map name t)))))
+                     (List.sort compare
+                        ("TIMING_NAMES"
+                        :: (List.map Table.record_name Table.records
+                           @ List.map name t))))))
         :: List.map
              (fun (e : Table.entry) ->
                P.assign ~about:[ Prose e.docs ] ~annotation:(P.Name "Final")
@@ -66,7 +87,8 @@ let text (t : Table.t) =
                 (P.strings ~magic:true
                    (List.map (fun (e : Table.entry) -> e.name) t))
               "TIMING_NAMES";
-          ];
+          ]
+        @ List.map (record t) Table.records;
     }
 
 let file t = { Output.path; text = text t }

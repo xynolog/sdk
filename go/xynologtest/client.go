@@ -24,9 +24,9 @@ type TestClientConfig struct {
 	Transport *FaultyTransport
 	Content   *InMemoryContent
 	Gateway   *StubGateway
-	// Timing is the client's waits: xynolog.DefaultTiming() for the ones a
-	// client keeps unless told otherwise.
-	Timing xynolog.Timing
+	// Timing is the client's waits: xynolog.DefaultClientTiming() for the
+	// ones a client keeps unless told otherwise.
+	Timing xynolog.ClientTiming
 	// Persistence is where the client keeps its queries; nil for a client
 	// that keeps nothing.
 	Persistence *xynolog.CachePersistence

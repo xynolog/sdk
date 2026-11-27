@@ -20,7 +20,7 @@ import (
 // EqualJitter draws it. The failure is an *IdentityUnverifiableError: the
 // knowledge base was not reached, or it answered that it cannot say what it
 // is.
-func DescribeConnection(ctx context.Context, target api.HttpEndpoint, access string, client *http.Client, timing Timing, random *rand.Rand) (api.ConnectionIdentity, error) {
+func DescribeConnection(ctx context.Context, target api.HttpEndpoint, access string, client *http.Client, clientTiming ClientTiming, transportTiming TransportTiming, random *rand.Rand) (api.ConnectionIdentity, error) {
 	baseURL, err := GatewayURL(target)
 	if err != nil {
 		return api.ConnectionIdentity{}, &IdentityUnverifiableError{Reason: api.IdentityUnverifiableReasonUnreachable, Detail: err.Error()}
@@ -31,10 +31,10 @@ func DescribeConnection(ctx context.Context, target api.HttpEndpoint, access str
 		Token:    NewVariable(access),
 		Channels: bus.ReplyChannelsFor(bus.BrowseKbRequested.Request().Channel()),
 		HTTP:     client,
-		Timing:   timing,
+		Timing:   transportTiming,
 		Random:   random,
 	})
-	asking := NewClient(ClientConfig{Transport: transport, Content: NewHTTPContentTransport(transport), Gateway: transport, Timing: timing})
+	asking := NewClient(ClientConfig{Transport: transport, Content: NewHTTPContentTransport(transport), Gateway: transport, Timing: clientTiming})
 	description, err := asking.Browse.Kb(ctx)
 	asking.Close()
 	transport.Close()

@@ -21,6 +21,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/optional"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // stack is a stand-in gateway and the issuer it trusts. Each handler of the
@@ -101,11 +102,12 @@ func (s *stack) grantsMade() int {
 	return s.grants
 }
 
-func quickTiming() Timing {
-	timing := DefaultTiming()
-	timing.RefreshRetry = api.RetryBudget{Attempts: 3, InitialDelayMs: 1, MaxDelayMs: 1}
-	timing.HttpRequestTimeout = 5 * time.Second
-	return timing
+// quickTiming is the transport's timing with a request's deadline a test can
+// sit out.
+func quickTiming() TransportTiming {
+	quick := DefaultTransportTiming()
+	quick.HttpRequestTimeout = 5 * time.Second
+	return quick
 }
 
 func issuerOf() Issuer { return Issuer{HTTP: &http.Client{}, Timing: quickTiming()} }
@@ -325,7 +327,7 @@ func TestAResumedSessionRenewsARefusedTokenAndKeepsTheRotation(t *testing.T) {
 	token := NewVariable("")
 	// The session's client, over a wire nothing is sent on.
 	wire := newWorkerWire()
-	client := NewClient(ClientConfig{Transport: wire, Timing: quickTiming()})
+	client := NewClient(ClientConfig{Transport: wire, Timing: DefaultClientTiming()})
 	session, err := ResumeSession(context.Background(), ResumeConfig{
 		Kb: gatewayTarget(t, "local", s.gateway.URL), Client: client, Kept: entry, Token: token,
 		HTTP: &http.Client{}, Timing: quickTiming(),
@@ -403,7 +405,7 @@ func TestASessionClosedWhileItsSignInIsRenewedGivesTheRefusalNoTokenAndKeepsTheR
 	token := NewVariable("")
 	// The session's client, over a wire nothing is sent on.
 	wire := newWorkerWire()
-	client := NewClient(ClientConfig{Transport: wire, Timing: quickTiming()})
+	client := NewClient(ClientConfig{Transport: wire, Timing: DefaultClientTiming()})
 	defer func() {
 		client.Close()
 		wire.Close()
@@ -484,8 +486,8 @@ func TestASessionClosedWhileItsSignInIsRenewedGivesTheRefusalNoTokenAndKeepsTheR
 // session would end as if the issuer had issued it.
 func TestARenewalOnTheBackoffIsHandedTheTokenWhoseRenewalGotNoAnswer(t *testing.T) {
 	s := newStack(t)
-	timing := quickTiming()
-	timing.Reconnect, timing.MaxReconnect = 20*time.Millisecond, 20*time.Millisecond
+	quick := quickTiming()
+	quick.Reconnect = 20 * time.Millisecond
 	s.set(func() {
 		s.token = func(w http.ResponseWriter, r *http.Request) {
 			// Every attempt of the first renewal finds the issuer down.
@@ -500,10 +502,10 @@ func TestARenewalOnTheBackoffIsHandedTheTokenWhoseRenewalGotNoAnswer(t *testing.
 	_, entry := keptAt(t, s, 1)
 	token := NewVariable("")
 	wire := newWorkerWire()
-	client := NewClient(ClientConfig{Transport: wire, Timing: timing})
+	client := NewClient(ClientConfig{Transport: wire, Timing: DefaultClientTiming()})
 	session, err := ResumeSession(context.Background(), ResumeConfig{
 		Kb: gatewayTarget(t, "local", s.gateway.URL), Client: client, Kept: entry, Token: token,
-		HTTP: &http.Client{}, Timing: timing,
+		HTTP: &http.Client{}, Timing: quick,
 	})
 	if err != nil {
 		client.Close()
@@ -573,7 +575,7 @@ func TestAWaitThatRanOutForATokenSinceReplacedRenewsNothing(t *testing.T) {
 	var handed []string
 	token := NewVariable("")
 	wire := newWorkerWire()
-	client := NewClient(ClientConfig{Transport: wire, Timing: quickTiming()})
+	client := NewClient(ClientConfig{Transport: wire, Timing: DefaultClientTiming()})
 	session, err := StartSession(context.Background(), SessionConfig{
 		Kb: api.KbTarget{Id: "local"}, Client: client, Token: token, Kept: kept,
 		Refresh: func(_ context.Context, renewing string) (string, error) {
@@ -636,8 +638,8 @@ func TestASessionFromAKeptSignInAsksWhoItsTokenIsUnlessToldNotTo(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 			session, end, err := SessionFromKept(ctx, SessionFromKeptConfig{
-				Kb: gatewayTarget(t, "local", s.gateway.URL), Kept: entry, HTTP: &http.Client{}, Timing: quickTiming(),
-				SkipAskingWhoTokenIs: row.skip,
+				Kb: gatewayTarget(t, "local", s.gateway.URL), Kept: entry, HTTP: &http.Client{},
+				ClientTiming: DefaultClientTiming(), TransportTiming: quickTiming(), SkipAskingWhoTokenIs: row.skip,
 			})
 			if err != nil {
 				t.Fatal(err)

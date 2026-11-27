@@ -26,7 +26,7 @@ use xynolog::types::{
 };
 use xynolog_http_transport::content::HttpContentTransport;
 use xynolog_http_transport::transport::{
-    HttpTransport, HttpTransportConfig, Timing, TokenRefresher,
+    HttpTransport, HttpTransportConfig, TokenRefresher, TransportTiming,
 };
 
 /// Each upload that arrived: the credential it carried, its key, and its
@@ -183,7 +183,7 @@ fn transport(origin: String, refresher: Option<Arc<dyn TokenRefresher>>) -> Http
         refresher,
         channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
         http: reqwest::Client::new(),
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: None,
     })
 }

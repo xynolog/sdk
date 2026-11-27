@@ -84,7 +84,7 @@ acquire (ServiceToken options authority proof held lifetime) refused = Lifetime.
                     ( access,
                       instant
                         + ceiling
-                          (min seconds (Tokens.renewalDelay (Issuer.issuerTiming options) seconds seconds) * 1000000000)
+                          (min seconds (Tokens.renewalDelay seconds seconds) * 1000000000)
                     )
           pure (reuse, access)
         case granted of

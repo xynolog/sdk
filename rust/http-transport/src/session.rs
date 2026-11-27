@@ -19,7 +19,9 @@ use crate::oauth::{
     begin_authorization, complete_authorization, renew_kept, revoke_at_issuer,
     sign_in_with_device_grant, stored_session_of,
 };
-use crate::transport::{HttpTransport, HttpTransportConfig, Timing, TokenRefresher, locked};
+use crate::transport::{
+    HttpTransport, HttpTransportConfig, TokenRefresher, TransportTiming, locked,
+};
 use futures::FutureExt;
 use futures::future::Shared;
 use rand_core::Rng;
@@ -30,7 +32,7 @@ use std::sync::{Arc, Mutex, OnceLock, Weak};
 use tokio::sync::watch;
 use xynolog::bus::reply_channels_for;
 use xynolog::channels::{BRIDGED_CHANNELS, BrowseKbRequested, Channel};
-use xynolog::client::{CachePersistence, ClientOptions, XynologClient};
+use xynolog::client::{CachePersistence, ClientOptions, ClientTiming, XynologClient};
 use xynolog::errors::{
     BusRequestErrorCode, IdentityUnverifiable, IdentityUnverifiableReason, SessionError,
     SessionErrorCode, SignInError, SignInErrorCode, XynologError,
@@ -60,6 +62,7 @@ pub struct HttpSession {
     pub on_auth_failed: Option<OnAuthFailed>,
     pub http: reqwest::Client,
     pub client: ClientOptions,
+    pub transport_timing: TransportTiming,
     /// What the jitter of the transport's backoffs and of the session's
     /// renewal retry is drawn from; the system's source when none is given.
     pub random: Option<Arc<Mutex<dyn Rng + Send>>>,
@@ -101,7 +104,7 @@ fn built_over_http(
         refresher: Some(Arc::new(Renews(renews))),
         channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
         http: options.http,
-        timing: Timing::default(),
+        timing: options.transport_timing,
         random: options.random.clone(),
     }));
     let content = Arc::new(HttpContentTransport::new(&transport));
@@ -178,7 +181,11 @@ fn renewing_kept(
 /// nothing else. No stream is opened for it, nothing is emitted, and nothing
 /// renews the token: a refusal is the answer. So nothing backs off, and no
 /// jitter is drawn.
-fn asking_the_gateway(base_url: String, http: reqwest::Client) -> Validate {
+fn asking_the_gateway(
+    base_url: String,
+    http: reqwest::Client,
+    timing: TransportTiming,
+) -> Validate {
     Arc::new(move |token| {
         let asking = crate::transport::Shared::new(HttpTransportConfig {
             base_url: base_url.clone(),
@@ -186,7 +193,7 @@ fn asking_the_gateway(base_url: String, http: reqwest::Client) -> Validate {
             refresher: None,
             channels: Vec::new(),
             http: http.clone(),
-            timing: Timing::default(),
+            timing: timing.clone(),
             random: None,
         });
         Box::pin(async move { Ok(asking.current_user().await?) })
@@ -238,6 +245,11 @@ pub struct SessionFromKept {
     pub storage: Option<Arc<dyn SessionStorage>>,
     pub on_auth_failed: Option<OnAuthFailed>,
     pub http: reqwest::Client,
+    /// The timing the session's client keeps.
+    pub client_timing: ClientTiming,
+    /// The timing the session's transport keeps, and so does the request
+    /// that asks the gateway who the token is.
+    pub transport_timing: TransportTiming,
     /// What the session's jitter is drawn from (`HttpSession::random`).
     pub random: Option<Arc<Mutex<dyn Rng + Send>>>,
 }
@@ -258,9 +270,13 @@ pub async fn session_from_kept(
 ) -> Result<OpenedSession, Box<dyn Error + Send + Sync>> {
     let base_url = gateway_of(&options.kb)?;
     let held = options.kept.held().await?;
-    let asking = options
-        .validate
-        .then(|| asking_the_gateway(base_url.clone(), options.http.clone()));
+    let asking = options.validate.then(|| {
+        asking_the_gateway(
+            base_url.clone(),
+            options.http.clone(),
+            options.transport_timing.clone(),
+        )
+    });
     let keeping = options.storage.map(|storage| {
         Arc::new(Keeping {
             storage,
@@ -292,7 +308,11 @@ pub async fn session_from_kept(
             base_url,
             on_auth_failed: options.on_auth_failed,
             http: options.http,
-            client: ClientOptions::default(),
+            client: ClientOptions {
+                timing: options.client_timing,
+                ..ClientOptions::default()
+            },
+            transport_timing: options.transport_timing,
             random: options.random,
         },
         |transport, client| {
@@ -458,10 +478,15 @@ fn asking_and_keeping(asking: Validate, keeping: Arc<Keeping>) -> Validate {
 /// (`kept_in`). What the session's client keeps of its person is kept in
 /// the registry's storage too (`Keeping`). The renewals under way are the
 /// factory's, so a knowledge base's old session and its new one, during a
-/// sign-in, do not each renew. Every session it builds draws its jitter from
-/// the factory's `random`, the system's source when it is `None`.
+/// sign-in, do not each renew. Every session it builds has a client that
+/// keeps the factory's `client_timing` and a transport that keeps its
+/// `transport_timing`, as does the request that asks the gateway who a token
+/// is, and draws its jitter from the factory's `random`, the system's source
+/// when it is `None`.
 pub struct HttpSessionFactory {
     http: reqwest::Client,
+    client_timing: ClientTiming,
+    transport_timing: TransportTiming,
     renewing: Renewing,
     random: Option<Arc<Mutex<dyn Rng + Send>>>,
 }
@@ -469,10 +494,14 @@ pub struct HttpSessionFactory {
 impl HttpSessionFactory {
     pub fn new(
         http: reqwest::Client,
+        client_timing: ClientTiming,
+        transport_timing: TransportTiming,
         random: Option<Arc<Mutex<dyn Rng + Send>>>,
     ) -> HttpSessionFactory {
         HttpSessionFactory {
             http,
+            client_timing,
+            transport_timing,
             renewing: Arc::default(),
             random,
         }
@@ -511,14 +540,18 @@ impl SessionFactory for HttpSessionFactory {
                 base_url: base_url.clone(),
                 refresh: Some(refresh),
                 validate: Some(asking_and_keeping(
-                    asking_the_gateway(base_url, self.http.clone()),
+                    asking_the_gateway(base_url, self.http.clone(), self.transport_timing.clone()),
                     keeping.clone(),
                 )),
                 on_auth_failed: Some(Arc::new(move |reason| {
                     signals.notify_session_ended(reason);
                 })),
                 http: self.http.clone(),
-                client: ClientOptions::default(),
+                client: ClientOptions {
+                    timing: self.client_timing,
+                    ..ClientOptions::default()
+                },
+                transport_timing: self.transport_timing.clone(),
                 random: self.random.clone(),
             },
             |transport, client| keeping.built(transport, client, named.as_deref()),
@@ -558,7 +591,7 @@ pub async fn describe_connection(
             .map(str::to_owned)
             .collect(),
         http: http.clone(),
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random,
     }));
     let client = XynologClient::new(

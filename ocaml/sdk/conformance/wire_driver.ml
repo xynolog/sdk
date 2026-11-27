@@ -77,9 +77,92 @@ type client = {
   client_id : string;
   http : H.t;
   clock : Xynolog.Clock.t;
+  request_timeout_ms : int;
 }
 
 type mode = Wire | Worker | Live
+
+(* A case's timing, each row read into what holds it. *)
+type timing = {
+  client : Xynolog.Client_timing.client;
+  transport : Xynolog.Client_timing.transport;
+  job_claim_timeout_ms : int option;
+  held_job_stall_ms : int option;
+  held_job_stall_check_ms : int option;
+  mark_commit_timeout_ms : int option;
+}
+
+let retry_budget value =
+  match
+    Xynolog.Models.decode Xynolog.Models.retry_budget
+      (Yojson.Safe.to_string value)
+  with
+  | Ok budget -> Xynolog.Records.Retry_budget.of_model budget
+  | Error _ -> raise (Misuse "invalid retry budget")
+
+(* Only a worker holds claim options, and a wire driver holds no client: a name
+   that nothing the mode builds holds is misuse. *)
+let read_timing mode settings =
+  let rows =
+    match settings with
+    | `Null -> []
+    | `Assoc rows -> rows
+    | _ -> raise (Misuse "timing is not an object")
+  in
+  let held = ref [] in
+  let row holds read name =
+    if holds then (
+      held := name :: !held;
+      Option.map read (List.assoc_opt name rows))
+    else None
+  in
+  let defaults = Xynolog.Client_timing.client_defaults in
+  let client : Xynolog.Client_timing.client =
+    let time name default =
+      Option.value (row (mode <> Wire) J.to_int name) ~default
+    in
+    {
+      bus_request_timeout_ms =
+        time "busRequestTimeoutMs" defaults.bus_request_timeout_ms;
+      invalidation_window_ms =
+        time "invalidationWindowMs" defaults.invalidation_window_ms;
+      job_silence_ms = time "jobSilenceMs" defaults.job_silence_ms;
+      job_status_poll_ms = time "jobStatusPollMs" defaults.job_status_poll_ms;
+    }
+  in
+  let defaults = Xynolog.Client_timing.transport_defaults in
+  let transport : Xynolog.Client_timing.transport =
+    let time name default = Option.value (row true J.to_int name) ~default in
+    {
+      emit_retry =
+        Option.value
+          (row true retry_budget "emitRetry")
+          ~default:defaults.emit_retry;
+      http_request_timeout_ms =
+        time "httpRequestTimeoutMs" defaults.http_request_timeout_ms;
+      stream_open_timeout_ms =
+        time "streamOpenTimeoutMs" defaults.stream_open_timeout_ms;
+      reconnect_ms = time "reconnectMs" defaults.reconnect_ms;
+      linger_ms = time "lingerMs" defaults.linger_ms;
+      seen_event_ids_count =
+        time "seenEventIdsCount" defaults.seen_event_ids_count;
+      lazy_remove_ms = time "lazyRemoveMs" defaults.lazy_remove_ms;
+    }
+  in
+  let claim = row (mode = Worker) J.to_int in
+  let timing =
+    {
+      client;
+      transport;
+      job_claim_timeout_ms = claim "jobClaimTimeoutMs";
+      held_job_stall_ms = claim "heldJobStallMs";
+      held_job_stall_check_ms = claim "heldJobStallCheckMs";
+      mark_commit_timeout_ms = claim "markCommitTimeoutMs";
+    }
+  in
+  match List.find_opt (fun (name, _) -> not (List.mem name !held)) rows with
+  | Some (name, _) -> raise (Misuse ("unknown timing " ^ name))
+  | None -> timing
 
 let query_key value =
   let name = string "query" value in
@@ -216,40 +299,7 @@ let run mode env =
         Cohttp.Header.to_list (Cohttp.Response.headers response),
         (body :> Eio.Flow.source_ty Eio.Resource.t) )
     in
-    let timing = field "timing" input in
-    let value settings name default =
-      Option.value (optional J.to_int name settings) ~default
-    in
-    let time name default = value timing name default in
-    let s = S.default_timing in
-    let subscription_timing : S.timing =
-      {
-        stream_open_timeout_ms =
-          time "streamOpenTimeoutMs" s.stream_open_timeout_ms;
-        reconnect_ms = time "reconnectMs" s.reconnect_ms;
-        max_reconnect_ms = time "maxReconnectMs" s.max_reconnect_ms;
-        degraded_threshold_ms =
-          time "degradedThresholdMs" s.degraded_threshold_ms;
-        reconnect_debounce_ms =
-          time "reconnectDebounceMs" s.reconnect_debounce_ms;
-        lazy_remove_ms = time "lazyRemoveMs" s.lazy_remove_ms;
-        linger_ms = time "lingerMs" s.linger_ms;
-        bus_request_timeout_ms =
-          time "busRequestTimeoutMs" s.bus_request_timeout_ms;
-      }
-    in
-    let h = H.default_timing in
-    let retry = field "emitRetry" timing in
-    let http_timing : H.timing =
-      {
-        emit_attempts = value retry "attempts" h.emit_attempts;
-        emit_initial_delay_ms =
-          value retry "initialDelayMs" h.emit_initial_delay_ms;
-        emit_max_delay_ms = value retry "maxDelayMs" h.emit_max_delay_ms;
-        emit_timeout_ms = time "emitTimeoutMs" h.emit_timeout_ms;
-        request_timeout_ms = time "httpRequestTimeoutMs" h.request_timeout_ms;
-      }
-    in
+    let timing = read_timing mode (field "timing" input) in
     let renewals =
       ref
         (Option.value
@@ -287,7 +337,6 @@ let run mode env =
     let global =
       match mode with
       | Worker ->
-          commit_timeout := optional J.to_int "markCommitTimeoutMs" timing;
           if field "commits" input = `Bool true then
             Xynolog.Claims.job_claim_channels
             @ Xynolog.Claims.job_commit_channels
@@ -297,7 +346,6 @@ let run mode env =
           field "channels" input |> J.to_list
           |> List.map (fun value -> channel (J.to_string value))
     in
-    claim_timeout := optional J.to_int "jobClaimTimeoutMs" timing;
     let key () = uuid env in
     let http, subscription =
       match mode with
@@ -311,13 +359,9 @@ let run mode env =
             | _ -> ()
           in
           let facade =
-            Xynolog.Client.connect ~timing:subscription_timing ~http_timing
-              ?telemetry ~restore ~save
-              ?invalidation_window_ms:
-                (optional J.to_int "invalidationWindowMs" timing)
-              ?delegation_silence_ms:(optional J.to_int "jobSilenceMs" timing)
-              ?delegation_poll_ms:(optional J.to_int "jobStatusPollMs" timing)
-              ~sw ~clock ~session ~client_id ~key ~call ~global ~on_event ()
+            Xynolog.Client.connect ~client_timing:timing.client
+              ~transport_timing:timing.transport ?telemetry ~restore ~save ~sw
+              ~clock ~session ~client_id ~key ~call ~global ~on_event ()
           in
           let _release =
             Xynolog.Client.errors facade
@@ -335,8 +379,8 @@ let run mode env =
           (Xynolog.Client.http facade, Xynolog.Client.subscription facade)
       | Wire ->
           let http =
-            H.make ?telemetry ~clock ~session ~timing:http_timing ~key ~on_error
-              ~call ()
+            H.make ?telemetry ~clock ~session ~timing:timing.transport ~key
+              ~on_error ~call ()
           in
           let connect =
             S.authenticated
@@ -352,14 +396,25 @@ let run mode env =
               (H.subscribe http)
           in
           let subscription =
-            S.start ?telemetry ~timing:subscription_timing ~sw ~clock ~client_id
+            S.start ?telemetry ~timing:timing.transport ~sw ~clock ~client_id
               ~global ~scopes:[] ~connect ~on_event ()
           in
           (http, subscription)
     in
-    client := Some { subscription; session; client_id; http; clock };
-    stall_ms := Some (time "heldJobStallMs" W.default_stall_ms);
-    stall_check_ms := Some (time "heldJobStallCheckMs" W.default_stall_check_ms);
+    client :=
+      Some
+        {
+          subscription;
+          session;
+          client_id;
+          http;
+          clock;
+          request_timeout_ms = timing.client.bus_request_timeout_ms;
+        };
+    claim_timeout := timing.job_claim_timeout_ms;
+    stall_ms := timing.held_job_stall_ms;
+    stall_check_ms := timing.held_job_stall_check_ms;
+    commit_timeout := timing.mark_commit_timeout_ms;
     Fiber.fork_daemon ~sw (fun () ->
         let rec report previous =
           let current = S.await_state_change subscription ~from:previous in
@@ -779,7 +834,10 @@ let run mode env =
         in
         match
           S.request client.subscription
-            ?timeout_ms:(optional J.to_int "timeoutMs" input)
+            ~timeout_ms:
+              (Option.value
+                 (optional J.to_int "timeoutMs" input)
+                 ~default:client.request_timeout_ms)
             ~correlation_id operation ~send
         with
         | Ok (S.Result payload) ->

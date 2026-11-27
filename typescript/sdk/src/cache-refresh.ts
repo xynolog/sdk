@@ -3,7 +3,6 @@ import {
   CACHE_REFRESH,
   CACHE_REFRESH_CHANNELS,
   FrameRefusal,
-  INVALIDATION_WINDOW_MS,
   faultOf,
   isAnnotationId,
   isObject,
@@ -171,10 +170,10 @@ export class CacheRefresher<Q extends CacheQuery> {
     transport: Pick<ITransport, 'state$'>,
     private readonly bus: EventBus,
     private readonly acts: Record<Q, QueryActs>,
-    /** B19's window; absent, `invalidationWindowMs` of protocol/specs/src/client/timing.json. */
-    windowMs: number = INVALIDATION_WINDOW_MS,
+    /** B19's window. */
+    invalidationWindowMs: number,
   ) {
-    this.windows = new InvalidationWindows(windowMs);
+    this.windows = new InvalidationWindows(invalidationWindowMs);
 
     for (const channel of CACHE_REFRESH_CHANNELS) this.refreshOn(channel);
 

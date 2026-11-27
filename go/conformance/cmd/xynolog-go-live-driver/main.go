@@ -200,45 +200,6 @@ func queryOf(c *xynolog.Client, q protocol.Arguments) (query, error) {
 	return query{}, protocol.Misused("no live query %s", name)
 }
 
-// timing is the client's timing, with what the case overrides, each entry by
-// its name in protocol/specs/src/client/timing.json.
-func timing(args protocol.Arguments) (xynolog.Timing, error) {
-	timing := xynolog.DefaultTiming()
-	if _, given := args["timing"]; !given {
-		return timing, nil
-	}
-	stated, err := object(args, "timing")
-	if err != nil {
-		return timing, err
-	}
-	for name := range stated {
-		n, err := protocol.Count(stated, name)
-		if err != nil {
-			return timing, err
-		}
-		ms := time.Duration(n) * time.Millisecond
-		switch name {
-		case "reconnectMs":
-			timing.Reconnect = ms
-		case "lazyRemoveMs":
-			timing.LazyRemove = ms
-		case "lingerMs":
-			timing.Linger = ms
-		case "busRequestTimeoutMs":
-			timing.BusRequestTimeout = ms
-		case "invalidationWindowMs":
-			timing.InvalidationWindow = ms
-		case "jobSilenceMs":
-			timing.JobSilence = ms
-		case "jobStatusPollMs":
-			timing.JobStatusPoll = ms
-		default:
-			return timing, protocol.Misused("this driver cannot override %s", name)
-		}
-	}
-	return timing, nil
-}
-
 // conformancePerson is the person a client the suite opens keeps its caches
 // for: the suite asks no gateway who its token is, so every driver keeps them
 // for this one.
@@ -371,8 +332,8 @@ func (l *live) open(args protocol.Arguments) error {
 	if reopening {
 		return protocol.Misused("a client is already open")
 	}
-	timing, err := timing(args)
-	if err != nil {
+	clientTiming, transportTiming := xynolog.DefaultClientTiming(), xynolog.DefaultTransportTiming()
+	if err := protocol.Timing(args, &clientTiming, &transportTiming, nil); err != nil {
 		return err
 	}
 	baseURL, err := protocol.Text(args, "baseUrl")
@@ -388,14 +349,14 @@ func (l *live) open(args protocol.Arguments) error {
 		return protocol.Misused("persist must be true or false")
 	}
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{
-		BaseURL: baseURL, Token: xynolog.NewVariable(token), Channels: bus.BridgedChannels, HTTP: &http.Client{}, Timing: timing,
+		BaseURL: baseURL, Token: xynolog.NewVariable(token), Channels: bus.BridgedChannels, HTTP: &http.Client{}, Timing: transportTiming,
 	})
 	// Taken at once, so every failure from the first request on is said, each
 	// before the call that met it returns, until the transport closes.
 	transport.Failures(func(failed *xynolog.TransportError) {
 		protocol.Say(api.ConformanceDriverLineErrorStream{Error: protocol.Failure(failed)})
 	})
-	config := xynolog.ClientConfig{Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: timing}
+	config := xynolog.ClientConfig{Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: clientTiming}
 	if persist {
 		config.Persistence = &xynolog.CachePersistence{Storage: l.storage, KbID: "conformance", PersonKey: xynolog.PersonKey(conformancePerson)}
 	}

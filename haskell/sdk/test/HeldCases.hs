@@ -27,7 +27,6 @@ import Xynolog.Channels qualified as Ch
 import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (BusRequestError (..))
 import Xynolog.Timing (errorsKeptForFirstReaderCount)
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 import Xynolog.Worker qualified as Worker
@@ -60,20 +59,13 @@ rig fixtures action = do
           (readTVarIO clock)
           (\due -> atomically (readTVar clock >>= check . (>= due)))
           (atomically $ do modifyTVar' ids (+ 1); number <- readTVar ids; pure (T.pack (show number)))
-      timing =
-        Timing.protocolSettings
-          { Timing.jobClaimTimeoutMs = 100,
-            Timing.markCommitTimeoutMs = 10,
-            Timing.heldJobStallMs = 1000,
-            Timing.heldJobStallCheckMs = 100
-          }
   bracket
     (Transport.newTransport (Transport.TransportOptions "local://worker" (Set.fromList channelNames) send (pure ())))
     (Transport.dispose . fst)
     $ \(carrier, input) -> do
       Transport.setState input Transport.ConnectionStateConnecting
       Transport.setState input Transport.ConnectionStateOpen
-      bracket (Worker.newClaims carrier clockOptions timing (ClaimOptions {claimOptionsAccepts = [filterValue], claimOptionsHeldJobStallCheckMs = Nothing, claimOptionsHeldJobStallMs = Nothing, claimOptionsJobClaimTimeoutMs = Nothing, claimOptionsMarkCommitTimeoutMs = Nothing})) Worker.stop $ \worker -> action (Rig worker input sent clock failEmission)
+      bracket (Worker.newClaims carrier clockOptions (ClaimOptions {claimOptionsAccepts = [filterValue], claimOptionsHeldJobStallCheckMs = Just 100, claimOptionsHeldJobStallMs = Just 1000, claimOptionsJobClaimTimeoutMs = Just 100, claimOptionsMarkCommitTimeoutMs = Just 10})) Worker.stop $ \worker -> action (Rig worker input sent clock failEmission)
 
 outgoing :: Rig -> Text -> IO BusFrame
 outgoing (Rig _ _ sent _ _) expected = do
@@ -346,7 +338,7 @@ heldClockCases root fixtures = clockCasesFor root ["heldJobStall"] $ \clock _ ->
   (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://clock-worker" (Set.fromList channelNames) send (pure ()))
   Transport.setState input Transport.ConnectionStateConnecting
   Transport.setState input Transport.ConnectionStateOpen
-  worker <- Worker.newClaims carrier options Timing.protocolSettings (ClaimOptions {claimOptionsAccepts = [accepts], claimOptionsHeldJobStallCheckMs = Nothing, claimOptionsHeldJobStallMs = Nothing, claimOptionsJobClaimTimeoutMs = Nothing, claimOptionsMarkCommitTimeoutMs = Nothing})
+  worker <- Worker.newClaims carrier options (ClaimOptions {claimOptionsAccepts = [accepts], claimOptionsHeldJobStallCheckMs = Nothing, claimOptionsHeldJobStallMs = Nothing, claimOptionsJobClaimTimeoutMs = Nothing, claimOptionsMarkCommitTimeoutMs = Nothing})
   observer <- async (Worker.stalled worker (Stream.mapM_ (\_ -> atomically (modifyTVar' stalls (+ 1)))))
   reader <- async (Worker.next worker)
   asked <- atomically (readTQueue sent)

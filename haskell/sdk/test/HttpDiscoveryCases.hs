@@ -15,7 +15,8 @@ import IssuerCases (httpPeer, route)
 import Xynolog.Discovery qualified as D
 import Xynolog.Http.Discovery qualified as Http
 import Xynolog.Retry qualified as Retry
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types
   ( DiscoveryAbsent (..),
     DiscoveryAbsentReason (..),
@@ -47,7 +48,7 @@ httpDiscoveryCases document = do
   requests <- newTVarIO []
   response <- newTVarIO (reply 200 [("Content-Type", "application/json"), ("ETag", "\"one\"")] (Lazy.toStrict (encode document)))
   let options = Retry.RetryOptions (Time.now time) (Time.waitUntil time) (pure 0)
-      make client = Http.httpDiscovery client options Timing.protocolSettings "http://launcher.test/discovery"
+      make client = Http.httpDiscovery client options Settings.protocolTransportTiming "http://launcher.test/discovery"
       set bytes = atomically (writeTVar response bytes)
       asks = readTVarIO requests
       latest = asks >>= \seen -> case seen of value : _ -> pure value; _ -> ioError (userError "no discovery request")
@@ -79,7 +80,7 @@ httpDiscoveryCases document = do
   _ <- D.readDiscovery transport
   require "a good document without a tag kept a stale one" . not . Bytes.isInfixOf "If-None-Match:" =<< latest
   set (reply 200 [("Content-Type", "application/json")] (Lazy.toStrict (encode document)))
-  redirect <- Http.httpDiscovery client options Timing.protocolSettings "http://launcher.test/redirect"
+  redirect <- Http.httpDiscovery client options Settings.protocolTransportTiming "http://launcher.test/redirect"
   require "discovery did not follow its redirect" . (== initial) =<< D.readDiscovery redirect
   blocked <- newTVarIO False
   never <- httpPeer $ \_ -> atomically (writeTVar blocked True) >> atomically retry
@@ -87,7 +88,7 @@ httpDiscoveryCases document = do
   reading <- async (D.readDiscovery deadline)
   atomically (readTVar blocked >>= check)
   Time.settle
-  let due = Timing.httpRequestTimeoutMs Timing.protocolSettings * 1000000
+  let due = Timing.httpRequestTimeoutMs * 1000000
   Time.advance time (due - 1)
   require "discovery expired before the controlled deadline" . maybe True (const False) =<< poll reading
   Time.advance time 1

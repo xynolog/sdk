@@ -55,7 +55,8 @@ import Xynolog.StoragePersister (StoragePersister (..), newStoragePersister)
 import Xynolog.Testing.Sessions qualified as Sessions
 import Xynolog.Testing.Storage qualified as Shared
 import Xynolog.Testing.Transport qualified as Faulty
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types
 
 failure :: Text -> String -> IO result
@@ -236,7 +237,8 @@ forgottenByTheRegistry fixtures table jo row = do
     Sessions.newScriptedSessions
       clock
       busOptions
-      Timing.protocolSettings
+      Settings.protocolClientTiming
+      Settings.protocolTransportTiming
       (pure 1800000000)
       (\_ name payload -> Faulty.refuseUnscriptedOperation name payload)
       contents
@@ -274,12 +276,12 @@ forgottenByTheRegistry fixtures table jo row = do
           (pure Nothing)
           (const (pure Nothing))
           clock
-          Timing.protocolSettings
+          Settings.protocolTransportTiming
           (UUID.fromWords 0 0 0 . fromInteger <$> fresh)
           Set.empty
           (pure Map.empty)
           (\_ _ -> pure ())
-      config = Browser.XynologBrowserConfig store (Factory.SessionFactory writesAsItCloses revoking) http (pure 1800000000)
+      config = Browser.XynologBrowserConfig store (Factory.SessionFactory writesAsItCloses revoking) http Settings.protocolClientTiming (pure 1800000000)
   bracket (Browser.newXynologBrowser config) Browser.dispose $ \browser -> do
     Time.settle
     active <- atomically (State.current (Browser.activeKbId browser))
@@ -309,7 +311,7 @@ forgetPart fixtures table jo = do
 -- | Waits for probe, the controlled clock moved on by a reconnect's debounce at a time, a hundred times at most.
 eventually :: Time.ControlledTime -> Text -> String -> IO Bool -> IO ()
 eventually time why what probe = do
-  seen <- Time.within time (Timing.reconnectDebounceMs Timing.protocolSettings * 1000000) probe
+  seen <- Time.within time (Timing.reconnectDebounceMs * 1000000) probe
   unless seen (failure why ("never saw " ++ what))
 
 agreeOn :: (Eq value, Show value) => Text -> String -> value -> value -> IO ()
@@ -337,11 +339,7 @@ wallNow = pure 1800000000
 
 -- | A registry over storage whose sessions are the HTTP factory's, over the stage.
 overTheStage :: Storage.SessionStorage -> Http.HttpOptions -> Browser.XynologBrowserConfig
-overTheStage store http = Browser.XynologBrowserConfig store (Factory.newHttpSessionFactory http wallNow) http wallNow
-
--- | The settings of a client that writes nothing it holds before it closes.
-unsaved :: Timing.Settings
-unsaved = Timing.protocolSettings {Timing.saveDebounceMs = 3600000}
+overTheStage store http = Browser.XynologBrowserConfig store (Factory.newHttpSessionFactory http Settings.protocolClientTiming wallNow) http Settings.protocolClientTiming wallNow
 
 -- | Storage holding kb-a, active, and its stored sign-in, naming the person given or nobody.
 withKbA :: Storage.SessionStorage -> Text -> Maybe Text -> IO ()
@@ -361,12 +359,14 @@ noStrays why stage =
   readTVarIO (stageStrays stage) >>= \strays ->
     unless (null strays) (failure why ("asked the stage for what it has no answer for: " ++ show (map route strays)))
 
--- | res-1 as the gateway gives it to the session's client.
+-- | res-1 as the gateway gives it to the session's client, with the clock standing still: no save the client comes
+-- to owe falls due.
 freshResource :: Time.ControlledTime -> Text -> Session.Session -> IO ResourceDescriptor
 freshResource time why session = do
   identity <- resourceNamed why "res-1"
   withAsync (Cache.fresh (Browse.resource (Client.browse (Session.client session)) identity)) $ \reading -> do
-    eventually time why "res-1 fetched" (isJust <$> poll reading)
+    fetched <- Time.within time 0 (isJust <$> poll reading)
+    unless fetched (failure why "never saw res-1 fetched with the clock standing still")
     wait reading
 
 -- | The session's client holds what it has not written under the key, and owes the save.
@@ -382,7 +382,7 @@ holdsAsHeld why store key held = do
   identity <- resourceNamed why "res-1"
   persister <-
     newStoragePersister
-      (StoragePersister store key (Timing.maxStoredBytesCount Timing.protocolSettings) (pure 0) (pure ()))
+      (StoragePersister store key (pure 0) (pure ()))
       (\stored _ -> parseJSON stored) ::
       IO (Cache.CachePersister ResourceId ResourceDescriptor)
   kept <- lookup identity <$> Cache.load persister
@@ -429,7 +429,7 @@ forgottenByTheSession table jo row = do
   store <- Storage.newMemoryStorage
   mapM_ (uncurry (Storage.set store)) (Map.toList seeded)
   withKbA store access person
-  http <- stageHttp stage time Timing.protocolSettings
+  http <- stageHttp stage time
   bracket (Browser.newXynologBrowser (overTheStage store http)) Browser.dispose $ \_ ->
     eventually time why "kb-a's sign-in forgotten" ((== Nothing) <$> Browser.storedSession store "kb-a")
   leftAsTheRowSays why table removes store jo
@@ -493,7 +493,7 @@ startupPart table jo = do
     mapM_ (uncurry (Storage.set memory)) (Map.toList seeded)
     withKbA memory (jwt 3600 1) person
     (store, readKeys, writtenKeys) <- watched memory
-    http <- stageHttp stage time Timing.protocolSettings
+    http <- stageHttp stage time
     bracket (Browser.newXynologBrowser (overTheStage store http)) Browser.dispose $ \browser -> do
       eventually time why "the gateway asked who the token is" (not . null <$> readTVarIO (stageAskedWho stage))
       readFirst <- keptKeys readKeys
@@ -524,8 +524,8 @@ startupPart table jo = do
     noStrays why stage
   pure (length rows)
 
--- | The table's `crossTab`: kb-a's client, kept for jo and holding a value of res-1 it has not written, the save's
--- debounce an hour; another context of the storage writes kb-a's stored sign-in as the row says, and the registry
+-- | The table's `crossTab`: kb-a's client, kept for jo and holding a value of res-1 it has not written, the save
+-- not yet due; another context of the storage writes kb-a's stored sign-in as the row says, and the registry
 -- closes.
 crossTabPart :: Value -> Text -> IO Int
 crossTabPart table jo = do
@@ -543,7 +543,7 @@ crossTabPart table jo = do
     other <- Shared.storage <$> Shared.context shared
     let store = Shared.storage shared
     withKbA store (jwt 3600 1) (Just jo)
-    http <- stageHttp stage time unsaved
+    http <- stageHttp stage time
     held <- bracket (Browser.newXynologBrowser (overTheStage store http)) Browser.dispose $ \browser -> do
       session <- liveOver time why browser
       value <- freshResource time why session
@@ -562,7 +562,7 @@ crossTabPart table jo = do
   pure (length rows)
 
 -- | The table's `inProcess`: a session made over a memory sign-in naming jo, keeping its caches in a storage of their
--- own, its client holding a value of res-1 it has not written, the save's debounce an hour; the sign-in is changed
+-- own, its client holding a value of res-1 it has not written, the save not yet due; the sign-in is changed
 -- through the memory sign-in as the row says, and the session closes.
 inProcessPart :: Value -> Text -> IO Int
 inProcessPart table jo = do
@@ -579,7 +579,7 @@ inProcessPart table jo = do
     memory <- SignIn.newMemorySignIn
     SignIn.keep memory (signInOf Issuer.scriptClientId (jwt 3600 1) "r1" (Just jo))
     caches <- Storage.newMemoryStorage
-    http <- stageHttp stage time unsaved
+    http <- stageHttp stage time
     let kb = registered "kb-a"
         whoIs client access = case Client.auth client of
           Nothing -> failure why "has a client with no gateway identity operation"
@@ -594,7 +594,7 @@ inProcessPart table jo = do
             (Just whoIs)
             (const (pure ()))
             wallNow
-    opened <- withAsync (Session.fromKeptSession http (Just caches) options) $ \opening -> do
+    opened <- withAsync (Session.fromKeptSession http Settings.protocolClientTiming (Just caches) options) $ \opening -> do
       eventually time why "the session open" (isJust <$> poll opening)
       wait opening
     held <-
@@ -651,7 +651,7 @@ resumeFromPart table jo = do
     time <- Time.newTime
     store <- Storage.newMemoryStorage
     withKbA store (jwt 3600 1) (Just jo)
-    http <- stageHttp stage time Timing.protocolSettings
+    http <- stageHttp stage time
     bracket (Browser.newXynologBrowser (overTheStage store http)) Browser.dispose $ \browser -> do
       session <- liveOver time why browser
       let hold name = do

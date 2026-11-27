@@ -83,12 +83,15 @@ writes:
   absent reasons as one more.
 - `timing`: the durations, retry budgets and counts a client waits and
   retries by, from `client/timing.json`, for the Go, Python, TypeScript,
-  OCaml and Haskell SDKs. `Timing.Table` holds each entry to the kind its name says (a name
-  ending in Ms is a duration, in Retry a budget, in Count a count), states
-  each once, and holds a budget's backoff at or below its ceiling.
-  `Timing.Go`, `Timing.Python` and `Timing.Typescript` write each SDK's
-  constants; `Timing.Haskell` writes Haskell's, and the settings
-  `Xynolog.Timing.Settings` overrides.
+  Rust, Kotlin, OCaml and Haskell SDKs; the `csharp-sdk` and `swift-sdk`
+  groups write theirs from the same `Timing.Table`. It holds each entry to
+  the kind its name says (a name ending in Ms is a duration, in Retry a
+  budget, in Count a count), states each once, holds a budget's backoff at or
+  below its ceiling, and puts each entry whose `override` is `client` or
+  `transport` in that record. Each SDK's writer gives a constant per entry,
+  and the `ClientTiming` and `TransportTiming` a caller sets, with the
+  table's values; Haskell's also the `Settings` its own modules read, made
+  of those two records over the table's values.
 - `cache-refresh`: what a client's live queries hold, and what each event on
   the bus, the reopening of a dropped stream and an event that cannot be read
   does to them, from `client/refresh.json`, for the Go, Python, TypeScript

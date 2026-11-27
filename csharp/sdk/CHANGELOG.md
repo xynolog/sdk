@@ -82,8 +82,8 @@ the coming release's, and gathers its changes as they land.
   when first read, where it read their JSON by member name.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `Xynolog.Http.RetryPolicy`:
-  `Timing.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes one. It
-  is made with an initializer
+  `TransportTiming.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes
+  one. It is made with an initializer
   (`new RetryBudget { Attempts = 2, InitialDelayMs = 1, MaxDelayMs = 1 }`),
   and its members are `long`.
 - `RegistryStorage`'s keys and `RedirectSignIn.PendingAuthorizationKey` are
@@ -160,7 +160,7 @@ the coming release's, and gathers its changes as they land.
   `Job.Claim(ClaimOptions)` and
   `Job.PollUntilCompleteAsync(jobId, JobPollOptions?, onStatus)`, in place
   of their positional parameters. A worker's claim, stall and commit waits
-  are its `ClaimOptions`, and default to the client's `Timing`.
+  are its `ClaimOptions`, and default to Protocol's `client/timing.json`.
 - What a worker says of itself and of its claims is the types Protocol
   states, in `Xynolog.Types`, where `Claims` declared its own records in
   `Xynolog`: `ClaimRefusal`, whose text is `Message`, where it was `Detail`;
@@ -188,9 +188,20 @@ the coming release's, and gathers its changes as they land.
   `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
   and `TargetKind`; `InferenceProvider` names an inference provider, in
   place of `EngineProvider`.
-- `Timing.HttpRequestMs` and `Timing.StreamOpenMs` are
-  `HttpRequestTimeoutMs` and `StreamOpenTimeoutMs`, the names the protocol's
-  timing table gives them; each of `Timing`'s defaults is that table's.
+- The timing a caller may set is two records generated from Protocol's
+  `client/timing.json`, `Xynolog.ClientTiming` and `Xynolog.TransportTiming`,
+  each member the entry its name says and that entry's value unless set, in
+  place of `Xynolog.Http.Timing`. `HttpTransport` takes a `TransportTiming`,
+  and `XynologClient(transport, persistence, timing)` a `ClientTiming`. What
+  makes a transport takes both, as `clientTiming` and `transportTiming`:
+  `XynologClient(baseUrl, …)`, where its `timing` was, `HttpSessionFactory`
+  and `XynologSession.FromKeptAsync`; and `TestSessionOptions` has
+  `ClientTiming` and `TransportTiming`, in place of `Timing`. The transport's
+  `HttpRequestMs` and `StreamOpenMs` are `HttpRequestTimeoutMs` and
+  `StreamOpenTimeoutMs`.
+- A request made with `HttpTransport.RequestAsync` with no `timeoutMs`, or on
+  a `Bus` an application makes, has the table's `busRequestTimeoutMs`: a
+  transport's timing states none.
 - The pending sign-in is `Xynolog.Types.PendingAuthorization`, the type
   Protocol states, in place of `Xynolog.Authorization.PendingAuthorization`,
   and its issuer is `PendingAuthorizationIssuer` in place of
@@ -222,6 +233,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Removed
 
+- `Timing.EmitTimeoutMs`, `JobClaimTimeoutMs`, `HeldJobStallMs`,
+  `HeldJobStallCheckMs` and `MarkCommitTimeoutMs`: an emit has the table's
+  `emitTimeoutMs`, and a worker sets the other four in its `ClaimOptions`.
 - `Xynolog.Types.Stated<T>` is removed. No member of Protocol is both optional
   and nullable, so a model's optional member is a nullable type, absent when
   null.

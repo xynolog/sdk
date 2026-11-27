@@ -58,7 +58,7 @@ func NewTestSession(config TestSessionConfig) (TestSession, error) {
 		Client: client.Client,
 		Token:  token,
 		Kept:   kept,
-		Timing: xynolog.DefaultTiming(),
+		Timing: xynolog.DefaultTransportTiming(),
 	})
 	if err != nil {
 		client.Client.Close()

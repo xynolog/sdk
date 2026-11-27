@@ -44,11 +44,14 @@ public sealed class XynologSession : IStateUnit
     /// forgotten, and <paramref name="onAuthFailed"/> is told why before that is said on <see cref="Errors"/>. Ending the
     /// opened session ends the client, waits for its closing save, and then ends the session, so what that save says
     /// reaches the session's errors. A renewal under way at the issuer then is not ended: the close waits for it, and the
-    /// tokens it brings are kept in <paramref name="kept"/>, not taken by the session.
+    /// tokens it brings are kept in <paramref name="kept"/>, not taken by the session. Its client keeps
+    /// <paramref name="clientTiming"/>, and its transport <paramref name="transportTiming"/>: each the protocol's when
+    /// null.
     /// </summary>
     public static async Task<OpenedSession> FromKeptAsync(KbTarget kb, ISignInKept kept, ISessionStorage? storage = null,
         HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null, bool validate = true,
-        Action<SessionEndReason>? onAuthFailed = null, CancellationToken cancellation = default)
+        Action<SessionEndReason>? onAuthFailed = null, ClientTiming? clientTiming = null, TransportTiming? transportTiming = null,
+        CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(kb);
         ArgumentNullException.ThrowIfNull(kept);
@@ -65,8 +68,9 @@ public sealed class XynologSession : IStateUnit
         try
         {
             transport = new HttpTransport(Gateway.Origin(endpoint), credentials.State.Token, BusRegistry.BridgedChannels,
-                refresher: credentials.RefreshAsync, httpClient: httpClient, timeProvider: timeProvider, random: random);
-            var client = new XynologClient(transport, persistence);
+                timing: transportTiming, refresher: credentials.RefreshAsync, httpClient: httpClient,
+                timeProvider: timeProvider, random: random);
+            var client = new XynologClient(transport, persistence, clientTiming);
             var session = new XynologSession(kb, client, credentials);
             return new OpenedSession(client, async () =>
             {

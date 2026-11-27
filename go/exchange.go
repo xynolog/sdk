@@ -19,6 +19,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/required"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // request is what one request is made of.
@@ -121,7 +122,7 @@ func (s *transportShared) exchange(ctx context.Context, spec request) (answered,
 				return answered{}, s.failures.Report(unanswered(spec.method, spec.path, spec.deadline))
 			case !retried && repeatable:
 				retried = true
-				if !pause(ctx, s.timing.RequestRetryPause) {
+				if !pause(ctx, timing.RequestRetryPause) {
 					return answered{}, ctx.Err()
 				}
 				continue
@@ -156,7 +157,7 @@ func (s *transportShared) exchange(ctx context.Context, spec request) (answered,
 			}
 		} else if status := response.StatusCode; !retried && RetryRuleTransport.Retryable(RetryFacts{Status: &status, Method: &spec.method, Keyed: keyed}) {
 			retried = true
-			if !pause(ctx, max(s.timing.RequestRetryPause, wait)) {
+			if !pause(ctx, max(timing.RequestRetryPause, wait)) {
 				return answered{}, ctx.Err()
 			}
 			continue

@@ -531,7 +531,7 @@ type surfaceWorld struct {
 func newSurfaceWorld(answers xynologtest.MakeResponse) *surfaceWorld {
 	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{
 		Transport: xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{Channels: slices.Concat(bus.BridgedChannels, xynolog.JobClaimChannels), MakeResponse: answers}),
-		Timing:    xynolog.DefaultTiming(),
+		Timing:    xynolog.DefaultClientTiming(),
 	})
 	w := &surfaceWorld{transport: made.Transport, content: made.Content, gateway: made.Gateway, client: made.Client}
 	w.ctx, w.cancel = context.WithCancel(context.Background())

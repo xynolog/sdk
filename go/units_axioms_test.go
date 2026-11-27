@@ -28,7 +28,7 @@ func TestTheCacheKeepsTheStateUnitAxioms(t *testing.T) {
 		Setup: func(t *testing.T) xynologtest.Fresh[*xynolog.Cache[string, int]] {
 			fetch := func(context.Context, string) (int, error) { return 1, nil }
 			run := func(work func(context.Context)) { go work(context.Background()) }
-			return xynologtest.Fresh[*xynolog.Cache[string, int]]{Unit: xynolog.NewCache(fetch, run, nil, xynolog.DefaultTiming().SaveDebounce)}
+			return xynologtest.Fresh[*xynolog.Cache[string, int]]{Unit: xynolog.NewCache(fetch, run, nil)}
 		},
 		// One key observed, and what moves a key.
 		Surfaces: func(unit *xynolog.Cache[string, int]) []xynologtest.Surface {
@@ -43,7 +43,7 @@ func TestTheCacheKeepsTheStateUnitAxioms(t *testing.T) {
 func TestASessionKeepsTheStateUnitAxiomsAndNeverClosesItsClient(t *testing.T) {
 	xynologtest.AssertStateUnitAxioms(t, xynologtest.AxiomSubject[*xynolog.Session]{
 		Setup: func(t *testing.T) xynologtest.Fresh[*xynolog.Session] {
-			made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+			made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 			t.Cleanup(func() {
 				made.Client.Close()
 				made.Transport.Close()
@@ -53,7 +53,7 @@ func TestASessionKeepsTheStateUnitAxiomsAndNeverClosesItsClient(t *testing.T) {
 				Client: made.Client,
 				Token:  xynolog.NewVariable(""),
 				Kept:   &xynolog.MemorySignIn{},
-				Timing: xynolog.DefaultTiming(),
+				Timing: xynolog.DefaultTransportTiming(),
 			})
 			if err != nil {
 				t.Fatal(err)

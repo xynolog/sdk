@@ -1,9 +1,12 @@
 (* The timing as the Haskell SDK reads it: a value per entry under its name
    (haskell/sdk/src/Xynolog/Timing.hs), a duration or a count an Integer and
-   a retry budget a RetryBudget, the model of client/RetryBudget.json; Settings, a field per entry, and the
-   table's values as one (generated/.../TimingSettings.hs), which
-   Xynolog.Timing.Settings overrides; and each entry's value as JSON, by its
-   name, for the tests (test/.../TimingValues.hs). *)
+   a retry budget a RetryBudget, the model of client/RetryBudget.json; for
+   each record of what a caller may set, its type and the table's values of
+   it (generated/.../ClientTiming.hs and TransportTiming.hs); Settings, a
+   field per entry, which the SDK's own modules read, made of those records
+   over the table's values (generated/.../TimingSettings.hs); and each
+   entry's value as JSON, by its name, for the tests
+   (test/.../TimingValues.hs). *)
 
 module H = Haskell_syntax
 
@@ -119,49 +122,114 @@ let timing (t : Table.t) =
         t;
   }
 
-let settings (t : Table.t) =
-  let names = List.map (fun (e : Table.entry) -> e.name) t in
+let field_of (e : Table.entry) = (e.name, type_of ~budget_type:"RetryBudget" e)
+let protocol record = "protocol" ^ Table.record_name record
+
+let record_module record =
+  "Xynolog.Internal.Generated." ^ Table.record_name record
+
+let record (t : Table.t) record =
+  let type_ = Table.record_name record in
+  let members = Table.members record t in
+  let names = List.map (fun (e : Table.entry) -> e.name) members in
   {
     H.banner;
     extensions = [ "OverloadedStrings" ];
-    name = "Xynolog.Internal.Generated.TimingSettings";
+    name = record_module record;
     imports =
-      [
-        H.import "Control.Monad" ~items:[ Plain "unless" ];
-        H.import "Data.Aeson"
-          ~items:
-            [
-              All "FromJSON";
-              All "ToJSON";
-              Plain "withObject";
-              Plain "object";
-              Op ".:";
-              Op ".=";
-            ];
-        H.import "Data.Aeson.KeyMap" ~qualified:"KM";
-        H.import "Xynolog.Timing" ~qualified:"Base";
-        H.import "Xynolog.Types" ~items:[ Plain "RetryBudget" ];
-      ];
+      ([
+         H.import "Control.Monad" ~items:[ Plain "unless" ];
+         H.import "Data.Aeson"
+           ~items:
+             [
+               All "FromJSON";
+               All "ToJSON";
+               Plain "withObject";
+               Plain "object";
+               Op ".:";
+               Op ".=";
+             ];
+         H.import "Data.Aeson.KeyMap" ~qualified:"KM";
+         H.import "Xynolog.Timing" ~qualified:"Base";
+       ]
+      @
+      if List.exists is_budget members then
+        [ H.import "Xynolog.Types" ~items:[ Plain "RetryBudget" ] ]
+      else []);
     body =
       [
-        H.record ~constructor:"Settings" "Settings"
-          (List.map
-             (fun (e : Table.entry) ->
-               (e.name, type_of ~budget_type:"RetryBudget" e))
-             t)
+        H.record
+          ~about:[ Table.record_docs record ]
+          ~constructor:type_ type_
+          (List.map field_of members)
           ~deriving:[ "Eq"; "Show" ];
-        H.value "protocolSettings" (T_name "Settings")
-          (Construct
-             ("Settings", List.map (fun n -> (n, H.Name ("Base." ^ n))) names));
-        to_object ~type_:"Settings" (List.map (fun n -> (n, n)) names);
-        is_object ~type_:"Settings" ~members:names
-          ~unknown:"Unknown timing member" ~negative:"Negative timing member"
-          ~constructor:"Settings"
+        H.value (protocol record) (T_name type_)
+          (Construct (type_, List.map (fun n -> (n, H.Name ("Base." ^ n))) names));
+        to_object ~type_ (List.map (fun n -> (n, n)) names);
+        is_object ~type_ ~members:names ~unknown:"Unknown timing member"
+          ~negative:"Negative timing member" ~constructor:type_
           ~fields:
             (List.filter_map
                (fun (e : Table.entry) ->
                  if is_budget e then None else Some e.name)
-               t);
+               members);
+      ];
+  }
+
+let settings (t : Table.t) =
+  let qualified = function
+    | Table.Client -> "Client"
+    | Table.Transport -> "Transport"
+  in
+  let argument record = String.lowercase_ascii (qualified record) in
+  let from (e : Table.entry) =
+    ( e.name,
+      match e.record with
+      | Some record ->
+          H.Apply
+            (Name (qualified record ^ "." ^ e.name), [ Name (argument record) ])
+      | None -> H.Name ("Base." ^ e.name) )
+  in
+  {
+    H.banner;
+    extensions = [];
+    name = "Xynolog.Internal.Generated.TimingSettings";
+    imports =
+      List.map
+        (fun record ->
+          H.import (record_module record) ~qualified:(qualified record))
+        Table.records
+      @ [
+          H.import "Xynolog.Timing" ~qualified:"Base";
+          H.import "Xynolog.Types" ~items:[ Plain "RetryBudget" ];
+        ];
+    body =
+      [
+        H.record ~constructor:"Settings" "Settings" (List.map field_of t)
+          ~deriving:[ "Eq"; "Show" ];
+        Value
+          {
+            about =
+              [ "A caller's records, over the table's values of every other." ];
+            name = "settingsOf";
+            type_ =
+              List.fold_right
+                (fun record result ->
+                  H.T_fun
+                    ( T_name (qualified record ^ "." ^ Table.record_name record),
+                      result ))
+                Table.records (H.T_name "Settings");
+            clauses =
+              [
+                {
+                  patterns =
+                    List.map
+                      (fun record -> H.Var (argument record))
+                      Table.records;
+                  body = Construct ("Settings", List.map from t);
+                };
+              ];
+          };
       ];
   }
 
@@ -204,6 +272,6 @@ let files t =
       text = H.text m;
     }
   in
-  [
-    file "src" (timing t); file "generated" (settings t); file "test" (values t);
-  ]
+  [ file "src" (timing t) ]
+  @ List.map (fun r -> file "generated" (record t r)) Table.records
+  @ [ file "generated" (settings t); file "test" (values t) ]

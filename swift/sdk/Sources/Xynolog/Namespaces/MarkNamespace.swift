@@ -2,7 +2,7 @@ public struct MarkNamespace: Sendable {
   let wire: Bus
   let bus: EventBus
   let lifetime: Lifetime
-  let timing: FollowTiming
+  let timing: ClientTiming
   let clock: any Clock<Duration>
   public func annotation(_ request: CreateAnnotationRequest) async throws -> MarkCreateOkResponse {
     try await wire.request(

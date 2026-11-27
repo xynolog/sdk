@@ -59,7 +59,7 @@ import Xynolog.Internal.Bus qualified as Bus
 import Xynolog.Internal.Generated.HeldJob
 import Xynolog.JobFilter (jobMatchesFilter)
 import Xynolog.StateValue qualified as State
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types hiding (JobComplete, annotationId)
 import Xynolog.Types qualified as Types
@@ -106,7 +106,10 @@ data ClaimsRuntime = ClaimsRuntime
 data Claims = Claims
   { accepts :: [JobFilter],
     clock :: Bus.BusOptions,
-    timing :: Timing.Settings,
+    claimWaitMs :: Integer,
+    stallAfterMs :: Integer,
+    stallCheckEveryMs :: Integer,
+    commitWaitMs :: Integer,
     transport :: Transport.Transport,
     wire :: Bus.Bus,
     runtime :: TVar ClaimsRuntime,
@@ -121,21 +124,18 @@ data Claims = Claims
   }
 
 -- | Claims on the transport, waiting by the bus clock, each wait the claim
--- options leave out the timing's.
-newClaims :: Transport.Transport -> Bus.BusOptions -> Timing.Settings -> ClaimOptions -> IO Claims
-newClaims carrier busClock base (ClaimOptions {claimOptionsAccepts = filters, claimOptionsHeldJobStallCheckMs = stallCheckMs, claimOptionsHeldJobStallMs = stallMs, claimOptionsJobClaimTimeoutMs = claimTimeoutMs, claimOptionsMarkCommitTimeoutMs = commitTimeoutMs}) = do
-  let waits =
-        base
-          { Timing.heldJobStallCheckMs = fromMaybe (Timing.heldJobStallCheckMs base) stallCheckMs,
-            Timing.heldJobStallMs = fromMaybe (Timing.heldJobStallMs base) stallMs,
-            Timing.jobClaimTimeoutMs = fromMaybe (Timing.jobClaimTimeoutMs base) claimTimeoutMs,
-            Timing.markCommitTimeoutMs = fromMaybe (Timing.markCommitTimeoutMs base) commitTimeoutMs
-          }
+-- options leave out the table's.
+newClaims :: Transport.Transport -> Bus.BusOptions -> ClaimOptions -> IO Claims
+newClaims carrier busClock (ClaimOptions {claimOptionsAccepts = filters, claimOptionsHeldJobStallCheckMs = stallCheckMs, claimOptionsHeldJobStallMs = stallMs, claimOptionsJobClaimTimeoutMs = claimTimeoutMs, claimOptionsMarkCommitTimeoutMs = commitTimeoutMs}) = do
+  let claimWait = fromMaybe Timing.jobClaimTimeoutMs claimTimeoutMs
+      stallAfter = fromMaybe Timing.heldJobStallMs stallMs
+      stallCheck = fromMaybe Timing.heldJobStallCheckMs stallCheckMs
+      commitWait = fromMaybe Timing.markCommitTimeoutMs commitTimeoutMs
   when
-    (null filters || Timing.heldJobStallCheckMs waits <= 0 || any (< 0) [Timing.jobClaimTimeoutMs waits, Timing.heldJobStallMs waits, Timing.markCommitTimeoutMs waits])
+    (null filters || stallCheck <= 0 || any (< 0) [claimWait, stallAfter, commitWait])
     (throwIO InvalidClaimOptions)
   cell <- newTVarIO (ClaimsRuntime Unread Nothing Nothing Nothing Nothing Nothing Nothing 0 False)
-  Claims filters busClock waits carrier (Bus.newBus busClock carrier) cell
+  Claims filters busClock claimWait stallAfter stallCheck commitWait carrier (Bus.newBus busClock carrier) cell
     <$> newEmptyTMVarIO
     <*> newTQueueIO
     <*> atomically Broadcast.newKeptEvents
@@ -328,7 +328,7 @@ claimLoop claims = forever $ mask $ \restore -> do
         (wire claims)
         JobClaimOperation
         command
-        (Timing.jobClaimTimeoutMs (timing claims))
+        (claimWaitMs claims)
   case outcome of
     Left problem -> case fromException problem of
       Just refusal | busRequestErrorCode refusal == BusRequestNonePending -> pure ()
@@ -380,15 +380,14 @@ checkStalls claims ready = do
   loop now
   where
     busClock = clock claims
-    waits = timing claims
     loop before = do
-      Bus.requestWaitUntil busClock (before + Timing.heldJobStallCheckMs waits * 1000000)
+      Bus.requestWaitUntil busClock (before + stallCheckEveryMs claims * 1000000)
       currentTime <- Bus.requestNow busClock
       atomically $ do
         current <- readTVar (runtime claims)
         case (held current, heldAt current, lastActive current) of
           (Just job, Just (_, since), Just (active, activeStamp))
-            | not (stallReported current) && currentTime - active > Timing.heldJobStallMs waits * 1000000 -> do
+            | not (stallReported current) && currentTime - active > stallAfterMs claims * 1000000 -> do
                 Broadcast.publish
                   (stalls claims)
                   ( withSome job $ \value ->
@@ -398,7 +397,7 @@ checkStalls claims ready = do
                         since
                         activeStamp
                         ((currentTime - active) `div` 1000000)
-                        (Timing.heldJobStallMs waits)
+                        (stallAfterMs claims)
                   )
                 writeTVar (runtime claims) current {stallReported = True}
           _ -> pure ()
@@ -498,7 +497,7 @@ commit job resource annotations = withMVar (heldGate job) $ \() -> do
     [] -> pure ()
     lastAnnotation : _ -> do
       let claims = heldClaims job
-          timeoutMs = Timing.markCommitTimeoutMs (timing claims)
+          timeoutMs = commitWaitMs claims
           send = Bus.request (wire claims) MarkCommitOperation (MarkCommitCommand {markCommitCommandRoles = Nothing, markCommitCommandUserId = Nothing, markCommitCommandAnnotations = annotations, markCommitCommandJobId = (Just (jobId job)), markCommitCommandResourceId = resource}) timeoutMs
       result <- try send
       case result of

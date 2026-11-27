@@ -167,7 +167,8 @@ private func registryResource(_ id: ResourceId) throws -> ResourceDescriptor {
     BrowseKbResult(response: KbDescription(name: "KB", domain: "example.org")))
   let spec = LivenessSpec(
     setup: { transport in
-      let client = try await XynologClient(transport: transport, busRequestTimeoutMs: 500)
+      let client = try await XynologClient(
+        transport: transport, timing: ClientTiming(busRequestTimeoutMs: 500))
       let request = Task { try await client.browse.kb() }
       return LivenessScenario(
         outputs: [{ _ = await request.result }], settlements: [{ _ = await request.result }],

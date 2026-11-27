@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Xynolog.Errors;
 using Xynolog.Http;
 using Xynolog.Identifiers;
+using Xynolog.Protocol;
 using Xynolog.Serialization;
 using Xynolog.Types;
 
@@ -107,9 +108,18 @@ public closed record Heard<T> where T : class
 public sealed class Bus
 {
     private readonly HttpTransport transport;
+    private readonly int requestTimeoutMs;
 
     /// <summary>Reads and writes the bus through a transport.</summary>
-    public Bus(HttpTransport transport) => this.transport = transport;
+    public Bus(HttpTransport transport) : this(transport, Timings.BusRequestTimeoutMs)
+    {
+    }
+
+    internal Bus(HttpTransport transport, int requestTimeoutMs)
+    {
+        this.transport = transport;
+        this.requestTimeoutMs = requestTimeoutMs;
+    }
 
     /// <summary>Emits a payload on a channel; the result is how many subscribers the gateway delivered it to, or null when
     /// its acceptance did not say.</summary>
@@ -135,7 +145,7 @@ public sealed class Bus
         where TRequest : class where TResult : class where TFailure : class
     {
         var response = await transport.RequestFrameAsync(operation.Request.Name, JsonSerializer.SerializeToElement(payload),
-            timeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
+            timeoutMs ?? requestTimeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
         return Decoded<TResult>(response.Frame.Channel, response.Frame.Payload);
     }
 

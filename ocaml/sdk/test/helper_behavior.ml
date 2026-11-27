@@ -57,8 +57,9 @@ let request_routing ~request ~member source =
       in
       let request =
         Fiber.fork_promise ~sw (fun () ->
-            Subscription.request sub ~normalize_refusals:true
-              ~correlation_id:"c-1"
+            Subscription.request sub
+              ~timeout_ms:Client_timing.bus_request_timeout_ms
+              ~normalize_refusals:true ~correlation_id:"c-1"
               Bus_registry.Operations.browse_resource_requested ~send:(fun () ->
                 Eio.Flow.copy_string source write))
       in

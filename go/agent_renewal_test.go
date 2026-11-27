@@ -16,7 +16,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // The agent's token falls due, and its renewal gets no answer; while it waits
@@ -50,23 +50,27 @@ func TestADueRenewalTriedAgainRenewsNothingOnceTheAgentsTokenIsRenewedSomeOtherW
 				http.NotFound(rw, r)
 			}
 		})).Client()
-		timing := quickTiming()
-		// The renewal waits a minute or more to try again: the refusal is
-		// answered before it does.
-		timing.RefreshRetry = api.RetryBudget{Attempts: 3, InitialDelayMs: 60_000, MaxDelayMs: 60_000}
-		service := NewServiceToken(SecretCredential{Issuer: "http://issuer.test/realms/xynolog", ClientID: "xynolog-worker", ClientSecret: "s3cret"}, Issuer{HTTP: client, Timing: timing})
-		agent, err := SignInAgent(context.Background(), AgentConfig{Gateway: "http://gateway.test", Service: service, HTTP: client, Timing: timing})
+		service := NewServiceToken(SecretCredential{Issuer: "http://issuer.test/realms/xynolog", ClientID: "xynolog-worker", ClientSecret: "s3cret"}, Issuer{HTTP: client, Timing: quickTiming()})
+		agent, err := SignInAgent(context.Background(), AgentConfig{Gateway: "http://gateway.test", Service: service, HTTP: client, Timing: quickTiming()})
 		if err != nil {
 			t.Fatal(err)
 		}
 		defer agent.Close()
 		signedIn := agent.Token().Value()
-		wait, scheduled := RefreshDelay(signedIn, time.Now(), timing)
+		wait, scheduled := RefreshDelay(signedIn, time.Now())
 		if !scheduled {
 			t.Fatal("the agent's token schedules no renewal")
 		}
-		time.Sleep(wait + time.Second)
+		// The due renewal waits at least half the budget's first delay to try
+		// again: a quarter of it past due, it has asked once and not again.
+		time.Sleep(wait + time.Duration(timing.RefreshRetry.InitialDelayMs)*time.Millisecond/4)
 		synctest.Wait()
+		mu.Lock()
+		due := asks
+		mu.Unlock()
+		if due != 2 {
+			t.Fatalf("the issuer was asked %d times by the refusal's time, want 2: the sign-in and the due renewal", due)
+		}
 		renewed, ok := agent.Refresh(context.Background(), signedIn)
 		if !ok || renewed == signedIn {
 			t.Fatal("the refusal was not answered by a new grant")

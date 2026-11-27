@@ -73,7 +73,7 @@ use xynolog::types::{DiscoveryManaged, DiscoveryRead, DiscoveryUnchanged};
 use xynolog_http_transport::agent::AgentToken;
 use xynolog_http_transport::oauth::sign_in_with_device_grant;
 use xynolog_http_transport::service_account::{Credential, SecretCredential, ServiceToken};
-use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
+use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, TransportTiming};
 
 static TABLE: LazyLock<Value> = LazyLock::new(|| {
     serde_json::from_str(include_str!(
@@ -496,7 +496,7 @@ async fn over_a_gateway(
         refresher: None,
         channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
         http: http(),
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: Some(lowest()),
     }));
     (transport, network)
@@ -1270,7 +1270,6 @@ fn save_debounce(_: Map<String, Value>) -> LocalBoxFuture<'static, Subject> {
                 Err(format!("a cache that is only written fetched {key}").into())
             },
             saves.clone(),
-            xynolog::timing::SAVE_DEBOUNCE,
         );
         let changes = Cell::new(0);
         Subject {

@@ -4,7 +4,7 @@ public struct YieldNamespace: Sendable {
   let wire: Bus
   let bus: EventBus
   let lifetime: Lifetime
-  let timing: FollowTiming
+  let timing: ClientTiming
   let clock: any Clock<Duration>
   let content: (any ContentTransport)?
 

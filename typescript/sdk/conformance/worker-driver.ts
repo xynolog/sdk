@@ -17,6 +17,8 @@
 import { createInterface } from 'node:readline';
 import { BehaviorSubject } from 'rxjs';
 import {
+  DEFAULT_CLIENT_TIMING,
+  DEFAULT_TRANSPORT_TIMING,
   XynologError,
   accessToken,
   baseUrl,
@@ -24,7 +26,10 @@ import {
   resourceId,
   type AccessToken,
   type ClaimOptions,
+  type ClientTiming,
   type JobFilter,
+  type RetryBudget,
+  type TransportTiming,
   type components,
 } from '@xynolog/core';
 import type { TraceCarrier } from '@xynolog/core';
@@ -100,18 +105,38 @@ function failure(error: unknown): components['schemas']['ConformanceFailure'] {
   };
 }
 
-/** The entries of protocol/specs/src/client/timing.json this driver can override: the transport's, and a worker's. */
-const TRANSPORT_TIMING = ['reconnectMs', 'lazyRemoveMs', 'lingerMs'] as const;
-const WORKER_TIMING = [
+function budget(args: Arguments, name: string): RetryBudget {
+  const stated = object(args, name);
+  return {
+    attempts: count(stated, 'attempts'),
+    initialDelayMs: count(stated, 'initialDelayMs'),
+    maxDelayMs: count(stated, 'maxDelayMs'),
+  };
+}
+
+const isClientTiming = (name: string): name is keyof ClientTiming =>
+  Object.hasOwn(DEFAULT_CLIENT_TIMING, name);
+
+const isTransportTiming = (name: string): name is keyof TransportTiming =>
+  Object.hasOwn(DEFAULT_TRANSPORT_TIMING, name);
+
+/** The entries of protocol/specs/src/client/timing.json that `ClaimOptions` holds. */
+const CLAIM_TIMING = [
   'jobClaimTimeoutMs',
   'heldJobStallMs',
   'heldJobStallCheckMs',
   'markCommitTimeoutMs',
 ] as const satisfies readonly (keyof ClaimOptions)[];
 
+type ClaimTiming = Pick<ClaimOptions, (typeof CLAIM_TIMING)[number]>;
+
+const isClaimTiming = (name: string): name is keyof ClaimTiming =>
+  CLAIM_TIMING.some((known) => known === name);
+
 let transport: HttpTransport | undefined;
 let client: XynologClient | undefined;
-let timing: Arguments = {};
+/** The claims' timing the case stated at `open`. */
+let claimTiming: ClaimTiming = {};
 let claims: ClaimsObservable | undefined;
 /** The job the worker last came to hold, as its claims handed it out. */
 let held: HeldJob | undefined;
@@ -179,12 +204,16 @@ const operations: Record<
 > = {
   open(args) {
     if (transport) throw new Misuse('a transport is already open');
-    timing = args['timing'] === undefined ? {} : object(args, 'timing');
+    const timing = args['timing'] === undefined ? {} : object(args, 'timing');
+    const clientTiming: Partial<ClientTiming> = {};
+    const transportTiming: Partial<TransportTiming> = {};
     for (const name of Object.keys(timing)) {
-      if (
-        ![...TRANSPORT_TIMING, ...WORKER_TIMING].some((known) => known === name)
-      )
-        throw new Misuse(`this driver cannot override ${name}`);
+      if (isClientTiming(name)) clientTiming[name] = count(timing, name);
+      else if (isTransportTiming(name)) {
+        if (name === 'emitRetry') transportTiming[name] = budget(timing, name);
+        else transportTiming[name] = count(timing, name);
+      } else if (isClaimTiming(name)) claimTiming[name] = count(timing, name);
+      else throw new Misuse(`this driver cannot override ${name}`);
     }
     const commits = args['commits'] ?? false;
     if (typeof commits !== 'boolean')
@@ -200,20 +229,13 @@ const operations: Record<
       channels: commits
         ? [...JOB_CLAIM_CHANNELS, ...JOB_COMMIT_CHANNELS]
         : JOB_CLAIM_CHANNELS,
-      ...(timing['reconnectMs'] === undefined
-        ? {}
-        : { reconnectMs: count(timing, 'reconnectMs') }),
-      ...(timing['lazyRemoveMs'] === undefined
-        ? {}
-        : { lazyRemoveMs: count(timing, 'lazyRemoveMs') }),
-      ...(timing['lingerMs'] === undefined
-        ? {}
-        : { lingerMs: count(timing, 'lingerMs') }),
+      timing: transportTiming,
     });
     client = new XynologClient(
       transport,
       new HttpContentTransport(transport),
       transport,
+      { timing: clientTiming },
     );
     transport.state$.subscribe((state) => say({ state }));
     transport.errors$.subscribe((error) => say({ error: failure(error) }));
@@ -237,18 +259,7 @@ const operations: Record<
     const worker = opened().job.claim({
       // A case states its filters as the wire carries them; the gateway holds the claim to the schema.
       accepts: accepts as JobFilter[],
-      ...(timing['jobClaimTimeoutMs'] === undefined
-        ? {}
-        : { jobClaimTimeoutMs: count(timing, 'jobClaimTimeoutMs') }),
-      ...(timing['heldJobStallMs'] === undefined
-        ? {}
-        : { heldJobStallMs: count(timing, 'heldJobStallMs') }),
-      ...(timing['heldJobStallCheckMs'] === undefined
-        ? {}
-        : { heldJobStallCheckMs: count(timing, 'heldJobStallCheckMs') }),
-      ...(timing['markCommitTimeoutMs'] === undefined
-        ? {}
-        : { markCommitTimeoutMs: count(timing, 'markCommitTimeoutMs') }),
+      ...claimTiming,
     });
     claims = worker;
     worker.refused$.subscribe((refusal) =>

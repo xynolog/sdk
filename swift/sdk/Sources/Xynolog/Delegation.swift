@@ -38,14 +38,6 @@ public struct JobError: Error, Sendable, CustomStringConvertible {
   public let failureClass: FailureClass?
   public var code: String { reason.rawValue }
 }
-public struct FollowTiming: Sendable {
-  public let silenceMs: Int
-  public let statusPollMs: Int
-  public init(silenceMs: Int? = nil, statusPollMs: Int? = nil) {
-    self.silenceMs = silenceMs ?? Timings.jobSilenceMs
-    self.statusPollMs = statusPollMs ?? Timings.jobStatusPollMs
-  }
-}
 protocol FollowedCompletion: Codable, Sendable {
   static func matching(_ completion: JobCompleteCommand) throws -> Self
   static func learned(_ status: JobStatusResponse, resource: ResourceId) throws -> Self

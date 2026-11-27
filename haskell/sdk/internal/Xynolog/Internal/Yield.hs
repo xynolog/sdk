@@ -12,12 +12,12 @@ import Xynolog.Channels
 import Xynolog.Content qualified as Content
 import Xynolog.Internal.DelegatedVerbs qualified as Verb
 import Xynolog.Internal.Delegation qualified as Delegation
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Local qualified as Local
 import Xynolog.Internal.Running qualified as Running
 import Xynolog.Internal.Transport qualified as LocalBus
 import Xynolog.MediaTypes qualified as Media
 import Xynolog.Resources qualified as Resources
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Types
 
 data YieldNamespace = YieldNamespace Bus.Bus LocalBus.EventBus Content.ContentTransport Timing.Settings Delegation.Follower
@@ -29,13 +29,13 @@ resource :: YieldNamespace -> ResourceUploadMetadata -> Content.ReplayableBody -
 resource (YieldNamespace _ _ content _ follower) metadata body = Running.newRunning $ \report -> Delegation.run follower (Content.putBinary content Nothing metadata body report)
 
 delegate :: YieldNamespace -> GenerationJobParams -> Maybe Scientific -> IO (Running.Running (Delegation.JobEvent YieldJobCompleteCommand) YieldJobCompleteCommand)
-delegate (YieldNamespace _ _ _ timing follower) params stall =
+delegate (YieldNamespace _ _ _ _ follower) params stall =
   Delegation.follow
     follower
     (JobCreateCommandYieldJobCreateCommand (YieldJobCreateCommand {yieldJobCreateCommandRoles = Nothing, yieldJobCreateCommandUserId = Nothing, yieldJobCreateCommandJobType = YieldJobCreateCommandJobTypeYield, yieldJobCreateCommandParams = params}))
     Verb.yield
     identity
-    (Just (fromMaybe (Delegation.deriveStallDeadlineMs timing (generationJobParamsMaxTokens params)) stall))
+    (Just (fromMaybe (Delegation.deriveStallDeadlineMs (generationJobParamsMaxTokens params)) stall))
   where
     identity = case gatheredContextFocus (generationJobParamsContext params) of
       GatheredContextFocusAnnotation focus -> resourceDescriptorId (gatheredContextFocusAnnotationSourceResource focus)

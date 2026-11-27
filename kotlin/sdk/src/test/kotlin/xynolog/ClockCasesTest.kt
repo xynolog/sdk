@@ -642,7 +642,7 @@ private class Saves : CachePersister<String, Int> {
 
 private suspend fun saveDebounce(given: JsonObject, bench: Bench): Subject {
     val saves = Saves()
-    val cache = bench.held(Cache<String, Int>({ key -> throw AssertionError("a cache that is only written fetched $key") }, saves, Timings.SAVE_DEBOUNCE_MS, bench.context))
+    val cache = bench.held(Cache<String, Int>({ key -> throw AssertionError("a cache that is only written fetched $key") }, saves, bench.context))
     var changes = 0
     return Subject(
         { saves.saved.size },

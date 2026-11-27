@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | A kept query's cache document, session/stored.json's @cacheDocument@, over
--- the host's atomic storage, bounded by its UTF-8 byte cap.
+-- the host's atomic storage. A document larger than @maxStoredBytesCount@ bytes
+-- of UTF-8 loses the entries received longest ago, until it fits.
 module Xynolog.StoragePersister (StoragePersister (..), newStoragePersister) where
 
 import Control.Concurrent.MVar (modifyMVar, newMVar)
-import Control.Monad (when)
 import Data.Aeson (FromJSON, Result (..), ToJSON, Value, eitherDecodeStrict', encode, fromJSON, toJSON)
 import Data.Aeson.Types (Parser, parseEither)
 import Data.ByteString.Lazy qualified as Lazy
@@ -17,11 +17,11 @@ import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Xynolog.Internal.Cache qualified as Cache
 import Xynolog.Internal.CacheDocument (CacheDocument (..))
 import Xynolog.SessionStorage qualified as Storage
+import Xynolog.Timing qualified as Timing
 
 data StoragePersister = StoragePersister
   { persisterStorage :: Storage.SessionStorage,
     persisterStorageKey :: Text,
-    persisterMaxBytes :: Integer,
     -- | Epoch milliseconds from the host's clock, rounded to a whole number for
     -- each stamp. An entry whose value is unchanged keeps its stamp.
     persisterWallNow :: IO Scientific,
@@ -37,7 +37,6 @@ newStoragePersister ::
   (ToJSON key, ToJSON value, FromJSON value) =>
   StoragePersister -> (Value -> value -> Parser key) -> IO (Cache.CachePersister key value)
 newStoragePersister options decodeKey = do
-  when (persisterMaxBytes options < 0) (ioError (userError "Negative persisted-document byte cap"))
   stamps <- newMVar Map.empty
   let keyId = decodeUtf8 . Lazy.toStrict . Cache.canonical
       entriesOf raw = case eitherDecodeStrict' (encodeUtf8 raw) of
@@ -62,10 +61,11 @@ newStoragePersister options decodeKey = do
               | (key, value) <- values
               ]
             bytes entries = encode (CacheDocument entries)
+            fits entries = toInteger (Lazy.length (bytes entries)) <= Timing.maxStoredBytesCount
             fit entries
-              | toInteger (Lazy.length (bytes entries)) <= persisterMaxBytes options = entries
+              | fits entries = entries
               | otherwise = case entries of [] -> []; _ : rest -> fit rest
-            retained = if toInteger (Lazy.length (bytes records)) <= persisterMaxBytes options then records else fit (sortOn (\(_, _, at) -> at) records)
+            retained = if fits records then records else fit (sortOn (\(_, _, at) -> at) records)
         Storage.set (persisterStorage options) (persisterStorageKey options) (decodeUtf8 (Lazy.toStrict (bytes retained)))
         pure (Map.fromList [(keyId key, (encode value, at)) | (key, value, at) <- retained], ())
   pure (Cache.CachePersister load save (persisterSaved options))

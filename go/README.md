@@ -161,7 +161,7 @@ import (
 
 // Work signs the agent in, and opens a stream as it.
 func Work(ctx context.Context, gateway, issuer, secret string) error {
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	service := xynolog.NewServiceToken(
 		xynolog.SecretCredential{Issuer: issuer, ClientID: "xynolog-smelter", ClientSecret: secret},
 		xynolog.Issuer{HTTP: http.DefaultClient, Timing: timing},
@@ -250,7 +250,7 @@ func AsMe(ctx context.Context, kb api.KbTarget, home string) error {
 	}
 	// The sign-in of the stack `xynolog login` keys as the knowledge base's id.
 	kept := xynolog.NewSignInStore(filepath.Join(directory, xynolog.SignInFile)).Entry(kb.Id)
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	if _, held, err := kept.Held(ctx); err != nil {
 		return err
 	} else if !held {
@@ -268,7 +268,8 @@ func AsMe(ctx context.Context, kb api.KbTarget, home string) error {
 		}
 	}
 	session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-		Kb: kb, Kept: kept, HTTP: http.DefaultClient, Timing: timing, Channels: bus.BridgedChannels,
+		Kb: kb, Kept: kept, HTTP: http.DefaultClient, Channels: bus.BridgedChannels,
+		ClientTiming: xynolog.DefaultClientTiming(), TransportTiming: timing,
 	})
 	if err != nil {
 		return err
@@ -322,6 +323,18 @@ func AsMe(ctx context.Context, kb api.KbTarget, home string) error {
   certificates trusted and the proxy are that client's: one whose
   `*http.Transport` has a `TLSClientConfig` with its own `RootCAs` trusts those.
   The examples give `http.DefaultClient`, Go's own.
+- **A caller sets only the timing
+  [the timing table](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json)
+  lets one set**: a client's in a `ClientTiming` (`ClientConfig.Timing`), and a
+  transport's in a `TransportTiming` (`HTTPTransportConfig.Timing`, and the
+  `Timing` of `Issuer`, `AgentConfig`, `SessionConfig` and `ResumeConfig`).
+  `SessionFromKeptConfig` and `registry.HttpSessionFactory` take both, and
+  `DefaultClientTiming()` and `DefaultTransportTiming()` are the table's
+  values. A wait `api.ClaimOptions` or `api.JobPollOptions` leaves nil is the
+  table's. `state.NewHoverDwell` is given its delay, `state.NewSearchPipeline`
+  its debounce and `discovery.SubscribeDiscovery` its interval, whose values in
+  the table are `state.HoverDelay`, `state.SearchDebounce` and
+  `discovery.DiscoveryInterval`. Every other wait is the table's.
 - **Every wait is package `time`'s, and every jitter is drawn from the
   `*rand.Rand` the application gives**. A test run in a `testing/synctest`
   bubble moves every wait, the SDK's deadlines among them: it keeps them
@@ -596,7 +609,7 @@ A worker claims jobs from a knowledge base's queue, does each one, and says
 what became of it. `client.Job.Claim` is its side of the queue. It is given
 an `api.ClaimOptions`: what the worker accepts, each an `api.JobFilter` (the
 `mark` jobs of one motivation, or the `yield` jobs), and any wait it states
-in place of the client's timing. What it returns hands out the jobs the worker
+in place of the timing table's. What it returns hands out the jobs the worker
 comes to hold, one at a time, and a held job says its own lifecycle.
 
 ```go
@@ -696,10 +709,10 @@ func Run(ctx context.Context, client *xynolog.Client) error {
   stream opens again. A claim answered with nothing pending is no refusal, and the worker
   waits. An `*api.ClaimRefusal` is a claim the dispatcher refused or did not
   answer. A range over the claims is handed every refusal, however slowly it
-  takes them. While nobody ranges over them, the latest
-  `ErrorsKeptForFirstReaderCount` of the refusals met wait for whoever ranges
-  over them next, the oldest dropped beyond them; a job claimed is never
-  dropped.
+  takes them. While nobody ranges over them, the latest hundred (the timing
+  table's `errorsKeptForFirstReaderCount`) of the refusals met wait for
+  whoever ranges over them next, the oldest dropped beyond them; a job claimed
+  is never dropped.
 - **A held job settles once**: `Complete`, with what its verb reports,
   `Fail`, or `Cancel`. Each says the outcome and lets the job go, and a second
   is refused. `Start` comes first, and `Progress` and `Checkpoint` as often as
@@ -723,8 +736,8 @@ func Run(ctx context.Context, client *xynolog.Client) error {
   heard an announcement, claimed, was active and settled, the job it holds,
   and how many it has completed. **`claims.Stalled()`** is each held job
   that has shown no activity for fifteen minutes: its first reader is given
-  the latest `ErrorsKeptForFirstReaderCount` reported before it came, in
-  order, and it ends when the claims do.
+  the latest hundred reported before it came, in order, and it ends when the
+  claims do.
 
 What a worker promises the dispatcher is [the worker contract][worker-contract],
 and [its conformance suite][worker-conformance] holds this module to it.
@@ -793,8 +806,8 @@ made again over the same storage picks up where the last one was.
   own factory builds is read the same way. Each of the session's own
   `*SessionError`s is said on the registry's `Errors`: each reader is given
   every one said from when it reads, however far behind it falls, and the
-  first reader the latest `ErrorsKeptForFirstReaderCount` said before it. A
-  request refused for lack of permission raises `PermissionDenied`. A refusal for want of a
+  first reader the latest hundred said before it. A request refused for lack
+  of permission raises `PermissionDenied`. A refusal for want of a
   valid token is renewed by the transport that met it, and the registry does
   nothing with it.
 
@@ -832,7 +845,7 @@ func TitleOf(ctx context.Context, client *xynolog.Client, resource api.ResourceI
 
 // ATitleIsItsResourcesNameInCapitals is the test of it.
 func ATitleIsItsResourcesNameInCapitals(t *testing.T) {
-	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 	defer made.Transport.Close()
 	defer made.Client.Close()
 	asked := bus.BrowseResourceRequested.Request().Channel()
@@ -913,14 +926,13 @@ import (
 
 // Read asks for a resource on the bus, then hears what is added to it.
 func Read(ctx context.Context, origin, token string, resource api.ResourceId) error {
-	timing := xynolog.DefaultTiming()
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{
-		BaseURL: origin, Token: xynolog.NewVariable(token), Channels: bus.BridgedChannels, HTTP: http.DefaultClient, Timing: timing,
+		BaseURL: origin, Token: xynolog.NewVariable(token), Channels: bus.BridgedChannels, HTTP: http.DefaultClient, Timing: xynolog.DefaultTransportTiming(),
 	})
 	defer transport.Close()
 	wire := xynolog.NewWire(transport)
 
-	reply, err := xynolog.Request(ctx, wire, bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: resource}, timing.BusRequestTimeout)
+	reply, err := xynolog.Request(ctx, wire, bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: resource}, xynolog.DefaultClientTiming().BusRequestTimeout)
 	var refused *xynolog.BusRequestError
 	if errors.As(err, &refused) {
 		fmt.Println(refused.Code) // "bus.not-found", "bus.timeout", …: a closed vocabulary
@@ -972,8 +984,8 @@ func Read(ctx context.Context, origin, token string, resource api.ResourceId) er
   A session says once, on `session.Errors()`, its transport's failures and its
   own `*SessionError`s (a write the storage refused among them,
   `session.save-refused`), in the order they were met; the first reader hears
-  the latest `ErrorsKeptForFirstReaderCount` (`Timing`) of what was said
-  before it listened, and the stream ends when the session ends. Whoever ends both closes the client first, so what its closing
+  the latest hundred of what was said before it listened, and the stream ends
+  when the session ends. Whoever ends both closes the client first, so what its closing
   flush meets is said before the stream ends; what the client meets once the
   session is closing is said nowhere.
 - **The token** is a `*Variable[string]` the transport watches: when it
@@ -1145,7 +1157,7 @@ log keeps) is written as `[withheld]`.
 
 | Package | Holds | Generated from |
 |---|---|---|
-| `xynolog` | The client (`Client`, `NewClient`) and its eleven namespaces; `Cached`, `Running`, `Delegation` and `Upload`; the cache, its refresher and what it keeps (`Cache`, `CachePersistence`, `SessionStorage`, `MemoryStorage`, `CoupledBookmarks`); `Claims` and the held jobs; `HTTPTransport`, `HTTPContentTransport`, `Wire` and the client's own `EventBus`; signing in (`SessionFromKept`, `ResumeSession`, `SignInWithDevice`, `SignOut`, `SignInAgent`, `NewServiceToken`, with a `SecretCredential` or a `KeyCredential`) and `Session`; a person's sign-in by a page redirect (`BeginAuthorization`, `CompleteAuthorization`, `DescribeConnection`); the sign-in store (`SignInStore`, `StateDir`); `SessionSignals`, `StateUnit`, `Variable` and `Watched`; the readers of a resource (`PrimaryRepresentation`, `PrimaryMediaType`, `ResourceEntityTypes`, `DecodeRepresentation`); how a knowledge base and its principals are named (`KbDid`, `PersonDid`, `AgentDid` and the rest); `GatewayURL`; and the generated tables: the retry rules (`retry_gen.go`), the gateway's routes, headers and media-token query (`gatewayhttp_gen.go`), the environment variables a service reads (`serviceenvironment_gen.go`), the Archivist's routes (`archivisthttp_gen.go`), the timing (`timing_gen.go`), the refresh table (`refresh_gen.go`), the telemetry names (`telemetry_gen.go`), the sign-in store's entry (`signin_gen.go`), the modes and the directory's and a file's access lists that keep the store and the launcher's state home to their owner (`owneronly_gen.go`: `OwnerOnlyDirMode`, `OwnerOnlyFileMode`, `OwnerOnlyDirAccessList`, `OwnerOnlyFileAccessList`), the OAuth clients (`oauthclients_gen.go`) and the Encoding Standard's labels (`encodings_gen.go`) | hand-written; [`protocol/specs/src/retry/rules.json`](https://github.com/xynolog/protocol/blob/main/specs/src/retry/rules.json); [`protocol/specs/src/openapi.json`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json)'s paths; [`protocol/specs/src/service-environment/variables.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-environment/variables.json); [`protocol/specs/src/archivist/openapi.json`](https://github.com/xynolog/protocol/blob/main/specs/src/archivist/openapi.json)'s paths; [`protocol/specs/src/errors/codes.json`][codes]; [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json); [`protocol/specs/src/client/refresh.json`][refresh]; [`protocol/specs/src/sdk-telemetry/telemetry.json`][telemetry]; [`protocol/specs/src/sign-in-store/SignIn.json`](https://github.com/xynolog/protocol/blob/main/specs/src/sign-in-store/SignIn.json); [`protocol/specs/src/sign-in-store/owner-only.json`](https://github.com/xynolog/protocol/blob/main/specs/src/sign-in-store/owner-only.json); [`protocol/specs/src/session/oauth.json`](https://github.com/xynolog/protocol/blob/main/specs/src/session/oauth.json) |
+| `xynolog` | The client (`Client`, `NewClient`) and its eleven namespaces; `Cached`, `Running`, `Delegation` and `Upload`; the cache, its refresher and what it keeps (`Cache`, `CachePersistence`, `SessionStorage`, `MemoryStorage`, `CoupledBookmarks`); `Claims` and the held jobs; `HTTPTransport`, `HTTPContentTransport`, `Wire` and the client's own `EventBus`; signing in (`SessionFromKept`, `ResumeSession`, `SignInWithDevice`, `SignOut`, `SignInAgent`, `NewServiceToken`, with a `SecretCredential` or a `KeyCredential`) and `Session`; a person's sign-in by a page redirect (`BeginAuthorization`, `CompleteAuthorization`, `DescribeConnection`); the sign-in store (`SignInStore`, `StateDir`); `SessionSignals`, `StateUnit`, `Variable` and `Watched`; the readers of a resource (`PrimaryRepresentation`, `PrimaryMediaType`, `ResourceEntityTypes`, `DecodeRepresentation`); how a knowledge base and its principals are named (`KbDid`, `PersonDid`, `AgentDid` and the rest); `GatewayURL`; and the generated tables: the retry rules (`retry_gen.go`), the gateway's routes, headers and media-token query (`gatewayhttp_gen.go`), the environment variables a service reads (`serviceenvironment_gen.go`), the Archivist's routes (`archivisthttp_gen.go`), what a caller may set of the timing (`timing_gen.go`; every row's value is `internal/timing`'s), the refresh table (`refresh_gen.go`), the telemetry names (`telemetry_gen.go`), the sign-in store's entry (`signin_gen.go`), the modes and the directory's and a file's access lists that keep the store and the launcher's state home to their owner (`owneronly_gen.go`: `OwnerOnlyDirMode`, `OwnerOnlyFileMode`, `OwnerOnlyDirAccessList`, `OwnerOnlyFileAccessList`), the OAuth clients (`oauthclients_gen.go`) and the Encoding Standard's labels (`encodings_gen.go`) | hand-written; [`protocol/specs/src/retry/rules.json`](https://github.com/xynolog/protocol/blob/main/specs/src/retry/rules.json); [`protocol/specs/src/openapi.json`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json)'s paths; [`protocol/specs/src/service-environment/variables.json`](https://github.com/xynolog/protocol/blob/main/specs/src/service-environment/variables.json); [`protocol/specs/src/archivist/openapi.json`](https://github.com/xynolog/protocol/blob/main/specs/src/archivist/openapi.json)'s paths; [`protocol/specs/src/errors/codes.json`][codes]; [`protocol/specs/src/client/timing.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/timing.json); [`protocol/specs/src/client/refresh.json`][refresh]; [`protocol/specs/src/sdk-telemetry/telemetry.json`][telemetry]; [`protocol/specs/src/sign-in-store/SignIn.json`](https://github.com/xynolog/protocol/blob/main/specs/src/sign-in-store/SignIn.json); [`protocol/specs/src/sign-in-store/owner-only.json`](https://github.com/xynolog/protocol/blob/main/specs/src/sign-in-store/owner-only.json); [`protocol/specs/src/session/oauth.json`](https://github.com/xynolog/protocol/blob/main/specs/src/session/oauth.json) |
 | `api` | `types_gen.go`: a Go type for every component schema of the spec, and for every record Protocol states in its tables: a registry's types (`SignedIn`, `SignInOutcome`, `KbReadVerdict`, `TabCheck`, `KbSessionStatus` and the rest), the state units' notices (`SessionEnded`, `PermissionDenied`, `KbIdentityConflict`), why a session ended (`SessionEndReason`) and the stored session (`StoredSession`); each type that holds a list its schema requires writes it as `[]` where Go holds it as nil, so a caller may leave an empty list nil. `errorcodes_gen.go`: the failure codes, from [`protocol/specs/src/errors/codes.json`][codes]. `ids_gen.go`: the kinds of id, each a type made only through its kind's rule (`ParseResourceId` and the others). `union.go` and `written.go`: how a union and an object that keeps the members its schema does not name are read and written | [`protocol/specs/src/openapi.json`](https://github.com/xynolog/protocol/blob/main/specs/src/openapi.json), bundled; [`protocol/specs/src/identifiers/kinds.json`](https://github.com/xynolog/protocol/blob/main/specs/src/identifiers/kinds.json); each component schema's `required`; the records of [`protocol/specs/src/client/registry.json`](https://github.com/xynolog/protocol/blob/main/specs/src/client/registry.json), [`protocol/specs/src/client/state-units.json`][state-units-cases], [`protocol/specs/src/session/cases.json`][session-cases] and [`protocol/specs/src/session/stored.json`](https://github.com/xynolog/protocol/blob/main/specs/src/session/stored.json) |
 | `control` | The launcher's control API: each method a `Method[P, R]` and each notification a `Notification[P]`, typed by `api`'s types of their schemas, with whether a method is exclusive, what it may send and who sends a notification | [`protocol/specs/src/control/methods.json`](https://github.com/xynolog/protocol/blob/main/specs/src/control/methods.json), through `api` |
 | `servicetables` | Every table the services keep to, each a value of `api`'s type of its own schema (`ArchivistLayout`, `JobsBudgets`, `BusReplyBounds`, `WorkerAnswerFormats`, …) | the services' tables in [`protocol/specs/src`](https://github.com/xynolog/protocol/tree/main/specs/src), through `api` |

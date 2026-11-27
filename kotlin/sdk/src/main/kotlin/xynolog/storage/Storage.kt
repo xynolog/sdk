@@ -6,6 +6,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import xynolog.Timings
 import xynolog.cache.CachePersister
 import xynolog.types.wireJson
 import java.math.BigDecimal
@@ -82,13 +83,12 @@ public class CachePersistence(public val storage: SessionStorage, public val kbI
  * A cache's values in `storage`, under `storageKey`, as one document,
  * session/stored.json's `cacheDocument`: `{version, entries}`, each entry a
  * key, its value, and when that value was received, in milliseconds since the
- * epoch. `key` and `value` say how each is read and written, `version` which
- * documents are this cache's to read, and `maxBytes` how large the document
- * may be. A document that is not one of this version (no JSON, no object,
+ * epoch. `key` and `value` say how each is read and written, and `version`
+ * which documents are this cache's to read. A document that is not one of this version (no JSON, no object,
  * `entries` no list, or an entry not a key, a value and a whole number of at
  * least 0) reads as nothing kept; an entry whose key or value is not this
- * cache's is skipped, and the rest are kept. A document larger than it may be
- * loses the entries received longest ago, until it fits.
+ * cache's is skipped, and the rest are kept. A document larger than
+ * `maxStoredBytesCount` loses the entries received longest ago, until it fits.
  */
 public class StoragePersister<K : Any, V : Any>(
     private val storage: SessionStorage,
@@ -96,7 +96,6 @@ public class StoragePersister<K : Any, V : Any>(
     private val key: KSerializer<K>,
     private val value: KSerializer<V>,
     private val version: Long,
-    private val maxBytes: Long,
 ) : CachePersister<K, V> {
     /** Each key's value as last written, and when it was received: a value received again unchanged keeps its time. */
     private var written = mapOf<String, Pair<String, BigDecimal>>()
@@ -150,10 +149,10 @@ public class StoragePersister<K : Any, V : Any>(
         }.toMutableList()
         fun document() = "{\"version\":$version,\"entries\":[${stored.joinToString(",") { (k, v, at) -> "[$k,$v,${at.toPlainString()}]" }}]}"
         var text = document()
-        if (text.toByteArray().size > maxBytes) {
+        if (text.toByteArray().size > Timings.MAX_STORED_BYTES_COUNT) {
             // The entries received longest ago are the first to go.
             stored.sortBy { it.third }
-            while (stored.isNotEmpty() && text.toByteArray().size > maxBytes) {
+            while (stored.isNotEmpty() && text.toByteArray().size > Timings.MAX_STORED_BYTES_COUNT) {
                 stored.removeAt(0)
                 text = document()
             }

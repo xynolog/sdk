@@ -172,7 +172,7 @@ describe('liveness axioms over the real BrowseNamespace composition', () => {
           transport,
           bus,
           contentTransportSpies(),
-          { busTimeoutMs: TIMEOUT_MS },
+          { timing: { busRequestTimeoutMs: TIMEOUT_MS } },
         );
 
         const outputs = rids.flatMap((rid) => loaderOutputs(browse, rid));
@@ -235,7 +235,7 @@ describe('liveness axioms over the real BrowseNamespace composition', () => {
           transport,
           bus,
           contentTransportSpies(),
-          { busTimeoutMs: TIMEOUT_MS },
+          { timing: { busRequestTimeoutMs: TIMEOUT_MS } },
         );
 
         const outputs = rids.flatMap((rid) => loaderOutputs(browse, rid));
@@ -278,7 +278,7 @@ describe('liveness axioms over the real BrowseNamespace composition', () => {
       transport,
       bus,
       contentTransportSpies(),
-      { busTimeoutMs: TIMEOUT_MS },
+      { timing: { busRequestTimeoutMs: TIMEOUT_MS } },
     );
 
     try {

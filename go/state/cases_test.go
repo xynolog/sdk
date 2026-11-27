@@ -32,6 +32,7 @@ import (
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/timing"
 	"github.com/xynolog/sdk/go/state"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
@@ -164,14 +165,40 @@ func durationOf(value any) (time.Duration, error) {
 	}
 }
 
-// timingNamed is the timing table's row of that name, as this SDK's Timing
-// holds it: "delegateSilenceMs" is Timing.DelegateSilence.
-func timingNamed(name string) (time.Duration, error) {
-	field := reflect.ValueOf(xynolog.DefaultTiming()).FieldByName(goName(strings.TrimSuffix(name, "Ms")))
-	if !field.IsValid() || field.Type() != reflect.TypeFor[time.Duration]() {
-		return 0, fmt.Errorf("%s is no duration of this SDK's timing", name)
+// timingValues is each value protocol/specs/src/client/timing.json states, by
+// its row's name.
+var timingValues = sync.OnceValues(func() (map[string]json.RawMessage, error) {
+	text, err := os.ReadFile("../../protocol/specs/src/client/timing.json")
+	if err != nil {
+		return nil, err
 	}
-	return time.Duration(field.Int()), nil
+	var table struct {
+		Timing []struct {
+			Name  string          `json:"name"`
+			Value json.RawMessage `json:"value"`
+		} `json:"timing"`
+	}
+	if err := json.Unmarshal(text, &table); err != nil {
+		return nil, err
+	}
+	values := map[string]json.RawMessage{}
+	for _, row := range table.Timing {
+		values[row.Name] = row.Value
+	}
+	return values, nil
+})
+
+// timingNamed is the duration the timing table states under name.
+func timingNamed(name string) (time.Duration, error) {
+	values, err := timingValues()
+	if err != nil {
+		return 0, err
+	}
+	var ms int64
+	if !strings.HasSuffix(name, "Ms") || json.Unmarshal(values[name], &ms) != nil {
+		return 0, fmt.Errorf("%s is no duration of the timing table", name)
+	}
+	return time.Duration(ms) * time.Millisecond, nil
 }
 
 // goName is a name as the table spells it, as Go spells it.
@@ -351,7 +378,7 @@ var makers = map[string]func(r *run, made map[string]any) (xynolog.StateUnit, er
 		return state.NewGatherStateUnit(r.client, resource), nil
 	},
 	"search": func(r *run, made map[string]any) (xynolog.StateUnit, error) {
-		debounce := xynolog.DefaultTiming().SearchDebounce
+		debounce := timing.SearchDebounce
 		if stated, ok := made["debounceMs"]; ok {
 			var err error
 			if debounce, err = durationOf(stated); err != nil {
@@ -711,7 +738,7 @@ func play(c stateCase, fixtures map[string]any) (failure error) {
 	if err != nil {
 		return err
 	}
-	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Transport: transport, Timing: xynolog.DefaultTiming()})
+	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Transport: transport, Timing: xynolog.DefaultClientTiming()})
 	r := &run{fixtures: fixtures, client: made.Client, transport: transport, searches: &searches{}, kind: c.Unit, units: map[string]xynolog.StateUnit{}}
 	listening, stopListening := context.WithCancel(context.Background())
 	defer func() {

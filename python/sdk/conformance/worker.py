@@ -26,7 +26,24 @@ from opentelemetry import context as otel_context
 from opentelemetry import trace as otel_trace
 from opentelemetry.context import Context
 from opentelemetry.trace import Span, SpanKind
-from protocol import Arguments, Misuse, Operation, count, exporting, failure, object_of, say, serve, text, texts
+from protocol import (
+    CLIENT_ROWS,
+    TRANSPORT_ROWS,
+    Arguments,
+    Misuse,
+    Operation,
+    client_timing,
+    count,
+    exporting,
+    failure,
+    object_of,
+    say,
+    serve,
+    text,
+    texts,
+    timing_of,
+    transport_timing,
+)
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog import telemetry
@@ -34,7 +51,7 @@ from xynolog.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, Claims, Held
 from xynolog.client import XynologClient
 from xynolog.errors import XynologError
 from xynolog.events import Events
-from xynolog.http import HttpTransport, Timing
+from xynolog.http import HttpTransport
 from xynolog.identifiers import InvalidIdentifier, ResourceId
 from xynolog.model import stated, written
 from xynolog.transport import ConnectionState, ResourceHold
@@ -72,35 +89,6 @@ _ANNOTATIONS: Final = TypeAdapter[list[Annotation]](list[Annotation])
 
 _CLAIM_WAITS: Final = frozenset(field.alias or name for name, field in ClaimOptions.model_fields.items() if name != "accepts")
 """The waits a worker's claiming is told, by their names in `protocol/specs/src/client/timing.json`."""
-
-
-def _timings(stated: Arguments) -> tuple[Timing, dict[str, int]]:
-    """The timing a case states, each by its name in `protocol/specs/src/client/timing.json`: the transport's, and its claiming's."""
-    known = Timing()
-    reconnect_ms, lazy_remove_ms, linger_ms = known.reconnect_ms, known.lazy_remove_ms, known.linger_ms
-    waits: dict[str, int] = {}
-    for name in stated:
-        match name:
-            case "reconnectMs":
-                reconnect_ms = count(stated, name)
-            case "lazyRemoveMs":
-                lazy_remove_ms = count(stated, name)
-            case "lingerMs":
-                linger_ms = count(stated, name)
-            case wait if wait in _CLAIM_WAITS:
-                waits[wait] = count(stated, name)
-            case _:
-                raise Misuse(f"this driver cannot override {name}")
-    return (
-        Timing(
-            reconnect_ms=reconnect_ms,
-            lazy_remove_ms=lazy_remove_ms,
-            linger_ms=linger_ms,
-            emit_retry=known.emit_retry,
-            seen_event_ids_count=known.seen_event_ids_count,
-        ),
-        waits,
-    )
 
 
 def _as_the_suite_wrote_it[T](shape: TypeAdapter[T], value: object, name: str) -> T:
@@ -199,7 +187,9 @@ class Worker:
     async def open(self, _: int, args: Arguments) -> JsonValue:
         if self._client is not None:
             raise Misuse("a transport is already open")
-        wire, self._waits = _timings(object_of(args, "timing") if "timing" in args else {})
+        timed = timing_of(args, TRANSPORT_ROWS, CLIENT_ROWS, _CLAIM_WAITS)
+        wire, timing = transport_timing(timed), client_timing(timed)
+        self._waits = {name: count(timed, name) for name in timed if name in _CLAIM_WAITS}
         commits = args.get("commits", False)
         if not isinstance(commits, bool):
             raise Misuse("commits must be a boolean")
@@ -208,7 +198,7 @@ class Worker:
         channels = [*JOB_CLAIM_CHANNELS, *JOB_COMMIT_CHANNELS] if commits else list(JOB_CLAIM_CHANNELS)
         transport = HttpTransport(text(args, "baseUrl"), token=Variable[str | None](text(args, "token")), channels=channels, timing=wire)
         self._transport = await self._held.enter_async_context(transport)
-        self._client = await self._held.enter_async_context(XynologClient(transport, transport.content, transport))
+        self._client = await self._held.enter_async_context(XynologClient(transport, transport.content, transport, timing=timing))
         self._reporters.create_task(self._states(transport))
         self._reporters.create_task(self._failures(transport.failures()))
         return None

@@ -58,7 +58,12 @@ import {
   type AccessToken,
   type BaseUrl,
 } from '@xynolog/core';
-import type { components, StateUnit } from '@xynolog/core';
+import type {
+  ClientTiming,
+  components,
+  StateUnit,
+  TransportTiming,
+} from '@xynolog/core';
 import {
   XynologClient,
   APIError,
@@ -729,6 +734,8 @@ export class XynologSession implements StateUnit {
    * The remaining options (`refresh`, `validate`, `onAuthFailed`) match
    * `XynologSessionConfig` exactly. `fetch` is what every
    * request of the transport is sent with; absent, the runtime's own.
+   * `clientTiming` is the client's `timing`, and `transportTiming` the
+   * transport's.
    */
   static fromHttp(opts: {
     kb: KbTarget;
@@ -736,6 +743,8 @@ export class XynologSession implements StateUnit {
     baseUrl: BaseUrl | string;
     token?: AccessToken | string | null;
     fetch?: typeof fetch;
+    clientTiming?: Partial<ClientTiming>;
+    transportTiming?: Partial<TransportTiming>;
     refresh?: (holding: string | null) => Promise<string | null>;
     validate?: (token: AccessToken) => Promise<UserInfo | null>;
     onAuthFailed?: (reason: SessionEndReason) => void;
@@ -785,15 +794,16 @@ export class XynologSession implements StateUnit {
         ? {}
         : { loadLastEventIds: keeps.fromStart.places.loadLastEventIds }),
       ...(opts.fetch ? { fetch: opts.fetch } : {}),
+      ...(opts.transportTiming ? { timing: opts.transportTiming } : {}),
     });
     const content = new HttpContentTransport(transport);
     const fromStart = keeps === null ? null : keeps.fromStart;
-    const client = new XynologClient(
-      transport,
-      content,
-      transport,
-      fromStart === null ? {} : { cachePersistence: fromStart.persistence },
-    );
+    const client = new XynologClient(transport, content, transport, {
+      ...(fromStart === null
+        ? {}
+        : { cachePersistence: fromStart.persistence }),
+      ...(opts.clientTiming ? { timing: opts.clientTiming } : {}),
+    });
     if (fromStart !== null) fromStart.places.coupleTo(client);
     const config: XynologSessionConfig = {
       kb: opts.kb,
@@ -846,7 +856,8 @@ export class XynologSession implements StateUnit {
    * unless `validate` is false; left out, it is true. The
    * session's `ready` has resolved when this returns. Gives it with the
    * client it was built with, as `fromHttp` does. The gateway and the issuer
-   * are asked with `fetch`, or the runtime's own. Throws a
+   * are asked with `fetch`, or the runtime's own. `clientTiming` and
+   * `transportTiming` are as `fromHttp`'s. Throws a
    * `XynologSessionError` (`session.construct-failed`), before anything is
    * asked, for a knowledge base that is not reached over HTTP, and what
    * reading the kept sign-in threw, when it cannot be read.
@@ -868,6 +879,8 @@ export class XynologSession implements StateUnit {
     kept: SignInKept;
     storage?: SessionStorage;
     fetch?: typeof fetch;
+    clientTiming?: Partial<ClientTiming>;
+    transportTiming?: Partial<TransportTiming>;
     /** Whether the session asks the gateway who its token is. True when left out. */
     validate?: boolean;
     onAuthFailed?: (reason: SessionEndReason) => void;
@@ -898,6 +911,10 @@ export class XynologSession implements StateUnit {
           return renewing;
         },
         ...(opts.fetch ? { fetch: opts.fetch } : {}),
+        ...(opts.clientTiming ? { clientTiming: opts.clientTiming } : {}),
+        ...(opts.transportTiming
+          ? { transportTiming: opts.transportTiming }
+          : {}),
         ...(asks
           ? {
               validate: (token: AccessToken) =>

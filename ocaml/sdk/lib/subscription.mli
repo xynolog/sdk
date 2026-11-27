@@ -15,19 +15,6 @@ type snapshot = {
   pending_replies : string list;
 }
 
-type timing = {
-  stream_open_timeout_ms : int;
-  reconnect_ms : int;
-  max_reconnect_ms : int;
-  degraded_threshold_ms : int;
-  reconnect_debounce_ms : int;
-  lazy_remove_ms : int;
-  linger_ms : int;
-  bus_request_timeout_ms : int;
-}
-
-val default_timing : timing
-
 type open_error = Retry | Retry_after of int | No_credential
 
 type credential_error =
@@ -53,7 +40,7 @@ val authenticated :
 val encode_subscription : snapshot -> (string, Models.decode_error) result
 
 val start :
-  ?timing:timing ->
+  ?timing:Client_timing.transport ->
   ?telemetry:Telemetry.t ->
   ?positions:(string * string) list ->
   sw:Eio.Switch.t ->
@@ -96,7 +83,7 @@ type request_error =
 
 val request :
   t ->
-  ?timeout_ms:int ->
+  timeout_ms:int ->
   ?normalize_refusals:bool ->
   correlation_id:string ->
   ('request, 'result, 'failure) Bus_registry.operation ->

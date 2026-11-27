@@ -5,10 +5,10 @@ import Xynolog.Bus qualified as Bus
 import Xynolog.Channels
 import Xynolog.Internal.Cache qualified as Cache
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Queries (cacheOptions, oneReport)
 import Xynolog.Internal.Refresh qualified as Refresh
 import Xynolog.Internal.Running qualified as Running
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -22,7 +22,7 @@ newGather wire carrier clock timing =
           getReferencedByResponseReferencedBy . gatherReferencedByResultResponse
             <$> Bus.request wire GatherReferencedByRequestedOperation (GatherReferencedByRequest {gatherReferencedByRequestMotivation = Nothing, gatherReferencedByRequestResourceId = identity}) (Timing.busRequestTimeoutMs timing)
       )
-      (cacheOptions clock timing (Transport.subscribeToResource carrier))
+      (cacheOptions clock (Transport.subscribeToResource carrier))
 
 annotation :: GatherNamespace -> ResourceId -> AnnotationId -> Maybe GatherAnnotationOptions -> IO (Running.Running GatherAnnotationComplete GatherAnnotationComplete)
 annotation (GatherNamespace wire timing _) identity mark options =
