@@ -271,13 +271,14 @@ let timings (entries : Timing.Table.t) =
 
 (* Error codes *)
 
+(* Each failure vocabulary's enum, named as the error codes' table names it
+   for every SDK. *)
 let error_codes models ~shapes (codes : Error_codes.Table.t) =
   let wire_codes = Error_codes.Table.wire_codes in
   let enums =
     List.map
       (fun (v : Error_codes.Table.vocabulary) ->
-        string_enumeration [ "public" ]
-          (snd (Code_names.named v.member))
+        string_enumeration [ "public" ] v.go_name
           (List.map (fun (c : Error_codes.Table.code) -> c.code) v.codes))
       (List.sort
          (fun (a : Error_codes.Table.vocabulary) b ->
