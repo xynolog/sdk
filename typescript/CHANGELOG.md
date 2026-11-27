@@ -109,6 +109,10 @@ the coming release's, and gathers its changes as they land.
   `string`. A browser's `File` is one as it is.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- So is one in the emit reply, and in the open resources and last-viewed a
+  browser keeps. A reply that does not read is no count, and a stored entry
+  that does not read is none. A write from another context that does not
+  read leaves the current state as it was.
 - `GetAnnotationsResponse`'s `motivation` is an optional `Motivation`, where
   it was `Motivation | null`. Protocol no longer allows it to be null: a null
   for it is refused as malformed.

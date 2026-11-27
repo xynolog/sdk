@@ -31,7 +31,7 @@ from typing import Final, Protocol, final, get_args, override
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog._discovery_url_path import DISCOVERY_URL_PATH
-from xynolog.required import fault_of
+from xynolog.required import Fault, read_as
 from xynolog.timing import DISCOVERY_INTERVAL_MS
 from xynolog.types import (
     DiscoveredKB,
@@ -78,11 +78,6 @@ class DiscoveryTransport(Protocol):
         ...
 
 
-def _where(location: tuple[int | str, ...]) -> str:
-    """A place in the document, as `kbs[1].did` names one."""
-    return "".join(f"[{step}]" if isinstance(step, int) else f".{step}" for step in location).removeprefix(".")
-
-
 def parse_discovery_document(text: str) -> DiscoveryState:
     """The document's text as a state. Every reader goes through this."""
     try:
@@ -100,14 +95,10 @@ def parse_discovery_document(text: str) -> DiscoveryState:
             reason="unsupported-version",
             diagnostic=f"discovery document version {version} is not the one this client speaks ({_VERSION}); it is not read in part",
         )
-    if (fault := fault_of(DiscoveryDocument, parsed)) is not None:
-        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic=str(fault))
-    try:
-        # Strictly: a port written as text, or a name written as a number, is not the schema's.
-        document = DiscoveryDocument.model_validate_json(text, strict=True)
-    except ValidationError as error:
-        first = error.errors()[0]
-        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic=f"{_where(first['loc'])}: {first['msg']}")
+    # Strictly: a port written as text, or a name written as a number, is not the schema's.
+    document = read_as(DiscoveryDocument, text, lambda read: DiscoveryDocument.model_validate(read, strict=True))
+    if isinstance(document, Fault):
+        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic=f"the document is no discovery document: {document}")
     return DiscoveryManaged(kind="managed", kbs=document.kbs)
 
 

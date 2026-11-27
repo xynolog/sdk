@@ -7,7 +7,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
 import xynolog.Timings
 import xynolog.bus.UNDECODED
 import xynolog.bus.faultIn
@@ -91,12 +90,12 @@ internal fun refusal(message: String, status: Int, body: ByteArray?, statedWaitM
 
 private fun limitRefusalTransportCode(status: Int, body: ByteArray?): TransportErrorCode? {
     if (body == null) return null
+    val text = body.toString(Charsets.UTF_8)
+    // Not a limit this build can name: a limit all the same, as its status says.
+    if (faultIn(LimitRefusal.serializer().descriptor, text) != null) return null
     val limit =
         try {
-            wireJson.decodeFromString(LimitRefusal.serializer(), body.toString(Charsets.UTF_8))
-        } catch (_: SerializationException) {
-            // Not a limit this build can name: a limit all the same, as its status says.
-            return null
+            wireJson.decodeFromString(LimitRefusal.serializer(), text)
         } catch (_: IllegalArgumentException) {
             return null
         }
@@ -104,14 +103,15 @@ private fun limitRefusalTransportCode(status: Int, body: ByteArray?): TransportE
 }
 
 /** The gateway's words for a refusal, when its body states them; null when it does not. */
-internal fun said(body: ByteArray?): String? =
-    try {
-        body?.let { wireJson.decodeFromString(ErrorResponse.serializer(), it.toString(Charsets.UTF_8)).error }
-    } catch (_: SerializationException) {
-        null
+internal fun said(body: ByteArray?): String? {
+    val text = body?.toString(Charsets.UTF_8) ?: return null
+    if (faultIn(ErrorResponse.serializer().descriptor, text) != null) return null
+    return try {
+        wireJson.decodeFromString(ErrorResponse.serializer(), text).error
     } catch (_: IllegalArgumentException) {
         null
     }
+}
 
 /**
  * A transport's requests of its gateway that are neither its stream nor an

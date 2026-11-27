@@ -91,6 +91,8 @@ def test_a_document_of_knowledge_bases_is_managed_and_one_of_none_is_managed_too
         (document({"host": "localhost", "port": "4000", "placement": "local", "managedBy": "x", "did": A}), "invalid"),
         (document(entry("localhost", 0, A)), "invalid"),
         (document({"host": "localhost", "port": 70000, "placement": "local", "managedBy": "x", "did": A}), "invalid"),
+        # A null where an entry allows none is refused, not read as absent.
+        (document({**entry("localhost", 4000, A), "siteName": None}), "invalid"),
     ],
 )
 def test_what_is_not_a_document_is_absent_and_says_why(text: str, expected: DiscoveryAbsentReason) -> None:

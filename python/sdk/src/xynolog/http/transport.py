@@ -17,7 +17,7 @@ from types import TracebackType
 from typing import Final, Self, final, override
 
 import httpx
-from pydantic import JsonValue, ValidationError
+from pydantic import JsonValue
 
 from xynolog import telemetry
 from xynolog._bus_log import bus_log
@@ -42,6 +42,7 @@ from xynolog.http.gateway_http import (
 )
 from xynolog.http.stream import Bookmarks, Stream
 from xynolog.identifiers import ResourceId
+from xynolog.required import Fault, read_as
 from xynolog.retry import BOOT, RetryFacts, retry_after_ms, retry_with_backoff
 from xynolog.timing import EMIT_TIMEOUT_MS, TransportTiming
 from xynolog.transport import (
@@ -346,11 +347,9 @@ class HttpTransport(Transport, GatewayOperations):
             )
         # No count is reported as no count, never as a zero: an absent
         # `subscribers` is the gateway saying it could not count, and a body
-        # that is not the declared one says nothing at all.
-        try:
-            return BusEmitAccepted.model_validate_json(response.content).subscribers
-        except ValidationError:
-            return None
+        # that is no BusEmitAccepted, as the table holds it, says nothing at all.
+        accepted = read_as(BusEmitAccepted, response.content, BusEmitAccepted.model_validate)
+        return None if isinstance(accepted, Fault) else accepted.subscribers
 
     @override
     async def get_current_user(self) -> UserResponse:

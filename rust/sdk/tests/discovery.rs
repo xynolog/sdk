@@ -93,6 +93,13 @@ fn what_is_not_a_document_is_absent_and_says_why() {
             Invalid,
         ),
         (document(&[entry("localhost", 0, A)]), Invalid),
+        // A null where an entry allows none is refused, not read as absent.
+        (
+            document(&[
+                json!({ "host": "localhost", "port": 4000, "placement": "local", "managedBy": "x", "did": A, "siteName": null }),
+            ]),
+            Invalid,
+        ),
         (
             document(&[
                 json!({ "host": "localhost", "port": 70000, "placement": "local", "managedBy": "x", "did": A }),

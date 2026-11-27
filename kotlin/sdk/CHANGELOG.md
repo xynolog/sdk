@@ -115,6 +115,10 @@ the coming release's, and gathers its changes as they land.
   `PersistedEventId` by that schema's name.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- So is one in what the SDK reads beside a request's answer: the emit reply,
+  the job anchor, a 429's and an error's body, the stored session and
+  knowledge bases, the pending sign-in, and open resources. Each takes the way
+  it already had for what does not read.
 - `GetAnnotationsResponse.motivation` is a `Motivation?`, absent when null,
   where it was a `Stated<Motivation>`, and carries Protocol's description of
   it; its builder's `motivation(null)` leaves it absent. Protocol no longer

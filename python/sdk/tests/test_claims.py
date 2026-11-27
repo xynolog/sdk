@@ -586,6 +586,42 @@ def test_a_held_job_says_its_whole_lifecycle_itself() -> None:
     run(scenario())
 
 
+def test_a_yield_job_whose_context_is_no_gathered_context_is_anchored_to_none() -> None:
+    # A null where the context allows none is refused, not read as absent.
+    async def scenario() -> None:
+        w = World(channels=WORKER)
+        w.offered.append(
+            running(
+                "job-1",
+                "yield",
+                metadata={"maxRetries": 0},
+                params={
+                    "context": {
+                        "focus": {
+                            "kind": "annotation",
+                            "annotation": annotation("ann-7"),
+                            "sourceResource": {
+                                "@context": "https://schema.org",
+                                "@id": "res-1",
+                                "name": "A resource",
+                                "representations": [],
+                            },
+                        },
+                        "graph": {"nodes": [], "edges": []},
+                        "metadata": {},
+                        "semanticContext": None,
+                    }
+                },
+            )
+        )
+        async with w.client.job.claim(ClaimOptions(accepts=EVERYTHING)) as claims:
+            job = await held(claims)
+            assert isinstance(job, HeldYieldJob)
+            assert job.annotation_id is None
+
+    run(scenario())
+
+
 def test_a_yield_job_focused_on_an_annotation_is_anchored_to_it_and_says_so() -> None:
     async def scenario() -> None:
         w = World(channels=WORKER)
@@ -603,7 +639,6 @@ def test_a_yield_job_focused_on_an_annotation_is_anchored_to_it_and_says_so() ->
                                 "@context": "https://schema.org",
                                 "@id": "res-1",
                                 "name": "A resource",
-                                "description": None,
                                 "representations": [],
                             },
                         },

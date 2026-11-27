@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+
+	"github.com/xynolog/sdk/go/internal/required"
 )
 
 // Channel is a bus channel's name: what a channel chosen at run time is
@@ -101,7 +103,11 @@ func own[E any](recorded Channel, stored any) (E, error) {
 	if held.Type != string(recorded) {
 		return event, fmt.Errorf("%s %s is not a %s event", held.Type, held.ID, recorded)
 	}
-	if err := json.Unmarshal(held.Payload, &event); err != nil {
+	read, fault, faulty := required.Read(held.Payload, reflect.TypeFor[E]())
+	if faulty {
+		return event, fmt.Errorf("the payload of %s %s is not its event's: %s", held.Type, held.ID, fault)
+	}
+	if err := json.Unmarshal(read, &event); err != nil {
 		return event, err
 	}
 	return event, nil

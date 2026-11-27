@@ -1179,3 +1179,18 @@ func TestClosingDoesNotWaitForAFactoryThatDoesNotHearTheRegistryEnd(t *testing.T
 		}
 	})
 }
+
+// Where the person was in each knowledge base is read as the table holds it:
+// a null where a resource id allows none is refused, not read as no id, and
+// none of what is stored is read.
+func TestWhereThePersonWasIsNotReadWhenAKnowledgeBaseHoldsANull(t *testing.T) {
+	bubble(t, func(t *testing.T, w *world) {
+		w.with(kbOfA())
+		must(t, w.storage.Set(registry.LastViewedResourceByKbKey, `{"kb-a":"r1","kb-b":null}`))
+		browser := w.browser()
+		live(t, browser)
+		if viewed := browser.LastViewedResource().Value(); !viewed.IsZero() {
+			t.Errorf("last viewed %v, read from a document with a null", viewed)
+		}
+	})
+}

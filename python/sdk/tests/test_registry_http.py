@@ -8,6 +8,7 @@ sign-in's question ask of each, and what they keep, is what these tests hold.
 """
 
 import asyncio
+import json
 from collections.abc import Callable
 from typing import Final, final
 from urllib.parse import parse_qs, urlsplit
@@ -662,6 +663,35 @@ def test_what_is_pending_and_does_not_read_as_a_sign_in_is_no_sign_in_and_is_tak
         with pytest.raises(SignInError) as refused:
             await complete_authorization(f"{REDIRECT}?state=s&code=the-code", storage)
         assert (refused.value.code, refused.value.message) == ("no-pending", "No sign-in is pending here")
+        assert storage.get(PENDING_AUTHORIZATION_KEY) is None
+
+    run(scenario())
+
+
+def test_what_is_pending_with_a_null_where_a_sign_in_allows_none_is_no_sign_in_and_is_taken() -> None:
+    # A null is refused, not read as absent.
+    async def scenario() -> None:
+        storage = MemoryStorage()
+        storage.set(
+            PENDING_AUTHORIZATION_KEY,
+            json.dumps(
+                {
+                    "state": "s",
+                    "verifier": "v",
+                    "redirectUri": REDIRECT,
+                    "target": {"kind": "http", "host": "localhost", "port": 4000, "protocol": "http"},
+                    "issuer": {
+                        "issuer": "https://issuer.test",
+                        "authorization": "https://issuer.test/auth",
+                        "token": "https://issuer.test/token",
+                    },
+                    "kbId": None,
+                }
+            ),
+        )
+        with pytest.raises(SignInError) as refused:
+            await complete_authorization(f"{REDIRECT}?state=s&code=the-code", storage)
+        assert refused.value.code == "no-pending"
         assert storage.get(PENDING_AUTHORIZATION_KEY) is None
 
     run(scenario())

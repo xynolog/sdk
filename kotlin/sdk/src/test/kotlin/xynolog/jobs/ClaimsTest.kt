@@ -407,6 +407,34 @@ class ClaimsTest {
     }
 
     @Test
+    fun aYieldJobWhoseContextIsNoGatheredContextIsAnchoredToNone() = runTest(timeout = LIMIT) {
+        // A null where the context allows none is refused, not read as absent.
+        val w = World(this, WORKER)
+        w.desk.offered += running(
+            "job-1",
+            "yield",
+            metadata = obj("maxRetries" to 0),
+            params = obj(
+                "context" to obj(
+                    "focus" to obj(
+                        "kind" to "annotation",
+                        "annotation" to annotation("ann-7"),
+                        "sourceResource" to obj("@context" to "https://schema.org", "@id" to "res-1", "name" to "A resource", "representations" to JsonArray(emptyList())),
+                    ),
+                    "graph" to obj("nodes" to JsonArray(emptyList()), "edges" to JsonArray(emptyList())),
+                    "metadata" to obj(),
+                    "semanticContext" to null,
+                ),
+            ),
+        )
+        val claims = w.client.job.claim(ClaimOptions(EVERYTHING))
+        val job = assertInstanceOf(HeldYieldJob::class.java, held(claims))
+        assertNull(job.annotationId)
+        claims.stop()
+        w.over()
+    }
+
+    @Test
     fun aYieldJobFocusedOnAnAnnotationIsAnchoredToItAndSaysSo() = runTest(timeout = LIMIT) {
         val w = World(this, WORKER)
         w.desk.offered += running(

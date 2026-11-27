@@ -12,11 +12,10 @@ from pydantic import JsonValue, ValidationError
 
 from xynolog import telemetry
 from xynolog.bus import Bus, Delivered, decoded, reply_channels_for
-from xynolog.channel import Empty
 from xynolog.channels import BECKON_FOCUS, BECKON_HOVER, JOB_CREATE, JOB_QUEUED, MARK_ARCHIVED, MARK_DELETE, PANEL_CLOSE
 from xynolog.errors import BusRequestError, TransportError
 from xynolog.identifiers import AnnotationId, JobId, ResourceId
-from xynolog.model import stated, written
+from xynolog.model import Empty, stated, written
 from xynolog.operations import (
     BROWSE_KB_REQUESTED,
     FRAME_ADD_ENTITY_TYPE,
