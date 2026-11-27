@@ -18,7 +18,8 @@
 use crate::bus::{Typed, payload_of};
 use crate::channels::Channel;
 use crate::errors::TransportError;
-use crate::transport::{Broadcast, Envelope, Events, Frame, FrameRefusal, Lagged, STREAM_BACKLOG};
+use crate::transport::{Broadcast, Envelope, Events, Frame, Lagged, STREAM_BACKLOG};
+use crate::types::FrameRefusal;
 use crate::types::{BusFrame, ResourceId};
 use futures_core::Stream;
 use serde_json::{Map, Value};

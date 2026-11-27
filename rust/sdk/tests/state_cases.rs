@@ -35,8 +35,9 @@ use xynolog::state_unit::StateUnit;
 use xynolog::testing::{
     FaultAction, FaultyTransport, RequestLogEntry, TestClientOptions, create_test_client,
 };
-use xynolog::transport::{Envelope, Frame, FrameRefusal, Lagged};
+use xynolog::transport::{Envelope, Frame, Lagged};
 use xynolog::types::BusFrame;
+use xynolog::types::FrameRefusal;
 use xynolog::types::{
     GatherAnnotationOptions, GatherResourceOptions, GenerationJobParams, MarkJobParams,
 };
