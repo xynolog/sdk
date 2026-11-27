@@ -84,7 +84,10 @@ the coming release's, and gathers its changes as they land.
   tells one apart with `instanceof Refused` or by its `status`, and reads
   `refused.refusal.member` where it read `refusal.member`. Its `channel` is a
   `string`, as Protocol states it, where it was a `keyof EventMap`. A refusal
-  is made as `new Refused({ channel, member, reason, payload })`.
+  is made as `new Refused({ channel, member, reason, payload })`. A refusal
+  of a frame delivered on a resource's scope carries that `scope`, as every
+  SDK's does, and `asDeclared` takes the frame's envelope where it took its
+  correlation id.
 - A value's first fault is `Fault`, the type of Protocol's
   `client/types/Fault.json`, where `@xynolog/core` declared an interface of
   its own.

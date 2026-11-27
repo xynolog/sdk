@@ -166,6 +166,7 @@ function framed<K extends keyof EventMap>(
         member: frame.fault.member,
         reason: frame.fault.reason,
         payload: frame.payload,
+        ...(frame.scope !== undefined ? { scope: frame.scope } : {}),
         ...(frame.correlationId !== undefined
           ? { correlationId: frame.correlationId }
           : {}),

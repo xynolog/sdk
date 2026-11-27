@@ -233,14 +233,15 @@ function readAs<K extends keyof EventMap>(
  * `payload` as `channel` types it (`readAs`): the rule every SDK's typed read
  * keeps. A payload with a fault as its channel's is not its channel's: its
  * frame's refusal is given in its place, naming the fault by its way from the
- * frame and carrying the frame's `correlationId`, as every SDK's typed read
+ * frame and carrying the frame's `scope` and `correlationId`, as every SDK's
+ * typed read
  * gives one. A refusal, which a transport delivers in place of a frame it
  * refused, a bus it bridged into carries and a relay passes on, is one already.
  */
 export function asDeclared<K extends keyof EventMap>(
   channel: K,
   payload: EventMap[K] | Refused,
-  correlationId: string | undefined,
+  envelope: BusEnvelope,
 ): EventMap[K] | Refused {
   if (payload instanceof Refused) return payload;
   const read = readAs(channel, payload);
@@ -250,7 +251,10 @@ export function asDeclared<K extends keyof EventMap>(
       member: within('payload', read.fault.member),
       reason: read.fault.reason,
       payload,
-      ...(correlationId !== undefined ? { correlationId } : {}),
+      ...(envelope.scope !== undefined ? { scope: envelope.scope } : {}),
+      ...(envelope.correlationId !== undefined
+        ? { correlationId: envelope.correlationId }
+        : {}),
     });
   return read.payload;
 }
@@ -265,7 +269,7 @@ function heard<K extends keyof EventMap>(
   channel: K,
   frame: BusFrame<EventMap[K] | Refused>,
 ): Heard<EventMap[K]> {
-  const declared = asDeclared(channel, frame.payload, frame.correlationId);
+  const declared = asDeclared(channel, frame.payload, frame);
   if (declared instanceof Refused) return declared;
   const stamped = (frame.payload as Record<string, unknown>)[USER_FIELD];
   return {

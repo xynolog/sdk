@@ -391,11 +391,7 @@ export class FaultyTransport implements ITransport {
       {
         // A payload that is not its channel's is published as its refusal, as a wire transport's bridge does.
         emit: (channel, payload, envelope) =>
-          bus.emit(
-            channel,
-            asDeclared(channel, payload, envelope.correlationId),
-            envelope,
-          ),
+          bus.emit(channel, asDeclared(channel, payload, envelope), envelope),
       },
       [...this.channels, ...RESOURCE_SCOPED_CHANNELS],
       // `EventBus.emit` is synchronous, so this never fires.

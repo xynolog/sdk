@@ -332,14 +332,20 @@ describe('asDeclared', () => {
       _userId: 'did:web:example.org:users:a',
       _roles: ['admin'],
     };
-    expect(asDeclared('bus:resume-gap', stamped, undefined)).toStrictEqual(gap);
+    expect(asDeclared('bus:resume-gap', stamped, {})).toStrictEqual(gap);
     const more = { ...gap, more: 1 };
-    expect(asDeclared('bus:resume-gap', more, 'c-1')).toStrictEqual(
+    expect(
+      asDeclared('bus:resume-gap', more, {
+        scope: resourceId('res-2'),
+        correlationId: 'c-1',
+      }),
+    ).toStrictEqual(
       new Refused({
         channel: 'bus:resume-gap',
         member: 'payload.more',
         reason: 'malformed',
         payload: more,
+        scope: resourceId('res-2'),
         correlationId: 'c-1',
       }),
     );
