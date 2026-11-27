@@ -7,21 +7,10 @@ from typing import Annotated, Protocol, TypeAliasType, Union, final, get_args, g
 from pydantic import JsonValue, TypeAdapter
 
 from xynolog.model import WireModel, written
+from xynolog.required import Fault, as_read
 from xynolog.types import StoredEventResponse
 
-__all__ = ["AnyChannel", "AnyOperation", "Channel", "Empty", "Operation", "RecordedChannel", "Response", "ScopedChannel"]
-
-
-@final
-class Empty(WireModel, frozen=True, extra="forbid"):
-    """The payload of a channel that carries none: the empty object."""
-
-
-@final
-class Response[T](WireModel, frozen=True):
-    """The payload of a reply that wraps what it answers with: `{ response }`."""
-
-    response: T
+__all__ = ["AnyChannel", "AnyOperation", "Channel", "Operation", "RecordedChannel", "ScopedChannel"]
 
 
 class AnyChannel(Protocol):
@@ -120,7 +109,10 @@ def _own[E: WireModel](recorded: str, shape: type[E], stored: StoredEventRespons
     """
     if stored.type != recorded:
         raise ValueError(f"{stored.type} {stored.id} is not a {recorded} event")
-    return shape.model_validate(stored.payload)
+    read = as_read(shape, stored.payload)
+    if isinstance(read, Fault):
+        raise ValueError(f"the payload of {stored.type} {stored.id} is not its event's: {read}")
+    return shape.model_validate(read)
 
 
 @dataclass(frozen=True, slots=True)

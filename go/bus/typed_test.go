@@ -57,6 +57,19 @@ func TestAChannelOfTheRecordRefusesAStoredEventOfAnotherType(t *testing.T) {
 	}
 }
 
+// A stored event's payload is held to its event's schema: a null where it
+// allows none is refused, not read as absent.
+func TestAChannelOfTheRecordRefusesAPayloadThatIsNotItsEvents(t *testing.T) {
+	created := `{"name":"Doc","format":"text/plain","contentChecksum":"sha256:00"`
+	if read, err := YieldCreated.Event(stored(t, "yield:created", created+`}`)); err != nil || read.Name != "Doc" {
+		t.Errorf("a resource created is %+v, %v", read, err)
+	}
+	_, err := YieldCreated.Event(stored(t, "yield:created", created+`,"isDraft":null}`))
+	if err == nil || err.Error() != "the payload of yield:created 0e2f8c0a-4a34-4a8e-9b47-0d6d5a3f8a11 is not its event's: its `isDraft` is malformed" {
+		t.Errorf("a null isDraft was read: %v", err)
+	}
+}
+
 func TestTheEventsOfTheRecordAreTheRegistrysInItsOrder(t *testing.T) {
 	text, err := os.ReadFile("../../protocol/specs/src/bus/registry.json")
 	if err != nil {

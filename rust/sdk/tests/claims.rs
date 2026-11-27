@@ -1011,6 +1011,26 @@ async fn a_yield_job_focused_on_an_annotation_is_anchored_to_it_and_says_so() {
 }
 
 #[tokio::test(start_paused = true)]
+async fn a_yield_job_whose_context_is_no_gathered_context_is_anchored_to_none() {
+    // A null where the context allows none is refused, not read as absent.
+    let w = world();
+    let mut context = gathered(json!({
+        "kind": "annotation", "annotation": annotated("ann-7"), "sourceResource": described("res-1")
+    }));
+    context["semanticContext"] = Value::Null;
+    w.offer(running(
+        "job-1",
+        "yield",
+        json!({ "maxRetries": 0 }),
+        generation(context),
+    ));
+    let claims = w.claims(everything());
+    let job = held(&claims).await;
+    assert_eq!(job.annotation_id(), None);
+    job.cancel(None).await.expect("sent");
+}
+
+#[tokio::test(start_paused = true)]
 async fn job_start_is_a_held_jobs_first_message_said_once() {
     let w = world();
     w.offer(running("job-1", "mark", json!({}), json!({})));

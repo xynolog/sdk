@@ -9,7 +9,7 @@ use xynolog::bus::{Bus, StreamError};
 use xynolog::channels::{
     BRIDGED_CHANNELS, BeckonFocus, BrowseEntityTypesRequested, BrowseEntityTypesResult, Channel,
     JobCreate, MarkAdded, MarkArchived, MarkEntityTagAdded, MarkEntityTagRemoved, Recorded,
-    Request, YieldCreate,
+    Request, YieldCreate, YieldCreated,
 };
 use xynolog::errors::{TransportErrorCode, XynologError};
 use xynolog::testing::as_id;
@@ -342,7 +342,10 @@ fn a_recorded_channel_gives_the_events_own_payload() {
         "userId": "did:web:example.org:users:alice",
         "resourceId": "res-1",
         "version": 1,
-        "payload": { "annotation": annotation(json!([]), json!("res-1")) },
+        "payload": { "annotation": annotation(
+            json!({ "type": "TextualBody", "value": "a note", "purpose": "commenting" }),
+            json!("res-1"),
+        ) },
         "metadata": { "sequenceNumber": 3 },
     });
     let stored: <MarkAdded as Channel>::Payload =
@@ -374,4 +377,35 @@ fn a_recorded_channel_refuses_a_stored_event_of_another_type() {
     );
     let event = MarkEntityTagRemoved::event(&stored).expect("its payload is the channel's");
     assert_eq!(event.entity_type, "Person");
+}
+
+#[test]
+fn a_recorded_channel_refuses_a_payload_that_is_not_its_events() {
+    // A null where the event's schema allows none is refused, not read as
+    // absent.
+    let stored = |payload: Value| {
+        let stored = json!({
+            "id": "e-9",
+            "type": "yield:created",
+            "timestamp": "2026-10-01T12:00:00.000Z",
+            "userId": "did:web:example.org:users:alice",
+            "resourceId": "res-1",
+            "version": 1,
+            "payload": payload,
+            "metadata": { "sequenceNumber": 5 },
+        });
+        serde_json::from_value::<<YieldCreated as Channel>::Payload>(stored)
+            .expect("a stored event decodes")
+    };
+    let created = json!({"name": "Doc", "format": "text/plain", "contentChecksum": "sha256:00"});
+    let event =
+        YieldCreated::event(&stored(created.clone())).expect("its payload is the channel's");
+    assert_eq!(event.name, "Doc");
+    let mut nulled = created;
+    nulled["isDraft"] = Value::Null;
+    let refused = YieldCreated::event(&stored(nulled)).expect_err("a null isDraft is refused");
+    assert_eq!(
+        refused.to_string(),
+        "the payload of yield:created e-9 is not its event's: its `isDraft` is malformed"
+    );
 }

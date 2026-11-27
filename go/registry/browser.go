@@ -617,8 +617,11 @@ func openByKbOf(stored string, has bool) map[string][]api.OpenResource {
 // lastViewedByKbOf is what is stored of where the person was in each
 // knowledge base; none for what does not read as that.
 func lastViewedByKbOf(stored string, has bool) map[string]api.ResourceId {
-	viewed := map[string]api.ResourceId{}
-	if has && json.Unmarshal([]byte(stored), &viewed) != nil {
+	if !has {
+		return map[string]api.ResourceId{}
+	}
+	viewed, ok := required.ReadAs[map[string]api.ResourceId]([]byte(stored))
+	if !ok {
 		return map[string]api.ResourceId{}
 	}
 	return viewed
@@ -962,8 +965,8 @@ func (b *XynologBrowser) writtenElsewhere(key, value string, has bool) {
 		b.openByKb = open
 		b.mu.Unlock()
 	case LastViewedResourceByKbKey:
-		var viewed map[string]api.ResourceId
-		if json.Unmarshal([]byte(value), &viewed) != nil {
+		viewed, ok := required.ReadAs[map[string]api.ResourceId]([]byte(value))
+		if !ok {
 			return
 		}
 		b.mu.Lock()

@@ -2,6 +2,7 @@ package xynolog.http
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import xynolog.bus.faultIn
 import xynolog.errors.SignInError
 import xynolog.errors.SignInErrorCode
 import xynolog.identity.encodeUriComponent
@@ -94,12 +95,12 @@ private fun taken(pending: SessionStorage): PendingAuthorization? {
         took = stored
         null
     }
-    return took?.let {
-        try {
-            wireJson.decodeFromString(PendingAuthorization.serializer(), it)
-        } catch (_: IllegalArgumentException) {
-            null
-        }
+    val stored = took ?: return null
+    if (faultIn(PendingAuthorization.serializer().descriptor, stored) != null) return null
+    return try {
+        wireJson.decodeFromString(PendingAuthorization.serializer(), stored)
+    } catch (_: IllegalArgumentException) {
+        null
     }
 }
 

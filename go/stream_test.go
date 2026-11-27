@@ -591,6 +591,53 @@ func TestATransportMakesItsStreamItsEmitsItsRequestsAndItsContentWithItsCallersC
 	}
 }
 
+// An accepted emit whose body is no BusEmitAccepted, as the table holds it,
+// says nothing of the count: a null or a negative count is no count, never a
+// zero and never the number it states.
+func TestAnAcceptedEmitWhoseBodyIsNoBusEmitAcceptedHasNoCount(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		body    string
+		count   int
+		counted bool
+	}{
+		{"a count", `{"subscribers":3}`, 3, true},
+		{"no count", `{}`, 0, false},
+		{"a null count", `{"subscribers":null}`, 0, false},
+		{"a negative count", `{"subscribers":-1}`, 0, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			gateway := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = io.Copy(io.Discard, r.Body)
+				switch r.URL.Path {
+				case "/bus/subscribe":
+					w.Header().Set("Content-Type", "text/event-stream")
+					w.WriteHeader(http.StatusOK)
+					w.(http.Flusher).Flush()
+					<-r.Context().Done()
+				case "/bus/emit":
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusAccepted)
+					_, _ = io.WriteString(w, tc.body)
+				default:
+					http.NotFound(w, r)
+				}
+			}))
+			defer gateway.Close()
+			transport, _ := transportTo(gateway.URL, NewVariable(signedToken(1)), nil)
+			defer transport.Close()
+
+			count, counted, err := transport.Emit(context.Background(), bus.BeckonFocus.Channel(), map[string]any{}, Envelope{})
+			if err != nil {
+				t.Fatalf("emit: %v", err)
+			}
+			if count != tc.count || counted != tc.counted {
+				t.Errorf("%s read as %d, counted %v; want %d, counted %v", tc.body, count, counted, tc.count, tc.counted)
+			}
+		})
+	}
+}
+
 func TestARefusedEmitTellsItsRefresherTheTokenItSent(t *testing.T) {
 	gateway := newRenewedMeanwhile(t, "/bus/emit")
 	refresher := &renewedRefresher{token: gateway.token}
@@ -626,5 +673,22 @@ func TestARefusedConnectTellsItsRefresherTheTokenItSent(t *testing.T) {
 	}
 	if sent := gateway.sentOn("/bus/subscribe"); !slices.Equal(sent, []string{tokenSent, tokenRenewed}) {
 		t.Errorf("the connects carried %q, want [%q %q]", sent, tokenSent, tokenRenewed)
+	}
+}
+
+// A 429 refuses the credential only when its body is a LimitRefusal, as the
+// table holds it, naming refusal-rate: a null where LimitRefusal allows none
+// makes it a limit's, as its status says.
+func TestA429RefusesTheCredentialOnlyByALimitRefusalNamingRefusalRate(t *testing.T) {
+	for body, refuses := range map[string]bool{
+		`{"error":"refused","code":"refusal-rate"}`:             true,
+		`{"error":"refused","code":"emit-rate"}`:                false,
+		`{"error":"refused","code":"refusal-rate","hint":null}`: false,
+		`{"code":"refusal-rate"}`:                               false,
+	} {
+		code, got := limitRefusalTransportCode(http.StatusTooManyRequests, []byte(body))
+		if got != refuses || (got && code != api.TransportErrorCodeUnauthorized) {
+			t.Errorf("a 429 answering %s refuses the credential: %v (%q), want %v", body, got, code, refuses)
+		}
 	}
 }

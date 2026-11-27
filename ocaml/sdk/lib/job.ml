@@ -29,16 +29,19 @@ let poll_until_complete client ?(every_ms = Client_timing.job_poll_ms)
       | Error _ as error -> error
       | Ok reply -> (
           on_status reply;
-          let result =
-            Records.Job_status_result.project
-              (Record_reader.fields_of (B.json reply))
+          let again () =
+            Clock.sleep_until clock
+              (after (Clock.monotonic_now clock) (max 1 every_ms));
+            poll ()
           in
-          match result.response.status with
-          | Complete | Failed | Cancelled -> Ok reply
-          | Pending | Running ->
-              Clock.sleep_until clock
-                (after (Clock.monotonic_now clock) (max 1 every_ms));
-              poll ())
+          match Models.decode Models.job_status_result (B.encode reply) with
+          | Error _ -> again ()
+          | Ok result -> (
+              match
+                (Records.Job_status_result.of_model result).response.status
+              with
+              | Complete | Failed | Cancelled -> Ok reply
+              | Pending | Running -> again ()))
   in
   Eio.Fiber.first poll (fun () ->
       Clock.sleep_until clock deadline;

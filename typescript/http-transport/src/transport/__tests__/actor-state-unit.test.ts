@@ -755,6 +755,27 @@ describe('createActorStateUnit', () => {
     stateUnit.dispose();
   });
 
+  it('emit resolves undefined when an accepted emit answers a null count, which BusEmitAccepted does not allow', async () => {
+    // `subscribers` may be absent, never null: the table refuses the body,
+    // and a body that is no BusEmitAccepted says nothing of the count.
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ subscribers: null }),
+    });
+
+    const stateUnit = createActorStateUnit({
+      baseUrl: 'http://localhost:4000',
+      token: 'tok',
+      channels: [],
+    });
+
+    await expect(
+      stateUnit.emit('beckon:hover', { annotationId: annotationId('a-1') }),
+    ).resolves.toBeUndefined();
+
+    stateUnit.dispose();
+  });
+
   it('emit REJECTS on a non-2xx response — a refused emit must not read as success', async () => {
     // The gateway 400s an emit that fails request validation (e.g. a
     // MatchSearchRequest whose embedded annotations are malformed).

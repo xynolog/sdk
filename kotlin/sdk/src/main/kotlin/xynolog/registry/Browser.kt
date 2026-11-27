@@ -22,8 +22,11 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import xynolog.Timings
 import xynolog.bus.EventBus
+import xynolog.bus.faultOf
 import xynolog.errors.BusRequestError
 import xynolog.errors.BusRequestErrorCode
 import xynolog.errors.SessionError
@@ -90,6 +93,22 @@ private fun <T> storedAs(serializer: KSerializer<Map<String, T>>, stored: String
         null
     }
 } ?: emptyMap()
+
+/** What is stored of each knowledge base's open resources, each entry held to `OpenResource` by the table; empty for what does not read as that. */
+private fun openByKbOf(stored: String?): Map<String, List<OpenResource>> {
+    val kept = try {
+        stored?.let(wireJson::parseToJsonElement)
+    } catch (_: IllegalArgumentException) {
+        null
+    } as? JsonObject ?: return emptyMap()
+    val read = kept.values.all { entries -> entries is JsonArray && entries.all { faultOf(OpenResource.serializer().descriptor, it) == null } }
+    if (!read) return emptyMap()
+    return try {
+        wireJson.decodeFromJsonElement(OPEN_BY_KB, kept)
+    } catch (_: IllegalArgumentException) {
+        emptyMap()
+    }
+}
 
 /** Whether two endpoints are one place: for a gateway, its origin (the protocol, the host in lowercase and the port); for a loaded knowledge base, its id. */
 internal fun samePlace(one: KbEndpoint, other: KbEndpoint): Boolean = when (one) {
@@ -203,7 +222,7 @@ public class XynologBrowser(config: XynologBrowserConfig) : AutoCloseable {
     private val lastViewedHeld = Variable<ResourceId?>(null)
     private val identityTokenHeld = Variable<String?>(null)
     private val failures = Broadcast<SessionError>(keptForFirst = Timings.ERRORS_KEPT_FOR_FIRST_READER_COUNT)
-    private var openByKb: Map<String, List<OpenResource>> = storedAs(OPEN_BY_KB, storage.get(OPEN_RESOURCES_BY_KB_KEY))
+    private var openByKb: Map<String, List<OpenResource>> = openByKbOf(storage.get(OPEN_RESOURCES_BY_KB_KEY))
     private var viewedByKb: Map<String, ResourceId> = storedAs(VIEWED_BY_KB, storage.get(LAST_VIEWED_RESOURCE_BY_KB_KEY))
     private var activations = 0
     private var live: Live? = null
@@ -624,7 +643,7 @@ public class XynologBrowser(config: XynologBrowserConfig) : AutoCloseable {
     private fun changeOpenOf(kbId: String, change: (List<OpenResource>) -> List<OpenResource>) {
         var committed = openByKb
         storage.update(OPEN_RESOURCES_BY_KB_KEY) { stored ->
-            val byKb = storedAs(OPEN_BY_KB, stored).toMutableMap()
+            val byKb = openByKbOf(stored).toMutableMap()
             byKb[kbId] = change(byKb[kbId].orEmpty())
             committed = byKb
             wireJson.encodeToString(OPEN_BY_KB, byKb)
@@ -646,7 +665,7 @@ public class XynologBrowser(config: XynologBrowserConfig) : AutoCloseable {
     private fun forgetOpenOf(kbId: String): Unit = synchronized(lock) {
         var committed = openByKb
         storage.update(OPEN_RESOURCES_BY_KB_KEY) { stored ->
-            (storedAs(OPEN_BY_KB, stored) - kbId).also { committed = it }.let { wireJson.encodeToString(OPEN_BY_KB, it) }
+            (openByKbOf(stored) - kbId).also { committed = it }.let { wireJson.encodeToString(OPEN_BY_KB, it) }
         }
         openByKb = committed
         changeViewed { it - kbId }
@@ -662,7 +681,7 @@ public class XynologBrowser(config: XynologBrowserConfig) : AutoCloseable {
         scope.launch {
             synchronized(lock) {
                 if (closing) return@launch
-                openByKb = storedAs(OPEN_BY_KB, storage.get(OPEN_RESOURCES_BY_KB_KEY))
+                openByKb = openByKbOf(storage.get(OPEN_RESOURCES_BY_KB_KEY))
                 viewedByKb = storedAs(VIEWED_BY_KB, storage.get(LAST_VIEWED_RESOURCE_BY_KB_KEY))
                 project()
             }
@@ -684,7 +703,7 @@ public class XynologBrowser(config: XynologBrowserConfig) : AutoCloseable {
             return
         }
         // What the storage holds, not what is in memory: another context may have opened a resource before this session came up.
-        val waiting = storedAs(OPEN_BY_KB, storage.get(OPEN_RESOURCES_BY_KB_KEY))[kbId].orEmpty().map { it.id }
+        val waiting = openByKbOf(storage.get(OPEN_RESOURCES_BY_KB_KEY))[kbId].orEmpty().map { it.id }
         if (waiting.isEmpty()) return
         val lanes = Semaphore(Timings.CHECKS_AT_ONCE_COUNT.toInt())
         val checks = coroutineScope { waiting.map { id -> async { lanes.withPermit { id to checked(session, id) } } }.awaitAll() }.toMap()

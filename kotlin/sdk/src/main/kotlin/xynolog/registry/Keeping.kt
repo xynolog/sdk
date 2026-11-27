@@ -2,17 +2,22 @@ package xynolog.registry
 
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonArray
+import xynolog.bus.faultIn
+import xynolog.bus.readOf
 import xynolog.signin.SignInKept
 import xynolog.storage.SessionStorage
 import xynolog.types.KnowledgeBase
 import xynolog.types.StoredSession
 import xynolog.types.wireJson
 
-/** A stored value as a session; null when it lacks a member a session has. */
-private fun sessionIn(stored: String): StoredSession? = try {
-    wireJson.decodeFromString(StoredSession.serializer(), stored)
-} catch (_: IllegalArgumentException) {
-    null
+/** A stored value as a session; null when it is no session, as the table holds it. */
+private fun sessionIn(stored: String): StoredSession? {
+    if (faultIn(StoredSession.serializer().descriptor, stored) != null) return null
+    return try {
+        wireJson.decodeFromString(StoredSession.serializer(), stored)
+    } catch (_: IllegalArgumentException) {
+        null
+    }
 }
 
 private fun writtenOf(session: StoredSession): String = wireJson.encodeToString(StoredSession.serializer(), session)
@@ -74,8 +79,10 @@ public fun loadKnowledgeBases(storage: SessionStorage): List<KnowledgeBase> {
         null
     } ?: return emptyList()
     return entries.mapNotNull { entry ->
+        val read = readOf(KnowledgeBase.serializer().descriptor, entry)
+        if (read.fault != null) return@mapNotNull null
         try {
-            wireJson.decodeFromJsonElement(KnowledgeBase.serializer(), entry)
+            wireJson.decodeFromJsonElement(KnowledgeBase.serializer(), read.value)
         } catch (_: IllegalArgumentException) {
             null
         }

@@ -102,6 +102,13 @@ the coming release's, and gathers its changes as they land.
   whole, which is `bytes`.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- So is one in what the SDK reads beside a request's answer: the discovery
+  document, a stored event's payload, the job anchor, the stored session,
+  knowledge bases and tabs, the pending sign-in, a 429's body, the emit reply
+  and an error's words. Each takes the way it already had for what does not
+  read: no count, no entry, or the bare status.
+- `Empty` and `Response` are `xynolog.model`'s, where they were
+  `xynolog.channel`'s.
 - `GetAnnotationsResponse`'s `motivation` is absent or a `Motivation`.
   Protocol no longer allows it to be null: a null for it is refused as
   malformed.

@@ -62,19 +62,19 @@ use crate::errors::{BusRequestErrorCode, TransportError, TransportErrorCode, Xyn
 use crate::job_filter::job_matches_filter;
 use crate::kept_for_first_reader::KeptForFirstReader;
 use crate::locked;
+use crate::required::read_as;
 use crate::rfc3339::to_the_millisecond;
 use crate::timing::{HELD_JOB_STALL, HELD_JOB_STALL_CHECK, JOB_CLAIM_TIMEOUT, MARK_COMMIT_TIMEOUT};
 use crate::transport::{Envelope, Events, Transport};
 use crate::types::ConnectionState;
 use crate::types::{
     Annotation, AnnotationId, BrowseAnnotationRequest, ClaimOptions, ClaimRefusal,
-    DurabilityEvidence, Engine, FailureClass, GatheredContextFocus, GenerationJobParams,
-    HeldJobRecord, HeldJobStall, JobCancelCommand, JobCancelRequest, JobCheckpointCommand,
-    JobClaimCommand, JobCompleteCommand, JobFailCommand, JobFailure, JobFilter, JobId, JobMetadata,
-    JobParams, JobProgress, JobReached, JobReportProgressCommand, JobRunning, JobStartCommand,
-    JobType, MarkCommitCommand, MarkJobCompleteCommand, MarkJobResult, ResourceId, TraceCarrier,
-    UnitCursor, WorkerActiveJob, WorkerEngineHealth, WorkerVitals, YieldJobCompleteCommand,
-    YieldJobResult,
+    DurabilityEvidence, Engine, FailureClass, GatheredContext, GatheredContextFocus, HeldJobRecord,
+    HeldJobStall, JobCancelCommand, JobCancelRequest, JobCheckpointCommand, JobClaimCommand,
+    JobCompleteCommand, JobFailCommand, JobFailure, JobFilter, JobId, JobMetadata, JobParams,
+    JobProgress, JobReached, JobReportProgressCommand, JobRunning, JobStartCommand, JobType,
+    MarkCommitCommand, MarkJobCompleteCommand, MarkJobResult, ResourceId, TraceCarrier, UnitCursor,
+    WorkerActiveJob, WorkerEngineHealth, WorkerVitals, YieldJobCompleteCommand, YieldJobResult,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -885,13 +885,14 @@ impl HeldJob {
 
 /// The annotation a job is anchored to: the one a `yield` job's context is
 /// focused on. A `yield` job focused on a resource has none, and neither has
-/// a `mark` job, nor a `yield` job whose params are not a generation's.
+/// a `mark` job, nor a `yield` job whose context is no gathered context, as
+/// the table holds it.
 fn anchor_of(job_type: JobType, params: &JobParams) -> Option<AnnotationId> {
     if job_type != JobType::Yield {
         return None;
     }
-    let generation = GenerationJobParams::deserialize(Value::Object(params.rest.clone())).ok()?;
-    match generation.context.focus {
+    let context: GatheredContext = read_as(params.rest.get("context")?.clone()).ok()?;
+    match context.focus {
         GatheredContextFocus::Annotation(focus) => Some(focus.annotation.id),
         GatheredContextFocus::Resource(_) => None,
     }
