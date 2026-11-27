@@ -27,13 +27,13 @@ type httpDiscovery struct {
 	etag string
 }
 
-func (h *httpDiscovery) Read(ctx context.Context) api.DiscoveryRead {
+func (h *httpDiscovery) Read(ctx context.Context) (api.DiscoveryRead, error) {
 	// With a deadline: a read that is never answered would hold the poll that
 	// awaits it, and every poll after it, for good.
 	deadline := timing.HttpRequestTimeout
 	asking, cancel := context.WithTimeout(ctx, deadline)
 	defer cancel()
-	unreadable := func(err error) api.DiscoveryRead {
+	unreadable := func(err error) (api.DiscoveryRead, error) {
 		if errors.Is(asking.Err(), context.DeadlineExceeded) && ctx.Err() == nil {
 			return readOf(absent(api.DiscoveryAbsentReasonUnreadable, fmt.Sprintf("the document was not served within %ds", int64(deadline.Seconds()))))
 		}

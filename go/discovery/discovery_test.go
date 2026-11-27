@@ -54,6 +54,26 @@ func kb(t *testing.T, value map[string]any) api.DiscoveredKB {
 	return read
 }
 
+// stateOf is text read as the document's state.
+func stateOf(t *testing.T, text string) api.DiscoveryState {
+	t.Helper()
+	state, err := discovery.ParseDiscoveryDocument(text)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return state
+}
+
+// readFrom is what one read of transport found.
+func readFrom(t *testing.T, ctx context.Context, transport discovery.DiscoveryTransport) api.DiscoveryRead {
+	t.Helper()
+	read, err := transport.Read(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return read
+}
+
 // memberOf is the member a state or a read holds.
 func memberOf(t *testing.T, union interface{ Member() (any, error) }) any {
 	t.Helper()
@@ -107,12 +127,12 @@ func TestADocumentOfKnowledgeBasesIsManagedAndOneOfNoneIsManagedToo(t *testing.T
 		"host": "localhost", "port": 4100, "placement": "codespace", "managedBy": "xynolog-launcher",
 		"did": b, "repo": "owner/name", "siteName": "A site",
 	}
-	got := memberOf(t, discovery.ParseDiscoveryDocument(document(t, entry("localhost", 4000, a), codespace)))
+	got := memberOf(t, stateOf(t, document(t, entry("localhost", 4000, a), codespace)))
 	if want := managed(kb(t, entry("localhost", 4000, a)), kb(t, codespace)); !reflect.DeepEqual(got, want) {
 		t.Errorf("read %#v, not %#v", got, want)
 	}
 	// A launcher that manages nothing is there. It is not absent.
-	if got, want := memberOf(t, discovery.ParseDiscoveryDocument(document(t))), managed(); !reflect.DeepEqual(got, want) {
+	if got, want := memberOf(t, stateOf(t, document(t))), managed(); !reflect.DeepEqual(got, want) {
 		t.Errorf("read %#v, not %#v", got, want)
 	}
 }
@@ -140,7 +160,7 @@ func TestWhatIsNotADocumentIsAbsentAndSaysWhy(t *testing.T) {
 		},
 	}
 	for _, stated := range cases {
-		state := discovery.ParseDiscoveryDocument(stated.text)
+		state := stateOf(t, stated.text)
 		if got, isAbsent := reason(t, state); !isAbsent || got != stated.expected {
 			t.Errorf("%s: read %#v, not absent as %s", stated.text, state, stated.expected)
 		}
@@ -151,7 +171,7 @@ func TestWhatIsNotADocumentIsAbsentAndSaysWhy(t *testing.T) {
 }
 
 func TestADocumentOfAnotherVersionIsNotReadInPart(t *testing.T) {
-	state := discovery.ParseDiscoveryDocument(written(t, map[string]any{"version": 2, "kbs": []any{entry("localhost", 4000, a)}}))
+	state := stateOf(t, written(t, map[string]any{"version": 2, "kbs": []any{entry("localhost", 4000, a)}}))
 	if got, isAbsent := reason(t, state); !isAbsent || got != api.DiscoveryAbsentReasonUnsupportedVersion {
 		t.Errorf("read %#v", state)
 	}
@@ -163,7 +183,7 @@ func TestADocumentOfAnotherVersionIsNotReadInPart(t *testing.T) {
 func TestOneEntryThatIsNotOneMakesTheWholeDocumentAbsent(t *testing.T) {
 	// A reading of the good entry alone would hide a running knowledge base.
 	withoutADid := map[string]any{"host": "localhost", "port": 4100, "placement": "local", "managedBy": "x"}
-	state := discovery.ParseDiscoveryDocument(document(t, entry("localhost", 4000, a), withoutADid))
+	state := stateOf(t, document(t, entry("localhost", 4000, a), withoutADid))
 	if got, isAbsent := reason(t, state); !isAbsent || got != api.DiscoveryAbsentReasonInvalid {
 		t.Errorf("read %#v", state)
 	}
@@ -174,18 +194,19 @@ func TestOneEntryThatIsNotOneMakesTheWholeDocumentAbsent(t *testing.T) {
 
 // ── Reading it as text ──────────────────────────────────────────────────
 
-func readOf(text string, err error) api.DiscoveryRead {
-	return discovery.TextDiscovery(func(context.Context) (string, error) { return text, err }).Read(context.Background())
+func readOf(t *testing.T, text string, err error) api.DiscoveryRead {
+	t.Helper()
+	return readFrom(t, context.Background(), discovery.TextDiscovery(func(context.Context) (string, error) { return text, err }))
 }
 
 func TestTextIsReadThroughTheOneValidator(t *testing.T) {
-	if got, want := memberOf(t, readOf(document(t, entry("localhost", 4000, a)), nil)), managed(kb(t, entry("localhost", 4000, a))); !reflect.DeepEqual(got, want) {
+	if got, want := memberOf(t, readOf(t, document(t, entry("localhost", 4000, a)), nil)), managed(kb(t, entry("localhost", 4000, a))); !reflect.DeepEqual(got, want) {
 		t.Errorf("read %#v, not %#v", got, want)
 	}
-	if got, want := memberOf(t, readOf("", fs.ErrNotExist)), absent(api.DiscoveryAbsentReasonNotFound, nil); !reflect.DeepEqual(got, want) {
+	if got, want := memberOf(t, readOf(t, "", fs.ErrNotExist)), absent(api.DiscoveryAbsentReasonNotFound, nil); !reflect.DeepEqual(got, want) {
 		t.Errorf("read %#v, not %#v", got, want)
 	}
-	if got, want := memberOf(t, readOf("", errors.New("permission denied"))), absent(api.DiscoveryAbsentReasonUnreadable, new("permission denied")); !reflect.DeepEqual(got, want) {
+	if got, want := memberOf(t, readOf(t, "", errors.New("permission denied"))), absent(api.DiscoveryAbsentReasonUnreadable, new("permission denied")); !reflect.DeepEqual(got, want) {
 		t.Errorf("read %#v, not %#v", got, want)
 	}
 }
@@ -204,16 +225,16 @@ func scriptOf(reads ...api.DiscoveryRead) *script {
 	return &script{reads: reads}
 }
 
-func (s *script) Read(context.Context) api.DiscoveryRead {
+func (s *script) Read(context.Context) (api.DiscoveryRead, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.asked++
 	if len(s.reads) == 0 {
-		return unchanged
+		return unchanged, nil
 	}
 	next := s.reads[0]
 	s.reads = s.reads[1:]
-	return next
+	return next, nil
 }
 
 func (s *script) timesAsked() int {
@@ -224,14 +245,18 @@ func (s *script) timesAsked() int {
 
 // changes is every change told of in polls readings. Called inside a
 // synctest bubble.
-func changes(s *script, polls int) []api.DiscoveryDiff {
+func changes(t *testing.T, s *script, polls int) []api.DiscoveryDiff {
 	ctx, cancel := context.WithCancel(context.Background())
 	var mu sync.Mutex
 	var told []api.DiscoveryDiff
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		for diff := range discovery.SubscribeDiscovery(ctx, s, discovery.DiscoveryInterval) {
+		for diff, err := range discovery.SubscribeDiscovery(ctx, s, discovery.DiscoveryInterval) {
+			if err != nil {
+				t.Error(err)
+				return
+			}
 			mu.Lock()
 			told = append(told, diff)
 			mu.Unlock()
@@ -276,8 +301,9 @@ func summaries(told []api.DiscoveryDiff) []summary {
 }
 
 // parsed is text read as the document, as every reader reads it.
-func parsed(text string) api.DiscoveryRead {
-	return readOf(text, nil)
+func parsed(t *testing.T, text string) api.DiscoveryRead {
+	t.Helper()
+	return readOf(t, text, nil)
 }
 
 func TestTheFirstReadingIsToldWholeAndEachOneAfterByWhatChanged(t *testing.T) {
@@ -287,11 +313,11 @@ func TestTheFirstReadingIsToldWholeAndEachOneAfterByWhatChanged(t *testing.T) {
 			"managedBy": "xynolog-launcher", "did": a, "siteName": "Renamed",
 		}
 		s := scriptOf(
-			parsed(document(t, entry("localhost", 4000, a))),
-			parsed(document(t, renamed, entry("localhost", 4100, b))),
-			parsed(document(t, entry("localhost", 4100, b))),
+			parsed(t, document(t, entry("localhost", 4000, a))),
+			parsed(t, document(t, renamed, entry("localhost", 4100, b))),
+			parsed(t, document(t, entry("localhost", 4100, b))),
 		)
-		told := changes(s, 4)
+		told := changes(t, s, 4)
 
 		want := []summary{
 			{at("localhost:4000"), at(), at()},
@@ -313,10 +339,10 @@ func TestTheFirstReadingIsToldWholeAndEachOneAfterByWhatChanged(t *testing.T) {
 func TestAKnowledgeBaseThatMovesPortIsRemovedAndAdded(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		s := scriptOf(
-			parsed(document(t, entry("localhost", 4000, a))),
-			parsed(document(t, entry("localhost", 4001, a))),
+			parsed(t, document(t, entry("localhost", 4000, a))),
+			parsed(t, document(t, entry("localhost", 4001, a))),
 		)
-		told := changes(s, 2)
+		told := changes(t, s, 2)
 
 		if len(told) != 2 {
 			t.Fatalf("told %d changes", len(told))
@@ -330,8 +356,8 @@ func TestAKnowledgeBaseThatMovesPortIsRemovedAndAdded(t *testing.T) {
 func TestAReadingThatChangedNothingIsNotTold(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		same := document(t, entry("localhost", 4000, a))
-		s := scriptOf(parsed(same), unchanged, parsed(same), parsed(same))
-		told := changes(s, 5)
+		s := scriptOf(parsed(t, same), unchanged, parsed(t, same), parsed(t, same))
+		told := changes(t, s, 5)
 
 		if len(told) != 1 {
 			t.Errorf("told %d changes", len(told))
@@ -350,8 +376,8 @@ func TestAnEntryWithOptionalMembersReadAgainUnchangedIsNotTold(t *testing.T) {
 			"host": "localhost", "port": 4100, "placement": "codespace", "managedBy": "xynolog-launcher",
 			"did": b, "repo": "owner/name", "siteName": "A site",
 		})
-		s := scriptOf(parsed(codespace), parsed(codespace))
-		told := changes(s, 2)
+		s := scriptOf(parsed(t, codespace), parsed(t, codespace))
+		told := changes(t, s, 2)
 
 		if len(told) != 1 {
 			t.Errorf("told %d changes", len(told))
@@ -363,14 +389,14 @@ func TestALauncherThatGoesAndComesBackIsToldWithWhatItTookAndBrought(t *testing.
 	synctest.Test(t, func(t *testing.T) {
 		managing := document(t, entry("localhost", 4000, a))
 		s := scriptOf(
-			parsed("not json"),
-			parsed(managing),
-			parsed("not json"),
+			parsed(t, "not json"),
+			parsed(t, managing),
+			parsed(t, "not json"),
 			// Absent for another reason is a change too; for the same one it is not.
-			parsed("[]"),
-			parsed("{}"),
+			parsed(t, "[]"),
+			parsed(t, "{}"),
 		)
-		told := changes(s, 6)
+		told := changes(t, s, 6)
 
 		type said struct {
 			reason  api.DiscoveryAbsentReason
@@ -398,11 +424,11 @@ func TestOneKnowledgeBaseInTwoPlacesIsTwoEntriesAndEachIsItsOwn(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		both := document(t, entry("localhost", 4000, a), entry("localhost", 4100, a))
 		s := scriptOf(
-			parsed(both),
-			parsed(both),
-			parsed(document(t, entry("localhost", 4100, a))),
+			parsed(t, both),
+			parsed(t, both),
+			parsed(t, document(t, entry("localhost", 4100, a))),
 		)
-		told := changes(s, 4)
+		told := changes(t, s, 4)
 
 		// No change while both are there, and the one that stops is not hidden
 		// by the one that goes on.
@@ -423,12 +449,12 @@ func TestOneKnowledgeBaseInTwoPlacesIsTwoEntriesAndEachIsItsOwn(t *testing.T) {
 
 func TestTwoEntriesAtOneAddressAreNamedAndNeitherIsDroppedFromTheState(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		s := scriptOf(parsed(document(t,
+		s := scriptOf(parsed(t, document(t,
 			entry("localhost", 4000, a),
 			entry("localhost", 4000, b),
 			entry("localhost", 4100, b),
 		)))
-		told := changes(s, 1)
+		told := changes(t, s, 1)
 
 		if len(told) != 1 {
 			t.Fatalf("told %d changes", len(told))
@@ -448,12 +474,16 @@ func TestTwoEntriesAtOneAddressAreNamedAndNeitherIsDroppedFromTheState(t *testin
 
 func TestReadingStopsWhenNobodyListens(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		s := scriptOf(parsed(document(t)))
+		s := scriptOf(parsed(t, document(t)))
 		ctx, cancel := context.WithCancel(context.Background())
 		done := make(chan struct{})
 		go func() {
 			defer close(done)
-			for range discovery.SubscribeDiscovery(ctx, s, discovery.DiscoveryInterval) {
+			for _, err := range discovery.SubscribeDiscovery(ctx, s, discovery.DiscoveryInterval) {
+				if err != nil {
+					t.Error(err)
+					return
+				}
 			}
 		}()
 		time.Sleep(discovery.DiscoveryInterval * 2)

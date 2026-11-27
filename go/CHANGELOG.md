@@ -48,6 +48,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- Package `discovery` refuses a read that holds none of `DiscoveryRead`'s
+  members, or a state that is none of `DiscoveryState`'s, where it panicked:
+  `ParseDiscoveryDocument` returns `(api.DiscoveryState, error)`,
+  `DiscoveryTransport.Read` returns `(api.DiscoveryRead, error)`, and
+  `SubscribeDiscovery` is an `iter.Seq2[api.DiscoveryDiff, error]` that yields
+  the error and stops.
 - `CacheState` is `CacheState[V]`, the state of a live query of a `V`, and
   says which state it is with `Status()`, an `api.CacheStatus`. `Pending` and
   `Failed` are `Pending[V]` and `Failed[V]`, and a failure's error is
