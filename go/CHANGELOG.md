@@ -25,7 +25,7 @@ the coming release's, and gathers its changes as they land.
 - Package `control`, the launcher's control API: each method a
   `control.Method[P, R]` and each notification a `control.Notification[P]`,
   typed by `api`'s types of their schemas, with whether a method is exclusive,
-  what it may send, and who sends a notification (`control.Sender`).
+  what it may send, and who sends a notification (`api.ControlSender`).
 - `ControlErrorCode`, the control API's error codes, generated with the other
   error codes.
 - `RetryRuleJob`, the rule a job's retry budget follows. Every rule's sets
@@ -45,6 +45,16 @@ the coming release's, and gathers its changes as they land.
   type of its own schema, read from the table as Protocol holds it.
 - `ArchivistRoute`: each operation of the Archivist's HTTP surface, its method
   and its path (`ArchivistRouteGetHealth`, `ArchivistRouteStoreResource`, …).
+- `api.ControlRpcCode`, each code of `control/rpc-codes.json`
+  (`api.ControlRpcCodeInternalError`, …), and `ControlErrorCode.Rpc` and
+  `Retryable`: the JSON-RPC code each control error code is answered with, and
+  whether a request it failed is worth sending again, generated from
+  `control/rpc-codes.json` and `errors/codes.json`.
+- `discovery.DiscoveryURLPath`, where a launcher's discovery document is,
+  generated from `client/surface.json`.
+- `api.Fault.String()`: what every SDK says of a fault, as a refused frame's
+  error says it (``it has no `member` ``, ``its `member` is malformed``, or
+  `it is malformed`).
 
 ### Changed
 
@@ -161,6 +171,15 @@ the coming release's, and gathers its changes as they land.
   `ThresholdMs`, whole milliseconds, in place of `SilentFor` and `Threshold`.
   A failure's `CompletedUnits` and `UnitCursors` are pointers, nil when it
   states none, as `api.JobFailCommand`'s are.
+- A refused frame is an `*api.FrameRefusal`, the type of Protocol's
+  `client/types/FrameRefusal.json`, in place of the package's own
+  `FrameRefusal`: it is the error a channel's readers are given in the
+  frame's place, and what `FrameSink.DeliverRefusal`,
+  `ReplyRouter.RouteRefusal` and `PendingReply.Refused` take and give. Its
+  `Channel` is the channel's name as text, where it was a `bus.Channel`. Its
+  scope and correlation id are `Scope` and `CorrelationId`, nil when it names
+  none, in place of its embedded `Envelope`. Its `Payload` is the frame's
+  payload as it came, a `json.RawMessage`, nil when it carried none.
 - A trace is `*api.TraceCarrier`, the type Protocol states, in place of
   `TraceContext`, which is gone: `Frame.Trace`, `Delivered.Trace` and
   `HeldJob.Trace` are nil for none, where they were the zero `TraceContext`,
@@ -194,6 +213,9 @@ the coming release's, and gathers its changes as they land.
   when every option is nil), and `Match.Search` no longer sends
   `useSemanticScoring` true. A stated value is sent as stated, and a list or
   a search stating a limit of 100 is no longer the one stating none.
+- `StateDir` takes Protocol's `api.System` (`api.SystemMacos`,
+  `api.SystemWindows`, `api.SystemOther`), where the package declared its own
+  `System`.
 - The discovery types are Protocol's (protocol#126), in `api`, where they
   were hand-written in `discovery`: `ParseDiscoveryDocument` gives an
   `api.DiscoveryState`, `DiscoveryTransport.Read` an `api.DiscoveryRead`, and

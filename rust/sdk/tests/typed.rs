@@ -15,13 +15,14 @@ use xynolog::errors::{TransportErrorCode, XynologError};
 use xynolog::testing::as_id;
 use xynolog::testing::schema_fault;
 use xynolog::testing::{FaultAction, FaultyTransport};
-use xynolog::transport::{Envelope, Frame, FrameRefusal, Transport};
+use xynolog::transport::{Envelope, Frame, Transport};
 use xynolog::types::BusFrame;
-use xynolog::types::FrameRefusalReason;
+use xynolog::types::FrameRefusal;
 use xynolog::types::{
     Annotation, AnnotationBodies, AnnotationTargetValue, BeckonFocusEvent,
     BrowseEntityTypesRequest, GetAnnotationsResponse, Motivation, ResourceId,
 };
+use xynolog::types::{Fault, FrameRefusalReason};
 
 fn object(value: Value) -> Map<String, Value> {
     value.as_object().cloned().expect("an object")
@@ -279,7 +280,10 @@ fn a_property_that_is_optional_is_absent_or_a_value_and_a_null_is_refused() {
     let mut null = json!({ "annotations": [], "total": 0, "motivation": null });
     assert_eq!(
         schema_fault("GetAnnotationsResponse", &mut null),
-        Some(("motivation".to_owned(), FrameRefusalReason::Malformed))
+        Some(Fault {
+            member: "motivation".to_owned(),
+            reason: FrameRefusalReason::Malformed
+        })
     );
 }
 

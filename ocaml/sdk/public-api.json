@@ -128,17 +128,18 @@
     "lib/client_timing.mli": "ec472cfb9d3f778a1e8df92364478a6492b2fc69d759cd9a5b174f8c8ba3a057",
     "lib/clock.ml": "71063b036aa3069ad2ed649ba8a73505b4eb4a00631c48af43a01f732c6623ab",
     "lib/clock.mli": "5333b1d2447f81415c54bfc99d87ae98362a4ce249695d7783c35df41cdab364",
-    "lib/control.ml": "e59aa7ab3626e5093d2414f08bfd9625b383a2a675ca6e32c1276d6c8c6a4562",
+    "lib/control.ml": "1a8991f00221f2d47425beb0992ca7189631df63f0db36a895390b8968c78b31",
     "lib/delegation.ml": "f788730076a28002ed32979d1f99ff3a6ccd03f72deacc16a2a2d7f8c8eb413b",
     "lib/delegation.mli": "80280d85e9950ea481bcebeed16c884239334f37d9cb17aaaf7d49cdbe9f3c44",
-    "lib/discovery.ml": "b523ae68da9a63858e9dde0059fb58db3a755113cbf211c99f4079d142e4843d",
+    "lib/discovery.ml": "ad7c0d6f0507ca0b7f19d310404895d60ac1f08275c3f63a33ce7eb462a1fab2",
     "lib/discovery.mli": "9b498e1514c2215afdef4f827e3d6a6e3ec67b53446cb28ad44ec2e4e78d83f4",
+    "lib/discovery_url_path.ml": "68d586e56767a12ccba8624b58da93855c8b0a8f38230b38dd223c6a442b6ceb",
     "lib/dispatcher_messages.ml": "de3216f424fe297f08f80696f2aa490f004c8995568fca13ee3f3bdccd5065d8",
     "lib/dune": "1518991b807af927b4e71d57d6097ef120d03f5e773f5ea4adf31ac6baa9f4a6",
     "lib/embedding_requests.ml": "cae3ff1469b45d5421de0048d70e2fea9d2f0e5f5a060de176910b70aefec950",
     "lib/encoding_facts.ml": "dc9602d08894d9a3bd5334cb3254218f7a74dad0528d552acb00cec4061bb9bb",
     "lib/enums.ml": "599d400d6ca0662532b1fd92408ada95169b35e90332507fea551606b42c0359",
-    "lib/error_codes.ml": "d7b5d357867ca1286dcd24e9033fb5006beffd4e8b730b04f8d2b1071bc37009",
+    "lib/error_codes.ml": "42a5f061d3acb50b47b870155c09f7f30066db6474099917d76fe946003e3a00",
     "lib/frame.ml": "6e0ba59a959758ccdc672cec1d8d802be2f882a5d1354ded4e5ab21398716d54",
     "lib/gateway_http.ml": "cbcd0c640321c0ec910cb7f23f3991a766b24587e8b4e0dcb0c9870ab43cf251",
     "lib/gateway_media_token.ml": "3e8e99df97fa6e0d8d53664f5b18c2807b1551f6ea2eb7c593ac3c62866f3dd7",
@@ -228,8 +229,8 @@
     "lib/session_signals.mli": "75d9e803669a38f99e84aa96938790d283100139f1dc35ae9a28d642fe21db5b",
     "lib/session_state.ml": "e37d27a40b24138dba753797521206e02b8c3f7c24c45aa485167ca38d7b999b",
     "lib/session_state.mli": "0c8500f016d8e498c20ccd34471a3707fd26415781b8c4aba9c7aea1e6b7abf5",
-    "lib/sign_in_store.ml": "951bb5092bccf879340eadd835c30ac7109d2a509398f6e5b8c5c055f29e1ffb",
-    "lib/sign_in_store.mli": "2d2a6e92d0d18c3653604ff8249ef509c7679b790e3cd21c7114c9458ee18b63",
+    "lib/sign_in_store.ml": "f5463e9e0ed8fb0a2b8f3d06b6a72077df513c3658a41ca690f1eafbf0a1d24f",
+    "lib/sign_in_store.mli": "5850fcc03ed8a5ffc5f0c3100112396f859ff8743d599cb39284a4533fcfcd38",
     "lib/sign_in_store_names.ml": "3339dba3b41d74a767840d9afeb9e41390c025c28a5e98659e518cd9b25ae514",
     "lib/smelter_messages.ml": "b8e465e5674f6aa99f3689a6a470d6aa1d3f483ae7be948ee970e9c5f9fd8ca0",
     "lib/state_task.ml": "2061a7893545d7ecf7f52b0235c21fa2a5346ef3c65334e043e63dd7dfc74c8c",
@@ -33103,6 +33104,51 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Error_codes.Control_rpc",
+      "declaration": "module Control_rpc :\n  sig\n    val parse_error : int\n    val invalid_request : int\n    val method_not_found : int\n    val invalid_params : int\n    val internal_error : int\n    val operation_failed : int\n  end"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.parse_error",
+      "declaration": "val parse_error : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.invalid_request",
+      "declaration": "val invalid_request : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.method_not_found",
+      "declaration": "val method_not_found : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.invalid_params",
+      "declaration": "val invalid_params : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.internal_error",
+      "declaration": "val internal_error : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.Control_rpc.operation_failed",
+      "declaration": "val operation_failed : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.control_rpc",
+      "declaration": "val control_rpc : Control.t -> int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.control_retryable",
+      "declaration": "val control_retryable : Control.t -> bool"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Telemetry",
       "declaration": "module Telemetry = Xynolog__.Telemetry",
       "alias": "Xynolog__.Telemetry"
@@ -36054,7 +36100,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Sign_in_store.state_directory",
-      "declaration": "val state_directory :\n  platform:Xynolog__.Enums.System.t ->\n  home:string option ->\n  xdg_state_home:string option ->\n  local_app_data:string option -> string option"
+      "declaration": "val state_directory :\n  system:Xynolog__.Enums.System.t ->\n  home:string option ->\n  xdg_state_home:string option ->\n  local_app_data:string option -> string option"
     },
     {
       "kind": "value",
@@ -43084,28 +43130,6 @@
       "alias": "Xynolog__.Control"
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Control.sender",
-      "declaration": "type sender = Client | Launcher",
-      "representation": "variant",
-      "constructors": [
-        "Client",
-        "Launcher"
-      ],
-      "variants": [
-        {
-          "name": "Client",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Launcher",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
       "kind": "module",
       "path": "Xynolog.Control.Method",
       "declaration": "module Method :\n  sig\n    type ('params, 'result) t = {\n      name : string;\n      exclusive : bool;\n      sends : string list;\n      params : 'params Xynolog__.Models.descriptor;\n      result : 'result Xynolog__.Models.descriptor;\n    }\n  end"
@@ -43126,12 +43150,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Control.Notification",
-      "declaration": "module Notification :\n  sig\n    type 'params t = {\n      name : string;\n      from : sender;\n      params : 'params Xynolog__.Models.descriptor;\n    }\n  end"
+      "declaration": "module Notification :\n  sig\n    type 'params t = {\n      name : string;\n      from : Xynolog__.Enums.Control_sender.t;\n      params : 'params Xynolog__.Models.descriptor;\n    }\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Control.Notification.t",
-      "declaration": "type 'params t = {\n  name : string;\n  from : sender;\n  params : 'params Xynolog__.Models.descriptor;\n}",
+      "declaration": "type 'params t = {\n  name : string;\n  from : Xynolog__.Enums.Control_sender.t;\n  params : 'params Xynolog__.Models.descriptor;\n}",
       "representation": "record",
       "fields": [
         "name",

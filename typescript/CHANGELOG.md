@@ -69,6 +69,11 @@ the coming release's, and gathers its changes as they land.
 - `XynologClient.fromHttp`, `XynologSession.fromHttp` and
   `XynologSession.fromKept` take `clientTiming` and `transportTiming`, and
   `createHttpSessionFactory` takes both in a second argument, after `fetch`.
+- `controlRpcCodes` and `ControlRpcCode`, each code of
+  `control/rpc-codes.json`, and `controlErrorCodeAnswers`: the JSON-RPC code
+  each control error code is answered with, and whether a request it failed is
+  worth sending again, generated from `control/rpc-codes.json` and
+  `errors/codes.json`.
 
 ### Changed
 
@@ -178,6 +183,9 @@ the coming release's, and gathers its changes as they land.
   `gather.annotation` no longer sends `contextWindow: 2000` (nor `options`
   when none are given), and `match.search` no longer sends
   `useSemanticScoring: true`. A stated value is sent as stated.
+- `DISCOVERY_URL_PATH` is generated from `client/surface.json`.
+- `@xynolog/sdk` no longer exports `System`: `stateDir` takes Protocol's
+  `components['schemas']['System']`.
 - Discovery's types are the ones Protocol states, which `@xynolog/core` and
   `@xynolog/sdk` export: `DiscoveryState`, `DiscoveryRead` (in place of
   `DiscoveryReadResult`) and `DiscoveryDiff`, with their members

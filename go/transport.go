@@ -25,7 +25,7 @@ type Transport interface {
 	// order they were delivered, until the loop stops, ctx is done or the
 	// transport closes. A frame the transport refused, whose channel and
 	// scope name its readers, is given in its place as the channel and scope
-	// it names, with its *FrameRefusal as the error, and the frames after it
+	// it names, with its *api.FrameRefusal as the error, and the frames after it
 	// follow. A channel the transport can never deliver is refused, as
 	// unsubscribed.
 	Frames(ctx context.Context, channels ...bus.Channel) (iter.Seq2[Frame, error], error)

@@ -40,9 +40,8 @@ public final class MemorySignIn: SignInKept {
   }
   public func forget() async { value.withLock { $0 = nil } }
 }
-public enum Platform: Sendable { case macos, windows, other }
 public func stateDir(
-  platform: Platform, home: String?, xdgStateHome: String? = nil, localAppData: String? = nil
+  system: System, home: String?, xdgStateHome: String? = nil, localAppData: String? = nil
 ) -> String? {
   guard let home, !home.isEmpty else { return nil }
   func under(_ root: String, _ separator: String, _ parts: String...) -> String {
@@ -50,7 +49,7 @@ public func stateDir(
     while root.hasSuffix(separator) { root.removeLast() }
     return ([root] + parts).joined(separator: separator)
   }
-  switch platform {
+  switch system {
   case .macos: return under(home, "/", "Library", "Application Support", "xynolog")
   case .windows:
     if let localAppData, !localAppData.isEmpty { return under(localAppData, "\\", "xynolog") }

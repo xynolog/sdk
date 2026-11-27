@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import xynolog.Timings
 import xynolog.bus.faultOf
+import xynolog.bus.said
 import xynolog.bus.valuesOf
 import xynolog.telemetry.futureOf
 import xynolog.transport.Events
@@ -82,14 +83,12 @@ public fun parseDiscoveryDocument(text: String): DiscoveryState {
             diagnostic = "discovery document version $version is not one this client speaks (${VERSIONS.joinToString()}); it is not read in part",
         )
     }
-    faultOf(DiscoveryDocument.serializer().descriptor, document)?.let { return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = "the document is no discovery document: $it") }
+    faultOf(DiscoveryDocument.serializer().descriptor, document)?.let { return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = "the document is no discovery document: ${it.said()}") }
     val read = try {
         wireJson.decodeFromJsonElement(DiscoveryDocument.serializer(), document)
     } catch (invalid: IllegalArgumentException) {
         return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = invalid.message ?: "not a discovery document")
     }
-    // DiscoveredKB states no bounds of a port (a proposal for Protocol): until it does, one that is no TCP port is refused here.
-    read.kbs.firstOrNull { it.port !in 1..65535 }?.let { return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = "kb entry at ${it.host} has port ${it.port}, which is not a port") }
     return DiscoveryManaged(kbs = read.kbs)
 }
 

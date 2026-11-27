@@ -36,22 +36,14 @@ let parse_discovery_document source =
                   let entries =
                     (Records.Discovery_document.of_model model).kbs
                   in
-                  if
-                    List.exists
-                      (fun (entry : Records.Discovered_kb.t) ->
-                        entry.port < 1 || entry.port > 65535)
-                      entries
-                  then absent Invalid
-                  else
-                    Records.Discovery_state.Managed
-                      {
-                        kbs =
-                          List.map
-                            (fun entry ->
-                              Result.get_ok
-                                (Records.Discovered_kb.to_model entry))
-                            entries;
-                      }))
+                  Records.Discovery_state.Managed
+                    {
+                      kbs =
+                        List.map
+                          (fun entry ->
+                            Result.get_ok (Records.Discovered_kb.to_model entry))
+                          entries;
+                    }))
       | _ -> absent Invalid)
 
 let text_discovery read () =
@@ -64,7 +56,7 @@ let text_discovery read () =
     read_of_state (absent Unreadable)
 
 let file_discovery ~state_directory =
-  let path = Filename.concat state_directory "discovery/kbs.json" in
+  let path = state_directory ^ Discovery_url_path.discovery_url_path in
   text_discovery (fun () ->
       try
         let fd = Unix.openfile path [ Unix.O_RDONLY; Unix.O_CLOEXEC ] 0 in

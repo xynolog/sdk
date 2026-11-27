@@ -328,7 +328,8 @@ func TestAnEventThatCannotBeReadAsksAgainForEverythingHeld(t *testing.T) {
 		asks  map[string]int
 	}{
 		{"a frame refused", func(t *testing.T, w *liveWorld) {
-			w.transport.DeliverRefusal(&xynolog.FrameRefusal{Channel: bus.MarkAdded.Channel(), Member: "payload.resourceId", Reason: api.FrameRefusalReasonMalformed, Envelope: xynolog.Envelope{Scope: resourceOf(t, "res-1")}})
+			scope := resourceOf(t, "res-1")
+			w.transport.DeliverRefusal(&api.FrameRefusal{Channel: string(bus.MarkAdded.Channel()), Member: "payload.resourceId", Reason: api.FrameRefusalReasonMalformed, Scope: &scope})
 		}, expectedAsks(unreadable.Refetches, unreadable.Reach)},
 		{"a payload that is not its channel's", func(t *testing.T, w *liveWorld) {
 			w.transport.Deliver(frameOf(t, bus.MarkAdded.Channel(), map[string]any{"not": "a recorded event"}, xynolog.Envelope{Scope: resourceOf(t, "res-1")}))

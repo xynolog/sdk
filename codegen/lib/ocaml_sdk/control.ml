@@ -1,6 +1,6 @@
 (* The launcher's control API as the OCaml SDK states it
    (ocaml/sdk/lib/control.ml, from protocol/specs/src/control/methods.json):
-   which side sends a notification ([sender]), and a value per method and per
+   a value per method and per
    notification, named for its name in snake case ([identity.users.list] is
    [identity_users_list], [notifications/userAction] is
    [notifications_user_action]), a [Method.t] or a [Notification.t] that
@@ -23,7 +23,11 @@ let value_name name =
     (function ('a' .. 'z' | '0' .. '9' | '_') as c -> c | _ -> '_')
     (Text.snake name)
 
-let sender from = String.capitalize_ascii (C.control_sender_value from)
+(* Who sends a notification, as the enum of ControlSender. *)
+let sender_enum = "Enums." ^ Enums.module_name "ControlSender"
+
+let sender from =
+  sender_enum ^ "." ^ Enums.constructor (C.control_sender_value from)
 
 let record name params fields =
   O.module_ name
@@ -31,12 +35,6 @@ let record name params fields =
 
 let types =
   [
-    O.type_item
-      (O.type_declaration "sender"
-         (Variant
-            (List.map
-               (fun from -> O.constructor (sender from))
-               C.control_sender_all)));
     record "Method" [ "params"; "result" ]
       [
         ("name", O.type_ "string");
@@ -48,7 +46,7 @@ let types =
     record "Notification" [ "params" ]
       [
         ("name", O.type_ "string");
-        ("from", O.type_ "sender");
+        ("from", O.type_ (sender_enum ^ ".t"));
         ("params", O.type_ "Models.descriptor" ~args:[ O.type_var "params" ]);
       ];
   ]

@@ -90,6 +90,65 @@ let vocabulary ~name (v : Table.vocabulary) =
     R.Blank;
   ]
 
+let rpc_constant r = "CONTROL_RPC_" ^ Text.upper_snake (Table.rpc_pascal r)
+
+(* The JSON-RPC codes the control API answers with, a constant each, and the
+   one each control code is answered under, with whether it is retryable. *)
+let control_answers (t : Table.t) =
+  let name = t.control.go_name in
+  let answering ~doc ~ret fn value =
+    R.I_fn
+      (R.fn_ ~doc:[ doc ] ~vis:Pub ~const:true fn ~params:[ R.Self_value ] ~ret
+         [
+           R.Tail
+             (R.Match
+                ( R.p "self",
+                  List.map
+                    (fun (a : Table.answered) ->
+                      (R.Path [ name; variant a.control_code ], value a))
+                    t.answered ));
+         ])
+  in
+  List.concat_map
+    (fun (r : Tables.Control_rpc_codes.codes_item) ->
+      [
+        R.Const
+          {
+            doc = [ r.docs ];
+            attrs = [];
+            vis = Pub;
+            name = rpc_constant r;
+            ty = R.named "i32";
+            value = R.Int r.number;
+          };
+      ])
+    t.rpc_codes
+  @ [
+      R.Blank;
+      R.Impl
+        {
+          generics = [];
+          trait_ = None;
+          for_ = R.named name;
+          items =
+            [
+              answering
+                ~doc:
+                  "The JSON-RPC code of control/rpc-codes.json an answer \
+                   carries the code under." ~ret:(R.named "i32") "rpc" (fun a ->
+                  R.p (rpc_constant a.rpc));
+              R.I_blank;
+              answering
+                ~doc:
+                  "Whether the same request can succeed sent again unchanged, \
+                   once something outside it changes: what \
+                   `ErrorData::retryable` says of the code."
+                ~ret:(R.named "bool") "retryable" (fun a -> R.Bool a.retryable);
+            ];
+        };
+      R.Blank;
+    ]
+
 let file (t : Table.t) =
   let names : Table.vocabulary -> string = fun v -> v.go_name in
   let bus c = R.Path [ names t.bus; variant c ] in
@@ -198,5 +257,6 @@ let file (t : Table.t) =
             R.Blank;
           ]
         @ List.concat_map (fun v -> vocabulary ~name:(names v) v) t.others
-        @ vocabulary ~name:(names t.control) t.control);
+        @ vocabulary ~name:(names t.control) t.control
+        @ control_answers t);
   }

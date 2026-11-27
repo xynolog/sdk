@@ -23,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir
 import xynolog.Spec
 import xynolog.http.renewKept
 import xynolog.types.StoredSession
+import xynolog.types.wireJson
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.InetAddress
@@ -94,12 +95,8 @@ class SignInStoreTest {
     @TestFactory
     fun theStateHomeIsTheTables(): List<DynamicTest> = table.getValue("cases").jsonArray.map { it.jsonObject }.map { case ->
         DynamicTest.dynamicTest(case.getValue("why").jsonPrimitive.content) {
-            val platform = when (case.getValue("os").jsonPrimitive.content) {
-                "macos" -> Platform.MACOS
-                "windows" -> Platform.WINDOWS
-                else -> Platform.OTHER
-            }
-            val dir = stateDir(platform, home = case.textOrNull("home"), xdgStateHome = case.textOrNull("xdgStateHome"), localAppData = case.textOrNull("localAppData"))
+            val system = wireJson.decodeFromJsonElement(xynolog.types.System.serializer(), case.getValue("os"))
+            val dir = stateDir(system, home = case.textOrNull("home"), xdgStateHome = case.textOrNull("xdgStateHome"), localAppData = case.textOrNull("localAppData"))
             assertEquals(case.textOrNull("dir"), dir)
         }
     }
@@ -243,9 +240,9 @@ class SignInStoreTest {
              * its script in a file of its own: Windows' command line would lose the quotes of a script passed inline.
              */
             fun holderCommand(lock: Path): List<String> {
-                if (thisPlatform() == Platform.OTHER) return listOf("flock", "--exclusive", lock.toString(), "sh", "-c", "echo held; cat >/dev/null")
+                if (thisSystem() == xynolog.types.System.Other) return listOf("flock", "--exclusive", lock.toString(), "sh", "-c", "echo held; cat >/dev/null")
                 val script = Files.createTempFile("holder", ".py").also { Files.writeString(it, python) }
-                return listOf(if (thisPlatform() == Platform.WINDOWS) "python" else "python3", script.toString(), lock.toString())
+                return listOf(if (thisSystem() == xynolog.types.System.Windows) "python" else "python3", script.toString(), lock.toString())
             }
         }
     }

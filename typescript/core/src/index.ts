@@ -324,6 +324,9 @@ export {
   type IdentityUnverifiableReason,
   type SpanRefusal,
   type ControlErrorCode,
+  controlRpcCodes,
+  type ControlRpcCode,
+  controlErrorCodeAnswers,
 } from './error-codes';
 
 // The launcher's control API, generated from protocol/specs/src/control/methods.json:

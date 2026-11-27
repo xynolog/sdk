@@ -213,7 +213,7 @@ func answer[T any](ctx context.Context, s *transportShared, spec request) (T, er
 		}
 		return out, s.failures.Report(unanswered(spec.method, spec.path, spec.deadline))
 	}
-	notItsBody := func(fault required.Fault) error {
+	notItsBody := func(fault api.Fault) error {
 		failure := &TransportError{Code: api.TransportErrorCodeError, Message: fmt.Sprintf("%s %s answered what is not its declared body: %s", spec.method, spec.path, fault), status: got.response.StatusCode, hasStatus: true}
 		return s.failures.Report(failure)
 	}

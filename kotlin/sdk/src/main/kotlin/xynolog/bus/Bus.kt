@@ -38,6 +38,7 @@ import xynolog.transport.Transport
 import xynolog.transport.scope
 import xynolog.types.CommandError
 import xynolog.types.ConnectionState
+import xynolog.types.Fault
 import xynolog.types.wireJson
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
@@ -96,7 +97,7 @@ private fun <P> decode(channel: String, serializer: KSerializer<P>, stamps: Set<
 private fun <P> encoded(channel: Channel<P>, payload: P): JsonObject = wireJson.encodeToJsonElement(channel.payload, payload).jsonObject
 
 /** What is said of a payload on `channel` that has `fault`, in every SDK's words. */
-private fun notTheChannels(channel: String, fault: Fault): String = "a payload on $channel is not that channel's: $fault"
+private fun notTheChannels(channel: String, fault: Fault): String = "a payload on $channel is not that channel's: ${fault.said()}"
 
 /**
  * Send `payload` as the request of `operation`, and wait for its reply, all
@@ -167,7 +168,7 @@ internal suspend fun resultOf(transport: Transport, operation: Operation<*, *, *
             listOf(pending.frame())
         } ?: throw timedOut()
         when (val reply = came.single() ?: throw BusRequestError(BusRequestErrorCode.Closed, "Bus closed before a reply on $result")) {
-            is FrameRefusal -> throw TransportError(TransportErrorCode.Error, "a frame on ${reply.channel} is not that channel's: ${Fault(reply.member, reply.reason)}")
+            is FrameRefusal -> throw TransportError(TransportErrorCode.Error, "a frame on ${reply.channel} is not that channel's: ${Fault(reply.member, reply.reason).said()}")
             is Frame -> {
                 if (reply.channel == result) return reply
                 throw answered(operation.failure, reply.payload)

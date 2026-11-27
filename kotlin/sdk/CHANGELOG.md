@@ -39,8 +39,16 @@ the coming release's, and gathers its changes as they land.
   each of the Archivist's HTTP operations.
 - `xynolog.control`: the launcher's control API, `ControlMethods`, each of
   its methods and notifications with the serializers of what each carries,
-  whether it runs alone and what it sends, and `ControlSender`.
+  whether it runs alone and what it sends, and the
+  `xynolog.types.ControlSender` that sends a notification.
 - `xynolog.errors.ControlErrorCode`, the control API's codes.
+- `CONTROL_RPC_*`, each code of `control/rpc-codes.json`, and
+  `controlRpcCodeOf(code)` and `controlCodeRetryable(code)`: the JSON-RPC code
+  each control error code is answered with, and whether a request it failed is
+  worth sending again, generated from `control/rpc-codes.json` and
+  `errors/codes.json`.
+- `xynolog.discovery.DISCOVERY_URL_PATH`, where a launcher's discovery
+  document is, generated from `client/surface.json`.
 
 ### Changed
 
@@ -48,6 +56,11 @@ the coming release's, and gathers its changes as they land.
   session opened over a kept sign-in and a test session take for an option
   left out is generated from Protocol's `client/option-defaults.json`. The
   values are as they were.
+- A value's first fault is read as `xynolog.types.Fault`, the type of
+  Protocol's `client/types/Fault.json`, where the SDK held a copy of its own;
+  what it says of a fault is unchanged. `FrameRefusal`, which is `Heard` and
+  `Carried` as no generated class can be, stays the SDK's own, and is held to
+  `client/types/FrameRefusal.json` by the client-types census.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
@@ -187,6 +200,10 @@ the coming release's, and gathers its changes as they land.
   `match.search` no `useSemanticScoring` of true, when the caller leaves them
   out: the service's own default applies. Options to `gather.annotation` that
   state nothing are not sent.
+- `stateDir` takes Protocol's `xynolog.types.System`, and `thisPlatform()` is
+  `thisSystem()`, where `Platform` was the SDK's own.
+- `CacheState.status` is Protocol's `xynolog.types.CacheStatus`, where it was
+  a `String`.
 - The discovery types are Protocol's (protocol#126), in `xynolog.types`,
   where they were hand-written in `xynolog.discovery`: `DiscoveryState` is a
   `DiscoveryAbsent` or a `DiscoveryManaged`, `DiscoveryRead` is either or a

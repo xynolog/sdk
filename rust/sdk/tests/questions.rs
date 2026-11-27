@@ -10,7 +10,8 @@ use xynolog::channels::{
     BrowseDirectoryFailed, BrowseDirectoryRequested, BrowseDirectoryResult, Channel,
 };
 use xynolog::testing::FaultyTransport;
-use xynolog::transport::{Frame, FrameRefusal};
+use xynolog::transport::Frame;
+use xynolog::types::FrameRefusal;
 use xynolog::types::{BrowseDirectoryResultResponse, BusFrame, FrameRefusalReason};
 
 fn asked(world: &FaultyTransport, payload: Value, correlation_id: Option<&str>) {

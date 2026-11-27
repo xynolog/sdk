@@ -1,6 +1,7 @@
 package xynolog.control
 
 import kotlinx.serialization.KSerializer
+import xynolog.types.ControlSender
 
 /** A notification of the launcher's control API (protocol/specs/src/control/methods.json): its name, which side sends it, and what its params are. [ControlMethods] holds each one. */
 public class ControlNotification<P> internal constructor(

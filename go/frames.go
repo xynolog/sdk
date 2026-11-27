@@ -9,7 +9,6 @@ package xynolog
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"iter"
 	"slices"
 	"sync"
@@ -17,7 +16,6 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
-	"github.com/xynolog/sdk/go/internal/required"
 )
 
 // Envelope is the routing beside a payload, never inside it: the correlation
@@ -55,39 +53,43 @@ type eventPlace struct {
 	id    string
 }
 
-// FrameRefusal is what a channel's readers are given in place of a frame
-// refused for its first fault: by its transport, as one BusFrame does not
-// allow whose channel and scope name its readers, or by its channel's typed
-// reader, as one whose payload is not its channel's.
-type FrameRefusal struct {
-	// Channel is the channel the frame names.
-	Channel bus.Channel
-	// Member is the way from the frame to its first fault: the names of the
-	// members it is within, and its own, joined by dots. A fault of the
-	// frame's payload is within `payload`.
-	Member string
-	// Reason is why the frame is refused at Member.
-	Reason api.FrameRefusalReason
-	// Payload is the frame's payload as it came; nil when it carried none.
-	Payload json.RawMessage
-	// Envelope is the scope the frame names, and its correlation id when it
-	// carries one BusFrame allows: empty when its correlation id cannot be
-	// read. A request awaiting the reply that correlation id names is told
-	// of the refusal (ReplyRouter.RouteRefusal).
-	Envelope
+// frameRefusal is the refusal of frame for fault: what a channel's readers are
+// given in its place, by its transport, as one BusFrame does not allow whose
+// channel and scope name its readers, or by its channel's typed reader, as
+// one whose payload is not its channel's. It carries the frame's payload as
+// it came, and its scope and correlation id when it names them.
+func frameRefusal(frame Frame, fault api.Fault) *api.FrameRefusal {
+	refusal := &api.FrameRefusal{Channel: string(frame.Channel), Member: fault.Member, Reason: fault.Reason}
+	if frame.Payload != nil {
+		refusal.Payload = frame.Payload
+	}
+	if !frame.Scope.IsZero() {
+		refusal.Scope = &frame.Scope
+	}
+	if frame.CorrelationID != "" {
+		refusal.CorrelationId = &frame.CorrelationID
+	}
+	return refusal
 }
 
-// Error is what every SDK says of a frame its channel's reader is given a
-// refusal of.
-func (r *FrameRefusal) Error() string {
-	return fmt.Sprintf("a frame on %s is not that channel's: %s", r.Channel, required.Fault{Member: r.Member, Reason: r.Reason})
+// refusedFrame is the frame refusal names: its channel and envelope, and no
+// payload.
+func refusedFrame(refusal *api.FrameRefusal) Frame {
+	frame := Frame{Channel: bus.Channel(refusal.Channel)}
+	if refusal.Scope != nil {
+		frame.Scope = *refusal.Scope
+	}
+	if refusal.CorrelationId != nil {
+		frame.CorrelationID = *refusal.CorrelationId
+	}
+	return frame
 }
 
 // arrival is what a channel's readers are given: a frame, or the refusal of
 // one in its place.
 type arrival struct {
 	frame   Frame
-	refusal *FrameRefusal
+	refusal *api.FrameRefusal
 }
 
 // told is the arrival as a sequence of frames gives it: the frame and no
@@ -95,7 +97,7 @@ type arrival struct {
 // refusal as the error.
 func (a arrival) told() (Frame, error) {
 	if a.refusal != nil {
-		return Frame{Channel: a.refusal.Channel, Envelope: a.refusal.Envelope}, a.refusal
+		return refusedFrame(a.refusal), a.refusal
 	}
 	return a.frame, nil
 }
@@ -118,7 +120,7 @@ type FrameSink interface {
 	// Deliver takes one frame, as the transport delivered it.
 	Deliver(frame Frame)
 	// DeliverRefusal takes the refusal of one frame, in its place.
-	DeliverRefusal(refusal *FrameRefusal)
+	DeliverRefusal(refusal *api.FrameRefusal)
 }
 
 // FrameHub is the frames of every channel anybody listens to, a broadcast per
@@ -195,10 +197,10 @@ func (h *FrameHub) Deliver(frame Frame) {
 
 // DeliverRefusal hands the refusal of a frame, in its place, to every bus
 // bridged into, and to its channel's listeners.
-func (h *FrameHub) DeliverRefusal(refusal *FrameRefusal) {
-	bridged, listening := h.listeners(refusal.Channel)
+func (h *FrameHub) DeliverRefusal(refusal *api.FrameRefusal) {
+	bridged, listening := h.listeners(bus.Channel(refusal.Channel))
 	everyone := *refusal
-	everyone.Scope = api.ResourceId{}
+	everyone.Scope = nil
 	for _, sink := range bridged {
 		sink.DeliverRefusal(&everyone)
 	}

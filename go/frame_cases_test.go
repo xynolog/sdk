@@ -27,7 +27,6 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
-	"github.com/xynolog/sdk/go/internal/required"
 )
 
 type frameCase struct {
@@ -127,11 +126,11 @@ func isAfterFailure(t *testing.T, frame Frame) bool {
 
 // typedRead is what a typed read gives until the frame it stops at: each
 // payload it reads, written again as JSON, and each error, which must be a
-// *FrameRefusal.
-func typedRead[P any](t *testing.T, why string, next func() (Delivered[P], error, bool), stop func(Delivered[P]) bool) ([]string, []*FrameRefusal) {
+// *api.FrameRefusal.
+func typedRead[P any](t *testing.T, why string, next func() (Delivered[P], error, bool), stop func(Delivered[P]) bool) ([]string, []*api.FrameRefusal) {
 	t.Helper()
 	var reads []string
-	var refusals []*FrameRefusal
+	var refusals []*api.FrameRefusal
 	for {
 		read, err, ok := next()
 		if !ok {
@@ -148,9 +147,9 @@ func typedRead[P any](t *testing.T, why string, next func() (Delivered[P], error
 			reads = append(reads, string(written))
 			continue
 		}
-		var refusal *FrameRefusal
+		var refusal *api.FrameRefusal
 		if !errors.As(err, &refusal) {
-			t.Fatalf("%s: a typed read gives %v in a frame's place, which is no *FrameRefusal", why, err)
+			t.Fatalf("%s: a typed read gives %v in a frame's place, which is no *api.FrameRefusal", why, err)
 		}
 		refusals = append(refusals, refusal)
 	}
@@ -170,9 +169,11 @@ func pulledByType[P any](t *testing.T, ctx context.Context, w *Wire, c bus.Globa
 // refusedAsStated is whether refusal is the case's refusal of a frame on
 // channel whose payload is payload: on no scope, naming the member and
 // reason it states, and carrying the correlation id it states.
-func refusedAsStated(t *testing.T, c frameCase, channel bus.Channel, payload json.RawMessage, refusal *FrameRefusal) bool {
-	samePayload := (refusal.Payload == nil) == (payload == nil) && (payload == nil || sameJSON(t, string(refusal.Payload), string(payload)))
-	return refusal.Channel == channel && refusal.Member == c.Member && refusal.Reason == c.Reason && refusal.CorrelationID == c.CorrelationID && refusal.Scope.IsZero() && samePayload
+func refusedAsStated(t *testing.T, c frameCase, channel bus.Channel, payload json.RawMessage, refusal *api.FrameRefusal) bool {
+	carried, isJSON := refusal.Payload.(json.RawMessage)
+	samePayload := (refusal.Payload == nil) == (payload == nil) && (payload == nil || isJSON && sameJSON(t, string(carried), string(payload)))
+	named := refusedFrame(refusal)
+	return named.Channel == channel && refusal.Member == c.Member && refusal.Reason == c.Reason && named.CorrelationID == c.CorrelationID && refusal.Scope == nil && samePayload
 }
 
 func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(t *testing.T) {
@@ -228,18 +229,18 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 		gateway.sendData(fmt.Sprintf("after-%d", at), after)
 
 		var delivered []Frame
-		var refused []*FrameRefusal
+		var refused []*api.FrameRefusal
 		for {
 			frame, err, ok := nextFrame()
 			if !ok {
 				t.Fatalf("%s: the transport's frames ended", c.Why)
 			}
 			if err != nil {
-				refusal, isRefusal := err.(*FrameRefusal)
+				refusal, isRefusal := err.(*api.FrameRefusal)
 				if !isRefusal {
-					t.Fatalf("%s: the transport gives %v in a frame's place, which is no *FrameRefusal", c.Why, err)
+					t.Fatalf("%s: the transport gives %v in a frame's place, which is no *api.FrameRefusal", c.Why, err)
 				}
-				if frame.Channel != refusal.Channel || frame.Envelope != refusal.Envelope || frame.Payload != nil {
+				if named := refusedFrame(refusal); frame.Channel != named.Channel || frame.Envelope != named.Envelope || frame.Payload != nil {
 					t.Errorf("%s: the transport gives %+v beside its refusal, and not the channel and envelope it names", c.Why, frame)
 				}
 				refused = append(refused, refusal)
@@ -253,7 +254,7 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 			}
 			delivered = append(delivered, frame)
 		}
-		readBy := map[bus.Channel][]*FrameRefusal{}
+		readBy := map[bus.Channel][]*api.FrameRefusal{}
 		// readAs is what each failure channel's typed reader reads, written again as JSON.
 		readAs := map[bus.Channel][]string{}
 		_, readBy[bus.BeckonFocus.Channel()] = typedRead(t, c.Why, nextFocus, func(focus Delivered[api.BeckonFocusEvent]) bool {
@@ -359,7 +360,7 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 		}
 		readOnlyOn("")
 
-		fault := required.Fault{Member: c.Member, Reason: c.Reason}
+		fault := api.Fault{Member: c.Member, Reason: c.Reason}
 		switch c.Told {
 		case "readers":
 			var stated struct {

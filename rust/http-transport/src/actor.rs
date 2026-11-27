@@ -38,8 +38,9 @@ use xynolog::read_as;
 use xynolog::resume::is_place;
 use xynolog::retry::{equal_jitter, retry_after};
 use xynolog::timing::{DEGRADED_THRESHOLD, MAX_RECONNECT, RECONNECT_DEBOUNCE};
-use xynolog::transport::{CONNECTION_STATE_MOVES, Frame, FrameRefusal, StreamId};
+use xynolog::transport::{CONNECTION_STATE_MOVES, Frame, StreamId};
 use xynolog::types::ConnectionState;
+use xynolog::types::FrameRefusal;
 use xynolog::types::TraceCarrier;
 use xynolog::types::{
     BusEventMessageEvent, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem,

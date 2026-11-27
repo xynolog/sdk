@@ -11,6 +11,7 @@ import xynolog.types.AuthLoginResult
 import xynolog.types.AuthLogoutParams
 import xynolog.types.AuthLogoutResult
 import xynolog.types.Cancelled
+import xynolog.types.ControlSender
 import xynolog.types.IdentityUseraddParams
 import xynolog.types.IdentityUseraddResult
 import xynolog.types.IdentityUsersListParams
@@ -48,16 +49,6 @@ import xynolog.types.StackStopResult
 import xynolog.types.StatusSnapshotParams
 import xynolog.types.StatusSnapshotResult
 import xynolog.types.UserAction
-
-/** Which side of the control API sends a notification. */
-@Generated
-public enum class ControlSender(
-    /** The side as the table spells it. */
-    public val value: String,
-) {
-    Client("client"),
-    Launcher("launcher"),
-}
 
 /** The launcher's control API: each of its notifications, and each of its methods, with the serializers of what each carries. A request that fails carries a `ErrorData` as its error's data, and every request's params state its `ApiVersion`. */
 @Generated
