@@ -45,30 +45,24 @@ actor WorkerDriver {
 
   private func open(_ args: [String: JSONValue]) async throws {
     guard client == nil else { throw Misuse(description: "The worker is already open") }
-    var transportTiming = TransportTiming()
+    var rows = try args.timingRows()
     var claimWaits: [String: JSONValue] = [:]
-    if args["timing"] != nil {
-      let timing = try args.object("timing")
-      for (name, held) in timing {
-        let value = try timing.integer(name)
-        guard value >= 0 else { throw Misuse(description: "Negative timing \(name)") }
-        switch name {
-        case "reconnectMs": transportTiming.reconnectMs = value
-        case "lazyRemoveMs": transportTiming.lazyRemoveMs = value
-        case "lingerMs": transportTiming.lingerMs = value
-        default: claimWaits[name] = held
-        }
-      }
+    for name in [
+      "jobClaimTimeoutMs", "heldJobStallMs", "heldJobStallCheckMs", "markCommitTimeoutMs",
+    ] where rows[name] != nil {
+      _ = try rows.amount(name)
+      claimWaits[name] = rows.removeValue(forKey: name)
     }
+    let timing = try timings(rows)
     self.claimWaits = claimWaits
     var channels = jobClaimChannels
     if try args.optionalBool("commits") == true { channels += jobCommitChannels }
     let transport = HttpTransport(
       baseUrl: try args.text("baseUrl"), httpClient: http, token: try args.text("token"),
-      channels: channels.sorted(), timing: transportTiming)
+      channels: channels.sorted(), timing: timing.transport)
     let (failures, telling) = failuresTold(by: transport)
     do {
-      client = try await XynologClient(transport: transport)
+      client = try await XynologClient(transport: transport, timing: timing.client)
     } catch {
       transport.dispose()
       throw error

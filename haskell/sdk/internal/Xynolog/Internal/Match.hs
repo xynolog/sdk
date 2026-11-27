@@ -9,12 +9,12 @@ import Xynolog.Bus qualified as Bus
 import Xynolog.Channels
 import Xynolog.Internal.Cache qualified as Cache
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Local qualified as Local
 import Xynolog.Internal.Queries (cacheOptions, oneReport)
 import Xynolog.Internal.Refresh qualified as Refresh
 import Xynolog.Internal.Running qualified as Running
 import Xynolog.Internal.Transport qualified as LocalBus
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Types
 
 data MatchNamespace = MatchNamespace Bus.Bus LocalBus.EventBus Timing.Settings (Cache.Cache MatchResourcesRequest Fact.MatchedResourcesValue)
@@ -24,7 +24,7 @@ newMatch wire local clock timing =
   MatchNamespace wire local timing
     <$> Cache.newCache
       (\input -> matchResourcesResultResponse <$> Bus.request wire MatchResourcesRequestedOperation input (Timing.busRequestTimeoutMs timing))
-      (cacheOptions clock timing (const (pure (pure ()))))
+      (cacheOptions clock (const (pure (pure ()))))
 
 search :: MatchNamespace -> ResourceId -> AnnotationId -> GatheredContext -> Maybe MatchSearchOptions -> IO (Running.Running MatchSearchResult MatchSearchResult)
 search (MatchNamespace wire _ timing _) identity reference context options =

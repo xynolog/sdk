@@ -557,7 +557,7 @@ def test_l1_l2_a_watcher_is_given_a_value_or_a_failure_and_a_read_settles_under_
 
     @asynccontextmanager
     async def watching(transport: FaultyTransport) -> AsyncGenerator[LivenessScenario]:
-        made = create_test_client(transport=transport, timing=ClientTiming(bus_request_ms=timeout_ms))
+        made = create_test_client(transport=transport, timing=ClientTiming(bus_request_timeout_ms=timeout_ms))
         async with made.client as client, client.browse.resource(RESOURCE) as one, client.browse.resource(OTHER) as other:
             yield LivenessScenario(outputs=(said(one), said(other)), settlements=(client.browse.resource(ResourceId("res-3")).fresh(),))
 

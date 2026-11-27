@@ -6,6 +6,7 @@ type said = Own of session_error | Transport_failure of Http_wire.failure
 type t = {
   sw : Eio.Switch.t;
   clock : Clock.t;
+  timing : Client_timing.client;
   cache : (Live_query.key, Yojson.Safe.t) Live_query.t;
   flush_cache : unit -> unit;
   session : Session.t;

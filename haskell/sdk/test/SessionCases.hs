@@ -37,7 +37,8 @@ import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing (errorsKeptForFirstReaderCount)
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -95,7 +96,7 @@ withClient time action = do
           (pure ())
       options = Bus.BusOptions (Time.now time) (Time.waitUntil time) (pure "session-case")
   (transport, input) <- Transport.newTransport (Transport.TransportOptions "http://localhost:4000" Set.empty (const unused) (pure ()))
-  bracket (Client.newClient transport contents Nothing options Timing.protocolSettings Nothing) Client.dispose (\owned -> action owned input)
+  bracket (Client.newClient transport contents Nothing options Settings.protocolClientTiming Nothing) Client.dispose (\owned -> action owned input)
 
 stored :: Text -> StoredSession
 stored access = StoredSession {storedSessionAccess = AccessToken access, storedSessionClientId = "session-cases", storedSessionPersonKey = Nothing, storedSessionRefresh = "refresh-credential", storedSessionRevocationEndpoint = Nothing, storedSessionTokenEndpoint = "https://issuer.test/token"}
@@ -183,7 +184,7 @@ sessionCases root fixtures = do
             ends <- readValue (member "ends" expected)
             require ("session end differs: " ++ show row) ((case held of Nothing -> "signed-out"; Just _ -> if signedIn == Nothing then "unconfirmed" else "signed-in") == (ends :: Text))
             whenSignedIn ends $ require "session did not keep the gateway's latest person" . (== signedIn) =<< readTVarIO answered
-      bracket (Session.newSession owned options (timeOptions time) Timing.protocolSettings) Session.dispose $ \session ->
+      bracket (Session.newSession owned options (timeOptions time) Settings.protocolTransportTiming) Session.dispose $ \session ->
         withAsync (collect session failures) $ \_ -> do
           Session.ready session
           whenSignedIn (if section == "refusal" then "signed-in" else "") $ do
@@ -209,7 +210,7 @@ sessionCases root fixtures = do
           require "session forgot a usable credential or kept a refused one" (maybe False (const True) kept == expectedKept)
           case row of
             Object fields | Just later <- KM.lookup "then" fields -> do
-              Time.advance time (Timing.reconnectMs Timing.protocolSettings * 1200000)
+              Time.advance time (Timing.reconnectMs * 1200000)
               checkState later
               checkEnd session later
             _ -> do
@@ -244,7 +245,7 @@ concurrentCases target person = do
             (Just (\_ _ -> pure (Just person)))
             (const (pure ()))
             (pure 1800000000)
-    bracket (Session.newSession owned options (timeOptions time) Timing.protocolSettings) Session.dispose $ \session -> do
+    bracket (Session.newSession owned options (timeOptions time) Settings.protocolTransportTiming) Session.dispose $ \session -> do
       Session.ready session
       pending <- async (replicateConcurrently 20 (Session.refresh session Nothing))
       Time.settle
@@ -287,7 +288,7 @@ orderCases target = do
                   (Just unconfirmed)
                   (const (pure ()))
                   (pure 1800000000)
-          bracket (Session.newSession owned options (timeOptions time) Timing.protocolSettings) Session.dispose $ \session -> do
+          bracket (Session.newSession owned options (timeOptions time) Settings.protocolTransportTiming) Session.dispose $ \session -> do
             Session.ready session
             let sayTheRest = Session.refresh session Nothing >> Transport.reportError input refused
             hear session sayTheRest
@@ -328,7 +329,7 @@ keptForFirstReaderCases target person = do
           [ TransportError Code.TransportUnavailable (Text.pack ("request " <> show serial <> " unanswered")) Nothing Nothing
           | serial <- [1 .. fromInteger errorsKeptForFirstReaderCount + beyond]
           ]
-    bracket (Session.newSession owned options (timeOptions time) Timing.protocolSettings) Session.dispose $ \session -> do
+    bracket (Session.newSession owned options (timeOptions time) Settings.protocolTransportTiming) Session.dispose $ \session -> do
       Session.ready session
       mapM_ (Transport.reportError input) said
       -- The first reader comes, and the session ends: what it is given is all it hears.
@@ -337,7 +338,7 @@ keptForFirstReaderCases target person = do
         ("the first reader was not given the latest the session said, in order: " ++ show (map codeOf heard))
         (heard == map Right (drop beyond said))
     -- One is said with nobody reading, and the session ends: a reader who comes after hears nothing.
-    bracket (Session.newSession owned options {Session.sessionId = "dropped-at-end"} (timeOptions time) Timing.protocolSettings) Session.dispose $ \session -> do
+    bracket (Session.newSession owned options {Session.sessionId = "dropped-at-end"} (timeOptions time) Settings.protocolTransportTiming) Session.dispose $ \session -> do
       Session.ready session
       Transport.reportError input (TransportError Code.TransportUnavailable "said before the session ended" Nothing Nothing)
       Session.dispose session
@@ -361,7 +362,7 @@ keptForFirstReaderCases target person = do
         before = TransportError Code.TransportUnavailable "met before the session was made" Nothing Nothing
         after = TransportError Code.TransportUnavailable "met once the session was made" Nothing Nothing
     Transport.reportError input before
-    bracket (Session.newSession owned options (timeOptions time) Timing.protocolSettings) Session.dispose $ \session -> do
+    bracket (Session.newSession owned options (timeOptions time) Settings.protocolTransportTiming) Session.dispose $ \session -> do
       Session.ready session
       transportHeard <- Transport.errors (Client.transport owned) $ \given ->
         Transport.reportError input after >> Stream.toList_ (Stream.take 1 given)
@@ -398,7 +399,7 @@ externalCases target person = do
             (Just (\_ _ -> pure (Just person)))
             (const (ioError (userError "external sign-out notified expiry")))
             (pure 1800000000)
-    session <- Session.newSession owned options (timeOptions time) Timing.protocolSettings
+    session <- Session.newSession owned options (timeOptions time) Settings.protocolTransportTiming
     Session.ready session
     pending <- async (Session.refresh session Nothing)
     atomically (readTMVar started)
@@ -435,7 +436,7 @@ externalCases target person = do
               Session.sessionRefresh = Just (\holding -> SignIn.renewKept kept holding (const (pure False)) exchange),
               Session.sessionOnAuthFailed = (\reason -> atomically (modifyTVar' ended (<> [reason])))
             }
-    blocked <- Session.newSession owned held (timeOptions time) Timing.protocolSettings
+    blocked <- Session.newSession owned held (timeOptions time) Settings.protocolTransportTiming
     Session.ready blocked
     first <- atomically (State.current (Session.token blocked))
     refusal <- async (try (Session.refresh blocked first) :: IO (Either BusRequestError (Maybe Text)))
@@ -467,7 +468,7 @@ externalCases target person = do
               Session.sessionRefresh = Just (\_ -> pure (Just (jwt 3600 1))),
               Session.sessionValidate = Just (\_ _ -> throwIO (TransportError Code.TransportUnauthorized "refused" (Just 401) Nothing))
             }
-    failed <- Session.newSession owned broken (timeOptions time) Timing.protocolSettings
+    failed <- Session.newSession owned broken (timeOptions time) Settings.protocolTransportTiming
     badReady <- try (Session.ready failed) :: IO (Either IOException ())
     require "a failed host callback made startup look successful" (case badReady of Left _ -> True; _ -> False)
     afterFailure <- try (Session.refresh failed Nothing) :: IO (Either BusRequestError (Maybe Text))
@@ -476,7 +477,7 @@ externalCases target person = do
     grant <- SignIn.newMemorySignIn
     SignIn.keep grant (stored (jwt 3600 0))
     let forgotten = options {Session.sessionKept = grant, Session.sessionRefresh = Just (const (pure Nothing))}
-    missing <- Session.newSession owned forgotten (timeOptions time) Timing.protocolSettings
+    missing <- Session.newSession owned forgotten (timeOptions time) Settings.protocolTransportTiming
     Session.ready missing
     SignIn.forget grant
     answer <- Session.refresh missing Nothing
@@ -522,7 +523,7 @@ sessionClockCases root fixtures = clockCasesFor root ["renewal"] $ \time row -> 
           (pure ())
       busOptions = Bus.BusOptions (Time.now time) (Time.waitUntil time) (pure "session-clock")
   (transport, _) <- Transport.newTransport (Transport.TransportOptions "http://localhost:4000" Set.empty (const unused) (pure ()))
-  owned <- Client.newClient transport contents Nothing busOptions Timing.protocolSettings Nothing
+  owned <- Client.newClient transport contents Nothing busOptions Settings.protocolClientTiming Nothing
   let options =
         Session.SessionOptions
           "clock"
@@ -533,6 +534,6 @@ sessionClockCases root fixtures = clockCasesFor root ["renewal"] $ \time row -> 
           (Just (\_ _ -> pure (Just person)))
           (const (pure ()))
           now
-  session <- Session.newSession owned options (timeOptions time) Timing.protocolSettings
+  session <- Session.newSession owned options (timeOptions time) Settings.protocolTransportTiming
   Session.ready session
   pure (Scenario (pure ()) (readTVarIO calls) (Client.dispose owned `finally` Session.dispose session))

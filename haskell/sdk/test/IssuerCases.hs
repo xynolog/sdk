@@ -47,7 +47,8 @@ import Xynolog.Session qualified as Session
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
 import Xynolog.StateValue qualified as State
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -66,7 +67,7 @@ values _ = error "issuer answers are not a list"
 peer :: Time.ControlledTime -> (Bytes.ByteString -> IO (Int, Value)) -> IO Issuer.IssuerOptions
 peer time answer = do
   pool <- httpPeer (fmap (uncurry jsonReply) . answer)
-  pure (Issuer.IssuerOptions pool (Retry.RetryOptions (Time.now time) (Time.waitUntil time) (pure 0)) Timing.protocolSettings)
+  pure (Issuer.IssuerOptions pool (Retry.RetryOptions (Time.now time) (Time.waitUntil time) (pure 0)) Settings.protocolTransportTiming)
 
 -- | A JSON reply that closes its connection.
 jsonReply :: Int -> Value -> Bytes.ByteString
@@ -242,7 +243,7 @@ issuerCases fixtures = do
           (ioError (userError "factory did not replace the original token reader"))
           (const (ioError (userError "factory did not replace the original renewer")))
           (Issuer.issuerTime options)
-          Timing.protocolSettings
+          Settings.protocolTransportTiming
           (pure (UUID.fromWords 0 0 0 1))
           Set.empty
           (pure Map.empty)
@@ -262,7 +263,7 @@ issuerCases fixtures = do
   SignIn.keep unrevocable stored
   require "sign-out said a sign-in that names no revocation endpoint was revoked" . not =<< Session.signOut http unrevocable
   require "sign-out kept a sign-in that names no revocation endpoint" . (== Nothing) =<< SignIn.held unrevocable
-  bracket (Session.fromIssuedSession http Nothing sessionOptions stored) Session.closeOpenedSession $ \opened -> do
+  bracket (Session.fromIssuedSession http Settings.protocolClientTiming Nothing sessionOptions stored) Session.closeOpenedSession $ \opened -> do
     let session = Session.openedSession opened
     require "issued-session factory did not renew its expired grant" . (== Just "fresh")
       =<< atomically (State.current (Session.token session))
@@ -287,12 +288,12 @@ issuerCases fixtures = do
   atomically (writeTVar identities [503])
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service -> do
     asked <- identityAsks
-    unready <- try (Session.signInAgent http agentOptions service) :: IO (Either TransportError Session.OpenedSession)
+    unready <- try (Session.signInAgent http Settings.protocolClientTiming agentOptions service) :: IO (Either TransportError Session.OpenedSession)
     require "agent sign-in did not fail at once on a gateway not yet ready" (case unready of Left failure -> httpStatus failure == Just 503; _ -> False)
     require "agent sign-in asked the gateway again" . (== asked + 1) =<< identityAsks
   atomically (writeTVar identities [200])
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service -> do
-    opened <- Session.signInAgent http agentOptions service
+    opened <- Session.signInAgent http Settings.protocolClientTiming agentOptions service
     let session = Session.openedSession opened
     bracket (pure opened) Session.closeOpenedSession $ \_ -> do
       person <- atomically (State.current (Session.user session))
@@ -317,7 +318,7 @@ issuerCases fixtures = do
   -- with the issuer asked nothing more.
   atomically (writeTVar identities [200])
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service -> do
-    opened <- Session.signInAgent http agentOptions service
+    opened <- Session.signInAgent http Settings.protocolClientTiming agentOptions service
     let session = Session.openedSession opened
         tokenAsks = length . filter ((== "/token") . route) <$> readTVar seen
     first <- atomically (State.current (Session.token session))
@@ -348,7 +349,7 @@ issuerCases fixtures = do
   bracket (Service.newServiceTokenSecret options "http://issuer.test" "account" "test-only-secret") Service.dispose $ \service ->
     bracket
       ( async
-          ( try (Session.signInAgent http refusedOptions service) ::
+          ( try (Session.signInAgent http Settings.protocolClientTiming refusedOptions service) ::
               IO (Either TransportError Session.OpenedSession)
           )
       )
@@ -434,15 +435,15 @@ agentClockCases root fixtures = clockCasesFor root ["refusedAgentSignIn", "unrea
           (ioError (userError "the agent's sign-in did not replace the original token reader"))
           (const (ioError (userError "the agent's sign-in did not replace the original renewer")))
           waits
-          Timing.protocolSettings
+          Settings.protocolTransportTiming
           (pure (UUID.fromWords 0 0 0 1))
           Set.empty
           (pure Map.empty)
           (\_ _ -> pure ())
       target = KbTarget {kbTargetEndpoint = (KbEndpointHttpEndpoint endpoint), kbTargetId = "agent-clock", kbTargetLabel = "Agent clock"}
       options = Session.SessionOptions "agent-clock" target kept Nothing Nothing Nothing (const (pure ())) (pure 1800000000)
-  service <- Service.newServiceTokenSecret (Issuer.IssuerOptions pool waits Timing.protocolSettings) "http://issuer.test" "account" "test-only-secret"
-  signing <- async (Session.signInAgent http options service)
+  service <- Service.newServiceTokenSecret (Issuer.IssuerOptions pool waits Settings.protocolTransportTiming) "http://issuer.test" "account" "test-only-secret"
+  signing <- async (Session.signInAgent http Settings.protocolClientTiming options service)
   let stop = do
         cancel signing
         poll signing >>= mapM_ (either (const (pure ())) Session.closeOpenedSession)
@@ -522,7 +523,7 @@ serviceTokenCases root = do
     atomically (writeTVar hold (Just blocked))
     result <- newEmptyTMVarIO
     start <- Time.now time
-    let due = start + Timing.httpRequestTimeoutMs Timing.protocolSettings * 1000000
+    let due = start + Timing.httpRequestTimeoutMs * 1000000
     operation <- async $ do
       answer <- try (Service.token service) :: IO (Either SignInError Text)
       atomically (putTMVar result answer)

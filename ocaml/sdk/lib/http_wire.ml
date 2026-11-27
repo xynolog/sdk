@@ -1,23 +1,5 @@
 open Eio.Std
 
-type timing = {
-  emit_attempts : int;
-  emit_initial_delay_ms : int;
-  emit_max_delay_ms : int;
-  emit_timeout_ms : int;
-  request_timeout_ms : int;
-}
-
-let default_timing =
-  let retry = Client_timing.emit_retry in
-  {
-    emit_attempts = retry.attempts;
-    emit_initial_delay_ms = retry.initial_delay_ms;
-    emit_max_delay_ms = retry.max_delay_ms;
-    emit_timeout_ms = Client_timing.emit_timeout_ms;
-    request_timeout_ms = Client_timing.http_request_timeout_ms;
-  }
-
 type failure = {
   code : Error_codes.Transport.t;
   status : int option;
@@ -36,7 +18,7 @@ exception Failed of failure
 exception Deadline
 
 type t = {
-  timing : timing;
+  timing : Client_timing.transport;
   telemetry : Telemetry.t option;
   clock : Clock.t;
   session : Session.t;
@@ -52,8 +34,8 @@ type t = {
     int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t;
 }
 
-let make ?(timing = default_timing) ?telemetry ~clock ~session ~key ~on_error
-    ~call () =
+let make ?(timing = Client_timing.transport_defaults) ?telemetry ~clock ~session
+    ~key ~on_error ~call () =
   { timing; telemetry; clock; session; key; on_error; call }
 
 let fail t ?status ~message code =
@@ -247,8 +229,8 @@ let emit t ~client_id ?scope ?correlation_id ?trace channel source =
               time = Clock.wall_now t.clock;
             })
         t.telemetry;
-      let timing = t.timing in
-      exchange t ~auth:true ~timeout_ms:timing.emit_timeout_ms ~body
+      let retry = t.timing.emit_retry in
+      exchange t ~auth:true ~timeout_ms:Client_timing.emit_timeout_ms ~body
         ~headers:
           ([
              ("content-type", Gateway_http.Media.emit_on_bus_sends);
@@ -265,10 +247,9 @@ let emit t ~client_id ?scope ?correlation_id ?trace channel source =
                       members
                 | _ -> [])
               trace)
-        ~attempts:timing.emit_attempts
-        ~initial_delay:timing.emit_initial_delay_ms
-        ~max_delay:timing.emit_max_delay_ms ~jitter:true
-        Gateway_http.emit_on_bus read_text)
+        ~attempts:retry.attempts ~initial_delay:retry.initial_delay_ms
+        ~max_delay:retry.max_delay_ms ~jitter:true Gateway_http.emit_on_bus
+        read_text)
 
 let bus_failure payload =
   Http_facts.bus_failure
@@ -282,7 +263,7 @@ let bus_failure payload =
     | Error _ -> None)
 
 let json_get t ?(auth = true) path =
-  exchange t ~auth ~timeout_ms:t.timing.request_timeout_ms ~attempts:2
+  exchange t ~auth ~timeout_ms:t.timing.http_request_timeout_ms ~attempts:2
     ~initial_delay:Client_timing.request_retry_pause_ms path read_text
 
 let health t = json_get t ~auth:false Gateway_http.get_health
@@ -312,7 +293,7 @@ let check_user t token =
               })
     in
     Fiber.first check (fun () ->
-        sleep t (float t.timing.request_timeout_ms);
+        sleep t (float t.timing.http_request_timeout_ms);
         Error
           {
             code = Error_codes.Transport.Unavailable;
@@ -368,7 +349,7 @@ let media_token t resource =
            ("resourceId", `String (Identifiers.Resource_id.to_string resource));
          ])
   in
-  exchange t ~auth:true ~timeout_ms:t.timing.request_timeout_ms ~body
+  exchange t ~auth:true ~timeout_ms:t.timing.http_request_timeout_ms ~body
     ~headers:[ ("content-type", Gateway_http.Media.create_media_token_sends) ]
     Gateway_http.create_media_token read_text
 
@@ -383,8 +364,8 @@ let with_content t ?(streaming = true) resource consume =
     else attrs
   in
   around t Telemetry_facts.content_get attrs (fun () ->
-      exchange t ~auth:true ~timeout_ms:t.timing.request_timeout_ms ~attempts:2
-        ~initial_delay:Client_timing.request_retry_pause_ms
+      exchange t ~auth:true ~timeout_ms:t.timing.http_request_timeout_ms
+        ~attempts:2 ~initial_delay:Client_timing.request_retry_pause_ms
         (on_resource Gateway_http.get_resource_representation resource)
         (fun headers stream ->
           let content_type =

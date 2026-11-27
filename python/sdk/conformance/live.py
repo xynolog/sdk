@@ -10,16 +10,31 @@ from collections.abc import AsyncIterator, Sequence
 from contextlib import AsyncExitStack
 from typing import Final, assert_never, final
 
-from protocol import Arguments, Misuse, Operation, count, failure, object_of, say, serve, text
+from protocol import (
+    CLIENT_ROWS,
+    TRANSPORT_ROWS,
+    Arguments,
+    Misuse,
+    Operation,
+    client_timing,
+    count,
+    failure,
+    object_of,
+    say,
+    serve,
+    text,
+    timing_of,
+    transport_timing,
+)
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog.cache import CacheState, Failed, Pending, Ready
 from xynolog.cached import Cached
 from xynolog.channels import BRIDGED_CHANNELS
-from xynolog.client import CachePersistence, ClientTiming, XynologClient
+from xynolog.client import CachePersistence, XynologClient
 from xynolog.errors import XynologError
 from xynolog.events import Events
-from xynolog.http import HttpTransport, Timing
+from xynolog.http import HttpTransport
 from xynolog.identifiers import AnnotationId, InvalidIdentifier, ResourceId
 from xynolog.model import WireModel
 from xynolog.namespaces.follow import Delegation, JobRefused
@@ -153,47 +168,6 @@ def _query(client: XynologClient[HttpTransport], query: Arguments) -> Cached[_Sh
             assert_never(named)
 
 
-def _timings(stated: Arguments) -> tuple[Timing, ClientTiming]:
-    """The timing a case states, each entry by its name in `protocol/specs/src/client/timing.json`."""
-    wire, client = Timing(), ClientTiming()
-    reconnect_ms, lazy_remove_ms, linger_ms = wire.reconnect_ms, wire.lazy_remove_ms, wire.linger_ms
-    bus_request_ms, invalidation_window_ms = client.bus_request_ms, client.invalidation_window_ms
-    job_silence_ms, job_status_poll_ms = client.job_silence_ms, client.job_status_poll_ms
-    for name in stated:
-        match name:
-            case "reconnectMs":
-                reconnect_ms = count(stated, name)
-            case "lazyRemoveMs":
-                lazy_remove_ms = count(stated, name)
-            case "lingerMs":
-                linger_ms = count(stated, name)
-            case "busRequestTimeoutMs":
-                bus_request_ms = count(stated, name)
-            case "invalidationWindowMs":
-                invalidation_window_ms = count(stated, name)
-            case "jobSilenceMs":
-                job_silence_ms = count(stated, name)
-            case "jobStatusPollMs":
-                job_status_poll_ms = count(stated, name)
-            case _:
-                raise Misuse(f"this driver cannot override {name}")
-    return (
-        Timing(
-            reconnect_ms=reconnect_ms,
-            lazy_remove_ms=lazy_remove_ms,
-            linger_ms=linger_ms,
-            emit_retry=wire.emit_retry,
-            seen_event_ids_count=wire.seen_event_ids_count,
-        ),
-        ClientTiming(
-            bus_request_ms=bus_request_ms,
-            job_silence_ms=job_silence_ms,
-            job_status_poll_ms=job_status_poll_ms,
-            invalidation_window_ms=invalidation_window_ms,
-        ),
-    )
-
-
 @final
 class Live:
     """One client, and what the suite asked it to report."""
@@ -232,7 +206,8 @@ class Live:
     async def open(self, _: int, args: Arguments) -> JsonValue:
         if self._client is not None and not self._closed:
             raise Misuse("a client is already open")
-        wire, timing = _timings(object_of(args, "timing") if "timing" in args else {})
+        timed = timing_of(args, TRANSPORT_ROWS, CLIENT_ROWS)
+        wire, timing = transport_timing(timed), client_timing(timed)
         transport = HttpTransport(
             text(args, "baseUrl"), token=Variable[str | None](text(args, "token")), channels=BRIDGED_CHANNELS, timing=wire
         )

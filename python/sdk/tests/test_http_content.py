@@ -15,7 +15,7 @@ from gateway_server import NOT_FOUND, Answer, GatewayServer, Recording
 from pydantic import JsonValue, TypeAdapter
 
 from xynolog.errors import TransportError, XynologError
-from xynolog.http import HttpTransport, Timing
+from xynolog.http import HttpTransport, TransportTiming
 from xynolog.http.content import form_of
 from xynolog.identifiers import AnnotationId, JobId, ResourceId
 from xynolog.transport import UploadProgress
@@ -30,7 +30,7 @@ from xynolog.types import (
 from xynolog.watched import Variable
 
 EVERY_BYTE = bytes(range(256)) * 600
-QUICK = Timing(reconnect_ms=10, http_request_ms=150)
+QUICK = TransportTiming(reconnect_ms=10, http_request_timeout_ms=150)
 RESOURCE = ResourceId("res-1")
 _JSON = TypeAdapter[JsonValue](JsonValue)
 

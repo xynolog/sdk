@@ -26,6 +26,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // workerWire is a transport a test answers by hand: every request goes to
@@ -177,23 +178,16 @@ type claimWorld struct {
 	claimTurns chan struct{}
 }
 
-func newClaimWorld(t *testing.T, timing Timing) *claimWorld {
+func newClaimWorld(t *testing.T) *claimWorld {
 	t.Helper()
 	w := &claimWorld{wire: newWorkerWire(), askedOf: map[string]string{}}
 	w.wire.answer = w.answer
-	w.client = NewClient(ClientConfig{Transport: w.wire, Timing: timing})
+	w.client = NewClient(ClientConfig{Transport: w.wire, Timing: DefaultClientTiming()})
 	t.Cleanup(func() {
 		w.client.Close()
 		w.wire.Close()
 	})
 	return w
-}
-
-// quick is the client's timing with a commit's wait a test can sit out.
-func quick() Timing {
-	timing := DefaultTiming()
-	timing.MarkCommitTimeout = 100 * time.Millisecond
-	return timing
 }
 
 func (w *claimWorld) offer(jobs ...string) {
@@ -467,7 +461,7 @@ func TestEveryFailureClassAndEveryObservationTheSpecNamesIsAnswered(t *testing.T
 }
 
 func TestClaimsNothingUntilRangedThenHoldsTheJobAsTheRecordStatesIt(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	cursor := `{"next": 1200, "size": 800, "found": 4, "emitted": 3, "errors": 0}`
 	w.offer(running("job-1", "mark", `"retryCount": 1, "maxRetries": 3, "completedUnits": ["Person"], "unitCursors": {"Place": `+cursor+`}`,
 		`"motivation": "highlighting", "density": 3`))
@@ -498,7 +492,7 @@ func TestClaimsNothingUntilRangedThenHoldsTheJobAsTheRecordStatesIt(t *testing.T
 }
 
 func TestClaimsAgainWhenAJobIsSettledAndAnAnnouncementWhileOneIsHeldIsIgnored(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.offer(running("job-1", "mark", "", ""), running("job-2", "mark", "", ""), running("job-3", "mark", "", ""))
 	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
@@ -526,7 +520,7 @@ func TestClaimsAgainWhenAJobIsSettledAndAnAnnouncementWhileOneIsHeldIsIgnored(t 
 }
 
 func TestAMatchingAnnouncementClaimsAndOneThatMatchesNoFilterDoesNot(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	claims := w.client.Job.Claim(claiming(t, `[{"jobType": "mark", "params": {"motivation": "tagging"}}]`))
 	defer claims.Close()
 	claimsSent := func() int { return len(w.wire.sent(bus.JobClaim.Request().Channel())) }
@@ -557,7 +551,7 @@ func TestAMatchingAnnouncementClaimsAndOneThatMatchesNoFilterDoesNot(t *testing.
 // stamped; no filter can be compared with what cannot be read, so it wakes
 // an idle worker as a matching one would.
 func TestARefusedAnnouncementIsStampedAndClaimsForAnIdleWorker(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	claims := w.client.Job.Claim(claiming(t, `[{"jobType": "mark", "params": {"motivation": "tagging"}}]`))
 	defer claims.Close()
 	claimsSent := func() int { return len(w.wire.sent(bus.JobClaim.Request().Channel())) }
@@ -582,7 +576,7 @@ func TestARefusedAnnouncementIsStampedAndClaimsForAnIdleWorker(t *testing.T) {
 // exactly one more claim, and one that arrives while a job is held is
 // ignored: the settle claims.
 func TestARefusedAnnouncementClaimsOnceMoreAfterAClaimInFlightAndNotWhileAJobIsHeld(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	turns := make(chan struct{})
 	w.claimTurns = turns
 	claims := w.client.Job.Claim(claiming(t, everything))
@@ -619,7 +613,7 @@ func TestARefusedAnnouncementClaimsOnceMoreAfterAClaimInFlightAndNotWhileAJobIsH
 }
 
 func TestClaimsWhenTheStreamOpensAndWhenItOpensAgain(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.wire.state.Set(api.ConnectionStateConnecting)
 	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
@@ -644,7 +638,7 @@ func TestClaimsWhenTheStreamOpensAndWhenItOpensAgain(t *testing.T) {
 }
 
 func TestARefusalIsHandedOutWithItsCodeAndAReplyThatNamesNoJobIsRefusedHere(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.refusals = append(w.refusals, `{"message": "the caller is not a worker for this knowledge base", "code": "unauthorized"}`)
 	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
@@ -670,7 +664,7 @@ func TestARefusalIsHandedOutWithItsCodeAndAReplyThatNamesNoJobIsRefusedHere(t *t
 }
 
 func TestAStreamThatDoesNotNameWhatClaimingReadsCannotCarryAWorkersClaims(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	// A worker on such a stream would claim once and never be woken, with nothing to show for it.
 	w.wire.channels = []bus.Channel{"job:claimed", "job:claim-failed"}
 	claims := w.client.Job.Claim(claiming(t, everything))
@@ -686,7 +680,7 @@ func TestAStreamThatDoesNotNameWhatClaimingReadsCannotCarryAWorkersClaims(t *tes
 }
 
 func TestAHeldJobSaysItsWholeLifecycleItself(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.offer(running("job-1", "mark", `"retryCount": 1`, ""))
 	cursor := `{"next": 1200, "size": 800, "found": 4, "emitted": 3, "errors": 0}`
 	claims := w.client.Job.Claim(claiming(t, everything))
@@ -733,7 +727,7 @@ func TestAHeldJobSaysItsWholeLifecycleItself(t *testing.T) {
 }
 
 func TestAYieldJobFocusedOnAnAnnotationIsAnchoredToItAndSaysSo(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.offer(running("job-1", "yield", `"maxRetries": 0`, `"context": {"focus": {"kind": "annotation", "annotation": `+annotationJSON("ann-7")+`,
 		"sourceResource": {"@context": "https://schema.org", "@id": "res-1", "name": "A resource", "representations": []}},
 		"graph": {"nodes": [], "edges": []}, "metadata": {}}`))
@@ -769,7 +763,7 @@ func TestAYieldJobFocusedOnAnAnnotationIsAnchoredToItAndSaysSo(t *testing.T) {
 }
 
 func TestAFailureSaysWhetherItWillBeRetriedAndACancelSaysOnlyWhatItsCommandNames(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.offer(running("job-1", "mark", `"retryCount": 0, "maxRetries": 1`, ""), running("job-2", "mark", `"retryCount": 1, "maxRetries": 1`, ""),
 		running("job-3", "mark", "", ""))
 	claims := w.client.Job.Claim(claiming(t, everything))
@@ -799,7 +793,7 @@ func TestAFailureSaysWhetherItWillBeRetriedAndACancelSaysOnlyWhatItsCommandNames
 }
 
 func TestACancellationThatNamesTheHeldJobIsSignalledAndAnyOtherIsNot(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.offer(running("job-1", "mark", "", ""))
 	claims := w.client.Job.Claim(claiming(t, everything))
 	defer claims.Close()
@@ -821,7 +815,7 @@ func TestACancellationThatNamesTheHeldJobIsSignalledAndAnyOtherIsNot(t *testing.
 
 // WORKER-CONTRACT L8.
 func TestAWorkerThatClosesFailsTheJobItHoldsAndClaimsNothingMore(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.offer(running("job-1", "mark", "", ""))
 	claims := w.client.Job.Claim(claiming(t, everything))
 	pull := pulling(t, claims)
@@ -844,7 +838,7 @@ func TestAWorkerThatClosesFailsTheJobItHoldsAndClaimsNothingMore(t *testing.T) {
 }
 
 func TestClosingTheClientEndsTheClaimsForWhoeverRangesOverThem(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	claims := w.client.Job.Claim(claiming(t, everything))
 	came := pulling(t, claims).asking()
 	eventually(t, "a claim", func() bool { return len(w.wire.sent(bus.JobClaim.Request().Channel())) == 1 })
@@ -861,12 +855,15 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 	}
 	held := func(t *testing.T, w *claimWorld) (*HeldMarkJob, *Claims) {
 		w.offer(running("job-1", "mark", "", ""))
-		claims := w.client.Job.Claim(claiming(t, everything))
+		// With a commit's wait a test can sit out.
+		options := claiming(t, everything)
+		options.MarkCommitTimeoutMs = new(100)
+		claims := w.client.Job.Claim(options)
 		return pulling(t, claims).held(t).(*HeldMarkJob), claims
 	}
 
 	t.Run("acknowledged, citing the job", func(t *testing.T) {
-		w := newClaimWorld(t, quick())
+		w := newClaimWorld(t)
 		job, claims := held(t, w)
 		defer claims.Close()
 		if err := job.Commit(ctx, job.ResourceId(), batch(t)); err != nil {
@@ -882,7 +879,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 	})
 
 	t.Run("a batch of no annotations is no commit, and a job that committed nothing states nothing", func(t *testing.T) {
-		w := newClaimWorld(t, quick())
+		w := newClaimWorld(t)
 		job, claims := held(t, w)
 		defer claims.Close()
 		if err := job.Commit(ctx, job.ResourceId(), nil); err != nil {
@@ -900,7 +897,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 	})
 
 	t.Run("refused by the record: its reason, and nothing is asked", func(t *testing.T) {
-		w := newClaimWorld(t, quick())
+		w := newClaimWorld(t)
 		w.refusingCommits = true
 		job, claims := held(t, w)
 		defer claims.Close()
@@ -914,7 +911,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 	})
 
 	t.Run("unacknowledged, and its last annotation is there", func(t *testing.T) {
-		w := newClaimWorld(t, quick())
+		w := newClaimWorld(t)
 		w.unacknowledged = 1
 		job, claims := held(t, w)
 		defer claims.Close()
@@ -934,7 +931,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 	})
 
 	t.Run("unacknowledged, and answered that it is not there", func(t *testing.T) {
-		w := newClaimWorld(t, quick())
+		w := newClaimWorld(t)
 		w.unacknowledged = 1
 		w.askedOf["ann-1"] = `{"message": "Annotation not found"}`
 		job, claims := held(t, w)
@@ -952,7 +949,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 	})
 
 	t.Run("unacknowledged, and nobody answers the question", func(t *testing.T) {
-		w := newClaimWorld(t, quick())
+		w := newClaimWorld(t)
 		w.unacknowledged, w.unanswered = 1, 1
 		job, claims := held(t, w)
 		defer claims.Close()
@@ -968,7 +965,7 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 	})
 
 	t.Run("a stream that names no reply to a commit carries none of its commits", func(t *testing.T) {
-		w := newClaimWorld(t, quick())
+		w := newClaimWorld(t)
 		w.wire.channels = JobClaimChannels
 		job, claims := held(t, w)
 		defer claims.Close()
@@ -983,12 +980,11 @@ func TestACommitIsEstablishedWhenTheRecordAcknowledgesItOrSaysItsLastAnnotationI
 }
 
 func TestVitalsSayWhatTheWorkerHoldsAndHasDoneAndASilentHeldJobIsStalled(t *testing.T) {
-	timing := DefaultTiming()
-	timing.HeldJobStall = 50 * time.Millisecond
-	timing.HeldJobStallCheck = 10 * time.Millisecond
-	w := newClaimWorld(t, timing)
+	w := newClaimWorld(t)
 	w.offer(running("job-1", "mark", "", ""))
-	claims := w.client.Job.Claim(claiming(t, everything))
+	options := claiming(t, everything)
+	options.HeldJobStallMs, options.HeldJobStallCheckMs = new(50), new(10)
+	claims := w.client.Job.Claim(options)
 	defer claims.Close()
 	if vitals := claims.Vitals(); vitals.ActiveJob != nil || vitals.LastClaimAt != nil || vitals.JobsCompleted != 0 {
 		t.Fatalf("before any claim, %+v", vitals)
@@ -1011,7 +1007,7 @@ func TestVitalsSayWhatTheWorkerHoldsAndHasDoneAndASilentHeldJobIsStalled(t *test
 	select {
 	case stall := <-stalled:
 		// Silent for longer than the threshold, which whole milliseconds may round to it.
-		if stall.JobId != job.JobId() || stall.ThresholdMs != int(timing.HeldJobStall.Milliseconds()) || stall.SilentForMs < stall.ThresholdMs {
+		if stall.JobId != job.JobId() || stall.ThresholdMs != *options.HeldJobStallMs || stall.SilentForMs < stall.ThresholdMs {
 			t.Fatalf("stalled %+v", stall)
 		}
 	case <-time.After(2 * time.Second):
@@ -1027,8 +1023,7 @@ func TestVitalsSayWhatTheWorkerHoldsAndHasDoneAndASilentHeldJobIsStalled(t *test
 // the latest ErrorsKeptForFirstReaderCount, in order, and a later reader only
 // what is reported after it came; each ends when the claims do.
 func TestTheFirstReaderOfTheStallsIsGivenTheLatestReportedBeforeItAndALaterReaderWhatFollows(t *testing.T) {
-	timing := DefaultTiming()
-	w := newClaimWorld(t, timing)
+	w := newClaimWorld(t)
 	claims := w.client.Job.Claim(claiming(t, everything))
 	beyond := 5
 	reported := make([]*api.HeldJobStall, timing.ErrorsKeptForFirstReaderCount+beyond)
@@ -1050,7 +1045,7 @@ func TestTheFirstReaderOfTheStallsIsGivenTheLatestReportedBeforeItAndALaterReade
 // A first reader of the stalls who comes after the claims have ended is given
 // nothing: what was kept for it was let go of at the end.
 func TestAFirstReaderOfTheStallsWhoComesAfterTheClaimsEndedIsGivenNothing(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	claims := w.client.Job.Claim(claiming(t, everything))
 	claims.stalls.Report(&api.HeldJobStall{})
 	claims.Close()
@@ -1063,8 +1058,7 @@ func TestAFirstReaderOfTheStallsWhoComesAfterTheClaimsEndedIsGivenNothing(t *tes
 // A reader ranging over the claims is handed every refusal, in order, however
 // slowly it takes them, and the job claimed after them.
 func TestAReaderRangingOverTheClaimsIsHandedEveryRefusalHoweverSlowlyItTakesThem(t *testing.T) {
-	timing := DefaultTiming()
-	w := newClaimWorld(t, timing)
+	w := newClaimWorld(t)
 	untaken := timing.ErrorsKeptForFirstReaderCount + 5
 	w.refusing(untaken + 1)
 	claims := w.client.Job.Claim(claiming(t, everything))
@@ -1092,8 +1086,7 @@ func TestAReaderRangingOverTheClaimsIsHandedEveryRefusalHoweverSlowlyItTakesThem
 // dropped beyond them, and a job claimed after them is handed out all the
 // same.
 func TestClaimsNobodyRangesOverKeepTheLatestRefusalsAndTheJobClaimedAfterThem(t *testing.T) {
-	timing := DefaultTiming()
-	w := newClaimWorld(t, timing)
+	w := newClaimWorld(t)
 	beyond := 5
 	unread := timing.ErrorsKeptForFirstReaderCount + beyond
 	w.refusing(unread + 1)
@@ -1149,7 +1142,7 @@ func (w *claimWorld) claimEachAnnounced(t *testing.T, count int) {
 }
 
 func TestAHeldJobStatesTheTraceItsReplyArrivedIn(t *testing.T) {
-	w := newClaimWorld(t, DefaultTiming())
+	w := newClaimWorld(t)
 	w.wire.replyTrace = &api.TraceCarrier{Traceparent: "00-11111111111111111111111111111111-1111111111111111-01"}
 	w.offer(running("job-1", "mark", "", ""))
 	claims := w.client.Job.Claim(claiming(t, everything))

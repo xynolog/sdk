@@ -22,6 +22,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // renewing is a kept sign-in's renewals, one at a time: a renewal asked for
@@ -57,9 +58,9 @@ func (r *renewing) renew(ctx context.Context, once func(context.Context) (string
 // asking is a way to ask the gateway at baseURL who a token is: one request,
 // by a transport that opens no stream and renews nothing, so a refusal is the
 // answer.
-func asking(baseURL string, client *http.Client, timing Timing, random *rand.Rand) func(context.Context, string) (api.UserResponse, error) {
+func asking(baseURL string, client *http.Client, transportTiming TransportTiming, random *rand.Rand) func(context.Context, string) (api.UserResponse, error) {
 	return func(ctx context.Context, token string) (api.UserResponse, error) {
-		asker := NewHTTPTransport(HTTPTransportConfig{BaseURL: baseURL, Token: NewVariable(token), HTTP: client, Timing: timing, Random: random})
+		asker := NewHTTPTransport(HTTPTransportConfig{BaseURL: baseURL, Token: NewVariable(token), HTTP: client, Timing: transportTiming, Random: random})
 		defer asker.Close()
 		return asker.GetCurrentUser(ctx)
 	}
@@ -80,8 +81,10 @@ type ResumeConfig struct {
 	Token *Variable[string]
 	// HTTP is the client every request of the gateway and the issuer is made
 	// over.
-	HTTP   *http.Client
-	Timing Timing
+	HTTP *http.Client
+	// Timing is the timing of the requests of the gateway and the issuer, and
+	// the session's (SessionConfig).
+	Timing TransportTiming
 	// Random is what the jitter of the session's renewals tried again is
 	// drawn from, as EqualJitter draws it.
 	Random *rand.Rand
@@ -162,8 +165,12 @@ type SessionFromKeptConfig struct {
 	Kept SignInKept
 	// HTTP is the client every request of the gateway and the issuer is made
 	// over.
-	HTTP   *http.Client
-	Timing Timing
+	HTTP *http.Client
+	// ClientTiming is the timing the client keeps.
+	ClientTiming ClientTiming
+	// TransportTiming is the timing the transport keeps, and that of the
+	// requests of the issuer, and the session's (SessionConfig).
+	TransportTiming TransportTiming
 	// Random is what the jitter of every backoff of the transport and the
 	// session is drawn from, as EqualJitter draws it.
 	Random *rand.Rand
@@ -221,14 +228,14 @@ func SessionFromKept(ctx context.Context, config SessionFromKeptConfig) (session
 	renewer := newRefresherToCome()
 	transport := NewHTTPTransport(HTTPTransportConfig{
 		BaseURL: baseURL, Token: token, Refresher: renewer,
-		Channels: config.Channels, HTTP: config.HTTP, Timing: config.Timing, Random: config.Random,
+		Channels: config.Channels, HTTP: config.HTTP, Timing: config.TransportTiming, Random: config.Random,
 	})
-	client := NewClient(ClientConfig{Transport: transport, Content: NewHTTPContentTransport(transport), Gateway: transport, Timing: config.Timing})
+	client := NewClient(ClientConfig{Transport: transport, Content: NewHTTPContentTransport(transport), Gateway: transport, Timing: config.ClientTiming})
 	sessionConfig := resumed(ResumeConfig{
-		Kb: config.Kb, Client: client, Kept: config.Kept, Token: token, HTTP: config.HTTP, Timing: config.Timing, Random: config.Random,
+		Kb: config.Kb, Client: client, Kept: config.Kept, Token: token, HTTP: config.HTTP, Timing: config.TransportTiming, Random: config.Random,
 		SkipAskingWhoTokenIs: config.SkipAskingWhoTokenIs, OnAuthFailed: config.OnAuthFailed,
 	}, baseURL)
-	failures := kept.NewStream[Error](config.Timing.ErrorsKeptForFirstReaderCount)
+	failures := kept.NewStream[Error](timing.ErrorsKeptForFirstReaderCount)
 	var keeps *keptFor
 	if keepsForAPerson {
 		keeps = &keptFor{SignInKept: config.Kept, storage: config.Storage, kbID: config.Kb.Id, client: client, transport: transport, failures: failures}

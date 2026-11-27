@@ -2,7 +2,6 @@ type storage_persister = {
   storage : Storage.t;
   key : string;
   version : int;
-  max_bytes : int;
   clock : Clock.t;
 }
 
@@ -10,10 +9,7 @@ type entry = { key : Live_query.key; value : Yojson.Safe.t; written : float }
 type document = { entries : entry list; positions : (string * string) list }
 
 let empty = { entries = []; positions = [] }
-
-let make ~storage ~key ~version ~max_bytes ~clock =
-  if max_bytes < 0 then invalid_arg "negative cache byte cap";
-  { storage; key; version; max_bytes; clock }
+let make ~storage ~key ~version ~clock = { storage; key; version; clock }
 
 let key_json (name, scope, argument) =
   let text = function None -> `Null | Some value -> `String value in
@@ -135,19 +131,17 @@ let save_document t ~covered_only ?positions changes =
       in
       let rec fit entries positions =
         let encoded = encode entries positions in
-        if String.length encoded <= t.max_bytes then Some encoded
+        if String.length encoded <= Client_timing.max_stored_bytes_count then
+          encoded
         else
-          match (entries, positions) with
-          | _ :: remaining, _ -> fit remaining []
-          | [], _ :: _ -> fit [] []
-          | [], [] -> None
+          fit (match entries with [] -> [] | _ :: remaining -> remaining) []
       in
       let ordered =
         List.sort
           (fun a b -> compare (a.written, a.key) (b.written, b.key))
           entries
       in
-      fit ordered positions)
+      Some (fit ordered positions))
 
 let save_batch t ?positions changes =
   save_document t ~covered_only:false ?positions changes

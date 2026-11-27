@@ -21,7 +21,7 @@ from gateway_server import Answer, GatewayServer, Recording
 from xynolog.bus import request
 from xynolog.channels import BRIDGED_CHANNELS, RESOURCE_SCOPED_CHANNELS
 from xynolog.errors import BusRequestError, TransportError, XynologError
-from xynolog.http import HttpTransport, Timing
+from xynolog.http import HttpTransport, TransportTiming
 from xynolog.http.stream import SeenIds, backoff_cap_ms
 from xynolog.identifiers import ResourceId
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
@@ -31,7 +31,9 @@ from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold
 from xynolog.types import RetryBudget
 from xynolog.watched import Variable, reached
 
-QUICK = Timing(reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1))
+QUICK = TransportTiming(
+    reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1)
+)
 CHANNELS = ("beckon:focus", "browse:resource-result", "browse:resource-failed")
 
 
@@ -188,7 +190,7 @@ def test_a_transport_closed_before_it_was_opened_is_closed_and_cannot_be_opened(
 
 def test_closing_ends_an_emit_that_is_waiting_to_be_made_again() -> None:
     async def scenario() -> tuple[str, int | None, int, float]:
-        patient = Timing(reconnect_ms=10, emit_retry=RetryBudget(attempts=5, initial_delay_ms=1, max_delay_ms=1))
+        patient = TransportTiming(reconnect_ms=10, emit_retry=RetryBudget(attempts=5, initial_delay_ms=1, max_delay_ms=1))
         async with GatewayServer() as gateway:
             gateway.scripted[("POST", "/bus/emit")] = [
                 Answer(status=429, headers={"Retry-After": "600"}, body=b'{"error":"not now","code":"emit-rate"}')
@@ -302,7 +304,7 @@ def test_a_stream_that_cannot_open_is_tried_again_and_a_token_that_changes_reach
 
 def test_a_stream_whose_open_the_gateway_never_answers_has_failed_at_its_deadline_and_is_opened_again() -> None:
     async def scenario() -> tuple[float, int, list[XynologError]]:
-        hasty = Timing(reconnect_ms=10, stream_open_ms=200)
+        hasty = TransportTiming(reconnect_ms=10, stream_open_timeout_ms=200)
         async with GatewayServer() as gateway:
             # The first open is taken and never answered; the next is answered with a stream.
             gateway.scripted[("POST", "/bus/subscribe")] = [Answer(hold=True)]
@@ -336,7 +338,7 @@ def test_a_refused_stream_is_reported_in_the_gateways_words() -> None:
 
 def test_a_refused_stream_whose_body_never_ends_is_reported_at_the_request_deadline_with_no_words() -> None:
     async def scenario() -> tuple[float, str, int | None]:
-        hasty = Timing(reconnect_ms=10, http_request_ms=200)
+        hasty = TransportTiming(reconnect_ms=10, http_request_timeout_ms=200)
         async with GatewayServer() as gateway:
             # The first open is refused with a body begun and never finished; the next is answered with a stream.
             gateway.scripted[("POST", "/bus/subscribe")] = [Answer(status=503, body=b'{"error":"ne', promise=100, stall=True)]
@@ -399,7 +401,7 @@ class OverTheWire(DeliverySubject):
 @asynccontextmanager
 async def over_the_wire() -> AsyncGenerator[DeliverySubject]:
     """A gateway, and a transport to it whose stream is open, as a delivery subject."""
-    lingering = Timing(reconnect_ms=10, lazy_remove_ms=10, linger_ms=60)
+    lingering = TransportTiming(reconnect_ms=10, lazy_remove_ms=10, linger_ms=60)
     async with (
         GatewayServer() as gateway,
         HttpTransport(gateway.origin, token=Variable[str | None]("t"), channels=("beckon:focus",), timing=lingering) as transport,

@@ -34,7 +34,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use xynolog::cache::CacheState;
 use xynolog::cached::Observed;
 use xynolog::channels::BRIDGED_CHANNELS;
-use xynolog::client::{ClientOptions, XynologClient};
+use xynolog::client::{ClientOptions, ClientTiming, XynologClient};
 use xynolog::errors::{BusRequestError, SessionError, TransportError};
 use xynolog::event_bus::EventBus;
 use xynolog::gateway_http::{EMIT_ON_BUS, GET_CURRENT_USER, SUBSCRIBE_TO_BUS};
@@ -59,6 +59,7 @@ use xynolog::types::{
     ResourceDescriptor, ResourceId,
 };
 use xynolog_http_transport::session::HttpSessionFactory;
+use xynolog_http_transport::transport::TransportTiming;
 
 fn table() -> Value {
     serde_json::from_str(include_str!(
@@ -828,7 +829,12 @@ async fn forgotten_by_the_session(
     save_knowledge_bases(storage.as_ref(), &[gateway.kb()]).expect("stored");
     let browser = XynologBrowser::new(XynologBrowserConfig {
         storage: storage.clone(),
-        session_factory: Arc::new(HttpSessionFactory::new(gateway.http.clone(), None)),
+        session_factory: Arc::new(HttpSessionFactory::new(
+            gateway.http.clone(),
+            ClientTiming::default(),
+            TransportTiming::default(),
+            None,
+        )),
     })
     .expect("a browser");
     let ended = settled(|| stored_session(storage.as_ref(), KB).is_none()).await;
@@ -931,13 +937,18 @@ async fn started(cases: &Value, row: &Value) -> Vec<String> {
     store_session(storage.as_ref(), KB, &sign_in(1, named)).expect("stored");
     let recorded_now = || stored_session(storage.as_ref(), KB).and_then(|stored| stored.person_key);
 
-    let session = HttpSessionFactory::new(gateway.http.clone(), None)
-        .session(SessionFactoryOptions {
-            kb: gateway.kb(),
-            storage: storage.clone(),
-            signals: Arc::new(SessionSignals::new()),
-        })
-        .expect("a session");
+    let session = HttpSessionFactory::new(
+        gateway.http.clone(),
+        ClientTiming::default(),
+        TransportTiming::default(),
+        None,
+    )
+    .session(SessionFactoryOptions {
+        kb: gateway.kb(),
+        storage: storage.clone(),
+        signals: Arc::new(SessionSignals::new()),
+    })
+    .expect("a session");
     let client = session.client().clone();
     let mut wrong = Vec::new();
 
@@ -1084,7 +1095,12 @@ async fn across(cases: &Value, row: &Value, changed: Changed) -> Vec<String> {
     store_session(storage.as_ref(), KB, &sign_in(1, Some(&jo))).expect("stored");
     let browser = XynologBrowser::new(XynologBrowserConfig {
         storage: storage.clone(),
-        session_factory: Arc::new(HttpSessionFactory::new(gateway.http.clone(), None)),
+        session_factory: Arc::new(HttpSessionFactory::new(
+            gateway.http.clone(),
+            ClientTiming::default(),
+            TransportTiming::default(),
+            None,
+        )),
     })
     .expect("a browser");
     let session = live(&browser).await;
@@ -1173,13 +1189,18 @@ async fn resumed(cases: &Value, row: &Value) -> Option<String> {
     gateway.let_who_answer();
     let storage = Arc::new(SharedStorage::new());
     store_session(storage.as_ref(), KB, &sign_in(1, Some(&jo))).expect("stored");
-    let session = HttpSessionFactory::new(gateway.http.clone(), None)
-        .session(SessionFactoryOptions {
-            kb: gateway.kb(),
-            storage: storage.clone(),
-            signals: Arc::new(SessionSignals::new()),
-        })
-        .expect("a session");
+    let session = HttpSessionFactory::new(
+        gateway.http.clone(),
+        ClientTiming::default(),
+        TransportTiming::default(),
+        None,
+    )
+    .session(SessionFactoryOptions {
+        kb: gateway.kb(),
+        storage: storage.clone(),
+        signals: Arc::new(SessionSignals::new()),
+    })
+    .expect("a session");
     let client = session.client().clone();
     let ids: Vec<&str> = row["frames"]
         .as_array()
@@ -1336,13 +1357,18 @@ async fn a_save_being_written_as_the_session_forgets_its_sign_in_is_not_left_aft
     )
     .expect("stored");
     let session = Arc::new(
-        HttpSessionFactory::new(gateway.http.clone(), None)
-            .session(SessionFactoryOptions {
-                kb: gateway.kb(),
-                storage: storage.clone(),
-                signals: Arc::new(SessionSignals::new()),
-            })
-            .expect("a session"),
+        HttpSessionFactory::new(
+            gateway.http.clone(),
+            ClientTiming::default(),
+            TransportTiming::default(),
+            None,
+        )
+        .session(SessionFactoryOptions {
+            kb: gateway.kb(),
+            storage: storage.clone(),
+            signals: Arc::new(SessionSignals::new()),
+        })
+        .expect("a session"),
     );
     tokio::time::timeout(PATIENCE, session.ready())
         .await

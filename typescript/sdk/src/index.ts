@@ -135,6 +135,9 @@ export type {
   ClaimOptions,
   CreateFromTokenOptions,
   ResourceSearchFilters,
+  // The timing a caller may set, of the client and of its HTTP transport
+  ClientTiming,
+  TransportTiming,
   // Transport contracts
   ConnectionState,
   IContentTransport,

@@ -45,7 +45,8 @@ data ScriptedSessions
   = ScriptedSessions
       RetryOptions
       Bus.BusOptions
-      Timing.Settings
+      Timing.ClientTiming
+      Timing.TransportTiming
       (IO Scientific)
       (Text -> Text -> Object -> IO (Maybe Value))
       (Text -> IO (Content.ContentTransport, Maybe Gateway.GatewayOperations))
@@ -61,14 +62,15 @@ data ScriptedSessions
 newScriptedSessions ::
   RetryOptions ->
   Bus.BusOptions ->
-  Timing.Settings ->
+  Timing.ClientTiming ->
+  Timing.TransportTiming ->
   IO Scientific ->
   (Text -> Text -> Object -> IO (Maybe Value)) ->
   (Text -> IO (Content.ContentTransport, Maybe Gateway.GatewayOperations)) ->
   IO ScriptedSessions
-newScriptedSessions clock bus timing wall answer content =
+newScriptedSessions clock bus clientTiming transportTiming wall answer content =
   atomically $
-    ScriptedSessions clock bus timing wall answer content
+    ScriptedSessions clock bus clientTiming transportTiming wall answer content
       <$> newTVar (\_ _ _ -> pure Nothing)
       <*> newTVar Nothing
       <*> newTVar Nothing
@@ -79,33 +81,33 @@ newScriptedSessions clock bus timing wall answer content =
       <*> newTVar []
 
 refuseWhen :: ScriptedSessions -> (Text -> Text -> Object -> IO (Maybe Object)) -> IO ()
-refuseWhen (ScriptedSessions _ _ _ _ _ _ value _ _ _ _ _ _ _) = atomically . writeTVar value
+refuseWhen (ScriptedSessions _ _ _ _ _ _ _ value _ _ _ _ _ _ _) = atomically . writeTVar value
 
 refuseToBuild :: ScriptedSessions -> Maybe Text -> IO ()
-refuseToBuild (ScriptedSessions _ _ _ _ _ _ _ value _ _ _ _ _ _) = atomically . writeTVar value
+refuseToBuild (ScriptedSessions _ _ _ _ _ _ _ _ value _ _ _ _ _ _) = atomically . writeTVar value
 
 saysWho :: ScriptedSessions -> Maybe UserResponse -> IO ()
-saysWho (ScriptedSessions _ _ _ _ _ _ _ _ value _ _ _ _ _) = atomically . writeTVar value
+saysWho (ScriptedSessions _ _ _ _ _ _ _ _ _ value _ _ _ _ _) = atomically . writeTVar value
 
 answersAfter :: ScriptedSessions -> Integer -> IO ()
-answersAfter (ScriptedSessions _ _ _ _ _ _ _ _ _ value _ _ _ _) delay = do
+answersAfter (ScriptedSessions _ _ _ _ _ _ _ _ _ _ value _ _ _ _) delay = do
   when (delay < 0) (ioError (userError "validation delay must be nonnegative"))
   atomically (writeTVar value delay)
 
 queueRenewals :: ScriptedSessions -> [Either SignInError (Maybe Text)] -> IO ()
-queueRenewals (ScriptedSessions _ _ _ _ _ _ _ _ _ _ queue _ _ _) = atomically . mapM_ (writeTQueue queue)
+queueRenewals (ScriptedSessions _ _ _ _ _ _ _ _ _ _ _ queue _ _ _) = atomically . mapM_ (writeTQueue queue)
 
 renewed :: ScriptedSessions -> IO Integer
-renewed (ScriptedSessions _ _ _ _ _ _ _ _ _ _ _ value _ _) = readTVarIO value
+renewed (ScriptedSessions _ _ _ _ _ _ _ _ _ _ _ _ value _ _) = readTVarIO value
 
 transports :: ScriptedSessions -> Text -> IO [Faulty.FaultyTransport]
-transports (ScriptedSessions _ _ _ _ _ _ _ _ _ _ _ _ built _) key = map snd . filter ((== key) . fst) <$> readTVarIO built
+transports (ScriptedSessions _ _ _ _ _ _ _ _ _ _ _ _ _ built _) key = map snd . filter ((== key) . fst) <$> readTVarIO built
 
 revoked :: ScriptedSessions -> IO [StoredSession]
-revoked (ScriptedSessions _ _ _ _ _ _ _ _ _ _ _ _ _ value) = readTVarIO value
+revoked (ScriptedSessions _ _ _ _ _ _ _ _ _ _ _ _ _ _ value) = readTVarIO value
 
 factory :: ScriptedSessions -> Factory.SessionFactory
-factory (ScriptedSessions clock bus timing wall answer content refusal buildRefusal user delay renewals count built revocations) =
+factory (ScriptedSessions clock bus clientTiming transportTiming wall answer content refusal buildRefusal user delay renewals count built revocations) =
   Factory.SessionFactory
     open
     (\grant -> atomically (modifyTVar' revocations (++ [grant])))
@@ -119,7 +121,7 @@ factory (ScriptedSessions clock bus timing wall answer content refusal buildRefu
       Faulty.refuseWhen over (\operation payload -> readTVarIO refusal >>= \refuse -> refuse key operation payload)
       (contents, gateway) <- content key `onException` Transport.dispose (Faulty.carrier over)
       client <-
-        Client.newClient (Faulty.carrier over) contents gateway bus timing Nothing
+        Client.newClient (Faulty.carrier over) contents gateway bus clientTiming Nothing
           `onException` (Content.dispose contents `finally` Transport.dispose (Faulty.carrier over))
       atomically (modifyTVar' built (++ [(key, over)]))
       let kept = Stored.keptIn (Factory.sessionFactoryOptionsStorage inputs) key
@@ -144,5 +146,5 @@ factory (ScriptedSessions clock bus timing wall answer content refusal buildRefu
               (Just validate)
               (atomically . Signals.notifySessionEnded (Factory.sessionFactoryOptionsSignals inputs))
               wall
-      session <- Session.newSession client options clock timing `onException` Client.dispose client
+      session <- Session.newSession client options clock transportTiming `onException` Client.dispose client
       pure (Session.OpenedSession session (Client.dispose client `finally` Session.dispose session))

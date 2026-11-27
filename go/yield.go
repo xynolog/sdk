@@ -10,6 +10,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/timing"
 	"github.com/xynolog/sdk/go/mediatypes"
 )
 
@@ -17,7 +18,7 @@ import (
 // before its follower gives up on it: a floor, and a wait that grows with
 // the length asked for. A generation says nothing while its model writes, so
 // the silence it is allowed depends on how much it was asked to write.
-func generationStallDeadline(timing Timing, maxTokens *float64) time.Duration {
+func generationStallDeadline(maxTokens *float64) time.Duration {
 	tokens := float64(timing.GenerationStallAssumedTokensCount)
 	if maxTokens != nil {
 		tokens = math.Max(*maxTokens, 0)
@@ -44,7 +45,8 @@ func (n *YieldNamespace) Resource(ctx context.Context, data api.PutBinaryRequest
 // the job is about, so the job names no resource. A follower that hears
 // nothing for stallDeadline asks for that job to be cancelled and ends as
 // stalled; when stallDeadline is zero, for a deadline that grows with
-// params.MaxTokens from the client's timing.
+// params.MaxTokens, by the generationStall timings of
+// protocol/specs/src/client/timing.json.
 func (n *YieldNamespace) Delegate(params api.GenerationJobParams, stallDeadline time.Duration) *Delegation[api.YieldJobCompleteCommand] {
 	about, err := focusOf(params.Context)
 	if err != nil {
@@ -52,7 +54,7 @@ func (n *YieldNamespace) Delegate(params api.GenerationJobParams, stallDeadline 
 	}
 	within := stallDeadline
 	if within == 0 {
-		within = generationStallDeadline(n.links.timing, params.MaxTokens)
+		within = generationStallDeadline(params.MaxTokens)
 	}
 	var create api.JobCreateCommand
 	if err := create.From(api.YieldJobCreateCommand{JobType: api.YieldJobCreateCommandJobTypeYield, Params: params}); err != nil {

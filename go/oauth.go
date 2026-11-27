@@ -11,8 +11,9 @@ package xynolog
 // A refusal and an outage are different events. A *SignInError that carries a
 // status is the issuer's answer; one that carries none got no answer. A kept
 // sign-in's renewal is tried again only on the second kind, and on an issuerAnswer
-// that says "not now" (RetryRuleRefresh), inside Timing.RefreshRetry: a
-// refused grant is final. Each request of an issuer is answered within
+// that says "not now" (RetryRuleRefresh), inside the renewal budget
+// (refreshRetry, protocol/specs/src/client/timing.json): a refused grant is
+// final. Each request of an issuer is answered within
 // Timing.HttpRequestTimeout, or fails as unanswered.
 
 import (
@@ -30,6 +31,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/optional"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 const deviceGrant = "urn:ietf:params:oauth:grant-type:device_code"
@@ -38,7 +40,7 @@ const deviceGrant = "urn:ietf:params:oauth:grant-type:device_code"
 // SDK reads no environment: the HTTP client is the caller's.
 type Issuer struct {
 	HTTP   *http.Client
-	Timing Timing
+	Timing TransportTiming
 	// Random is what the jitter of a renewal tried again is drawn from, as
 	// EqualJitter draws it.
 	Random *rand.Rand
@@ -239,7 +241,7 @@ func (i Issuer) RenewKept(ctx context.Context, kept SignInKept, holding string) 
 		return held.Access, nil
 	}
 	attempts := 0
-	tokens, err := RetryWithBackoff(ctx, i.Timing.RefreshRetry, i.Random,
+	tokens, err := RetryWithBackoff(ctx, timing.RefreshRetry, i.Random,
 		func(ctx context.Context) (api.IssuedTokens, error) {
 			attempts++
 			return i.Refresh(ctx, held.TokenEndpoint, held.ClientId, held.Refresh)
@@ -296,9 +298,9 @@ func (i Issuer) SignInWithDeviceGrant(ctx context.Context, issuer api.PendingAut
 
 	interval, ok := body.seconds("interval")
 	if !ok {
-		interval = i.Timing.DevicePoll
+		interval = timing.DevicePoll
 	}
-	interval = max(interval, i.Timing.DevicePollFloor)
+	interval = max(interval, timing.DevicePollFloor)
 	deadline := time.Now().Add(time.Duration(expiresIn) * time.Second)
 	for {
 		if !pause(ctx, interval) {
@@ -326,7 +328,7 @@ func (i Issuer) SignInWithDeviceGrant(ctx context.Context, issuer api.PendingAut
 		switch failure, _ := answered.text("error"); failure {
 		case "authorization_pending":
 		case "slow_down":
-			interval += i.Timing.DeviceSlowDown
+			interval += timing.DeviceSlowDown
 		case "access_denied":
 			return api.IssuedTokens{}, NewSignInError(api.SignInErrorCodeDenied, "The sign-in was denied at the issuer", status)
 		case "expired_token":

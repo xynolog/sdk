@@ -45,7 +45,8 @@ import Xynolog.Mark qualified as Mark
 import Xynolog.Match qualified as Match
 import Xynolog.Running qualified as Running
 import Xynolog.System qualified as System
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 import Xynolog.Types qualified as Types
@@ -145,7 +146,7 @@ withAnswers fixtures answerOverride action = do
       atomically (putTMVar inputCell input)
       Transport.setState input Transport.ConnectionStateConnecting
       Transport.setState input Transport.ConnectionStateOpen
-      bracket (Client.newClient carrier contents (Just gateway) clock Timing.protocolSettings Nothing) Client.dispose $ \client ->
+      bracket (Client.newClient carrier contents (Just gateway) clock Settings.protocolClientTiming Nothing) Client.dispose $ \client ->
         action (Rig client input clock calls)
 
 surfaceCases :: FilePath -> Map.Map Text Value -> IO ()
@@ -429,7 +430,7 @@ searchFailureCase fixtures = do
       atomically (putTMVar inputCell source)
       Transport.setState source Transport.ConnectionStateConnecting
       Transport.setState source Transport.ConnectionStateOpen
-      outcome <- try (Bus.request (Bus.newBus options carrier) MatchSearchRequestedOperation input (Timing.busRequestTimeoutMs Timing.protocolSettings))
+      outcome <- try (Bus.request (Bus.newBus options carrier) MatchSearchRequestedOperation input Timing.busRequestTimeoutMs)
       case outcome of
         Left problem -> require "search failure lost its channel's words" (busRequestErrorMessage problem == "the search was refused")
         Right _ -> ioError (userError "refused search returned a result")

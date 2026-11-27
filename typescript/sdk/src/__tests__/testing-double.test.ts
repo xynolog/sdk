@@ -18,7 +18,7 @@ afterEach(() => {
 
 describe('createTestClient', () => {
   it('acceptance: entityTypes() through B14 exhaustion surfaces the B15 `failed` state on the real cache', async () => {
-    // Every reply dropped; the small busTimeoutMs (threaded client → browse)
+    // Every reply dropped; the small busRequestTimeoutMs (threaded client → browse)
     // keeps B14's chain in test time. First fetch times out → [cache RETRY]
     // → retry times out → [cache IDLE] + B15: the observers see `failed`.
     const { client } = createTestClient({
@@ -30,7 +30,7 @@ describe('createTestClient', () => {
         schedule: [{ kind: 'drop-reply' }],
         makeResponse: () => ({ entityTypes: [] }),
       },
-      busTimeoutMs: 40,
+      timing: { busRequestTimeoutMs: 40 },
     });
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 

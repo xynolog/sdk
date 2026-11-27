@@ -675,7 +675,7 @@ async def discovery(given: JsonObject, held: AsyncExitStack) -> Subject:
     document = LauncherDocument()
 
     async def follow() -> None:
-        async for _ in subscribe_discovery(document, timing.DISCOVERY_INTERVAL_MS / 1000):
+        async for _ in subscribe_discovery(document, timing.DISCOVERY_INTERVAL_MS):
             pass
 
     running(held, follow())

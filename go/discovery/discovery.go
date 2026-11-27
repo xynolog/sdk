@@ -33,14 +33,14 @@ import (
 	"reflect"
 	"time"
 
-	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/required"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // DiscoveryInterval is how often a launcher's document is read again, unless
 // a caller says otherwise.
-var DiscoveryInterval = xynolog.DefaultTiming().DiscoveryInterval
+const DiscoveryInterval = timing.DiscoveryInterval
 
 // DiscoveryTransport is where the document is read from.
 type DiscoveryTransport interface {

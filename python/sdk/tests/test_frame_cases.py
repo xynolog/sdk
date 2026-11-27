@@ -21,7 +21,7 @@ from spec import SPEC, JsonObject
 from xynolog.bus import Bus, Delivered, Heard, Typed
 from xynolog.channels import BECKON_FOCUS, GATHER_FAILED
 from xynolog.errors import XynologError
-from xynolog.http import HttpTransport, Timing
+from xynolog.http import HttpTransport, TransportTiming
 from xynolog.identifiers import ResourceId
 from xynolog.model import written
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
@@ -78,7 +78,7 @@ TABLE: Final = Table.model_validate_json((SPEC / "bus/frame-cases.json").read_by
 DELIVERED: Final = [case for case in TABLE.cases if isinstance(case, DeliveredFrame)]
 REFUSED: Final = [case for case in TABLE.cases if not isinstance(case, DeliveredFrame)]
 
-QUICK: Final = Timing(
+QUICK: Final = TransportTiming(
     reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1)
 )
 REPLY: Final = BROWSE_RESOURCE_REQUESTED.result

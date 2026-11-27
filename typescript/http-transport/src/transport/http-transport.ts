@@ -63,12 +63,13 @@ import type {
 } from '@xynolog/core';
 import {
   asDeclared,
+  DEFAULT_TRANSPORT_TIMING,
   HTTP_REQUEST_TIMEOUT_MS,
   REQUEST_RETRY_PAUSE_MS,
   RETRY_RULES,
   RESOURCE_SCOPED_CHANNELS,
   watched,
-  type RetryBudget,
+  type TransportTiming,
   type Watched,
 } from '@xynolog/core';
 import type { BusEnvelope, BusFrame, FrameRefusal } from '@xynolog/core';
@@ -88,12 +89,6 @@ export interface HttpTransportConfig {
   baseUrl: BaseUrl;
   /** The token, read and never written here: headers read its current value. */
   token$?: Watched<AccessToken | null>;
-  /**
-   * The deadline on one request that is neither the stream nor an emit, and
-   * on reading any refusal's body, the stream's too. Absent,
-   * `HTTP_REQUEST_TIMEOUT_MS`.
-   */
-  timeout?: number;
   logger?: Logger;
   /**
    * Renews a refused credential (a 401, or a 429 `refusal-rate`): asked once
@@ -118,18 +113,8 @@ export interface HttpTransportConfig {
    * set fails fast with `bus.unsubscribed` (see `BusPrimitive`).
    */
   channels: readonly (keyof EventMap)[];
-  /**
-   * `reconnectMs`, `streamOpenTimeoutMs`, `lazyRemoveMs`, `lingerMs`,
-   * `emitRetry` and `seenEventIdsCount` of protocol/specs/src/client/timing.json, for
-   * a caller that must not wait them out: a test, or the conformance driver.
-   * Absent, the table's values stand.
-   */
-  reconnectMs?: number;
-  streamOpenTimeoutMs?: number;
-  lazyRemoveMs?: number;
-  lingerMs?: number;
-  emitRetry?: RetryBudget;
-  seenEventIdsCount?: number;
+  /** What of the transport's timing differs from `DEFAULT_TRANSPORT_TIMING`. */
+  timing?: Partial<TransportTiming>;
   /**
    * What every request of the transport is sent with: its stream, its emits,
    * its own requests and its content's. The certificates trusted, and the
@@ -360,15 +345,13 @@ export class HttpTransport implements ITransport, IGatewayOperations {
   private readonly bridges: EventBus[] = [];
 
   private readonly config: HttpTransportConfig;
+  private readonly timing: TransportTiming;
 
   constructor(config: HttpTransportConfig) {
-    const {
-      baseUrl,
-      timeout = HTTP_REQUEST_TIMEOUT_MS,
-      logger,
-      tokenRefresher,
-    } = config;
+    const { baseUrl, logger, tokenRefresher } = config;
     this.config = config;
+    this.timing = { ...DEFAULT_TRANSPORT_TIMING, ...config.timing };
+    const { httpRequestTimeoutMs } = this.timing;
 
     this.baseUrl = withoutTrailingSlash(baseUrl);
     this.token$ =
@@ -376,7 +359,7 @@ export class HttpTransport implements ITransport, IGatewayOperations {
     this.logger = logger;
 
     this.http = ky.create({
-      timeout,
+      timeout: httpRequestTimeoutMs,
       retry: RETRY,
       fetch: fetchOf(config.fetch),
       hooks: {
@@ -423,7 +406,10 @@ export class HttpTransport implements ITransport, IGatewayOperations {
                   retryCount,
                 }: AfterResponseState) => {
                   if (response.ok || retryCount > 0) return undefined;
-                  const said = await refusalText(response, timeout);
+                  const said = await refusalText(
+                    response,
+                    httpRequestTimeoutMs,
+                  );
                   if (!refusesCredential(response.status, refusalBody(said)))
                     return undefined;
                   const sent = request.headers.get('Authorization');
@@ -486,32 +472,12 @@ export class HttpTransport implements ITransport, IGatewayOperations {
         baseUrl: this.baseUrl,
         token: () => this.token$.getValue() ?? '',
         channels: [...this.config.channels],
+        timing: this.timing,
         ...(this.config.loadLastEventIds
           ? { loadLastEventIds: this.config.loadLastEventIds }
           : {}),
         ...(this.config.saveLastEventId
           ? { saveLastEventId: this.config.saveLastEventId }
-          : {}),
-        ...(this.config.reconnectMs !== undefined
-          ? { reconnectMs: this.config.reconnectMs }
-          : {}),
-        ...(this.config.streamOpenTimeoutMs !== undefined
-          ? { streamOpenTimeoutMs: this.config.streamOpenTimeoutMs }
-          : {}),
-        ...(this.config.timeout !== undefined
-          ? { httpRequestTimeoutMs: this.config.timeout }
-          : {}),
-        ...(this.config.lazyRemoveMs !== undefined
-          ? { lazyRemoveMs: this.config.lazyRemoveMs }
-          : {}),
-        ...(this.config.lingerMs !== undefined
-          ? { lingerMs: this.config.lingerMs }
-          : {}),
-        ...(this.config.emitRetry !== undefined
-          ? { emitRetry: this.config.emitRetry }
-          : {}),
-        ...(this.config.seenEventIdsCount !== undefined
-          ? { seenEventIdsCount: this.config.seenEventIdsCount }
           : {}),
         ...(this.config.fetch ? { fetch: this.config.fetch } : {}),
         // The SAME hook a refused request is renewed with — the stream asks

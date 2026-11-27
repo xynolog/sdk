@@ -6,9 +6,9 @@ import Xynolog.Channels
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Types
 
-data FrameNamespace = FrameNamespace Bus.Bus Timing.Settings
+data FrameNamespace = FrameNamespace Bus.Bus Timing.ClientTiming
 
-newFrame :: Bus.Bus -> Timing.Settings -> FrameNamespace
+newFrame :: Bus.Bus -> Timing.ClientTiming -> FrameNamespace
 newFrame = FrameNamespace
 
 addEntityType :: FrameNamespace -> Text -> IO EmptyBusPayload

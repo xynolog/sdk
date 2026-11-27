@@ -14,8 +14,8 @@ import (
 	"strings"
 	"sync"
 
-	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 type httpDiscovery struct {
@@ -30,7 +30,7 @@ type httpDiscovery struct {
 func (h *httpDiscovery) Read(ctx context.Context) api.DiscoveryRead {
 	// With a deadline: a read that is never answered would hold the poll that
 	// awaits it, and every poll after it, for good.
-	deadline := xynolog.DefaultTiming().HttpRequestTimeout
+	deadline := timing.HttpRequestTimeout
 	asking, cancel := context.WithTimeout(ctx, deadline)
 	defer cancel()
 	unreadable := func(err error) api.DiscoveryRead {
@@ -80,8 +80,8 @@ func (h *httpDiscovery) Read(ctx context.Context) api.DiscoveryRead {
 }
 
 // HttpDiscovery is a transport that reads the discovery document at url, each
-// read within the timing table's request deadline
-// (xynolog.DefaultTiming().HttpRequestTimeout).
+// read within the timing table's request deadline (httpRequestTimeoutMs,
+// protocol/specs/src/client/timing.json).
 func HttpDiscovery(url string, client *http.Client) DiscoveryTransport {
 	return &httpDiscovery{url: url, http: client}
 }

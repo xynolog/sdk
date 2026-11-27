@@ -249,7 +249,9 @@ describe('protocol/specs/src/session/persisted-cases.json', () => {
      * keeps nothing.
      */
     const closingWrites: SessionFactory = ({ kb, storage }) => {
-      const { client } = createTestClient({ busTimeoutMs: 40 });
+      const { client } = createTestClient({
+        timing: { busRequestTimeoutMs: 40 },
+      });
       if (
         kb.id === KB_A.id &&
         getStoredSession(storage, kb.id)?.personKey === jo.personKey

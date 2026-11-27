@@ -4,7 +4,6 @@ val make :
   storage:Storage.t ->
   key:string ->
   version:int ->
-  max_bytes:int ->
   clock:Clock.t ->
   storage_persister
 

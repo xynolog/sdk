@@ -21,6 +21,7 @@ import {
   REQUEST_RETRY_PAUSE_MS,
   accessToken,
   baseUrl,
+  type TransportTiming,
   type XynologError,
 } from '@xynolog/core';
 import { HttpContentTransport } from '../http-content-transport';
@@ -99,7 +100,7 @@ const TOKEN = accessToken('first');
 function contentOf(
   url: string,
   config: {
-    timeout?: number;
+    timing?: Partial<TransportTiming>;
     tokenRefresher?: () => Promise<string | null>;
   } = {},
 ) {
@@ -298,7 +299,9 @@ describe('an upload outside a browser', () => {
       const { url } = await gateway((request, response, received, nth) => {
         setTimeout(() => accepts(request, response, received, nth), 500);
       });
-      const { content, errors } = contentOf(url, { timeout: 150 });
+      const { content, errors } = contentOf(url, {
+        timing: { httpRequestTimeoutMs: 150 },
+      });
 
       await expect(
         content.putBinary(upload(bytes(1024)), { auth: TOKEN, ...options }),

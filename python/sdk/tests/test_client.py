@@ -313,7 +313,7 @@ async def awaited(searching: Running[MatchSearchResult]) -> MatchSearchResult:
 def test_a_request_waits_as_long_as_its_client_was_told_and_a_closed_client_ends_what_it_was_doing() -> None:
     async def scenario() -> None:
         transport = silent()
-        client: Client = XynologClient(transport, InMemoryContent(), StubGateway(), timing=ClientTiming(bus_request_ms=40))
+        client: Client = XynologClient(transport, InMemoryContent(), StubGateway(), timing=ClientTiming(bus_request_timeout_ms=40))
         # Nobody answers: the request is over when the client's own wait is.
         with pytest.raises(BusRequestError) as late:
             await soon(client.browse.kb(), within=2.0)

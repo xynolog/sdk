@@ -300,7 +300,6 @@ let text (t : Table.t) =
                            G.Name ("v." ^ q);
                            G.Name "persistence";
                            G.Name (query_const q);
-                           G.Name "v.links.timing";
                          ]))
                   persisted));
         ];

@@ -187,7 +187,7 @@ describe('match.resources()', () => {
   it('a resource created elsewhere asks every held search again, once per window', async () => {
     const h = harness();
     const match = new MatchNamespace(h.transport, h.bus, {
-      invalidationWindowMs: 50,
+      timing: { invalidationWindowMs: 50 },
     });
     await ready(match.resources('foo'));
     await ready(match.resources('bar'));
@@ -206,7 +206,7 @@ describe('match.resources()', () => {
   it('the stream open again after a drop asks every held search again', async () => {
     const h = harness();
     const match = new MatchNamespace(h.transport, h.bus, {
-      invalidationWindowMs: 50,
+      timing: { invalidationWindowMs: 50 },
     });
     await ready(match.resources('foo'));
 
@@ -221,7 +221,7 @@ describe('match.resources()', () => {
   it('a disposed namespace asks nothing more', async () => {
     const h = harness();
     const match = new MatchNamespace(h.transport, h.bus, {
-      invalidationWindowMs: 50,
+      timing: { invalidationWindowMs: 50 },
     });
     await ready(match.resources('foo'));
 
@@ -274,7 +274,7 @@ describe('gather.referencedBy()', () => {
   it('a gap in what the scope replayed asks again for the resource it names, and no other', async () => {
     const h = harness();
     const gather = new GatherNamespace(h.transport, h.bus, {
-      invalidationWindowMs: 50,
+      timing: { invalidationWindowMs: 50 },
     });
     const other = resourceId('res-2');
     const held = gather.referencedBy(RID);

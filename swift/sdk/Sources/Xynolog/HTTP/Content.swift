@@ -239,7 +239,7 @@ extension HttpTransport: ContentTransport {
         }
         if !(200..<300).contains(Int(response.status.code)) {
           let failure = await Self.refusal(
-            response, path: route.path, deadlineMs: timing.httpRequestMs, clock: clock)
+            response, path: route.path, deadlineMs: timing.httpRequestTimeoutMs, clock: clock)
           if failure.reason == .unauthorized {
             if !renewed {
               renewed = true

@@ -62,7 +62,7 @@ func TestTheRenewalScheduleIsTheTables(t *testing.T) {
 		} else {
 			token = aToken(t, row.Claims)
 		}
-		delay, scheduled := RefreshDelay(token, time.Unix(row.Now, 0), DefaultTiming())
+		delay, scheduled := RefreshDelay(token, time.Unix(row.Now, 0))
 		switch {
 		case row.Delay == nil && scheduled:
 			t.Errorf("%s: scheduled a renewal in %s, want none", row.Why, delay)

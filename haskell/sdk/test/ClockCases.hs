@@ -38,10 +38,12 @@ import Xynolog.Errors (BusRequestError (..))
 import Xynolog.Gateway qualified as Gateway
 import Xynolog.Http qualified as Http
 import Xynolog.Http.Routes qualified as Route
+import Xynolog.Internal.Generated.TimingValues (timingValues)
 import Xynolog.Job qualified as Job
 import Xynolog.Retry qualified as Retry
 import Xynolog.StateValue qualified as State
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -69,7 +71,7 @@ clockCasesFor :: FilePath -> [Text] -> (Time.ControlledTime -> Value -> IO Scena
 clockCasesFor root subjects make = do
   table <- clockTable root
   let cases = [row | row <- array (member "cases" table), String subject <- [member "subject" row], subject `elem` subjects]
-      settings = toJSON Timing.protocolSettings
+      settings = toJSON timingValues
       duration (Object fields) =
         let name = case KM.lookup "timing" fields of Just (String text) -> text; _ -> error "clock duration names no timing"
             timing = foldl (flip member) settings (Text.splitOn "." name)
@@ -198,7 +200,7 @@ httpClockCases root = clockCasesFor
             (pure token)
             (const (pure Nothing))
             time
-            Timing.protocolSettings
+            Settings.protocolTransportTiming
             fresh
             (Set.fromList Channel.globalChannels)
             (pure Map.empty)
@@ -228,7 +230,7 @@ httpClockCases root = clockCasesFor
                             wire
                             Channel.BrowseEventsRequestedOperation
                             (BrowseEventsRequest {browseEventsRequestLimit = Nothing, browseEventsRequestResourceId = resource, browseEventsRequestType = Nothing, browseEventsRequestUserId = Nothing})
-                            (Timing.busRequestTimeoutMs Timing.protocolSettings)
+                            Timing.busRequestTimeoutMs
                         ) ::
                         IO (Either BusRequestError BrowseEventsResult)
                     case result of
@@ -291,7 +293,7 @@ discoveryClockCases root kb = clockCasesFor root ["discovery"] $ \clock _ -> do
               then DiscoveryReadDiscoveryManaged (DiscoveryManaged DiscoveryManagedKindManaged [kb])
               else DiscoveryReadDiscoveryUnchanged (DiscoveryUnchanged DiscoveryUnchangedKindUnchanged)
           )
-      options = Discovery.DiscoveryOptions (Time.now clock) (Time.waitUntil clock) (Timing.discoveryIntervalMs Timing.protocolSettings)
+      options = Discovery.DiscoveryOptions (Time.now clock) (Time.waitUntil clock) Timing.discoveryIntervalMs
   worker <- async (Stream.effects (Discovery.subscribeDiscovery options transport))
   pure (Scenario (pure ()) (readTVarIO readCount) (cancel worker))
 
@@ -304,7 +306,6 @@ cacheClockCases root = clockCasesFor root ["saveDebounce"] $ \clock _ -> do
         Cache.CacheOptions
           (Time.now clock)
           (Time.waitUntil clock)
-          (Timing.saveDebounceMs Timing.protocolSettings)
           (Just persister)
           (const (pure (pure ())))
   cache <- Cache.newCache (pure :: Int -> IO Int) options
@@ -345,7 +346,7 @@ inProcessClient time answer = do
   atomically (putTMVar inputCell input)
   Transport.setState input Transport.ConnectionStateConnecting
   Transport.setState input Transport.ConnectionStateOpen
-  client <- Client.newClient carrier contents Nothing options Timing.protocolSettings Nothing
+  client <- Client.newClient carrier contents Nothing options Settings.protocolClientTiming Nothing
   pure (client, input)
 
 -- | Answers the request a frame asks, on channel, with value.

@@ -5,15 +5,15 @@ import (
 	"slices"
 	"testing"
 
-	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // The first listener is told, of what was reported before it listened, the
 // latest ErrorsKeptForFirstReaderCount, in order, and then what follows; a
 // later listener is told only what follows it.
 func TestTheFirstListenerIsToldTheLatestReportedBeforeItAndALaterOneOnlyWhatFollows(t *testing.T) {
-	most := xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount
+	most := timing.ErrorsKeptForFirstReaderCount
 	telling := kept.NewTelling[string](most)
 	beyond := 5
 	reported := make([]string, most+beyond)
@@ -40,7 +40,7 @@ func TestTheFirstListenerIsToldTheLatestReportedBeforeItAndALaterOneOnlyWhatFoll
 // A first listener who comes after the close is told nothing: what was kept
 // for it was let go of at the close.
 func TestAFirstListenerWhoComesAfterTheCloseIsToldNothing(t *testing.T) {
-	telling := kept.NewTelling[string](xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount)
+	telling := kept.NewTelling[string](timing.ErrorsKeptForFirstReaderCount)
 	telling.Report("HTTP 503")
 	telling.Close()
 	telling.Report("after the close")

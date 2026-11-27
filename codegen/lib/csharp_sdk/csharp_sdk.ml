@@ -478,6 +478,46 @@ let timings (entries : Timing.Table.t) =
     (generated ^ "Timings.g.cs")
     [ static_class "Timings" (List.map member entries) ]
 
+(* The records of what a caller may set of a client's timing, a property an
+   entry, whose initial value is the entry's constant. *)
+let timing_records (entries : Timing.Table.t) =
+  let member (e : Timing.Table.entry) =
+    let name = timing_name e in
+    let type_ =
+      match e.value with
+      | Timing.Table.Duration _ | Timing.Table.Count _ -> "int"
+      | Timing.Table.Budget _ -> Models.types ^ "RetryBudget"
+    in
+    C.Documented
+      ( e.docs,
+        C.Property
+          {
+            attributes = [];
+            modifiers = [ Public ];
+            type_ = T type_;
+            name;
+            accessors = [ Get; Init ];
+            value = Some (Member (Name "Xynolog.Protocol.Timings", name));
+          } )
+  in
+  let record record =
+    C.Type
+      {
+        attributes = [];
+        modifiers = [ Public; Sealed ];
+        kind = Record;
+        name = Timing.Table.record_name record;
+        params = None;
+        base = None;
+        body =
+          Some (Packed, List.map member (Timing.Table.members record entries));
+      }
+  in
+  file ~namespace:"Xynolog"
+    ~from_:("protocol/specs/src/" ^ Timing.Table.file)
+    (generated ^ "TimingRecords.g.cs")
+    (List.map record Timing.Table.records)
+
 (* The models of every schema the C# SDK types, and the records Protocol
    states in its tables. *)
 let models (spec : Spec.t) =
@@ -569,6 +609,7 @@ let files ~root (spec : Spec.t) =
             failures;
             error_codes codes;
             timings timing;
+            timing_records timing;
             tables;
             services;
             control;

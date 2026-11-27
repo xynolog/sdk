@@ -12,10 +12,17 @@
  * is read from `client.bus`.
  */
 
-import type { BaseUrl, AccessToken, CacheQuery } from '@xynolog/core';
+import type {
+  BaseUrl,
+  AccessToken,
+  CacheQuery,
+  ClientTiming,
+  TransportTiming,
+} from '@xynolog/core';
 import {
   BRIDGED_CHANNELS,
   Bus,
+  DEFAULT_CLIENT_TIMING,
   EventBus,
   accessToken,
   baseUrl,
@@ -156,26 +163,12 @@ export class XynologClient {
        */
       cachePersistence?: CachePersistence;
       /**
-       * `Bus.request` timeout for the browse caches — threads through to
-       * `BrowseNamespace`'s deterministic-time knob, there so the liveness
-       * property suite can control time. Production omits it (30 s
-       * default); `@xynolog/sdk/testing` passes small values so B14/B15
-       * chains run in test time.
+       * What of the client's timing differs from `DEFAULT_CLIENT_TIMING`.
+       * Its `busRequestTimeoutMs` is the deadline of `browse`'s requests and
+       * of the `gather` and `match` live queries'; every other request has
+       * the table's.
        */
-      busTimeoutMs?: number;
-      /**
-       * The window bus-driven invalidations of one key coalesce in (B19),
-       * `invalidationWindowMs` of protocol/specs/src/client/timing.json. Production
-       * omits it; a test or the conformance driver passes a small value.
-       */
-      invalidationWindowMs?: number;
-      /**
-       * How long a followed job may be silent before its status is asked for,
-       * and how often after that: `jobSilenceMs` and `jobStatusPollMs` of
-       * protocol/specs/src/client/timing.json. Production omits them.
-       */
-      jobSilenceMs?: number;
-      jobStatusPollMs?: number;
+      timing?: Partial<ClientTiming>;
     },
   ) {
     this.transport = transport;
@@ -186,43 +179,24 @@ export class XynologClient {
     this.transport.bridgeInto(this.bus);
     this.wire = new Bus(this.transport);
 
+    const timing = { ...DEFAULT_CLIENT_TIMING, ...options?.timing };
+
     this.frame = new FrameNamespace(this.transport);
-    // What every namespace holding live queries takes.
-    const liveQueryTiming = {
-      ...(options?.busTimeoutMs !== undefined
-        ? { busTimeoutMs: options.busTimeoutMs }
-        : {}),
-      ...(options?.invalidationWindowMs !== undefined
-        ? { invalidationWindowMs: options.invalidationWindowMs }
-        : {}),
-    };
     this.browse = new BrowseNamespace(this.transport, this.bus, this.content, {
       ...(options?.cachePersistence
         ? { cachePersistence: options.cachePersistence }
         : {}),
-      ...liveQueryTiming,
+      timing,
     });
-    const jobFollowTiming = {
-      ...(options?.jobSilenceMs !== undefined
-        ? { jobSilenceMs: options.jobSilenceMs }
-        : {}),
-      ...(options?.jobStatusPollMs !== undefined
-        ? { jobStatusPollMs: options.jobStatusPollMs }
-        : {}),
-    };
-    this.mark = new MarkNamespace(this.transport, this.bus, jobFollowTiming);
+    this.mark = new MarkNamespace(this.transport, this.bus, timing);
     this.bind = new BindNamespace(this.transport, this.bus);
-    this.gather = new GatherNamespace(
-      this.transport,
-      this.bus,
-      liveQueryTiming,
-    );
-    this.match = new MatchNamespace(this.transport, this.bus, liveQueryTiming);
+    this.gather = new GatherNamespace(this.transport, this.bus, { timing });
+    this.match = new MatchNamespace(this.transport, this.bus, { timing });
     this.yield = new YieldNamespace(
       this.transport,
       this.bus,
       this.content,
-      jobFollowTiming,
+      timing,
     );
     this.beckon = new BeckonNamespace(this.transport, this.bus);
     this.job = new JobNamespace(this.transport, this.bus);
@@ -283,12 +257,15 @@ export class XynologClient {
    * Pass the already-branded values if you have them.
    *
    * Omit `token` for unauthenticated usage (public endpoints only). Every
-   * request is sent with `fetch`, or the runtime's own.
+   * request is sent with `fetch`, or the runtime's own. `clientTiming` is the
+   * client's `timing`, and `transportTiming` the transport's.
    */
   static fromHttp(opts: {
     baseUrl: BaseUrl | string;
     token?: AccessToken | string | null;
     fetch?: typeof fetch;
+    clientTiming?: Partial<ClientTiming>;
+    transportTiming?: Partial<TransportTiming>;
   }): XynologClient {
     const url =
       typeof opts.baseUrl === 'string' ? baseUrl(opts.baseUrl) : opts.baseUrl;
@@ -304,10 +281,16 @@ export class XynologClient {
       token$,
       channels: BRIDGED_CHANNELS,
       ...(opts.fetch ? { fetch: opts.fetch } : {}),
+      ...(opts.transportTiming ? { timing: opts.transportTiming } : {}),
     });
     const content = new HttpContentTransport(transport);
     // HttpTransport implements both ITransport and IGatewayOperations;
     // pass it twice so `client.auth` / `client.system` are wired.
-    return new XynologClient(transport, content, transport);
+    return new XynologClient(
+      transport,
+      content,
+      transport,
+      opts.clientTiming ? { timing: opts.clientTiming } : {},
+    );
   }
 }

@@ -14,8 +14,9 @@ from xynolog.http.content import HttpContentTransport
 from xynolog.http.endpoint import gateway_url, is_valid_hostname
 from xynolog.http.exchange import TokenRefresher
 from xynolog.http.session import session_from_kept, sign_in_device, sign_out
-from xynolog.http.stream import Bookmarks, Timing
+from xynolog.http.stream import Bookmarks
 from xynolog.http.transport import HttpTransport
+from xynolog.timing import TransportTiming
 from xynolog.types import DeviceCode
 
 __all__ = [
@@ -29,8 +30,8 @@ __all__ = [
     "NotAnRsaKey",
     "SecretCredential",
     "ServiceToken",
-    "Timing",
     "TokenRefresher",
+    "TransportTiming",
     "UnreadableKey",
     "gateway_url",
     "is_valid_hostname",

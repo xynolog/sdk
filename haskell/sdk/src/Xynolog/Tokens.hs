@@ -11,7 +11,7 @@ import Data.Scientific (Scientific)
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding (encodeUtf8)
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
 
 claims :: Text -> Maybe Object
 claims token = case Text.splitOn "." token of
@@ -41,16 +41,16 @@ tokenExpiry token = claims token >>= (`seconds` "exp")
 isTokenExpired :: Text -> Scientific -> Bool
 isTokenExpired token now = maybe True (< now) (tokenExpiry token)
 
-renewalDelay :: Timing.Settings -> Scientific -> Scientific -> Scientific
-renewalDelay timing lifetime remaining =
+renewalDelay :: Scientific -> Scientific -> Scientific
+renewalDelay lifetime remaining =
   max
-    (remaining - min (fromInteger (Timing.refreshBeforeExpMs timing) / 1000) (lifetime / 2))
-    (fromInteger (Timing.minRefreshDelayMs timing) / 1000)
+    (remaining - min (fromInteger Timing.refreshBeforeExpMs / 1000) (lifetime / 2))
+    (fromInteger Timing.minRefreshDelayMs / 1000)
 
-refreshDelay :: Timing.Settings -> Text -> Scientific -> Maybe Scientific
-refreshDelay timing token now = do
+refreshDelay :: Text -> Scientific -> Maybe Scientific
+refreshDelay token now = do
   values <- claims token
   expiry <- seconds values "exp"
   let remaining = max (expiry - now) 0
       lifetime = maybe remaining (\issued -> max (expiry - issued) 0) (seconds values "iat")
-  pure (renewalDelay timing lifetime remaining)
+  pure (renewalDelay lifetime remaining)

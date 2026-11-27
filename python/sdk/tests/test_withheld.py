@@ -45,7 +45,7 @@ from xynolog.channels import (
 )
 from xynolog.errors import XynologError
 from xynolog.event_bus import EventBus
-from xynolog.http import AgentToken, HttpTransport, ServiceToken, Timing
+from xynolog.http import AgentToken, HttpTransport, ServiceToken, TransportTiming
 from xynolog.http._withheld import why_unanswered
 from xynolog.http.oauth import discover_issuer, issuer_client, refresh_at_issuer
 from xynolog.identifiers import ResourceId
@@ -60,7 +60,7 @@ from xynolog.watched import Variable, reached
 MEDIA: Final = "/api/tokens/media"
 RESOURCE: Final = ResourceId("res-1")
 BYTES: Final = f"/resources/{RESOURCE}"
-QUICK: Final = Timing(reconnect_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1))
+QUICK: Final = TransportTiming(reconnect_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1))
 
 GRANT: Final = says({"access_token": CARRIED, "token": CARRIED}).body
 """An answer that grants a token, whichever request of this package it answers."""

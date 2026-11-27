@@ -46,7 +46,7 @@ const client = new XynologClient(transport, new HttpContentTransport(transport),
 |---|---|
 | `HttpTransport` | The bus over a gateway: `POST /bus/emit` for what a client sends, one stream (`POST /bus/subscribe`) for what it receives, and the gateway's plain operations |
 | `HttpContentTransport` | A resource's bytes, up with progress and cancellation, and down whole or as a stream; its linked-data description; and its anchored text |
-| `HttpTransportConfig` | What a transport is given: the gateway's address, a token source, a `TokenRefresher`, the channels its stream names, and the `fetch` it sends with |
+| `HttpTransportConfig` | What a transport is given: the gateway's address, a token source, a `TokenRefresher`, the channels its stream names, the `fetch` it sends with, and what of its `timing` (`TransportTiming`) differs from the table's |
 | `currentUserOf(baseUrl, token, fetch?)` | One request asking the gateway who a token is, with no transport behind it. A session asks this of a stored credential before it trusts it |
 | `APIError` | What an HTTP failure is thrown as |
 

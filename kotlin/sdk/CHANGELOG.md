@@ -80,7 +80,7 @@ the coming release's, and gathers its changes as they land.
   that holds bytes compares and hashes them by what they hold.
 - A retry budget is `xynolog.types.RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
-  `Timing.emitRetry` is one, and `retryWithBackoff` and
+  `TransportTiming.emitRetry` is one, and `retryWithBackoff` and
   `retryWithBackoffFuture` take one. Its `attempts` is a `Long`.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
   whole, which is a `String`.
@@ -194,9 +194,26 @@ the coming release's, and gathers its changes as they land.
   `totalBytes` as a `Long?` (protocol#121): a source of unstated length states
   none. Their builders no longer take it; `totalBytes(...)` sets it. Every
   upload today holds its bytes whole, and states its total.
+- The timing a caller may set is two records generated from Protocol's
+  `client/timing.json`, each member the entry its name says: `ClientTiming`,
+  which `XynologClient` takes, and `xynolog.TransportTiming`, which
+  `HttpTransport` takes, in place of `xynolog.http.Timing`.
+  `ClientTiming.busRequestMs` is `busRequestTimeoutMs`, and the transport's
+  `httpRequestMs` and `streamOpenMs` are `httpRequestTimeoutMs` and
+  `streamOpenTimeoutMs`. The constructor, `copy` and `componentN` of each take
+  its members in the table's order.
+- `sessionFromKept`, `sessionFromKeptFuture` and `HttpSessionFactory` take
+  `clientTiming` and `transportTiming`, after their other parameters: what the
+  client and the transport of each session they build keep.
+- `subscribeDiscovery`'s `intervalMs` and `HoverDwell`'s `delayMs` may be left
+  out, and are then the table's `discoveryIntervalMs` and `hoverDelayMs`.
 
 ### Removed
 
+- A `Cache`'s `saveDebounceMs`: it saves after Protocol's `saveDebounceMs`.
+  Java makes one with `Cache(fetch, persister, context)`.
+- `StoragePersister`'s `maxBytes`: a document larger than Protocol's
+  `maxStoredBytesCount` loses the entries received longest ago, until it fits.
 - `xynolog.types.Stated` is removed. No member of Protocol is both optional
   and nullable, so a model's optional property is a nullable type, absent when
   null.

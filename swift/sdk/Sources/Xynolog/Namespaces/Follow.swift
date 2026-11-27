@@ -44,7 +44,7 @@ private enum FollowWake: Sendable {
 }
 func follow<Completion: FollowedCompletion, Timer: Clock>(
   create: JobCreateCommand, resource: ResourceId, wire: Bus, bus: EventBus,
-  lifetime: Lifetime, timing: FollowTiming, stallMs: Int? = nil,
+  lifetime: Lifetime, timing: ClientTiming, stallMs: Int? = nil,
   clock: Timer, completion: Completion.Type
 ) -> Delegation<Completion> where Timer.Duration == Duration {
   Delegation(
@@ -110,7 +110,7 @@ func follow<Completion: FollowedCompletion, Timer: Clock>(
         case .created(let answer):
           job = try answer.get()
           if let job { report(.created(job)) }
-          askAt = clock.now.advanced(by: .milliseconds(timing.silenceMs))
+          askAt = clock.now.advanced(by: .milliseconds(timing.jobSilenceMs))
           heard = held
           held.removeAll()
         case .frame(let event):
@@ -160,7 +160,7 @@ func follow<Completion: FollowedCompletion, Timer: Clock>(
             switch word {
             case .progress(let value):
               if let progress = value.progress { report(.progress(progress)) }
-              askAt = clock.now.advanced(by: .milliseconds(timing.silenceMs))
+              askAt = clock.now.advanced(by: .milliseconds(timing.jobSilenceMs))
             case .failed(let value):
               guard value.willRetry == true else {
                 throw JobError(
@@ -178,7 +178,7 @@ func follow<Completion: FollowedCompletion, Timer: Clock>(
           }
         }
         if let deadline = askAt, clock.now >= deadline, let job {
-          askAt = clock.now.advanced(by: .milliseconds(timing.statusPollMs))
+          askAt = clock.now.advanced(by: .milliseconds(timing.jobStatusPollMs))
           if asking == nil {
             let id = UUID()
             asking = (

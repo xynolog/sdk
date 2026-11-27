@@ -158,7 +158,8 @@ private fun diffOf(last: DiscoveryState?, now: DiscoveryState): DiscoveryDiff? {
  * state, which carries every entry it brought or took away. It reads only
  * while it is collected, by one collector, once; closing it reads no more.
  */
-public fun subscribeDiscovery(transport: DiscoveryTransport, intervalMs: Long): Events<DiscoveryDiff> {
+@JvmOverloads
+public fun subscribeDiscovery(transport: DiscoveryTransport, intervalMs: Long = Timings.DISCOVERY_INTERVAL_MS): Events<DiscoveryDiff> {
     val closed = AtomicBoolean(false)
     val reading = flow {
         var last: DiscoveryState? = null

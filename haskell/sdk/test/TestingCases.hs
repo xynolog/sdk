@@ -32,7 +32,7 @@ import Xynolog.Testing.Liveness qualified as Live
 import Xynolog.Testing.Sessions qualified as Sessions
 import Xynolog.Testing.Storage qualified as Shared
 import Xynolog.Testing.Transport qualified as Faulty
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -156,7 +156,8 @@ sessionCases fixtures = do
     Sessions.newScriptedSessions
       clock
       busOptions
-      Timing.protocolSettings
+      Settings.protocolClientTiming
+      Settings.protocolTransportTiming
       (pure 1800000000)
       (\_ name payload -> Faulty.refuseUnscriptedOperation name payload)
       contents
@@ -183,7 +184,7 @@ sessionCases fixtures = do
               Nothing
               (const (pure ()))
               (pure 1800000000)
-      bracket (Testing.createTestSession (Testing.TestSessionOptions (Session.client (Session.openedSession opened)) options clock Timing.protocolSettings)) Testing.closeTestSession $ \made ->
+      bracket (Testing.createTestSession (Testing.TestSessionOptions (Session.client (Session.openedSession opened)) options clock Settings.protocolTransportTiming)) Testing.closeTestSession $ \made ->
         Session.ready (Testing.testSessionSession made)
       require "test session disposed its borrowed client" . (/= Transport.ConnectionStateClosed) =<< atomically (State.current (Client.state (Session.client (Session.openedSession opened))))
     Factory.revokeSession (Sessions.factory scripted) grant

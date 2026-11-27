@@ -24,11 +24,12 @@ package state
 // the next job begins. The job's id is held from the queue's answer to its
 // creation to the job's end: it is what Job.Cancel names.
 //
-// A delegated job that says nothing for Timing.DelegateSilence has gone
-// quiet, which is not over: the unit says so once (mark:delegate-timeout) and
-// keeps following, so a completion that arrives later still ends it. A frame
-// on the job's channels that its follower refuses is not the job saying
-// something: the silence goes on being counted past it.
+// A delegated job that says nothing for delegateSilenceMs
+// (protocol/specs/src/client/timing.json) has gone quiet, which is not over:
+// the unit says so once (mark:delegate-timeout) and keeps following, so a
+// completion that arrives later still ends it. A frame on the job's channels
+// that its follower refuses is not the job saying something: the silence goes
+// on being counted past it.
 
 import (
 	"time"
@@ -36,6 +37,7 @@ import (
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // MarkStateUnit marks one resource: see the file's documentation. A state
@@ -43,7 +45,6 @@ import (
 type MarkStateUnit struct {
 	client     *xynolog.Client
 	resourceID api.ResourceId
-	silence    time.Duration
 	life
 
 	pending            *xynolog.Variable[*api.PendingAnnotation]
@@ -62,7 +63,6 @@ func NewMarkStateUnit(client *xynolog.Client, resourceID api.ResourceId) *MarkSt
 	u := &MarkStateUnit{
 		client:             client,
 		resourceID:         resourceID,
-		silence:            xynolog.DefaultTiming().DelegateSilence,
 		life:               newLife(),
 		pending:            xynolog.NewVariable[*api.PendingAnnotation](nil),
 		delegating:         xynolog.NewVariable[api.Motivation](""),
@@ -231,7 +231,7 @@ func (u *MarkStateUnit) follow(run *xynolog.Delegation[api.MarkJobCompleteComman
 	}()
 	// This job's id. At the job's end it is let go only while it is still the one held: a job delegated later replaces it.
 	var created api.JobId
-	silence := time.NewTimer(u.silence)
+	silence := time.NewTimer(timing.DelegateSilence)
 	defer silence.Stop()
 	// Whether the next silence is still to be said. It is said once, and again only after the job has said something.
 	listening := true
@@ -256,7 +256,7 @@ func (u *MarkStateUnit) follow(run *xynolog.Delegation[api.MarkJobCompleteComman
 			}
 			// A frame refused names no job: it is no word of this one, and the silence goes on being counted.
 			if _, refused := said.event.(xynolog.JobRefused); !refused {
-				silence.Reset(u.silence)
+				silence.Reset(timing.DelegateSilence)
 				listening = true
 			}
 			u.mu.Lock()

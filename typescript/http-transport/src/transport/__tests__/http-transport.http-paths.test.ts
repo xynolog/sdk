@@ -127,7 +127,7 @@ describe('HttpTransport — HTTP wire shape', () => {
     transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10000,
+      timing: { httpRequestTimeoutMs: 10000 },
     });
     content = new HttpContentTransport(transport);
   });
@@ -146,7 +146,7 @@ describe('HttpTransport — HTTP wire shape', () => {
       new HttpTransport({
         baseUrl: testBaseUrl,
         channels: BRIDGED_CHANNELS,
-        timeout: 1234,
+        timing: { httpRequestTimeoutMs: 1234 },
       });
       expect(vi.mocked(ky.create).mock.calls[0]?.[0]).toMatchObject({
         timeout: 1234,

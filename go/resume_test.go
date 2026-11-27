@@ -280,10 +280,9 @@ func (g *recordingGateway) sendData(id, data string) {
 // transport is a transport to the gateway whose stream names channels
 // globally, and begins each scope where bookmarks say.
 func (g *recordingGateway) transport(bookmarks Bookmarks, channels []bus.Channel) *HTTPTransport {
-	timing := DefaultTiming()
+	timing := DefaultTransportTiming()
 	timing.Reconnect = 10 * time.Millisecond
 	timing.LazyRemove = 10 * time.Millisecond
-	timing.ReconnectDebounce = 10 * time.Millisecond
 	timing.Linger = 10 * time.Millisecond
 	return NewHTTPTransport(HTTPTransportConfig{
 		BaseURL:   g.URL,
@@ -385,7 +384,7 @@ func TestAPlaceIsNotWrittenBeforeTheRefresherHasTakenItsEvent(t *testing.T) {
 	asked := bus.BrowseResourceRequested.Request().Channel()
 	transport := holdingFrames(gateway.transport(kept, bus.ReplyChannelsFor(asked)))
 	defer transport.Close()
-	client := NewClient(ClientConfig{Transport: transport, Timing: DefaultTiming(), Persistence: &CachePersistence{Storage: kept.Storage(), KbID: "kb-a", PersonKey: keptPerson}})
+	client := NewClient(ClientConfig{Transport: transport, Timing: DefaultClientTiming(), Persistence: &CachePersistence{Storage: kept.Storage(), KbID: "kb-a", PersonKey: keptPerson}})
 	kept.CoupleTo(client)
 	defer client.Close()
 	write := func() {

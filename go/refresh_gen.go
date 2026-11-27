@@ -282,9 +282,9 @@ func applyRefresh(acts cacheActs, row CacheRefresh, subject cacheSubject) {
 // attach has the caches of the queries the table persists keep their values
 // in persistence from now on, each beginning with what it kept.
 func (v *live) attach(persistence *CachePersistence) {
-	keepIn(v.resource, persistence, CacheQueryResource, v.links.timing)
-	keepIn(v.annotations, persistence, CacheQueryAnnotations, v.links.timing)
-	keepIn(v.annotation, persistence, CacheQueryAnnotation, v.links.timing)
-	keepIn(v.entityTypes, persistence, CacheQueryEntityTypes, v.links.timing)
-	keepIn(v.tagSchemas, persistence, CacheQueryTagSchemas, v.links.timing)
+	keepIn(v.resource, persistence, CacheQueryResource)
+	keepIn(v.annotations, persistence, CacheQueryAnnotations)
+	keepIn(v.annotation, persistence, CacheQueryAnnotation)
+	keepIn(v.entityTypes, persistence, CacheQueryEntityTypes)
+	keepIn(v.tagSchemas, persistence, CacheQueryTagSchemas)
 }

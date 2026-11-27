@@ -422,10 +422,10 @@ let timing t (spec : Spec.t) =
     ~declared:(fun sdk (e : Timing.Table.entry) ->
       match sdk with
       | Go ->
-          declares
-            (block ~opening:"type Timing struct {" ~closing:"\n}"
-               (t.generated "go/timing_gen.go"))
-            ("\n\t", " ") (Timing.Go.field e)
+          any
+            (t.generated "go/internal/timing/timing_gen.go")
+            [ ("\nconst ", " ="); ("\nvar ", " =") ]
+            (Timing.Go.field e)
       | Typescript ->
           any
             (t.generated "typescript/core/src/client-timing.ts")

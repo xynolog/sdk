@@ -47,7 +47,8 @@ import Xynolog.SignIn qualified as SignIn
 import Xynolog.State.SessionSignals qualified as Signals
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing (errorsKeptForFirstReaderCount)
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types
 
 failure :: Text -> String -> IO result
@@ -78,7 +79,7 @@ agreeOn why what found tabled = unless (found == tabled) (failure why (what ++ "
 -- | Waits for probe, the controlled clock moved on by a reconnect's debounce at a time.
 eventually :: Time.ControlledTime -> Text -> String -> IO Bool -> IO ()
 eventually time why what probe = do
-  seen <- Time.within time (Timing.reconnectDebounceMs Timing.protocolSettings * 1000000) probe
+  seen <- Time.within time (Timing.reconnectDebounceMs * 1000000) probe
   unless seen (failure why ("never saw " ++ what))
 
 -- | One thing a session says: one of its own errors, or a failure of its transport with its message.
@@ -202,7 +203,7 @@ factoryOf why doubles http person opening = do
                 (Just validate)
                 (atomically . Signals.notifySessionEnded (Factory.sessionFactoryOptionsSignals inputs))
                 (pure 1800000000)
-        opened <- Session.fromHttp http {Http.httpBaseUrl = base} (Just keeping) settings
+        opened <- Session.fromHttp http {Http.httpBaseUrl = base} Settings.protocolClientTiming (Just keeping) settings
         (mapM_ (sayOpening (Session.openedSession opened)) opening >> atomically (void (tryPutTMVar (asking doubles) ())))
           `onException` Session.closeOpenedSession opened
         pure opened
@@ -218,12 +219,14 @@ factoryOf why doubles http person opening = do
             >> Time.settle
   pure (Factory.SessionFactory open (const (pure ())))
 
--- | The session's client asks the gateway for the resource of that name.
-holding :: Text -> Time.ControlledTime -> Session.Session -> Text -> IO ()
-holding why time session name = do
+-- | The session's client asks the gateway for the resource of that name, the clock moved on by step nanoseconds at a
+-- time until it is answered: with a step of nothing, no save the client comes to owe falls due.
+holding :: Text -> Time.ControlledTime -> Integer -> Session.Session -> Text -> IO ()
+holding why time step session name = do
   identity <- either (failure why) pure (mkResourceId name)
   withAsync (Cache.fresh (Browse.resource (Client.browse (Session.client session)) identity)) $ \fetch -> do
-    eventually time why (Text.unpack name ++ " fetched") (isJust <$> poll fetch)
+    fetched <- Time.within time step (isJust <$> poll fetch)
+    unless fetched (failure why ("never saw " ++ Text.unpack name ++ " fetched"))
     void (wait fetch)
 
 -- | Every code said on the registry's errors, in order, until they end.
@@ -237,21 +240,20 @@ reading doubles said browser = Browser.errors browser $ \failures -> do
 overTheStage ::
   Text ->
   Doubles ->
-  Timing.Settings ->
   UserResponse ->
   [Saying] ->
   (Time.ControlledTime -> Browser.XynologBrowser -> Async () -> TVar [Text] -> Session.Session -> Signals.SessionSignals -> IO ()) ->
   IO ()
-overTheStage why doubles timing person opening body = do
+overTheStage why doubles person opening body = do
   stage <- newStage
   time <- Time.newTime
-  http <- stageHttp stage time timing
+  http <- stageHttp stage time
   factory <- factoryOf why doubles http person opening
   store <- Storage.newMemoryStorage
   Browser.saveKnowledgeBases store [registered "kb-a"]
   Storage.set store Browser.activeKey "kb-a"
   said <- newTVarIO []
-  bracket (Browser.newXynologBrowser (Browser.XynologBrowserConfig store factory http (pure 1800000000))) Browser.dispose $ \browser ->
+  bracket (Browser.newXynologBrowser (Browser.XynologBrowserConfig store factory http Settings.protocolClientTiming (pure 1800000000))) Browser.dispose $ \browser ->
     withAsync (reading doubles said browser) $ \reader -> do
       atomically (readTMVar (listening doubles))
       session <- atomically (State.current (Browser.activeSession browser) >>= maybe retry pure)
@@ -285,10 +287,10 @@ runCase fixtures row = do
   person <- fixture fixtures "UserResponse"
   doubles <- newDoubles False
   names <- newTVarIO (0 :: Int)
-  overTheStage why doubles Timing.protocolSettings person opening $ \time _ _ registrySaid session signals -> do
+  overTheStage why doubles person opening $ \time _ _ registrySaid session signals -> do
     let fetchNext = do
           next <- atomically (modifyTVar' names (+ 1) >> readTVar names)
-          holding why time session ("res-" <> Text.pack (show next))
+          holding why time (Timing.reconnectDebounceMs * 1000000) session ("res-" <> Text.pack (show next))
         -- A fetch fails as flag says until failures grows, and the registry then says code before the next thing is
         -- said, so the next is met after it.
         failingWhile flag failures what code = do
@@ -329,9 +331,8 @@ runClosing fixtures row = do
   expected <- field why "registryErrors" row :: IO [Text]
   person <- fixture fixtures "UserResponse"
   doubles <- newDoubles True
-  let unsaved = Timing.protocolSettings {Timing.saveDebounceMs = 3600000}
-  overTheStage why doubles unsaved person [] $ \time browser reader registrySaid session _ -> do
-    when owed (holding why time session "res-1")
+  overTheStage why doubles person [] $ \time browser reader registrySaid session _ -> do
+    when owed (holding why time 0 session "res-1")
     owes <- atomically (BrowseState.persistencePending (Client.browse (Session.client session)))
     agreeOn why "the client owes a save" owes owed
     before <- length <$> readTVarIO registrySaid
@@ -347,9 +348,8 @@ runRetiredClosing fixtures = do
   let why = "a registry's close waits for a switch under way to finish closing the session it retired"
   person <- fixture fixtures "UserResponse"
   doubles <- newDoubles True
-  let unsaved = Timing.protocolSettings {Timing.saveDebounceMs = 3600000}
-  overTheStage why doubles unsaved person [] $ \time browser reader registrySaid session _ -> do
-    holding why time session "res-1"
+  overTheStage why doubles person [] $ \time browser reader registrySaid session _ -> do
+    holding why time 0 session "res-1"
     owes <- atomically (BrowseState.persistencePending (Client.browse (Session.client session)))
     unless owes (failure why "has a client that owes no save")
     before <- length <$> readTVarIO registrySaid
@@ -372,7 +372,7 @@ refusedBuilds :: Text -> Int -> (Browser.XynologBrowser -> IO ()) -> IO ()
 refusedBuilds why count body = do
   stage <- newStage
   time <- Time.newTime
-  http <- stageHttp stage time Timing.protocolSettings
+  http <- stageHttp stage time
   builds <- newTVarIO (0 :: Int)
   let refuse _ = do
         build <- atomically (modifyTVar' builds (+ 1) >> readTVar builds)
@@ -380,7 +380,7 @@ refusedBuilds why count body = do
   store <- Storage.newMemoryStorage
   Browser.saveKnowledgeBases store [registered "kb-a"]
   bracket
-    (Browser.newXynologBrowser (Browser.XynologBrowserConfig store (Factory.SessionFactory refuse (const (pure ()))) http (pure 1800000000)))
+    (Browser.newXynologBrowser (Browser.XynologBrowserConfig store (Factory.SessionFactory refuse (const (pure ()))) http Settings.protocolClientTiming (pure 1800000000)))
     Browser.dispose
     $ \browser -> do
       -- The registry activates its knowledge base as it opens, and again each time it is selected with no session live.
