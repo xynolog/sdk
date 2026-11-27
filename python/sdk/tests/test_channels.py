@@ -9,9 +9,9 @@ from spec import SPEC, objects, read, strings, text
 
 import xynolog.types
 from xynolog import channels, operations
-from xynolog.channel import Channel, Empty, Operation, RecordedChannel, ScopedChannel
+from xynolog.channel import Channel, Operation, RecordedChannel, ScopedChannel
 from xynolog.identifiers import AnnotationId, JobId, ResourceId, UserId
-from xynolog.model import WireModel
+from xynolog.model import Empty, WireModel
 from xynolog.types import (
     AnnotationRemovedPayload,
     EnrichedResourceEvent,

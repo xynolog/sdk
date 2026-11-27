@@ -43,7 +43,9 @@ assert sdk_entries["Xynolog.Identifiers.Resource_id.t"]["representation"] == "ab
 assert "Xynolog.Pattern" not in sdk_entries
 # A record is read from a model its schema has checked (of_model), never from raw members unchecked.
 raw_readers = {"project", "read", "members"}
-unchecked = [path for path in sdk_entries if path.startswith("Xynolog.Records.") and path.rsplit(".", 1)[1] in raw_readers]
+paths = [path for path in sdk_entries if isinstance(path, str)]
+assert len(paths) == len(sdk_entries), "an entry's path is no string"
+unchecked = [path for path in paths if path.startswith("Xynolog.Records.") and path.rsplit(".", 1)[1] in raw_readers]
 assert not unchecked, f"Records reads raw members unchecked: {unchecked[:5]}"
 assert sdk_entries["Xynolog.Records.Get_annotations_response.of_model"]["kind"] == "value"
 

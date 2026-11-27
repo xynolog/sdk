@@ -151,14 +151,9 @@ let channels (bus : Registry.t) =
           [
             From
               ( "xynolog.channel",
-                [
-                  "AnyChannel";
-                  "Channel";
-                  "Empty";
-                  "RecordedChannel";
-                  "Response";
-                  "ScopedChannel";
-                ] );
+                [ "AnyChannel"; "Channel"; "RecordedChannel"; "ScopedChannel" ]
+              );
+            From ("xynolog.model", [ "Empty"; "Response" ]);
             From
               ( "xynolog.types",
                 List.sort_uniq String.compare

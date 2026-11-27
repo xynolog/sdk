@@ -118,6 +118,10 @@ the coming release's, and gathers its changes as they land.
   member. Each union states what its members admit (`Job::MEMBERS`).
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- So is one in what the SDK reads beside a request's answer: a stored event's
+  payload, the discovery document, the stored session and knowledge bases,
+  tabs, and the job anchor. Each takes the way it already had for what does
+  not read.
 - `GetAnnotationsResponse::motivation` is an `Option<Motivation>`, where it
   was an `Option<Option<Motivation>>`, and carries Protocol's description of
   it. Protocol no longer allows it to be null: a null for it is refused as
