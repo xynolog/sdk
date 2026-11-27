@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import xynolog.cache.CacheState
 import xynolog.state.SearchState
-import xynolog.transport.FrameRefusal
 import xynolog.types.FrameRefusalReason
 import xynolog.types.JobCompleteCommand
 import xynolog.types.JobCreatedResultResponse
@@ -61,8 +60,7 @@ private fun branches(name: String, tag: String): Map<String, JsonElement> =
 
 /**
  * The client types written by hand, each held to what states it: SearchState,
- * JobEvent and CacheState, generic, and FrameRefusal, which is `Heard` and
- * `Carried` as no generated class can be, to their schemas in
+ * JobEvent and CacheState, generic, to their schemas in
  * protocol/specs/src/client/types. A member or a branch either side gains or
  * loses fails.
  */
@@ -70,11 +68,6 @@ class ClientTypesCensusTest {
     @Test
     fun searchStateHasTheSchemasMembers() {
         assertEquals(properties(schema("SearchState")), held(SearchState::class.java))
-    }
-
-    @Test
-    fun frameRefusalHasTheSchemasMembers() {
-        assertEquals(properties(schema("FrameRefusal")), held(FrameRefusal::class.java))
     }
 
     @Test

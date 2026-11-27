@@ -5,7 +5,7 @@ import xynolog.XynologClient
 import xynolog.channels.Channels
 import xynolog.errors.XynologError
 import xynolog.transport.Delivered
-import xynolog.transport.FrameRefusal
+import xynolog.transport.Refused
 import xynolog.types.MatchSearchFailed
 import xynolog.types.MatchSearchOptions
 import xynolog.types.MatchSearchRequest
@@ -29,7 +29,7 @@ public class MatchStateUnit(private val client: XynologClient) : StateUnit {
                 when (heard) {
                     is Delivered -> tasks.run { search(heard.payload, heard.correlationId) }
                     // A request that is not a search's names nothing to search for.
-                    is FrameRefusal -> Unit
+                    is Refused -> Unit
                 }
             }
         }

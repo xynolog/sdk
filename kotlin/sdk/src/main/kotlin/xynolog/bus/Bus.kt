@@ -31,14 +31,15 @@ import xynolog.transport.Carried
 import xynolog.transport.Delivered
 import xynolog.transport.Events
 import xynolog.transport.Frame
-import xynolog.transport.FrameRefusal
 import xynolog.transport.Heard
+import xynolog.transport.Refused
 import xynolog.transport.ResourceHold
 import xynolog.transport.Transport
 import xynolog.transport.scope
 import xynolog.types.CommandError
 import xynolog.types.ConnectionState
 import xynolog.types.Fault
+import xynolog.types.FrameRefusal
 import xynolog.types.wireJson
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
@@ -168,7 +169,7 @@ internal suspend fun resultOf(transport: Transport, operation: Operation<*, *, *
             listOf(pending.frame())
         } ?: throw timedOut()
         when (val reply = came.single() ?: throw BusRequestError(BusRequestErrorCode.Closed, "Bus closed before a reply on $result")) {
-            is FrameRefusal -> throw TransportError(TransportErrorCode.Error, "a frame on ${reply.channel} is not that channel's: ${Fault(reply.member, reply.reason).said()}")
+            is Refused -> throw TransportError(TransportErrorCode.Error, "a frame on ${reply.channel} is not that channel's: ${Fault(reply.refusal.member, reply.refusal.reason).said()}")
             is Frame -> {
                 if (reply.channel == result) return reply
                 throw answered(operation.failure, reply.payload)
@@ -215,10 +216,10 @@ internal fun <P> heard(channel: Channel<P>, carried: Carried): Heard<P> = heard(
 private fun <P> heard(payload: KSerializer<P>, stamps: Set<String>, carried: Carried): Heard<P> {
     val frame = when (carried) {
         is Frame -> carried
-        is FrameRefusal -> return carried
+        is Refused -> return carried
     }
     return reading<P, Heard<P>>(payload, stamps, frame.payload, { delivered(frame, it) }) { fault ->
-        FrameRefusal(frame.channel, inPayload(fault.member), fault.reason, frame.payload, frame.correlationId, frame.scope)
+        Refused(FrameRefusal(channel = frame.channel, member = inPayload(fault.member), reason = fault.reason, payload = frame.payload, scope = frame.scope, correlationId = frame.correlationId))
     }
 }
 
@@ -226,7 +227,7 @@ private fun <P> heard(payload: KSerializer<P>, stamps: Set<String>, carried: Car
  * One channel's frames from now on, each with its payload decoded: read by
  * one collector, once. A frame refused, by the transport or because its
  * payload is not the channel's, is told the reader in its place, as a
- * `FrameRefusal`, and the frames after it follow. Read for a resource, it
+ * `Refused`, and the frames after it follow. Read for a resource, it
  * gives that resource's frames and no other's, and holds that resource's
  * scope until it is closed or its reading ends. Java reads it as a
  * `java.util.concurrent.Flow.Publisher`.
