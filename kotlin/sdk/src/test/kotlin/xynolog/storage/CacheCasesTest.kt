@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -85,8 +86,8 @@ private fun <K : Any, V : Any> answersOf(kept: KeptQuery<K, V>, held: JsonElemen
 private fun <K : Any, V : Any> written(kept: KeptQuery<K, V>, held: JsonElement): JsonObject {
     val storage = MemoryStorage()
     val answers = answersOf(kept, held)
-    // The save is the one closing makes.
-    val cache = Cache<K, V>({ key -> answers.getValue(key) }, kept.persister(CachePersistence(storage, KB, PERSON)), saveDebounceMs = 60_000)
+    // The save is the one closing makes: nothing runs this dispatcher, so the cache's debounced save never falls due.
+    val cache = Cache<K, V>({ key -> answers.getValue(key) }, kept.persister(CachePersistence(storage, KB, PERSON)), StandardTestDispatcher())
     runBlocking { answers.keys.forEach { cache.fetch(it) } }
     cache.close()
     return Json.parseToJsonElement(checkNotNull(storage.get(documentKey(kept.query.wire)))).jsonObject
@@ -133,7 +134,7 @@ private fun <K : Any, V : Any> writtenAfterARefusal(kept: KeptQuery<K, V>, held:
     val thrown = CopyOnWriteArrayList<Throwable>()
     val context = Dispatchers.Default + CoroutineExceptionHandler { _, failure -> thrown += failure }
     // The first save is the one the answers owe, once they have stopped changing.
-    val cache = Cache<K, V>({ key -> answers.getValue(key) }, kept.persister(CachePersistence(storage, KB, PERSON)), saveDebounceMs = 50, context = context)
+    val cache = Cache<K, V>({ key -> answers.getValue(key) }, kept.persister(CachePersistence(storage, KB, PERSON)), context)
     runBlocking { answers.keys.forEach { cache.fetch(it) } }
     assertTrue(storage.refusal.await(5, TimeUnit.SECONDS), "the cache never wrote its document")
     val owed = runBlocking {

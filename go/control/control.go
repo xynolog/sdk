@@ -4,7 +4,7 @@
 // notification of protocol/specs/src/control/methods.json is a value of
 // methods_gen.go, typed by package api's types of its schemas. A request
 // states api.ApiVersion, and one that failed carries api.ErrorData, whose code
-// is a xynolog.ControlErrorCode.
+// is an api.ControlErrorCode.
 package control
 
 // Method is a method of the control API: a request whose params are P,

@@ -90,27 +90,30 @@ let run t side operation payload =
           | Error error -> State_value.set side.error_writer (Some error));
           State_value.set side.loading_writer false)))
 
-let gather_annotation t ?(context_window = 2000) ?include_source_context
+let gather_annotation t ?context_window ?include_source_context
     ?include_target_context annotation_id =
   if not (State_task.disposed t.annotation.task) then (
     State_value.set t.annotation_writer (Some annotation_id);
-    let optional name value =
-      Option.to_list (Option.map (fun value -> (name, `Bool value)) value)
+    let optional name json value =
+      Option.to_list (Option.map (fun value -> (name, json value)) value)
     in
     let options =
-      `Assoc
-        ([ ("contextWindow", `Int context_window) ]
-        @ optional "includeSourceContext" include_source_context
-        @ optional "includeTargetContext" include_target_context)
+      optional "contextWindow" (fun value -> `Int value) context_window
+      @ optional "includeSourceContext"
+          (fun value -> `Bool value)
+          include_source_context
+      @ optional "includeTargetContext"
+          (fun value -> `Bool value)
+          include_target_context
     in
     run t t.annotation B.Operations.gather_requested
       (`Assoc
-         [
-           ("resourceId", text (Identifiers.Resource_id.to_string t.resource));
-           ( "annotationId",
-             text (Identifiers.Annotation_id.to_string annotation_id) );
-           ("options", options);
-         ]))
+         ([
+            ("resourceId", text (Identifiers.Resource_id.to_string t.resource));
+            ( "annotationId",
+              text (Identifiers.Annotation_id.to_string annotation_id) );
+          ]
+         @ if options = [] then [] else [ ("options", `Assoc options) ])))
 
 let gather_resource t ?(depth = 2) ?(max_resources = 10)
     ?(include_content = true) ?(include_summary = false)

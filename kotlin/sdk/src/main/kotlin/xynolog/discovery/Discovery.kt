@@ -14,8 +14,14 @@ import xynolog.bus.valuesOf
 import xynolog.telemetry.futureOf
 import xynolog.transport.Events
 import xynolog.types.DiscoveredKB
+import xynolog.types.DiscoveryAbsent
 import xynolog.types.DiscoveryAbsentReason
+import xynolog.types.DiscoveryDiff
 import xynolog.types.DiscoveryDocument
+import xynolog.types.DiscoveryManaged
+import xynolog.types.DiscoveryRead
+import xynolog.types.DiscoveryState
+import xynolog.types.DiscoveryUnchanged
 import xynolog.types.wireJson
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -32,24 +38,18 @@ public const val DISCOVERY_INTERVAL: Long = Timings.DISCOVERY_INTERVAL_MS
 /** The versions of the document this client reads: those DiscoveryDocument allows. */
 private val VERSIONS: List<JsonPrimitive> = valuesOf("DiscoveryDocument", "version")
 
-/** What one read gave: a state, or that nothing changed since the last. */
-public sealed interface DiscoveryRead
+/** The read that found `state`. */
+internal fun readOf(state: DiscoveryState): DiscoveryRead = when (state) {
+    is DiscoveryAbsent -> state
+    is DiscoveryManaged -> state
+}
 
-/**
- * What a launcher's document says. Absent is not empty: `Absent` is "no
- * launcher was found", with why; `Managed` with no knowledge bases is "the
- * launcher is here and manages nothing".
- */
-public sealed interface DiscoveryState : DiscoveryRead
-
-/** No launcher was found, and why. `diagnostic` is what was wrong, in words; null when there is no more to say. */
-public data class Absent @JvmOverloads constructor(public val reason: DiscoveryAbsentReason, public val diagnostic: String? = null) : DiscoveryState
-
-/** The knowledge bases a launcher manages: none is a launcher that manages nothing. */
-public data class Managed(public val kbs: List<DiscoveredKB>) : DiscoveryState
-
-/** A read that found nothing changed since the last. */
-public data object Unchanged : DiscoveryRead
+/** The state `read` found; null when it found nothing changed. */
+private fun stateOf(read: DiscoveryRead): DiscoveryState? = when (read) {
+    is DiscoveryAbsent -> read
+    is DiscoveryManaged -> read
+    is DiscoveryUnchanged -> null
+}
 
 /** Where the document is read from. */
 public interface DiscoveryTransport {
@@ -64,31 +64,33 @@ public interface DiscoveryTransport {
  * The document's text as a state. Every reader goes through this. A document
  * is read whole: one of a version this client does not speak, or with an entry
  * that is not what the schema says, is absent, since a partial reading would
- * hide a running knowledge base without a trace.
+ * hide a running knowledge base without a trace. Absent is not empty:
+ * `DiscoveryAbsent` is "no launcher was found", with why; `DiscoveryManaged`
+ * with no knowledge bases is "the launcher is here and manages nothing".
  */
 public fun parseDiscoveryDocument(text: String): DiscoveryState {
     val parsed = try {
         wireJson.parseToJsonElement(text)
     } catch (notJson: IllegalArgumentException) {
-        return Absent(DiscoveryAbsentReason.NotJson, notJson.message ?: "the document is not JSON")
+        return DiscoveryAbsent(reason = DiscoveryAbsentReason.NotJson, diagnostic = notJson.message ?: "the document is not JSON")
     }
-    val document = parsed as? JsonObject ?: return Absent(DiscoveryAbsentReason.Invalid, "document is not an object")
+    val document = parsed as? JsonObject ?: return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = "document is not an object")
     val version = (document["version"] as? JsonPrimitive)?.takeIf { !it.isString }?.longOrNull
     if (version != null && VERSIONS.none { it.longOrNull == version }) {
-        return Absent(
-            DiscoveryAbsentReason.UnsupportedVersion,
-            "discovery document version $version is not one this client speaks (${VERSIONS.joinToString()}); it is not read in part",
+        return DiscoveryAbsent(
+            reason = DiscoveryAbsentReason.UnsupportedVersion,
+            diagnostic = "discovery document version $version is not one this client speaks (${VERSIONS.joinToString()}); it is not read in part",
         )
     }
-    faultOf(DiscoveryDocument.serializer().descriptor, document)?.let { return Absent(DiscoveryAbsentReason.Invalid, "the document is no discovery document: $it") }
+    faultOf(DiscoveryDocument.serializer().descriptor, document)?.let { return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = "the document is no discovery document: $it") }
     val read = try {
         wireJson.decodeFromJsonElement(DiscoveryDocument.serializer(), document)
     } catch (invalid: IllegalArgumentException) {
-        return Absent(DiscoveryAbsentReason.Invalid, invalid.message ?: "not a discovery document")
+        return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = invalid.message ?: "not a discovery document")
     }
     // DiscoveredKB states no bounds of a port (a proposal for Protocol): until it does, one that is no TCP port is refused here.
-    read.kbs.firstOrNull { it.port !in 1..65535 }?.let { return Absent(DiscoveryAbsentReason.Invalid, "kb entry at ${it.host} has port ${it.port}, which is not a port") }
-    return Managed(read.kbs)
+    read.kbs.firstOrNull { it.port !in 1..65535 }?.let { return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = "kb entry at ${it.host} has port ${it.port}, which is not a port") }
+    return DiscoveryManaged(kbs = read.kbs)
 }
 
 /**
@@ -103,36 +105,21 @@ public fun textDiscovery(readText: () -> String): DiscoveryTransport = object : 
         val text = try {
             withContext(Dispatchers.IO) { readText() }
         } catch (_: NoSuchFileException) {
-            return Absent(DiscoveryAbsentReason.NotFound)
+            return DiscoveryAbsent(reason = DiscoveryAbsentReason.NotFound)
         } catch (_: FileNotFoundException) {
-            return Absent(DiscoveryAbsentReason.NotFound)
+            return DiscoveryAbsent(reason = DiscoveryAbsentReason.NotFound)
         } catch (unread: IOException) {
-            return Absent(DiscoveryAbsentReason.Unreadable, unread.message ?: unread::class.java.simpleName)
+            return DiscoveryAbsent(reason = DiscoveryAbsentReason.Unreadable, diagnostic = unread.message ?: unread::class.java.simpleName)
         }
-        return parseDiscoveryDocument(text)
+        return readOf(parseDiscoveryDocument(text))
     }
 }
 
-/**
- * What one read changed: the state now, and what was added, changed and
- * removed since the last one told of. Entries are told apart by address (host
- * and port), which the launcher keeps unique; a did is not unique, one
- * knowledge base running in two places being two entries with one did.
- * `duplicated` names the addresses more than one entry claims, each once: at
- * most one claim can be true, and every claimant is in `state`.
- */
-public data class DiscoveryDiff(
-    public val state: DiscoveryState,
-    public val added: List<DiscoveredKB>,
-    public val updated: List<DiscoveredKB>,
-    public val removed: List<DiscoveredKB>,
-    public val duplicated: List<String>,
-)
-
+/** What an entry is told apart by, which the launcher keeps unique: a did is not, one knowledge base running in two places being two entries with one did. */
 private fun addressOf(kb: DiscoveredKB) = "${kb.host}:${kb.port}"
 
 /** The knowledge bases a state lists: none when it is absent, or when there is no state. */
-private fun kbsOf(state: DiscoveryState?): List<DiscoveredKB> = (state as? Managed)?.kbs.orEmpty()
+private fun kbsOf(state: DiscoveryState?): List<DiscoveredKB> = (state as? DiscoveryManaged)?.kbs.orEmpty()
 
 /** What changed between `last`, the state last told of (null when none was), and `now`; null when nothing did. */
 private fun diffOf(last: DiscoveryState?, now: DiscoveryState): DiscoveryDiff? {
@@ -156,8 +143,8 @@ private fun diffOf(last: DiscoveryState?, now: DiscoveryState): DiscoveryDiff? {
     }
     val removed = kbsOf(last).filter { addressOf(it) !in after }
     val stateChanged = when {
-        last is Managed && now is Managed -> false
-        last is Absent && now is Absent -> last.reason != now.reason
+        last is DiscoveryManaged && now is DiscoveryManaged -> false
+        last is DiscoveryAbsent && now is DiscoveryAbsent -> last.reason != now.reason
         else -> true
     }
     if (!stateChanged && added.isEmpty() && updated.isEmpty() && removed.isEmpty()) return null
@@ -171,13 +158,13 @@ private fun diffOf(last: DiscoveryState?, now: DiscoveryState): DiscoveryDiff? {
  * state, which carries every entry it brought or took away. It reads only
  * while it is collected, by one collector, once; closing it reads no more.
  */
-public fun subscribeDiscovery(transport: DiscoveryTransport, intervalMs: Long): Events<DiscoveryDiff> {
+@JvmOverloads
+public fun subscribeDiscovery(transport: DiscoveryTransport, intervalMs: Long = Timings.DISCOVERY_INTERVAL_MS): Events<DiscoveryDiff> {
     val closed = AtomicBoolean(false)
     val reading = flow {
         var last: DiscoveryState? = null
         while (!closed.get()) {
-            val read = transport.read()
-            if (read is DiscoveryState) {
+            stateOf(transport.read())?.let { read ->
                 diffOf(last, read)?.let { change ->
                     last = change.state
                     emit(change)

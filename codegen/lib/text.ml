@@ -180,9 +180,10 @@ let upper_snake name =
     name;
   Buffer.contents out
 
-(* [text] as a Python docstring behind [indent]: one line when it fits in 96
-   columns, its words wrapped at 96 otherwise, with the closing quotes on a
-   line of their own. A backslash and a [""""] in it are escaped, and a
+(* [text] as a Python docstring behind [indent]: its words wrapped at 96
+   columns, and one line when they wrap to one that its quotes keep within the
+   140 the Python SDK's formatter allows, with the closing quotes on a line of
+   their own otherwise. A backslash and a [""""] in it are escaped, and a
    closing quote of its own is kept off the docstring's. *)
 let python_docstring ~indent text =
   let safe =
@@ -191,7 +192,7 @@ let python_docstring ~indent text =
   in
   let quotes = {|"""|} in
   match wrapped ~lead:indent ~width:96 safe with
-  | [ line ] when length (indent ^ quotes ^ line ^ quotes) <= 96 ->
+  | [ line ] when length (indent ^ quotes ^ line ^ quotes) <= 140 ->
       let line =
         if String.ends_with ~suffix:"\"" line then line ^ " " else line
       in

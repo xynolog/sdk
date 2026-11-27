@@ -10,10 +10,12 @@ let schema : Yojson.Safe.t =
       ( "description",
         `String
           "What a delegation reports as its job goes, told apart by `kind`: \
-           the queue's naming of the job first, its progress, and last, its \
-           failure, a frame refused, or its completion. Each operation that \
-           delegates completes with its own verb's completion, a branch of \
-           JobCompleteCommand." );
+           the queue's naming of the job first, then its progress, each \
+           failure the queue will try again, and each frame of the job's that \
+           was refused, and last its completion. A failure the queue will not \
+           try again is no event: the delegation ends with it, as an error \
+           (contract/JOBS.md). Each operation that delegates completes with \
+           its own verb's completion, a branch of JobCompleteCommand." );
       ( "oneOf",
         `List
           [
@@ -70,7 +72,11 @@ let schema : Yojson.Safe.t =
             `Assoc
               [
                 ("type", `String "object");
-                ("description", `String "The job failed.");
+                ( "description",
+                  `String
+                    "The job failed, and the queue will try it again: its \
+                     job:fail says `willRetry`. Any other failure ends the \
+                     delegation instead, as job.failed (contract/JOBS.md)." );
                 ( "properties",
                   `Assoc
                     [
@@ -118,7 +124,10 @@ let schema : Yojson.Safe.t =
                                   ( "channel",
                                     `Assoc
                                       [
-                                        ("type", `String "string");
+                                        ( "$ref",
+                                          `String
+                                            "https://xynolog.org/protocol/FrameRefusal.json#/properties/channel"
+                                        );
                                         ( "description",
                                           `String
                                             "The channel the frame came on." );
@@ -126,7 +135,10 @@ let schema : Yojson.Safe.t =
                                   ( "member",
                                     `Assoc
                                       [
-                                        ("type", `String "string");
+                                        ( "$ref",
+                                          `String
+                                            "https://xynolog.org/protocol/FrameRefusal.json#/properties/member"
+                                        );
                                         ( "description",
                                           `String
                                             "The member at fault, named by its \
@@ -137,7 +149,7 @@ let schema : Yojson.Safe.t =
                                       [
                                         ( "$ref",
                                           `String
-                                            "https://xynolog.org/protocol/FrameRefusalReason.json"
+                                            "https://xynolog.org/protocol/FrameRefusal.json#/properties/reason"
                                         );
                                       ] );
                                 ] );

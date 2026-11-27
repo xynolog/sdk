@@ -348,6 +348,8 @@ and type_of st what (ty_ : T.ty) =
   | T.Inline i -> in_place st what i
   | T.Scalar (T.Text { binary = true; _ }) -> R.named "bytes::Bytes"
   | T.Scalar (T.Text _) -> string_ty
+  | T.Scalar (T.Code vocabulary) ->
+      R.named ("crate::errors::" ^ snd (Code_names.named vocabulary))
   | T.Scalar T.Boolean -> ty "bool"
   | T.Scalar T.Number -> ty "f64"
   | T.Scalar (T.Integer { minimum; maximum }) -> integer_ty ~minimum ~maximum
@@ -1034,6 +1036,8 @@ let hashable st names =
     | R.Named ([ "f64" ], []) -> false
     | R.Named ([ name ], args) when Hashtbl.mem st.written name ->
         (not (Hashtbl.mem excluded name)) && List.for_all admits args
+    (* An error code, which [Error_codes.Rust] derives Eq and Hash of. *)
+    | R.Named ([ "crate"; "errors"; _ ], []) -> true
     | R.Named
         ( ( [
               ( "String" | "bool" | "u16" | "u64" | "i64" | "Vec" | "Option"

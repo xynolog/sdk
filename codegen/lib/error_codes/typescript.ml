@@ -65,6 +65,28 @@ let text (t : Table.t) =
                      (Option.to_list t.from)
                 @ [ Return (code t.unclassified) ];
             };
+          T.const "limitRefusalTransportCodes" ~as_const:true
+            ~about:
+              [
+                Doc
+                  "Each gateway refusal of a limit that is a transport code \
+                   too: its status, its `LimitRefusal` code, and the transport \
+                   code it is.";
+              ]
+            (T.array
+               (List.map
+                  (fun (status, limit, (c : Table.code)) ->
+                    T.Object
+                      {
+                        layout = Inline;
+                        entries =
+                          [
+                            T.entry (Ident "status") (T.Int status);
+                            T.entry (Ident "code") (T.Str limit);
+                            T.entry (Ident "transport") (code c);
+                          ];
+                      })
+                  t.limit_refusals));
         ]
         @ List.map union t.others
         @ [ union t.control ];

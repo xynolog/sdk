@@ -1,23 +1,31 @@
 // Generated from protocol/specs/src/errors/codes.json; do not edit.
 // Regenerate: make generate (codegen/lib/error_codes/rust.ml)
 /// Why a bus request did not resolve. Some members restate a failure the answering peer declared on the wire (`wire` names its `CommandError.code`); the rest are facts only the requesting side knows, which is why this vocabulary and the wire's stay separate.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum BusRequestErrorCode {
     /// No reply arrived within the time the request allowed.
+    #[serde(rename = "bus.timeout")]
     Timeout,
     /// The peer answered with a failure that states no code, or one CommandError does not list, which is read as none.
+    #[serde(rename = "bus.rejected")]
     Rejected,
     /// The bus stopped before a reply came: its client was disposed, or its transport closed.
+    #[serde(rename = "bus.closed")]
     Closed,
     /// The peer says this resource does not exist in its knowledge base.
+    #[serde(rename = "bus.not-found")]
     NotFound,
     /// THIS transport is not subscribed to the reply channel: a local misconfiguration, caught before emitting. Not to be confused with `bus.peer-unavailable`, which is the opposite end.
+    #[serde(rename = "bus.unsubscribed")]
     Unsubscribed,
     /// The service that answers this channel is not connected. Transient by nature, a peer still starting, and therefore the one failure on this list worth retrying.
+    #[serde(rename = "bus.peer-unavailable")]
     PeerUnavailable,
     /// The peer says this caller may not do what it asked: authenticated, not permitted. Retrying under the same credential cannot succeed, so a consumer surfaces it and never spins on it.
+    #[serde(rename = "bus.unauthorized")]
     Unauthorized,
     /// The peer declined and nothing went wrong: a `job:claim` found no pending job of the requested types. The one member a consumer parks on.
+    #[serde(rename = "bus.none-pending")]
     NonePending,
 }
 
@@ -78,25 +86,34 @@ impl BusRequestErrorCode {
 }
 
 /// Transport-neutral failure vocabulary. Every transport maps its native failures to one of these, so a routing layer matches on the code without knowing the wire kind. Over HTTP the mapping is by status: `status` is an exact status, `statusFrom` every status at or above it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum TransportErrorCode {
-    /// Authentication is required: the token is missing, expired, or refused. A 429 whose `code` is `refusal-rate` refuses the token too, and is reported as this code with its own status.
+    /// Authentication is required: the token is missing, expired, or refused. A refusal of `limitRefusals` refuses the token too (contract/TRANSPORT-CONTRACT.md § A refused credential), and is reported as this code with its own status.
+    #[serde(rename = "unauthorized")]
     Unauthorized,
     /// Authenticated, and lacking permission.
+    #[serde(rename = "forbidden")]
     Forbidden,
     /// The resource is missing.
+    #[serde(rename = "not-found")]
     NotFound,
     /// A concurrent modification, a duplicate, or another conflict with current state.
+    #[serde(rename = "conflict")]
     Conflict,
     /// The request is malformed.
+    #[serde(rename = "bad-request")]
     BadRequest,
     /// The request is well formed and cannot be carried out as it stands: an `Idempotency-Key` used for two different requests. Sent again, it is refused again.
+    #[serde(rename = "unprocessable")]
     Unprocessable,
     /// A limit refused it; the refusal's `Retry-After` says when to return.
+    #[serde(rename = "rate-limited")]
     RateLimited,
     /// The gateway is unreachable, the network failed, or the server answered 5xx.
+    #[serde(rename = "unavailable")]
     Unavailable,
     /// A failure no other member names.
+    #[serde(rename = "error")]
     Error,
 }
 
@@ -148,13 +165,16 @@ impl TransportErrorCode {
 }
 
 /// Why a job its client follows ended without a result. A failure the queue will retry is not one of these: the job goes on, and its follower is told of the setback and keeps following.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum JobErrorCode {
     /// The job failed and will not be tried again: the failure its worker reported, or the one its status states.
+    #[serde(rename = "job.failed")]
     Failed,
     /// The job was cancelled before it ended, as its status states. Nothing announces a cancellation: its follower learns of it when it asks for the job's status.
+    #[serde(rename = "job.cancelled")]
     Cancelled,
     /// The job said nothing for longer than its follower allows. The follower has asked for that job to be cancelled.
+    #[serde(rename = "job.stalled")]
     Stalled,
 }
 
@@ -177,19 +197,25 @@ impl JobErrorCode {
 }
 
 /// Why a session itself is unusable, or what its client keeps could not be kept or written. Per-request failures stay with their caller.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum SessionErrorCode {
     /// A session for the knowledge base could not be built or made ready.
+    #[serde(rename = "session.construct-failed")]
     ConstructFailed,
     /// The stored credential could not be validated at startup, for a reason other than the gateway refusing it.
+    #[serde(rename = "session.auth-failed")]
     AuthFailed,
     /// The session could not be renewed: the issuer refused, or stayed unreachable until the retry budget was spent. Not a prompt to retry: retrying already happened.
+    #[serde(rename = "session.refresh-exhausted")]
     RefreshExhausted,
     /// The gateway refused a token the issuer had just issued. The two disagree about who may sign in, and renewing again cannot change the answer: the session is over, and signing in again is what is left.
+    #[serde(rename = "session.credential-refused")]
     CredentialRefused,
     /// The sign-in the session holds could not be read before its client saved what it keeps, or could not record the person the gateway named, so it is not known to name the person that is kept for: the client keeps nothing more for the rest of its life. The session itself goes on, and says so once on its errors stream.
+    #[serde(rename = "session.keep-failed")]
     KeepFailed,
     /// The storage refused a write of what the session's client keeps. The save stays owed: the client's next change, or its closing, writes it again, and what its closing cannot write is lost. The session says so on its errors stream once for each write the storage refuses, with what the storage said, a refusal of its closing among them, before the stream ends. The session itself goes on.
+    #[serde(rename = "session.save-refused")]
     SaveRefused,
 }
 
@@ -218,23 +244,31 @@ impl SessionErrorCode {
 }
 
 /// Why a person could not be signed in at the issuer a knowledge base trusts, or a session could not be renewed there. Over the authorization-code grant, the device grant, the refresh grant and revocation alike.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum SignInErrorCode {
     /// The knowledge base trusts no external issuer: there is nowhere to sign in.
+    #[serde(rename = "no-issuer")]
     NoIssuer,
     /// The knowledge base did not say which issuer it trusts, or the issuer did not describe itself, or described another issuer, or offers no endpoint the grant needs.
+    #[serde(rename = "discovery")]
     Discovery,
     /// A sign-in response arrived and no sign-in is pending here: it was completed already, or begun somewhere else.
+    #[serde(rename = "no-pending")]
     NoPending,
     /// The sign-in response does not belong to the pending sign-in.
+    #[serde(rename = "state")]
     State,
     /// The person, or the issuer, refused the sign-in.
+    #[serde(rename = "denied")]
     Denied,
     /// The device code ran out before it was approved.
+    #[serde(rename = "expired")]
     Expired,
     /// The sign-in was abandoned by whoever began it.
+    #[serde(rename = "aborted")]
     Aborted,
     /// The issuer refused a token request, a device authorization or a revocation, or answered without what was asked for.
+    #[serde(rename = "exchange")]
     Exchange,
 }
 
@@ -267,11 +301,13 @@ impl SignInErrorCode {
 }
 
 /// Why a knowledge base that was reached with a fresh sign-in could not be registered: it has to say who it is, and nothing stands in for its answer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum IdentityUnverifiableReason {
     /// The knowledge base was not reached, so it said nothing.
+    #[serde(rename = "unreachable")]
     Unreachable,
     /// The knowledge base answered that it cannot say what it is.
+    #[serde(rename = "not-reported")]
     NotReported,
 }
 
@@ -292,21 +328,28 @@ impl IdentityUnverifiableReason {
 }
 
 /// Why no annotation was built of a span: the span is not the text's, or, for a PDF, is nowhere on its pages, or the PDF's anchored text does not hold together. specs/src/annotations/builder-cases.json holds when each is given.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum SpanRefusal {
     /// The span's offsets are not two whole numbers from 0, the second no less than the first, within the text.
+    #[serde(rename = "span-out-of-range")]
     SpanOutOfRange,
     /// The words the span states are not the text between its offsets.
+    #[serde(rename = "exact-mismatch")]
     ExactMismatch,
     /// The prefix the span states is not the text just before it.
+    #[serde(rename = "prefix-mismatch")]
     PrefixMismatch,
     /// The suffix the span states is not the text just after it.
+    #[serde(rename = "suffix-mismatch")]
     SuffixMismatch,
     /// No item of the PDF's anchored text holds any of the span, so it is nowhere on a page.
+    #[serde(rename = "nothing-located")]
     NothingLocated,
     /// The items of the PDF's anchored text that hold the span do not have its words.
+    #[serde(rename = "exact-not-covered")]
     ExactNotCovered,
     /// An item of the PDF's anchored text is no stretch of that text: its offsets are not two whole numbers from 0, the second no less than the first, within the text. This one is said of the anchored text and not of the span: the items are what say where the text is on a page, and no span is built on an anchored text one of whose items cannot be.
+    #[serde(rename = "item-out-of-range")]
     ItemOutOfRange,
 }
 
@@ -337,55 +380,79 @@ impl SpanRefusal {
 }
 
 /// Why a request of the launcher's control API (`xynolog control`, contract/LAUNCHER-CONTROL.md) failed. The launcher sends one in each error's data, and Desktop reads it. A knowledge base never sends one.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum ControlErrorCode {
-    /// The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it.
+    /// The request's params are not what its method's schema admits. The error's fields name each fault.
+    #[serde(rename = "control.invalid-params")]
     InvalidParams,
     /// The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does.
+    #[serde(rename = "control.unsupported-api-version")]
     UnsupportedApiVersion,
     /// The launcher refuses the request as the command line refuses the same options: they contradict each other, or do not apply to what they name.
+    #[serde(rename = "control.invalid-request")]
     InvalidRequest,
     /// The request names a service or a group the launcher has none of.
+    #[serde(rename = "control.invalid-service")]
     InvalidService,
     /// The launcher refuses a setting's value, as a start would refuse it. The previous value is kept.
+    #[serde(rename = "control.invalid-value")]
     InvalidValue,
     /// The request names a setting the launcher does not keep.
+    #[serde(rename = "control.unknown-setting")]
     UnknownSetting,
     /// Several stacks could be meant and the request names none of them. The error's choices name each; nothing was done.
+    #[serde(rename = "control.target-required")]
     TargetRequired,
     /// The root the request names is the basename of several registered roots. The error's choices name each by its path; nothing was done.
+    #[serde(rename = "control.target-ambiguous")]
     TargetAmbiguous,
     /// The root the request names is not a knowledge base's clone: no such directory, no .xynolog/ in it, or a project file the launcher refuses.
+    #[serde(rename = "control.root-not-found")]
     RootNotFound,
     /// The root the request names is not in the registry.
+    #[serde(rename = "control.root-not-registered")]
     RootNotRegistered,
     /// The request needs a stack of its target recorded on this machine, and none is.
+    #[serde(rename = "control.stack-not-running")]
     StackNotRunning,
     /// The request would change what a recorded stack depends on: stop the stack first.
+    #[serde(rename = "control.stack-running")]
     StackRunning,
     /// Another xynolog start of the same knowledge base holds its start lock.
+    #[serde(rename = "control.start-in-progress")]
     StartInProgress,
     /// No container runtime the request can use is on the launcher's PATH.
+    #[serde(rename = "control.runtime-unavailable")]
     RuntimeUnavailable,
     /// A program the request needs besides a container runtime (gh, for a codespace) is not on the launcher's PATH.
+    #[serde(rename = "control.dependency-unavailable")]
     DependencyUnavailable,
     /// What the request needs to reach did not answer: the knowledge base, its issuer, or a codespace's forward.
+    #[serde(rename = "control.unreachable")]
     Unreachable,
     /// An instance of the name the run gives already runs on this machine for its target, whichever control server or command started it. Nothing was started.
+    #[serde(rename = "control.instance-in-use")]
     InstanceInUse,
     /// No run of an instance of the name the request gives is in flight on this machine for its target: none was started, or its run has been answered.
+    #[serde(rename = "control.instance-not-found")]
     InstanceNotFound,
     /// The request would destroy something, and does not state that a person confirmed it.
+    #[serde(rename = "control.confirmation-required")]
     ConfirmationRequired,
     /// The launcher's own record of this machine (the stack record, the registry, the sign-in store) cannot be read. Nothing was assumed in its place.
+    #[serde(rename = "control.unreadable-state")]
     UnreadableState,
     /// The launcher's stored session for the target is valid: there is nothing to sign in to.
+    #[serde(rename = "control.already-signed-in")]
     AlreadySignedIn,
     /// The person was not signed in: the issuer refused or the code expired, the gateway refused the token, or the session could not be kept. Nothing was stored.
+    #[serde(rename = "control.sign-in-failed")]
     SignInFailed,
     /// The client cancelled the request before it ended.
+    #[serde(rename = "control.cancelled")]
     Cancelled,
     /// The request failed for a reason no other code names. Its message says why, as the command line would.
+    #[serde(rename = "control.failed")]
     Failed,
 }
 

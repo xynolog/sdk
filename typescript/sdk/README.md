@@ -182,11 +182,11 @@ and forgets the sign-in whatever the issuer answers.
 Every request these make, of the gateway and of the issuer, is sent with the `fetch` they are
 given, or with the runtime's own when they are given none. `signInDevice`, `fromKept`,
 `fromHttp`, `startAgentSession` and `XynologBrowser` take it in their options as `fetch`;
-`signOut`, `createHttpSessionFactory` and `httpDiscovery` take it as their last argument. The certificates a
-request trusts, and the proxy it goes through, are that fetch's: the SDK reads no setting of its
-own for either. In Node, a gateway whose certificate another authority signed is reached with
-undici's `fetch` sent through an `Agent` that trusts that authority; in a browser page, the
-browser decides.
+`signOut` and `httpDiscovery` take it as their last argument, and `createHttpSessionFactory` as
+its first. The certificates a request trusts, and the proxy it goes through, are that fetch's:
+the SDK reads no setting of its own for either. In Node, a gateway whose certificate another
+authority signed is reached with undici's `fetch` sent through an `Agent` that trusts that
+authority; in a browser page, the browser decides.
 [`@xynolog/http-transport`](https://github.com/xynolog/sdk/tree/v0.8.2/typescript/http-transport#the-fetch-it-sends-with)
 says which requests that covers.
 

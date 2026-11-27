@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
 )
 
@@ -54,28 +53,28 @@ func TestAStatusBecomesTheTransportCodeTheTableGivesIt(t *testing.T) {
 	table := readCodes(t)
 	stated := map[int]bool{}
 	for _, entry := range table.Transport.Codes {
-		want := xynolog.TransportErrorCode(entry.Code)
+		want := api.TransportErrorCode(entry.Code)
 		switch {
 		case entry.Status != nil:
 			stated[*entry.Status] = true
-			if got := xynolog.TransportErrorCodeOfStatus(*entry.Status); got != want {
+			if got := api.TransportErrorCodeOfStatus(*entry.Status); got != want {
 				t.Errorf("status %d becomes %q; the table says %q", *entry.Status, got, want)
 			}
 		case entry.StatusFrom != nil:
 			for _, status := range []int{*entry.StatusFrom, *entry.StatusFrom + 3, *entry.StatusFrom + 99} {
 				stated[status] = true
-				if got := xynolog.TransportErrorCodeOfStatus(status); got != want {
+				if got := api.TransportErrorCodeOfStatus(status); got != want {
 					t.Errorf("status %d, at or above %d, becomes %q; the table says %q", status, *entry.StatusFrom, got, want)
 				}
 			}
 		}
 	}
-	unclassified := xynolog.TransportErrorCode(table.Transport.Unclassified)
+	unclassified := api.TransportErrorCode(table.Transport.Unclassified)
 	for _, status := range []int{302, 418, 422} {
 		if stated[status] {
 			continue
 		}
-		if got := xynolog.TransportErrorCodeOfStatus(status); got != unclassified {
+		if got := api.TransportErrorCodeOfStatus(status); got != unclassified {
 			t.Errorf("status %d, which the table maps to nothing, becomes %q; the table says %q", status, got, unclassified)
 		}
 	}
@@ -83,9 +82,9 @@ func TestAStatusBecomesTheTransportCodeTheTableGivesIt(t *testing.T) {
 
 func TestAWireCodeBecomesTheBusCodeThatRestatesIt(t *testing.T) {
 	table := readCodes(t)
-	unrecognized := xynolog.BusRequestErrorCode(table.BusRequest.UnrecognizedFailure)
+	unrecognized := api.BusRequestErrorCode(table.BusRequest.UnrecognizedFailure)
 	for _, entry := range table.BusRequest.Codes {
-		code := xynolog.BusRequestErrorCode(entry.Code)
+		code := api.BusRequestErrorCode(entry.Code)
 		wire, restates := code.Wire()
 		if entry.Wire == "" {
 			if restates {
@@ -97,11 +96,11 @@ func TestAWireCodeBecomesTheBusCodeThatRestatesIt(t *testing.T) {
 			t.Errorf("%q restates %q (%v); the table says %q", code, wire, restates, entry.Wire)
 		}
 		stated := api.CommandErrorCode(entry.Wire)
-		if got := xynolog.BusRequestErrorCodeOfWire(&stated); got != code {
+		if got := api.BusRequestErrorCodeOfWire(&stated); got != code {
 			t.Errorf("the wire code %q becomes %q; the table says %q", entry.Wire, got, code)
 		}
 	}
-	if got := xynolog.BusRequestErrorCodeOfWire(nil); got != unrecognized {
+	if got := api.BusRequestErrorCodeOfWire(nil); got != unrecognized {
 		t.Errorf("a failure that states no code becomes %q; the table says %q", got, unrecognized)
 	}
 }
@@ -119,7 +118,7 @@ func TestACodeCommandErrorCodeDoesNotNameBecomesNoBusCode(t *testing.T) {
 				said = refused
 			}
 		}()
-		return xynolog.BusRequestErrorCodeOfWire(&unknown)
+		return api.BusRequestErrorCodeOfWire(&unknown)
 	}()
 	if message, ok := said.(string); !ok || !strings.Contains(message, `"a-code-no-table-names" is none of CommandErrorCode's`) {
 		t.Errorf("a code CommandErrorCode does not name is mapped to %v", said)

@@ -100,7 +100,7 @@ func (c *InMemoryContent) record(call ContentCall) {
 
 // notFound is the refusal of a read of what nobody stored.
 func notFound(what string, resource api.ResourceId) error {
-	return &xynolog.TransportError{Code: xynolog.TransportErrorCodeNotFound, Message: fmt.Sprintf("InMemoryContent: no %s stored for %s", what, resource)}
+	return &xynolog.TransportError{Code: api.TransportErrorCodeNotFound, Message: fmt.Sprintf("InMemoryContent: no %s stored for %s", what, resource)}
 }
 
 // read is what is stored in held for resource, or not found as what.
@@ -122,10 +122,10 @@ func (c *InMemoryContent) PutBinary(_ context.Context, request api.PutBinaryRequ
 	return xynolog.NewUpload(func(report func(api.UploadProgress)) (api.CreateResourceResponse, error) {
 		size := len(request.File)
 		var started, sent api.UploadProgress
-		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: size}); err != nil {
+		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: new(size)}); err != nil {
 			return api.CreateResourceResponse{}, err
 		}
-		if err := sent.From(api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: size, TotalBytes: size}); err != nil {
+		if err := sent.From(api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: size, TotalBytes: new(size)}); err != nil {
 			return api.CreateResourceResponse{}, err
 		}
 		report(started)

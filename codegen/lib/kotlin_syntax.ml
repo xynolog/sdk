@@ -93,11 +93,16 @@ type param = {
   default : expr option;
 }
 
-type body = Same_line of expr | Below of expr | Block of stmt list
+type body =
+  | Same_line of expr
+  | Below of expr
+  | Block of stmt list
+  | Getter of expr  (** A property's: [get() = e], on its line. *)
 
 type kind =
   | Class
   | Data_class
+  | Abstract_class
   | Enum_class
   | Value_class
   | Interface
@@ -574,6 +579,7 @@ let lines_text lines = String.concat "" (List.map (fun l -> l ^ "\n") lines)
 let body_text ~depth = function
   | Same_line e -> " = " ^ expr ~depth e
   | Below e -> " =\n" ^ indentation (depth + 1) ^ expr ~depth:(depth + 1) e
+  | Getter e -> " get() = " ^ expr ~depth e
   | Block stmts ->
       " {\n"
       ^ String.concat ""
@@ -598,6 +604,7 @@ let param_text ~depth { about; annotations; binding; name; type_ = t; default }
 let kind_text = function
   | Class -> "class"
   | Data_class -> "data class"
+  | Abstract_class -> "abstract class"
   | Enum_class -> "enum class"
   | Value_class -> "value class"
   | Interface -> "interface"
@@ -861,7 +868,7 @@ let referenced decls =
         first name :: Option.fold ~none:[] ~some:of_args args)
   in
   let of_body = function
-    | Same_line e | Below e -> of_expr e
+    | Same_line e | Below e | Getter e -> of_expr e
     | Block stmts -> List.concat_map of_stmt stmts
   in
   let of_param { annotations; type_ = t; default; _ } =

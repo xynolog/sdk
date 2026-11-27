@@ -88,8 +88,8 @@ let persistence () =
   let shared = Testing.shared_storage () in
   let first = Testing.storage_context shared
   and second = Testing.storage_context shared in
-  let make ?(version = 1) ?(max_bytes = 4096) storage =
-    Storage_persister.make ~storage ~key:"cache" ~version ~max_bytes ~clock
+  let make ?(version = 1) storage =
+    Storage_persister.make ~storage ~key:"cache" ~version ~clock
   in
   let writer = make first and reader = make second in
   let one = ("resource", Some "res-1", None)
@@ -125,10 +125,13 @@ let persistence () =
   check
     (Storage_persister.positions reader = [])
     "malformed document is ignored as a whole";
-  Storage_persister.save (make ~max_bytes:1 first) one (Some (`String "large"));
+  Storage_persister.save writer one
+    (Some (`String (String.make Client_timing.max_stored_bytes_count 'x')));
   check
-    (Storage.get second "cache" = None)
-    "document respects byte cap even when empty"
+    (Storage_persister.restore reader one = None
+    && String.length (Option.get (Storage.get second "cache"))
+       <= Client_timing.max_stored_bytes_count)
+    "a value no document can hold is left out of it"
 
 let issuer_response =
   {|{"issuer":"https://issuer.example","authorization_endpoint":"https://issuer.example/auth","token_endpoint":"https://issuer.example/token"}|}
@@ -424,8 +427,7 @@ let real_delivery () =
   let shared = Testing.shared_storage () in
   let storage = Testing.storage_context shared in
   let persister =
-    Storage_persister.make ~storage ~key:"client" ~version:1 ~max_bytes:4096
-      ~clock
+    Storage_persister.make ~storage ~key:"client" ~version:1 ~clock
   in
   let query_key = ("entityTypes", None, None) in
   Storage_persister.save persister query_key
@@ -457,12 +459,8 @@ let real_delivery () =
   in
   let client =
     Client.connect ~sw ~clock ~session ~client_id:"test" ~persister
-      ~timing:
-        {
-          Subscription.default_timing with
-          reconnect_ms = 1;
-          max_reconnect_ms = 1;
-        }
+      ~transport_timing:
+        { Client_timing.transport_defaults with reconnect_ms = 1 }
       ~key:(fun () ->
         incr serial;
         string_of_int !serial)
@@ -484,7 +482,8 @@ let real_delivery () =
       Ok
         ( test.session,
           {
-            Records.Connection_identity.did = "did:web:kb.example";
+            Records.Connection_identity.did =
+              Result.get_ok (Identifiers.User_id.of_string "did:web:kb.example");
             description;
           } ));
   let factory = Testing.factory scripted in
@@ -505,8 +504,8 @@ let real_delivery () =
   let bus = Client.subscription client in
   let rec await_open () =
     match Subscription.state bus with
-    | Open -> ()
-    | Closed -> failwith "test bus closed"
+    | Xynolog.Enums.Connection_state.Open -> ()
+    | Xynolog.Enums.Connection_state.Closed -> failwith "test bus closed"
     | from ->
         ignore (Subscription.await_state_change bus ~from);
         await_open ()
@@ -629,10 +628,7 @@ let replay_persistence () =
   Switch.run @@ fun sw ->
   let clock, mono, _ = mock_clock () in
   let storage = Testing.shared_storage () |> Testing.storage_context in
-  let store =
-    Storage_persister.make ~storage ~key:"cache" ~version:1 ~max_bytes:8192
-      ~clock
-  in
+  let store = Storage_persister.make ~storage ~key:"cache" ~version:1 ~clock in
   let annotations = ref [] in
   let asks = ref 0 in
   let answered, answer = Promise.create () in
@@ -712,10 +708,7 @@ let place_after_handlers () =
   Switch.run @@ fun sw ->
   let clock, mono, _ = mock_clock () in
   let storage = Testing.shared_storage () |> Testing.storage_context in
-  let store =
-    Storage_persister.make ~storage ~key:"cache" ~version:1 ~max_bytes:8192
-      ~clock
-  in
+  let store = Storage_persister.make ~storage ~key:"cache" ~version:1 ~clock in
   let annotation = test_annotation in
   let updated =
     `Assoc

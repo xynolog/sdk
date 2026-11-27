@@ -30,7 +30,7 @@ func TestARefusalWhoseBodyNeverEndsIsReportedAtTheRequestDeadline(t *testing.T) 
 	defer gateway.Close()
 	ctx, abandon := context.WithCancel(context.Background())
 	defer abandon()
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	timing.HttpRequestTimeout = 200 * time.Millisecond
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{BaseURL: gateway.URL, Token: xynolog.NewVariable(""), HTTP: &http.Client{}, Timing: timing})
 	defer transport.Close()
@@ -142,12 +142,9 @@ func hold(arrived chan<- struct{}) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-// uploader is content over a transport to gateway, with a short wait before
-// a resend.
+// uploader is content over a transport to gateway.
 func uploader(t *testing.T, gateway *uploadGateway) *xynolog.HTTPContentTransport {
-	timing := xynolog.DefaultTiming()
-	timing.RequestRetryPause = 10 * time.Millisecond
-	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{BaseURL: gateway.URL, Token: xynolog.NewVariable("a-token"), HTTP: &http.Client{Transport: &http.Transport{}}, Timing: timing})
+	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{BaseURL: gateway.URL, Token: xynolog.NewVariable("a-token"), HTTP: &http.Client{Transport: &http.Transport{}}, Timing: xynolog.DefaultTransportTiming()})
 	t.Cleanup(transport.Close)
 	return xynolog.NewHTTPContentTransport(transport)
 }
@@ -196,7 +193,7 @@ func TestAnUploadReportsItsSizeWhatIsSentAndTheResourceMade(t *testing.T) {
 	if len(reports) < 4 {
 		t.Fatalf("the upload reported %+v, want its size, how much is sent as it goes, and the resource made", reports)
 	}
-	if started, ok := reports[0].(api.UploadProgressStarted); !ok || started.TotalBytes != total {
+	if started, ok := reports[0].(api.UploadProgressStarted); !ok || started.TotalBytes == nil || *started.TotalBytes != total {
 		t.Errorf("the upload began by reporting %+v, want its size, %d", reports[0], total)
 	}
 	if finished, ok := reports[len(reports)-1].(api.UploadProgressFinished); !ok || finished.ResourceId != created.ResourceId {
@@ -205,7 +202,7 @@ func TestAnUploadReportsItsSizeWhatIsSentAndTheResourceMade(t *testing.T) {
 	last := 0
 	for _, report := range reports[1 : len(reports)-1] {
 		sent, ok := report.(api.UploadProgressProgress)
-		if !ok || sent.TotalBytes != total || sent.BytesUploaded < last {
+		if !ok || sent.TotalBytes == nil || *sent.TotalBytes != total || sent.BytesUploaded < last {
 			t.Fatalf("after %d bytes of %d sent, the upload reported %+v", last, total, report)
 		}
 		last = sent.BytesUploaded
@@ -276,10 +273,10 @@ func TestAnUploadThatGotNoAnswerIsSentOnceMore(t *testing.T) {
 func TestARefusedUploadIsNotSentAgain(t *testing.T) {
 	for _, refusal := range []struct {
 		status int
-		code   xynolog.TransportErrorCode
+		code   api.TransportErrorCode
 	}{
-		{http.StatusBadRequest, xynolog.TransportErrorCodeBadRequest},
-		{http.StatusUnprocessableEntity, xynolog.TransportErrorCodeUnprocessable},
+		{http.StatusBadRequest, api.TransportErrorCodeBadRequest},
+		{http.StatusUnprocessableEntity, api.TransportErrorCodeUnprocessable},
 	} {
 		t.Run(http.StatusText(refusal.status), func(t *testing.T) {
 			gateway := newUploadGateway(t, refuse(refusal.status))
@@ -326,7 +323,7 @@ func TestAnUploadIsSentOnceMoreAtMost(t *testing.T) {
 	gateway := newUploadGateway(t, refuse(http.StatusServiceUnavailable), hangUp(t))
 	_, err := waitFor(t, uploader(t, gateway).PutBinary(context.Background(), anUpload()))
 	var unanswered *xynolog.TransportError
-	if !errors.As(err, &unanswered) || unanswered.Code != xynolog.TransportErrorCodeUnavailable {
+	if !errors.As(err, &unanswered) || unanswered.Code != api.TransportErrorCodeUnavailable {
 		t.Errorf("the upload failed with %v, want it unavailable", err)
 	}
 	sentTwiceWithOneKey(t, gateway)

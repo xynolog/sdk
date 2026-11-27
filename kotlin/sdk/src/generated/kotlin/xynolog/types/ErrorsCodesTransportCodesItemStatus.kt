@@ -13,6 +13,8 @@ public data class ErrorsCodesTransportCodesItemStatus(
     /** Its documentation, in prose: what a generated type or member says of it. */
     public val docs: String,
     public val status: HttpStatus,
+    /** The limit refusals read as this code and not as the code of their status: each a status and the LimitRefusal `code` it carries, as a row of gateway/messages.json states them. */
+    public val limitRefusals: kotlin.collections.List<ErrorsCodesTransportCodesItemStatusLimitRefusalsItem>? = null,
 ) : ErrorsCodesTransportCodesItem {
     /** How Java makes a `ErrorsCodesTransportCodesItemStatus`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
@@ -20,7 +22,11 @@ public data class ErrorsCodesTransportCodesItemStatus(
         private val docs: String,
         private val status: HttpStatus,
     ) {
-        public fun build(): ErrorsCodesTransportCodesItemStatus = ErrorsCodesTransportCodesItemStatus(code = code, docs = docs, status = status)
+        private var limitRefusals: kotlin.collections.List<ErrorsCodesTransportCodesItemStatusLimitRefusalsItem>? = null
+
+        public fun limitRefusals(limitRefusals: kotlin.collections.List<ErrorsCodesTransportCodesItemStatusLimitRefusalsItem>?): Builder = apply { this.limitRefusals = limitRefusals }
+
+        public fun build(): ErrorsCodesTransportCodesItemStatus = ErrorsCodesTransportCodesItemStatus(code = code, docs = docs, status = status, limitRefusals = limitRefusals)
     }
 
     public companion object {

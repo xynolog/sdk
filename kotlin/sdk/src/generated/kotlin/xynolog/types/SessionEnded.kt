@@ -5,7 +5,7 @@ package xynolog.types
 
 import kotlinx.serialization.Serializable
 
-/** A session ended, and why. */
+/** A session ended, and why. What the session's signals raise (client/surface.json's `sessionSignals`). */
 @Serializable
 public data class SessionEnded(
     /** Why it ended. */

@@ -310,7 +310,8 @@ let error_codes t (spec : Spec.t) =
     ~item:(fun (_, (c : E.code)) -> c.code)
     ~declared:(fun sdk ((v : E.vocabulary), (c : E.code)) ->
       match sdk with
-      | Go -> declares (t.generated "go/errorcodes_gen.go") ("\n\t", " ") c.go
+      | Go ->
+          declares (t.generated "go/api/errorcodes_gen.go") ("\n\t", " ") c.go
       | Python ->
           declares
             (block
@@ -421,10 +422,10 @@ let timing t (spec : Spec.t) =
     ~declared:(fun sdk (e : Timing.Table.entry) ->
       match sdk with
       | Go ->
-          declares
-            (block ~opening:"type Timing struct {" ~closing:"\n}"
-               (t.generated "go/timing_gen.go"))
-            ("\n\t", " ") (Timing.Go.field e)
+          any
+            (t.generated "go/internal/timing/timing_gen.go")
+            [ ("\nconst ", " ="); ("\nvar ", " =") ]
+            (Timing.Go.field e)
       | Typescript ->
           any
             (t.generated "typescript/core/src/client-timing.ts")
@@ -692,73 +693,6 @@ let refresh t (spec : Spec.t) =
                (t.generated "ocaml/sdk/lib/live_facts.ml"))
             ("\n  let ", " =")
             (Cache_refresh.Ocaml.query_name n))
-
-let discovery_absent t (spec : Spec.t) =
-  kind "discovery-absent reasons"
-    (List.map
-       (fun (r : Tables.Client_discovery_absent.reasons_item) -> r.reason)
-       spec.tables.client_discovery_absent.reasons)
-    ~item:Fun.id
-    ~declared:(fun sdk n ->
-      match sdk with
-      | Go ->
-          declares
-            (t.generated Go_types.path)
-            ("\n\t", " ")
-            (Go_types.discovery_absent_constant n)
-      | Typescript ->
-          declares
-            (block ~opening:"\n  DiscoveryAbsentReason:" ~closing:"';"
-               (t.generated "typescript/core/src/types.ts"))
-            ("| '", "'") n
-      | Python ->
-          declares
-            (block ~opening:"\ntype DiscoveryAbsentReason = Literal["
-               ~closing:"]"
-               (t.generated "python/sdk/src/xynolog/types.py"))
-            ("\"", "\"") n
-      | Rust ->
-          declares
-            (block ~opening:"pub enum DiscoveryAbsentReason {" ~closing:"\n}"
-               (t.generated "rust/sdk/src/generated/discovery_absent.rs"))
-            ("\n    ", ",") (Naming.variant n)
-      | Swift ->
-          declares
-            (block ~opening:"public enum DiscoveryAbsentReason:" ~closing:"\n}"
-               (t.generated swift_models))
-            ("case ", " = ")
-            (Swift_sdk.Models.enum_case n)
-      | Kotlin ->
-          declares
-            (t.generated (kotlin_generated ^ "types/DiscoveryAbsentReason.kt"))
-            ("\n    ", "(")
-            (Kotlin_sdk.Names.variant_of n)
-      | Csharp ->
-          declares
-            (t.generated
-               (csharp_generated ^ "Types/DiscoveryAbsentReason.g.cs"))
-            ("] ", ",")
-            (Csharp_sdk.Models.enum_constant n)
-      | Haskell ->
-          let member = Haskell_sdk.discovery_absent_member in
-          any
-            (block
-               ~opening:("\ndata " ^ Error_codes.Haskell.type_of member ^ " =")
-               ~closing:"deriving"
-               (t.generated "haskell/sdk/src/Xynolog/Discovery/Reasons.hs"))
-            constructors
-            (Error_codes.Haskell.code_constructor member n)
-      | Ocaml ->
-          any
-            (block
-               ~opening:
-                 ("module "
-                 ^ Ocaml_sdk.Enums.module_name "DiscoveryAbsentReason"
-                 ^ " = struct")
-               ~closing:"\n\n"
-               (t.generated "ocaml/sdk/lib/enums.ml"))
-            constructors
-            (Ocaml_sdk.Enums.constructor n))
 
 let testing (spec : Spec.t) =
   derived (Testing.Table.derive spec.tables.client_testing)
@@ -1248,8 +1182,6 @@ let kinds ~written t spec =
     schemas ~written t "schemas" (List.map fst (Roots.all spec));
     schemas ~written t "client registry types"
       (titles spec spec.tables.client_registry.types);
-    schemas ~written t "state-unit notices"
-      (titles spec spec.tables.client_state_units.notices);
     channels t spec;
     control_methods t spec;
     control_notifications t spec;
@@ -1261,7 +1193,6 @@ let kinds ~written t spec =
     spans t spec;
     metrics t spec;
     refresh t spec;
-    discovery_absent t spec;
     fault_actions t spec;
     testing_records t spec;
     gateway_operations t spec;

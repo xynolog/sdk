@@ -1,14 +1,5 @@
 open Eio.Std
 
-type state =
-  | Initial
-  | Connecting
-  | Open
-  | Reconnecting
-  | Degraded
-  | Unauthenticated
-  | Closed
-
 type scope = {
   resource : Identifiers.Resource_id.t;
   channels : Bus_registry.packed_channel list;
@@ -20,29 +11,6 @@ type snapshot = {
   scoped : (scope * string option) list;
   pending_replies : string list;
 }
-
-type timing = {
-  stream_open_timeout_ms : int;
-  reconnect_ms : int;
-  max_reconnect_ms : int;
-  degraded_threshold_ms : int;
-  reconnect_debounce_ms : int;
-  lazy_remove_ms : int;
-  linger_ms : int;
-  bus_request_timeout_ms : int;
-}
-
-let default_timing =
-  {
-    stream_open_timeout_ms = Client_timing.stream_open_timeout_ms;
-    reconnect_ms = Client_timing.reconnect_ms;
-    max_reconnect_ms = Client_timing.max_reconnect_ms;
-    degraded_threshold_ms = Client_timing.degraded_threshold_ms;
-    reconnect_debounce_ms = Client_timing.reconnect_debounce_ms;
-    lazy_remove_ms = Client_timing.lazy_remove_ms;
-    linger_ms = Client_timing.linger_ms;
-    bus_request_timeout_ms = Client_timing.bus_request_timeout_ms;
-  }
 
 type open_error = Retry | Retry_after of int | No_credential
 
@@ -99,7 +67,7 @@ type request_error =
 
 type t = {
   clock : Clock.t;
-  timing : timing;
+  timing : Client_timing.transport;
   telemetry : Telemetry.t option;
   client_id : string;
   global : Bus_registry.packed_channel list;
@@ -116,7 +84,7 @@ type t = {
   closing : unit Promise.t;
   close_now : unit Promise.u;
   closed : unit Promise.t;
-  mutable state : state;
+  mutable state : Enums.Connection_state.t;
   mutable changed : unit Promise.t * unit Promise.u;
 }
 
@@ -191,7 +159,7 @@ let set_state t state =
 let state t = t.state
 
 let rec await_state_change t ~from =
-  if t.state <> from || t.state = Closed then t.state
+  if t.state <> from || t.state = Enums.Connection_state.Closed then t.state
   else (
     Promise.await (fst t.changed);
     await_state_change t ~from)
@@ -214,7 +182,8 @@ let sleep t milliseconds = Clock.sleep_until t.clock (deadline t milliseconds)
 
 let schedule_scope_change t ~addition =
   let delay =
-    if addition then t.timing.reconnect_debounce_ms else t.timing.lazy_remove_ms
+    if addition then Client_timing.reconnect_debounce_ms
+    else t.timing.lazy_remove_ms
   in
   let due = deadline t (float delay) in
   let due =
@@ -236,7 +205,10 @@ let hold_scope t scope =
   let changed left right =
     names (scope_channels left) <> names (scope_channels right)
   in
-  if t.state <> Closed && not (Promise.is_resolved t.closing) then (
+  if
+    t.state <> Enums.Connection_state.Closed
+    && not (Promise.is_resolved t.closing)
+  then (
     Hashtbl.replace t.scopes key held;
     if changed add held then schedule_scope_change t ~addition:true);
   fun () ->
@@ -245,7 +217,7 @@ let hold_scope t scope =
     (match remaining with
     | [] -> Hashtbl.remove t.scopes key
     | _ -> Hashtbl.replace t.scopes key remaining);
-    if t.state <> Closed && changed held remaining then
+    if t.state <> Enums.Connection_state.Closed && changed held remaining then
       schedule_scope_change t ~addition:false
 
 let route = function
@@ -284,7 +256,7 @@ let first_delivery t = function
       else (
         Hashtbl.add t.seen id ();
         Queue.add id t.recent;
-        if Queue.length t.recent > Client_timing.seen_event_ids_count then
+        if Queue.length t.recent > t.timing.seen_event_ids_count then
           Hashtbl.remove t.seen (Queue.take t.recent);
         true)
   | _ -> true
@@ -344,8 +316,8 @@ let read_stream t input =
                 ?scope:
                   (Option.map Identifiers.Resource_id.to_string route.scope)
                 ?trace:
-                  (Option.bind trace (fun (trace : Wire_stream.trace) ->
-                       Bus_log.trace_id trace.parent))
+                  (Option.bind trace (fun (trace : Records.Trace_carrier.t) ->
+                       Bus_log.trace_id trace.traceparent))
                 (Yojson.Safe.from_string (Bus_registry.encode payload))
           | _ -> ());
           dispatch t event;
@@ -435,27 +407,30 @@ let run t =
   in
   let begin_outage () =
     if Option.is_none !recovered then (
-      set_state t Reconnecting;
+      set_state t Enums.Connection_state.Reconnecting;
       let restored, restore = Promise.create () in
       recovered := Some restore;
-      let degraded_at = deadline t (float t.timing.degraded_threshold_ms) in
+      let degraded_at =
+        deadline t (float Client_timing.degraded_threshold_ms)
+      in
       Fiber.fork_daemon ~sw:lifetime (fun () ->
           Fiber.first
             (fun () ->
               Clock.sleep_until t.clock degraded_at;
-              if not (Promise.is_resolved restored) then set_state t Degraded)
+              if not (Promise.is_resolved restored) then
+                set_state t Enums.Connection_state.Degraded)
             (fun () -> Promise.await restored);
           `Stop_daemon))
   in
   let activate stream =
     end_outage ();
-    set_state t Open;
+    set_state t Enums.Connection_state.Open;
     stream.read ()
   in
   let backoff ?(minimum = 0) step =
     let delay = float step *. (0.5 +. (Clock.jitter t.clock *. 0.5)) in
     sleep t (max (float minimum) delay);
-    min (step * 2) t.timing.max_reconnect_ms
+    min (step * 2) Client_timing.max_reconnect_ms
   in
   let rec connect step =
     let stream = spawn_stream t lifetime in
@@ -467,9 +442,9 @@ let run t =
         serve stream
     | Error No_credential ->
         end_outage ();
-        set_state t Unauthenticated;
+        set_state t Enums.Connection_state.Unauthenticated;
         sleep t (float t.timing.reconnect_ms);
-        set_state t Connecting;
+        set_state t Enums.Connection_state.Connecting;
         connect t.timing.reconnect_ms
     | Error (Retry | Retry_after _) as error ->
         begin_outage ();
@@ -523,11 +498,12 @@ let run t =
                 `Stop_daemon);
             serve candidate)
   in
-  set_state t Connecting;
+  set_state t Enums.Connection_state.Connecting;
   connect t.timing.reconnect_ms
 
-let start ?(timing = default_timing) ?telemetry ?(positions = []) ~sw ~clock
-    ~client_id ~global ~scopes ~connect ~on_event () =
+let start ?(timing = Client_timing.transport_defaults) ?telemetry
+    ?(positions = []) ~sw ~clock ~client_id ~global ~scopes ~connect ~on_event
+    () =
   let closing, close_now = Promise.create () in
   let closed, mark_closed = Promise.create () in
   let t =
@@ -543,13 +519,13 @@ let start ?(timing = default_timing) ?telemetry ?(positions = []) ~sw ~clock
       connect;
       on_event;
       positions = Hashtbl.of_seq (List.to_seq positions);
-      seen = Hashtbl.create Client_timing.seen_event_ids_count;
+      seen = Hashtbl.create timing.seen_event_ids_count;
       recent = Queue.create ();
       pending = Hashtbl.create 8;
       closing;
       close_now;
       closed;
-      state = Initial;
+      state = Enums.Connection_state.Initial;
       changed = Promise.create ();
     }
   in
@@ -562,7 +538,7 @@ let start ?(timing = default_timing) ?telemetry ?(positions = []) ~sw ~clock
   Fiber.fork_daemon ~sw (fun () ->
       Fun.protect
         ~finally:(fun () ->
-          set_state t Closed;
+          set_state t Enums.Connection_state.Closed;
           Promise.resolve mark_closed ())
         (fun () ->
           Fiber.first (fun () -> run t) (fun () -> Promise.await closing));
@@ -573,14 +549,14 @@ let rec await_open t =
   if Promise.is_resolved t.closing then Error Transport_closed
   else
     match t.state with
-    | Open -> Ok ()
-    | Closed -> Error Transport_closed
+    | Enums.Connection_state.Open -> Ok ()
+    | Enums.Connection_state.Closed -> Error Transport_closed
     | _ ->
         Promise.await (fst t.changed);
         await_open t
 
-let request t ?(timeout_ms = t.timing.bus_request_timeout_ms)
-    ?(normalize_refusals = false) ~correlation_id operation ~send =
+let request t ~timeout_ms ?(normalize_refusals = false) ~correlation_id
+    operation ~send =
   let result = Bus_registry.result operation in
   let failure = Bus_registry.failure operation in
   let result_name = Bus_registry.name result in
@@ -660,8 +636,8 @@ let request t ?(timeout_ms = t.timing.bus_request_timeout_ms)
               send ();
               Promise.await reply)
   in
-  if t.state = Closed || Promise.is_resolved t.closing then
-    Error Transport_closed
+  if t.state = Enums.Connection_state.Closed || Promise.is_resolved t.closing
+  then Error Transport_closed
   else if not (List.mem result_name globals && List.mem failure_name globals)
   then Error Unsubscribed
   else

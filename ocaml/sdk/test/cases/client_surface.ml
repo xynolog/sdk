@@ -141,12 +141,31 @@ let item_via_json = function
   | (Gateway v : item_via) -> gateway_json v
   | (Observes v : item_via) -> observes_json v
 
-type reference = { ref : string }
+type value_schema = { type_parameter : string }
+
+let value_schema_json (r : value_schema) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("typeParameter", (fun s -> `String s) r.type_parameter) ])
+
+type reference = {
+  ref : string;
+  type_arguments : (string * value_schema) list option;
+}
 
 let reference_json (r : reference) =
   `Assoc
     (List.filter_map Fun.id
-       [ Option.Some ("$ref", (fun s -> `String s) r.ref) ])
+       [
+         Option.Some ("$ref", (fun s -> `String s) r.ref);
+         Option.map
+           (fun v ->
+             ( "typeArguments",
+               (fun l ->
+                 `Assoc (List.map (fun (k, v) -> (k, value_schema_json v)) l))
+                 v ))
+           r.type_arguments;
+       ])
 
 type type_ = Integer | String | Boolean
 
@@ -157,7 +176,12 @@ let type__value = function
 
 let type__json v = `String (type__value v)
 
-type scalar = { type_ : type_; minimum : int option; description : string }
+type scalar = {
+  type_ : type_;
+  minimum : int option;
+  format : string option;
+  description : string;
+}
 
 let scalar_json (r : scalar) =
   `Assoc
@@ -165,27 +189,69 @@ let scalar_json (r : scalar) =
        [
          Option.Some ("type", type__json r.type_);
          Option.map (fun v -> ("minimum", (fun n -> `Int n) v)) r.minimum;
+         Option.map (fun v -> ("format", (fun s -> `String s) v)) r.format;
          Option.Some ("description", (fun s -> `String s) r.description);
        ])
 
-type schema = Reference of reference | Scalar of scalar
+type by = { member : string }
+
+let by_json (r : by) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("member", (fun s -> `String s) r.member) ])
+
+type decided_decided = { by : by; in_ : string }
+
+let decided_decided_json (r : decided_decided) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("by", by_json r.by);
+         Option.Some ("in", (fun s -> `String s) r.in_);
+       ])
+
+type decided = { decided : decided_decided }
+
+let decided_json (r : decided) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("decided", decided_decided_json r.decided) ])
+
+type schema =
+  | Reference of reference
+  | Scalar of scalar
+  | Type_parameter of value_schema
+  | Decided of decided
 
 let schema_json = function
   | (Reference v : schema) -> reference_json v
   | (Scalar v : schema) -> scalar_json v
+  | (Type_parameter v : schema) -> value_schema_json v
+  | (Decided v : schema) -> decided_json v
 
-type value = { parameter : string; schema : schema; required : bool }
+type value = {
+  parameter : string;
+  schema : schema option;
+  required : bool;
+  absent : bool option;
+}
 
 let value_json (r : value) =
   `Assoc
     (List.filter_map Fun.id
        [
          Option.Some ("parameter", (fun s -> `String s) r.parameter);
-         Option.Some ("schema", schema_json r.schema);
+         Option.map (fun v -> ("schema", schema_json v)) r.schema;
          Option.Some ("required", (fun b -> `Bool b) r.required);
+         Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
        ])
 
-type callback = { parameter : string; calls : schema; required : bool }
+type callback = {
+  parameter : string;
+  calls : schema;
+  required : bool;
+  returns : schema option;
+}
 
 let callback_json (r : callback) =
   `Assoc
@@ -194,6 +260,10 @@ let callback_json (r : callback) =
          Option.Some ("parameter", (fun s -> `String s) r.parameter);
          Option.Some ("calls", schema_json r.calls);
          Option.Some ("required", (fun b -> `Bool b) r.required);
+         Option.Some
+           ( "returns",
+             (function Option.None -> `Null | Option.Some v -> schema_json v)
+               r.returns );
        ])
 
 type parameters_item = Value of value | Callback of callback
@@ -306,10 +376,150 @@ let named_value_json (r : named_value) =
          Option.Some ("why", (fun s -> `String s) r.why);
        ])
 
+type gives_value = {
+  form : string;
+  schema : schema option;
+  absent : bool option;
+}
+
+let gives_value_json (r : gives_value) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("form", (fun s -> `String s) r.form);
+         Option.map (fun v -> ("schema", schema_json v)) r.schema;
+         Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
+       ])
+
+type watched = { form : string; schema : schema option; absent : bool option }
+
+let watched_json (r : watched) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("form", (fun s -> `String s) r.form);
+         Option.map (fun v -> ("schema", schema_json v)) r.schema;
+         Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
+       ])
+
+type stream = { form : string; schema : schema option }
+
+let stream_json (r : stream) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("form", (fun s -> `String s) r.form);
+         Option.map (fun v -> ("schema", schema_json v)) r.schema;
+       ])
+
+type settles = { form : string }
+
+let settles_json (r : settles) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("form", (fun s -> `String s) r.form) ])
+
+type cancels = { form : string }
+
+let cancels_json (r : cancels) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("form", (fun s -> `String s) r.form) ])
+
+type handed = { handed : string }
+
+let handed_json (r : handed) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("handed", (fun s -> `String s) r.handed) ])
+
+type returns_function = { function_ : string }
+
+let returns_function_json (r : returns_function) =
+  `Assoc
+    (List.filter_map Fun.id
+       [ Option.Some ("function", (fun s -> `String s) r.function_) ])
+
+type returns_stream = { stream : schema }
+
+let returns_stream_json (r : returns_stream) =
+  `Assoc
+    (List.filter_map Fun.id [ Option.Some ("stream", schema_json r.stream) ])
+
+type items = { list : schema }
+
+let items_json (r : items) =
+  `Assoc (List.filter_map Fun.id [ Option.Some ("list", schema_json r.list) ])
+
+type returns =
+  | Reference of reference
+  | Scalar of scalar
+  | Type_parameter of value_schema
+  | Handed of handed
+  | Function of returns_function
+  | Stream of returns_stream
+  | Items of items
+
+let returns_json = function
+  | (Reference v : returns) -> reference_json v
+  | (Scalar v : returns) -> scalar_json v
+  | (Type_parameter v : returns) -> value_schema_json v
+  | (Handed v : returns) -> handed_json v
+  | (Function v : returns) -> returns_function_json v
+  | (Stream v : returns) -> returns_stream_json v
+  | (Items v : returns) -> items_json v
+
+type signature = {
+  parameters : parameters_item list;
+  returns : returns option;
+  absent : bool option;
+}
+
+let signature_json (r : signature) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some
+           ( "parameters",
+             (fun l -> `List (List.map parameters_item_json l)) r.parameters );
+         Option.Some
+           ( "returns",
+             (function Option.None -> `Null | Option.Some v -> returns_json v)
+               r.returns );
+         Option.map (fun v -> ("absent", (fun b -> `Bool b) v)) r.absent;
+       ])
+
+type function_ = { form : string; signature : signature option }
+
+let function__json (r : function_) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("form", (fun s -> `String s) r.form);
+         Option.map (fun v -> ("signature", signature_json v)) r.signature;
+       ])
+
+type gives =
+  | Value of gives_value
+  | Watched of watched
+  | Stream of stream
+  | Settles of settles
+  | Cancels of cancels
+  | Function of function_
+
+let gives_json = function
+  | (Value v : gives) -> gives_value_json v
+  | (Watched v : gives) -> watched_json v
+  | (Stream v : gives) -> stream_json v
+  | (Settles v : gives) -> settles_json v
+  | (Cancels v : gives) -> cancels_json v
+  | (Function v : gives) -> function__json v
+
 type members_item = {
   member : string;
   named : (string * named_value) list option;
   takes : (string * string) list option;
+  gives : gives;
 }
 
 let members_item_json (r : members_item) =
@@ -331,11 +541,13 @@ let members_item_json (r : members_item) =
                  `Assoc (List.map (fun (k, v) -> (k, (fun s -> `String s) v)) l))
                  v ))
            r.takes;
+         Option.Some ("gives", gives_json r.gives);
        ])
 
 type worker_item = {
   handed : string;
   docs : string;
+  record : string option;
   members : members_item list;
 }
 
@@ -345,22 +557,37 @@ let worker_item_json (r : worker_item) =
        [
          Option.Some ("handed", (fun s -> `String s) r.handed);
          Option.Some ("docs", (fun s -> `String s) r.docs);
+         Option.map (fun v -> ("record", (fun s -> `String s) v)) r.record;
          Option.Some
            ("members", (fun l -> `List (List.map members_item_json l)) r.members);
        ])
 
-type item_members_item = { member : string }
+type type_parameters_item = { name : string; docs : string }
+
+let type_parameters_item_json (r : type_parameters_item) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some ("name", (fun s -> `String s) r.name);
+         Option.Some ("docs", (fun s -> `String s) r.docs);
+       ])
+
+type item_members_item = { member : string; gives : gives }
 
 let item_members_item_json (r : item_members_item) =
   `Assoc
     (List.filter_map Fun.id
-       [ Option.Some ("member", (fun s -> `String s) r.member) ])
+       [
+         Option.Some ("member", (fun s -> `String s) r.member);
+         Option.Some ("gives", gives_json r.gives);
+       ])
 
 type state_units_item = {
   unit : string;
   docs : string;
   made : (string * string) list;
   made_by : (string * string) list;
+  type_parameters : type_parameters_item list option;
   members : item_members_item list;
 }
 
@@ -380,17 +607,25 @@ let state_units_item_json (r : state_units_item) =
              (fun l ->
                `Assoc (List.map (fun (k, v) -> (k, (fun s -> `String s) v)) l))
                r.made_by );
+         Option.map
+           (fun v ->
+             ( "typeParameters",
+               (fun l -> `List (List.map type_parameters_item_json l)) v ))
+           r.type_parameters;
          Option.Some
            ( "members",
              (fun l -> `List (List.map item_members_item_json l)) r.members );
        ])
 
-type wire_members_item = { member : string }
+type wire_members_item = { member : string; gives : gives }
 
 let wire_members_item_json (r : wire_members_item) =
   `Assoc
     (List.filter_map Fun.id
-       [ Option.Some ("member", (fun s -> `String s) r.member) ])
+       [
+         Option.Some ("member", (fun s -> `String s) r.member);
+         Option.Some ("gives", gives_json r.gives);
+       ])
 
 type wire = {
   docs : string;
@@ -452,13 +687,14 @@ let reader_json (r : reader) =
          Option.Some ("kind", (fun s -> `String s) r.kind);
        ])
 
-type function_ = {
+type modules_item_members_item_function = {
   member : string;
   kind : string;
   named : (string * string) list option;
 }
 
-let function__json (r : function_) =
+let modules_item_members_item_function_json
+    (r : modules_item_members_item_function) =
   `Assoc
     (List.filter_map Fun.id
        [
@@ -517,10 +753,26 @@ let modules_item_members_item_type_json (r : modules_item_members_item_type) =
            r.fields;
        ])
 
+type names = { replies_of : string list; channels : string list }
+
+let names_json (r : names) =
+  `Assoc
+    (List.filter_map Fun.id
+       [
+         Option.Some
+           ( "repliesOf",
+             (fun l -> `List (List.map (fun s -> `String s) l)) r.replies_of );
+         Option.Some
+           ( "channels",
+             (fun l -> `List (List.map (fun s -> `String s) l)) r.channels );
+       ])
+
 type constant = {
   member : string;
   kind : string;
   named : (string * string) list option;
+  names : names option;
+  value : Yojson.Safe.t option;
 }
 
 let constant_json (r : constant) =
@@ -536,17 +788,20 @@ let constant_json (r : constant) =
                  `Assoc (List.map (fun (k, v) -> (k, (fun s -> `String s) v)) l))
                  v ))
            r.named;
+         Option.map (fun v -> ("names", names_json v)) r.names;
+         Option.map (fun v -> ("value", Fun.id v)) r.value;
        ])
 
 type modules_item_members_item =
   | Reader of reader
-  | Function of function_
+  | Function of modules_item_members_item_function
   | Type of modules_item_members_item_type
   | Constant of constant
 
 let modules_item_members_item_json = function
   | (Reader v : modules_item_members_item) -> reader_json v
-  | (Function v : modules_item_members_item) -> function__json v
+  | (Function v : modules_item_members_item) ->
+      modules_item_members_item_function_json v
   | (Type v : modules_item_members_item) ->
       modules_item_members_item_type_json v
   | (Constant v : modules_item_members_item) -> constant_json v
@@ -554,8 +809,6 @@ let modules_item_members_item_json = function
 type modules_item = {
   module_ : string;
   docs : string;
-  where : (string * string list) list;
-  whole : string list option;
   members : modules_item_members_item list;
 }
 
@@ -565,19 +818,6 @@ let modules_item_json (r : modules_item) =
        [
          Option.Some ("module", (fun s -> `String s) r.module_);
          Option.Some ("docs", (fun s -> `String s) r.docs);
-         Option.Some
-           ( "where",
-             (fun l ->
-               `Assoc
-                 (List.map
-                    (fun (k, v) ->
-                      (k, (fun l -> `List (List.map (fun s -> `String s) l)) v))
-                    l))
-               r.where );
-         Option.map
-           (fun v ->
-             ("whole", (fun l -> `List (List.map (fun s -> `String s) l)) v))
-           r.whole;
          Option.Some
            ( "members",
              (fun l -> `List (List.map modules_item_members_item_json l))
@@ -742,53 +982,50 @@ let table : t =
         constructors, so every Go unit names one. No unit is without a public \
         way to make it, and a `madeBy` names a function its SDK has publicly. \
         Public is reachable from outside the SDK, including what Swift \
-        declares `public` or `open`: what TypeScript's entry \
-        (sdk/typescript/sdk/src/index.ts) exports, an item a module Rust's \
-        crate root reaches declares or re-exports, a name in the `__all__` of \
-        a Python module whose path has no private part, what Kotlin declares \
-        `public`, and what Go exports from a package that is not internal. \
-        What a unit does is not held here: each SDK's tests of its units hold \
-        that. Add a unit or a member here before adding it to any SDK. `wire` \
-        is the typed bus over a client's transport, which every client hands \
-        out as `wire`: what each SDK makes it as (`made`), and its members by \
-        name. Every SDK is to match it both ways, as for a state unit, and no \
-        check holds one to it yet: it declares a bus, and its bus has every \
-        member the list has and no public member the list lacks. A member is \
-        matched by its name alone, as for `worker`; how a bus is made is no \
-        member. A Go method takes no type parameters, so a member of Go's bus \
-        that is generic in its channel is a function of its package that takes \
-        the bus (`Emit(ctx, w, bus.MarkSubmit, payload)`). TypeScript's bus is \
-        read where @xynolog/core declares it. A transport is no member: a bus \
-        hands out none. Add a member here before adding it to any SDK. \
-        `storage` is where a client keeps text under a key: the interface an \
-        application implements (a trait in Rust, a protocol in Python), what \
-        each SDK names it (`made`), and its members by name. Every SDK is to \
-        match it both ways, as for `wire`, and no check holds one to it yet: \
-        it declares a storage, and its storage has every member the list has \
-        and no public member the list lacks. A member is matched by its name \
-        alone, as for `worker`. What implements a storage is not read here. \
-        Add a member here before adding it to any SDK. `modules` is what each \
-        SDK has beside its namespaces: the free functions, types and values of \
-        its modules, each module with where each SDK keeps it and its members. \
-        A member is named as the table spells it and matched by its `kind`: a \
-        `function` is spelled by each language's convention, a `reader` as a \
-        function but `get` and its name in TypeScript, a `type` as the table \
-        spells it, and a `constant` in capitals with underscores but in Go, as \
-        a function, and in Swift, as the table spells it. `named` gives an \
-        SDK's own name where the rule does not, and is stale once it is not \
-        so. A module whose `whole` names an SDK is that SDK's files alone, and \
-        every public member of them is listed. `clock` is what a caller \
-        controls of an SDK's time and chance: the clock every wait keeps, and \
-        the random source every jitter draws, one row each. For every SDK a \
-        row says either how a caller controls the source from outside the SDK \
-        (`outside`), or which public makers take it (`takes`): each maker as \
-        its SDK spells it (`Type.member`, or `Type::member` in Rust, for a \
-        type's function), with the types it takes the source as. Every SDK is \
-        to match it both ways, and no check holds one to it yet: every public \
-        way of making a listed maker takes each of its types, or is handed \
-        another maker of the row that takes them already, and keeps that \
-        one's; and no parameter or field of an `outside` SDK has a type the \
-        row's `typeWords` name. When a wait ends under a moved clock is \
+        declares `public` or `open`: what TypeScript's entry exports, an item \
+        a module Rust's crate root reaches declares or re-exports, a name in \
+        the `__all__` of a Python module whose path has no private part, what \
+        Kotlin declares `public`, and what Go exports from a package that is \
+        not internal. What a unit does is not held here: each SDK's tests of \
+        its units hold that. Add a unit or a member here before adding it to \
+        any SDK. `wire` is the typed bus over a client's transport, which \
+        every client hands out as `wire`: what each SDK makes it as (`made`), \
+        and its members by name. Every SDK is to match it both ways, as for a \
+        state unit, and no check holds one to it yet: it declares a bus, and \
+        its bus has every member the list has and no public member the list \
+        lacks. A member is matched by its name alone, as for `worker`; how a \
+        bus is made is no member. A Go method takes no type parameters, so a \
+        member of Go's bus that is generic in its channel is a function of its \
+        package that takes the bus (`Emit(ctx, w, bus.MarkSubmit, payload)`). \
+        TypeScript's bus is read where @xynolog/core declares it. A transport \
+        is no member: a bus hands out none. Add a member here before adding it \
+        to any SDK. `storage` is where a client keeps text under a key: the \
+        interface an application implements (a trait in Rust, a protocol in \
+        Python), what each SDK names it (`made`), and its members by name. \
+        Every SDK is to match it both ways, as for `wire`, and no check holds \
+        one to it yet: it declares a storage, and its storage has every member \
+        the list has and no public member the list lacks. A member is matched \
+        by its name alone, as for `worker`. What implements a storage is not \
+        read here. Add a member here before adding it to any SDK. `modules` is \
+        what each SDK has beside its namespaces: the free functions, types and \
+        values of its modules, each module with its members. A member is named \
+        as the table spells it and matched by its `kind`: a `function` is \
+        spelled by each language's convention, a `reader` as a function but \
+        `get` and its name in TypeScript, a `type` as the table spells it, and \
+        a `constant` in capitals with underscores but in Go, as a function, \
+        and in Swift, as the table spells it. `named` gives an SDK's own name \
+        where the rule does not, and is stale once it is not so. `clock` is \
+        what a caller controls of an SDK's time and chance: the clock every \
+        wait keeps, and the random source every jitter draws, one row each. \
+        For every SDK a row says either how a caller controls the source from \
+        outside the SDK (`outside`), or which public makers take it (`takes`): \
+        each maker as its SDK spells it (`Type.member`, or `Type::member` in \
+        Rust, for a type's function), with the types it takes the source as. \
+        Every SDK is to match it both ways, and no check holds one to it yet: \
+        every public way of making a listed maker takes each of its types, or \
+        is handed another maker of the row that takes them already, and keeps \
+        that one's; and no parameter or field of an `outside` SDK has a type \
+        the row's `typeWords` name. When a wait ends under a moved clock is \
         specs/src/client/clock-cases.json's.";
      shapes =
        ({
@@ -892,14 +1129,17 @@ let table : t =
                           ({
                              parameter = "type";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/FrameAddEntityTypeCommand.json#/properties/tag";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/FrameAddEntityTypeCommand.json#/properties/tag";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -931,14 +1171,17 @@ let table : t =
                           ({
                              parameter = "types";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/GetEntityTypesResponse.json#/properties/entityTypes";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/GetEntityTypesResponse.json#/properties/entityTypes";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -987,14 +1230,17 @@ let table : t =
                           ({
                              parameter = "schema";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/TagSchema.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/TagSchema.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1063,14 +1309,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1081,6 +1330,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ResourceDescriptor.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1111,14 +1361,17 @@ let table : t =
                           ({
                              parameter = "filters";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BrowseResourcesRequest.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BrowseResourcesRequest.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1129,16 +1382,16 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ListResourcesResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
                    cases =
                      [
                        ({
-                          why = Some "no filters: the first hundred";
+                          why = Some "no filters: the page is the Archivist's";
                           args = `Assoc [];
-                          sends =
-                            `Assoc [ ("limit", `Int 100); ("offset", `Int 0) ];
+                          sends = `Assoc [];
                           answers = None;
                           then_ = None;
                           correlation_id = None;
@@ -1163,7 +1416,6 @@ let table : t =
                                 ("archived", `Bool false);
                                 ("entityType", `String "Person");
                                 ("limit", `Int 5);
-                                ("offset", `Int 0);
                               ];
                           answers = None;
                           then_ = None;
@@ -1205,14 +1457,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1223,6 +1478,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetAnnotationsResponse.json#/properties/annotations";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1253,14 +1509,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1268,14 +1527,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1286,6 +1548,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/Annotation.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1328,6 +1591,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetEntityTypesResponse.json#/properties/entityTypes";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1359,6 +1623,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetTagSchemasResponse.json#/properties/tagSchemas";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1390,6 +1655,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/EnginesWithLimits.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1423,14 +1689,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1441,6 +1710,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetEventsResponse.json#/properties/events";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1469,14 +1739,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1487,6 +1760,7 @@ let table : t =
                           ({
                              type_ = (String : type_);
                              minimum = None;
+                             format = None;
                              description =
                                "The resource's text: its bytes decoded as \
                                 contract/W3C-SELECTORS.md states, a byte-order \
@@ -1522,14 +1796,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1540,6 +1817,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetResourceResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1569,14 +1847,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1587,6 +1868,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/AnchoredTextAnswer.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1615,14 +1897,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1633,6 +1918,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ResourceRepresentation.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1662,14 +1948,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1680,6 +1969,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ResourceRepresentationStream.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1710,14 +2000,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1728,6 +2021,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetEventsResponse.json#/properties/events";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1759,14 +2053,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1774,14 +2071,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1792,6 +2092,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetAnnotationHistoryResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1832,14 +2133,17 @@ let table : t =
                           ({
                              parameter = "dirPath";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BrowseDirectoryRequest.json#/properties/path";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BrowseDirectoryRequest.json#/properties/path";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1847,14 +2151,17 @@ let table : t =
                           ({
                              parameter = "sort";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BrowseDirectoryRequest.json#/properties/sort";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BrowseDirectoryRequest.json#/properties/sort";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1865,6 +2172,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/BrowseDirectoryResultResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1918,6 +2226,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/KbDescription.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -1945,14 +2254,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -1960,14 +2272,17 @@ let table : t =
                           ({
                              parameter = "anchorRect";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BrowseClickEvent.json#/properties/anchorRect";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BrowseClickEvent.json#/properties/anchorRect";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2044,14 +2359,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2083,14 +2401,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2132,14 +2453,17 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/CreateAnnotationRequest.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/CreateAnnotationRequest.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2150,6 +2474,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MarkCreateOkResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -2202,14 +2527,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2217,14 +2545,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2266,14 +2597,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2305,14 +2639,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2345,14 +2682,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2360,14 +2700,17 @@ let table : t =
                           ({
                              parameter = "current";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkUpdateEntityTypesCommand.json#/properties/currentEntityTypes";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkUpdateEntityTypesCommand.json#/properties/currentEntityTypes";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2375,14 +2718,17 @@ let table : t =
                           ({
                              parameter = "updated";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkUpdateEntityTypesCommand.json#/properties/updatedEntityTypes";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkUpdateEntityTypesCommand.json#/properties/updatedEntityTypes";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2428,14 +2774,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2443,14 +2792,17 @@ let table : t =
                           ({
                              parameter = "params";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkJobParams.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkJobParams.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2461,6 +2813,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MarkJobCompleteCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -2653,14 +3006,17 @@ let table : t =
                           ({
                              parameter = "source";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/source";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/source";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2668,14 +3024,17 @@ let table : t =
                           ({
                              parameter = "selector";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/selector";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/selector";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2683,14 +3042,17 @@ let table : t =
                           ({
                              parameter = "motivation";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/motivation";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkRequestedEvent.json#/properties/motivation";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2734,14 +3096,17 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MarkSubmitEvent.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MarkSubmitEvent.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2793,14 +3158,17 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceErrorEvent.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceErrorEvent.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2855,14 +3223,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2870,14 +3241,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2885,14 +3259,17 @@ let table : t =
                           ({
                              parameter = "operations";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BindUpdateBodyCommand.json#/properties/operations";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BindUpdateBodyCommand.json#/properties/operations";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2939,14 +3316,17 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BindInitiateCommand.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BindInitiateCommand.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -2995,14 +3375,17 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceErrorEvent.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceErrorEvent.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3058,14 +3441,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3073,14 +3459,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3088,14 +3477,17 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/GatherAnnotationOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/GatherAnnotationOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3106,6 +3498,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GatherAnnotationComplete.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3114,7 +3507,8 @@ let table : t =
                        ({
                           why =
                             Some
-                              "no options: a window of two thousand characters";
+                              "no options: the window and the contexts are the \
+                               Librarian's";
                           args =
                             `Assoc
                               [
@@ -3126,8 +3520,6 @@ let table : t =
                               [
                                 ("annotationId", `String "ann-1");
                                 ("resourceId", `String "res-1");
-                                ( "options",
-                                  `Assoc [ ("contextWindow", `Int 2000) ] );
                               ];
                           answers = None;
                           then_ = None;
@@ -3162,7 +3554,7 @@ let table : t =
                             Some
                               "a context asked for or left out is sent as \
                                stated, false as well as true; the window not \
-                               stated is two thousand";
+                               stated is not sent";
                           args =
                             `Assoc
                               [
@@ -3185,7 +3577,6 @@ let table : t =
                                     [
                                       ("includeSourceContext", `Bool false);
                                       ("includeTargetContext", `Bool true);
-                                      ("contextWindow", `Int 2000);
                                     ] );
                               ];
                           answers = None;
@@ -3209,14 +3600,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3224,14 +3618,17 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/GatherResourceOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/GatherResourceOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3242,6 +3639,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GatheredContext.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3355,14 +3753,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3373,6 +3774,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/GetReferencedByResponse.json#/properties/referencedBy";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3412,14 +3814,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3427,14 +3832,17 @@ let table : t =
                           ({
                              parameter = "referenceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchSearchRequest.json#/properties/referenceId";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchSearchRequest.json#/properties/referenceId";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3442,14 +3850,17 @@ let table : t =
                           ({
                              parameter = "context";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchSearchRequest.json#/properties/context";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchSearchRequest.json#/properties/context";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3457,14 +3868,17 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchSearchOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchSearchOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3475,6 +3889,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MatchSearchResult.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3483,7 +3898,8 @@ let table : t =
                        ({
                           why =
                             Some
-                              "no options: ten candidates, scored semantically";
+                              "no options: ten candidates, scored as the \
+                               Librarian scores unasked";
                           args =
                             `Assoc
                               [
@@ -3500,7 +3916,6 @@ let table : t =
                                 ( "context",
                                   `Assoc [ ("$fixture", `String "context") ] );
                                 ("limit", `Int 10);
-                                ("useSemanticScoring", `Bool true);
                               ];
                           answers = None;
                           then_ = None;
@@ -3553,14 +3968,17 @@ let table : t =
                           ({
                              parameter = "input";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchSearchRequest.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchSearchRequest.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3568,14 +3986,17 @@ let table : t =
                           ({
                              parameter = "correlationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BusFrame.json#/properties/correlationId";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BusFrame.json#/properties/correlationId";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3631,14 +4052,17 @@ let table : t =
                           ({
                              parameter = "search";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/MatchResourcesRequest.json#/properties/search";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/MatchResourcesRequest.json#/properties/search";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3646,14 +4070,17 @@ let table : t =
                           ({
                              parameter = "filters";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceSearchFilters.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceSearchFilters.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3664,21 +4091,16 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MatchResourcesResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
                    cases =
                      [
                        ({
-                          why = Some "no filters: the first hundred";
+                          why = Some "no filters: the page is the Librarian's";
                           args = `Assoc [ ("search", `String "cat") ];
-                          sends =
-                            `Assoc
-                              [
-                                ("search", `String "cat");
-                                ("limit", `Int 100);
-                                ("offset", `Int 0);
-                              ];
+                          sends = `Assoc [ ("search", `String "cat") ];
                           answers = None;
                           then_ = None;
                           correlation_id = None;
@@ -3705,7 +4127,6 @@ let table : t =
                                 ("archived", `Bool false);
                                 ("entityType", `String "Person");
                                 ("limit", `Int 5);
-                                ("offset", `Int 0);
                               ];
                           answers = None;
                           then_ = None;
@@ -3762,14 +4183,17 @@ let table : t =
                           ({
                              parameter = "data";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/PutBinaryRequest.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/PutBinaryRequest.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3780,6 +4204,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/CreateResourceResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3826,14 +4251,17 @@ let table : t =
                           ({
                              parameter = "params";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/GenerationJobParams.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/GenerationJobParams.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3841,22 +4269,25 @@ let table : t =
                           ({
                              parameter = "stallDeadlineMs";
                              schema =
-                               (Scalar
-                                  ({
-                                     type_ = (Integer : type_);
-                                     minimum = Some 0;
-                                     description =
-                                       "How long the followed generation may \
-                                        say nothing, in milliseconds, before \
-                                        it is given up on. The follower's own, \
-                                        never sent: left out, it grows with \
-                                        the generation's `maxTokens` as \
-                                        client/timing.json's generationStall \
-                                        timings say.";
-                                   }
-                                    : scalar)
-                                 : schema);
+                               Some
+                                 (Scalar
+                                    ({
+                                       type_ = (Integer : type_);
+                                       minimum = Some 0;
+                                       format = None;
+                                       description =
+                                         "How long the followed generation may \
+                                          say nothing, in milliseconds, before \
+                                          it is given up on. The follower's \
+                                          own, never sent: left out, it grows \
+                                          with the generation's `maxTokens` as \
+                                          client/timing.json's generationStall \
+                                          timings say.";
+                                     }
+                                      : scalar)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3867,6 +4298,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/YieldJobCompleteCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -3973,14 +4405,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -3991,6 +4426,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/CloneResourceWithTokenResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4022,14 +4458,17 @@ let table : t =
                           ({
                              parameter = "token";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/YieldCloneResourceRequest.json#/properties/token";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/YieldCloneResourceRequest.json#/properties/token";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4040,6 +4479,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ResourceDescriptor.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4071,14 +4511,17 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/CreateFromTokenOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/CreateFromTokenOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4089,6 +4532,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/CreateResourceResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4267,14 +4711,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4282,14 +4729,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BeckonFocusEvent.json#/properties/annotationId";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BeckonFocusEvent.json#/properties/annotationId";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4341,14 +4791,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4380,14 +4833,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4417,14 +4873,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4454,14 +4913,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/BeckonHoverEvent.json#/properties/annotationId";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/BeckonHoverEvent.json#/properties/annotationId";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4501,14 +4963,17 @@ let table : t =
                           ({
                              parameter = "annotationId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/AnnotationId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/AnnotationId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4551,6 +5016,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobQueuedEvent.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4626,6 +5092,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobReportProgressCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4663,6 +5130,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobCompleteCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4699,6 +5167,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobFailCommand.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4735,14 +5204,17 @@ let table : t =
                           ({
                              parameter = "jobId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/JobId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/JobId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4753,6 +5225,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobStatusResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4782,14 +5255,17 @@ let table : t =
                           ({
                              parameter = "jobId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/JobId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/JobId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4797,14 +5273,17 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/JobPollOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/JobPollOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = false;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4816,10 +5295,12 @@ let table : t =
                                   ({
                                      ref =
                                        "https://xynolog.org/protocol/JobStatusResponse.json";
+                                     type_arguments = None;
                                    }
                                     : reference)
                                  : schema);
                              required = false;
+                             returns = None;
                            }
                             : callback)
                          : parameters_item);
@@ -4830,6 +5311,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobStatusResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4859,14 +5341,17 @@ let table : t =
                           ({
                              parameter = "jobId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/JobId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/JobId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4877,6 +5362,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobCancelResult.json#/properties/cancelled";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -4905,14 +5391,17 @@ let table : t =
                           ({
                              parameter = "options";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ClaimOptions.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ClaimOptions.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -4923,6 +5412,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/JobRunning.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5006,6 +5496,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/UserResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5035,14 +5526,17 @@ let table : t =
                           ({
                              parameter = "resourceId";
                              schema =
-                               (Reference
-                                  ({
-                                     ref =
-                                       "https://xynolog.org/protocol/ResourceId.json";
-                                   }
-                                    : reference)
-                                 : schema);
+                               Some
+                                 (Reference
+                                    ({
+                                       ref =
+                                         "https://xynolog.org/protocol/ResourceId.json";
+                                       type_arguments = None;
+                                     }
+                                      : reference)
+                                   : schema);
                              required = true;
+                             absent = None;
                            }
                             : value)
                          : parameters_item);
@@ -5053,6 +5547,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/MediaTokenResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5084,6 +5579,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/ProtectedResourceMetadata.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5124,6 +5620,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/HealthResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5153,6 +5650,7 @@ let table : t =
                           ({
                              ref =
                                "https://xynolog.org/protocol/StatusResponse.json";
+                             type_arguments = None;
                            }
                             : reference)
                          : schema);
@@ -5184,6 +5682,7 @@ let table : t =
                How the jobs are read is the language's: subscribed to in \
                TypeScript, iterated in Python, asked for one at a time in Rust \
                and Kotlin (`next`), ranged over in Go.";
+            record = None;
             members =
               [
                 ({
@@ -5204,13 +5703,95 @@ let table : t =
                              : named_value) );
                        ];
                    takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns =
+                                    Some
+                                      (Handed ({ handed = "heldJob" } : handed)
+                                        : returns);
+                                  absent = Some true;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
                  }
                   : members_item);
-                ({ member = "refused"; named = None; takes = None }
+                ({
+                   member = "refused";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Stream
+                        ({
+                           form = "stream";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/ClaimRefusal.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                         }
+                          : stream)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "stalled"; named = None; takes = None }
+                ({
+                   member = "stalled";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Stream
+                        ({
+                           form = "stream";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobStall.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                         }
+                          : stream)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "vitals"; named = None; takes = None }
+                ({
+                   member = "vitals";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/WorkerVitals.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
                 ({
                    member = "stop";
@@ -5238,6 +5819,21 @@ let table : t =
                              : named_value) );
                        ];
                    takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
                  }
                   : members_item);
               ];
@@ -5252,41 +5848,468 @@ let table : t =
                that verb's entry names; every other member is the same for \
                both verbs, and a job held as either verb's has it without its \
                verb being asked.";
+            record = Some "HeldJobRecord";
             members =
               [
-                ({ member = "jobId"; named = None; takes = None }
+                ({
+                   member = "jobId";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobId";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "jobType"; named = None; takes = None }
+                ({
+                   member = "jobType";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobType";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "resourceId"; named = None; takes = None }
+                ({
+                   member = "resourceId";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/resourceId";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "params"; named = None; takes = None }
+                ({
+                   member = "params";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/params";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "completedUnits"; named = None; takes = None }
+                ({
+                   member = "completedUnits";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/completedUnits";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "unitCursors"; named = None; takes = None }
+                ({
+                   member = "unitCursors";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/unitCursors";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "retryCount"; named = None; takes = None }
+                ({
+                   member = "retryCount";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/retryCount";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "maxRetries"; named = None; takes = None }
+                ({
+                   member = "maxRetries";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/HeldJobRecord.json#/properties/maxRetries";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "attempt"; named = None; takes = None }
+                ({
+                   member = "attempt";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobStartCommand.json#/properties/attempt";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "annotationId"; named = None; takes = None }
+                ({
+                   member = "annotationId";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/AnnotationId.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "trace"; named = None; takes = None }
+                ({
+                   member = "trace";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/TraceCarrier.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "cancelled"; named = None; takes = None }
+                ({
+                   member = "cancelled";
+                   named = None;
+                   takes = None;
+                   gives = (Cancels ({ form = "cancels" } : cancels) : gives);
+                 }
                   : members_item);
-                ({ member = "settled"; named = None; takes = None }
+                ({
+                   member = "settled";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (Boolean : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "Whether the job has settled: \
+                                        completed, failed or cancelled.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "start"; named = None; takes = None }
+                ({
+                   member = "start";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "progress"; named = None; takes = None }
+                ({
+                   member = "progress";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "progress";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobProgress.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "checkpoint"; named = None; takes = None }
+                ({
+                   member = "checkpoint";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "checkpoint";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobCheckpoint.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
-                ({ member = "commit"; named = None; takes = None }
+                ({
+                   member = "commit";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "resourceId";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/resourceId";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "annotations";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/MarkCommitCommand.json#/properties/annotations";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
                 ({
                    member = "complete";
@@ -5296,10 +6319,150 @@ let table : t =
                        [
                          ("mark", "MarkJobResult"); ("yield", "YieldJobResult");
                        ];
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "result";
+                                            schema =
+                                              Some
+                                                (Decided
+                                                   ({
+                                                      decided =
+                                                        ({
+                                                           by =
+                                                             ({
+                                                                member =
+                                                                  "jobType";
+                                                              }
+                                                               : by);
+                                                           in_ = "takes";
+                                                         }
+                                                          : decided_decided);
+                                                    }
+                                                     : decided)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
                  }
                   : members_item);
-                ({ member = "fail"; named = None; takes = None } : members_item);
-                ({ member = "cancel"; named = None; takes = None }
+                ({
+                   member = "fail";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "error";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobFailCommand.json#/properties/error";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "failure";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobFailure.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : members_item);
+                ({
+                   member = "cancel";
+                   named = None;
+                   takes = None;
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "reached";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/JobReached.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : members_item);
               ];
           }
@@ -5337,17 +6500,205 @@ let table : t =
                 ("go", "NewMarkStateUnit");
                 ("haskell", "newMarkStateUnit");
               ];
+            type_parameters = None;
             members =
               [
-                ({ member = "pendingAnnotation" } : item_members_item);
-                ({ member = "delegatingMotivation" } : item_members_item);
-                ({ member = "progress" } : item_members_item);
-                ({ member = "progressMotivation" } : item_members_item);
-                ({ member = "failure" } : item_members_item);
-                ({ member = "jobId" } : item_members_item);
-                ({ member = "requestDelegate" } : item_members_item);
-                ({ member = "cancelPending" } : item_members_item);
-                ({ member = "dismissProgress" } : item_members_item);
+                ({
+                   member = "pendingAnnotation";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/PendingAnnotation.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "delegatingMotivation";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/Motivation.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "progress";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobProgress.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "progressMotivation";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/Motivation.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "failure";
+                   gives =
+                     (Watched
+                        ({ form = "watched"; schema = None; absent = Some true }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "jobId";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobId.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "requestDelegate";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "params";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/MarkJobParams.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "cancelPending";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "dismissProgress";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5375,15 +6726,198 @@ let table : t =
                 ("go", "NewYieldStateUnit");
                 ("haskell", "newYieldStateUnit");
               ];
+            type_parameters = None;
             members =
               [
-                ({ member = "isGenerating" } : item_members_item);
-                ({ member = "progress" } : item_members_item);
-                ({ member = "outcome" } : item_members_item);
-                ({ member = "failure" } : item_members_item);
-                ({ member = "jobId" } : item_members_item);
-                ({ member = "generate" } : item_members_item);
-                ({ member = "dismissProgress" } : item_members_item);
+                ({
+                   member = "isGenerating";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (Boolean : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "Whether a generation is on its way.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "progress";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobProgress.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "outcome";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/YieldJobDone.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "failure";
+                   gives =
+                     (Watched
+                        ({ form = "watched"; schema = None; absent = Some true }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "jobId";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/JobId.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "generate";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "params";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/GenerationJobParams.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "stallDeadlineMs";
+                                            schema =
+                                              Some
+                                                (Scalar
+                                                   ({
+                                                      type_ = (Integer : type_);
+                                                      minimum = Some 0;
+                                                      format = None;
+                                                      description =
+                                                        "How long the followed \
+                                                         generation may say \
+                                                         nothing, in \
+                                                         milliseconds, before \
+                                                         it is given up on. \
+                                                         The follower's own, \
+                                                         never sent: left out, \
+                                                         it grows with the \
+                                                         generation's \
+                                                         `maxTokens` as \
+                                                         client/timing.json's \
+                                                         generationStall \
+                                                         timings say.";
+                                                    }
+                                                     : scalar)
+                                                  : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "dismissProgress";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5413,17 +6947,257 @@ let table : t =
                 ("go", "NewGatherStateUnit");
                 ("haskell", "newGatherStateUnit");
               ];
+            type_parameters = None;
             members =
               [
-                ({ member = "context" } : item_members_item);
-                ({ member = "loading" } : item_members_item);
-                ({ member = "error" } : item_members_item);
-                ({ member = "annotationId" } : item_members_item);
-                ({ member = "resourceContext" } : item_members_item);
-                ({ member = "resourceLoading" } : item_members_item);
-                ({ member = "resourceError" } : item_members_item);
-                ({ member = "gatherAnnotation" } : item_members_item);
-                ({ member = "gatherResource" } : item_members_item);
+                ({
+                   member = "context";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/GatheredContext.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "loading";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (Boolean : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "Whether an annotation's gather is on \
+                                        its way.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "error";
+                   gives =
+                     (Watched
+                        ({ form = "watched"; schema = None; absent = Some true }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "annotationId";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/AnnotationId.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "resourceContext";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/GatheredContext.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "resourceLoading";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (Boolean : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "Whether a resource's gather is on its \
+                                        way.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "resourceError";
+                   gives =
+                     (Watched
+                        ({ form = "watched"; schema = None; absent = Some true }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "gatherAnnotation";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "annotationId";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "options";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/GatherAnnotationOptions.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "gatherResource";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "resourceId";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/ResourceId.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "options";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/GatherResourceOptions.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = false;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5452,6 +7226,7 @@ let table : t =
                 ("go", "NewMatchStateUnit");
                 ("haskell", "newMatchStateUnit");
               ];
+            type_parameters = None;
             members = [];
           }
            : state_units_item);
@@ -5480,10 +7255,70 @@ let table : t =
                 ("go", "NewBeckonStateUnit");
                 ("haskell", "newBeckonStateUnit");
               ];
+            type_parameters = None;
             members =
               [
-                ({ member = "hoveredAnnotationId" } : item_members_item);
-                ({ member = "focus" } : item_members_item);
+                ({
+                   member = "hoveredAnnotationId";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/AnnotationId.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "focus";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "annotationId";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5511,10 +7346,67 @@ let table : t =
                 ("go", "NewHoverDwell");
                 ("haskell", "newHoverDwell");
               ];
+            type_parameters = None;
             members =
               [
-                ({ member = "enter" } : item_members_item);
-                ({ member = "leave" } : item_members_item);
+                ({
+                   member = "enter";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "annotationId";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/AnnotationId.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "leave";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5542,11 +7434,110 @@ let table : t =
                 ("go", "NewSearchPipeline");
                 ("haskell", "newSearchPipeline");
               ];
+            type_parameters =
+              Some
+                [
+                  ({
+                     name = "R";
+                     docs =
+                       "What one result is: what the search the unit is made \
+                        with gives.";
+                   }
+                    : type_parameters_item);
+                ];
             members =
               [
-                ({ member = "query" } : item_members_item);
-                ({ member = "state" } : item_members_item);
-                ({ member = "setQuery" } : item_members_item);
+                ({
+                   member = "query";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (String : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description = "The query as last set.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "state";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/SearchState.json";
+                                     type_arguments =
+                                       Some
+                                         [
+                                           ( "R",
+                                             ({ type_parameter = "R" }
+                                               : value_schema) );
+                                         ];
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "setQuery";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "value";
+                                            schema =
+                                              Some
+                                                (Scalar
+                                                   ({
+                                                      type_ = (String : type_);
+                                                      minimum = None;
+                                                      format = None;
+                                                      description = "The query.";
+                                                    }
+                                                     : scalar)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5579,17 +7570,248 @@ let table : t =
                 ("go", "NewSessionSignals");
                 ("haskell", "newSessionSignals");
               ];
+            type_parameters = None;
             members =
               [
-                ({ member = "sessionEnded" } : item_members_item);
-                ({ member = "permissionDenied" } : item_members_item);
-                ({ member = "kbIdentityConflict" } : item_members_item);
-                ({ member = "notifySessionEnded" } : item_members_item);
-                ({ member = "notifyPermissionDenied" } : item_members_item);
-                ({ member = "notifyKbIdentityConflict" } : item_members_item);
-                ({ member = "acknowledgeSessionEnded" } : item_members_item);
-                ({ member = "acknowledgePermissionDenied" } : item_members_item);
-                ({ member = "acknowledgeKbIdentityConflict" }
+                ({
+                   member = "sessionEnded";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/SessionEnded.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "permissionDenied";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/PermissionDenied.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "kbIdentityConflict";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/KbIdentityConflict.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "notifySessionEnded";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "reason";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/SessionEnded.json#/properties/reason";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "notifyPermissionDenied";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "detail";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/PermissionDenied.json#/properties/detail";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "notifyKbIdentityConflict";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "conflict";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/KbIdentityConflict.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "acknowledgeSessionEnded";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "acknowledgePermissionDenied";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "acknowledgeKbIdentityConflict";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
                   : item_members_item);
               ];
           }
@@ -5622,22 +7844,500 @@ let table : t =
                 ("go", "NewCache");
                 ("haskell", "newCache");
               ];
+            type_parameters =
+              Some
+                [
+                  ({
+                     name = "K";
+                     docs =
+                       "What a query is keyed by: the parameters of the method \
+                        it is made for, together.";
+                   }
+                    : type_parameters_item);
+                  ({
+                     name = "V";
+                     docs = "What the query holds: what that method returns.";
+                   }
+                    : type_parameters_item);
+                ];
             members =
               [
-                ({ member = "observe" } : item_members_item);
-                ({ member = "fetch" } : item_members_item);
-                ({ member = "get" } : item_members_item);
-                ({ member = "known" } : item_members_item);
-                ({ member = "keys" } : item_members_item);
-                ({ member = "invalidate" } : item_members_item);
-                ({ member = "invalidateAll" } : item_members_item);
-                ({ member = "remove" } : item_members_item);
-                ({ member = "set" } : item_members_item);
-                ({ member = "patch" } : item_members_item);
-                ({ member = "persistencePending" } : item_members_item);
-                ({ member = "keptFetching" } : item_members_item);
-                ({ member = "attach" } : item_members_item);
-                ({ member = "query" } : item_members_item);
+                ({
+                   member = "observe";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Stream
+                                         ({
+                                            stream =
+                                              (Reference
+                                                 ({
+                                                    ref =
+                                                      "https://xynolog.org/protocol/CacheState.json";
+                                                    type_arguments =
+                                                      Some
+                                                        [
+                                                          ( "V",
+                                                            ({
+                                                               type_parameter =
+                                                                 "V";
+                                                             }
+                                                              : value_schema) );
+                                                        ];
+                                                  }
+                                                   : reference)
+                                                : schema);
+                                          }
+                                           : returns_stream)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "fetch";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Type_parameter
+                                         ({ type_parameter = "V" }
+                                           : value_schema)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "get";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Type_parameter
+                                         ({ type_parameter = "V" }
+                                           : value_schema)
+                                        : returns);
+                                  absent = Some true;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "known";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Scalar
+                                         ({
+                                            type_ = (Boolean : type_);
+                                            minimum = None;
+                                            format = None;
+                                            description =
+                                              "Whether anything has asked for \
+                                               the key and not let go of it: \
+                                               it holds a value or a failure, \
+                                               or a fetch for it is on its \
+                                               way.";
+                                          }
+                                           : scalar)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "keys";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns =
+                                    Some
+                                      (Items
+                                         ({
+                                            list =
+                                              (Type_parameter
+                                                 ({ type_parameter = "K" }
+                                                   : value_schema)
+                                                : schema);
+                                          }
+                                           : items)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "invalidate";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "invalidateAll";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "remove";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "gone";
+                                            schema = None;
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "set";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Value
+                                         ({
+                                            parameter = "value";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "V" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "patch";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "key";
+                                            schema =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "K" }
+                                                     : value_schema)
+                                                  : schema);
+                                            required = true;
+                                            absent = None;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                      (Callback
+                                         ({
+                                            parameter = "change";
+                                            calls =
+                                              (Type_parameter
+                                                 ({ type_parameter = "V" }
+                                                   : value_schema)
+                                                : schema);
+                                            required = true;
+                                            returns =
+                                              Some
+                                                (Type_parameter
+                                                   ({ type_parameter = "V" }
+                                                     : value_schema)
+                                                  : schema);
+                                          }
+                                           : callback)
+                                        : parameters_item);
+                                    ];
+                                  returns = None;
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "persistencePending";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns =
+                                    Some
+                                      (Scalar
+                                         ({
+                                            type_ = (Boolean : type_);
+                                            minimum = None;
+                                            format = None;
+                                            description =
+                                              "Whether the cache's content may \
+                                               be ahead of what it has \
+                                               persisted: a fetch on its way, \
+                                               or a save owed.";
+                                          }
+                                           : scalar)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "keptFetching";
+                   gives =
+                     (Function
+                        ({ form = "function"; signature = None } : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "attach";
+                   gives =
+                     (Function
+                        ({ form = "function"; signature = None } : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "query";
+                   gives =
+                     (Function
+                        ({ form = "function"; signature = None } : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5681,19 +8381,241 @@ let table : t =
                 ("csharp", "FromKeptAsync");
                 ("haskell", "newSession");
               ];
+            type_parameters = None;
             members =
               [
-                ({ member = "id" } : item_members_item);
-                ({ member = "kb" } : item_members_item);
-                ({ member = "client" } : item_members_item);
-                ({ member = "token" } : item_members_item);
-                ({ member = "user" } : item_members_item);
-                ({ member = "streamState" } : item_members_item);
-                ({ member = "errors" } : item_members_item);
-                ({ member = "ready" } : item_members_item);
-                ({ member = "expiresAt" } : item_members_item);
-                ({ member = "refresh" } : item_members_item);
-                ({ member = "renewer" } : item_members_item);
+                ({
+                   member = "id";
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (String : type_);
+                                     minimum = None;
+                                     format = None;
+                                     description =
+                                       "The session's own id: a session made \
+                                        again for the same knowledge base has \
+                                        another.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "kb";
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/KbTarget.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "client";
+                   gives =
+                     (Value
+                        ({ form = "value"; schema = None; absent = None }
+                          : gives_value)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "token";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/AccessToken.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "user";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/UserResponse.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "streamState";
+                   gives =
+                     (Watched
+                        ({
+                           form = "watched";
+                           schema =
+                             Some
+                               (Reference
+                                  ({
+                                     ref =
+                                       "https://xynolog.org/protocol/ConnectionState.json";
+                                     type_arguments = None;
+                                   }
+                                    : reference)
+                                 : schema);
+                           absent = None;
+                         }
+                          : watched)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "errors";
+                   gives =
+                     (Stream ({ form = "stream"; schema = None } : stream)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "ready";
+                   gives = (Settles ({ form = "settles" } : settles) : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "expiresAt";
+                   gives =
+                     (Value
+                        ({
+                           form = "value";
+                           schema =
+                             Some
+                               (Scalar
+                                  ({
+                                     type_ = (String : type_);
+                                     minimum = None;
+                                     format = Some "date-time";
+                                     description =
+                                       "When the session's token stops \
+                                        working, as the token states it.";
+                                   }
+                                    : scalar)
+                                 : schema);
+                           absent = Some true;
+                         }
+                          : gives_value)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "refresh";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters =
+                                    [
+                                      (Value
+                                         ({
+                                            parameter = "refused";
+                                            schema =
+                                              Some
+                                                (Reference
+                                                   ({
+                                                      ref =
+                                                        "https://xynolog.org/protocol/AccessToken.json";
+                                                      type_arguments = None;
+                                                    }
+                                                     : reference)
+                                                  : schema);
+                                            required = true;
+                                            absent = Some true;
+                                          }
+                                           : value)
+                                        : parameters_item);
+                                    ];
+                                  returns =
+                                    Some
+                                      (Reference
+                                         ({
+                                            ref =
+                                              "https://xynolog.org/protocol/AccessToken.json";
+                                            type_arguments = None;
+                                          }
+                                           : reference)
+                                        : returns);
+                                  absent = Some true;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
+                ({
+                   member = "renewer";
+                   gives =
+                     (Function
+                        ({
+                           form = "function";
+                           signature =
+                             Some
+                               ({
+                                  parameters = [];
+                                  returns =
+                                    Some
+                                      (Function
+                                         ({ function_ = "refresh" }
+                                           : returns_function)
+                                        : returns);
+                                  absent = None;
+                                }
+                                 : signature);
+                         }
+                          : function_)
+                       : gives);
+                 }
+                  : item_members_item);
               ];
           }
            : state_units_item);
@@ -5724,13 +8646,62 @@ let table : t =
             ];
           members =
             [
-              ({ member = "emit" } : wire_members_item);
-              ({ member = "frames" } : wire_members_item);
-              ({ member = "framesOf" } : wire_members_item);
-              ({ member = "request" } : wire_members_item);
-              ({ member = "emitOn" } : wire_members_item);
-              ({ member = "framesOn" } : wire_members_item);
-              ({ member = "requestOf" } : wire_members_item);
+              ({
+                 member = "emit";
+                 gives =
+                   (Function
+                      ({ form = "function"; signature = None } : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "frames";
+                 gives =
+                   (Function
+                      ({ form = "function"; signature = None } : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "framesOf";
+                 gives =
+                   (Function
+                      ({ form = "function"; signature = None } : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "request";
+                 gives =
+                   (Function
+                      ({ form = "function"; signature = None } : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "emitOn";
+                 gives =
+                   (Function
+                      ({ form = "function"; signature = None } : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "framesOn";
+                 gives =
+                   (Function
+                      ({ form = "function"; signature = None } : function_)
+                     : gives);
+               }
+                : wire_members_item);
+              ({
+                 member = "requestOf";
+                 gives =
+                   (Function
+                      ({ form = "function"; signature = None } : function_)
+                     : gives);
+               }
+                : wire_members_item);
             ];
         }
          : wire);
@@ -5778,29 +8749,6 @@ let table : t =
                of a quote: what a program that reads or makes annotations is \
                given, so that none parses or builds one by hand. Held by \
                specs/src/annotations's tables.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/annotations.mli" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Annotations.hs" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Annotations" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Annotations/Readers.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Annotations/Spans.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Annotations/Builders.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/core/src/web-annotation-utils.ts";
-                    "sdk/typescript/core/src/annotation-builders.ts";
-                  ] );
-                ("rust", [ "sdk/rust/sdk/src/annotations.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/annotations.py" ]);
-                ("go", [ "sdk/go/annotations" ]);
-                ( "kotlin",
-                  [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/annotations" ] );
-              ];
-            whole = Some [ "typescript"; "rust"; "python"; "go"; "kotlin" ];
             members =
               [
                 (Reader ({ member = "bodySource"; kind = "reader" } : reader)
@@ -5833,27 +8781,27 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isHighlight"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isReference"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isAssessment"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isComment"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "isTag"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -5861,7 +8809,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -5869,7 +8817,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Reader
                    ({ member = "textPositionSelector"; kind = "reader" }
@@ -5882,7 +8830,7 @@ let table : t =
                   : modules_item_members_item);
                 (Function
                    ({ member = "reconcile"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -5890,7 +8838,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -5898,7 +8846,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6010,20 +8958,6 @@ let table : t =
                choosing a claim's next job, and by a worker checking an \
                announcement against its claim. Held by \
                specs/src/jobs/filter-cases.json.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/job_filter.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Jobs" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift" ] );
-                ("typescript", [ "sdk/typescript/core/src/job-filter.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/job_filter.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/job_filter.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/JobFilter.hs" ]);
-              ];
-            whole = Some [ "rust"; "python"; "haskell" ];
             members =
               [
                 (Function
@@ -6032,7 +8966,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6041,26 +8975,10 @@ let table : t =
             module_ = "claims";
             docs =
               "What a worker's stream names, and whether a failed job is run \
-               again: the channels claiming reads (the replies of `job:claim`, \
-               and the announcements and cancellations a worker hears), the \
-               channels committing reads (the replies of `mark:commit`, and of \
-               the question whether a batch is recorded), and whether a failed \
-               attempt is retried, which a held job reports on `job:fail`. \
-               Held by specs/src/jobs/retry-cases.json.";
-            where =
-              [
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Jobs" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift" ] );
-                ("typescript", [ "sdk/typescript/sdk/src/claims.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/claims.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/claims.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Claims.hs" ]);
-                ("ocaml", [ "sdk/ocaml/sdk/lib/claims.mli" ]);
-              ];
-            whole = Some [ "haskell" ];
+               again: the channels claiming reads and the channels committing \
+               reads, each constant's `names`, and whether a failed attempt is \
+               retried, which a held job reports on `job:fail`. Held by \
+               specs/src/jobs/retry-cases.json.";
             members =
               [
                 (Constant
@@ -6068,6 +8986,14 @@ let table : t =
                       member = "jobClaimChannels";
                       kind = "constant";
                       named = None;
+                      names =
+                        Some
+                          ({
+                             replies_of = [ "job:claim" ];
+                             channels = [ "job:queued"; "job:cancel-requested" ];
+                           }
+                            : names);
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6076,6 +9002,15 @@ let table : t =
                       member = "jobCommitChannels";
                       kind = "constant";
                       named = None;
+                      names =
+                        Some
+                          ({
+                             replies_of =
+                               [ "mark:commit"; "browse:annotation-requested" ];
+                             channels = [];
+                           }
+                            : names);
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6085,7 +9020,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6095,20 +9030,6 @@ let table : t =
             docs =
               "Doing work again by a backoff, until it succeeds, it fails as \
                nothing can mend, or the attempts run out.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/retry.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Http" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Transport/Retry.swift" ] );
-                ("typescript", [ "sdk/typescript/core/src/retry.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/retry.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/retry.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/retry" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Retry.hs" ]);
-              ];
-            whole = None;
             members =
               [
                 (Function
@@ -6117,7 +9038,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6127,20 +9048,6 @@ let table : t =
             docs =
               "Whether a host is one a knowledge base's HTTP endpoint may \
                name. Held by specs/src/session/gateway-url-cases.json.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/host_name.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Session" ]);
-                ("typescript", [ "sdk/typescript/sdk/src/session/storage.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/session/knowledge_base.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/http/endpoint.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/http" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Session/Identity.swift" ] );
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/HostName.hs" ]);
-              ];
-            whole = Some [ "haskell" ];
             members =
               [
                 (Function
@@ -6149,7 +9056,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6160,29 +9067,11 @@ let table : t =
               "What a session reads of an access token: a claim it names as \
                text, when it expires, whether it has, and when to renew it. \
                Held by specs/src/session/cases.json.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/tokens.mli" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Tokens.hs" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Session" ]);
-                ("typescript", [ "sdk/typescript/sdk/src/session/storage.ts" ]);
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/session/mod.rs";
-                    "sdk/rust/sdk/src/session/stored.rs";
-                  ] );
-                ("python", [ "sdk/python/sdk/src/xynolog/session.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/session" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Session/Tokens.swift" ] );
-              ];
-            whole = None;
             members =
               [
                 (Function
                    ({ member = "textClaim"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6190,7 +9079,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "parseJwtExpiry") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6198,11 +9087,11 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "isJwtExpired") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "renewalDelay"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6210,7 +9099,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "refreshDelayMs") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6221,21 +9110,6 @@ let table : t =
               "Where a client keeps its queries' values: a session storage, \
                one key for each query it keeps for the person signed in, each \
                kept within a size.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/storage_persister.mli" ]);
-                ( "haskell",
-                  [ "sdk/haskell/sdk/src/Xynolog/StoragePersister.hs" ] );
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/CachePersistence.swift" ] );
-                ("typescript", [ "sdk/typescript/sdk/src/cache-persister.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/cache.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/storage.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/storage" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -6264,39 +9138,6 @@ let table : t =
                request whose replies cannot arrive, and the channels whose \
                events the record keeps; and what a transport delivers in place \
                of a frame it refuses, and why it refuses it.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/bus.ml" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Bus/Bus.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Bus/Typed.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/core/src/bus.ts";
-                    "sdk/typescript/core/src/bus-request.ts";
-                    "sdk/typescript/core/src/persisted-events.ts";
-                  ] );
-                ( "rust",
-                  [ "sdk/rust/sdk/src/bus.rs"; "sdk/rust/sdk/src/transport.rs" ]
-                );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/bus.py";
-                    "sdk/python/sdk/src/xynolog/transport.py";
-                    "sdk/python/sdk/src/xynolog/channels.py";
-                  ] );
-                ("go", [ "sdk/go"; "sdk/go/bus" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/bus";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/transport";
-                  ] );
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Bus.hs" ]);
-              ];
-            whole = None;
             members =
               [
                 (Function
@@ -6305,17 +9146,19 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "unsubscribed"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Constant
                    ({
                       member = "persistedEventTypes";
                       kind = "constant";
                       named = None;
+                      names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6371,51 +9214,6 @@ let table : t =
                token it sent (contract/TRANSPORT-CONTRACT.md \194\167 A \
                refused credential). A factory reads none of them, so a session \
                built by a factory a host writes is read the same way.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/registry.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Registry" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/OpenResources.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/XynologBrowser.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/SessionFactory.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/Stored.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Generated/Models.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/sdk/src/session/xynolog-browser.ts";
-                    "sdk/typescript/sdk/src/session/session-factory.ts";
-                    "sdk/typescript/sdk/src/session/http-session-factory.ts";
-                    "sdk/typescript/sdk/src/session/knowledge-base.ts";
-                    "sdk/typescript/sdk/src/session/open-resource.ts";
-                    "sdk/typescript/sdk/src/session/storage.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/session/browser.rs";
-                    "sdk/rust/sdk/src/session/factory.rs";
-                    "sdk/rust/sdk/src/session/knowledge_base.rs";
-                    "sdk/rust/sdk/src/session/open_resource.rs";
-                    "sdk/rust/sdk/src/session/stored.rs";
-                    "sdk/rust/http-transport/src/session.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/stored.py";
-                    "sdk/python/sdk/src/xynolog/registry.py";
-                    "sdk/python/sdk/src/xynolog/http/session.py";
-                  ] );
-                ("go", [ "sdk/go/registry" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/registry";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/http";
-                  ] );
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Registry.hs" ]);
-              ];
-            whole = Some [ "go" ];
             members =
               [
                 (Type
@@ -6434,7 +9232,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6577,7 +9375,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6585,7 +9383,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6602,11 +9400,19 @@ let table : t =
                       member = "knowledgeBasesKey";
                       kind = "constant";
                       named = Some [ ("typescript", "STORAGE_KEY") ];
+                      names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
                 (Constant
-                   ({ member = "activeKey"; kind = "constant"; named = None }
+                   ({
+                      member = "activeKey";
+                      kind = "constant";
+                      named = None;
+                      names = None;
+                      value = None;
+                    }
                      : constant)
                   : modules_item_members_item);
                 (Constant
@@ -6614,6 +9420,8 @@ let table : t =
                       member = "openResourcesByKbKey";
                       kind = "constant";
                       named = None;
+                      names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6622,12 +9430,14 @@ let table : t =
                       member = "lastViewedResourceByKbKey";
                       kind = "constant";
                       named = None;
+                      names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
                 (Function
                    ({ member = "sessionKey"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6635,7 +9445,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6648,7 +9458,7 @@ let table : t =
                             ("go", "StoredSessionOf");
                           ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6656,7 +9466,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "setStoredSession") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6664,7 +9474,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6672,7 +9482,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6680,15 +9490,15 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "keptIn"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "beginSignIn"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6696,7 +9506,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -6706,25 +9516,8 @@ let table : t =
             docs =
               "What a session's signals raise: that a session ended and why, \
                that a request was refused for lack of permission, and that a \
-               different knowledge base answers at a registered address. \
-               specs/src/client/state-units.json's `notices` states each one.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/session_notices.ml" ]);
-                ( "haskell",
-                  [ "sdk/haskell/sdk/src/Xynolog/State/SessionSignals.hs" ] );
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/State" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/State/SessionSignals.swift" ]
-                );
-                ( "typescript",
-                  [ "sdk/typescript/sdk/src/session/session-signals.ts" ] );
-                ("rust", [ "sdk/rust/sdk/src/session/signals.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/session_signals.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/session" ]);
-              ];
-            whole = None;
+               different knowledge base answers at a registered address. Each \
+               is a client type of specs/src/client/types.";
             members =
               [
                 (Type
@@ -6767,48 +9560,6 @@ let table : t =
                grant with PKCE, its pending record kept across the trip to the \
                issuer and back, and the question a completed sign-in asks the \
                knowledge base, who it is.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/redirect_sign_in.ml" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Authorization" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/RedirectSignIn.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Registry/Stored.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/sdk/src/session/oauth.ts";
-                    "sdk/typescript/sdk/src/session/connect.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/http-transport/src/oauth.rs";
-                    "sdk/rust/http-transport/src/session.rs";
-                    "sdk/rust/sdk/src/errors.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/stored.py";
-                    "sdk/python/sdk/src/xynolog/http/oauth.py";
-                    "sdk/python/sdk/src/xynolog/http/session.py";
-                    "sdk/python/sdk/src/xynolog/errors.py";
-                  ] );
-                ("go", [ "sdk/go" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/registry";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/http";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/errors";
-                  ] );
-                ( "haskell",
-                  [
-                    "sdk/haskell/sdk/src/Xynolog/Issuer.hs";
-                    "sdk/haskell/sdk/src/Xynolog/Registry/Identity.hs";
-                    "sdk/haskell/sdk/src/Xynolog/Registry/Stored.hs";
-                  ] );
-              ];
-            whole = None;
             members =
               [
                 (Function
@@ -6817,7 +9568,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6834,6 +9585,8 @@ let table : t =
                       member = "pendingAuthorizationKey";
                       kind = "constant";
                       named = None;
+                      names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -6853,7 +9606,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6861,7 +9614,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -6869,7 +9622,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -6903,21 +9656,6 @@ let table : t =
                token was made with, one client-credentials grant at a time, \
                the token held until it is due for renewal, and the \
                `Authorization` header's value it gives (`authorization`).";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/service_token.mli" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/ServiceToken.hs" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/SignIn/ServiceToken.swift" ]
-                );
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/SignIn" ]);
-                ("typescript", [ "sdk/typescript/core/src/service-account.ts" ]);
-                ("rust", [ "sdk/rust/http-transport/src/service_account.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/http/agent.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/http" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -6940,24 +9678,6 @@ let table : t =
                states them: the store, whose every change holds the lock every \
                writer takes, and where the launcher's state home is on each \
                system. Held by sign-in-store/cases.json.";
-            where =
-              [
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/SignIn" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/SignIn/SignInStore.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/SignIn/Kept.swift";
-                  ] );
-                ( "typescript",
-                  [ "sdk/typescript/sdk/src/session/sign-in-store.ts" ] );
-                ("rust", [ "sdk/rust/sdk/src/sign_in_store.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/sign_in_store.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/signin" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/SignInStore.hs" ]);
-                ("ocaml", [ "sdk/ocaml/sdk/lib/sign_in_store.mli" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -6981,7 +9701,7 @@ let table : t =
                             ("ocaml", "state_directory");
                           ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7005,7 +9725,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("kotlin", "thisPlatform") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Constant
                    ({
@@ -7016,6 +9736,8 @@ let table : t =
                           [
                             ("go", "SignInFile"); ("haskell", "signInFileName");
                           ];
+                      names = None;
+                      value = None;
                     }
                      : constant)
                   : modules_item_members_item);
@@ -7048,45 +9770,6 @@ let table : t =
                how it learns the person when the sign-in names nobody yet, and \
                a session that does not ask then keeps for nobody. \
                docs/builder/SIGN-IN.md says which to use when.";
-            where =
-              [
-                ( "typescript",
-                  [
-                    "sdk/typescript/sdk/src/session/sign-in-kept.ts";
-                    "sdk/typescript/sdk/src/session/oauth.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/session/kept.rs";
-                    "sdk/rust/http-transport/src/session.rs";
-                    "sdk/rust/http-transport/src/oauth.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/session.py";
-                    "sdk/python/sdk/src/xynolog/http/session.py";
-                    "sdk/python/sdk/src/xynolog/http/oauth.py";
-                  ] );
-                ("go", [ "sdk/go" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/signin";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/http";
-                  ] );
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/Xynolog/SignIn/Kept.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/SignIn/Issuer.swift";
-                    "sdk/swift/sdk/Sources/Xynolog/Session/SessionFromKept.swift";
-                  ] );
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/SignIn" ]);
-                ( "haskell",
-                  [
-                    "sdk/haskell/sdk/src/Xynolog/SignIn.hs";
-                    "sdk/haskell/sdk/src/Xynolog/Session.hs";
-                  ] );
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -7119,7 +9802,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("go", "SignInWithDevice") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7127,15 +9810,15 @@ let table : t =
                       kind = "function";
                       named = Some [ ("haskell", "fromKeptSession") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "renewKept"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "signOut"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -7147,37 +9830,6 @@ let table : t =
                its document read whole or not at all, absent told from empty, \
                entries told apart by address, and what changed since it was \
                last read.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/discovery.mli" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Discovery" ]);
-                ( "swift",
-                  [ "sdk/swift/sdk/Sources/Xynolog/Registry/Discovery.swift" ]
-                );
-                ("typescript", [ "sdk/typescript/sdk/src/discovery.ts" ]);
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/discovery.rs";
-                    "sdk/rust/http-transport/src/discovery.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/discovery.py";
-                    "sdk/python/sdk/src/xynolog/http/discovery.py";
-                  ] );
-                ("go", [ "sdk/go/discovery" ]);
-                ( "kotlin",
-                  [
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/discovery";
-                    "sdk/kotlin/sdk/src/main/kotlin/xynolog/http";
-                  ] );
-                ( "haskell",
-                  [
-                    "sdk/haskell/sdk/src/Xynolog/Discovery.hs";
-                    "sdk/haskell/sdk/src/Xynolog/Http/Discovery.hs";
-                  ] );
-              ];
-            whole = Some [ "go"; "python" ];
             members =
               [
                 (Constant
@@ -7185,6 +9837,18 @@ let table : t =
                       member = "discoveryInterval";
                       kind = "constant";
                       named = None;
+                      names = None;
+                      value = None;
+                    }
+                     : constant)
+                  : modules_item_members_item);
+                (Constant
+                   ({
+                      member = "discoveryUrlPath";
+                      kind = "constant";
+                      named = None;
+                      names = None;
+                      value = Some (`String "/discovery/kbs.json");
                     }
                      : constant)
                   : modules_item_members_item);
@@ -7264,7 +9928,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7272,7 +9936,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7280,7 +9944,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7298,7 +9962,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
               ];
           }
@@ -7312,40 +9976,6 @@ let table : t =
                exactly once; a real session over test doubles; a factory of \
                scripted sessions for a registry; and a storage several \
                contexts share.";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/testing.mli" ]);
-                ( "swift",
-                  [
-                    "sdk/swift/sdk/Sources/XynologTesting/Liveness.swift";
-                    "sdk/swift/sdk/Sources/XynologTesting/ScriptedTransport.swift";
-                    "sdk/swift/sdk/Sources/XynologTesting/Sessions.swift";
-                    "sdk/swift/sdk/Sources/XynologTesting/SharedStorage.swift";
-                    "sdk/swift/sdk/Sources/XynologTesting/TestClock.swift";
-                  ] );
-                ( "typescript",
-                  [
-                    "sdk/typescript/core/src/liveness-axioms.ts";
-                    "sdk/typescript/sdk/src/testing.ts";
-                  ] );
-                ( "rust",
-                  [
-                    "sdk/rust/sdk/src/testing/liveness.rs";
-                    "sdk/rust/sdk/src/testing/client.rs";
-                    "sdk/rust/sdk/src/testing/sessions.rs";
-                    "sdk/rust/sdk/src/testing/storage.rs";
-                  ] );
-                ( "python",
-                  [
-                    "sdk/python/sdk/src/xynolog/testing/__init__.py";
-                    "sdk/python/sdk/src/xynolog/testing/liveness.py";
-                  ] );
-                ("go", [ "sdk/go/xynologtest" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/testing" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog/Testing" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Testing.hs" ]);
-              ];
-            whole = None;
             members =
               [
                 (Type
@@ -7386,7 +10016,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "arbFaultAction") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7394,7 +10024,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "arbFaultSchedule") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7402,7 +10032,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7430,7 +10060,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("typescript", "arbDeliveryOps") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7438,7 +10068,7 @@ let table : t =
                       kind = "function";
                       named = None;
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({
@@ -7446,7 +10076,7 @@ let table : t =
                       kind = "function";
                       named = Some [ ("go", "NewTestSession") ];
                     }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({
@@ -7510,32 +10140,19 @@ let table : t =
                transport is a package of its own, which reads its answers and \
                holds its stream's frames by them. Held by the table of what \
                each schema requires (the consumer-owned generator).";
-            where =
-              [
-                ("ocaml", [ "sdk/ocaml/sdk/lib/refusals.ml" ]);
-                ("typescript", [ "sdk/typescript/core/src/required.ts" ]);
-                ("rust", [ "sdk/rust/sdk/src/required.rs" ]);
-                ("python", [ "sdk/python/sdk/src/xynolog/bus.py" ]);
-                ("go", [ "sdk/go" ]);
-                ("kotlin", [ "sdk/kotlin/sdk/src/main/kotlin/xynolog/bus" ]);
-                ("swift", [ "sdk/swift/sdk/Sources/Xynolog/Bus/Bus.swift" ]);
-                ("csharp", [ "sdk/csharp/sdk/src/Xynolog" ]);
-                ("haskell", [ "sdk/haskell/sdk/src/Xynolog/Bus.hs" ]);
-              ];
-            whole = None;
             members =
               [
                 (Function
                    ({ member = "faultSaid"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "faultOf"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Function
                    ({ member = "said"; kind = "function"; named = None }
-                     : function_)
+                     : modules_item_members_item_function)
                   : modules_item_members_item);
                 (Type
                    ({

@@ -28,9 +28,9 @@ import (
 	"maps"
 	"math"
 	"math/rand/v2"
+	"net"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -39,7 +39,6 @@ import (
 	"testing"
 	"testing/synctest"
 	"time"
-	"unicode"
 
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
@@ -62,6 +61,7 @@ type clockGiven struct {
 	LifetimeSeconds   *int     `json:"lifetimeSeconds"`
 	IntervalSeconds   *int     `json:"intervalSeconds"`
 	Answers           []string `json:"answers"`
+	Status            *int     `json:"status"`
 }
 
 func readClockCases(t *testing.T) []clockCase {
@@ -79,44 +79,56 @@ func readClockCases(t *testing.T) []clockCase {
 
 // ── Durations ───────────────────────────────────────────────────────────
 
-// clockTiming is the duration protocol/specs/src/client/timing.json names, as
-// this SDK's Timing holds it: "reconnectMs" is Timing.Reconnect, a
-// time.Duration, and a retry budget's member follows its budget and a ".",
-// "emitRetry.initialDelayMs" being Timing.EmitRetry.InitialDelayMs, in
-// milliseconds as the table states it.
-func clockTiming(name string) (time.Duration, error) {
-	field := func(of reflect.Value, part string) reflect.Value {
-		runes := []rune(part)
-		if len(runes) == 0 {
-			return reflect.Value{}
-		}
-		runes[0] = unicode.ToUpper(runes[0])
-		return of.FieldByName(string(runes))
+// timingValues is each value protocol/specs/src/client/timing.json states, by
+// its row's name.
+func timingValues(t *testing.T) map[string]json.RawMessage {
+	t.Helper()
+	var table struct {
+		Timing []struct {
+			Name  string          `json:"name"`
+			Value json.RawMessage `json:"value"`
+		} `json:"timing"`
 	}
-	timing := reflect.ValueOf(xynolog.DefaultTiming())
+	if err := json.Unmarshal(readSpec(t, "client", "timing.json"), &table); err != nil {
+		t.Fatal(err)
+	}
+	if len(table.Timing) == 0 {
+		t.Fatal("the timing table states no row: it was not read")
+	}
+	values := map[string]json.RawMessage{}
+	for _, row := range table.Timing {
+		values[row.Name] = row.Value
+	}
+	return values
+}
+
+// clockTiming is the duration timings states under name: "reconnectMs" is that
+// row's value, and a retry budget's member follows its budget and a ".",
+// "emitRetry.initialDelayMs", in milliseconds as the table states it.
+func clockTiming(timings map[string]json.RawMessage, name string) (time.Duration, error) {
 	entry, member, ofBudget := strings.Cut(name, ".")
+	var ms int64
 	if !ofBudget {
-		value := field(timing, strings.TrimSuffix(entry, "Ms"))
-		if !value.IsValid() || value.Type() != reflect.TypeFor[time.Duration]() {
-			return 0, fmt.Errorf("%s is no duration of this SDK's timing", name)
+		if !strings.HasSuffix(entry, "Ms") || json.Unmarshal(timings[entry], &ms) != nil {
+			return 0, fmt.Errorf("%s is no duration of the timing table", name)
 		}
-		return time.Duration(value.Int()), nil
+		return time.Duration(ms) * time.Millisecond, nil
 	}
-	budget := field(timing, entry)
-	if !budget.IsValid() || budget.Type() != reflect.TypeFor[api.RetryBudget]() {
-		return 0, fmt.Errorf("%s is no retry budget of this SDK's timing", name)
+	var budget map[string]int64
+	if json.Unmarshal(timings[entry], &budget) != nil {
+		return 0, fmt.Errorf("%s is no retry budget of the timing table", name)
 	}
-	value := field(budget, member)
-	if !value.IsValid() || !strings.HasSuffix(member, "Ms") {
-		return 0, fmt.Errorf("%s is no delay of this SDK's timing", name)
+	ms, stated := budget[member]
+	if !stated || !strings.HasSuffix(member, "Ms") {
+		return 0, fmt.Errorf("%s is no delay of the timing table", name)
 	}
-	return time.Duration(value.Int()) * time.Millisecond, nil
+	return time.Duration(ms) * time.Millisecond, nil
 }
 
 // clockDuration is a duration as the table states it: milliseconds, or a
 // timing scaled by `times` and moved by `plusMs`, a whole number of
 // milliseconds either way.
-func clockDuration(stated json.RawMessage) (time.Duration, error) {
+func clockDuration(timings map[string]json.RawMessage, stated json.RawMessage) (time.Duration, error) {
 	var ms int64
 	if json.Unmarshal(stated, &ms) == nil {
 		return time.Duration(ms) * time.Millisecond, nil
@@ -131,7 +143,7 @@ func clockDuration(stated json.RawMessage) (time.Duration, error) {
 	if err := decoder.Decode(&scaled); err != nil || scaled.Timing == "" {
 		return 0, fmt.Errorf("%s is no duration: milliseconds, or a timing", stated)
 	}
-	base, err := clockTiming(scaled.Timing)
+	base, err := clockTiming(timings, scaled.Timing)
 	if err != nil {
 		return 0, err
 	}
@@ -339,7 +351,7 @@ func (g *fakeGateway) transport(t *testing.T) *xynolog.HTTPTransport {
 		Token:    xynolog.NewVariable("a-token"),
 		Channels: bus.BridgedChannels,
 		HTTP:     g.client,
-		Timing:   xynolog.DefaultTiming(),
+		Timing:   xynolog.DefaultTransportTiming(),
 		Random:   lowest,
 	})
 	t.Cleanup(transport.Close)
@@ -361,7 +373,7 @@ func unansweredStream(t *testing.T, _ clockGiven) clockSubject {
 func degradedStream(t *testing.T, given clockGiven) clockSubject {
 	gateway := newFakeGateway(t, streamRefused, given.RetryAfterSeconds, nil)
 	transport := gateway.transport(t)
-	return clockSubject{counted: tallied(t, transport.State(), func(state xynolog.ConnectionState) bool { return state == xynolog.ConnectionStateDegraded })}
+	return clockSubject{counted: tallied(t, transport.State(), func(state api.ConnectionState) bool { return state == api.ConnectionStateDegraded })}
 }
 
 func scopeTaken(t *testing.T, _ clockGiven) clockSubject {
@@ -379,7 +391,7 @@ func scopeLetGo(t *testing.T, _ clockGiven) clockSubject {
 	gateway := newFakeGateway(t, streamHeld, nil, nil)
 	transport := gateway.transport(t)
 	synctest.Wait()
-	if state := transport.State().Value(); state != xynolog.ConnectionStateOpen {
+	if state := transport.State().Value(); state != api.ConnectionStateOpen {
 		t.Fatalf("the stream is %s, not open", state)
 	}
 	release := transport.SubscribeToResource(resourceOf(t, "res-1"))
@@ -442,7 +454,7 @@ func refusedRequest(t *testing.T, given clockGiven, ended func(err error)) *fake
 	gateway := newFakeGateway(t, streamHeld, given.RetryAfterSeconds, []string{emitPath})
 	wire := xynolog.NewWire(gateway.transport(t))
 	background(t, func(ctx context.Context) {
-		_, err := wire.RequestOf(ctx, bus.BrowseEventsRequested.Request().Channel(), map[string]any{"resourceId": "res-1"}, xynolog.DefaultTiming().BusRequestTimeout)
+		_, err := wire.RequestOf(ctx, bus.BrowseEventsRequested.Request().Channel(), map[string]any{"resourceId": "res-1"}, xynolog.DefaultClientTiming().BusRequestTimeout)
 		if ctx.Err() == nil {
 			ended(err)
 		}
@@ -464,7 +476,7 @@ func timedOutBusRequest(t *testing.T, given clockGiven) clockSubject {
 	var timedOut atomic.Int64
 	refusedRequest(t, given, func(err error) {
 		var failed *xynolog.BusRequestError
-		if !errors.As(err, &failed) || failed.Code != xynolog.BusRequestErrorCodeTimeout {
+		if !errors.As(err, &failed) || failed.Code != api.BusRequestErrorCodeTimeout {
 			t.Errorf("the request ended otherwise: %v", err)
 			return
 		}
@@ -493,9 +505,9 @@ type fakeIssuer struct {
 func (i *fakeIssuer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch where := "http://" + r.Host + r.URL.Path; where {
 	case gatewayOrigin + "/.well-known/oauth-protected-resource":
-		i.answer(w, http.StatusOK, map[string]any{"resource": gatewayOrigin, "authorization_servers": []string{issuerOrigin}, "bearer_methods_supported": []string{"header"}})
+		answerJSON(i.t, w, http.StatusOK, map[string]any{"resource": gatewayOrigin, "authorization_servers": []string{issuerOrigin}, "bearer_methods_supported": []string{"header"}})
 	case issuerOrigin + "/.well-known/openid-configuration":
-		i.answer(w, http.StatusOK, map[string]any{
+		answerJSON(i.t, w, http.StatusOK, map[string]any{
 			"issuer":                        issuerOrigin,
 			"authorization_endpoint":        issuerOrigin + "/auth",
 			"token_endpoint":                issuerOrigin + "/token",
@@ -506,29 +518,30 @@ func (i *fakeIssuer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if i.interval != nil {
 			minted["interval"] = *i.interval
 		}
-		i.answer(w, http.StatusOK, minted)
+		answerJSON(i.t, w, http.StatusOK, minted)
 	case issuerOrigin + "/token":
 		i.mu.Lock()
 		said := i.answers[min(i.tokenAsks, len(i.answers)-1)]
 		i.tokenAsks++
 		i.mu.Unlock()
-		i.answer(w, http.StatusBadRequest, map[string]any{"error": said})
+		answerJSON(i.t, w, http.StatusBadRequest, map[string]any{"error": said})
 	default:
 		i.t.Errorf("the issuer was asked %s %s, which a device grant does not ask", r.Method, where)
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
-func (i *fakeIssuer) answer(w http.ResponseWriter, status int, document map[string]any) {
+// answerJSON answers with status and document, in JSON.
+func answerJSON(t *testing.T, w http.ResponseWriter, status int, document map[string]any) {
 	encoded, err := json.Marshal(document)
 	if err != nil {
-		i.t.Errorf("the issuer's answer does not encode: %v", err)
+		t.Errorf("the answer does not encode: %v", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if _, err := w.Write(encoded); err != nil {
-		i.t.Errorf("the issuer could not answer: %v", err)
+		t.Errorf("the answer could not be written: %v", err)
 	}
 }
 
@@ -545,12 +558,111 @@ func deviceGrant(t *testing.T, given clockGiven) clockSubject {
 	issuer := &fakeIssuer{t: t, interval: given.IntervalSeconds, answers: given.Answers}
 	client := httptest.NewTestServer(t, issuer).Client()
 	background(t, func(ctx context.Context) {
-		_, err := xynolog.SignInWithDevice(ctx, xynolog.Issuer{HTTP: client, Timing: xynolog.DefaultTiming(), Random: lowest}, gatewayOrigin, &xynolog.MemorySignIn{}, func(api.DeviceCode) {})
+		_, err := xynolog.SignInWithDevice(ctx, xynolog.Issuer{HTTP: client, Timing: xynolog.DefaultTransportTiming(), Random: lowest}, gatewayOrigin, &xynolog.MemorySignIn{}, func(api.DeviceCode) {})
 		if ctx.Err() == nil {
 			t.Errorf("the sign-in ended before the case did: %v", err)
 		}
 	})
 	return clockSubject{counted: issuer.asked}
+}
+
+// ── An agent's sign-in ──────────────────────────────────────────────────
+
+// agentServers is an agent's issuer and gateway in the bubble. The issuer
+// answers the grant with a token that lives an hour, or with grantStatus when
+// there is one; the gateway answers the naming request with namingStatus. It
+// counts the grants and the naming requests it is asked.
+type agentServers struct {
+	t            *testing.T
+	grantStatus  *int
+	namingStatus *int
+
+	mu    sync.Mutex
+	asked int
+}
+
+func (a *agentServers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	switch where := "http://" + r.Host + r.URL.Path; where {
+	case issuerOrigin + "/.well-known/openid-configuration":
+		answerJSON(a.t, w, http.StatusOK, map[string]any{"issuer": issuerOrigin, "token_endpoint": issuerOrigin + "/token"})
+	case issuerOrigin + "/token":
+		n := a.ask()
+		if a.grantStatus != nil {
+			answerJSON(a.t, w, *a.grantStatus, map[string]any{"error": "temporarily_unavailable"})
+			return
+		}
+		answerJSON(a.t, w, http.StatusOK, map[string]any{"access_token": tokenFor(time.Hour, n), "token_type": "Bearer", "expires_in": 3600})
+	case gatewayOrigin + xynolog.RouteGetCurrentUser.Path:
+		a.ask()
+		if a.namingStatus == nil {
+			a.t.Errorf("the gateway was asked after a refused grant")
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		answerJSON(a.t, w, *a.namingStatus, map[string]any{})
+	default:
+		a.t.Errorf("%s %s was asked, which an agent's sign-in does not ask", r.Method, where)
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+// ask counts one request, and is how many there have been.
+func (a *agentServers) ask() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.asked++
+	return a.asked
+}
+
+func (a *agentServers) requests() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.asked
+}
+
+// agentSignIn is an agent's sign-in at servers, set going as the case begins.
+// Over a gateway that is unreachable, every connection to it fails as it is
+// made, and each is counted with what servers count.
+func agentSignIn(t *testing.T, servers *agentServers, unreachable bool) clockSubject {
+	client := httptest.NewTestServer(t, servers).Client()
+	var tried atomic.Int64
+	gateway := client
+	if unreachable {
+		gateway = &http.Client{Transport: &http.Transport{DialContext: func(context.Context, string, string) (net.Conn, error) {
+			tried.Add(1)
+			return nil, errors.New("the gateway cannot be reached")
+		}}}
+	}
+	service := xynolog.NewServiceToken(
+		xynolog.SecretCredential{Issuer: issuerOrigin, ClientID: "smelter", ClientSecret: "a-client-secret"},
+		xynolog.Issuer{HTTP: client, Timing: xynolog.DefaultTransportTiming(), Random: lowest},
+	)
+	background(t, func(ctx context.Context) {
+		agent, err := xynolog.SignInAgent(ctx, xynolog.AgentConfig{Gateway: gatewayOrigin, Service: service, HTTP: gateway, Timing: xynolog.DefaultTransportTiming(), Random: lowest})
+		if err == nil {
+			agent.Close()
+			t.Error("the agent signed in")
+		}
+	})
+	return clockSubject{counted: func() int { return servers.requests() + int(tried.Load()) }}
+}
+
+func refusedAgentSignIn(t *testing.T, given clockGiven) clockSubject {
+	if given.Status == nil {
+		t.Fatal("a refused sign-in's case states the gateway's status")
+	}
+	return agentSignIn(t, &agentServers{t: t, namingStatus: given.Status}, false)
+}
+
+func unreachableAgentSignIn(t *testing.T, _ clockGiven) clockSubject {
+	return agentSignIn(t, &agentServers{t: t}, true)
+}
+
+func refusedAgentGrant(t *testing.T, given clockGiven) clockSubject {
+	if given.Status == nil {
+		t.Fatal("a refused grant's case states the issuer's status")
+	}
+	return agentSignIn(t, &agentServers{t: t, grantStatus: given.Status}, false)
 }
 
 // ── A session ───────────────────────────────────────────────────────────
@@ -565,7 +677,7 @@ func renewalSubject(t *testing.T, given clockGiven) clockSubject {
 	if err := kept.Keep(context.Background(), api.StoredSession{Access: tokenFor(lifetime, 0), Refresh: "a-refresh-token", ClientId: "xynolog-cli", TokenEndpoint: issuerOrigin + "/token"}); err != nil {
 		t.Fatal(err)
 	}
-	client := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+	client := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 	session, err := xynolog.StartSession(context.Background(), xynolog.SessionConfig{
 		Kb:     api.KbTarget{Id: kb},
 		Client: client.Client,
@@ -575,7 +687,7 @@ func renewalSubject(t *testing.T, given clockGiven) clockSubject {
 			return tokenFor(lifetime, int(renewals.Add(1))), nil
 		},
 		Validate: func(context.Context, string) (api.UserResponse, error) { return alice(), nil },
-		Timing:   xynolog.DefaultTiming(),
+		Timing:   xynolog.DefaultTransportTiming(),
 		Random:   lowest,
 	})
 	if err != nil {
@@ -605,7 +717,7 @@ func heldJobStall(t *testing.T, _ clockGiven) clockSubject {
 		}
 		return xynologtest.RefuseUnscriptedOperation(operation, payload)
 	}})
-	client, _ := worldOver(t, transport, xynolog.DefaultTiming())
+	client, _ := worldOver(t, transport, xynolog.DefaultClientTiming())
 	var marks []api.JobFilter
 	if err := json.Unmarshal([]byte(`[{"jobType":"mark","params":{"motivation":"highlighting"}}]`), &marks); err != nil {
 		t.Fatal(err)
@@ -655,21 +767,30 @@ func heldJobStall(t *testing.T, _ clockGiven) clockSubject {
 
 // launcherDocument is a launcher's document: one managed knowledge base at
 // the first read, and unchanged at every read after it.
-type launcherDocument struct{ reads atomic.Int64 }
+type launcherDocument struct {
+	reads        atomic.Int64
+	first, after api.DiscoveryRead
+}
 
-func (d *launcherDocument) Read(context.Context) discovery.DiscoveryRead {
+func (d *launcherDocument) Read(context.Context) api.DiscoveryRead {
 	if d.reads.Add(1) == 1 {
-		return discovery.Managed{KBs: []api.DiscoveredKB{{
-			Host: "localhost", Port: 4000, Placement: api.DiscoveredKBPlacementLocal, ManagedBy: "xynolog-launcher", Did: "did:web:example.org:kb-a",
-		}}}
+		return d.first
 	}
-	return discovery.Unchanged{}
+	return d.after
 }
 
 func discoverySubject(t *testing.T, _ clockGiven) clockSubject {
 	document := &launcherDocument{}
+	if err := document.first.From(api.DiscoveryManaged{Kbs: []api.DiscoveredKB{{
+		Host: "localhost", Port: 4000, Placement: api.KbPlacementLocal, ManagedBy: "xynolog-launcher", Did: "did:web:example.org:kb-a",
+	}}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := document.after.From(api.DiscoveryUnchanged{}); err != nil {
+		t.Fatal(err)
+	}
 	background(t, func(ctx context.Context) {
-		for range discovery.SubscribeDiscovery(ctx, document, xynolog.DefaultTiming().DiscoveryInterval) {
+		for range discovery.SubscribeDiscovery(ctx, document, discovery.DiscoveryInterval) {
 		}
 	})
 	return clockSubject{counted: func() int { return int(document.reads.Load()) }}
@@ -679,7 +800,7 @@ func discoverySubject(t *testing.T, _ clockGiven) clockSubject {
 
 func invalidationWindow(t *testing.T, _ clockGiven) clockSubject {
 	transport := xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{Channels: bus.BridgedChannels, MakeResponse: knowing()})
-	client, _ := worldOver(t, transport, xynolog.DefaultTiming())
+	client, _ := worldOver(t, transport, xynolog.DefaultClientTiming())
 	observed := client.Browse.Events(resourceOf(t, "res-1"))
 	background(t, func(ctx context.Context) {
 		for range observed.States(ctx) {
@@ -712,7 +833,6 @@ func saveDebounce(t *testing.T, _ clockGiven) clockSubject {
 		},
 		func(func(context.Context)) { t.Error("a cache that is only written fetched") },
 		xynolog.CachePersister[string, int](storage),
-		xynolog.DefaultTiming().SaveDebounce,
 	)
 	t.Cleanup(cache.Close)
 	changes := 0
@@ -737,7 +857,7 @@ func jobFollower(t *testing.T, _ clockGiven) clockSubject {
 		}
 		return xynologtest.RefuseUnscriptedOperation(operation, payload)
 	}})
-	client, _ := worldOver(t, transport, xynolog.DefaultTiming())
+	client, _ := worldOver(t, transport, xynolog.DefaultClientTiming())
 	delegation := highlighting(t, client)
 	background(t, func(ctx context.Context) {
 		_, err := delegation.Wait(ctx)
@@ -766,7 +886,7 @@ func polledJob(t *testing.T, ended func(err error)) *xynologtest.FaultyTransport
 		}
 		return xynologtest.RefuseUnscriptedOperation(operation, payload)
 	}})
-	client, _ := worldOver(t, transport, xynolog.DefaultTiming())
+	client, _ := worldOver(t, transport, xynolog.DefaultClientTiming())
 	job, err := api.ParseJobId("job-1")
 	if err != nil {
 		t.Fatal(err)
@@ -794,7 +914,7 @@ func jobPollTimeout(t *testing.T, _ clockGiven) clockSubject {
 	var timedOut atomic.Int64
 	polledJob(t, func(err error) {
 		var failed *xynolog.BusRequestError
-		if !errors.As(err, &failed) || failed.Code != xynolog.BusRequestErrorCodeTimeout {
+		if !errors.As(err, &failed) || failed.Code != api.BusRequestErrorCodeTimeout {
 			t.Errorf("the poll ended otherwise: %v", err)
 			return
 		}
@@ -806,32 +926,35 @@ func jobPollTimeout(t *testing.T, _ clockGiven) clockSubject {
 // clockSubjects is how this SDK builds each subject the table names, with
 // what is to be closed once the case is over left to t's cleanup.
 var clockSubjects = map[string]func(t *testing.T, given clockGiven) clockSubject{
-	"refusedStream":      refusedStream,
-	"unansweredStream":   unansweredStream,
-	"degradedStream":     degradedStream,
-	"scopeTaken":         scopeTaken,
-	"scopeLetGo":         scopeLetGo,
-	"handoffLinger":      handoffLinger,
-	"renewal":            renewalSubject,
-	"deviceGrant":        deviceGrant,
-	"heldJobStall":       heldJobStall,
-	"discovery":          discoverySubject,
-	"invalidationWindow": invalidationWindow,
-	"saveDebounce":       saveDebounce,
-	"jobFollower":        jobFollower,
-	"unansweredRequest":  unansweredRequest,
-	"unansweredEmit":     unansweredEmit,
-	"refusedBusRequest":  refusedBusRequest,
-	"timedOutBusRequest": timedOutBusRequest,
-	"jobPoll":            jobPoll,
-	"jobPollTimeout":     jobPollTimeout,
+	"refusedStream":          refusedStream,
+	"unansweredStream":       unansweredStream,
+	"degradedStream":         degradedStream,
+	"scopeTaken":             scopeTaken,
+	"scopeLetGo":             scopeLetGo,
+	"handoffLinger":          handoffLinger,
+	"renewal":                renewalSubject,
+	"deviceGrant":            deviceGrant,
+	"heldJobStall":           heldJobStall,
+	"discovery":              discoverySubject,
+	"invalidationWindow":     invalidationWindow,
+	"saveDebounce":           saveDebounce,
+	"jobFollower":            jobFollower,
+	"unansweredRequest":      unansweredRequest,
+	"unansweredEmit":         unansweredEmit,
+	"refusedBusRequest":      refusedBusRequest,
+	"timedOutBusRequest":     timedOutBusRequest,
+	"jobPoll":                jobPoll,
+	"jobPollTimeout":         jobPollTimeout,
+	"refusedAgentSignIn":     refusedAgentSignIn,
+	"unreachableAgentSignIn": unreachableAgentSignIn,
+	"refusedAgentGrant":      refusedAgentGrant,
 }
 
 // ── A case, played ──────────────────────────────────────────────────────
 
 // performClockStep performs step on subject, at moving the case's clock on by
-// what it passes.
-func performClockStep(step json.RawMessage, subject clockSubject, at *time.Duration) error {
+// what it passes, a timing it names being one of timings.
+func performClockStep(step json.RawMessage, subject clockSubject, timings map[string]json.RawMessage, at *time.Duration) error {
 	var word string
 	if json.Unmarshal(step, &word) == nil {
 		switch word {
@@ -868,7 +991,7 @@ func performClockStep(step json.RawMessage, subject clockSubject, at *time.Durat
 	}
 	switch {
 	case stated.Pass != nil && stated.Counted == nil:
-		wait, err := clockDuration(stated.Pass)
+		wait, err := clockDuration(timings, stated.Pass)
 		if err != nil {
 			return err
 		}
@@ -897,10 +1020,11 @@ func playClockCase(t *testing.T, played clockCase) error {
 	if !ok {
 		return fmt.Errorf("%s is no subject this runner builds", played.Subject)
 	}
+	timings := timingValues(t)
 	subject := build(t, played.Given)
 	var at time.Duration
 	for n, step := range played.Steps {
-		if err := performClockStep(step, subject, &at); err != nil {
+		if err := performClockStep(step, subject, timings, &at); err != nil {
 			var compact bytes.Buffer
 			if compacted := json.Compact(&compact, step); compacted != nil {
 				return fmt.Errorf("steps[%d] is not JSON: %w", n, compacted)

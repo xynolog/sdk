@@ -45,15 +45,20 @@ import xynolog.telemetry.callersTrace
 import xynolog.testing.Deliver
 import xynolog.testing.DropReply
 import xynolog.testing.FaultAction
-import xynolog.transport.ConnectionState
 import xynolog.types.Annotation
 import xynolog.types.ClaimOptions
+import xynolog.types.ClaimRefusal
+import xynolog.types.ConnectionState
 import xynolog.types.DurabilityEvidence
 import xynolog.types.Engine
-import xynolog.types.EngineProvider
 import xynolog.types.FailureClass
+import xynolog.types.HeldJobStall
+import xynolog.types.InferenceProvider
+import xynolog.types.JobCheckpoint
+import xynolog.types.JobFailure
 import xynolog.types.JobFilter
 import xynolog.types.JobProgress
+import xynolog.types.JobReached
 import xynolog.types.JobType
 import xynolog.types.MarkJobDone
 import xynolog.types.UnitCursor
@@ -381,7 +386,7 @@ class ClaimsTest {
         val job = assertInstanceOf(HeldMarkJob::class.java, held(claims))
         job.start()
         job.progress(JobProgress(percentage = 40.0))
-        job.checkpoint(listOf("Person"), mapOf("Place" to wireJson.decodeFromJsonElement(serializer<UnitCursor>(), cursor)))
+        job.checkpoint(JobCheckpoint(completedUnits = listOf("Person"), unitCursors = mapOf("Place" to wireJson.decodeFromJsonElement(serializer<UnitCursor>(), cursor))))
         job.commit(RESOURCE, listOf(made("ann-1")))
         job.complete(MarkJobDone(found = 9, persisted = 7))
         assertTrue(job.settled)
@@ -470,9 +475,9 @@ class ClaimsTest {
         val w = World(this, WORKER)
         w.desk.offered += listOf(running("job-1", metadata = obj("retryCount" to 0, "maxRetries" to 1)), running("job-2", metadata = obj("retryCount" to 1, "maxRetries" to 1)), running("job-3"))
         val claims = w.client.job.claim(ClaimOptions(EVERYTHING))
-        held(claims).fail("the model timed out", completedUnits = listOf("Person"))
+        held(claims).fail("the model timed out", JobFailure(completedUnits = listOf("Person")))
         held(claims).fail("the model timed out")
-        held(claims).cancel(listOf("Person"))
+        held(claims).cancel(JobReached(completedUnits = listOf("Person")))
         val base = obj("resourceId" to "res-1", "jobType" to "mark")
         assertSent(
             listOf(
@@ -628,7 +633,7 @@ class ClaimsTest {
     fun answeredThatItIsNotThereTheCommitRaisesWhatItsRequestDidAndTheFailureSaysWhatWasObserved() = runTest(timeout = LIMIT) {
         committing(DurabilityEvidence.ProbeRefused) { w, job, did ->
             assertEquals(BusRequestErrorCode.Timeout, did.single()?.reason)
-            job.fail("the batch did not land", failureClass = FailureClass.Deterministic)
+            job.fail("the batch did not land", JobFailure(failureClass = FailureClass.Deterministic))
             val failed = w.desk.sent("job:fail").single()
             assertEquals(JsonPrimitive("probe-refused"), failed["durability"])
             assertEquals(JsonPrimitive(false), failed["willRetry"])
@@ -678,7 +683,7 @@ class ClaimsTest {
         val claims = w.client.job.claim(ClaimOptions(EVERYTHING, heldJobStallMs = 400, heldJobStallCheckMs = 100))
         val empty = claims.vitals()
         assertEquals(Triple(null, null, 0L), Triple(empty.lastClaimAt, empty.activeJob, empty.jobsCompleted))
-        val engine = Engine(provider = EngineProvider.Ollama, model = "a-model")
+        val engine = Engine(provider = InferenceProvider.Ollama, model = "a-model")
         assertEquals(WorkerEngineHealth(engine, EVERYTHING, null, null, null, null, null, 0L), claims.health(engine))
         val job = held(claims)
         val holding = claims.vitals()

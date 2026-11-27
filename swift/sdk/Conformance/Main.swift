@@ -178,23 +178,8 @@ private actor Driver {
     case "open":
       guard transport == nil else { throw Misuse(description: "A transport is already open") }
       var timing = TransportTiming()
-      if args["timing"] != nil {
-        let values = try args.object("timing")
-        for key in values.keys {
-          switch key {
-          case "reconnectMs": timing.reconnectMs = try values.integer(key)
-          case "lazyRemoveMs": timing.lazyRemoveMs = try values.integer(key)
-          case "lingerMs": timing.lingerMs = try values.integer(key)
-          case "seenEventIdsCount": timing.seenEventIdsCount = try values.integer(key)
-          case "emitRetry":
-            let budget = try values.object(key)
-            timing.emitAttempts = try budget.integer("attempts")
-            timing.emitInitialDelayMs = try budget.integer("initialDelayMs")
-            timing.emitMaxDelayMs = try budget.integer("maxDelayMs")
-          default: throw Misuse(description: "Unknown timing override \(key)")
-          }
-        }
-      }
+      let rows = try args.timingRows()
+      for name in rows.keys { try timing.set(name, from: rows) }
       let refresh: (@Sendable (String?) async throws -> String?)?
       if args["renewals"] != nil {
         let renewals = Renewals(try args.texts("renewals"))

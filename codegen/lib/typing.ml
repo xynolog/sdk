@@ -18,6 +18,9 @@ type literal = Schema.literal
 
 type scalar =
   | Text of { binary : bool; pattern : string option }
+  | Code of string
+      (** A code of the errors/codes.json vocabulary it names, which each SDK's
+          error codes declare. *)
   | Integer of { minimum : float option; maximum : float option }
   | Number
   | Boolean
@@ -202,6 +205,12 @@ let keywords =
     ("not", Rule);
     ("discriminator", Shape);
     ("$defs", Said);
+    ("x-xynolog-codes", Shape);
+    (* A client type's type parameters, and a member that holds one: a type
+       its caller decides, which only the client types each SDK writes by
+       hand state ([Definitions.hand_written_client_types]). *)
+    ("x-xynolog-typeParameters", Said);
+    ("x-xynolog-typeParameter", Said);
   ]
 
 (* A keyword that constrains nothing, so a schema of these alone, as
@@ -270,9 +279,13 @@ let member_name (s : D.t) =
 
 let scalar (n : D.node) (t : Schema.type_name) =
   match t with
-  | String ->
-      Some
-        (Text { binary = n.format = Some Schema.Binary; pattern = n.pattern })
+  | String -> (
+      match n.codes with
+      | Some vocabulary -> Some (Code vocabulary)
+      | None ->
+          Some
+            (Text
+               { binary = n.format = Some Schema.Binary; pattern = n.pattern }))
   | Integer -> Some (Integer { minimum = n.minimum; maximum = n.maximum })
   | Number -> Some Number
   | Boolean -> Some Boolean
@@ -413,8 +426,11 @@ and merged st ~register ~name ~owners (s : D.t) : form =
   | D.Node n when without_null s = None && union_members s = None -> (
       match (n.enum, n.type_) with
       | Some values, types ->
+          (* An enum's values are what it is: one of codes is text. *)
           let base =
-            match types with Some (D.One t) -> scalar n t | _ -> None
+            match types with
+            | Some (D.One t) -> scalar { n with codes = None } t
+            | _ -> None
           in
           Enum { base; values }
       | None, _ when List.mem name st.identifiers -> (
@@ -588,6 +604,7 @@ and signatures st seen (ty : ty) : signature list =
   | Named name -> form_signatures st (name :: seen) (declaration st name).form
   | Inline i -> form_signatures st seen i.form
   | Scalar (Text { pattern; _ }) -> one ?pattern Text_kind
+  | Scalar (Code _) -> one Text_kind
   | Scalar (Integer _) -> one Integer_kind
   | Scalar Number -> one Number_kind
   | Scalar Boolean -> one Boolean_kind
@@ -621,7 +638,7 @@ and form_signatures st seen (form : form) =
   | Enum { base; values } ->
       let kind =
         match base with
-        | Some (Text _) -> Text_kind
+        | Some (Text _ | Code _) -> Text_kind
         | Some (Integer _) -> Integer_kind
         | Some Number -> Number_kind
         | Some Boolean -> Boolean_kind
@@ -726,41 +743,47 @@ let apart_by_pattern_only (u : union) =
       else None)
     (pairs u.branches)
 
-(* Every reference a type holds, through what it holds in place. *)
-let rec references_of_ty (ty : ty) =
+(* Every name and scalar a type holds, through what it holds in place: a
+   map's key is the name of the schema its keys are. *)
+let rec leaves_of_ty (ty : ty) =
   match ty with
-  | Named name -> [ name ]
-  | Inline i -> references_of_inline i
-  | List (Some ty) | Nullable ty -> references_of_ty ty
-  | Scalar _ | Null | List None | Any | Nothing -> []
+  | Named _ | Scalar _ -> [ ty ]
+  | Inline i -> leaves_of_inline i
+  | List (Some ty) | Nullable ty -> leaves_of_ty ty
+  | Null | List None | Any | Nothing -> []
 
-and references_of_inline (i : inline) =
-  references_of_form i.form
+and leaves_of_inline (i : inline) =
+  leaves_of_form i.form
   @
   match i.composition with
-  | Some c -> List.concat_map references_of_ty c.parts
+  | Some c -> List.concat_map leaves_of_ty c.parts
   | None -> []
 
-and references_of_form (form : form) =
-  let of_rest = function Of ty -> references_of_ty ty | _ -> [] in
+and leaves_of_form (form : form) =
+  let of_rest = function Of ty -> leaves_of_ty ty | _ -> [] in
   match form with
   | Record { members; rest } ->
-      List.concat_map (fun (m : member) -> references_of_ty m.ty) members
+      List.concat_map (fun (m : member) -> leaves_of_ty m.ty) members
       @ of_rest rest
   | Empty _ | Enum _ | Identifier _ | Json -> []
-  | Map { key; value } -> Option.to_list key @ references_of_ty value
-  | Alias ty -> references_of_ty ty
+  | Map { key; value } ->
+      List.map (fun k -> Named k) (Option.to_list key) @ leaves_of_ty value
+  | Alias ty -> leaves_of_ty ty
   | Union { branches; _ } ->
-      List.concat_map (fun (b : branch) -> references_of_ty b.ty) branches
+      List.concat_map (fun (b : branch) -> leaves_of_ty b.ty) branches
 
-(* Every schema a declaration names, through what it holds in place and what
-   its [allOf] composes. *)
-let references (d : declaration) =
-  references_of_form d.form
+(* Every name and scalar a declaration holds, through what it holds in place
+   and what its [allOf] composes. *)
+let leaves (d : declaration) =
+  leaves_of_form d.form
   @
   match d.composition with
-  | Some c -> List.concat_map references_of_ty c.parts
+  | Some c -> List.concat_map leaves_of_ty c.parts
   | None -> []
+
+(* Every schema a declaration names. *)
+let references (d : declaration) =
+  List.filter_map (function Named name -> Some name | _ -> None) (leaves d)
 
 (* [names], and every schema they reach, [find] giving each its
    declaration, in the order of their names. *)
@@ -861,3 +884,14 @@ let of_spec (spec : Spec.t) ~tables =
       ~identifiers ~keys:(D.map_keys spec)
   in
   { t with gateway = bundle.definitions.names }
+
+(* The vocabularies of errors/codes.json [t]'s declarations hold a code of
+   ([Code]), each once, in order. *)
+let codes (t : t) =
+  List.sort_uniq String.compare
+    (List.concat_map
+       (fun name ->
+         List.filter_map
+           (function Scalar (Code vocabulary) -> Some vocabulary | _ -> None)
+           (leaves (t.find name)))
+       t.names)

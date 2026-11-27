@@ -216,6 +216,8 @@ and type_of st what (ty : T.ty) =
   | T.Nullable inner -> type_of st what inner
   | T.Scalar (T.Text { binary = true; _ }) -> t "ByteArray"
   | T.Scalar (T.Text _) -> t "String"
+  | T.Scalar (T.Code vocabulary) ->
+      t ("xynolog.errors." ^ snd (Code_names.named vocabulary))
   | T.Scalar T.Boolean -> t "Boolean"
   | T.Scalar T.Number -> t "Double"
   | T.Scalar (T.Integer _) -> t "Long"
@@ -236,7 +238,9 @@ and in_place st what (i : T.inline) =
   | (T.Empty _ as form), None when T.holds_none form -> the_empty_object st
   | T.Empty _, None -> t "JsonObject"
   | T.Map { key; value }, None -> map_of st what key value
-  | (T.Enum { base = None; _ } | T.Alias _ | T.Identifier _ | T.Json), None ->
+  | ( ( T.Enum { base = None | Some (T.Code _); _ }
+      | T.Alias _ | T.Identifier _ | T.Json ),
+      None ) ->
       refuse "%s: a schema shape the generator does not know" what
 
 (* A map, keyed by the schema [key] names (text, when it names none), of
@@ -1033,6 +1037,20 @@ let generate spec =
       (sorted st.written)
   in
   { types; identifier_decls = List.map snd (sorted st.identifiers_written) }
+
+(* The properties of the data class declared of [name], each by its Kotlin
+   name, with the type it is read as, what it is, and whether Java reads it
+   boxed. *)
+let properties spec name =
+  let st = state spec in
+  match (spec.find name).form with
+  | T.Record { members; _ } ->
+      List.map
+        (fun m ->
+          let p = property st name m in
+          (p.name, taken p, p.about, p.boxed))
+        members
+  | _ -> refuse "%s: no data class is declared of it" name
 
 (* The Kotlin type of the value a table's [$ref] names, named in full: a
    schema's type, or the type of one member of a schema's own. Named in

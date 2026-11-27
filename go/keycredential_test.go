@@ -29,6 +29,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
 )
 
 const keyClient = "xynolog-worker-alice-laptop"
@@ -212,7 +214,7 @@ func TestAKeyCredentialNeverShowsItsKeyAndARefusedGrantNeverShowsItsAssertion(t 
 
 	_, err := NewServiceToken(credential, issuerOf()).Authorization(context.Background())
 	var failed *SignInError
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Fatalf("a refused grant failed as %v", err)
 	}
 	if status, ok := failed.Status(); !ok || status != http.StatusUnauthorized {

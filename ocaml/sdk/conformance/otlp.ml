@@ -33,8 +33,9 @@ let make ~id ~post =
     in
     let trace_id =
       match value.trace with
-      | Some trace when String.length trace.parent = 55 ->
-          String.sub trace.parent 3 32
+      | Some (trace : Xynolog.Records.Trace_carrier.t)
+        when String.length trace.traceparent = 55 ->
+          String.sub trace.traceparent 3 32
       | _ -> id ()
     in
     `Assoc

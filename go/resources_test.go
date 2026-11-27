@@ -68,7 +68,7 @@ func refusedNaming(t *testing.T, why string, err error, named string) {
 		t.Errorf("%s: read, or failed as %v, and the table says it is refused, naming %q", why, err, named)
 		return
 	}
-	if refusal.Code != xynolog.TransportErrorCodeError || !strings.Contains(refusal.Message, named) {
+	if refusal.Code != api.TransportErrorCodeError || !strings.Contains(refusal.Message, named) {
 		t.Errorf("%s: refused as %s %q, and the table says the refusal is an error naming %q", why, refusal.Code, refusal.Message, named)
 	}
 }
@@ -78,7 +78,7 @@ func refusedNaming(t *testing.T, why string, err error, named string) {
 // Rust runners read it, through the client's content transport.
 func reading(t *testing.T) func(data []byte, contentType string) (string, error) {
 	t.Helper()
-	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 	t.Cleanup(func() {
 		made.Client.Close()
 		made.Transport.Close()

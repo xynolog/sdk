@@ -7,12 +7,8 @@ import Foundation
 // codegen/lib/required/shape.ml, which states what each part of a shape means and
 // the order a reader walks them in.
 
-/// The first thing wrong with a value: the way to the member it is at (the names of the members it
-/// is within, and its own, joined by dots; empty for the value itself), and why.
-public struct Fault: Error, Equatable, Sendable {
-  public let member: String
-  public let reason: FrameRefusalReason
-
+/// The first thing wrong with a value, thrown where a value is refused.
+extension Fault: Error {
   /// The fault of a value its decoder refuses where the table finds none: the value itself.
   static let undecoded = Fault(member: "", reason: .malformed)
 
@@ -131,6 +127,14 @@ public func faultOf(_ schema: String, _ value: JSONValue) -> Fault? {
 func faultOf(_ shape: Shape, _ value: JSONValue) -> Fault? {
   var read = value
   return faultAt(shape, &read, way: "")
+}
+
+/// `value` as `Value`, a generated type, held to the table as the component schema of its name
+/// before it is decoded: nil for its first fault, or where its decoder refuses it.
+func readAs<Value: Decodable>(_ type: Value.Type, _ value: JSONValue) -> Value? {
+  var read = value
+  guard faultAt(component(String(describing: type)), &read, way: "") == nil else { return nil }
+  return try? JSONDecoder().decode(type, from: JSONEncoder().encode(read))
 }
 
 /// `payload`, a payload on `channel`, as it is read by the rules every SDK reads the table by: a

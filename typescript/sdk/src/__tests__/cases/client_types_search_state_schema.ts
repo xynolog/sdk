@@ -9,12 +9,16 @@ export const schema = {
   title: 'SearchState',
   type: 'object',
   description:
-    "A search pipeline's state: the results of the last query answered, and whether a query is still on its way. What a result is, is the search's source's.",
+    "A search pipeline's state: the results of the last query answered, and whether a query is still on its way. What a result is, R, is the search's source's.",
+  'x-xynolog-typeParameters': ['R'],
   properties: {
     results: {
       type: 'array',
       description:
         "The last answered query's results, as its source gives them.",
+      items: {
+        'x-xynolog-typeParameter': 'R',
+      },
     },
     isSearching: {
       type: 'boolean',

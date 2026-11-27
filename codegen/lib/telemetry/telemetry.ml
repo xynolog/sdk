@@ -554,7 +554,7 @@ let swift (t : t) =
 
 let haskell (t : t) =
   let module H = Haskell_syntax in
-  Haskell_sdk.file ~under:"generated"
+  Haskell_syntax.file ~under:"generated"
     {
       H.banner = Banner.lines ~from_:file __FILE__;
       extensions = [ "OverloadedStrings" ];
@@ -574,7 +574,7 @@ let haskell_names (t : t) =
       ~about:(Text.wrapped ~lead:"-- | " ~width:80 r.meaning)
       (name r) (T_name "Text") (Str r.name)
   in
-  Haskell_sdk.file ~under:"generated"
+  Haskell_syntax.file ~under:"generated"
     {
       H.banner = Banner.lines ~from_:file __FILE__;
       extensions = [ "OverloadedStrings" ];

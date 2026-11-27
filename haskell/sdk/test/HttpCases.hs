@@ -128,7 +128,7 @@ httpCases root fixtures = do
               (readTVarIO supplied)
               (\refused -> modifyIORef' renewals (++ [refused]) >> pure (Just "renewed"))
               time
-              Settings.protocolSettings
+              Settings.protocolTransportTiming
               fresh
               (Set.fromList globalChannels)
               (pure Map.empty)
@@ -141,21 +141,21 @@ httpCases root fixtures = do
             }
       http <- Http.newHttpTransport (options pool)
       let busOptions = Bus.BusOptions (Retry.retryNow time) (Retry.retryWaitUntil time) (UUID.toText <$> fresh)
-      client <- Client.newClient (Http.transport http) (Http.content http) (Just (Http.gateway http)) busOptions Settings.protocolSettings Nothing
+      client <- Client.newClient (Http.transport http) (Http.content http) (Just (Http.gateway http)) busOptions Settings.protocolClientTiming Nothing
       let contents = Client.content client
           fromFixture name = case Map.lookup name fixtures of
             Nothing -> error ("test fixture missing: " ++ Text.unpack name)
             Just value -> case fromJSON value of Error reason -> error reason; Success answer -> answer
       resource <- either (ioError . userError) pure (mkResourceId "download")
       ( do
-          atomically (State.current (Client.state client) >>= check . (== Transport.Open))
+          atomically (State.current (Client.state client) >>= check . (== Transport.ConnectionStateOpen))
           reach peer "the connection proof"
           target <- case parseURI (Text.unpack origin) >>= uriAuthority of
             Just address -> case readMaybe (drop 1 (uriPort address)) of
               Just port -> pure (HttpEndpoint {httpEndpointHost = (Text.pack (uriRegName address)), httpEndpointKind = HttpEndpointKindHttp, httpEndpointPort = port, httpEndpointProtocol = HttpEndpointProtocolHttp})
               Nothing -> ioError (userError "HTTP peer named no port")
             Nothing -> ioError (userError "HTTP peer named no origin")
-          proven <- Identity.describeConnection (options pool) target "proof-credential-not-for-log"
+          proven <- Identity.describeConnection (options pool) Settings.protocolClientTiming target "proof-credential-not-for-log"
           let expectedDescription = fromFixture "KbDescription"
           expectedDid <- either (ioError . userError) pure (Principal.kbDid (kbDescriptionDomain expectedDescription))
           require "connection proof invented a knowledge-base identity" (connectionIdentityDescription proven == expectedDescription && connectionIdentityDid proven == expectedDid)
@@ -174,10 +174,10 @@ httpCases root fixtures = do
                 (values "requests" proofRequests)
             )
           postControl peer "/test/config" (object ["refusedOperations" .= [String (channelName BrowseKbRequested)]])
-          notReported <- try (Identity.describeConnection (options pool) target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
+          notReported <- try (Identity.describeConnection (options pool) Settings.protocolClientTiming target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
           require "a KB which refused to describe itself was reported as unreachable" (case notReported of Left failure -> Identity.identityUnverifiableReason failure == Code.KbIdentityNotReported; _ -> False)
           postControl peer "/test/config" (object ["refusedOperations" .= ([] :: [Text]), "emitStatuses" .= ([403] :: [Int])])
-          unreachable <- try (Identity.describeConnection (options pool) target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
+          unreachable <- try (Identity.describeConnection (options pool) Settings.protocolClientTiming target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
           require "an unreachable KB was reported as having refused its identity" (case unreachable of Left failure -> Identity.identityUnverifiableReason failure == Code.KbIdentityUnreachable; _ -> False)
           void $ Frame.addEntityType (Client.frame client) "Entity"
           void $ Frame.addEntityTypes (Client.frame client) ["One", "Two"]
@@ -292,9 +292,9 @@ httpCases root fixtures = do
           let total = fromIntegral (Bytes.length bytes)
               sending reports = [report | report@(UploadProgress _ _) <- reports]
               sent reports = [done | UploadProgress done _ <- reports]
-          require "upload reports are not its size, its progress and its resource" (notices == [UploadStarted total] ++ sending notices ++ [UploadFinished (createResourceResponseResourceId uploaded)])
+          require "upload reports are not its size, its progress and its resource" (notices == [UploadStarted (Just total)] ++ sending notices ++ [UploadFinished (createResourceResponseResourceId uploaded)])
           require "upload progress decreased across replay" (and (zipWith (<=) (sent notices) (drop 1 (sent notices))))
-          require "upload progress lost its total" (drop (length (sending notices) - 1) (sending notices) == [UploadProgress total total])
+          require "upload progress lost its total" (drop (length (sending notices) - 1) (sending notices) == [UploadProgress total (Just total)])
           state <- readState peer
           let uploads = values "uploads" state
           case uploads of
@@ -370,7 +370,7 @@ httpFaults peer http client resource clock waits = do
     atomically (writeTVar clock (began + Timing.reconnectDebounceMs * 1000000))
     _ <- awaitState peer ((>= beforeSubscriptions + 1) . length . values "subscriptions")
     connection <- atomically (State.current (Client.state client))
-    require "subscription handoff changed an open connection's state" (connection == Transport.Open)
+    require "subscription handoff changed an open connection's state" (connection == Transport.ConnectionStateOpen)
     let channel = channelName FrameEntityTypeAddOk
         publish correlation =
           postControl
@@ -460,7 +460,7 @@ httpFaults peer http client resource clock waits = do
     atomically (takeTMVar entered)
     atomically (modifyTVar' clock (+ (Timing.httpRequestTimeoutMs * 2000000)))
     stillOpen <- atomically (State.current (Client.state client))
-    require "idle SSE stream inherited an HTTP response timeout" (stillOpen == Transport.Open)
+    require "idle SSE stream inherited an HTTP response timeout" (stillOpen == Transport.ConnectionStateOpen)
     cancel reader
     _ <- awaitState peer ((== 1) . count "bodyClosed")
     pure ()
@@ -471,13 +471,13 @@ credentialCases peer options supplied renewals clock waits = do
   atomically (writeTVar supplied (Just "refused") >> writeTVar waits Set.empty)
   writeIORef renewals []
   postControl peer "/test/config" (object ["gateSubscribe" .= True, "subscribeFailures" .= ([401, 401] :: [Int])])
-  bracket (Client.fromHttp options Nothing) Client.dispose $ \client -> do
+  bracket (Client.fromHttp options Settings.protocolClientTiming Nothing) Client.dispose $ \client -> do
     began <- readTVarIO clock
     Transport.errors (Client.transport client) $ \errors -> do
       postControl peer "/test/config" (object ["gateSubscribe" .= False])
       failures <- Stream.toList_ (Stream.take 2 errors)
       require "stream credential refusal lost status or peer words" (all (\problem -> httpStatus problem == Just 401 && Text.isInfixOf "stream credential refused" (transportErrorMessage problem)) failures)
-      atomically (State.current (Client.state client) >>= check . (== Transport.Unauthenticated))
+      atomically (State.current (Client.state client) >>= check . (== Transport.ConnectionStateUnauthenticated))
       first <- readState peer
       let attempts state =
             length
@@ -497,7 +497,7 @@ credentialCases peer options supplied renewals clock waits = do
       require "a twice-refused stream credential was sent again" (attempts first == attempts second)
       readIORef renewals >>= require "stream renewed more than once in one outage" . (== ["refused"])
       atomically (writeTVar supplied (Just "fresh") >> writeTVar clock secondPoll)
-      atomically (State.current (Client.state client) >>= check . (== Transport.Open))
+      atomically (State.current (Client.state client) >>= check . (== Transport.ConnectionStateOpen))
       void $ Frame.addEntityType (Client.frame client) "Recovered"
       require "client base URL changed" (Client.baseUrl client == peerOrigin peer)
 
@@ -507,21 +507,21 @@ recoveryCases peer options clock waits = do
   atomically (writeTVar waits Set.empty)
   let seconds = (Timing.degradedThresholdMs * 2 + 999) `div` 1000
   postControl peer "/test/config" (object ["gateSubscribe" .= True, "subscribeFailures" .= ([503] :: [Int]), "subscribeRetryAfter" .= show seconds])
-  bracket (Client.fromHttp options Nothing) Client.dispose $ \client -> do
+  bracket (Client.fromHttp options Settings.protocolClientTiming Nothing) Client.dispose $ \client -> do
     began <- readTVarIO clock
     Transport.errors (Client.transport client) $ \errors -> do
       postControl peer "/test/config" (object ["gateSubscribe" .= False])
       failures <- Stream.toList_ (Stream.take 1 errors)
       require "refused connect was not reported" (map httpStatus failures == [Just 503])
-      atomically (State.current (Client.state client) >>= check . (== Transport.Reconnecting))
+      atomically (State.current (Client.state client) >>= check . (== Transport.ConnectionStateReconnecting))
       let degradedAt = began + Timing.degradedThresholdMs * 1000000
           reconnectAt = began + seconds * 1000000000
       waitForDeadline waits degradedAt
       atomically (writeTVar clock degradedAt)
-      atomically (State.current (Client.state client) >>= check . (== Transport.Degraded))
+      atomically (State.current (Client.state client) >>= check . (== Transport.ConnectionStateDegraded))
       waitForDeadline waits reconnectAt
       atomically (writeTVar clock reconnectAt)
-      atomically (State.current (Client.state client) >>= check . (== Transport.Open))
+      atomically (State.current (Client.state client) >>= check . (== Transport.ConnectionStateOpen))
 
 waitForDeadline :: TVar (Set.Set Integer) -> Integer -> IO ()
 waitForDeadline waits due = atomically (readTVar waits >>= check . Set.member due)

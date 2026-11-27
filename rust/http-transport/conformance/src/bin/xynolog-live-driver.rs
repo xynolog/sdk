@@ -23,7 +23,7 @@ use xynolog::refresh::CacheQuery;
 use xynolog::resume::CoupledBookmarks;
 use xynolog::session::{last_event_id_key, person_key};
 use xynolog::storage::InMemorySessionStorage;
-use xynolog::transport::ConnectionState;
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     AnnotationId, ConformanceDriverLine, ConformanceDriverLineCompleted,
     ConformanceDriverLineEmission, ConformanceDriverLineEmissionEmission,
@@ -32,11 +32,11 @@ use xynolog::types::{
     ConformanceDriverLineState, GenerationJobParams, MarkJobParams, ResourceId,
 };
 use xynolog_conformance_drivers::{
-    Arguments, Driver, Ended, Running, count, failed, failure, identifier, locked, object, say,
-    serve, text,
+    Arguments, Driver, Ended, Running, client_row, count, failed, failure, identifier, locked,
+    object, read_timing, say, serve, text, transport_row,
 };
 use xynolog_http_transport::client::client;
-use xynolog_http_transport::transport::{HttpTransportConfig, Timing};
+use xynolog_http_transport::transport::{HttpTransportConfig, TransportTiming};
 
 /// The knowledge base and the person a persisting client keeps for: every
 /// SDK's driver keeps for these, so the suite's `persist` cases rehydrate.
@@ -218,29 +218,12 @@ impl Live {
         if locked(&self.open).as_ref().is_some_and(|open| !open.closed) {
             return Err(Ended::Misuse("a client is already open".to_owned()));
         }
-        let mut wire = Timing::default();
-        let mut timing = ClientTiming::default();
-        let stated = match args.get("timing") {
-            None => &Arguments::new(),
-            Some(_) => object(args, "timing")?,
-        };
-        let ms = |name: &str| count(stated, name).map(Duration::from_millis);
-        for name in stated.keys() {
-            match name.as_str() {
-                "reconnectMs" => wire.reconnect = ms(name)?,
-                "lazyRemoveMs" => wire.lazy_remove = ms(name)?,
-                "lingerMs" => wire.linger = ms(name)?,
-                "busRequestTimeoutMs" => timing.bus_request = ms(name)?,
-                "invalidationWindowMs" => timing.invalidation_window = ms(name)?,
-                "jobSilenceMs" => timing.job_silence = ms(name)?,
-                "jobStatusPollMs" => timing.job_status_poll = ms(name)?,
-                other => {
-                    return Err(Ended::Misuse(format!(
-                        "this driver cannot override {other}"
-                    )));
-                }
-            }
-        }
+        let mut transport_timing = TransportTiming::default();
+        let mut client_timing = ClientTiming::default();
+        read_timing(args, |stated, row| {
+            Ok(transport_row(&mut transport_timing, stated, row)?
+                || client_row(&mut client_timing, stated, row)?)
+        })?;
         let (token, tokens) = watch::channel(Some(text(args, "token")?.to_owned()));
         let person = person_key(CONFORMANCE_PERSON);
         let places = (args.get("persist") == Some(&Value::Bool(true))).then(|| {
@@ -256,11 +239,11 @@ impl Live {
                 refresher: None,
                 channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
                 http: reqwest::Client::new(),
-                timing: wire,
+                timing: transport_timing,
                 random: None,
             },
             ClientOptions {
-                timing,
+                timing: client_timing,
                 cache_persistence: places.as_ref().map(|places| CachePersistence {
                     storage: places.storage(),
                     kb_id: CONFORMANCE_KB.to_owned(),

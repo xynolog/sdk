@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/error_codes/haskell.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.ErrorCodes (BusRequestCode (..), busRequestCode, parseBusRequestCode, ControlCode (..), controlCode, parseControlCode, JobCode (..), jobCode, parseJobCode, KbIdentityCode (..), kbIdentityCode, parseKbIdentityCode, SessionCode (..), sessionCode, parseSessionCode, SignInCode (..), signInCode, parseSignInCode, SpanRefusalCode (..), spanRefusalCode, parseSpanRefusalCode, TransportCode (..), transportCode, parseTransportCode, transportCodeFromStatus) where
+module Xynolog.ErrorCodes (BusRequestCode (..), busRequestCode, parseBusRequestCode, ControlCode (..), controlCode, parseControlCode, JobCode (..), jobCode, parseJobCode, KbIdentityCode (..), kbIdentityCode, parseKbIdentityCode, SessionCode (..), sessionCode, parseSessionCode, SignInCode (..), signInCode, parseSignInCode, SpanRefusalCode (..), spanRefusalCode, parseSpanRefusalCode, TransportCode (..), transportCode, parseTransportCode, transportCodeFromStatus, limitRefusalTransportCodes) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withText)
 import Data.Text (Text)
@@ -239,3 +239,7 @@ instance FromJSON TransportCode where parseJSON = withText "TransportCode" (\val
 
 transportCodeFromStatus :: Int -> TransportCode
 transportCodeFromStatus status = if status == 401 then TransportUnauthorized else if status == 403 then TransportForbidden else if status == 404 then TransportNotFound else if status == 409 then TransportConflict else if status == 400 then TransportBadRequest else if status == 422 then TransportUnprocessable else if status == 429 then TransportRateLimited else if status >= 500 then TransportUnavailable else TransportError
+
+-- | Each gateway refusal of a limit that is a transport code too: its status, its LimitRefusal code, and the transport code it is.
+limitRefusalTransportCodes :: [(Int, Text, TransportCode)]
+limitRefusalTransportCodes = [(429, "refusal-rate", TransportUnauthorized)]

@@ -10,7 +10,7 @@ data TestSessionOptions = TestSessionOptions
   { testSessionOptionsClient :: Client.Client,
     testSessionOptionsSession :: Session.SessionOptions,
     testSessionOptionsClock :: RetryOptions,
-    testSessionOptionsTiming :: Timing.Settings
+    testSessionOptionsTiming :: Timing.TransportTiming
   }
 
 data TestSession = TestSession

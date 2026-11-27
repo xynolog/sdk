@@ -514,7 +514,7 @@ let readers t ~normalize ~definition ~typing (codes : Tables.Errors_codes.t) =
       Ok
         {
           operation = o;
-          accessor = Models.field failure "message";
+          accessor = H.field failure "message";
           failure;
           code_type;
           codes = mapped;
@@ -580,7 +580,7 @@ let failure_file ~banner ~unrecognized readers =
                      body =
                        Compose
                          ( Name (reader_of r.code_type),
-                           Name ("Types." ^ Models.field r.failure "code") );
+                           Name ("Types." ^ H.field r.failure "code") );
                    })
                  readers;
            }

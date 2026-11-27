@@ -11,8 +11,6 @@ public struct GatherNamespace: Sendable {
   public func annotation(
     resourceId: ResourceId, annotationId: AnnotationId, options: GatherAnnotationOptions? = nil
   ) -> Running<GatherAnnotationComplete> {
-    var options = options ?? GatherAnnotationOptions()
-    if options.contextWindow == nil { options.contextWindow = 2000 }
     let request = GatherAnnotationRequest(
       annotationId: annotationId, resourceId: resourceId, options: options)
     return Running(lifetime: lifetime) { _ in

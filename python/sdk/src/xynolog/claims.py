@@ -68,15 +68,17 @@ from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from types import TracebackType
-from typing import Annotated, Final, Literal, Self, assert_never, final
+from typing import Final, Literal, Self, assert_never, final, override
 
-from pydantic import Field, JsonValue, TypeAdapter, ValidationError
+from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog import telemetry
+from xynolog._held_job import HeldJobRecordMembers
 from xynolog._instant import instant
 from xynolog._kept_for_first_reader import KeptForFirstReader, Latest
 from xynolog._reading import Reading
-from xynolog.bus import Bus, answer_of, reply_channels_for, request
+from xynolog._worker_channels import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS
+from xynolog.bus import Bus, answer_of, request
 from xynolog.channel import Operation
 from xynolog.channels import (
     JOB_CANCEL,
@@ -88,31 +90,35 @@ from xynolog.channels import (
     JOB_REPORT_PROGRESS,
     JOB_START,
 )
-from xynolog.error_codes import BusRequestErrorCode
 from xynolog.errors import BusRequestError, XynologError
 from xynolog.events import Events
-from xynolog.identifiers import AnnotationId, JobId, ResourceId
+from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.job_filter import job_matches_filter
 from xynolog.model import WireModel, written
 from xynolog.operations import BROWSE_ANNOTATION_REQUESTED, JOB_CLAIM, MARK_COMMIT
 from xynolog.required import Fault, as_read
 from xynolog.timing import HELD_JOB_STALL_CHECK_MS, HELD_JOB_STALL_MS, JOB_CLAIM_TIMEOUT_MS, MARK_COMMIT_TIMEOUT_MS
-from xynolog.transport import Frame, FrameRefusal, TraceContext, Transport
+from xynolog.transport import Frame, FrameRefusal, Transport
 from xynolog.types import (
     Annotation,
     BrowseAnnotationRequest,
+    ClaimRefusal,
     DurabilityEvidence,
     FailureClass,
     GatheredContext,
     GatheredContextFocusAnnotation,
     GatheredContextFocusResource,
+    HeldJobRecord,
+    HeldJobStall,
     JobCancelCommand,
+    JobCheckpoint,
     JobCheckpointCommand,
     JobClaimCommand,
     JobFailCommand,
+    JobFailure,
     JobFilter,
-    JobParams,
     JobProgress,
+    JobReached,
     JobReportProgressCommand,
     JobRunning,
     JobStartCommand,
@@ -120,8 +126,9 @@ from xynolog.types import (
     MarkCommitCommand,
     MarkJobCompleteCommand,
     MarkJobResult,
-    UnitCursor,
-    WorkerEngineHealthActiveJob,
+    TraceCarrier,
+    WorkerActiveJob,
+    WorkerVitals,
     YieldJobCompleteCommand,
     YieldJobResult,
 )
@@ -130,32 +137,12 @@ from xynolog.watched import Variable, Watched
 __all__ = [
     "JOB_CLAIM_CHANNELS",
     "JOB_COMMIT_CHANNELS",
-    "ClaimRefusal",
     "Claims",
     "HeldJob",
-    "HeldJobStall",
     "HeldMarkJob",
     "HeldYieldJob",
-    "WorkerVitals",
     "will_retry_after",
 ]
-
-JOB_CLAIM_CHANNELS: Final[tuple[str, ...]] = (*reply_channels_for(JOB_CLAIM), JOB_QUEUED.name, JOB_CANCEL_REQUESTED.name)
-"""What a worker's stream names for its claims: the replies of `job:claim`, and the two broadcasts a worker reads.
-
-`job:queued` and `job:cancel-requested` reach only a stream that names them,
-so a transport made for a worker is given these beside the reply channels of
-whatever else the worker awaits.
-"""
-
-JOB_COMMIT_CHANNELS: Final[tuple[str, ...]] = reply_channels_for(MARK_COMMIT, BROWSE_ANNOTATION_REQUESTED)
-"""What a worker's stream names for its commits: the replies of `mark:commit`, and of the question it asks when one goes unacknowledged.
-
-The question is the read of ONE annotation, and not of a resource's list of
-them. Reply channels reach every stream that names them, and the list's
-replies are the frames of many megabytes a worker's stream exists to keep
-out; one annotation's frame is small.
-"""
 
 _STOPPED_WHILE_HELD: Final = "The worker stopped while it held the job"
 """The error of a job failed because its worker stopped, and not because the work failed."""
@@ -215,58 +202,6 @@ def _weakness(evidence: DurabilityEvidence) -> int:
             assert_never(evidence)
 
 
-@final
-@dataclass(frozen=True, slots=True)
-class ClaimRefusal:
-    """A claim that was refused for a reason other than "nothing pending".
-
-    `code` is the code the reply was given, or `None` when the refusal was the
-    worker's own: a reply that names no job, or a claim that could not be
-    sent. `bus.none-pending` never appears: an empty queue is not a fault.
-    `bus.unauthorized` means this credential cannot claim, and will not be
-    able to later.
-    """
-
-    code: BusRequestErrorCode | None
-    message: str
-
-
-@final
-class WorkerVitals(WireModel, frozen=True, extra="forbid"):
-    """What a worker can say of itself at any moment (WORKER-CONTRACT V1).
-
-    It is `WorkerEngineHealth` less its engine and jobs, which are its host's.
-
-    `last_queued_event_at` is any `job:queued` received, matching or not. On
-    an idle stack with an empty queue it stands still by design, so a still
-    stamp alone is not a fault of the stream. `last_activity_at` (a claim, a
-    progress report, a checkpoint, a settle) is the liveness of the work: a
-    job stuck partway stops advancing it, and that is what the stall rule
-    reads. `last_finished_at` is the last settle, whatever its outcome: a
-    worker that fails and moves on is alive.
-    """
-
-    last_queued_event_at: Annotated[str | None, Field(alias="lastQueuedEventAt")]
-    last_claim_at: Annotated[str | None, Field(alias="lastClaimAt")]
-    last_finished_at: Annotated[str | None, Field(alias="lastFinishedAt")]
-    last_activity_at: Annotated[str | None, Field(alias="lastActivityAt")]
-    active_job: Annotated[WorkerEngineHealthActiveJob | None, Field(alias="activeJob")]
-    jobs_completed: Annotated[int, Field(alias="jobsCompleted")]
-
-
-@final
-@dataclass(frozen=True, slots=True)
-class HeldJobStall:
-    """A held job that showed no activity for `threshold_ms` (WORKER-CONTRACT V2). What its host does then is the host's."""
-
-    job_id: JobId
-    job_type: JobType
-    held_since: datetime
-    last_activity_at: datetime
-    silent_for_ms: int
-    threshold_ms: int
-
-
 def _instant_or_none(at: datetime | None) -> str | None:
     return None if at is None else instant(at)
 
@@ -309,11 +244,23 @@ class _Holder:
     """The job is settled, and no longer held: whether it was completed."""
 
 
-class _Held:
+class _Held(HeldJobRecordMembers):
     """What a held job is, whatever its verb."""
 
-    def __init__(self, holder: _Holder, claimed: JobRunning, cancelled: Variable[bool], trace: TraceContext | None) -> None:
+    def __init__(self, holder: _Holder, claimed: JobRunning, cancelled: Variable[bool], trace: TraceCarrier | None) -> None:
         metadata, params = claimed.metadata, claimed.params
+        # Both appear on the record once an attempt has checkpointed. Absent, each is empty.
+        self.record = HeldJobRecord(
+            job_id=metadata.id,
+            job_type=metadata.type,
+            resource_id=params.resource_id,
+            params=params,
+            completed_units=metadata.completed_units or [],
+            unit_cursors=metadata.unit_cursors or {},
+            retry_count=metadata.retry_count,
+            max_retries=metadata.max_retries,
+        )
+        """The job as its claim handed it."""
         self._holder: Final = holder
         self.trace: Final = trace
         """The trace the job is run in: the one its reply arrived in. Nothing for a reply that arrived in none.
@@ -323,26 +270,11 @@ class _Held:
         """
         self._entered: Final[list[AbstractContextManager[None]]] = []
         """The job's trace, held once for each block that holds the job and has not been left."""
-        self.job_id: Final = metadata.id
-        self.resource_id: Final[ResourceId] = params.resource_id
-        self.params: Final[JobParams] = params
-        """The job's parameters as the dispatcher holds them: the description, and what the dispatcher adds."""
-        # Both appear on the record once an attempt has checkpointed. Absent, each reads as none.
-        self.completed_units: Final[Sequence[str]] = tuple(metadata.completed_units or ())
-        """The units earlier attempts finished. A worker does not do them again. Empty on a first attempt."""
-        self.unit_cursors: Final[Mapping[str, UnitCursor]] = dict(metadata.unit_cursors or {})
-        """The furthest each unit begun got on an earlier attempt, and what it had counted there.
-
-        A finished unit's is where it ended. Empty on a first attempt.
-        """
-        self.retry_count: Final = metadata.retry_count
-        self.max_retries: Final = metadata.max_retries
-        self.attempt: Final = metadata.retry_count + 1
+        self.attempt: Final = self.retry_count + 1
         """Which attempt this is, 1-based. Every lifecycle message states it."""
-        self.annotation_id: Final = _anchor_of(metadata.type, written(params))
+        self.annotation_id: Final = _anchor_of(self.job_type, written(self.params))
         """The annotation the job is anchored to: the one a `yield` job's context is focused on."""
-        self._type: Final[JobType] = metadata.type
-        description: Mapping[str, JsonValue] = {"jobType": metadata.type, "params": written(params)}
+        description: Mapping[str, JsonValue] = {"jobType": self.job_type, "params": written(self.params)}
         self.accepted: Final = any(job_matches_filter(accepted, description) for accepted in holder.filters)
         """Whether its claim accepts the job. The dispatcher hands out no other, so a job it does not is one the two disagree about."""
         self._cancelled: Final = cancelled
@@ -384,7 +316,7 @@ class _Held:
             JobStartCommand(
                 resource_id=self.resource_id,
                 job_id=self.job_id,
-                job_type=self._type,
+                job_type=self.job_type,
                 attempt=self.attempt,
                 annotation_id=self.annotation_id,
             ),
@@ -401,7 +333,7 @@ class _Held:
             JobReportProgressCommand(
                 resource_id=self.resource_id,
                 job_id=self.job_id,
-                job_type=self._type,
+                job_type=self.job_type,
                 attempt=self.attempt,
                 annotation_id=self.annotation_id,
                 percentage=progress.percentage,
@@ -409,7 +341,7 @@ class _Held:
             ),
         )
 
-    async def checkpoint(self, completed_units: Sequence[str], unit_cursors: Mapping[str, UnitCursor] | None = None) -> None:
+    async def checkpoint(self, checkpoint: JobCheckpoint) -> None:
         """`job:checkpoint`: what a later attempt resumes from. Counts as activity.
 
         The units finished, and the furthest each unit begun got, a finished
@@ -420,9 +352,7 @@ class _Held:
         self._holder.active()
         await self._holder.wire.emit(
             JOB_CHECKPOINT,
-            JobCheckpointCommand(
-                job_id=self.job_id, completed_units=list(completed_units), unit_cursors=None if unit_cursors is None else dict(unit_cursors)
-            ),
+            JobCheckpointCommand(job_id=self.job_id, completed_units=checkpoint.completed_units, unit_cursors=checkpoint.unit_cursors),
         )
 
     async def commit(self, resource_id: ResourceId, annotations: Sequence[Annotation]) -> None:
@@ -514,23 +444,16 @@ class _Held:
         if self._durability is None or _weakness(evidence) > _weakness(self._durability):
             self._durability = evidence
 
-    async def fail(
-        self,
-        error: str,
-        *,
-        failure_class: FailureClass | None = None,
-        completed_units: Sequence[str] | None = None,
-        unit_cursors: Mapping[str, UnitCursor] | None = None,
-    ) -> None:
+    async def fail(self, error: str, failure: JobFailure | None = None) -> None:
         """Settle: `job:fail`.
 
         It says whether the queue will retry, from the record's budget and
         the failure's class, and what a commit that was not established
-        observed. `failure_class` is the failure's class, when the worker
-        knows it; `completed_units` and `unit_cursors` the checkpoint, when
-        there is one.
+        observed. `failure` is what the worker knows beside the error: the
+        failure's class, and what the job had reached.
         """
         self._settling(JOB_FAIL.name)
+        stated = JobFailure() if failure is None else failure
         # Stated only when a commit was not established: what is weaker than
         # any observation that establishes one. Otherwise the failure says
         # nothing of the job's commits.
@@ -539,14 +462,14 @@ class _Held:
         failed = JobFailCommand(
             resource_id=self.resource_id,
             job_id=self.job_id,
-            job_type=self._type,
+            job_type=self.job_type,
             attempt=self.attempt,
             annotation_id=self.annotation_id,
             error=error,
-            completed_units=None if completed_units is None else list(completed_units),
-            unit_cursors=None if unit_cursors is None else dict(unit_cursors),
-            failure_class=failure_class,
-            will_retry=will_retry_after(self.retry_count, self.max_retries, failure_class),
+            completed_units=stated.completed_units,
+            unit_cursors=stated.unit_cursors,
+            failure_class=stated.failure_class,
+            will_retry=will_retry_after(self.retry_count, self.max_retries, stated.failure_class),
             durability=observed if not_established else None,
         )
         try:
@@ -554,21 +477,22 @@ class _Held:
         finally:
             self._holder.released(self, False)
 
-    async def cancel(self, completed_units: Sequence[str] | None = None, unit_cursors: Mapping[str, UnitCursor] | None = None) -> None:
+    async def cancel(self, reached: JobReached | None = None) -> None:
         """Settle: `job:cancel`, once the work has stopped for a cancellation.
 
-        With the units it finished, and the furthest each unit begun got, a
-        finished unit's cursor where it ended. The message is the command's
-        own fields and no more: it names no attempt.
+        With what it had reached: the units it finished, and the furthest each
+        unit begun got, a finished unit's cursor where it ended. The message
+        is the command's own fields and no more: it names no attempt.
         """
         self._settling(JOB_CANCEL.name)
+        stated = JobReached() if reached is None else reached
         cancelled = JobCancelCommand(
             resource_id=self.resource_id,
             job_id=self.job_id,
-            job_type=self._type,
+            job_type=self.job_type,
             annotation_id=self.annotation_id,
-            completed_units=None if completed_units is None else list(completed_units),
-            unit_cursors=None if unit_cursors is None else dict(unit_cursors),
+            completed_units=stated.completed_units,
+            unit_cursors=stated.unit_cursors,
         )
         try:
             await self._holder.wire.emit(JOB_CANCEL, cancelled)
@@ -619,7 +543,12 @@ class HeldMarkJob(_Held):
     raises.
     """
 
-    job_type: Final[Literal["mark"]] = "mark"
+    @property
+    @override
+    def job_type(self) -> Literal["mark"]:
+        if self.record.job_type != "mark":
+            raise RuntimeError(f"Job {self.job_id} is a {self.record.job_type} job: it cannot be held as a mark job")
+        return "mark"
 
     async def complete(self, result: MarkJobResult) -> None:
         """Settle: `job:complete`, with what a `mark` job reports, and how its commits were established."""
@@ -647,7 +576,12 @@ class HeldYieldJob(_Held):
     raises.
     """
 
-    job_type: Final[Literal["yield"]] = "yield"
+    @property
+    @override
+    def job_type(self) -> Literal["yield"]:
+        if self.record.job_type != "yield":
+            raise RuntimeError(f"Job {self.job_id} is a {self.record.job_type} job: it cannot be held as a yield job")
+        return "yield"
 
     async def complete(self, result: YieldJobResult) -> None:
         """Settle: `job:complete`, with what a `yield` job reports, and how its commits were established."""
@@ -846,8 +780,8 @@ class Claims:
                 HeldJobStall(
                     job_id=held.job_id,
                     job_type=held.job_type,
-                    held_since=self._held_since,
-                    last_activity_at=self._last_activity_at,
+                    held_since=instant(self._held_since),
+                    last_activity_at=instant(self._last_activity_at),
                     silent_for_ms=silent_for_ms,
                     threshold_ms=self._held_job_stall_ms,
                 )
@@ -960,7 +894,7 @@ class Claims:
             last_activity_at=_instant_or_none(self._last_activity_at),
             active_job=None
             if held is None or self._held_since is None
-            else WorkerEngineHealthActiveJob(job_id=held.job_id, type=held.job_type, since=instant(self._held_since)),
+            else WorkerActiveJob(job_id=held.job_id, type=held.job_type, since=instant(self._held_since)),
             jobs_completed=self._jobs_completed,
         )
 

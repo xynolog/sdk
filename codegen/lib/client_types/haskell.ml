@@ -25,41 +25,44 @@ let ( let* ) = Result.bind
 
 let found ~shape name =
   match shape name with
-  | Some s -> Ok s
+  | Some (Ok s) -> Ok s
+  | Some (Error refusals) -> Error refusals
   | None ->
       Error [ refusal name "is no client type, and a Haskell writer reads it" ]
 
 (* A client type as the haskell-sdk group models one, beside the types it
    brings: words; an object or a list, as [whole] reads it; or a union of its
    branches, each its own type named for the word that tags it, an object of
-   that word and its members, each a scalar or another type's schema. Each
+   that word and its members, each a scalar, another type's schema, or a
+   list of either. Each
    branch states no member but its own. *)
 let adapter ~whole name =
+  let rec held member = function
+    | Scalar t -> Ok (Schema.Schema { Schema.empty with type_ = Some [ t ] })
+    | Named { name = n; union = false } ->
+        Ok
+          (Schema.Schema
+             {
+               Schema.empty with
+               ref_ =
+                 Some { Decode.target = n ^ ".json"; file = ""; pointer = "" };
+             })
+    | List items ->
+        let* items = held member items in
+        Ok
+          (Schema.Schema
+             { Schema.empty with type_ = Some [ Array ]; items = Some items })
+    | Binary | Word _ | Named { union = true; _ } | Parameter _ | Inline _ ->
+        Error
+          [ refusal name (member ^ " is no scalar, type, or list of either") ]
+  in
   let object_ members =
     let* properties =
       Spec.all
         (List.map
            (fun m ->
-             match m.held with
-             | Scalar t ->
-                 Ok
-                   ( m.name,
-                     Schema.Schema { Schema.empty with type_ = Some [ t ] } )
-             | Named { name = n; union = false } ->
-                 Ok
-                   ( m.name,
-                     Schema.Schema
-                       {
-                         Schema.empty with
-                         ref_ =
-                           Some
-                             {
-                               Decode.target = n ^ ".json";
-                               file = "";
-                               pointer = "";
-                             };
-                       } )
-             | _ -> Error [ refusal name (m.name ^ " is no scalar or type") ])
+             let* s = held m.name m.held in
+             Ok (m.name, s))
            members)
     in
     Ok
@@ -149,13 +152,20 @@ let whole (spec : Spec.t) =
       (written (List.assoc file spec.schemas))
 
 (* The client types [names] the Haskell SDK models: an object as [whole]
-   reads it, its bounds and what is said of it kept. *)
+   reads it, its bounds and what is said of it kept, and so any type the
+   group's model holds none of, or no shape of, as bytes and nothing more. *)
 let adapters ~names ~shape ~whole =
   Spec.all
     (List.map
        (fun name ->
-         let* s = found ~shape name in
-         adapter ~whole name s)
+         match shape name with
+         | Some (Ok s) -> adapter ~whole name s
+         | Some (Error _) | None -> (
+             let* s = whole name in
+             match s with
+             | Schema.Schema s ->
+                 Ok [ (name, Schema.Schema { s with title = Some name }) ]
+             | Schema.Boolean_schema _ -> Error [ refusal name "is no schema" ]))
        names)
   |> Result.map List.concat
 
@@ -175,7 +185,8 @@ let aeson_records =
   H.import "Data.Aeson" ~items:[ All "ToJSON"; Plain "object"; Op ".=" ]
 
 (* A record of a client type, written to its JSON: every member required,
-   and an open list's items the record's one type variable. *)
+   and each type parameter its members hold a type variable of the record,
+   named in lower case. *)
 let record_module ~shape name =
   let* s = found ~shape name in
   let* members =
@@ -183,7 +194,19 @@ let record_module ~shape name =
     | Fields members -> Ok members
     | _ -> Error [ refusal name "is no record" ]
   in
-  let variable = "value" in
+  let rec parameters = function
+    | Parameter p -> [ String.uncapitalize_ascii p ]
+    | List held -> parameters held
+    | _ -> []
+  in
+  let rec type_of = function
+    | Scalar t -> scalar name t
+    | Named { name = n; _ } -> Ok (H.T_name n)
+    | Parameter p -> Ok (H.T_name (String.uncapitalize_ascii p))
+    | List held -> Result.map (fun t -> H.T_list t) (type_of held)
+    | _ ->
+        Error [ refusal name "holds no scalar, type, type parameter or list" ]
+  in
   let* fields =
     Spec.all
       (List.map
@@ -192,18 +215,15 @@ let record_module ~shape name =
            if not m.required then
              Error
                [ refusal name (m.name ^ " is optional, and a record's is not") ]
-           else
-             match m.held with
-             | Scalar t -> Result.bind (scalar name t) field
-             | Named { name = n; _ } -> field (H.T_name n)
-             | Open_list -> field (H.T_list (H.T_name variable))
-             | _ ->
-                 Error [ refusal name (m.name ^ " is no scalar, type or list") ])
+           else Result.bind (type_of m.held) field)
          members)
   in
   let params =
-    if List.exists (fun m -> m.held = Open_list) members then [ variable ]
-    else []
+    List.fold_left
+      (fun params m ->
+        params
+        @ List.filter (fun p -> not (List.mem p params)) (parameters m.held))
+      [] members
   in
   let instance class_ =
     H.instance class_
@@ -212,12 +232,13 @@ let record_module ~shape name =
       | [] -> H.T_name name
       | vs -> H.T_apply (name, List.map (fun v -> H.T_name v) vs))
   in
+  let rec names = function
+    | Named { name = n; _ } -> [ n ]
+    | List held -> names held
+    | _ -> []
+  in
   let named =
-    List.sort_uniq compare
-      (List.filter_map
-         (fun m ->
-           match m.held with Named { name = n; _ } -> Some n | _ -> None)
-         members)
+    List.sort_uniq compare (List.concat_map (fun m -> names m.held) members)
   in
   let module_ = "Xynolog.Internal.Generated." ^ name in
   Ok
@@ -284,8 +305,9 @@ let refused_member value = function
   | _ -> None
 
 (* The reports' sums: each branch a constructor holding its members but the
-   tag, in order, and written back to the branch's JSON; and the types of
-   Xynolog.Types they hold. *)
+   tag, in order, an optional one as a Maybe, and written back to the
+   branch's JSON, which states an optional member only when it is held; and
+   the types of Xynolog.Types they hold. *)
 let report ~shape ~native ~prefix name =
   let* s = found ~shape name in
   let* tag, branches =
@@ -294,7 +316,7 @@ let report ~shape ~native ~prefix name =
     | _ -> Error [ refusal name "is no union" ]
   in
   let completion = "completion" in
-  let held branch (m : member) :
+  let stated branch (m : member) :
       (H.type_ * (H.expr -> H.expr), Decode.error list) result =
     let plain t = Ok (t, fun v -> v) in
     match m.held with
@@ -337,6 +359,12 @@ let report ~shape ~native ~prefix name =
     | _ ->
         Error
           [ refusal name (branch ^ "'s " ^ m.name ^ " is no report member") ]
+  in
+  let held branch (m : member) =
+    Result.map
+      (fun (t, encode) ->
+        ((if m.required then t else H.T_apply ("Maybe", [ t ])), encode))
+      (stated branch m)
   in
   let* rows =
     Spec.all
@@ -389,20 +417,54 @@ let report ~shape ~native ~prefix name =
                            List.mapi (fun i _ -> H.Var (value i)) fields );
                      ];
                    body =
-                     Apply
-                       ( Name "object",
-                         [
-                           List
-                             (H.Infix
-                                ( Str tag,
-                                  [ (".=", Typed (Str word, T_name "Text")) ] )
-                             :: List.mapi
-                                  (fun i ((m : member), (_, encode)) ->
-                                    H.Infix
-                                      ( Str m.name,
-                                        [ (".=", encode (H.Name (value i))) ] ))
-                                  (List.combine members fields));
-                         ] );
+                     (let pair (m : member) encode v =
+                        H.Infix (Str m.name, [ (".=", encode v) ])
+                      in
+                      let held =
+                        List.mapi
+                          (fun i ((m : member), (_, encode)) ->
+                            (m, encode, H.Name (value i)))
+                          (List.combine members fields)
+                      in
+                      let always =
+                        H.List
+                          (H.Infix
+                             ( Str tag,
+                               [ (".=", Typed (Str word, T_name "Text")) ] )
+                          :: List.filter_map
+                               (fun ((m : member), encode, v) ->
+                                 if m.required then Some (pair m encode v)
+                                 else None)
+                               held)
+                      in
+                      let when_held =
+                        List.filter_map
+                          (fun ((m : member), encode, v) ->
+                            if m.required then None
+                            else
+                              Some
+                                ( "++",
+                                  H.Apply
+                                    ( Name "maybe",
+                                      [
+                                        List [];
+                                        Lambda
+                                          ( "stated",
+                                            List
+                                              [
+                                                pair m encode (H.Name "stated");
+                                              ] );
+                                        v;
+                                      ] ) ))
+                          held
+                      in
+                      Apply
+                        ( Name "object",
+                          [
+                            (match when_held with
+                            | [] -> always
+                            | appended -> Infix (always, appended));
+                          ] ));
                  } ))
              rows);
       ] )

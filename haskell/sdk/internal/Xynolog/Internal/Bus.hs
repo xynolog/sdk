@@ -46,8 +46,8 @@ import Xynolog.Internal.Required qualified as Required
 import Xynolog.Internal.StateValue qualified as State
 import Xynolog.Internal.Transport (Carried (..), FrameRefusal (..))
 import Xynolog.Internal.Transport qualified as Transport
-import Xynolog.Transport.Facts (ConnectionState (..), userField)
-import Xynolog.Types (BusFrame (..), BusFramePayload (..), FrameRefusalReason (..), ResourceId, UserId)
+import Xynolog.Transport.Facts (userField)
+import Xynolog.Types (BusFrame (..), BusFramePayload (..), ConnectionState (..), FrameRefusalReason (..), ResourceId, UserId)
 
 data BusOptions = BusOptions
   { -- | Monotonic nanoseconds in the wait's coordinate system.
@@ -140,15 +140,15 @@ requestDelivered bus@(Bus options transport) operation input timeoutMs = do
       timedOut = throwIO (BusRequestError BusRequestTimeout "bus request deadline expired" Nothing)
   forM_ replyChannels $ \channel -> unless (Transport.isSubscribed transport channel) (throwIO (unsubscribed channel))
   connectionBefore <- atomically (State.current (Transport.state transport))
-  when (connectionBefore == Closed) (throwIO (BusRequestError BusRequestClosed "transport is closed" Nothing))
+  when (connectionBefore == ConnectionStateClosed) (throwIO (BusRequestError BusRequestClosed "transport is closed" Nothing))
   now <- requestNow options
   when (timeoutMs <= 0) timedOut
   let work = do
         atomically $ do
           connection <- State.current (Transport.state transport)
           case connection of
-            Open -> pure ()
-            Closed -> throwSTM (BusRequestError BusRequestClosed "transport closed before emit" Nothing)
+            ConnectionStateOpen -> pure ()
+            ConnectionStateClosed -> throwSTM (BusRequestError BusRequestClosed "transport closed before emit" Nothing)
             _ -> retry
         correlation <- nextCorrelationId options
         Transport.withPendingReply transport correlation (Set.fromList replyChannels) $ \awaitReply -> do
@@ -203,7 +203,7 @@ requestDelivered bus@(Bus options transport) operation input timeoutMs = do
       inheritedWork
       ( race
           inheritedWait
-          (atomically (State.current (Transport.state transport) >>= check . (== Closed)))
+          (atomically (State.current (Transport.state transport) >>= check . (== ConnectionStateClosed)))
       )
   case outcome of
     Left value -> pure value

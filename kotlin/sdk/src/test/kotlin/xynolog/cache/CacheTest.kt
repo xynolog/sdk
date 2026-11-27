@@ -11,7 +11,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -947,13 +946,13 @@ class CacheTest {
     }
 
     @Test
-    fun aCacheAHostMakesAsksWhatItWasGivenAndKeepsAsItWasTold() = runBlocking {
+    fun aCacheAHostMakesAsksWhatItWasGivenAndKeepsAsItWasTold() = runTest {
         val kept = Kept(mapOf("kept" to 7))
-        val cache = Cache<String, Int>({ key -> key.length }, kept, saveDebounceMs = 60_000)
+        val cache = Cache<String, Int>({ key -> key.length }, kept, StandardTestDispatcher(testScheduler))
         assertEquals(7, cache.get("kept"))
         assertEquals(3, cache.fetch("abc"))
-        // Long past the wait a client's cache keeps, the save it owes is still owed: it waits as long as it was told.
-        delay(Timings.SAVE_DEBOUNCE_MS * 4)
+        // Until the save's wait has passed on the context the cache was given, the save it owes is still owed.
+        advanceTimeBy(Timings.SAVE_DEBOUNCE_MS - 1)
         assertTrue(cache.persistencePending)
         assertEquals(emptyList<Map<String, Int>>(), kept.saves)
         cache.close()

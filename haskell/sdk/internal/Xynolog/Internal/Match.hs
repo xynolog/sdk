@@ -9,12 +9,12 @@ import Xynolog.Bus qualified as Bus
 import Xynolog.Channels
 import Xynolog.Internal.Cache qualified as Cache
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Local qualified as Local
 import Xynolog.Internal.Queries (cacheOptions, oneReport)
 import Xynolog.Internal.Refresh qualified as Refresh
 import Xynolog.Internal.Running qualified as Running
 import Xynolog.Internal.Transport qualified as LocalBus
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Types
 
 data MatchNamespace = MatchNamespace Bus.Bus LocalBus.EventBus Timing.Settings (Cache.Cache MatchResourcesRequest Fact.MatchedResourcesValue)
@@ -24,7 +24,7 @@ newMatch wire local clock timing =
   MatchNamespace wire local timing
     <$> Cache.newCache
       (\input -> matchResourcesResultResponse <$> Bus.request wire MatchResourcesRequestedOperation input (Timing.busRequestTimeoutMs timing))
-      (cacheOptions clock timing (const (pure (pure ()))))
+      (cacheOptions clock (const (pure (pure ()))))
 
 search :: MatchNamespace -> ResourceId -> AnnotationId -> GatheredContext -> Maybe MatchSearchOptions -> IO (Running.Running MatchSearchResult MatchSearchResult)
 search (MatchNamespace wire _ timing _) identity reference context options =
@@ -32,7 +32,7 @@ search (MatchNamespace wire _ timing _) identity reference context options =
     Bus.request
       wire
       MatchSearchRequestedOperation
-      (MatchSearchRequest {matchSearchRequestContext = context, matchSearchRequestLimit = (Just (fromMaybe 10 (matchSearchOptionsLimit chosen))), matchSearchRequestReferenceId = reference, matchSearchRequestResourceId = identity, matchSearchRequestUseSemanticScoring = (Just (fromMaybe True (matchSearchOptionsUseSemanticScoring chosen)))})
+      (MatchSearchRequest {matchSearchRequestContext = context, matchSearchRequestLimit = (Just (fromMaybe 10 (matchSearchOptionsLimit chosen))), matchSearchRequestReferenceId = reference, matchSearchRequestResourceId = identity, matchSearchRequestUseSemanticScoring = (matchSearchOptionsUseSemanticScoring chosen)})
       (Timing.busRequestTimeoutMs timing)
   where
     chosen = fromMaybe (MatchSearchOptions Nothing Nothing) options
@@ -44,7 +44,7 @@ resources :: MatchNamespace -> Text -> Maybe BrowseResourcesRequest -> Cache.Que
 resources (MatchNamespace _ _ _ cache) text filters =
   Cache.query
     cache
-    (MatchResourcesRequest {matchResourcesRequestArchived = (browseResourcesRequestArchived selected), matchResourcesRequestEntityType = (browseResourcesRequestEntityType selected), matchResourcesRequestLimit = (Just (fromMaybe 100 (browseResourcesRequestLimit selected))), matchResourcesRequestOffset = (Just (fromMaybe 0 (browseResourcesRequestOffset selected))), matchResourcesRequestSearch = text})
+    (MatchResourcesRequest {matchResourcesRequestArchived = (browseResourcesRequestArchived selected), matchResourcesRequestEntityType = (browseResourcesRequestEntityType selected), matchResourcesRequestLimit = (browseResourcesRequestLimit selected), matchResourcesRequestOffset = (browseResourcesRequestOffset selected), matchResourcesRequestSearch = text})
   where
     selected = fromMaybe (BrowseResourcesRequest {browseResourcesRequestArchived = Nothing, browseResourcesRequestEntityType = Nothing, browseResourcesRequestLimit = Nothing, browseResourcesRequestOffset = Nothing}) filters
 

@@ -87,6 +87,7 @@ type field = {
 type results = Unnamed of type_ list | Named_results of (string * type_) list
 
 type method_ = {
+  m_doc : doc;
   name : string;
   params : (string * type_) list;
   results : results;
@@ -143,8 +144,8 @@ let lines ?of_ ?(spacing = Packed) elements =
 let call name args = Call (Name name, args)
 let spec ?(doc = []) ?type_ name value = { doc; name; type_; value }
 
-let method_ ?(results = Unnamed []) name params : method_ =
-  { name; params; results }
+let method_ ?(doc = []) ?(results = Unnamed []) name params : method_ =
+  { m_doc = doc; name; params; results }
 
 let func ?(doc = []) ?receiver ?(params = []) ?(results = Unnamed []) name body
     =
@@ -160,7 +161,7 @@ let identifier name =
   && String.for_all is_word name
 
 (* A name, or one qualified by what it is within ([api.Thing],
-   [v.links.timing]). *)
+   [v.links.wire]). *)
 let checked name =
   if List.for_all identifier (String.split_on_char '.' name) then name
   else invalid_arg (Printf.sprintf "Go_syntax: %S is no Go name" name)
@@ -496,7 +497,9 @@ let rec decl = function
             ^ String.concat ""
                 (List.map
                    (fun (m : method_) ->
-                     "\t" ^ checked m.name ^ "(" ^ params_text m.params ^ ")"
+                     String.concat ""
+                       (List.map (fun l -> l ^ "\n") (comment ~depth:1 m.m_doc))
+                     ^ "\t" ^ checked m.name ^ "(" ^ params_text m.params ^ ")"
                      ^ results_text m.results ^ "\n")
                    methods)
             ^ "}")

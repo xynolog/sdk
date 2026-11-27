@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
-import type { DiscoveryReadResult, DiscoveryTransport } from '@xynolog/sdk';
+import type { DiscoveryRead, DiscoveryTransport } from '@xynolog/sdk';
 import { useKBDiscovery } from '../useKBDiscovery';
 
 const KB = {
@@ -22,7 +22,7 @@ const KB = {
 
 /** A scripted transport: returns queued results, then repeats the last one. */
 function scriptedTransport(
-  ...results: DiscoveryReadResult[]
+  ...results: DiscoveryRead[]
 ): DiscoveryTransport & { reads: () => number } {
   let count = 0;
   return {

@@ -11,8 +11,7 @@
    [Definitions.bundle] refuses two of one name. *)
 
 (* What a client hands its callers that no wire message carries: each file of
-   protocol/specs/src/client/types, and the records of the registry and of the
-   state units' notices. *)
+   protocol/specs/src/client/types, and the records of the registry. *)
 let client_types = "client/types/"
 
 (* One entry of the sign-in store [xynolog login] keeps. *)

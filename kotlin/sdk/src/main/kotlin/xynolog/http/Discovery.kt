@@ -4,14 +4,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeoutOrNull
 import xynolog.Timings
-import xynolog.discovery.Absent
-import xynolog.discovery.DiscoveryRead
 import xynolog.discovery.DiscoveryTransport
-import xynolog.discovery.Managed
-import xynolog.discovery.Unchanged
 import xynolog.discovery.parseDiscoveryDocument
+import xynolog.discovery.readOf
 import xynolog.telemetry.futureOf
+import xynolog.types.DiscoveryAbsent
 import xynolog.types.DiscoveryAbsentReason
+import xynolog.types.DiscoveryManaged
+import xynolog.types.DiscoveryRead
+import xynolog.types.DiscoveryUnchanged
 import java.io.IOException
 import java.net.URI
 import java.net.http.HttpClient
@@ -37,17 +38,17 @@ private class HttpDiscovery(
         val response = try {
             withTimeoutOrNull(deadlineMs) { http.exchange(asked.build(), HttpResponse.BodyHandlers.ofString()) }
         } catch (unanswered: IOException) {
-            return Absent(DiscoveryAbsentReason.Unreadable, unanswered.message ?: unanswered::class.java.simpleName)
-        } ?: return Absent(DiscoveryAbsentReason.Unreadable, "the document was not served within ${deadlineMs}ms")
+            return DiscoveryAbsent(reason = DiscoveryAbsentReason.Unreadable, diagnostic = unanswered.message ?: unanswered::class.java.simpleName)
+        } ?: return DiscoveryAbsent(reason = DiscoveryAbsentReason.Unreadable, diagnostic = "the document was not served within ${deadlineMs}ms")
         val status = response.statusCode()
-        if (status == 304) return Unchanged
-        if (status !in 200..299) return Absent(DiscoveryAbsentReason.NotFound, "HTTP $status")
+        if (status == 304) return DiscoveryUnchanged()
+        if (status !in 200..299) return DiscoveryAbsent(reason = DiscoveryAbsentReason.NotFound, diagnostic = "HTTP $status")
         val type = response.headers().firstValue("content-type").orElse("")
-        if ("json" !in type.lowercase()) return Absent(DiscoveryAbsentReason.NotFound, "the content type is \"$type\", not JSON")
+        if ("json" !in type.lowercase()) return DiscoveryAbsent(reason = DiscoveryAbsentReason.NotFound, diagnostic = "the content type is \"$type\", not JSON")
         val state = parseDiscoveryDocument(response.body())
         // Only a good document's tag is kept: one kept for a document that did not read would have this believe it for good.
-        if (state is Managed) tag = response.headers().firstValue("etag").orElse(null)
-        return state
+        if (state is DiscoveryManaged) tag = response.headers().firstValue("etag").orElse(null)
+        return readOf(state)
     }
 
     override fun readFuture(): CompletableFuture<DiscoveryRead> = CoroutineScope(context).futureOf { read() }

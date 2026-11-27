@@ -8,10 +8,10 @@ import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
-import Xynolog.Internal.Generated.Models.DiscoveredKB
+import Xynolog.Internal.Generated.Models.KbPlacement
 
 data Root = Root
-  { rootPlacement :: DiscoveredKBPlacement,
+  { rootPlacement :: KbPlacement,
     rootPath :: Maybe Text,
     rootPresent :: Maybe Bool,
     rootCurrent :: Maybe RootCurrent,

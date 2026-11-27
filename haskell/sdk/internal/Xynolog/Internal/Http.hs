@@ -41,8 +41,7 @@ import Control.Concurrent.MVar
 import Control.Concurrent.STM
 import Control.Exception (Exception, Handler (..), SomeException, bracket, catch, catches, mask, onException, throwIO, try)
 import Control.Monad (unless, void, when)
-import Data.Aeson (FromJSON, Result (..), ToJSON, Value (Object, String), eitherDecodeStrict', encode, fromJSON, toJSON)
-import Data.Aeson.KeyMap qualified as KM
+import Data.Aeson (FromJSON, Result (..), ToJSON, Value (String), eitherDecodeStrict', encode, fromJSON, toJSON)
 import Data.ByteString qualified as Bytes
 import Data.ByteString.Char8 qualified as Char8
 import Data.CaseInsensitive qualified as CI
@@ -71,6 +70,7 @@ import Xynolog.Internal.Schema (validateNamed)
 import Xynolog.Internal.Telemetry qualified as Telemetry
 import Xynolog.Internal.Transport qualified as Transport
 import Xynolog.Retry qualified as Retry
+import Xynolog.Timing qualified as Timing
 import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types
 
@@ -119,7 +119,7 @@ data HttpOptions = HttpOptions
     httpToken :: IO (Maybe Text),
     httpRenewToken :: Text -> IO (Maybe Text),
     httpTime :: Retry.RetryOptions,
-    httpTiming :: Settings.Settings,
+    httpTiming :: Settings.TransportTiming,
     -- | A fresh UUID on each call for routing and idempotency keys.
     httpNewId :: IO UUID,
     httpGlobalChannels :: Set.Set Text,
@@ -316,7 +316,7 @@ exchange http route resource body key override headers consume = do
                 else Left <$> refusal http response
             one = case route of
               GetResourceRepresentation -> openScoped http (Settings.httpRequestTimeoutMs (httpTiming (options http))) asked consumeAnswer
-              EmitOnBus -> openScoped http (Settings.emitTimeoutMs (httpTiming (options http))) asked consumeAnswer
+              EmitOnBus -> openScoped http Timing.emitTimeoutMs asked consumeAnswer
               _ -> bracket (open http asked) responseClose consumeAnswer
         let bounded = case route of
               UploadResource -> one
@@ -350,7 +350,7 @@ exchange http route resource body key override headers consume = do
                          || (httpStatus problemError == Nothing && (key /= Nothing || repeatableMethod (decodeUtf8With lenientDecode (routeMethod route))))
                      )
                   then do
-                    pause http (max (Settings.requestRetryPauseMs (httpTiming (options http))) (maybe 0 id (retryAfterMs problemError)))
+                    pause http (max Timing.requestRetryPauseMs (maybe 0 id (retryAfterMs problemError)))
                     attempt 1
                   else throwIO problem
       emitBudget =
@@ -447,17 +447,20 @@ emit http frame = Telemetry.sending frame $ do
         BusEmitRequest {busEmitRequestChannel = (busFrameChannel frame), busEmitRequestClientId = (Just (clientId http)), busEmitRequestCorrelationId = (busFrameCorrelationId frame), busEmitRequestPayload = (BusEmitRequestPayload (busFramePayloadAdditionalProperties (busFramePayload frame))), busEmitRequestScope = (busFrameScope frame)}
       sending = exchange http EmitOnBus Nothing (jsonBody EmitOnBus body) (Just key) Nothing [] $ \response -> do
         let count = do
-              bytes <- deadline http (Settings.emitTimeoutMs (httpTiming (options http))) (Bytes.concat <$> brConsume (responseBody response))
+              bytes <- deadline http Timing.emitTimeoutMs (Bytes.concat <$> brConsume (responseBody response))
               pure $ either (const Nothing) busEmitAcceptedSubscribers (eitherDecodeStrict' bytes)
         count `catch` (\(_ :: HttpFailure) -> pure Nothing) `catch` (\(_ :: HttpException) -> pure Nothing)
   Lifetime.run (lifetime http) (Transport.ownAction (transport http) sending)
     `catch` (\problem -> throwIO (failure problem))
 
--- | Whether a response refused the credential it was sent with, as the
--- reference transport reads one: the unauthorized status, or the limited one
--- with the refusal's code.
+-- | Whether a response refused the credential it was sent with: a status
+-- read as the transport's unauthorized code, or a limit's refusal whose status
+-- and LimitRefusal code are one that is unauthorized too.
 wireRefusesCredential :: Int -> Maybe Value -> Bool
-wireRefusesCredential status body = status == unauthorizedStatus || (status == limitedStatus && maybe False matches body)
+wireRefusesCredential status body = Code.transportCodeFromStatus status == Code.TransportUnauthorized || any refuses Code.limitRefusalTransportCodes
   where
-    matches (Object fields) = KM.lookup refusalField fields == Just (String refusalCode)
-    matches _ = False
+    refuses (limited, code, Code.TransportUnauthorized) = status == limited && maybe False (names code) body
+    refuses _ = False
+    names code value = case fromJSON value of
+      Success stated -> limitRefusalCodeText (limitRefusalCode stated) == code
+      Error _ -> False

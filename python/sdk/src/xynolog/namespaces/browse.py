@@ -17,7 +17,7 @@ from xynolog.errors import XynologError
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.model import stated
 from xynolog.namespaces.links import Links
-from xynolog.namespaces.live import LIMITS_HOLDERS, LIST_LIMIT, Live
+from xynolog.namespaces.live import LIMITS_HOLDERS, Live
 from xynolog.operations import BROWSE_ANNOTATION_HISTORY_REQUESTED, BROWSE_DIRECTORY_REQUESTED, BROWSE_KB_REQUESTED
 from xynolog.resources import decode_representation
 from xynolog.stored import WHOLE_KEY
@@ -181,7 +181,7 @@ class BrowseNamespace:
     def resources(
         self, *, archived: bool | None = None, entity_type: str | None = None, offset: int | None = None, limit: int | None = None
     ) -> Cached[ListResourcesResponse]:
-        """A page of the resources the filters admit: the first hundred when nothing is stated.
+        """A page of the resources the filters admit: the knowledge base's own page when none is stated.
 
         `offset` of them are passed over before the page begins.
 
@@ -189,9 +189,7 @@ class BrowseNamespace:
         resources this client holds the scope of, and by nothing else.
         Finding resources by text is `match.resources`.
         """
-        request = BrowseResourcesRequest(
-            archived=archived, entity_type=entity_type, offset=offset or 0, limit=LIST_LIMIT if limit is None else limit
-        )
+        request = BrowseResourcesRequest(archived=archived, entity_type=entity_type, offset=offset, limit=limit)
         return self._live.query(Keyed(self._live.lists, request, itself))
 
     def annotations(self, resource_id: ResourceId) -> Cached[list[Annotation]]:

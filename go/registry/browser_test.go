@@ -344,7 +344,7 @@ func open(browser *registry.XynologBrowser) []string {
 }
 
 func closed(transport *xynologtest.FaultyTransport) bool {
-	return transport.State().Value() == xynolog.ConnectionStateClosed
+	return transport.State().Value() == api.ConnectionStateClosed
 }
 
 func description(name, domain, branch string) json.RawMessage {
@@ -792,7 +792,7 @@ func TestASessionThatCannotBeBuiltIsSaidAndThereIsNone(t *testing.T) {
 		}
 		settle()
 
-		if refused == nil || refused.Code != xynolog.SessionErrorCodeConstructFailed || refused.KbID != kbA {
+		if refused == nil || refused.Code != api.SessionErrorCodeConstructFailed || refused.KbID != kbA {
 			t.Fatalf("the failure said is %+v", refused)
 		}
 		if sessionOf(browser) != "" || browser.ActiveSignals().Value() != nil || browser.SessionActivating().Value() {

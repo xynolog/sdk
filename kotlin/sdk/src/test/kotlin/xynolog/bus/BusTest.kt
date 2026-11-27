@@ -30,7 +30,6 @@ import xynolog.identifiers.ResourceId
 import xynolog.identifiers.UserId
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Delivered
 import xynolog.transport.Events
 import xynolog.transport.Frame
@@ -40,17 +39,18 @@ import xynolog.transport.Heard
 import xynolog.transport.PendingReply
 import xynolog.transport.ReplyRouter
 import xynolog.transport.ResourceHold
-import xynolog.transport.TraceContext
 import xynolog.transport.Transport
 import xynolog.transport.Watched
 import xynolog.types.AnchoredTextAnswer
 import xynolog.types.BrowseProfilesRequest
 import xynolog.types.BusPingMessage
+import xynolog.types.ConnectionState
 import xynolog.types.EmptyObject
 import xynolog.types.FrameAddEntityTypeCommand
 import xynolog.types.FrameRefusalReason
 import xynolog.types.GatherAnnotationOptions
 import xynolog.types.JobCompleteCommand
+import xynolog.types.TraceCarrier
 import xynolog.types.wireJson
 import java.util.concurrent.CompletableFuture
 
@@ -142,7 +142,7 @@ class BusTest {
     fun aFrameIsGivenDecodedWithWhoEmittedItAndItsTrace() = runBlocking {
         val wire = Wire(emptySet())
         val frames = Bus(wire).frames(Channels.FRAME_ADD_ENTITY_TYPE)
-        val trace = TraceContext("00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
+        val trace = TraceCarrier("00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
         wire.deliver(Frame("frame:add-entity-type", json("""{"tag":"Person","_userId":"$ALICE","$TRACE_FIELD":{"traceparent":"${trace.traceparent}"}}"""), "c-1", null, trace))
         val delivered = withTimeout(5_000) { frames.first() }.delivered()
         assertEquals("delivered", delivered.status)

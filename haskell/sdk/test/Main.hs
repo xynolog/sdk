@@ -13,7 +13,7 @@ import ClientAssertionCases (clientAssertionCases)
 import ClockCases (cacheClockCases, clientClockCases, clockCensus, discoveryClockCases, httpClockCases, jobPollClockCases)
 import Control.Applicative ((<|>))
 import Control.Monad (forM, forM_, unless)
-import Data.Aeson (FromJSON, Value (..), eitherDecodeStrict', parseJSON, toJSON)
+import Data.Aeson (FromJSON, ToJSON, Value (..), eitherDecodeStrict', parseJSON, toJSON)
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
 import Data.Aeson.Types (parseEither)
@@ -38,7 +38,7 @@ import HeldCases (heldCases, heldClockCases)
 import HttpCases (httpCases)
 import HttpDiscoveryCases (httpDiscoveryCases)
 import IdentityCases (identityCases)
-import IssuerCases (deviceClockCases, issuerCases, serviceTokenCases)
+import IssuerCases (agentClockCases, deviceClockCases, issuerCases, serviceTokenCases)
 import LifetimeCases (lifetimeCases)
 import OpenResourceCases (openResourceCases)
 import PersistedCases (persistedCases)
@@ -67,7 +67,6 @@ import Xynolog.Channels qualified as Channels
 import Xynolog.ErrorCodes qualified as Errors
 import Xynolog.Internal.Codec (Kind (..), Signature (..), admittedBy, readMember)
 import Xynolog.Internal.Generated.ChannelRoundTrip (channelMetadata, operationMetadata, roundTripChannel)
-import Xynolog.Internal.Generated.DiscoveryReasonRoundTrip qualified as DiscoveryReasons
 import Xynolog.Internal.Generated.ErrorRoundTrip (roundTripError)
 import Xynolog.Internal.Generated.RoundTrip (enumerationCases, roundTrip, unionMembers)
 import Xynolog.Internal.Generated.Schemas (schemas)
@@ -78,7 +77,7 @@ import Xynolog.Internal.Schema (checkSchema, validate, validateNamed)
 import Xynolog.Retry qualified as Retry
 import Xynolog.ServiceTables (serviceTables)
 import Xynolog.Tables (tables)
-import Xynolog.Timing.Settings qualified as TimingSettings
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types qualified as Types
 
 require :: String -> Bool -> IO ()
@@ -171,11 +170,15 @@ within fields alternative = KM.unionWithKey beside (KM.delete "oneOf" (KM.delete
 memberNames :: Value -> [Text]
 memberNames schema = case at "propertyNames" schema of
   Null -> ["__haskell_probe"]
-  names -> case at "enum" names of
-    Array values -> [name | String name <- toList values]
-    _ -> case at "pattern" names of
-      String pattern -> [patternSample pattern]
-      _ -> []
+  names -> allowed names
+  where
+    allowed names = case at "$ref" names of
+      String reference | Just target <- Map.lookup (T.pack (takeBaseName (T.unpack reference))) schemas -> allowed target
+      _ -> case at "enum" names of
+        Array values -> [name | String name <- toList values]
+        _ -> case at "pattern" names of
+          String pattern -> [patternSample pattern]
+          _ -> []
 
 sample :: Int -> Value -> Either String Value
 sample = variant 0
@@ -446,6 +449,22 @@ channelCases root = do
   require "persisted event vocabulary disagrees with the registry" (map String Channels.persistedEventTypes == [value | row <- channels, let value = at "event" row, value /= Null])
   putStrLn ("PASS typed payload decoding and stamp handling for all " ++ show (length channels) ++ " registry channels")
 
+-- | A record of what a caller may set holds the table's rows it is the home of, each at the table's value; each of
+-- them can be overridden, and no other of the table's rows can.
+timingRecordCases :: (FromJSON timing, ToJSON timing) => timing -> Map.Map Text Value -> Map.Map Text Value -> IO ()
+timingRecordCases timing held table = do
+  let stated values = Object (KM.fromList [(Key.fromText key, value) | (key, value) <- Map.toList values])
+      overridden key value = toJSON <$> Settings.withOverrides timing (stated (Map.singleton key value))
+  require "a timing record differs from the protocol's rows" (not (Map.null held) && toJSON timing == stated held)
+  forM_ (Map.toList held) $ \(key, value) -> do
+    let changed = case value of
+          Number number -> Number (number + 1)
+          Object fields -> Object (KM.mapWithKey (\member number -> case number of Number n | member == "attempts" -> Number (n + 1); other -> other) fields)
+          other -> other
+    require "a protocol timing cannot be overridden" (overridden key changed == Right (stated (Map.insert key changed held)))
+  forM_ (Map.toList (Map.difference table held)) $ \(key, value) ->
+    require "a timing record took a row it does not hold" (isLeft (overridden key value))
+
 factCases :: FilePath -> IO ()
 factCases root = do
   errors <- readJSON (root </> "protocol/specs/src/errors/codes.json")
@@ -471,20 +490,12 @@ factCases root = do
   let expectedEnvironment = Map.fromList [(T.unpack name, T.unpack name) | row <- array (at "variables" environment), String name <- [at "name" row]]
   require "service environment variables differ from spec" (not (Map.null expectedEnvironment) && expectedEnvironment == serviceEnvironmentValues)
   timings <- readJSON (root </> "protocol/specs/src/client/timing.json")
-  let expectedTiming = Map.fromList [(key, at "value" row) | row <- array (at "timing" timings), String key <- [at "name" row]]
+  let rows = array (at "timing" timings)
+      expectedTiming = Map.fromList [(key, at "value" row) | row <- rows, String key <- [at "name" row]]
+      settable owner = Map.fromList [(key, at "value" row) | row <- rows, at "override" row == String owner, String key <- [at "name" row]]
   require "timing constants or retry budgets differ from spec" (not (Map.null expectedTiming) && expectedTiming == timingValues)
-  require
-    "configurable timings differ from the protocol constants"
-    (toJSON TimingSettings.protocolSettings == Object (KM.fromList [(Key.fromText key, value) | (key, value) <- Map.toList expectedTiming]))
-  forM_ (Map.toList expectedTiming) $ \(key, value) -> do
-    let changed = case value of
-          Number number -> Number (number + 1)
-          Object fields -> Object (KM.mapWithKey (\member number -> case number of Number n | member == "attempts" -> Number (n + 1); other -> other) fields)
-          other -> other
-        overridden = TimingSettings.withOverrides (Object (KM.singleton (Key.fromText key) changed))
-    require
-      "a protocol timing cannot be overridden"
-      (fmap toJSON overridden == Right (Object (KM.fromList [(Key.fromText name, if name == key then changed else original) | (name, original) <- Map.toList expectedTiming])))
+  timingRecordCases Settings.protocolClientTiming (settable "client") expectedTiming
+  timingRecordCases Settings.protocolTransportTiming (settable "transport") expectedTiming
   forM_
     [ Object (KM.singleton "unknown" (Number 1)),
       Object (KM.singleton "reconnectMs" (Number (-1))),
@@ -492,17 +503,17 @@ factCases root = do
       Object (KM.singleton "reconnectMs" (Number 0.5))
     ]
     $ \invalid ->
-      require "malformed timing override was accepted" (isLeft (TimingSettings.withOverrides invalid))
+      require "malformed timing override was accepted" (isLeft (Settings.withOverrides Settings.protocolTransportTiming invalid))
   putStrLn "PASS every error vocabulary, wire/HTTP classifiers, timing constant and retry budget"
   discovery <- readJSON (root </> "protocol/specs/src/client/discovery-absent.json")
   forM_ (array (at "reasons" discovery)) $ \row -> do
     let reason = at "reason" row
     require
       "discovery reason differs from its authority"
-      (DiscoveryReasons.roundTripError "discoveryAbsent" reason == Right reason)
+      (roundTrip "DiscoveryAbsentReason" reason == Right reason)
   require
     "unknown discovery reason was accepted"
-    (isLeft (DiscoveryReasons.roundTripError "discoveryAbsent" (String "__unknown_test_reason")))
+    (isLeft (roundTrip "DiscoveryAbsentReason" (String "__unknown_test_reason")))
 
 retryCases :: FilePath -> IO ()
 retryCases root = do
@@ -708,6 +719,7 @@ runCases root = do
   issuerCases fixtures
   serviceTokenCases root
   deviceClock <- deviceClockCases root
+  agentClock <- agentClockCases root fixtures
   sessionCases root fixtures
   sessionClock <- sessionClockCases root fixtures
   delegationCases fixtures
@@ -718,6 +730,6 @@ runCases root = do
   refreshCases fixtures
   heldCases fixtures
   heldClock <- heldClockCases root fixtures
-  clockCensus root (concat [saveClock, httpClock, discoveryClock, deviceClock, sessionClock, followerClock, clientClock, jobPollClock, heldClock])
+  clockCensus root (concat [saveClock, httpClock, discoveryClock, deviceClock, agentClock, sessionClock, followerClock, clientClock, jobPollClock, heldClock])
   httpCases root fixtures
   corpusCases root

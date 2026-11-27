@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireUnion(typeof(ErrorsCodesTransportCodesItem.Status), typeof(ErrorsCodesTransportCodesItem.StatusFrom), typeof(ErrorsCodesTransportCodesItem.NoStatus))]
 public closed record ErrorsCodesTransportCodesItem
 {
-    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["code", "docs", "status"], ["code", "docs", "status"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["code", "docs", "statusFrom"], ["code", "docs", "statusFrom"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["code", "docs"], ["code", "docs"], [], null)]];
+    internal static readonly global::Xynolog.Serialization.Signature[][] Members = [[new(global::Xynolog.Serialization.Kind.Object, ["code", "docs", "status"], ["code", "docs", "status", "limitRefusals"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["code", "docs", "statusFrom"], ["code", "docs", "statusFrom"], [], null)], [new(global::Xynolog.Serialization.Kind.Object, ["code", "docs"], ["code", "docs"], [], null)]];
     public sealed record Status(global::Xynolog.Types.ErrorsCodesTransportCodesItemStatus Value) : ErrorsCodesTransportCodesItem;
     public sealed record StatusFrom(global::Xynolog.Types.ErrorsCodesTransportCodesItemStatusFrom Value) : ErrorsCodesTransportCodesItem;
     public sealed record NoStatus(global::Xynolog.Types.ErrorsCodesTransportCodesItemNoStatus Value) : ErrorsCodesTransportCodesItem;

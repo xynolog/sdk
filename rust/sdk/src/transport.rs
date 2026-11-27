@@ -23,12 +23,13 @@ use crate::event_bus::EventBus;
 use crate::kept_for_first_reader::KeptForFirstReader;
 use crate::locked;
 use crate::required::{Fault, fault_of, schema};
+use crate::types::ConnectionState;
 use crate::types::{
     AnchoredTextAnswer, CreateResourceResponse, GetAnnotationsResponse, GetResourceResponse,
     HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, PutBinaryRequest,
     ResourceRepresentation, StatusResponse, UploadProgress, UploadProgressFinished, UserResponse,
 };
-use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema};
+use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema, TraceCarrier};
 use bytes::Bytes;
 use futures_core::Stream;
 use serde_json::{Map, Value};
@@ -51,41 +52,7 @@ pub const STREAM_BACKLOG: usize = 1024;
 
 // ── The connection ──────────────────────────────────────────────────────
 
-/// Whether the bus can deliver, as a transport reports it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ConnectionState {
-    /// Before the transport has started its stream.
-    Initial,
-    /// A connect is in flight and no stream is live.
-    Connecting,
-    /// A stream is live. Left only when the stream drops: a transport that
-    /// changes what its stream carries without missing anything stays open,
-    /// so `Open` reached again always means something may have been missed.
-    Open,
-    /// The stream dropped, or a connect failed with none live; retrying.
-    Reconnecting,
-    /// Has been reconnecting for longer than `DEGRADED_THRESHOLD`.
-    Degraded,
-    /// Not attempting: there is no credential, or the one there is was
-    /// refused. Ends when a different credential appears.
-    Unauthenticated,
-    /// The transport was closed. Terminal.
-    Closed,
-}
-
-impl ConnectionState {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            ConnectionState::Initial => "initial",
-            ConnectionState::Connecting => "connecting",
-            ConnectionState::Open => "open",
-            ConnectionState::Reconnecting => "reconnecting",
-            ConnectionState::Degraded => "degraded",
-            ConnectionState::Unauthenticated => "unauthenticated",
-            ConnectionState::Closed => "closed",
-        }
-    }
-}
+include!("generated/connection_states.rs");
 
 // ── Frames ──────────────────────────────────────────────────────────────
 
@@ -96,13 +63,6 @@ impl ConnectionState {
 pub struct Envelope {
     pub correlation_id: Option<String>,
     pub scope: Option<ResourceId>,
-}
-
-/// The W3C trace context a frame was sent under.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TraceCarrier {
-    pub traceparent: String,
-    pub tracestate: Option<String>,
 }
 
 /// Where on the stream a frame was delivered: the resource scope it came

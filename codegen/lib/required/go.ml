@@ -23,6 +23,7 @@ let kind_of_go named : Shape.kind option =
       "uint64";
     ]
   in
+  (* encoding/json writes and reads a []byte as text, base64's. *)
   if named = "string" || named = "[]byte" then Some String
   else if named = "bool" then Some Boolean
   else if List.mem named integer then Some Integer

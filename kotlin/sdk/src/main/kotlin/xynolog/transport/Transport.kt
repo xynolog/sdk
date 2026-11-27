@@ -24,7 +24,9 @@ import xynolog.errors.XynologError
 import xynolog.identifiers.ResourceId
 import xynolog.identifiers.UserId
 import xynolog.telemetry.futureOf
+import xynolog.types.ConnectionState
 import xynolog.types.FrameRefusalReason
+import xynolog.types.TraceCarrier
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
@@ -217,46 +219,8 @@ internal class Broadcast<T : Any>(private val keptForFirst: Long = 0) {
     }
 }
 
-/** A connection's state: whether the bus can deliver (protocol/contract/TRANSPORT-HTTP.md, Connection lifecycle). */
-public enum class ConnectionState(
-    /** The state as every SDK spells it. */
-    public val wire: String,
-) {
-    /** Before the transport has started its stream. */
-    Initial("initial"),
-
-    /** A connect is in flight and no stream is live. */
-    Connecting("connecting"),
-
-    /** A stream is live. It is left only when the stream drops. */
-    Open("open"),
-
-    /** The stream dropped, or a connect failed with none live. */
-    Reconnecting("reconnecting"),
-
-    /** Has been reconnecting for longer than the degraded threshold. */
-    Degraded("degraded"),
-
-    /** Not attempting: there is no credential, or the one there is was refused. */
-    Unauthenticated("unauthenticated"),
-
-    /** The transport was closed. Terminal. */
-    Closed("closed"),
-    ;
-
-    internal fun mayBecome(next: ConnectionState): Boolean = next in when (this) {
-        Initial -> setOf(Connecting, Unauthenticated, Closed)
-        Connecting -> setOf(Open, Reconnecting, Unauthenticated, Closed)
-        Open -> setOf(Reconnecting, Closed)
-        Reconnecting -> setOf(Connecting, Degraded, Unauthenticated, Closed)
-        Degraded -> setOf(Connecting, Unauthenticated, Closed)
-        Unauthenticated -> setOf(Connecting, Closed)
-        Closed -> emptySet()
-    }
-}
-
-/** A W3C trace context, as the wire carries one. */
-public data class TraceContext(public val traceparent: String, public val tracestate: String? = null)
+/** Whether this state may be followed by [next]. */
+internal fun ConnectionState.mayBecome(next: ConnectionState): Boolean = next in CONNECTION_STATE_MOVES.getValue(this)
 
 /**
  * What a transport delivers on a channel, one after another: a frame, or, in
@@ -290,7 +254,7 @@ public data class Frame @JvmExposeBoxed constructor(
     @get:JvmExposeBoxed
     public val scope: ResourceId? = null,
     /** The trace the work done for this frame continues, when the frame was sent under one. */
-    public val trace: TraceContext? = null,
+    public val trace: TraceCarrier? = null,
 ) : Carried {
     /**
      * Where the stream was in the scope this frame came on, once it delivered
@@ -331,7 +295,7 @@ public data class Delivered<P>(
     @get:JvmExposeBoxed
     public val userId: UserId?,
     /** The trace it was sent under. */
-    public val trace: TraceContext?,
+    public val trace: TraceCarrier?,
 ) : Heard<P> {
     override val status: String get() = "delivered"
 }

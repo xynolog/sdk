@@ -55,8 +55,12 @@ type SessionFactory interface {
 // person, has its session write nothing more.
 type HttpSessionFactory struct {
 	// HTTP is what every request of a gateway and an issuer is made with.
-	HTTP   *http.Client
-	Timing xynolog.Timing
+	HTTP *http.Client
+	// ClientTiming is the timing each session's client keeps.
+	ClientTiming xynolog.ClientTiming
+	// TransportTiming is the timing each session's transport keeps, and that
+	// of the requests of its issuer, and the session's (xynolog.SessionConfig).
+	TransportTiming xynolog.TransportTiming
 	// Random is what the jitter of every backoff of its sessions is drawn
 	// from, as xynolog.EqualJitter draws it.
 	Random *rand.Rand
@@ -66,14 +70,15 @@ var _ SessionFactory = HttpSessionFactory{}
 
 func (f HttpSessionFactory) Session(ctx context.Context, options SessionFactoryOptions) (*xynolog.Session, func(), error) {
 	return xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-		Kb:           api.KbTarget{Endpoint: options.Kb.Endpoint, Id: options.Kb.Id, Label: options.Kb.Label},
-		Kept:         KeptIn(options.Storage, options.Kb.Id),
-		HTTP:         f.HTTP,
-		Timing:       f.Timing,
-		Random:       f.Random,
-		Channels:     bus.BridgedChannels,
-		Storage:      options.Storage,
-		OnAuthFailed: options.Signals.NotifySessionEnded,
+		Kb:              api.KbTarget{Endpoint: options.Kb.Endpoint, Id: options.Kb.Id, Label: options.Kb.Label},
+		Kept:            KeptIn(options.Storage, options.Kb.Id),
+		HTTP:            f.HTTP,
+		ClientTiming:    f.ClientTiming,
+		TransportTiming: f.TransportTiming,
+		Random:          f.Random,
+		Channels:        bus.BridgedChannels,
+		Storage:         options.Storage,
+		OnAuthFailed:    options.Signals.NotifySessionEnded,
 	})
 }
 
@@ -82,5 +87,5 @@ func (f HttpSessionFactory) Revoke(ctx context.Context, stored api.StoredSession
 		return
 	}
 	// Best effort, as the interface says: the sign-out stands either way.
-	_ = xynolog.Issuer{HTTP: f.HTTP, Timing: f.Timing, Random: f.Random}.Revoke(ctx, *stored.RevocationEndpoint, stored.ClientId, stored.Refresh)
+	_ = xynolog.Issuer{HTTP: f.HTTP, Timing: f.TransportTiming, Random: f.Random}.Revoke(ctx, *stored.RevocationEndpoint, stored.ClientId, stored.Refresh)
 }

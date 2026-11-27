@@ -24,7 +24,6 @@ __all__ = ["GatherNamespace"]
 
 # What a caller that states nothing is given. Every SDK sends the same: the
 # cases of protocol/specs/src/client/surface.json hold each to it.
-_CONTEXT_WINDOW: Final = 2000
 _DEPTH: Final = 2
 _MAX_RESOURCES: Final = 10
 
@@ -46,17 +45,22 @@ class GatherNamespace:
         include_target_context: bool | None = None,
         context_window: int | None = None,
     ) -> Running[GatherAnnotationComplete]:
-        """The context around one annotation, taking `context_window` characters of its source: two thousand when none is stated.
+        """The context around one annotation, taking `context_window` characters of its source.
 
-        The source's context and the target's are each included or left out
-        as stated, and as the gatherer decides when not.
+        The window, the source's context and the target's are each as stated,
+        and as the gatherer decides when not. Options none of which is stated
+        are not sent.
         """
-        options = GatherAnnotationOptions(
-            context_window=_CONTEXT_WINDOW if context_window is None else context_window,
-            include_source_context=include_source_context,
-            include_target_context=include_target_context,
+        options = stated(
+            GatherAnnotationOptions(
+                context_window=context_window,
+                include_source_context=include_source_context,
+                include_target_context=include_target_context,
+            )
         )
-        request = GatherAnnotationRequest(annotation_id=annotation_id, resource_id=resource_id, options=stated(options))
+        request = GatherAnnotationRequest(
+            annotation_id=annotation_id, resource_id=resource_id, options=options if options.model_fields_set else None
+        )
         return Running(lambda _: self._links.run(self._links.request(GATHER_REQUESTED, request)))
 
     async def resource(

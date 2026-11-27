@@ -1,9 +1,18 @@
 (* Generated from protocol/specs/src/sign-in-store/cases.json. Do not edit.
    Regenerate: make generate (codegen/lib/case_data/ocaml.ml) *)
 
+type system = Macos | Windows | Other
+
+let system_value = function
+  | (Macos : system) -> "macos"
+  | (Windows : system) -> "windows"
+  | (Other : system) -> "other"
+
+let system_json v = `String (system_value v)
+
 type cases_item = {
   why : string;
-  os : string;
+  os : system;
   home : string option;
   xdg_state_home : string option;
   local_app_data : string option;
@@ -15,7 +24,7 @@ let cases_item_json (r : cases_item) =
     (List.filter_map Fun.id
        [
          Option.Some ("why", (fun s -> `String s) r.why);
-         Option.Some ("os", (fun s -> `String s) r.os);
+         Option.Some ("os", system_json r.os);
          Option.Some
            ( "home",
              (function
@@ -157,44 +166,44 @@ let table : t =
        "Two tables, which each SDK that reads the store runs. `cases`: where \
         the launcher's state home is: the directory that holds tokens.json \
         (and the launcher's own stack.json and discovery/kbs.json). Every \
-        program that finds those files computes it the same way. `os` is \
-        `macos`, `windows`, or anything else; `home` is the home directory \
-        (HOME, or USERPROFILE on Windows), `xdgStateHome` is XDG_STATE_HOME, \
-        null when it is not set, and `localAppData` is LOCALAPPDATA, left out \
-        when it is not set. `dir` null means there is no state home, and \
-        nothing is read or written. `dir` is written with the system's own \
-        separator, whatever system computes it: a backslash on Windows, a \
-        slash elsewhere. Each SDK runs every case against its reader of the \
-        state home, which is given what the environment says and reads none \
-        itself: a program that finds its state home through an SDK's reads the \
-        environment for it. `renewals`: what a renewal of a kept sign-in \
-        writes and gives, when other programs renew the same stack and sign it \
-        out (README.md, Renewing it). A row's store holds `kept` for the stack \
-        when the row begins, and its renewer holds the access token `holding`, \
-        null for none: the one the gateway refused, the one due, or the one \
-        found expired at a session's start (specs/src/session/cases.json). \
-        `meanwhile` is what another program does to the stack's sign-in, null \
-        for nothing: it `renews` (its own renewal, or a sign-in again), \
-        leaving `theirs`, or it `signs-out`; `before` the renewal reads the \
-        store, or `during` the renewal's grant, after its read and before its \
-        write. The issuer answers a grant with `issues`, which has no \
-        `refreshToken` when the issuer rotates none. `spends` is the refresh \
-        token the renewal's grant presents to the issuer, null when it makes \
-        no grant; a runner fails a renewal that makes more than one. `leaves` \
-        is what the store then holds for the stack, null for nothing, and \
-        `gives` the access token the renewal gives its holder, null for none. \
-        A sign-in here is its `token` and its `refreshToken`; a runner keeps \
-        the rest as a sign-in learns it. Each access token is a name: a runner \
-        mints a distinct JWT for each, naming who signed in and at which \
-        issuer (`email`, `iss`) and expiring an hour from now, or an hour ago \
-        when the row lists it in `expired`. A refresh token is its name. Every \
-        store each SDK has, the one on disk and the one in memory, runs every \
-        row, through that SDK's renewal.";
+        program that finds those files computes it the same way. `os` is the \
+        System the state home is on: `macos`, `windows`, or `other`, any other \
+        system; `home` is the home directory (HOME, or USERPROFILE on \
+        Windows), `xdgStateHome` is XDG_STATE_HOME, null when it is not set, \
+        and `localAppData` is LOCALAPPDATA, left out when it is not set. `dir` \
+        null means there is no state home, and nothing is read or written. \
+        `dir` is written with the system's own separator, whatever system \
+        computes it: a backslash on Windows, a slash elsewhere. Each SDK runs \
+        every case against its reader of the state home, which is given what \
+        the environment says and reads none itself: a program that finds its \
+        state home through an SDK's reads the environment for it. `renewals`: \
+        what a renewal of a kept sign-in writes and gives, when other programs \
+        renew the same stack and sign it out (README.md, Renewing it). A row's \
+        store holds `kept` for the stack when the row begins, and its renewer \
+        holds the access token `holding`, null for none: the one the gateway \
+        refused, the one due, or the one found expired at a session's start \
+        (specs/src/session/cases.json). `meanwhile` is what another program \
+        does to the stack's sign-in, null for nothing: it `renews` (its own \
+        renewal, or a sign-in again), leaving `theirs`, or it `signs-out`; \
+        `before` the renewal reads the store, or `during` the renewal's grant, \
+        after its read and before its write. The issuer answers a grant with \
+        `issues`, which has no `refreshToken` when the issuer rotates none. \
+        `spends` is the refresh token the renewal's grant presents to the \
+        issuer, null when it makes no grant; a runner fails a renewal that \
+        makes more than one. `leaves` is what the store then holds for the \
+        stack, null for nothing, and `gives` the access token the renewal \
+        gives its holder, null for none. A sign-in here is its `token` and its \
+        `refreshToken`; a runner keeps the rest as a sign-in learns it. Each \
+        access token is a name: a runner mints a distinct JWT for each, naming \
+        who signed in and at which issuer (`email`, `iss`) and expiring an \
+        hour from now, or an hour ago when the row lists it in `expired`. A \
+        refresh token is its name. Every store each SDK has, the one on disk \
+        and the one in memory, runs every row, through that SDK's renewal.";
      cases =
        [
          ({
             why = "macOS: the application-support directory";
-            os = "macos";
+            os = (Macos : system);
             home = Some "/Users/alice";
             xdg_state_home = None;
             local_app_data = None;
@@ -203,7 +212,7 @@ let table : t =
            : cases_item);
          ({
             why = "macOS does not read XDG_STATE_HOME";
-            os = "macos";
+            os = (Macos : system);
             home = Some "/Users/alice";
             xdg_state_home = Some "/var/state";
             local_app_data = None;
@@ -212,7 +221,7 @@ let table : t =
            : cases_item);
          ({
             why = "elsewhere, XDG_STATE_HOME when it is set";
-            os = "linux";
+            os = (Other : system);
             home = Some "/home/alice";
             xdg_state_home = Some "/var/state";
             local_app_data = None;
@@ -221,7 +230,7 @@ let table : t =
            : cases_item);
          ({
             why = "elsewhere, ~/.local/state when it is not";
-            os = "linux";
+            os = (Other : system);
             home = Some "/home/alice";
             xdg_state_home = None;
             local_app_data = None;
@@ -230,7 +239,7 @@ let table : t =
            : cases_item);
          ({
             why = "an empty XDG_STATE_HOME is one that is not set";
-            os = "linux";
+            os = (Other : system);
             home = Some "/home/alice";
             xdg_state_home = Some "";
             local_app_data = None;
@@ -241,7 +250,7 @@ let table : t =
             why =
               "with no home there is no state home, even where XDG_STATE_HOME \
                is set";
-            os = "linux";
+            os = (Other : system);
             home = None;
             xdg_state_home = Some "/var/state";
             local_app_data = None;
@@ -250,7 +259,7 @@ let table : t =
            : cases_item);
          ({
             why = "an empty home is no home";
-            os = "linux";
+            os = (Other : system);
             home = Some "";
             xdg_state_home = None;
             local_app_data = None;
@@ -259,7 +268,7 @@ let table : t =
            : cases_item);
          ({
             why = "macOS with no home has no state home";
-            os = "macos";
+            os = (Macos : system);
             home = None;
             xdg_state_home = None;
             local_app_data = None;
@@ -268,7 +277,7 @@ let table : t =
            : cases_item);
          ({
             why = "Windows: the local application-data directory";
-            os = "windows";
+            os = (Windows : system);
             home = Some "C:\\Users\\alice";
             xdg_state_home = None;
             local_app_data = Some "C:\\Users\\alice\\AppData\\Local";
@@ -277,7 +286,7 @@ let table : t =
            : cases_item);
          ({
             why = "Windows follows LOCALAPPDATA where it is not under the home";
-            os = "windows";
+            os = (Windows : system);
             home = Some "C:\\Users\\alice";
             xdg_state_home = None;
             local_app_data = Some "D:\\Profiles\\alice\\Local";
@@ -286,7 +295,7 @@ let table : t =
            : cases_item);
          ({
             why = "Windows does not read XDG_STATE_HOME";
-            os = "windows";
+            os = (Windows : system);
             home = Some "C:\\Users\\alice";
             xdg_state_home = Some "D:\\state";
             local_app_data = Some "C:\\Users\\alice\\AppData\\Local";
@@ -297,7 +306,7 @@ let table : t =
             why =
               "Windows, when LOCALAPPDATA is not set: where it is by default, \
                under the home";
-            os = "windows";
+            os = (Windows : system);
             home = Some "C:\\Users\\alice";
             xdg_state_home = None;
             local_app_data = None;
@@ -306,7 +315,7 @@ let table : t =
            : cases_item);
          ({
             why = "an empty LOCALAPPDATA is one that is not set";
-            os = "windows";
+            os = (Windows : system);
             home = Some "C:\\Users\\alice";
             xdg_state_home = None;
             local_app_data = Some "";
@@ -317,7 +326,7 @@ let table : t =
             why =
               "Windows with no home has no state home, even where LOCALAPPDATA \
                is set";
-            os = "windows";
+            os = (Windows : system);
             home = None;
             xdg_state_home = None;
             local_app_data = Some "C:\\Users\\alice\\AppData\\Local";
@@ -326,7 +335,7 @@ let table : t =
            : cases_item);
          ({
             why = "elsewhere, LOCALAPPDATA is not read";
-            os = "linux";
+            os = (Other : system);
             home = Some "/home/alice";
             xdg_state_home = None;
             local_app_data = Some "C:\\Users\\alice\\AppData\\Local";

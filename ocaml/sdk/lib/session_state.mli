@@ -14,7 +14,7 @@ val kb : t -> [ `KnowledgeBase ] Models.t
 val client : t -> Client.t
 val token : t -> string option State_value.t
 val user : t -> [ `UserResponse ] Models.t option State_value.t
-val stream_state : t -> Subscription.state State_value.t
+val stream_state : t -> Enums.Connection_state.t State_value.t
 
 val errors :
   t -> on_value:(Client.said -> unit) -> on_close:(unit -> unit) -> unit -> unit

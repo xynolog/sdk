@@ -17,7 +17,6 @@ type t = {
   job_id : string option State_value.t * string option State_value.writer;
   submission : State_task.t;
   quiet : State_task.t;
-  silence_ms : int;
   mutable unlisten : unit -> unit;
   mutable release : unit -> unit;
   mutable disposed : bool;
@@ -38,7 +37,7 @@ let publish t channel fields =
   | Ok value -> Client.publish t.client channel value
   | Error _ -> ()
 
-let make ?(silence_ms = Client_timing.delegate_silence_ms) client ~resource =
+let make client ~resource =
   let t =
     {
       client;
@@ -51,7 +50,6 @@ let make ?(silence_ms = Client_timing.delegate_silence_ms) client ~resource =
       job_id = State_value.make None;
       submission = State_task.make ();
       quiet = State_task.make ();
-      silence_ms;
       unlisten = ignore;
       release = ignore;
       disposed = false;
@@ -64,17 +62,8 @@ let make ?(silence_ms = Client_timing.delegate_silence_ms) client ~resource =
   in
   let request =
     listen B.Channels.mark_requested (fun body ->
-        let member descriptor name =
-          Models.decode descriptor (Yojson.Safe.to_string (J.member name body))
-          |> Result.get_ok
-        in
         set t.pending
-          (Some
-             {
-               Records.Pending_annotation.selector =
-                 member Models.annotation_selector "selector";
-               motivation = member Models.motivation "motivation";
-             }))
+          (Some (Result.get_ok (Records.Pending_annotation.of_json body))))
   in
   let submit =
     listen B.Channels.mark_submit (fun body ->
@@ -141,7 +130,9 @@ let request_delegate t params =
     set t.motivation motivation;
     let arm () =
       let clock = Client.clock t.client in
-      let deadline = State_task.deadline clock t.silence_ms in
+      let deadline =
+        State_task.deadline clock Client_timing.delegate_silence_ms
+      in
       State_task.replace t.quiet ~sw:(Client.switch t.client) (fun current ->
           Clock.sleep_until clock deadline;
           if current () then (

@@ -33,7 +33,7 @@ import Xynolog.Internal.Generated.Stored (activeKey, knowledgeBasesKey, lastView
 import Xynolog.Internal.Generated.Stored qualified as Stored
 import Xynolog.Internal.Kept (forgetKept)
 import Xynolog.SessionStorage (SessionStorage (..))
-import Xynolog.Types (KnowledgeBase (..), StoredSession (..))
+import Xynolog.Types (AccessToken (..), KnowledgeBase (..), StoredSession (..))
 
 sessionKey :: Text -> Text
 sessionKey = (Stored.sessionKeyPrefix <>)
@@ -72,7 +72,7 @@ forgetNamed storage identity previous = mapM_ (forgetKept storage identity) (pre
 -- It records only while it holds that token and names nobody.
 recording :: Text -> Text -> StoredSession -> (Maybe StoredSession, Bool)
 recording access person held
-  | storedSessionAccess held /= access = (Nothing, False)
+  | accessTokenValue (storedSessionAccess held) /= access = (Nothing, False)
   | otherwise = case storedSessionPersonKey held of
       Nothing -> (Just held {storedSessionPersonKey = Just person}, True)
       Just named -> (Nothing, named == person)

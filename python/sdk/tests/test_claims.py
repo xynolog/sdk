@@ -27,19 +27,16 @@ from xynolog import telemetry
 from xynolog.claims import (
     JOB_CLAIM_CHANNELS,
     JOB_COMMIT_CHANNELS,
-    ClaimRefusal,
     Claims,
     HeldJob,
     HeldMarkJob,
     HeldYieldJob,
-    WorkerVitals,
     will_retry_after,
 )
 from xynolog.client import XynologClient
 from xynolog.errors import BusRequestError, TransportError
-from xynolog.identifiers import JobId, ResourceId
+from xynolog.identifiers import ResourceId
 from xynolog.job_filter import job_matches_filter
-from xynolog.model import WireModel, written
 from xynolog.testing import (
     Delay,
     Deliver,
@@ -52,19 +49,21 @@ from xynolog.testing import (
     StubGateway,
 )
 from xynolog.timing import ERRORS_KEPT_FOR_FIRST_READER_COUNT, MARK_COMMIT_TIMEOUT_MS
-from xynolog.transport import Frame, FrameRefusal, TraceContext
+from xynolog.transport import Frame, FrameRefusal
 from xynolog.types import (
     Annotation,
     ClaimOptions,
+    ClaimRefusal,
     DurabilityEvidence,
-    Engine,
     FailureClass,
+    JobCheckpoint,
+    JobFailure,
     JobFilter,
     JobProgress,
+    JobReached,
     MarkJobDone,
+    TraceCarrier,
     UnitCursor,
-    WorkerEngineHealth,
-    WorkerEngineHealthActiveJob,
     YieldJobDone,
 )
 from xynolog.watched import Watched
@@ -489,7 +488,9 @@ def test_a_refusal_is_handed_out_with_its_code_and_a_reply_that_names_no_job_is_
         w = World(channels=WORKER)
         w.refusals.append({"message": "the caller is not a worker for this knowledge base", "code": "unauthorized"})
         async with w.client.job.claim(ClaimOptions(accepts=EVERYTHING)) as claims:
-            assert await soon(anext(claims)) == ClaimRefusal("bus.unauthorized", "the caller is not a worker for this knowledge base")
+            assert await soon(anext(claims)) == ClaimRefusal(
+                code="bus.unauthorized", message="the caller is not a worker for this knowledge base"
+            )
             assert len(w.sent("job:claim")) == 1, "it does not ask again by itself"
 
             # WORKER-CONTRACT C9: a worker must not run what it cannot read, and goes on claiming.
@@ -516,7 +517,7 @@ def test_of_the_refusals_nobody_has_read_the_latest_are_kept_in_order_and_the_jo
         w.refusals.extend({"message": f"refusal {serial}", "code": "peer-unavailable"} for serial in range(refused + 1))
         async with w.client.job.claim(ClaimOptions(accepts=EVERYTHING)) as claims:
             # The first read begins claiming, and is handed the first refusal.
-            assert await soon(anext(claims)) == ClaimRefusal("bus.peer-unavailable", "refusal 0")
+            assert await soon(anext(claims)) == ClaimRefusal(code="bus.peer-unavailable", message="refusal 0")
             # Then nobody reads while each wake-up is refused.
             for _ in range(refused):
                 w.relay("job:queued", queued("highlighting"))
@@ -527,7 +528,9 @@ def test_of_the_refusals_nobody_has_read_the_latest_are_kept_in_order_and_the_jo
             await turns()
 
             handed = [await soon(anext(claims)) for _ in range(ERRORS_KEPT_FOR_FIRST_READER_COUNT)]
-            assert handed == [ClaimRefusal("bus.peer-unavailable", f"refusal {serial}") for serial in range(1 + beyond, refused + 1)]
+            assert handed == [
+                ClaimRefusal(code="bus.peer-unavailable", message=f"refusal {serial}") for serial in range(1 + beyond, refused + 1)
+            ]
             job = await held(claims)
             assert job.job_id == "job-1"
             await finish(job)
@@ -537,8 +540,6 @@ def test_of_the_refusals_nobody_has_read_the_latest_are_kept_in_order_and_the_jo
 
 
 def test_a_stream_that_does_not_name_what_claiming_reads_cannot_carry_a_workers_claims() -> None:
-    assert JOB_CLAIM_CHANNELS == ("job:claimed", "job:claim-failed", "job:queued", "job:cancel-requested")
-
     async def scenario() -> None:
         # A worker on such a stream would claim once and never be woken, with nothing to show for it.
         w = World(channels=("job:claimed", "job:claim-failed"))
@@ -567,7 +568,7 @@ def test_a_held_job_says_its_whole_lifecycle_itself() -> None:
             assert isinstance(job, HeldMarkJob)
             await job.start()
             await job.progress(JobProgress(percentage=40))
-            await job.checkpoint(["Person"], {"Place": UnitCursor.model_validate(cursor)})
+            await job.checkpoint(JobCheckpoint(completed_units=["Person"], unit_cursors={"Place": UnitCursor.model_validate(cursor)}))
             assert await commit_observing(w, job, "acknowledged") is None
             await job.complete(MarkJobDone(found=9, persisted=7))
             with pytest.raises(RuntimeError, match="already settled"):
@@ -679,9 +680,9 @@ def test_a_failure_says_whether_it_will_be_retried_and_a_cancel_says_only_what_i
             ]
         )
         async with w.client.job.claim(ClaimOptions(accepts=EVERYTHING)) as claims:
-            await (await held(claims)).fail("the model timed out", completed_units=["Person"])
+            await (await held(claims)).fail("the model timed out", JobFailure(completed_units=["Person"]))
             await (await held(claims)).fail("the model timed out")
-            await (await held(claims)).cancel(["Person"])
+            await (await held(claims)).cancel(JobReached(completed_units=["Person"]))
 
         base: JsonObject = {"resourceId": "res-1", "jobType": "mark"}
         assert w.sent("job:fail") == [
@@ -694,7 +695,7 @@ def test_a_failure_says_whether_it_will_be_retried_and_a_cancel_says_only_what_i
 
         # A failure no second attempt can change, of a job one of whose commits was not established.
         async with having_committed("probe-refused") as (known, job):
-            await job.fail("the resource has no text", failure_class="deterministic")
+            await job.fail("the resource has no text", JobFailure(failure_class="deterministic"))
         assert known.sent("job:fail") == [
             {
                 **base,
@@ -762,8 +763,6 @@ def test_a_worker_that_stops_fails_the_job_it_holds_and_a_job_left_unsettled_is_
 
 
 def test_a_stream_that_does_not_name_what_a_commit_awaits_carries_a_workers_claims_and_none_of_its_commits() -> None:
-    assert JOB_COMMIT_CHANNELS == ("mark:commit-ok", "mark:commit-failed", "browse:annotation-result", "browse:annotation-failed")
-
     async def scenario() -> None:
         # A worker that never commits names nothing more, and claims as any other.
         w = World(channels=JOB_CLAIM_CHANNELS)
@@ -1155,27 +1154,6 @@ def test_a_held_job_says_whether_its_claim_accepts_it() -> None:
     run(scenario())
 
 
-def test_vitals_are_an_engines_health_less_its_engine_and_jobs() -> None:
-    def members(shape: type[WireModel]) -> dict[str, tuple[str | None, object]]:
-        return {name: (field.alias, field.annotation) for name, field in shape.model_fields.items()}
-
-    health = members(WorkerEngineHealth)
-    del health["engine"], health["jobs"]
-    assert members(WorkerVitals) == health
-
-    vitals = WorkerVitals(
-        last_queued_event_at=None,
-        last_claim_at="2026-01-01T00:00:01.000Z",
-        last_finished_at=None,
-        last_activity_at="2026-01-01T00:00:01.000Z",
-        active_job=WorkerEngineHealthActiveJob(job_id=JobId("job-1"), type="mark", since="2026-01-01T00:00:01.000Z"),
-        jobs_completed=0,
-    )
-    engine = Engine(provider="ollama", model="m")
-    said = WorkerEngineHealth(engine=engine, jobs=TAGGING, **dict(vitals))
-    assert written(said) == {"engine": written(engine), "jobs": [written(job) for job in TAGGING], **written(vitals)}
-
-
 def test_vitals_say_what_the_worker_holds_and_has_done_and_a_silent_held_job_is_stalled() -> None:
     async def scenario() -> None:
         w = World(channels=WORKER)
@@ -1324,7 +1302,7 @@ def test_a_held_job_states_the_trace_its_reply_arrived_in_and_none_when_it_arriv
     async def scenario() -> None:
         # The first claim's own answer is lost on the wire, and the test answers it by hand.
         w = World(channels=WORKER, wire=[DropReply(), Deliver(), Deliver()])
-        arrived_in = TraceContext(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01", tracestate="vendor=value")
+        arrived_in = TraceCarrier(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01", tracestate="vendor=value")
         async with w.client.job.claim(ClaimOptions(accepts=EVERYTHING)) as claims:
             reading = asyncio.ensure_future(held(claims))
             await turns()
@@ -1358,7 +1336,7 @@ def test_a_job_held_with_async_with_runs_its_block_in_the_trace_its_reply_arrive
     async def scenario() -> None:
         # The first claim's own answer is lost on the wire, and the test answers it by hand.
         w = World(channels=WORKER, wire=[DropReply(), Deliver(), Deliver()])
-        arrived_in = TraceContext(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
+        arrived_in = TraceCarrier(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
         async with w.client.job.claim(ClaimOptions(accepts=EVERYTHING)) as claims:
             reading = asyncio.ensure_future(held(claims))
             await turns()
@@ -1396,7 +1374,7 @@ def test_a_job_held_with_async_with_runs_its_block_in_the_trace_its_reply_arrive
 def test_a_held_jobs_trace_is_a_value_that_work_done_outside_its_block_continues() -> None:
     async def scenario() -> None:
         w = World(channels=WORKER, wire=[DropReply(), Deliver()])
-        arrived_in = TraceContext(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
+        arrived_in = TraceCarrier(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
         async with w.client.job.claim(ClaimOptions(accepts=EVERYTHING)) as claims:
             reading = asyncio.ensure_future(held(claims))
             await turns()
@@ -1422,7 +1400,7 @@ def test_a_held_jobs_trace_is_a_value_that_work_done_outside_its_block_continues
 def test_a_block_left_with_its_job_unsettled_fails_the_job_and_leaves_the_jobs_trace() -> None:
     async def scenario() -> None:
         w = World(channels=WORKER, wire=[DropReply(), Deliver()])
-        arrived_in = TraceContext(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
+        arrived_in = TraceCarrier(traceparent="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
         async with w.client.job.claim(ClaimOptions(accepts=EVERYTHING)) as claims:
             reading = asyncio.ensure_future(held(claims))
             await turns()

@@ -13,8 +13,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ThreadContextElement
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import xynolog.identifiers.ResourceId
-import xynolog.transport.TraceContext
+import xynolog.types.TraceCarrier
+import xynolog.types.wireJson
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 
@@ -95,7 +98,7 @@ internal object Telemetry {
      * frame continues: the arrival's own span when one was recorded, and what
      * the frame brought otherwise.
      */
-    fun received(channel: String, scope: ResourceId?, sentUnder: TraceContext?): TraceContext? {
+    fun received(channel: String, scope: ResourceId?, sentUnder: TraceCarrier?): TraceCarrier? {
         val parent = extracted(sentUnder)
         val row = TelemetryTable.BUS_RECV
         val span = otel().getTracer(SCOPE).spanBuilder(row.name.replace(CHANNEL, channel))
@@ -106,7 +109,7 @@ internal object Telemetry {
         span.end()
         val arrived = carried(parent.with(span))
         val traceparent = arrived["traceparent"] ?: return sentUnder
-        return TraceContext(traceparent, arrived["tracestate"]?.takeIf { it.isNotEmpty() })
+        return TraceCarrier(traceparent, arrived["tracestate"]?.takeIf { it.isNotEmpty() })
     }
 
     /** An upload, run in its span. */
@@ -140,17 +143,14 @@ private object MapGetter : TextMapGetter<Map<String, String>> {
 internal fun callersTrace(): CoroutineContext = Context.current().inCoroutines()
 
 /** The trace `carried` states, as OpenTelemetry's context: the root when it states none. */
-private fun extracted(carried: TraceContext?): Context {
+private fun extracted(carried: TraceCarrier?): Context {
     val sent = carried ?: return Context.root()
-    val carrier = buildMap {
-        put("traceparent", sent.traceparent)
-        sent.tracestate?.let { put("tracestate", it) }
-    }
+    val carrier = wireJson.encodeToJsonElement(TraceCarrier.serializer(), sent).jsonObject.mapValues { it.value.jsonPrimitive.content }
     return GlobalOpenTelemetry.getOrNoop().propagators.textMapPropagator.extract(Context.root(), carrier, MapGetter)
 }
 
 /** The trace `carried` states, as a coroutine's context: none when it states none. */
-internal fun continuing(carried: TraceContext?): CoroutineContext = extracted(carried).inCoroutines()
+internal fun continuing(carried: TraceCarrier?): CoroutineContext = extracted(carried).inCoroutines()
 
 /** `work` as a future, for Java, run in the trace its caller is in. */
 internal fun <T> CoroutineScope.futureOf(work: suspend () -> T): CompletableFuture<T> = future(callersTrace()) { work() }

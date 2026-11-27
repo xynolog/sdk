@@ -13,8 +13,10 @@ import { Subject, type Observable } from 'rxjs';
 import {
   XynologError,
   annotationId,
+  faultOf,
   resourceId,
   type AnnotationId,
+  type components,
   type BusOperationKey,
   type EventMap,
   type GenerationJobParams,
@@ -102,9 +104,19 @@ function count(value: Json | undefined, what: string): number {
   return value;
 }
 
-function flag(value: Json | undefined, what: string): boolean {
-  if (typeof value !== 'boolean')
-    throw new Error(`${what} is not a boolean: ${JSON.stringify(value)}`);
+function isGatherAnnotationOptions(
+  value: unknown,
+): value is components['schemas']['GatherAnnotationOptions'] {
+  return faultOf('GatherAnnotationOptions', value) === undefined;
+}
+
+function gatherAnnotationOptions(
+  value: Json,
+): components['schemas']['GatherAnnotationOptions'] {
+  if (!isGatherAnnotationOptions(value))
+    throw new Error(
+      `options are not GatherAnnotationOptions: ${JSON.stringify(value)}`,
+    );
   return value;
 }
 
@@ -253,29 +265,12 @@ const MAKERS: Record<string, Make> = {
       unit,
       methods: {
         gatherAnnotation: (args) =>
-          unit.gatherAnnotation(annotationOf(args), {
-            ...(args['contextWindow'] === undefined
-              ? {}
-              : {
-                  contextWindow: count(args['contextWindow'], 'contextWindow'),
-                }),
-            ...(args['includeSourceContext'] === undefined
-              ? {}
-              : {
-                  includeSourceContext: flag(
-                    args['includeSourceContext'],
-                    'includeSourceContext',
-                  ),
-                }),
-            ...(args['includeTargetContext'] === undefined
-              ? {}
-              : {
-                  includeTargetContext: flag(
-                    args['includeTargetContext'],
-                    'includeTargetContext',
-                  ),
-                }),
-          }),
+          unit.gatherAnnotation(
+            annotationOf(args),
+            args['options'] === undefined
+              ? undefined
+              : gatherAnnotationOptions(args['options']),
+          ),
         gatherResource: (args) =>
           unit.gatherResource(
             resourceId(text(args['resourceId'], 'resourceId')),

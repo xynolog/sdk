@@ -144,18 +144,19 @@ class LiveQueriesTest {
             client.browse.resources(BrowseResourcesRequest(limit = 5)),
         ).map { world.watch(it) }
         lists.forEach { it.ready() }
-        // Stating the limit a list has anyway is the same list.
+        // A list sends only what its caller states: a limit left out is the service's, not the same list as one stated.
         val asked = kb.askedFor("browse:resources-requested").map { it.payload }
-        assertTrue(json("""{"limit":100,"offset":0}""") in asked)
-        assertTrue(json("""{"limit":100,"offset":0,"archived":true}""") in asked)
-        assertTrue(json("""{"limit":100,"offset":0,"entityType":"Person"}""") in asked)
-        assertTrue(json("""{"limit":5,"offset":0}""") in asked)
-        assertEquals(4, asked.size)
+        assertTrue(json("""{}""") in asked)
+        assertTrue(json("""{"limit":100}""") in asked)
+        assertTrue(json("""{"archived":true}""") in asked)
+        assertTrue(json("""{"entityType":"Person"}""") in asked)
+        assertTrue(json("""{"limit":5}""") in asked)
+        assertEquals(5, asked.size)
 
         val before = kb.askedFor("match:resources-requested").size
         listOf(client.match.resources("a"), client.match.resources("a"), client.match.resources("b", ResourceSearchFilters(archived = false))).map { world.watch(it) }.forEach { it.ready() }
         assertEquals(
-            listOf(json("""{"search":"a","limit":100,"offset":0}"""), json("""{"search":"b","limit":100,"offset":0,"archived":false}""")),
+            listOf(json("""{"search":"a"}"""), json("""{"search":"b","archived":false}""")),
             kb.askedFor("match:resources-requested").drop(before).map { it.payload },
         )
         world.close()

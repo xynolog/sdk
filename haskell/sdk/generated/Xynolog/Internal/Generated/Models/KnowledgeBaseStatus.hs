@@ -9,6 +9,7 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.DiscoveredKB
+import Xynolog.Internal.Generated.Models.KbPlacement
 import Xynolog.Internal.Generated.Models.Runtime
 import Xynolog.Internal.Generated.Models.ServiceStatus
 import Xynolog.Internal.Generated.Models.Session
@@ -18,7 +19,7 @@ data KnowledgeBaseStatus = KnowledgeBaseStatus
   { knowledgeBaseStatusName :: Text,
     knowledgeBaseStatusKey :: Text,
     knowledgeBaseStatusRecorded :: Bool,
-    knowledgeBaseStatusPlacement :: DiscoveredKBPlacement,
+    knowledgeBaseStatusPlacement :: KbPlacement,
     knowledgeBaseStatusRoot :: Maybe Text,
     knowledgeBaseStatusRepo :: Maybe Text,
     knowledgeBaseStatusDid :: Maybe Text,

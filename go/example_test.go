@@ -20,12 +20,11 @@ import (
 // requests; the content transport, over it, carries resources' bytes.
 func ExampleNewClient() {
 	origin, token := "https://kb.example.org", "the person's access token"
-	timing := xynolog.DefaultTiming()
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{
-		BaseURL: origin, Token: xynolog.NewVariable(token), Channels: bus.BridgedChannels, HTTP: http.DefaultClient, Timing: timing,
+		BaseURL: origin, Token: xynolog.NewVariable(token), Channels: bus.BridgedChannels, HTTP: http.DefaultClient, Timing: xynolog.DefaultTransportTiming(),
 	})
 	client := xynolog.NewClient(xynolog.ClientConfig{
-		Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: timing,
+		Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: xynolog.DefaultClientTiming(),
 	})
 	// The client first, then the transport it speaks through.
 	defer transport.Close()
@@ -44,7 +43,7 @@ func ExampleNewClient() {
 func ExampleSignInAgent() {
 	ctx := context.Background()
 	gateway, issuer := "https://kb.example.org", "https://issuer.example.org"
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	service := xynolog.NewServiceToken(
 		xynolog.SecretCredential{Issuer: issuer, ClientID: "my-agent", ClientSecret: "the agent's secret"},
 		xynolog.Issuer{HTTP: http.DefaultClient, Timing: timing},
@@ -69,7 +68,7 @@ func ExampleSignInAgent() {
 // over xynologtest's doubles, which is how a test of a program that takes a
 // client is built.
 func ExampleBrowseNamespace_ResourceContent() {
-	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 	defer made.Transport.Close()
 	defer made.Client.Close()
 

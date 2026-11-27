@@ -1,20 +1,18 @@
 package xynolog
 
-import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import xynolog.jobs.WorkerVitals
+import xynolog.cache.CacheState
 import xynolog.state.SearchState
 import xynolog.types.FrameRefusalReason
 import xynolog.types.JobCompleteCommand
 import xynolog.types.JobCreatedResultResponse
 import xynolog.types.JobFailCommand
 import xynolog.types.JobProgress
-import xynolog.types.WorkerEngineHealth
 import xynolog.types.wireJson
 import java.lang.reflect.Modifier
 
@@ -44,19 +42,29 @@ private fun events(): List<JobEvent<JobCompleteCommand>> {
     return samples
 }
 
-/**
- * The client types written by hand, each held to what states it: SearchState
- * and JobEvent, generic, to their schemas in protocol/specs/src/client/types,
- * and WorkerVitals to WorkerEngineHealth, which it is but for what its host
- * and its claims state. A member or a branch either side gains or loses fails.
- */
-class ClientTypesCensusTest {
-    @Test
-    fun workerVitalsAreAnEnginesHealthButForItsEngineAndItsJobs() {
-        val health = WorkerEngineHealth.serializer().descriptor.elementNames.toSet()
-        assertEquals(health - setOf("engine", "jobs"), held(WorkerVitals::class.java))
+/** One state of each status; the `when` fails to compile on a state CacheState gains, for a sample of it. */
+private fun cacheStates(): List<CacheState<Int>> {
+    val samples = listOf(CacheState.Pending, CacheState.Ready(0), CacheState.Failed(Exception("failed")))
+    for (sample in samples) {
+        when (sample) {
+            is CacheState.Pending, is CacheState.Ready, is CacheState.Failed -> {}
+        }
+    }
+    return samples
+}
+
+private fun branches(name: String, tag: String): Map<String, JsonElement> =
+    schema(name).jsonObject.getValue("oneOf").jsonArray.associateBy {
+        it.jsonObject.getValue("properties").jsonObject.getValue(tag).jsonObject.getValue("enum").jsonArray[0].jsonPrimitive.content
     }
 
+/**
+ * The client types written by hand, each held to what states it: SearchState,
+ * JobEvent and CacheState, generic, to their schemas in
+ * protocol/specs/src/client/types. A member or a branch either side gains or
+ * loses fails.
+ */
+class ClientTypesCensusTest {
     @Test
     fun searchStateHasTheSchemasMembers() {
         assertEquals(properties(schema("SearchState")), held(SearchState::class.java))
@@ -64,13 +72,19 @@ class ClientTypesCensusTest {
 
     @Test
     fun jobEventHasTheSchemasBranchesEachOfItsMembers() {
-        val branches = schema("JobEvent").jsonObject.getValue("oneOf").jsonArray.associateBy {
-            it.jsonObject.getValue("properties").jsonObject.getValue("kind").jsonObject.getValue("enum").jsonArray[0].jsonPrimitive.content
-        }
+        val branches = branches("JobEvent", "kind")
         val written = events().associate { it.kind to held(it.javaClass) + "kind" }
         assertEquals(branches.keys, written.keys)
         for ((kind, members) in written) assertEquals(properties(branches.getValue(kind)), members, kind)
         val refused = branches.getValue("refused").jsonObject.getValue("properties").jsonObject.getValue("data")
         assertEquals(properties(refused), held(RefusedFrame::class.java))
+    }
+
+    @Test
+    fun cacheStateHasTheSchemasBranchesEachOfItsMembers() {
+        val branches = branches("CacheState", "status")
+        val written = cacheStates().associate { it.status to held(it.javaClass) + "status" }
+        assertEquals(branches.keys, written.keys)
+        for ((status, members) in written) assertEquals(properties(branches.getValue(status)), members, status)
     }
 }

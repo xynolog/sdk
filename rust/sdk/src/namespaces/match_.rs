@@ -2,7 +2,6 @@
 //! by text. The second is a query (`Cached`): it answers from the client's
 //! cache, and the client's refresher (`super::refresher`) keeps it true.
 
-use super::browse::LIST_LIMIT;
 use crate::cache::Cache;
 use crate::cached::{Cached, Keyed};
 use crate::channels::{MatchResourcesRequested, MatchSearchRequested};
@@ -19,10 +18,6 @@ use crate::types::{
 /// Every SDK asks for as many: the cases of protocol/specs/src/client/surface.json
 /// hold each to it.
 const LIMIT: u16 = 10;
-
-/// Whether a search is scored semantically when its caller does not say.
-/// Held by the same cases.
-const SEMANTIC_SCORING: bool = true;
 
 /// A search for resources: the text, and which resources it is among.
 pub(super) type ResourceSearch = (String, ResourceSearchFilters);
@@ -42,8 +37,8 @@ impl MatchNamespace {
                 async move {
                     let request = MatchResourcesRequest {
                         search,
-                        limit: Some(filters.limit.unwrap_or(LIST_LIMIT)),
-                        offset: Some(filters.offset.unwrap_or(0)),
+                        limit: filters.limit,
+                        offset: filters.offset,
                         archived: filters.archived,
                         entity_type: filters.entity_type,
                     };
@@ -64,8 +59,8 @@ impl MatchNamespace {
     }
 
     /// A page of the resources among those `filters` admits that a search
-    /// for `search` finds, kept per search and set of filters: a hundred when
-    /// they state no limit, from the first when they state no offset. The text is
+    /// for `search` finds, kept per search and set of filters: the page they
+    /// state, and the service's own when they state none. The text is
     /// matched lexically and, when nothing matches, by meaning: the
     /// answer's `match_kind` says which it is. A search is a query's
     /// answer: it is asked for again when a resource is created, updated,
@@ -85,8 +80,8 @@ impl MatchNamespace {
     }
 
     /// Candidates for a reference, given its gathered context. A search
-    /// that states no limit asks for ten, and one that does not say
-    /// otherwise is scored semantically.
+    /// that states no limit asks for ten, and one that does not say how it
+    /// is scored is scored as the service decides.
     pub fn search(
         &self,
         resource_id: &ResourceId,
@@ -100,7 +95,7 @@ impl MatchNamespace {
             reference_id: reference_id.clone(),
             context,
             limit: Some(options.limit.unwrap_or(LIMIT)),
-            use_semantic_scoring: Some(options.use_semantic_scoring.unwrap_or(SEMANTIC_SCORING)),
+            use_semantic_scoring: options.use_semantic_scoring,
         };
         Running::new(|_| async move { links.request::<MatchSearchRequested>(&request).await })
     }

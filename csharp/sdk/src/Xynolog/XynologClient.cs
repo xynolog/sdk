@@ -1,5 +1,6 @@
 using Xynolog.Http;
 using Xynolog.Namespaces;
+using Xynolog.Types;
 
 namespace Xynolog;
 
@@ -11,30 +12,34 @@ public sealed class XynologClient : IDisposable
     private readonly IDisposable attachedBus;
 
     /// <summary>Connects to the gateway at <paramref name="baseUrl"/>, subscribed to every channel the client bridges,
-    /// sending <paramref name="token"/>.</summary>
+    /// sending <paramref name="token"/>. The client keeps <paramref name="clientTiming"/>, and the transport it makes
+    /// <paramref name="transportTiming"/>: each the protocol's when null.</summary>
     public XynologClient(string baseUrl, string? token = null, HttpClient? httpClient = null,
-        TimeProvider? timeProvider = null, Random? random = null, Timing? timing = null, CachePersistence? persistence = null)
+        TimeProvider? timeProvider = null, Random? random = null, ClientTiming? clientTiming = null,
+        TransportTiming? transportTiming = null, CachePersistence? persistence = null)
         : this(new HttpTransport(baseUrl, token, BusRegistry.BridgedChannels,
-            timing: timing, httpClient: httpClient, timeProvider: timeProvider, random: random), persistence)
+            timing: transportTiming, httpClient: httpClient, timeProvider: timeProvider, random: random), persistence, clientTiming)
     {
     }
 
-    /// <summary>Owns the transport. Supply subscriptions for the operations the client will use.</summary>
-    public XynologClient(HttpTransport transport, CachePersistence? persistence = null)
+    /// <summary>Owns the transport. Supply subscriptions for the operations the client will use. The client keeps
+    /// <paramref name="timing"/>, the protocol's when null.</summary>
+    public XynologClient(HttpTransport transport, CachePersistence? persistence = null, ClientTiming? timing = null)
     {
         ArgumentNullException.ThrowIfNull(transport);
+        timing ??= new ClientTiming();
         Transport = transport;
-        Wire = new Bus(transport);
+        Wire = new Bus(transport, timing.BusRequestTimeoutMs);
         Bus = new EventBus();
         content = new HttpContentTransport(transport);
-        live = new LiveQueries(Wire, Bus, transport, content, persistence);
+        live = new LiveQueries(Wire, Bus, transport, content, persistence, timing);
         Browse = new BrowseNamespace(Wire, Bus, content, transport.Closed, live);
         Bind = new BindNamespace(Wire, Bus);
         Beckon = new BeckonNamespace(Wire, Bus);
         Gather = new GatherNamespace(Wire, live);
         Match = new MatchNamespace(Wire, Bus, live);
         Job = new JobNamespace(Wire, Bus, transport);
-        var follower = new JobFollower(Wire, Bus, Job, transport.Clock, transport.Closed, transport.Settings);
+        var follower = new JobFollower(Wire, Bus, Job, transport.Clock, transport.Closed, timing);
         Mark = new MarkNamespace(Wire, Bus, follower);
         Yield = new YieldNamespace(follower, Wire, Bus, content);
         Frame = new FrameNamespace(Wire);

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/xynolog/sdk/go/internal/required"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // SessionStorage is a store of text by key: the seam an application fills in
@@ -139,12 +140,11 @@ type keptEntry struct {
 // value was received. A document whose structure is not
 // protocol/specs/src/session/stored.json's `cacheDocument` reads as nothing
 // kept; an entry whose key is no K, or whose value is no V, is skipped. A
-// document larger than maxBytes loses the entries that have gone longest
-// without a new value, until it fits.
+// document larger than maxStoredBytesCount loses the entries that have gone
+// longest without a new value, until it fits.
 type StoragePersister[K comparable, V any] struct {
-	storage  SessionStorage
-	key      string
-	maxBytes int
+	storage SessionStorage
+	key     string
 
 	mu sync.Mutex
 	// written is each key's value as last written, and when: an entry whose
@@ -154,10 +154,9 @@ type StoragePersister[K comparable, V any] struct {
 
 var _ CachePersister[string, string] = (*StoragePersister[string, string])(nil)
 
-// NewStoragePersister keeps a cache's values in storage under key, in a
-// document of at most maxBytes.
-func NewStoragePersister[K comparable, V any](storage SessionStorage, key string, maxBytes int) *StoragePersister[K, V] {
-	return &StoragePersister[K, V]{storage: storage, key: key, maxBytes: maxBytes}
+// NewStoragePersister keeps a cache's values in storage under key.
+func NewStoragePersister[K comparable, V any](storage SessionStorage, key string) *StoragePersister[K, V] {
+	return &StoragePersister[K, V]{storage: storage, key: key}
 }
 
 func (p *StoragePersister[K, V]) Load() map[K]V {
@@ -275,10 +274,10 @@ func (p *StoragePersister[K, V]) Save(entries map[K]V) error {
 		return b.String()
 	}
 	text := document()
-	if len(text) > p.maxBytes {
+	if len(text) > timing.MaxStoredBytesCount {
 		// The entries that have gone longest without a new value are the first to go.
 		sort.Slice(kept, func(i, j int) bool { return kept[i].at < kept[j].at })
-		for len(kept) > 0 && len(text) > p.maxBytes {
+		for len(kept) > 0 && len(text) > timing.MaxStoredBytesCount {
 			kept = kept[1:]
 			text = document()
 		}

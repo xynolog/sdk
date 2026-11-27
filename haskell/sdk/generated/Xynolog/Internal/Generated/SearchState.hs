@@ -6,10 +6,10 @@ module Xynolog.Internal.Generated.SearchState (SearchState (..)) where
 
 import Data.Aeson (ToJSON (..), object, (.=))
 
-data SearchState value = SearchState
-  { searchStateResults :: [value],
+data SearchState r = SearchState
+  { searchStateResults :: [r],
     searchStateIsSearching :: Bool
   }
   deriving (Eq, Show)
 
-instance (ToJSON value) => ToJSON (SearchState value) where toJSON record = object ["results" .= searchStateResults record, "isSearching" .= searchStateIsSearching record]
+instance (ToJSON r) => ToJSON (SearchState r) where toJSON record = object ["results" .= searchStateResults record, "isSearching" .= searchStateIsSearching record]

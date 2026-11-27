@@ -9,14 +9,14 @@ import (
 	"time"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
-// Timing is the timing a Xynolog client keeps: its deadlines, its retry
-// budgets, the cadence of its stream, and what it keeps count of, as
-// protocol/specs/src/client/timing.json states them for every SDK. It holds
-// one field per entry, under the entry's name. DefaultTiming is the table's
-// values; a caller that wants another sets that field.
-type Timing struct {
+// ClientTiming holds what a caller may set of the timing a client keeps, one
+// field per entry of protocol/specs/src/client/timing.json under the entry's
+// name. DefaultClientTiming is the table's values; a caller that wants
+// another sets that field.
+type ClientTiming struct {
 	// BusRequestTimeout is busRequestTimeoutMs: How long a bus request has, from
 	// the call, to be answered: the wait for the stream to open, the emit with
 	// its retries and the waits between them, and the wait for the reply. When
@@ -26,11 +26,39 @@ type Timing struct {
 	// /bus/subscribe), so a reply published during an outage is still there when
 	// the requester reconnects inside its own deadline.
 	BusRequestTimeout time.Duration
-	// EmitTimeout is emitTimeoutMs: The deadline on one POST /bus/emit. The
-	// gateway accepts an emit promptly; one still unanswered here means the
-	// gateway is unresponsive, and the emit is rejected rather than awaited
-	// forever. Without it a worker's emit to a wedged gateway hangs its loop.
-	EmitTimeout time.Duration
+	// InvalidationWindow is invalidationWindowMs: How long bus-driven
+	// invalidations of one cache key fold together (CACHE-SEMANTICS B19). The
+	// first runs at once; any more inside the window become one refetch at its
+	// end. Each refetch is a request the session's principal pays for, and
+	// another principal's bulk write invalidates an observed key once per event.
+	InvalidationWindow time.Duration
+	// JobSilence is jobSilenceMs: How long a job a client is following may say
+	// nothing before the client asks for its status. A job's progress and its
+	// end reach the client as passing frames, which a dropped stream loses and
+	// nothing redelivers; `job:status-requested` is how a follower learns what
+	// it missed. Every frame of the job starts the wait again.
+	JobSilence time.Duration
+	// JobStatusPoll is jobStatusPollMs: How often a client asks for the status
+	// of a job that has been silent for `jobSilenceMs`, until the job says
+	// something or its status is an end.
+	JobStatusPoll time.Duration
+}
+
+// DefaultClientTiming is the table's values of ClientTiming.
+func DefaultClientTiming() ClientTiming {
+	return ClientTiming{
+		BusRequestTimeout:  timing.BusRequestTimeout,
+		InvalidationWindow: timing.InvalidationWindow,
+		JobSilence:         timing.JobSilence,
+		JobStatusPoll:      timing.JobStatusPoll,
+	}
+}
+
+// TransportTiming holds what a caller may set of the timing a transport
+// keeps, one field per entry of protocol/specs/src/client/timing.json under
+// the entry's name. DefaultTransportTiming is the table's values; a caller
+// that wants another sets that field.
+type TransportTiming struct {
 	// EmitRetry is emitRetry: The retry budget of ONE emit. Per request, never
 	// per boot pass: re-running a whole catch-up pass to recover from one
 	// refusal re-sends hundreds of emits that already succeeded. Small on
@@ -55,19 +83,9 @@ type Timing struct {
 	// content, and the gateway waits for the Archivist as the Archivist's
 	// document states (specs/src/archivist/openapi.json): this deadline is
 	// longer than its `connectSeconds` and `readSeconds` together, and the hold
-	// is shorter than `readSeconds`, which `lint:spec-protocol` holds.
+	// is shorter than `readSeconds`, which the reader's protocol rules
+	// (`reader/lib/protocol_rules.ml`) hold.
 	HttpRequestTimeout time.Duration
-	// RequestRetryPause is requestRetryPauseMs: The wait before an HTTP request
-	// that is neither the stream nor an emit is made a second time. It is made
-	// again when the gateway answered it with a status that promises recovery,
-	// or did not answer at all, and a repeat cannot cause a second effect: its
-	// method cannot, or it carries an `Idempotency-Key`, as an upload does
-	// (`transport` in specs/src/retry/rules.json); once, after this wait, or
-	// after a refusal's `Retry-After` when that is longer. A request whose
-	// credential was refused is renewed and sent again at once, without this
-	// wait, and one unanswered at its deadline (`httpRequestTimeoutMs`) is not
-	// made again.
-	RequestRetryPause time.Duration
 	// StreamOpenTimeout is streamOpenTimeoutMs: How long a client waits for the
 	// gateway to answer the request that opens its stream (POST /bus/subscribe):
 	// for the answer's status and headers. Unanswered here, the open has failed,
@@ -87,13 +105,6 @@ type Timing struct {
 	// successful open resets it. Also the cadence at which a transport with no
 	// usable credential checks for one, which costs no request.
 	Reconnect time.Duration
-	// MaxReconnect is maxReconnectMs: The ceiling of the reconnect backoff: a
-	// long outage settles at about one attempt a minute instead of growing
-	// without bound.
-	MaxReconnect time.Duration
-	// DegradedThreshold is degradedThresholdMs: How long a stream may be
-	// reconnecting before its state becomes degraded.
-	DegradedThreshold time.Duration
 	// Linger is lingerMs: How long a superseded connection keeps draining after
 	// a make-before-break handoff. Closing it the instant its replacement opens
 	// discards replies already written to the old socket and not yet read. The
@@ -107,230 +118,22 @@ type Timing struct {
 	// once. A client that remembers fewer delivers twice whenever more than that
 	// many events pass between the two copies.
 	SeenEventIdsCount int
-	// ReconnectDebounce is reconnectDebounceMs: How long additions to the
-	// subscription are gathered before the stream is reopened with them. Short,
-	// because a new scope needs to be live now.
-	ReconnectDebounce time.Duration
 	// LazyRemove is lazyRemoveMs: How long a removal from the subscription waits
 	// before the stream is reopened without it. Removal only narrows delivery,
 	// and reopening on every scope a viewer brushes past would churn the
 	// connection.
 	LazyRemove time.Duration
-	// RefreshRetry is refreshRetry: The retry budget of one token renewal: long
-	// enough to ride out a gateway restart or a rolling deploy, short enough
-	// that a user with no connectivity is told within seconds rather than a
-	// minute.
-	RefreshRetry api.RetryBudget
-	// RefreshBeforeExp is refreshBeforeExpMs: The LARGEST margin before expiry
-	// at which a token is proactively renewed. A ceiling, not the margin: the
-	// margin is half the token's own lifetime, capped here. A fixed margin can
-	// equal the lifetime an issuer mints (Keycloak's default is five minutes),
-	// which makes every renewal already due: an idle signed-in page then sends
-	// over a hundred token requests a second.
-	RefreshBeforeExp time.Duration
-	// MinRefreshDelay is minRefreshDelayMs: The shortest the proactive renewal
-	// ever waits. A timer due now that reschedules itself on arrival is a closed
-	// loop; a floor makes that impossible, so even an issuer minting expired
-	// tokens gets one attempt per interval. Waiting is cheap here: a 401 still
-	// drives a renewal.
-	MinRefreshDelay time.Duration
-	// DevicePoll is devicePollMs: How long a sign-in by the device grant (RFC
-	// 8628) waits before each time it asks the token endpoint whether the person
-	// has approved the code, when the issuer's answer states no `interval`. RFC
-	// 8628 §3.2 names five seconds: an issuer that wants a client to ask less
-	// often says so.
-	DevicePoll time.Duration
-	// DeviceSlowDown is deviceSlowDownMs: How much longer a sign-in by the
-	// device grant waits between its asks, for that ask and every one after it,
-	// each time the issuer answers `slow_down`. RFC 8628 §3.5 names five
-	// seconds, so an issuer that says it again is given more time again.
-	DeviceSlowDown time.Duration
-	// DevicePollFloor is devicePollFloorMs: The shortest a sign-in by the device
-	// grant ever waits between its asks of the token endpoint, whatever
-	// `interval` the issuer states. An issuer that states zero, or a fraction of
-	// a second, would otherwise be asked again at once for as long as the code
-	// lives; a floor makes that impossible, as `minRefreshDelayMs` does for
-	// renewals. RFC 8628 sets no lower bound, and a second is not long enough
-	// for a person who has approved the code to notice.
-	DevicePollFloor time.Duration
-	// InvalidationWindow is invalidationWindowMs: How long bus-driven
-	// invalidations of one cache key fold together (CACHE-SEMANTICS B19). The
-	// first runs at once; any more inside the window become one refetch at its
-	// end. Each refetch is a request the session's principal pays for, and
-	// another principal's bulk write invalidates an observed key once per event.
-	InvalidationWindow time.Duration
-	// SaveDebounce is saveDebounceMs: How long a cache that keeps its values
-	// waits, after they last changed, before it saves them (CACHE-SEMANTICS
-	// B17): a burst of changes is one save. Disposing the cache makes a save it
-	// owes at once.
-	SaveDebounce time.Duration
-	// MaxStoredBytesCount is maxStoredBytesCount: The largest document, in
-	// bytes, a cache keeps of its values (CACHE-SEMANTICS B17). One larger loses
-	// the entries that have gone longest without a new value until it fits: what
-	// an origin may keep is a few megabytes, and the cache shares it with
-	// everything else the origin keeps.
-	MaxStoredBytesCount int
-	// ErrorsKeptForFirstReaderCount is errorsKeptForFirstReaderCount: How many
-	// of what a stream says it keeps for its first reader while none has come: a
-	// session's errors, its own and its transport's failures, a transport's
-	// failures, a registry's own errors, and a worker's claim refusals and
-	// stalls. One more drops the oldest kept, so the first reader hears the
-	// latest this many, in the order they were said. A registry reads a session
-	// as soon as it is handed back, so it hears everything the opening said,
-	// which is a handful; the bound is for a stream nobody reads, which would
-	// otherwise keep everything it says until it ends.
-	ErrorsKeptForFirstReaderCount int
-	// JobSilence is jobSilenceMs: How long a job a client is following may say
-	// nothing before the client asks for its status. A job's progress and its
-	// end reach the client as passing frames, which a dropped stream loses and
-	// nothing redelivers; `job:status-requested` is how a follower learns what
-	// it missed. Every frame of the job starts the wait again.
-	JobSilence time.Duration
-	// JobStatusPoll is jobStatusPollMs: How often a client asks for the status
-	// of a job that has been silent for `jobSilenceMs`, until the job says
-	// something or its status is an end.
-	JobStatusPoll time.Duration
-	// JobPoll is jobPollMs: How often a job's `pollUntilComplete` asks for its
-	// status (`job:status-requested`) until the status is an end, when its
-	// caller names no interval of its own.
-	JobPoll time.Duration
-	// JobPollTimeout is jobPollTimeoutMs: How long a job's `pollUntilComplete`
-	// goes on asking for its status before it fails as timed out, when its
-	// caller names no limit of its own: from its first ask, its asks and the
-	// waits between them included.
-	JobPollTimeout time.Duration
-	// GenerationStallFloor is generationStallFloorMs: The shortest a client
-	// waits, with a generation it follows saying nothing, before it asks for the
-	// job to be cancelled and gives up on it. A floor, so a job that never says
-	// anything at all is caught whatever its size.
-	GenerationStallFloor time.Duration
-	// GenerationStallPerToken is generationStallPerTokenMs: How long a followed
-	// generation may be silent for each token it was asked for. A generation
-	// says nothing while its model writes, so the wait grows with the length of
-	// what was asked: four thousand tokens allow five minutes. The floor applies
-	// below it.
-	GenerationStallPerToken time.Duration
-	// GenerationStallAssumedTokensCount is generationStallAssumedTokensCount:
-	// The length assumed of a generation whose request states no `maxTokens`:
-	// the worker's own ceiling for one. At this length the floor decides the
-	// wait.
-	GenerationStallAssumedTokensCount int
-	// DelegateSilence is delegateSilenceMs: How long a delegated job a client's
-	// state is following may say nothing before that state says the job has gone
-	// quiet (`mark:delegate-timeout`). Not a deadline on the job: the job goes
-	// on, the state keeps following it, and a completion that arrives later
-	// still ends it. Above the worker's heartbeat, so reaching it means silence
-	// and not a long call.
-	DelegateSilence time.Duration
-	// JobClaimTimeout is jobClaimTimeoutMs: How long a party that takes jobs
-	// waits for the answer to one claim (`job:claim`), from the call and its
-	// emit included, as `busRequestTimeoutMs` is for any request. A claim is
-	// answered at once, with a job or with nothing pending; one still unanswered
-	// here is given up and reported as a refusal, and the party asks again at
-	// its next idle moment.
-	JobClaimTimeout time.Duration
-	// HeldJobStall is heldJobStallMs: How long a held job may show no activity
-	// (its claim, a progress report, its settle) before whoever holds it calls
-	// it stalled. Not a limit on how long a job runs: one that keeps reporting
-	// is never stalled. The dispatcher's own sweep of running jobs is the
-	// backstop for a holder too wedged to notice.
-	HeldJobStall time.Duration
-	// HeldJobStallCheck is heldJobStallCheckMs: How often a party that holds a
-	// job looks at how long it has shown no activity.
-	HeldJobStallCheck time.Duration
-	// MarkCommitTimeout is markCommitTimeoutMs: How long a worker waits for the
-	// record to acknowledge a commit of annotations (`mark:commit`), and then,
-	// when no acknowledgement came, for the answer to its question whether the
-	// batch's last annotation is on the resource
-	// (`browse:annotation-requested`). Each wait is from its request's call, its
-	// emit included, as `busRequestTimeoutMs` is for any request. Generous
-	// beside an append, since a batch is a unit's annotations and the record may
-	// be catching up, and finite, since a wait on an acknowledgement that never
-	// comes would hold the job forever.
-	MarkCommitTimeout time.Duration
-	// GeneratedTextAsksCount is generatedTextAsksCount: How many times a worker
-	// asks for the anchored text of a PDF it has just yielded (`GET
-	// /resources/{id}/anchored-text`) before it gives up on anchoring that PDF's
-	// citations. The text is the Smelter's to derive and is not there the moment
-	// the resource is. Each ask is answered at once when the text is stored, and
-	// otherwise waits at the Archivist for the Smelter to say it has settled the
-	// content (`smelt:settled`) before it is answered that the text is not there
-	// yet. So the count bounds the whole wait, and a worker that reaches it
-	// completes the job with the resource and without the citations.
-	GeneratedTextAsksCount int
-	// AnchoredTextReask is anchoredTextReaskMs: How long a viewer waits before
-	// it asks again for a resource's anchored text (`GET
-	// /resources/{id}/anchored-text`), after an answer that the text is not
-	// there yet or an ask that got no answer. The Archivist holds an ask while
-	// the Smelter reads the content and answers as soon as it has, so this wait
-	// is only for the answers that come at once: a text that is not there and is
-	// not being read, and a failure. A viewer does not annotate a resource until
-	// it holds the resource's text.
-	AnchoredTextReask time.Duration
-	// HoverDelay is hoverDelayMs: How long a pointer rests on an annotation
-	// before the viewer says it is hovered. Shorter, and a pointer crossing the
-	// page hovers everything on its way.
-	HoverDelay time.Duration
-	// SearchDebounce is searchDebounceMs: How long a search waits after its
-	// query last changed before it asks. A query still being typed is not asked
-	// for letter by letter.
-	SearchDebounce time.Duration
-	// DiscoveryInterval is discoveryIntervalMs: How often a launcher's discovery
-	// document is read again, unless a caller says otherwise. A launcher
-	// rewrites it on every change to its stack, so a list of the knowledge bases
-	// it manages is a few seconds behind at worst, and the document is not read
-	// without pause.
-	DiscoveryInterval time.Duration
-	// ChecksAtOnceCount is checksAtOnceCount: How many of the resources open in
-	// a knowledge base a registry checks against it at once when its session
-	// comes up. A connection that has just opened is not handed every check
-	// together.
-	ChecksAtOnceCount int
 }
 
-// DefaultTiming is the table's values.
-func DefaultTiming() Timing {
-	return Timing{
-		BusRequestTimeout:                 30000 * time.Millisecond,
-		EmitTimeout:                       30000 * time.Millisecond,
-		EmitRetry:                         api.RetryBudget{Attempts: 4, InitialDelayMs: 1000, MaxDelayMs: 4000},
-		HttpRequestTimeout:                30000 * time.Millisecond,
-		RequestRetryPause:                 300 * time.Millisecond,
-		StreamOpenTimeout:                 30000 * time.Millisecond,
-		Reconnect:                         5000 * time.Millisecond,
-		MaxReconnect:                      60000 * time.Millisecond,
-		DegradedThreshold:                 3000 * time.Millisecond,
-		Linger:                            1000 * time.Millisecond,
-		SeenEventIdsCount:                 512,
-		ReconnectDebounce:                 100 * time.Millisecond,
-		LazyRemove:                        5000 * time.Millisecond,
-		RefreshRetry:                      api.RetryBudget{Attempts: 4, InitialDelayMs: 500, MaxDelayMs: 4000},
-		RefreshBeforeExp:                  300000 * time.Millisecond,
-		MinRefreshDelay:                   10000 * time.Millisecond,
-		DevicePoll:                        5000 * time.Millisecond,
-		DeviceSlowDown:                    5000 * time.Millisecond,
-		DevicePollFloor:                   1000 * time.Millisecond,
-		InvalidationWindow:                1000 * time.Millisecond,
-		SaveDebounce:                      50 * time.Millisecond,
-		MaxStoredBytesCount:               2097152,
-		ErrorsKeptForFirstReaderCount:     100,
-		JobSilence:                        10000 * time.Millisecond,
-		JobStatusPoll:                     5000 * time.Millisecond,
-		JobPoll:                           1000 * time.Millisecond,
-		JobPollTimeout:                    60000 * time.Millisecond,
-		GenerationStallFloor:              120000 * time.Millisecond,
-		GenerationStallPerToken:           75 * time.Millisecond,
-		GenerationStallAssumedTokensCount: 500,
-		DelegateSilence:                   180000 * time.Millisecond,
-		JobClaimTimeout:                   10000 * time.Millisecond,
-		HeldJobStall:                      900000 * time.Millisecond,
-		HeldJobStallCheck:                 60000 * time.Millisecond,
-		MarkCommitTimeout:                 60000 * time.Millisecond,
-		GeneratedTextAsksCount:            8,
-		AnchoredTextReask:                 5000 * time.Millisecond,
-		HoverDelay:                        150 * time.Millisecond,
-		SearchDebounce:                    250 * time.Millisecond,
-		DiscoveryInterval:                 5000 * time.Millisecond,
-		ChecksAtOnceCount:                 4,
+// DefaultTransportTiming is the table's values of TransportTiming.
+func DefaultTransportTiming() TransportTiming {
+	return TransportTiming{
+		EmitRetry:          timing.EmitRetry,
+		HttpRequestTimeout: timing.HttpRequestTimeout,
+		StreamOpenTimeout:  timing.StreamOpenTimeout,
+		Reconnect:          timing.Reconnect,
+		Linger:             timing.Linger,
+		SeenEventIdsCount:  timing.SeenEventIdsCount,
+		LazyRemove:         timing.LazyRemove,
 	}
 }

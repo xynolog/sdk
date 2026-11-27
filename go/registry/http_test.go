@@ -32,7 +32,10 @@ import (
 // refuse, for lack of permission, in the words it is told. The issuer grants
 // what it is told to.
 type stage struct {
-	gateway, issuer *httptest.Server
+	gatewayURL, issuerURL string
+	// client is what every request of the gateway and the issuer is made
+	// with.
+	client *http.Client
 
 	mu sync.Mutex
 	// describes is what the knowledge base says of itself; nil refuses.
@@ -60,97 +63,111 @@ type stage struct {
 	streams       []chan string
 }
 
+// newStage is a stage served on this machine's loopback.
 func newStage(t *testing.T) *stage {
 	t.Helper()
-	s := &stage{
+	s := unserved()
+	s.client = &http.Client{}
+	issuer := httptest.NewServer(http.HandlerFunc(s.asIssuer))
+	t.Cleanup(issuer.Close)
+	gateway := httptest.NewServer(http.HandlerFunc(s.asGateway))
+	t.Cleanup(gateway.Close)
+	s.issuerURL, s.gatewayURL = issuer.URL, gateway.URL
+	return s
+}
+
+// unserved is a stage as each begins, with nothing serving it yet.
+func unserved() *stage {
+	return &stage{
 		describes:       description("KB A", "example.org:kb-a", "main"),
 		who:             json.RawMessage(`{"did":"did:web:example.org:users:alice","email":"alice@example.org","domain":"example.org","name":"Alice","image":null}`),
 		refusesWho:      map[string]bool{},
 		refusedOnTheBus: map[string]bool{},
 		refusedReads:    map[string]string{},
 	}
-	s.issuer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/.well-known/openid-configuration":
-			answerJSON(w, http.StatusOK, map[string]any{
-				"issuer": s.issuer.URL, "authorization_endpoint": s.issuer.URL + "/auth", "token_endpoint": s.issuer.URL + "/token",
-				"device_authorization_endpoint": s.issuer.URL + "/device", "revocation_endpoint": s.issuer.URL + "/revoke",
-			})
-		case "/token":
-			_ = r.ParseForm()
-			s.mu.Lock()
-			s.tokenForms = append(s.tokenForms, r.PostForm)
-			var grant [2]string
-			granted := len(s.grants) > 0
-			if granted {
-				grant, s.grants = s.grants[0], s.grants[1:]
-			}
-			s.mu.Unlock()
-			if !granted {
-				answerJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid_grant"})
-				return
-			}
-			answerJSON(w, http.StatusOK, map[string]any{"access_token": grant[0], "refresh_token": grant[1], "token_type": "Bearer", "expires_in": 3600})
-		case "/revoke":
-			_ = r.ParseForm()
-			s.mu.Lock()
-			s.revokeForms = append(s.revokeForms, r.PostForm)
-			s.mu.Unlock()
-			w.WriteHeader(http.StatusOK)
-		default:
-			http.NotFound(w, r)
+}
+
+// asIssuer answers a request of the issuer.
+func (s *stage) asIssuer(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Path {
+	case "/.well-known/openid-configuration":
+		answerJSON(w, http.StatusOK, map[string]any{
+			"issuer": s.issuerURL, "authorization_endpoint": s.issuerURL + "/auth", "token_endpoint": s.issuerURL + "/token",
+			"device_authorization_endpoint": s.issuerURL + "/device", "revocation_endpoint": s.issuerURL + "/revoke",
+		})
+	case "/token":
+		_ = r.ParseForm()
+		s.mu.Lock()
+		s.tokenForms = append(s.tokenForms, r.PostForm)
+		var grant [2]string
+		granted := len(s.grants) > 0
+		if granted {
+			grant, s.grants = s.grants[0], s.grants[1:]
 		}
-	}))
-	t.Cleanup(s.issuer.Close)
-	s.gateway = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-		switch r.URL.Path {
-		case "/.well-known/oauth-protected-resource":
-			answerJSON(w, http.StatusOK, map[string]any{"resource": "https://kb.example", "authorization_servers": []string{s.issuer.URL}, "bearer_methods_supported": []string{"header"}})
-		case "/api/users/me":
-			s.mu.Lock()
-			s.askedWho = append(s.askedWho, token)
-			who, held, refused := s.who, s.answerWho, s.refusesWho[token]
-			s.mu.Unlock()
-			if refused {
-				answerJSON(w, http.StatusUnauthorized, map[string]any{"error": "Invalid token"})
-				return
-			}
-			if held != nil {
-				select {
-				case <-held:
-				case <-r.Context().Done():
-					return
-				}
-			}
-			if who == nil {
-				conn, _, err := w.(http.Hijacker).Hijack()
-				if err != nil {
-					panic(err)
-				}
-				_ = conn.Close()
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(who)
-		case "/bus/subscribe":
-			s.stream(w, r)
-		case "/bus/emit":
-			s.emitted(w, r, token)
-		default:
-			s.mu.Lock()
-			words, refused := s.refusedReads[r.URL.Path]
-			s.mu.Unlock()
-			if refused {
-				answerJSON(w, http.StatusForbidden, map[string]any{"error": words})
-				return
-			}
-			http.NotFound(w, r)
+		s.mu.Unlock()
+		if !granted {
+			answerJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid_grant"})
+			return
 		}
-	}))
-	t.Cleanup(s.gateway.Close)
-	return s
+		answerJSON(w, http.StatusOK, map[string]any{"access_token": grant[0], "refresh_token": grant[1], "token_type": "Bearer", "expires_in": 3600})
+	case "/revoke":
+		_ = r.ParseForm()
+		s.mu.Lock()
+		s.revokeForms = append(s.revokeForms, r.PostForm)
+		s.mu.Unlock()
+		w.WriteHeader(http.StatusOK)
+	default:
+		http.NotFound(w, r)
+	}
+}
+
+// asGateway answers a request of the gateway.
+func (s *stage) asGateway(w http.ResponseWriter, r *http.Request) {
+	token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+	switch r.URL.Path {
+	case "/.well-known/oauth-protected-resource":
+		answerJSON(w, http.StatusOK, map[string]any{"resource": "https://kb.example", "authorization_servers": []string{s.issuerURL}, "bearer_methods_supported": []string{"header"}})
+	case "/api/users/me":
+		s.mu.Lock()
+		s.askedWho = append(s.askedWho, token)
+		who, held, refused := s.who, s.answerWho, s.refusesWho[token]
+		s.mu.Unlock()
+		if refused {
+			answerJSON(w, http.StatusUnauthorized, map[string]any{"error": "Invalid token"})
+			return
+		}
+		if held != nil {
+			select {
+			case <-held:
+			case <-r.Context().Done():
+				return
+			}
+		}
+		if who == nil {
+			conn, _, err := w.(http.Hijacker).Hijack()
+			if err != nil {
+				panic(err)
+			}
+			_ = conn.Close()
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(who)
+	case "/bus/subscribe":
+		s.stream(w, r)
+	case "/bus/emit":
+		s.emitted(w, r, token)
+	default:
+		s.mu.Lock()
+		words, refused := s.refusedReads[r.URL.Path]
+		s.mu.Unlock()
+		if refused {
+			answerJSON(w, http.StatusForbidden, map[string]any{"error": words})
+			return
+		}
+		http.NotFound(w, r)
+	}
 }
 
 func answerJSON(w http.ResponseWriter, status int, body any) {
@@ -281,7 +298,7 @@ func (s *stage) grant(access, refresh string) {
 
 func (s *stage) target(t *testing.T) api.HttpEndpoint {
 	t.Helper()
-	at, err := url.Parse(s.gateway.URL)
+	at, err := url.Parse(s.gatewayURL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -300,7 +317,7 @@ func (s *stage) registered(t *testing.T, kbID string) api.KnowledgeBase {
 }
 
 func (s *stage) stored(access, refresh string) api.StoredSession {
-	return api.StoredSession{Access: access, Refresh: refresh, ClientId: xynolog.BrowserClientID, TokenEndpoint: s.issuer.URL + "/token", RevocationEndpoint: new(s.issuer.URL + "/revoke")}
+	return api.StoredSession{Access: access, Refresh: refresh, ClientId: xynolog.BrowserClientID, TokenEndpoint: s.issuerURL + "/token", RevocationEndpoint: new(s.issuerURL + "/revoke")}
 }
 
 // alicesKey is the key of the person the stage's gateway says every token is,
@@ -314,15 +331,15 @@ func naming(stored api.StoredSession, personKey string) api.StoredSession {
 }
 
 func (s *stage) issuerOf() xynolog.Issuer {
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	timing.HttpRequestTimeout = 5 * time.Second
-	return xynolog.Issuer{HTTP: &http.Client{}, Timing: timing}
+	return xynolog.Issuer{HTTP: s.client, Timing: timing}
 }
 
 func (s *stage) browser(t *testing.T, storage xynolog.SessionStorage) *registry.XynologBrowser {
 	t.Helper()
 	issuer := s.issuerOf()
-	browser, err := registry.NewXynologBrowser(registry.XynologBrowserConfig{Storage: storage, SessionFactory: registry.HttpSessionFactory{HTTP: issuer.HTTP, Timing: issuer.Timing}})
+	browser, err := registry.NewXynologBrowser(registry.XynologBrowserConfig{Storage: storage, SessionFactory: registry.HttpSessionFactory{HTTP: issuer.HTTP, ClientTiming: xynolog.DefaultClientTiming(), TransportTiming: issuer.Timing}})
 	must(t, err)
 	closedAtTheEnd(t, browser)
 	return browser
@@ -433,7 +450,7 @@ func TestARegistryOverHTTPCannotBuildASessionForWhatIsNotAtAGateway(t *testing.T
 	local := s.registered(t, "kb-local")
 	must(t, local.Endpoint.From(api.LocalEndpoint{Kind: api.LocalEndpointKindLocal, KbId: "here"}))
 	must(t, registry.SaveKnowledgeBases(storage, []api.KnowledgeBase{local}))
-	gate := gated{SessionFactory: registry.HttpSessionFactory{HTTP: &http.Client{}, Timing: xynolog.DefaultTiming()}, open: make(chan struct{})}
+	gate := gated{SessionFactory: registry.HttpSessionFactory{HTTP: &http.Client{}, ClientTiming: xynolog.DefaultClientTiming(), TransportTiming: xynolog.DefaultTransportTiming()}, open: make(chan struct{})}
 	browser, err := registry.NewXynologBrowser(registry.XynologBrowserConfig{Storage: storage, SessionFactory: gate})
 	must(t, err)
 	closedAtTheEnd(t, browser)
@@ -447,7 +464,7 @@ func TestARegistryOverHTTPCannotBuildASessionForWhatIsNotAtAGateway(t *testing.T
 		refused = err
 		break
 	}
-	if refused == nil || refused.Code != xynolog.SessionErrorCodeConstructFailed || refused.KbID != "kb-local" || !strings.Contains(refused.Message, `"local"`) {
+	if refused == nil || refused.Code != api.SessionErrorCodeConstructFailed || refused.KbID != "kb-local" || !strings.Contains(refused.Message, `"local"`) {
 		t.Errorf("the failure said is %+v", refused)
 	}
 }
@@ -488,7 +505,7 @@ func TestARegistrysSignInRegistersTheKnowledgeBaseUnderWhatItSaysItIs(t *testing
 	options.ExpectedDid, options.ExpectedName = new("did:web:example.org:another"), new("Another")
 
 	callback := s.sentBack(t, browser, options)
-	outcome, err := registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), callback)
+	outcome, err := registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), callback, xynolog.DefaultClientTiming())
 	must(t, err)
 
 	var at api.KbEndpoint
@@ -536,9 +553,9 @@ func TestAKnowledgeBaseThatCannotSayWhoItIsIsNotRegistered(t *testing.T) {
 	s.describes = nil
 	s.mu.Unlock()
 	s.grant(jwt(time.Hour), "r")
-	_, err := registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), s.sentBack(t, browser, s.begin(t)))
+	_, err := registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), s.sentBack(t, browser, s.begin(t)), xynolog.DefaultClientTiming())
 	var unverifiable *xynolog.IdentityUnverifiableError
-	if !errors.As(err, &unverifiable) || unverifiable.Reason != xynolog.IdentityUnverifiableReasonNotReported {
+	if !errors.As(err, &unverifiable) || unverifiable.Reason != api.IdentityUnverifiableReasonNotReported {
 		t.Errorf("a knowledge base that cannot say who it is: %v", err)
 	}
 
@@ -548,8 +565,8 @@ func TestAKnowledgeBaseThatCannotSayWhoItIsIsNotRegistered(t *testing.T) {
 	s.refusedOnTheBus[unwelcome] = true
 	s.mu.Unlock()
 	s.grant(unwelcome, "r")
-	_, err = registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), s.sentBack(t, browser, s.begin(t)))
-	if !errors.As(err, &unverifiable) || unverifiable.Reason != xynolog.IdentityUnverifiableReasonUnreachable {
+	_, err = registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), s.sentBack(t, browser, s.begin(t)), xynolog.DefaultClientTiming())
+	if !errors.As(err, &unverifiable) || unverifiable.Reason != api.IdentityUnverifiableReasonUnreachable {
 		t.Errorf("a knowledge base not reached: %v", err)
 	}
 
@@ -563,10 +580,10 @@ func TestACallbackThatIsNotThePendingSignInsRegistersNothing(t *testing.T) {
 	browser := s.browser(t, xynolog.NewMemoryStorage())
 	s.sentBack(t, browser, s.begin(t))
 
-	_, err := registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), "http://127.0.0.1:9/callback?state=another&code=the-code")
+	_, err := registry.CompleteSignIn(context.Background(), browser, s.issuerOf(), "http://127.0.0.1:9/callback?state=another&code=the-code", xynolog.DefaultClientTiming())
 
 	var refused *xynolog.SignInError
-	if !errors.As(err, &refused) || refused.Code != xynolog.SignInErrorCodeState || refused.Message != "The sign-in response does not belong to the pending sign-in" {
+	if !errors.As(err, &refused) || refused.Code != api.SignInErrorCodeState || refused.Message != "The sign-in response does not belong to the pending sign-in" {
 		t.Errorf("a callback of another sign-in: %v", err)
 	}
 	if len(browser.KnowledgeBases().Value()) != 0 {
@@ -578,7 +595,7 @@ func TestAskedWithATokenTheKnowledgeBaseSaysWhoItIs(t *testing.T) {
 	s := newStage(t)
 	issuer := s.issuerOf()
 
-	identity, err := xynolog.DescribeConnection(context.Background(), s.target(t), jwt(time.Hour), issuer.HTTP, issuer.Timing, issuer.Random)
+	identity, err := xynolog.DescribeConnection(context.Background(), s.target(t), jwt(time.Hour), issuer.HTTP, xynolog.DefaultClientTiming(), issuer.Timing, issuer.Random)
 	must(t, err)
 
 	if identity.Did.String() != didA || identity.Description.Name != "KB A" || identity.Description.GitBranch == nil || *identity.Description.GitBranch != "main" {

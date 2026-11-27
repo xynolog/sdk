@@ -8,9 +8,10 @@ import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.AccessToken
 
 data StoredSession = StoredSession
-  { storedSessionAccess :: Text,
+  { storedSessionAccess :: AccessToken,
     storedSessionRefresh :: Text,
     storedSessionClientId :: Text,
     storedSessionTokenEndpoint :: Text,

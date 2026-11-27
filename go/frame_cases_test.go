@@ -183,7 +183,7 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 		Token:    NewVariable("t"),
 		Channels: channels,
 		HTTP:     &http.Client{Transport: &http.Transport{}},
-		Timing:   DefaultTiming(),
+		Timing:   DefaultTransportTiming(),
 	})
 	defer transport.Close()
 	var toldMu sync.Mutex
@@ -210,7 +210,7 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 	defer stopResourceFailures()
 	nextGatherFailure, stopGatherFailures := pulledByType(t, reading, wire, bus.GatherFailed)
 	defer stopGatherFailures()
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 
 	for at, c := range readFrameCases(t) {
 		if c.Refused && c.Read != nil {
@@ -400,7 +400,7 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 				t.Errorf("%s: refused as %+v, and the table states %s refused at %q, %s, carrying %q", c.Why, refused[0], c.Frame, c.Member, c.Reason, c.CorrelationID)
 			}
 		case "failure-report":
-			want := fmt.Sprintf("%s false the stream carried what is not a frame: %s", TransportErrorCodeError, fault)
+			want := fmt.Sprintf("%s false the stream carried what is not a frame: %s", api.TransportErrorCodeError, fault)
 			if len(reported) != 1 || reported[0] != want {
 				t.Errorf("%s: the failure report is told %v, and the table says it is told %q", c.Why, reported, want)
 			}

@@ -50,12 +50,11 @@ the coming release's, and gathers its changes as they land.
 
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
-  trees are all `ArchivistLayoutEventStreamTree`, a placement is
-  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
-  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
-  and the rest. The type each reference was given of its own
-  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
-  gone.
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - The testing kit's `DeliveryOp` is written and read as Protocol's words for
   the steps, `"write"` and `"transition"`, as the other SDKs carry them.
 - An upload is a `PutBinaryRequest` (`Xynolog.Types`), the type of
@@ -83,8 +82,8 @@ the coming release's, and gathers its changes as they land.
   when first read, where it read their JSON by member name.
 - A retry budget is `Xynolog.Types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `Xynolog.Http.RetryPolicy`:
-  `Timing.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes one. It
-  is made with an initializer
+  `TransportTiming.EmitRetry` is one, and `Retry.RetryWithBackoffAsync` takes
+  one. It is made with an initializer
   (`new RetryBudget { Attempts = 2, InitialDelayMs = 1, MaxDelayMs = 1 }`),
   and its members are `long`.
 - `RegistryStorage`'s keys and `RedirectSignIn.PendingAuthorizationKey` are
@@ -161,13 +160,48 @@ the coming release's, and gathers its changes as they land.
   `Job.Claim(ClaimOptions)` and
   `Job.PollUntilCompleteAsync(jobId, JobPollOptions?, onStatus)`, in place
   of their positional parameters. A worker's claim, stall and commit waits
-  are its `ClaimOptions`, and default to the client's `Timing`.
-- `WorkerVitals.ActiveJob` is `WorkerEngineHealthActiveJob`, the type
-  Protocol states, in place of `ActiveJob`, and the vitals' times are
-  ISO 8601 text, as a worker's health carries them.
-- `Timing.HttpRequestMs` and `Timing.StreamOpenMs` are
-  `HttpRequestTimeoutMs` and `StreamOpenTimeoutMs`, the names the protocol's
-  timing table gives them; each of `Timing`'s defaults is that table's.
+  are its `ClaimOptions`, and default to Protocol's `client/timing.json`.
+- What a worker says of itself and of its claims is the types Protocol
+  states, in `Xynolog.Types`, where `Claims` declared its own records in
+  `Xynolog`: `ClaimRefusal`, whose text is `Message`, where it was `Detail`;
+  `WorkerVitals`, whose `ActiveJob` is a `WorkerActiveJob`, where it was an
+  `ActiveJob`; and `HeldJobStall`, whose `HeldSince` and `LastActivityAt` are
+  text, where they were `DateTimeOffset`s, and whose `ThresholdMs` is a
+  `long`. Each is built with an initializer. A vitals or stall time is the
+  RFC 3339 text the wire carries, to the millisecond.
+- A held job keeps the `HeldJobRecord` its claim handed it, as
+  `IHeldJob.Record`, and its `JobId`, `JobType`, `ResourceId`, `Params`,
+  `CompletedUnits`, `UnitCursors`, `RetryCount` and `MaxRetries` are the
+  record's members, read through it.
+- A held job's checkpoint, failure and cancellation take the types Protocol
+  states for what each one says: `CheckpointAsync(JobCheckpoint checkpoint)`,
+  in place of `CheckpointAsync(completedUnits, unitCursors)`;
+  `FailAsync(string error, JobFailure? failure)`, in place of
+  `FailAsync(error, failureClass, completedUnits, unitCursors)`; and
+  `CancelAsync(JobReached? reached)`, in place of
+  `CancelAsync(completedUnits, unitCursors)`.
+- A relayed frame's trace is read as a `TraceCarrier`, the type Protocol
+  states, and a carrier that type does not admit is ignored whole: one with
+  a `tracestate` that is not text or is empty, or with a member the type
+  does not name, no longer continues its `traceparent`.
+- `KbPlacement` names where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`; `InferenceProvider` names an inference provider, in
+  place of `EngineProvider`.
+- The timing a caller may set is two records generated from Protocol's
+  `client/timing.json`, `Xynolog.ClientTiming` and `Xynolog.TransportTiming`,
+  each member the entry its name says and that entry's value unless set, in
+  place of `Xynolog.Http.Timing`. `HttpTransport` takes a `TransportTiming`,
+  and `XynologClient(transport, persistence, timing)` a `ClientTiming`. What
+  makes a transport takes both, as `clientTiming` and `transportTiming`:
+  `XynologClient(baseUrl, …)`, where its `timing` was, `HttpSessionFactory`
+  and `XynologSession.FromKeptAsync`; and `TestSessionOptions` has
+  `ClientTiming` and `TransportTiming`, in place of `Timing`. The transport's
+  `HttpRequestMs` and `StreamOpenMs` are `HttpRequestTimeoutMs` and
+  `StreamOpenTimeoutMs`.
+- A request made with `HttpTransport.RequestAsync` with no `timeoutMs`, or on
+  a `Bus` an application makes, has the table's `busRequestTimeoutMs`: a
+  transport's timing states none.
 - The pending sign-in is `Xynolog.Types.PendingAuthorization`, the type
   Protocol states, in place of `Xynolog.Authorization.PendingAuthorization`,
   and its issuer is `PendingAuthorizationIssuer` in place of
@@ -177,9 +211,31 @@ the coming release's, and gathers its changes as they land.
   place of JSON values under text. A model whose other members are of a
   schema holds each as that schema's type, and each id is a key
   System.Text.Json reads and writes.
+- A default the service decides is no longer sent for it (protocol#109).
+  `Browse.Resources` and `Match.Resources` send no `limit` of 100 and no
+  `offset` of 0, `Gather.Annotation` no `contextWindow` of 2000, and
+  `Match.Search` no `useSemanticScoring` of true, when the caller leaves them
+  out: the service's own default applies. Options to `Gather.Annotation` that
+  state nothing are not sent.
+- The discovery types are Protocol's (protocol#126), in `Xynolog.Types`,
+  where they were hand-written in `Xynolog.Discovery`: `DiscoveryState` is a
+  `DiscoveryState.DiscoveryAbsent` or a `DiscoveryState.DiscoveryManaged`,
+  `DiscoveryRead` is a `DiscoveryRead.DiscoveryAbsent`,
+  `DiscoveryRead.DiscoveryManaged` or `DiscoveryRead.DiscoveryUnchanged`,
+  each holding its `Value`, and `DiscoveryDiff` is the type of
+  `client/types/DiscoveryDiff.json`, built with an initializer. `Absent`,
+  `Managed` and `Unchanged` are removed, and a `DiscoveryState` is no longer
+  a `DiscoveryRead`.
+- `UploadProgressStarted.TotalBytes` and `UploadProgressProgress.TotalBytes`
+  are a `long?`, which an initializer need not set (protocol#121): a source
+  of unstated length states none. Every upload today holds its bytes whole,
+  and states its total.
 
 ### Removed
 
+- `Timing.EmitTimeoutMs`, `JobClaimTimeoutMs`, `HeldJobStallMs`,
+  `HeldJobStallCheckMs` and `MarkCommitTimeoutMs`: an emit has the table's
+  `emitTimeoutMs`, and a worker sets the other four in its `ClaimOptions`.
 - `Xynolog.Types.Stated<T>` is removed. No member of Protocol is both optional
   and nullable, so a model's optional member is a nullable type, absent when
   null.

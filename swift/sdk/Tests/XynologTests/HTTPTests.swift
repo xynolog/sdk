@@ -117,7 +117,7 @@ private func server<Value: Sendable>(
     let clock = TestClock()
     let transport = HttpTransport(
       baseUrl: base, httpClient: http, token: "token", channels: [Channels.beckonFocus.name],
-      timing: TransportTiming(reconnectMs: 500, streamOpenMs: 20), clock: clock)
+      timing: TransportTiming(streamOpenTimeoutMs: 20, reconnectMs: 500), clock: clock)
     defer { transport.dispose() }
     try await sleeping(clock, until: clock.now.advanced(by: .milliseconds(20)))
     clock.advance(by: .milliseconds(20))
@@ -131,7 +131,7 @@ private func server<Value: Sendable>(
     let clock = TestClock()
     let transport = HttpTransport(
       baseUrl: base, httpClient: http, token: "token", channels: [Channels.beckonFocus.name],
-      timing: TransportTiming(streamOpenMs: 20), clock: clock)
+      timing: TransportTiming(streamOpenTimeoutMs: 20), clock: clock)
     defer { transport.dispose() }
     let opening = clock.now.advanced(by: .milliseconds(20))
     try await withinTestDeadline { try await transport.waitUntilOpen() }
@@ -152,7 +152,7 @@ private func bodyDeadlineAsked(_ clock: AskedClock, at deadline: TestClock.Insta
     let clock = AskedClock()
     let transport = HttpTransport(
       baseUrl: base, httpClient: http, token: "token", channels: [],
-      timing: TransportTiming(httpRequestMs: 100), clock: clock)
+      timing: TransportTiming(httpRequestTimeoutMs: 100), clock: clock)
     defer { transport.dispose() }
     let asking = Task { try await transport.getCurrentUser() }
     try await bodyDeadlineAsked(clock, at: clock.now.advanced(by: .milliseconds(100)))
@@ -171,7 +171,7 @@ private func bodyDeadlineAsked(_ clock: AskedClock, at deadline: TestClock.Insta
     let clock = AskedClock()
     let transport = HttpTransport(
       baseUrl: base, httpClient: http, token: "token", channels: [],
-      timing: TransportTiming(httpRequestMs: 20), clock: clock)
+      timing: TransportTiming(httpRequestTimeoutMs: 20), clock: clock)
     defer { transport.dispose() }
     let reading = Task { try await transport.getBinary(ResourceId("resource")) }
     try await bodyDeadlineAsked(clock, at: clock.now.advanced(by: .milliseconds(20)))
@@ -187,7 +187,7 @@ private func bodyDeadlineAsked(_ clock: AskedClock, at deadline: TestClock.Insta
     let clock = TestClock()
     let transport = HttpTransport(
       baseUrl: base, httpClient: http, token: "token", channels: [],
-      timing: TransportTiming(httpRequestMs: 5000), clock: clock)
+      timing: TransportTiming(httpRequestTimeoutMs: 5000), clock: clock)
     let request = Task { try await transport.getCurrentUser() }
     // In flight: its deadline waits on a clock that never reaches it.
     try await sleeping(clock, until: clock.now.advanced(by: .milliseconds(5000)))
@@ -362,9 +362,10 @@ extension HttpTransport {
       Channels.beckonFocus.name, Channels.beckonSparkle.name,
     ])
     let resource = try ResourceId("resource")
-    let trace = ["traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"]
+    let trace = TraceCarrier(traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01")
     let payload: [String: JSONValue] = [
-      "annotationId": .string("annotation"), traceField: .object(trace.mapValues(JSONValue.string)),
+      "annotationId": .string("annotation"),
+      traceField: try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(trace)),
     ]
     for (channel, id) in [
       (Channels.beckonFocus.name, "p-resource-1"), (Channels.beckonSparkle.name, "e-two"),
@@ -390,6 +391,34 @@ extension HttpTransport {
       ])
     #expect(received.allSatisfy { $0.payload[traceField] == nil && $0.trace == trace })
     #expect(await transport.watermarks[resource] == "p-resource-3")
+  }
+}
+
+@Test func aFrameWhoseTraceTheTableRefusesArrivesWithNoTraceAndWithoutIt() async throws {
+  try await server(.answering(.noHeaders)) { base, http in
+    let transport = HttpTransport(
+      baseUrl: base, httpClient: http, token: nil, channels: [Channels.beckonFocus.name])
+    let events = try await transport.frames([Channels.beckonFocus.name])
+    let payload: [String: JSONValue] = [
+      "annotationId": .string("annotation"),
+      traceField: .object([
+        "traceparent": .string("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"),
+        "tracestate": .string(""),
+      ]),
+    ]
+    try await transport.deliverForTest(
+      BusFrame(
+        channel: Channels.beckonFocus.name, payload: payload, scope: try ResourceId("resource")),
+      id: "e-one")
+    transport.dispose()
+    var received: [Carried] = []
+    for try await carried in events { received.append(carried) }
+    guard case .frame(let frame) = try #require(received.first), received.count == 1 else {
+      Issue.record("The frame was not delivered alone: \(received)")
+      return
+    }
+    #expect(frame.trace == nil)
+    #expect(frame.payload[traceField] == nil)
   }
 }
 

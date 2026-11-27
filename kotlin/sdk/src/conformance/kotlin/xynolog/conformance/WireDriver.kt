@@ -19,17 +19,15 @@ import xynolog.bus.OPERATIONS
 import xynolog.bus.request
 import xynolog.http.HttpContentTransport
 import xynolog.http.HttpTransport
-import xynolog.http.Timing
 import xynolog.http.TokenRefresher
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
-import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
 import xynolog.transport.ResourceHold
+import xynolog.types.ConnectionState
 import xynolog.types.PutBinaryRequest
-import xynolog.types.RetryBudget
 import xynolog.types.UploadProgressProgress
 import java.util.Base64
 import kotlin.system.exitProcess
@@ -79,7 +77,7 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
             if (reported == state) return
             reported = state
         }
-        Say.line(Say.of("state" to JsonPrimitive(state.wire)))
+        Say.line(Say.of("state" to JsonPrimitive(state.value)))
     }
 
     override suspend fun run(id: Long, op: String, args: JsonObject): JsonElement = when (op) {
@@ -120,29 +118,9 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
 
     private fun resource(text: String, name: String): ResourceId = ResourceId.parse(text) ?: throw Misuse("$name: $text is not a resource's id")
 
-    /** The client's timing, with what the case overrides. */
-    private fun timing(args: JsonObject): Timing {
-        val stated = args["timing"] as? JsonObject ?: return Timing()
-        var timing = Timing()
-        for (name in stated.keys) {
-            timing = when (name) {
-                "reconnectMs" -> timing.copy(reconnectMs = stated.count(name))
-                "lazyRemoveMs" -> timing.copy(lazyRemoveMs = stated.count(name))
-                "lingerMs" -> timing.copy(lingerMs = stated.count(name))
-                "seenEventIdsCount" -> timing.copy(seenEventIdsCount = stated.count(name).toInt())
-                "emitRetry" -> {
-                    val budget = stated.obj(name)
-                    timing.copy(emitRetry = RetryBudget(budget.count("attempts"), budget.count("initialDelayMs"), budget.count("maxDelayMs")))
-                }
-                else -> throw Misuse("this driver cannot override $name")
-            }
-        }
-        return timing
-    }
-
     private fun open(args: JsonObject): JsonElement {
         if (synchronized(this) { client } != null) throw Misuse("a transport is already open")
-        val timing = timing(args)
+        val timing = Stated.transportTiming(args["timing"] as? JsonObject ?: JsonObject(emptyMap()))
         val token = MutableStateFlow<String?>(args.text("token"))
         val refresher = if ("renewals" in args) Renewals(args.texts("renewals"), token) else null
         val transport = HttpTransport(args.text("baseUrl"), token, args.texts("channels"), timing, refresher)
@@ -216,7 +194,8 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
                 upload.progress.collect { progress ->
                     // The driver protocol reports the bytes sent: the upload's start and its end are its answer's.
                     if (progress is UploadProgressProgress) {
-                        Say.line(Say.of("progress" to Say.of("upload" to JsonPrimitive(id), "bytesUploaded" to JsonPrimitive(progress.bytesUploaded), "totalBytes" to JsonPrimitive(progress.totalBytes))))
+                        val report = listOfNotNull("upload" to JsonPrimitive(id), "bytesUploaded" to JsonPrimitive(progress.bytesUploaded), progress.totalBytes?.let { "totalBytes" to JsonPrimitive(it) })
+                        Say.line(Say.of("progress" to JsonObject(report.toMap())))
                     }
                 }
             }

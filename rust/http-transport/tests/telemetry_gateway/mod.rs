@@ -16,8 +16,9 @@ use tokio::sync::{mpsc, watch};
 use tokio_stream::StreamExt;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use xynolog::gateway_http::{EMIT_ON_BUS, SUBSCRIBE_TO_BUS};
-use xynolog::transport::{ConnectionState, Frame, Transport};
-use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
+use xynolog::transport::{Frame, Transport};
+use xynolog::types::ConnectionState;
+use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, TransportTiming};
 
 /// The channel the client's stream carries.
 pub const HEARD: &str = "beckon:focus";
@@ -88,7 +89,7 @@ impl Gateway {
             refresher: None,
             channels: vec![HEARD.to_owned()],
             http: reqwest::Client::new(),
-            timing: Timing::default(),
+            timing: TransportTiming::default(),
             random: None,
         });
         let mut states = transport.state();
@@ -118,16 +119,16 @@ impl Gateway {
             .collect()
     }
 
-    /// Write a frame on `HEARD`, sent under `traceparent`, to the client's
+    /// Write a frame on `HEARD`, its `_trace` `trace`, to the client's
     /// stream, and answer it as `transport` delivers it.
-    pub async fn deliver(&self, transport: &HttpTransport, traceparent: &str) -> Frame {
+    pub async fn deliver(&self, transport: &HttpTransport, trace: Value) -> Frame {
         let mut frames = transport.frames(HEARD).expect("frames");
         let frame = json!({
             "channel": HEARD,
             "payload": {
                 "resourceId": "res-1",
                 "annotationId": "a-1",
-                "_trace": { "traceparent": traceparent }
+                "_trace": trace
             },
         });
         let event = Bytes::from(format!("event: bus-event\nid: e-1\ndata: {frame}\n\n"));

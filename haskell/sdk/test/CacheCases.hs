@@ -17,6 +17,7 @@ import Xynolog.Cache qualified as Cache
 import Xynolog.ErrorCodes (BusRequestCode (BusRequestClosed, BusRequestNotFound))
 import Xynolog.Errors (BusRequestError (..))
 import Xynolog.Internal.Cache qualified as Internal
+import Xynolog.Timing qualified as Timing
 
 require :: String -> Bool -> IO ()
 require label good = unless good (ioError (userError label))
@@ -35,7 +36,6 @@ harness = do
         Cache.CacheOptions
           (pure 0)
           (const (atomically retry))
-          5
           Nothing
           (\_ -> atomically (modifyTVar' scopes (+ 1)) >> pure (atomically (modifyTVar' scopes (subtract 1))))
   cache <- Cache.newCache reader options
@@ -94,7 +94,6 @@ keptHarness restored = do
         Cache.CacheOptions
           (pure 0)
           (\deadline -> atomically (writeTQueue timers deadline) >> atomically retry)
-          5
           (Just persister)
           (const (pure (pure ())))
   cache <- Cache.newCache reader options
@@ -243,7 +242,6 @@ persistenceCases = do
         Cache.CacheOptions
           (readTVarIO clock)
           (\deadline -> atomically (writeTQueue timers deadline) >> atomically (readTVar clock >>= check . (>= deadline)))
-          5
           (Just persister)
           (const (pure (pure ())))
       reader key = do
@@ -270,12 +268,12 @@ persistenceCases = do
     Cache.set cache 1 30
     mapM_ (ready 30) [eventsA, eventsB, eventsC]
     deadline <- atomically (readTQueue timers)
-    require "save timing did not use the caller's clock" (deadline == 5000000)
+    require "save timing did not use the caller's clock" (deadline == Timing.saveDebounceMs * 1000000)
     require "a debounced save must block bookmark persistence" =<< atomically (Cache.persistencePending cache)
     Cache.set cache 1 40
     mapM_ (ready 40) [eventsA, eventsB, eventsC]
     void (atomically (readTQueue timers))
-    atomically (writeTVar clock 5000000)
+    atomically (writeTVar clock (Timing.saveDebounceMs * 1000000))
     saved <- atomically (readTQueue saves)
     require "debounce saved an obsolete snapshot" (saved == [(1, 40), (2, 20)])
     idle cache
@@ -295,7 +293,6 @@ failedSaveCases = do
         Cache.CacheOptions
           (pure 0)
           (const (atomically retry))
-          5
           (Just (Cache.CachePersister (pure []) save (pure ())))
           (const (pure (pure ())))
   cache <- Cache.newCache (pure :: Int -> IO Int) options
@@ -325,7 +322,6 @@ serialSaveCases = do
         Cache.CacheOptions
           (pure 0)
           (const (pure ()))
-          0
           (Just (Cache.CachePersister (pure []) saving (pure ())))
           (const (pure (pure ())))
   bracket (Cache.newCache (pure :: Int -> IO Int) options) Cache.dispose $ \cache -> do
@@ -348,7 +344,6 @@ selfCloseCases = do
         Cache.CacheOptions
           (pure 0)
           (const (atomically retry))
-          5
           (Just (Cache.CachePersister (pure []) saving (pure ())))
           (const (pure (pure ())))
   cache <- Cache.newCache (pure :: Int -> IO Int) options
@@ -365,7 +360,7 @@ cancellationCases = do
   let reader (_ :: Int) =
         (atomically (putTMVar entered ()) >> atomically retry)
           `finally` (atomically (putTMVar cleanup ()) >> atomically (takeTMVar released))
-      options = Cache.CacheOptions (pure 0) (const (atomically retry)) 5 Nothing (const (pure (pure ())))
+      options = Cache.CacheOptions (pure 0) (const (atomically retry)) Nothing (const (pure (pure ())))
   cache <- Cache.newCache reader options :: IO (Cache.Cache Int Int)
   (observer, events) <- subscriber cache 1
   pending events
@@ -383,7 +378,7 @@ cancellationCases = do
 structuralKeyCases :: IO ()
 structuralKeyCases = do
   count <- newIORef (0 :: Int)
-  let options = Cache.CacheOptions (pure 0) (const (atomically retry)) 5 Nothing (const (pure (pure ())))
+  let options = Cache.CacheOptions (pure 0) (const (atomically retry)) Nothing (const (pure (pure ())))
       reader (_ :: Value) = modifyIORef' count (+ 1) >> pure (1 :: Int)
   bracket (Cache.newCache reader options) Cache.dispose $ \cache -> do
     let first = object ["a" .= (1 :: Int), "b" .= object ["c" .= (2 :: Int)]]
@@ -579,7 +574,7 @@ instance ToJSON RoutedKey where toJSON (RoutedKey identity _) = toJSON identity
 
 routingKeyCases :: IO ()
 routingKeyCases = do
-  let options = Cache.CacheOptions (pure 0) (const (atomically retry)) 5 Nothing (const (pure (pure ())))
+  let options = Cache.CacheOptions (pure 0) (const (atomically retry)) Nothing (const (pure (pure ())))
       reader (RoutedKey _ route) = pure route
   bracket (Cache.newCache reader options) Cache.dispose $ \cache -> do
     let old = Cache.query cache (RoutedKey 1 10)

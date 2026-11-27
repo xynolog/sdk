@@ -219,6 +219,24 @@ let module_alias name path =
 let module_spec name items =
   Sig.module_ (Md.mk (named (Some name)) (Mty.signature items))
 
+(* [module type name = sig items end]. *)
+let module_type name items =
+  Str.modtype (Mtd.mk ~typ:(Mty.signature items) (named name))
+
+(* [path with type type_ := by]. *)
+let substituted path ~type_ ~by =
+  Mty.with_
+    (Mty.ident (lid path))
+    [ Pwith_typesubst (lid type_, Type.mk ~manifest:by (named type_)) ]
+
+(* [module name (param : sig needs end) : result = struct items end]. *)
+let functor_ name ~param ~needs ~result items =
+  Str.module_
+    (Mb.mk (named (Some name))
+       (Mod.functor_
+          (Named (named (Some param), Mty.signature needs))
+          (Mod.constraint_ (Mod.structure items) result)))
+
 (** {1 Files} *)
 
 let format ~syntax ~path ~banner printed =

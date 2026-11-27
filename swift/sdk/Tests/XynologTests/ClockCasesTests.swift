@@ -170,6 +170,13 @@ private final class Ledger: Sendable {
       heard.events += 1
     }
   }
+  /// A connection the network failed as it was made, counted as a request of `connectionPath`.
+  func failedConnection() {
+    heard.withLock { heard in
+      heard.events += 1
+      heard.asked[connectionPath, default: 0] += 1
+    }
+  }
   func asked(_ path: String) -> Int { heard.withLock { $0.asked[path, default: 0] } }
   /// How many of the streams it held open their readers have closed.
   var closed: Int { heard.withLock { $0.closed } }
@@ -565,6 +572,130 @@ private func deviceGrant(_ given: [String: JSONValue], _ clock: TestClock) async
     })
 }
 
+// ── An agent's sign-in ──────────────────────────────────────────────────
+
+private let namingPath = GatewayRoute.getCurrentUser.path
+/// Not a path: what the ledger counts a connection to an unreachable gateway as.
+private let connectionPath = "connection"
+
+private final class Unreachable: ChannelInboundHandler {
+  typealias InboundIn = ByteBuffer
+  private let ledger: Ledger
+  init(_ ledger: Ledger) { self.ledger = ledger }
+  func channelActive(context: ChannelHandlerContext) {
+    ledger.failedConnection()
+    context.close(promise: nil)
+  }
+}
+
+/// A gateway every connection to which fails as it is made, each closed as it is accepted: its
+/// server, and the base a client names it by.
+private func unreachableGateway(_ ledger: Ledger) async throws -> (
+  server: any NIOCore.Channel, base: String
+) {
+  let server = try await ServerBootstrap(group: MultiThreadedEventLoopGroup.singleton)
+    .childChannelInitializer { channel in
+      channel.eventLoop.makeCompletedFuture {
+        try channel.pipeline.syncOperations.addHandler(Unreachable(ledger))
+      }
+    }.bind(host: "127.0.0.1", port: 0).get()
+  guard let port = server.localAddress?.port else {
+    throw ClockCaseFailure("The unreachable gateway has no port")
+  }
+  return (server, "http://127.0.0.1:\(port)")
+}
+
+/// An agent's sign-in at an issuer that grants a token that lives an hour, or answers its grant
+/// with `grantStatus` when it states one, and at a gateway that names the agent, or answers its
+/// naming request with `namingStatus` when it states one, or that it cannot reach when
+/// `unreachable`. It counts the grants, the naming requests, and the connections it tried.
+private func agentSignIn(grantStatus: Int?, namingStatus: Int?, unreachable: Bool, clock: TestClock)
+  async throws -> Subject
+{
+  let ledger = Ledger { asked in
+    let issuer = asked.origin + issuerPath
+    switch asked.path {
+    case issuerPath + "/.well-known/openid-configuration":
+      return .json(
+        200, [:],
+        .object(["issuer": .string(issuer), "token_endpoint": .string(issuer + "/token")]))
+    case issuerPath + "/token":
+      if let grantStatus {
+        return .json(grantStatus, [:], .object(["error": .string("temporarily_unavailable")]))
+      }
+      let iat = Date().timeIntervalSince1970.rounded(.down)
+      let claims: JSONValue = .object([
+        "iat": .number(iat), "exp": .number(iat + 3600), "jti": .number(Double(asked.nth)),
+      ])
+      guard let token = try? jwt(claims) else { return nil }
+      return .json(
+        200, [:],
+        .object([
+          "access_token": .string(token), "token_type": .string("Bearer"),
+          "expires_in": .number(3600),
+        ]))
+    case namingPath:
+      if let namingStatus { return .json(namingStatus, [:], .object([:])) }
+      return .json(
+        200, [:],
+        .object([
+          "did": .string("did:web:example.org:agents:smelter"), "email": .null,
+          "name": .string("Smelter"), "image": .null, "domain": .string("example.org"),
+        ]))
+    default: return nil
+    }
+  }
+  let loopback = try await Loopback.open(ledger)
+  let refusing = unreachable ? try await unreachableGateway(ledger) : nil
+  let gateway = refusing?.base ?? loopback.base
+  let service = ServiceToken(
+    credential: .secret(
+      issuer: loopback.base + issuerPath, clientId: "smelter", clientSecret: "a-client-secret"),
+    httpClient: loopback.http, clock: clock)
+  let agent = AgentToken(
+    gateway: gateway, service: service, httpClient: loopback.http, random: LowestDraw())
+  let signingIn = Task { try await agent.signIn() }
+  return Subject(
+    counted: {
+      ledger.asked(issuerPath + "/token") + ledger.asked(namingPath) + ledger.asked(connectionPath)
+    }, activity: { ledger.events }, pending: { nil }, act: nil,
+    close: {
+      signingIn.cancel()
+      agent.dispose()
+      try await refusing?.server.close().get()
+      try await loopback.close()
+      let unrouted = ledger.unrouted
+      guard unrouted.isEmpty else {
+        throw ClockCaseFailure(
+          "The issuer or the gateway was asked \(unrouted), which an agent's sign-in does not ask")
+      }
+    })
+}
+
+private func givenStatus(_ given: [String: JSONValue]) throws -> Int {
+  try stateCaseInteger(required(given, "status"))
+}
+
+private func refusedAgentSignIn(_ given: [String: JSONValue], _ clock: TestClock) async throws
+  -> Subject
+{
+  try await agentSignIn(
+    grantStatus: nil, namingStatus: givenStatus(given), unreachable: false, clock: clock)
+}
+
+private func unreachableAgentSignIn(_ given: [String: JSONValue], _ clock: TestClock) async throws
+  -> Subject
+{
+  try await agentSignIn(grantStatus: nil, namingStatus: nil, unreachable: true, clock: clock)
+}
+
+private func refusedAgentGrant(_ given: [String: JSONValue], _ clock: TestClock) async throws
+  -> Subject
+{
+  try await agentSignIn(
+    grantStatus: givenStatus(given), namingStatus: nil, unreachable: false, clock: clock)
+}
+
 // ── A session ───────────────────────────────────────────────────────────
 
 private let alphaKb = KbTarget(
@@ -653,14 +784,13 @@ private func heldJobStall(_ given: [String: JSONValue], _ clock: TestClock) asyn
 private final class LauncherDocument: DiscoveryTransport {
   let reads = Counter()
   func read() async -> DiscoveryRead {
-    guard reads.add() == 1 else { return .unchanged(Unchanged()) }
-    return .state(
-      .managed(
-        Managed(kbs: [
-          DiscoveredKB(
-            host: "localhost", port: 4000, placement: .local,
-            did: "did:web:example.org:kb-a", managedBy: "xynolog-launcher")
-        ])))
+    guard reads.add() == 1 else { return .discoveryUnchanged(DiscoveryUnchanged()) }
+    return .discoveryManaged(
+      DiscoveryManaged(kbs: [
+        DiscoveredKB(
+          host: "localhost", port: 4000, placement: .local,
+          did: "did:web:example.org:kb-a", managedBy: "xynolog-launcher")
+      ]))
   }
 }
 
@@ -850,6 +980,9 @@ private let subjects: [String: Build] = [
   "timedOutBusRequest": timedOutBusRequest,
   "jobPoll": jobPoll,
   "jobPollTimeout": jobPollTimeout,
+  "refusedAgentSignIn": refusedAgentSignIn,
+  "unreachableAgentSignIn": unreachableAgentSignIn,
+  "refusedAgentGrant": refusedAgentGrant,
 ]
 
 // ── A case, played ──────────────────────────────────────────────────────

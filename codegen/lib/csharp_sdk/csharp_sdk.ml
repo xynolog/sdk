@@ -161,46 +161,6 @@ let model_file (name, decls) =
     (types ^ "/" ^ name ^ ".g.cs")
     decls
 
-(* Why a client that read a launcher's discovery document found no launcher
-   (protocol/specs/src/client/discovery-absent.json): a constant a reason,
-   written as the reason's word. *)
-let discovery_absent (spec : Spec.t) =
-  let name = "DiscoveryAbsentReason" in
-  let serialization = "global::System.Text.Json.Serialization." in
-  file ~nullable:true ~namespace:"Xynolog.Types"
-    ~from_:"protocol/specs/src/client/discovery-absent.json"
-    (types ^ "/" ^ name ^ ".g.cs")
-    [
-      C.Enum
-        {
-          attributes =
-            [
-              {
-                C.name = serialization ^ "JsonConverter";
-                args =
-                  [
-                    Typeof
-                      (Generic
-                         (serialization ^ "JsonStringEnumConverter", [ T name ]));
-                  ];
-              };
-            ];
-          modifiers = [ Public ];
-          name;
-          members =
-            List.map
-              (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                ( [
-                    {
-                      C.name = serialization ^ "JsonStringEnumMemberName";
-                      args = [ Str r.reason ];
-                    };
-                  ],
-                  Models.enum_constant r.reason ))
-              spec.tables.client_discovery_absent.reasons;
-        };
-    ]
-
 let wire_schemas ids records (models : Models.t) =
   let source =
     `Assoc
@@ -424,13 +384,53 @@ let error_codes (t : Error_codes.Table.t) =
             @ [ returns t.unclassified ]);
       }
   in
+  let of_limit_refusal =
+    C.Documented
+      ( "The transport code a gateway's refusal of a limit is too, by its \
+         status and its LimitRefusal code; none when it is no such refusal.",
+        C.Method
+          {
+            modifiers = [ Internal; Static ];
+            returns = Nullable (T "string");
+            name = "OfLimitRefusal";
+            params =
+              [
+                { by = `Value; type_ = T "int"; name = "status" };
+                {
+                  by = `Value;
+                  type_ = T "global::Xynolog.Types.LimitRefusalCode";
+                  name = "code";
+                };
+              ];
+            body =
+              Block
+                (List.map
+                   (fun (n, limit, c) ->
+                     C.If
+                       ( C.Binary
+                           ( status C.Eq n,
+                             C.And,
+                             C.Binary
+                               ( C.Name "code",
+                                 C.Eq,
+                                 C.Name
+                                   ("global::Xynolog.Types.LimitRefusalCode."
+                                  ^ Models.enum_constant limit) ) ),
+                         [ returns c ] ))
+                   t.limit_refusals
+                @ [ C.Return C.Null ]);
+          } )
+  in
   let vocabulary ?(more = []) (v : Error_codes.Table.vocabulary) =
     static_class ~modifiers:[ C.Public; C.Static ] v.go_name (codes v @ more)
   in
-  file ~namespace:"Xynolog.Errors"
+  file ~nullable:true ~namespace:"Xynolog.Errors"
     ~from_:("protocol/specs/src/" ^ Error_codes.Table.file)
     (generated ^ "ErrorCodes.g.cs")
-    ([ vocabulary t.bus; vocabulary ~more:[ transport_of ] t.transport ]
+    ([
+       vocabulary t.bus;
+       vocabulary ~more:[ transport_of; of_limit_refusal ] t.transport;
+     ]
     @ List.map (fun v -> vocabulary v) t.others
     @ [ vocabulary t.control ])
 
@@ -478,7 +478,49 @@ let timings (entries : Timing.Table.t) =
     (generated ^ "Timings.g.cs")
     [ static_class "Timings" (List.map member entries) ]
 
-let files ~root (spec : Spec.t) =
+(* The records of what a caller may set of a client's timing, a property an
+   entry, whose initial value is the entry's constant. *)
+let timing_records (entries : Timing.Table.t) =
+  let member (e : Timing.Table.entry) =
+    let name = timing_name e in
+    let type_ =
+      match e.value with
+      | Timing.Table.Duration _ | Timing.Table.Count _ -> "int"
+      | Timing.Table.Budget _ -> Models.types ^ "RetryBudget"
+    in
+    C.Documented
+      ( e.docs,
+        C.Property
+          {
+            attributes = [];
+            modifiers = [ Public ];
+            type_ = T type_;
+            name;
+            accessors = [ Get; Init ];
+            value = Some (Member (Name "Xynolog.Protocol.Timings", name));
+          } )
+  in
+  let record record =
+    C.Type
+      {
+        attributes = [];
+        modifiers = [ Public; Sealed ];
+        kind = Record;
+        name = Timing.Table.record_name record;
+        params = None;
+        base = None;
+        body =
+          Some (Packed, List.map member (Timing.Table.members record entries));
+      }
+  in
+  file ~namespace:"Xynolog"
+    ~from_:("protocol/specs/src/" ^ Timing.Table.file)
+    (generated ^ "TimingRecords.g.cs")
+    (List.map record Timing.Table.records)
+
+(* The models of every schema the C# SDK types, and the records Protocol
+   states in its tables. *)
+let models (spec : Spec.t) =
   let* kinds = Identifiers.Table.derive spec in
   let* roots, records = roots spec in
   let* made =
@@ -489,11 +531,7 @@ let files ~root (spec : Spec.t) =
   let* models =
     Result.map_error refused
       (let bundle = Definitions.bundle spec in
-       let sign_in =
-         match List.assoc_opt Roots.sign_in_entry spec.schemas with
-         | Some s -> s
-         | None -> Definitions.refuse "Protocol has no %s" Roots.sign_in_entry
-       in
+       let sign_in = Definitions.sign_in spec in
        let made =
          List.map
            (fun (name, _, schema) ->
@@ -526,13 +564,42 @@ let files ~root (spec : Spec.t) =
              ~roots ~made
        | exception Definitions.Refused message -> Error message)
   in
+  Ok (records, models)
+
+(* The properties of the record modelled of [name]: each one's name and
+   type, as the model declares it, and what it is. *)
+let properties (spec : Spec.t) name =
+  match models spec with
+  | Error errors ->
+      Definitions.refuse "%s"
+        (String.concat "; " (List.map Decode.error_to_string errors))
+  | Ok (_, models) -> (
+      let rec property = function
+        | C.Property { name; type_; _ } -> Some (name, type_, None)
+        | C.Documented (doc, member) ->
+            Option.map (fun (n, t, _) -> (n, t, Some doc)) (property member)
+        | _ -> None
+      in
+      match
+        List.find_map
+          (function
+            | C.Type { name = n; body = Some (_, members); _ } when n = name ->
+                Some (List.filter_map property members)
+            | _ -> None)
+          (Option.value ~default:[] (List.assoc_opt name models.models))
+      with
+      | Some properties -> properties
+      | None -> Definitions.refuse "%s: the C# SDK models no record of it" name)
+
+let files ~root (spec : Spec.t) =
+  let* records, models = models spec in
   let* codes = Error_codes.Table.derive spec.tables.errors_codes in
   let* failures = failure_codes codes models in
   let* timing = Timing.Table.derive spec.tables.client_timing in
   let* tables = protocol_tables ~root spec in
   let* services = Services.file ~root spec in
   let* control = Control.file models spec in
-  let written = List.map model_file models.models @ [ discovery_absent spec ] in
+  let written = List.map model_file models.models in
   match Output.stale ~root ~directory:types written with
   | [] ->
       Ok
@@ -542,6 +609,7 @@ let files ~root (spec : Spec.t) =
             failures;
             error_codes codes;
             timings timing;
+            timing_records timing;
             tables;
             services;
             control;

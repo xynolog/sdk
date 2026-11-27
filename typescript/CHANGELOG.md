@@ -61,17 +61,24 @@ the coming release's, and gathers its changes as they land.
   table (`SPAN_CONTENT_GET`, `SPAN_BUS_EMIT`, `METRIC_XYNOLOG_BUS_SENT`, …,
   and `TELEMETRY_CHANNEL`, what stands for the channel in a span's name), and
   the transports name their spans and their count by them.
+- `ClientTiming` and `TransportTiming`, which `@xynolog/core` and
+  `@xynolog/sdk` export: the timing a caller may set of a client and of an
+  HTTP transport, each member the entry of Protocol's `client/timing.json` of
+  its name. `DEFAULT_CLIENT_TIMING` and `DEFAULT_TRANSPORT_TIMING`, from
+  `@xynolog/core`, hold the table's values.
+- `XynologClient.fromHttp`, `XynologSession.fromHttp` and
+  `XynologSession.fromKept` take `clientTiming` and `transportTiming`, and
+  `createHttpSessionFactory` takes both in a second argument, after `fetch`.
 
 ### Changed
 
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
-  trees are all `ArchivistLayoutEventStreamTree`, a placement is
-  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
-  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
-  and the rest. The type each reference was given of its own
-  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
-  gone.
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - `PutBinaryRequest` is `records['PutBinaryRequest']`, generated from
   Protocol's `client/types/PutBinaryRequest.json`, and its `file` is a
   `Blob`, where it was a `File | Buffer`: a browser's `File` is one, and a
@@ -150,6 +157,47 @@ the coming release's, and gathers its changes as they land.
 - `LastEventIds` is keyed by `ResourceId`, as its schema's `propertyNames`
   states, where any text was a key: a map whose members' names Protocol
   holds to a kind of id is a `Record` of that kind.
+- A held job holds `HeldJobRecord`, the record Protocol states for the job
+  its claim hands it, as `record`, which `@xynolog/core` and `@xynolog/sdk`
+  export. Its `jobId`, `resourceId`, `params`, `completedUnits`,
+  `unitCursors`, `retryCount` and `maxRetries` are the record's members, of
+  the record's types: `completedUnits` is a `string[]` and `unitCursors` a
+  `{ [key: string]: UnitCursor }`, where each was its read-only array or
+  `Record`.
+- The placement of a knowledge base is `KbPlacement`, where it was
+  `DiscoveredKBPlacement`, `KnowledgeBaseStatusPlacement`, `RootPlacement`
+  and `TargetKind`, one type each place it was stated; an inference provider
+  is `InferenceProvider`, where it was `EngineProvider`.
+- A default the service owns is no longer sent when the caller leaves it
+  out, and the service's own applies (protocol#109): `browse.resources` and
+  `match.resources` no longer send `limit: 100` and `offset: 0`,
+  `gather.annotation` no longer sends `contextWindow: 2000` (nor `options`
+  when none are given), and `match.search` no longer sends
+  `useSemanticScoring: true`. A stated value is sent as stated.
+- Discovery's types are the ones Protocol states, which `@xynolog/core` and
+  `@xynolog/sdk` export: `DiscoveryState`, `DiscoveryRead` (in place of
+  `DiscoveryReadResult`) and `DiscoveryDiff`, with their members
+  `DiscoveryAbsent`, `DiscoveryManaged` and `DiscoveryUnchanged`. A
+  `DiscoveryDiff` names in `duplicated` each address more than one of its
+  state's knowledge bases is at.
+- `UploadProgress`'s `started` and `progress` reports state `totalBytes`
+  only when the upload's source states its length (protocol#121), so it is
+  optional. Every upload holds its bytes whole and still reports it.
+  `UploadProgressBar` shows a `progress` report with no `totalBytes` as it
+  shows one whose total is unknown.
+- `XynologClient`'s options `busTimeoutMs`, `invalidationWindowMs`,
+  `jobSilenceMs` and `jobStatusPollMs` are one, `timing`, a
+  `Partial<ClientTiming>`; `busTimeoutMs` is its `busRequestTimeoutMs`.
+  `BrowseNamespace`, `GatherNamespace` and `MatchNamespace` take it as the
+  `timing` of their options, in place of `busTimeoutMs` and
+  `invalidationWindowMs`, and `MarkNamespace` and `YieldNamespace` take it as
+  their last argument. `createTestClient` and `createTestSession` take
+  `timing` in place of `busTimeoutMs`.
+- `HttpTransport`'s config members `timeout`, `reconnectMs`,
+  `streamOpenTimeoutMs`, `lazyRemoveMs`, `lingerMs`, `emitRetry` and
+  `seenEventIdsCount` are one, `timing`, a `Partial<TransportTiming>`;
+  `timeout` is its `httpRequestTimeoutMs`.
+- `createHoverDwell`'s delay may be left out, and is then `HOVER_DELAY_MS`.
 
 ### Removed
 
@@ -163,6 +211,8 @@ the coming release's, and gathers its changes as they land.
 - `IssuerEndpoints`, for `PendingAuthorization['issuer']`.
 - `Brand`, and `EventSignature` with `StoredEvent`'s `signature`, which
   nothing wrote or read.
+- `createCache`'s `saveDebounceMs`: a cache saves `SAVE_DEBOUNCE_MS` after
+  its values change.
 
 ## 0.8.1
 

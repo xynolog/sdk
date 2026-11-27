@@ -247,7 +247,7 @@ func isVerbsResult(verb api.JobType, result []byte) bool {
 func learned[C any](delegated api.JobType, status api.JobStatusResponse, resourceID api.ResourceId) (C, error) {
 	var completion C
 	unread := func(why string) (C, error) {
-		return completion, transportErrorWithoutResponse(fmt.Sprintf("The status of job %s is not a completed %s job's: %s", status.JobId, delegated, why), TransportErrorCodeError)
+		return completion, transportErrorWithoutResponse(fmt.Sprintf("The status of job %s is not a completed %s job's: %s", status.JobId, delegated, why), api.TransportErrorCodeError)
 	}
 	if status.Type != delegated {
 		return unread(fmt.Sprintf("it is a %s job's", status.Type))
@@ -320,7 +320,7 @@ func followed[C any](ctx context.Context, l *links, create api.JobCreateCommand,
 					_, _ = ask(ctx, l, bus.JobCancelRequested, api.JobCancelRequest{JobId: stalled})
 				})
 			}
-			return nil, &JobError{Code: JobErrorCodeStalled, Message: fmt.Sprintf("The job stalled: nothing was heard of it within %dms", stall.Milliseconds()), JobID: jobID}
+			return nil, &JobError{Code: api.JobErrorCodeStalled, Message: fmt.Sprintf("The job stalled: nothing was heard of it within %dms", stall.Milliseconds()), JobID: jobID}
 		}
 		var due time.Time
 		for _, at := range []time.Time{askAt, stallAt} {
@@ -360,7 +360,7 @@ func followed[C any](ctx context.Context, l *links, create api.JobCreateCommand,
 				}
 			}
 			if closed && len(items) == 0 {
-				return nil, &BusRequestError{Code: BusRequestErrorCodeClosed, Message: "The client closed while it was following a job"}
+				return nil, &BusRequestError{Code: api.BusRequestErrorCodeClosed, Message: "The client closed while it was following a job"}
 			}
 			if closed {
 				// What came before the close is handled; the next turn ends the follower.
@@ -386,10 +386,10 @@ func followed[C any](ctx context.Context, l *links, create api.JobCreateCommand,
 					if answer.Error != nil && *answer.Error != "" {
 						message = *answer.Error
 					}
-					return nil, &JobError{Code: JobErrorCodeFailed, Message: message, JobID: answer.JobId, FailureClass: answer.FailureClass}
+					return nil, &JobError{Code: api.JobErrorCodeFailed, Message: message, JobID: answer.JobId, FailureClass: answer.FailureClass}
 				case api.JobStatusResponseStatusCancelled:
 					// Nothing announces a cancellation: this is where its follower learns of one.
-					return nil, &JobError{Code: JobErrorCodeCancelled, Message: "The job was cancelled", JobID: answer.JobId}
+					return nil, &JobError{Code: api.JobErrorCodeCancelled, Message: "The job was cancelled", JobID: answer.JobId}
 				}
 			}
 		case <-wake:
@@ -429,7 +429,7 @@ func followed[C any](ctx context.Context, l *links, create api.JobCreateCommand,
 			case bus.JobFail.Channel():
 				// Absent reads as final: a follower that ends early is seen, one that never ends is not.
 				if one.fail.WillRetry == nil || !*one.fail.WillRetry {
-					return nil, &JobError{Code: JobErrorCodeFailed, Message: one.fail.Error, JobID: one.fail.JobId, FailureClass: one.fail.FailureClass}
+					return nil, &JobError{Code: api.JobErrorCodeFailed, Message: one.fail.Error, JobID: one.fail.JobId, FailureClass: one.fail.FailureClass}
 				}
 				// The queue re-queues the job and another attempt continues
 				// it. The dead attempt's status is not asked for: the next
@@ -444,11 +444,11 @@ func followed[C any](ctx context.Context, l *links, create api.JobCreateCommand,
 			default:
 				// The third thing a job says: that it completed, read as the delegated verb's completion.
 				if one.jobType != delegated {
-					return nil, transportErrorWithoutResponse(fmt.Sprintf("The job:complete of job %s is a %s job's, and the job delegated is a %s job", one.jobID, one.jobType, delegated), TransportErrorCodeError)
+					return nil, transportErrorWithoutResponse(fmt.Sprintf("The job:complete of job %s is a %s job's, and the job delegated is a %s job", one.jobID, one.jobType, delegated), api.TransportErrorCodeError)
 				}
 				var completion C
 				if err := json.Unmarshal(one.complete, &completion); err != nil {
-					return nil, transportErrorWithoutResponse(fmt.Sprintf("The job:complete of job %s is not a completed %s job's: %v", one.jobID, delegated, err), TransportErrorCodeError)
+					return nil, transportErrorWithoutResponse(fmt.Sprintf("The job:complete of job %s is not a completed %s job's: %v", one.jobID, delegated, err), api.TransportErrorCodeError)
 				}
 				return JobCompleted[C]{Data: completion}, nil
 			}

@@ -189,6 +189,18 @@ describe('extractTraceparent', () => {
     // Malformed value still gets stripped.
     expect(payload['_trace']).toBeUndefined();
   });
+
+  it('returns undefined when the required table refuses `_trace`', () => {
+    const payload: Record<string, unknown> = {
+      foo: 'bar',
+      _trace: {
+        traceparent: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01',
+        tracestate: '',
+      },
+    };
+    expect(extractTraceparent(payload)).toBeUndefined();
+    expect(payload).toEqual({ foo: 'bar' });
+  });
 });
 
 describe('withTraceparent', () => {

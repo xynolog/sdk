@@ -26,8 +26,8 @@ public data class ErrorsCodes(
     public val kbIdentity: ErrorsCodesJob,
     /** A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result. */
     public val spanRefusal: ErrorsCodesJob,
-    /** A vocabulary that states nothing of its codes but each one's docs: here, why a job its client follows ended without a result. */
-    public val control: ErrorsCodesJob,
+    /** Why a request of the launcher's control API failed: each code, the JSON-RPC code an answer carries it under, and whether a request that fails with it is retryable. */
+    public val control: ErrorsCodesControl,
 ) {
     /** How Java makes a `ErrorsCodes`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
@@ -39,7 +39,7 @@ public data class ErrorsCodes(
         private val signIn: ErrorsCodesJob,
         private val kbIdentity: ErrorsCodesJob,
         private val spanRefusal: ErrorsCodesJob,
-        private val control: ErrorsCodesJob,
+        private val control: ErrorsCodesControl,
     ) {
         public fun build(): ErrorsCodes = ErrorsCodes(comment = comment, busRequest = busRequest, transport = transport, job = job, session = session, signIn = signIn, kbIdentity = kbIdentity, spanRefusal = spanRefusal, control = control)
     }
@@ -47,6 +47,6 @@ public data class ErrorsCodes(
     public companion object {
         /** A builder of a `ErrorsCodes` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(comment: String, busRequest: ErrorsCodesBusRequest, transport: ErrorsCodesTransport, job: ErrorsCodesJob, session: ErrorsCodesJob, signIn: ErrorsCodesJob, kbIdentity: ErrorsCodesJob, spanRefusal: ErrorsCodesJob, control: ErrorsCodesJob): Builder = Builder(comment, busRequest, transport, job, session, signIn, kbIdentity, spanRefusal, control)
+        public fun builder(comment: String, busRequest: ErrorsCodesBusRequest, transport: ErrorsCodesTransport, job: ErrorsCodesJob, session: ErrorsCodesJob, signIn: ErrorsCodesJob, kbIdentity: ErrorsCodesJob, spanRefusal: ErrorsCodesJob, control: ErrorsCodesControl): Builder = Builder(comment, busRequest, transport, job, session, signIn, kbIdentity, spanRefusal, control)
     }
 }

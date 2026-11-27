@@ -27,7 +27,8 @@
   testing_facts
   encoding_facts
   log_facts
-  media_facts)
+  media_facts
+  worker_facts)
  (libraries
   eio
   cstruct

@@ -21,6 +21,7 @@ import { BehaviorSubject } from 'rxjs';
 import type {
   AccessToken,
   AnchoredTextAnswer,
+  ClientTiming,
   IGatewayOperations,
   IContentTransport,
   PutBinaryOptions,
@@ -146,11 +147,10 @@ export interface TestClientOptions {
    */
   gateway?: IGatewayOperations;
   /**
-   * `Bus.request` timeout for the browse caches — the deterministic-time
-   * knob. Pass something small (e.g. 40) when a test drives B14/B15
-   * through timeouts; irrelevant for `reject-emit` faults.
+   * The client's `timing`. A test that drives B14/B15 through timeouts states
+   * a small `busRequestTimeoutMs` (e.g. 40); `reject-emit` faults need none.
    */
-  busTimeoutMs?: number;
+  timing?: Partial<ClientTiming>;
   /** Replace the in-memory content transport (e.g. to pre-seed bytes). */
   content?: IContentTransport;
   /** B17 persistence, for rehydration tests. Omitted = in-memory caches. */
@@ -198,9 +198,7 @@ export function createTestClient(options: TestClientOptions = {}): {
     options.content ?? inMemoryContent(),
     options.gateway,
     {
-      ...(options.busTimeoutMs !== undefined
-        ? { busTimeoutMs: options.busTimeoutMs }
-        : {}),
+      ...(options.timing ? { timing: options.timing } : {}),
       ...(options.cachePersistence
         ? { cachePersistence: options.cachePersistence }
         : {}),

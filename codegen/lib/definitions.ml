@@ -47,6 +47,9 @@ and node = {
   one_of : t list option;
   discriminator : string option;  (** Its property's name. *)
   pattern : string option;
+  codes : string option;
+      (** The vocabulary of errors/codes.json its text is a code of
+          ([x-xynolog-codes]). *)
 }
 
 (* A place a [$ref] names, by its key ([Schema_names.place_key]): where it is
@@ -76,6 +79,7 @@ let node keys =
     one_of = None;
     discriminator = None;
     pattern = None;
+    codes = None;
   }
 
 (* A schema as what it means: one that states an [allOf], what its parts
@@ -131,18 +135,31 @@ let schema_of ~ids ~schemas (r : Decode.reference) =
   | Some s -> Ok s
   | None -> Error ("$ref " ^ r.target ^ " names no schema")
 
+(* The schema [target] a [$ref] writes in its place, as the reference
+   describes it: what is said beside the reference is said of it there, as
+   [Schema_names] writes a file in place. *)
+let described (r : Decode.reference) description target =
+  match (description, target) with
+  | None, target -> target
+  | Some _, Schema.Schema t -> Schema.Schema { t with description }
+  | Some _, Schema.Boolean_schema _ ->
+      refuse
+        "$ref %s is written in its place as a schema that describes nothing, \
+         so nothing can be said of it beside it"
+        r.target
+
 (* [s] with each [$ref] to a member of another schema ([/properties/<member>])
    written in its place, since a member is no schema of its own (S6); but a
    [$ref] to a record a table states ([recorded], by its key) names that
-   record. Nothing may be said beside a reference written in its place, and
-   a member that reaches itself so is refused. *)
+   record. What is said beside a reference written in its place is said of
+   it there ([described]), and a member that reaches itself so is refused. *)
 let members_in_place ~ids ~schemas ~recorded s =
   let rec members trail = function
     | Schema.Boolean_schema _ as b -> b
     | Schema.Schema l -> (
         match l.ref_ with
         | None -> Schema.Schema (Schema.map (members trail) l)
-        | Some r ->
+        | Some r -> (
             let key = Table_records.key ids r in
             let member =
               match String.split_on_char '/' (snd (Decode.resolve ids r)) with
@@ -150,17 +167,15 @@ let members_in_place ~ids ~schemas ~recorded s =
               | _ -> false
             in
             if not member then Schema.Schema l
-            else (
-              (match Schema_names.said_of_reference l r with
-              | Ok None -> ()
-              | Ok (Some _) ->
-                  refuse
-                    "$ref %s is written in its place, so nothing can be said \
-                     of it beside it"
-                    r.target
-              | Error message -> refuse "%s" message);
+            else
+              let description =
+                match Schema_names.said_of_reference l r with
+                | Ok description -> description
+                | Error message -> refuse "%s" message
+              in
               match schema_at ~ids ~schemas r with
-              | Some target -> members (in_place ~trail key) target
+              | Some target ->
+                  members (in_place ~trail key) (described r description target)
               | None -> refuse "$ref %s names no schema" r.target))
   in
   members [] s
@@ -193,13 +208,21 @@ let typed (spec : Spec.t) =
   let whole = whole spec in
   fun s -> Result.map Normalize.shape_only (whole s)
 
-(* The client types each SDK writes by hand: SearchState and JobEvent, each
-   held to its schema by a census in every SDK; ResourceRepresentationStream,
-   which the content methods return, which waits on each SDK's methods returning what client/surface.json says
-   they return; and ByteStream, which only ResourceRepresentationStream
-   holds, as each SDK's own read-once stream. *)
+(* The client types each SDK writes by hand: SearchState, CacheState and
+   JobEvent, each held to its schema by a census in every SDK, CacheState
+   because its failure is the SDK's own error, which no schema states;
+   ResourceRepresentationStream, which the content methods return, which
+   waits on each SDK's methods returning what client/surface.json says they
+   return; ByteStream, bytes read once as they arrive, which only
+   ResourceRepresentationStream holds, as each SDK's own read-once stream. *)
 let hand_written_client_types =
-  [ "SearchState"; "JobEvent"; "ResourceRepresentationStream"; "ByteStream" ]
+  [
+    "SearchState";
+    "CacheState";
+    "JobEvent";
+    "ResourceRepresentationStream";
+    "ByteStream";
+  ]
 
 (* The client types every SDK generates, by name: each file of
    protocol/specs/src/client/types but the hand-written ones, each of which
@@ -311,12 +334,8 @@ let view ~ids ~named ~schemas ~referred =
           match referent ~ids ~named ~schemas r with
           | Some (Named name) -> Ref { name; description }
           | Some (In_place (key, target)) ->
-              if Option.is_some description then
-                refuse
-                  "$ref %s is written in its place, so nothing can be said of \
-                   it beside it"
-                  r.target;
-              view target
+              view
+                (described r description target)
                 {
                   trail = in_place ~trail:context.trail key;
                   at = Some key;
@@ -392,6 +411,7 @@ let view ~ids ~named ~schemas ~referred =
                   (fun (d : Schema.discriminator) -> d.property_name)
                   s.discriminator;
               pattern = s.pattern;
+              codes = s.codes;
             }
           in
           Node own
@@ -606,6 +626,22 @@ let bundle (spec : Spec.t) =
       |> List.sort_uniq String.compare;
     client = names_of (fun file -> not (Hashtbl.mem gateway file));
   }
+
+(* The sign-in store's entry ([Roots.sign_in_entry]) with each [$ref] written
+   in its place, so that it is one schema alone ([alone]): each SDK's store
+   holds it as a record of its own, beside no other generated type. *)
+let sign_in (spec : Spec.t) =
+  match List.assoc_opt Roots.sign_in_entry spec.schemas with
+  | None -> refuse "Protocol has no %s" Roots.sign_in_entry
+  | Some s -> (
+      match
+        Schema_names.files_in_place ~ids:spec.ids
+          ~schemas:(Hashtbl.of_seq (List.to_seq spec.schemas))
+          ~named:(fun _ -> None)
+          ~places:true s
+      with
+      | Ok s -> s
+      | Error message -> refuse "%s: %s" Roots.sign_in_entry message)
 
 (* One schema file alone, as its own definitions: its [$ref]s are refused. *)
 let alone ~ids ~name (s : Schema.t) =

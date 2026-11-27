@@ -65,12 +65,11 @@ the coming release's, and gathers its changes as they land.
 
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
-  trees are all `ArchivistLayoutEventStreamTree`, a placement is
-  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
-  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
-  and the rest. The type each reference was given of its own
-  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
-  gone.
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - An upload is a `PutBinaryRequest` (`xynolog.types`), the model of
   Protocol's `client/types/PutBinaryRequest.json`, where it was the dataclass
   `xynolog.transport.PutBinaryRequest`, with the members it had. It is
@@ -92,7 +91,7 @@ the coming release's, and gathers its changes as they land.
 - A retry budget is `xynolog.types.RetryBudget`, the model of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
   `EMIT_RETRY` and `REFRESH_RETRY` are one, and `retry_with_backoff` and
-  `Timing.emit_retry` take one. Its members are as they were.
+  `TransportTiming.emit_retry` take one. Its members are as they were.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
   whole, which is `bytes`.
 - A member that holds null where its schema does not allow null is refused
@@ -128,13 +127,84 @@ the coming release's, and gathers its changes as they land.
   the id as the place reached in the scope, in place of
   `is_recorded_event_id(event_id)`. The stream and the places kept both ask
   it.
-- `claims.vitals()` is a `WorkerVitals` model named and written as
-  `WorkerEngineHealth`'s members are: its times are the protocol's text, and
-  the job it holds is a `WorkerEngineHealthActiveJob`. `ActiveJob` is gone. A
-  host's health is `WorkerEngineHealth(engine=…, jobs=…, **dict(vitals))`.
+- `claims.vitals()` is a `xynolog.types.WorkerVitals`, the type Protocol
+  states, in place of `xynolog.claims.WorkerVitals`: its times are the
+  protocol's text, and the job it holds is a `xynolog.types.WorkerActiveJob`,
+  in place of `WorkerEngineHealthActiveJob`. `ActiveJob` is gone. A host's
+  health is `WorkerEngineHealth(engine=…, jobs=…, **dict(vitals))`.
 - A list of resources, and a search for them, are cached by the request each
   sends, `BrowseResourcesRequest` and `MatchResourcesRequest`, in place of
   `xynolog.namespaces.live.ResourceFilters` and `ResourceSearch`.
+- A claim refused is a `xynolog.types.ClaimRefusal`, in place of
+  `xynolog.claims.ClaimRefusal`. It is a model, made by keyword:
+  `ClaimRefusal(code=…, message=…)`.
+- A stall is a `xynolog.types.HeldJobStall`, in place of
+  `xynolog.claims.HeldJobStall`: its `held_since` and `last_activity_at` are
+  the protocol's text, to the millisecond, where they were `datetime`s.
+- A trace as the wire carries it is `xynolog.types.TraceCarrier`, in place of
+  `xynolog.transport.TraceContext`: a frame's `trace`, a delivered payload's,
+  a held job's, and what `xynolog.telemetry` reads and continues.
+- A held job holds `record`, the `xynolog.types.HeldJobRecord` its claim
+  handed it. Its `job_id`, `job_type`, `resource_id`, `params`,
+  `completed_units`, `unit_cursors`, `retry_count` and `max_retries` are
+  read-only properties of that record, generated from it:
+  `completed_units` is the record's list, where it was a tuple, and
+  `HeldMarkJob.job_type` and `HeldYieldJob.job_type` are properties, where
+  they were class attributes.
+- `KbPlacement` is where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`, and `InferenceProvider` who serves a model, in
+  place of `EngineProvider`, as Protocol names them.
+- A held job says what it reached as the types Protocol states:
+  `checkpoint(JobCheckpoint(completed_units=…, unit_cursors=…))`, in place of
+  `checkpoint(completed_units, unit_cursors=None)`;
+  `fail(error, JobFailure(failure_class=…, completed_units=…, unit_cursors=…))`,
+  in place of `fail(error, *, failure_class=None, completed_units=None,
+  unit_cursors=None)`; and `cancel(JobReached(completed_units=…,
+  unit_cursors=…))`, in place of `cancel(completed_units=None,
+  unit_cursors=None)`. Each of `fail`'s and `cancel`'s is optional.
+- A default the service owns is no longer sent when the caller leaves it
+  out, and the service's own applies (protocol#109): `browse.resources` and
+  `match.resources` no longer send `limit` 100 and `offset` 0,
+  `gather.annotation` no longer sends `contextWindow` 2000 (nor `options`
+  when none is stated), and `match.search` no longer sends
+  `useSemanticScoring` true. A stated value is sent as stated, and a list or
+  a search stating a limit of 100 is no longer the one stating none.
+  `xynolog.namespaces.live.LIST_LIMIT` is gone.
+- What discovery reads is the models Protocol names, in place of
+  `xynolog.discovery`'s own: `parse_discovery_document` gives a
+  `xynolog.types.DiscoveryState` (a `DiscoveryAbsent` or a
+  `DiscoveryManaged`), a transport's `read` a `DiscoveryRead` (either, or a
+  `DiscoveryUnchanged`), and `subscribe_discovery` a `DiscoveryDiff`, in
+  place of `xynolog.discovery.Absent`, `Managed`, `Unchanged`,
+  `DiscoveryState`, `DiscoveryRead` and `DiscoveryDiff`. Each is a model,
+  made by keyword with its `kind` (`DiscoveryManaged(kind="managed",
+  kbs=…)`), and its knowledge bases and addresses are lists, where they were
+  tuples.
+- An upload's `UploadProgressStarted` and `UploadProgressProgress`, and
+  `ConformanceDriverLineProgressProgress`, state `total_bytes` as an
+  `int | None`: the total is stated when the source states its length, as
+  every upload's does today.
+- The timing a caller may set is two records generated from
+  `client/timing.json`, `xynolog.timing.ClientTiming` and
+  `xynolog.timing.TransportTiming`, each member named as its row is.
+  `xynolog.client` still exports `ClientTiming`, whose `bus_request_ms` is now
+  `bus_request_timeout_ms`. `TransportTiming`, which `xynolog.http` exports,
+  replaces `xynolog.http.Timing`: `http_request_ms` is now
+  `http_request_timeout_ms`, and `stream_open_ms` is
+  `stream_open_timeout_ms`.
+- `session_from_kept` and `HttpSessionFactory` take `client_timing` and
+  `transport_timing`, the timing of the client and of the transport they build.
+- `Cache` no longer takes `save_debounce_ms`: it saves `SAVE_DEBOUNCE_MS`
+  after its values last changed.
+- `StoragePersister` no longer takes `max_bytes`: a document larger than
+  `MAX_STORED_BYTES_COUNT` loses the entries received longest ago, until it
+  fits.
+- `subscribe_discovery` takes `interval_ms`, in milliseconds, where it took
+  `interval`, in seconds, and may be left out: it is then
+  `DISCOVERY_INTERVAL_MS`. `xynolog.discovery.DISCOVERY_INTERVAL_MS` replaces
+  `xynolog.discovery.DISCOVERY_INTERVAL`, which was in seconds.
+- `HoverDwell`'s `delay_ms` may be left out: it is then `HOVER_DELAY_MS`.
 
 ## 0.8.1
 

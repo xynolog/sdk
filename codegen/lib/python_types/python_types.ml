@@ -168,6 +168,7 @@ let rec placed st ~what ?(tag = false) (ty : T.ty) : P.expr =
   | T.Any -> json
   | T.Nothing -> refuse "%s: a schema that admits nothing" what
   | T.Scalar (T.Text { binary; _ }) -> name (if binary then "bytes" else "str")
+  | T.Scalar (T.Code vocabulary) -> name (fst (Code_names.named vocabulary))
   | T.Scalar (T.Integer _) -> name "int"
   | T.Scalar T.Number -> name "float"
   | T.Scalar T.Boolean -> name "bool"
@@ -467,7 +468,7 @@ let identifier (typing : T.t) name =
 
 (* The module for [typing]'s generation, whose kinds of id are
    xynolog.identifiers'. *)
-let module_ ~also (typing : T.t) =
+let module_ (typing : T.t) =
   let kinds = List.filter (identifier typing) typing.names in
   let st = { typing; tagged = tagged typing; declared = [] } in
   let decls =
@@ -486,7 +487,6 @@ let module_ ~also (typing : T.t) =
           in
           (component, decl) :: placed)
       typing.names
-    @ also
   in
   let names = List.sort compare (List.map fst decls) in
   P.text
@@ -506,12 +506,21 @@ let module_ ~also (typing : T.t) =
       imports =
         [
           [ P.From ("__future__", [ "annotations" ]) ];
-          [
-            P.From ("typing", [ "Annotated"; "Literal" ]);
-            P.From ("pydantic", [ "JsonValue"; "Field" ]);
-            P.From ("xynolog.model", [ "WireModel" ]);
-            P.From ("xynolog.identifiers", kinds);
-          ];
+          ([
+             P.From ("typing", [ "Annotated"; "Literal" ]);
+             P.From ("pydantic", [ "JsonValue"; "Field" ]);
+             P.From ("xynolog.model", [ "WireModel" ]);
+             P.From ("xynolog.identifiers", kinds);
+           ]
+          @
+          match T.codes typing with
+          | [] -> []
+          | codes ->
+              [
+                P.From
+                  ( "xynolog.error_codes",
+                    List.map (fun v -> fst (Code_names.named v)) codes );
+              ]);
         ];
       body =
         P.assign "__all__"
@@ -522,37 +531,35 @@ let module_ ~also (typing : T.t) =
         :: List.map snd (ordered decls);
     }
 
-(* Why a client that read a launcher's discovery document found no launcher
-   (protocol/specs/src/client/discovery-absent.json): a word a reason, each
-   reason's meaning in the docstring. *)
-let discovery_absent (spec : Spec.t) =
-  let reasons = spec.tables.client_discovery_absent.reasons in
-  ( "DiscoveryAbsentReason",
-    P.alias
-      ~doc:
-        (As_is
-           (String.concat "\n\n"
-              ("Why no launcher was found."
-              :: List.map
-                   (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                     Printf.sprintf "`%s`: %s" r.reason r.docs)
-                   reasons)))
-      "DiscoveryAbsentReason"
-      (P.sub "Literal"
-         (List.map
-            (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-              P.item (P.Str r.reason))
-            reasons)) )
-
 (* Each service table ([Roots.service_tables]) is read as its schema's model
    of types.py, named as its file is, and is that model's value in
    service_tables.py. *)
 let table_model table = Definitions.stem (Places.schema_of table)
 
+(* The fields of the class types.py declares of [name], each by its Python
+   name, with its type and what it is. *)
+let fields (spec : Spec.t) name =
+  let typing = Typing.of_spec spec ~tables:(Roots.service_tables spec) in
+  let st = { typing; tagged = tagged typing; declared = [] } in
+  match (typing.find name).form with
+  | T.Record { members; _ } ->
+      List.map
+        (fun (m : T.member) ->
+          let t = placed st ~what:(name ^ "." ^ m.wire) m.ty in
+          ( python_name m.wire,
+            (if m.required then t else union [ t; none ]),
+            m.description ))
+        members
+  | _ -> refuse "%s: types.py declares no class of it" name
+
+(* The module a type types.py names is imported from: a kind of id's,
+   xynolog.identifiers, and any other's, xynolog.types. *)
+let home (spec : Spec.t) name =
+  let typing = Typing.of_spec spec ~tables:(Roots.service_tables spec) in
+  if identifier typing name then "xynolog.identifiers" else "xynolog.types"
+
 let text (spec : Spec.t) =
-  module_
-    ~also:[ discovery_absent spec ]
-    (Typing.of_spec spec ~tables:(Roots.service_tables spec))
+  module_ (Typing.of_spec spec ~tables:(Roots.service_tables spec))
 
 (* The launcher's control API as the Python SDK reads it
    (python/sdk/src/xynolog/control_methods.py, from
@@ -589,7 +596,7 @@ let control_text (spec : Spec.t) =
              P.items ~magic:true
                [
                  P.keyword "name" (P.Str n.name);
-                 P.keyword "sent_by" (P.Str (C.from_value n.from));
+                 P.keyword "sent_by" (P.Str (C.control_sender_value n.from));
                  P.keyword "params" (P.Name params);
                ] ))
       ~doc:(Wrapped n.docs)

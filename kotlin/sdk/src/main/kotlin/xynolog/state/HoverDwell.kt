@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import xynolog.StateUnit
+import xynolog.Timings
 import xynolog.identifiers.AnnotationId
 import kotlin.coroutines.CoroutineContext
 
@@ -13,14 +14,14 @@ import kotlin.coroutines.CoroutineContext
  * A pointer's dwell: an annotation is hovered once the pointer has rested on
  * it for `delayMs`, and no longer the moment it leaves. A pointer crossing the
  * page hovers nothing on its way. `say` is told each change: the annotation
- * hovered, or none. `client.beckon.hover` is what it is usually given, and
- * `Timings.HOVER_DELAY_MS` the delay, unless the viewer was told another.
- * Closing it forgets a rest that has not run its time, and it says nothing
- * more. Its rest is timed in `context`.
+ * hovered, or none. `client.beckon.hover` is what it is usually given. The
+ * delay is client/timing.json's `hoverDelayMs`, unless the viewer was told
+ * another. Closing it forgets a rest that has not run its time, and it says
+ * nothing more. Its rest is timed in `context`.
  */
 public class HoverDwell @JvmOverloads constructor(
     private val say: (AnnotationId?) -> Unit,
-    private val delayMs: Long,
+    private val delayMs: Long = Timings.HOVER_DELAY_MS,
     context: CoroutineContext = Dispatchers.Default,
 ) : StateUnit {
 

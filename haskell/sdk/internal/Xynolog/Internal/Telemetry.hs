@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Telemetry (withSpan, withUpload, sending, withReceived, outgoingHeaders) where
+module Xynolog.Internal.Telemetry (withSpan, withUpload, sending, withReceived, traceCarrier, outgoingHeaders) where
 
 import Control.Exception (bracket, finally)
-import Data.Aeson (Value (..))
+import Data.Aeson (Result (..), Value (..), fromJSON, toJSON)
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
 import Data.CaseInsensitive qualified as CI
@@ -23,7 +23,8 @@ import OpenTelemetry.Trace.Core qualified as Trace
 import Paths_xynolog (version)
 import Xynolog.Internal.Generated.TelemetryKeys (attributeBusChannel, attributeBusScope, attributeContentFormat, attributeContentSizeBytes)
 import Xynolog.Internal.Generated.TelemetryNames (metricXynologBusSent, spanBusEmit, spanBusRecv, spanContentPut, telemetryChannel)
-import Xynolog.Transport.Facts (traceCarrierFields, traceField)
+import Xynolog.Internal.Required (faultOf)
+import Xynolog.Transport.Facts (traceField)
 import Xynolog.Types
 
 scope :: Trace.InstrumentationLibrary
@@ -84,12 +85,19 @@ withReceived frame action = do
   parent <- getContext
   propagator <- Propagator.getGlobalTextMapPropagator
   let fields = busFramePayloadAdditionalProperties (busFramePayload frame)
-      carrier = case KM.lookup (Key.fromText traceField) fields of
-        Just (Object values) -> Propagator.textMapFromList [(Key.toText key, value) | (key, String value) <- KM.toList values, Key.toText key `elem` traceCarrierFields]
+      carrier = case toJSON <$> (KM.lookup (Key.fromText traceField) fields >>= traceCarrier) of
+        Just (Object values) -> Propagator.textMapFromList [(Key.toText key, value) | (key, String value) <- KM.toList values]
         _ -> Propagator.emptyTextMap
   context <- Propagator.extract propagator carrier parent
   bracket (attachContext context) detachContext $ \_ ->
     withSpan Trace.Consumer (Text.replace telemetryChannel (busFrameChannel frame) spanBusRecv) (busAttributes frame) action
+
+-- | A relayed frame's trace field, read by the required table and then as its
+-- generated type: a value either refuses carries no trace.
+traceCarrier :: Value -> Maybe TraceCarrier
+traceCarrier value = case faultOf "TraceCarrier" value of
+  Just _ -> Nothing
+  Nothing -> case fromJSON value of Success carrier -> Just carrier; Error _ -> Nothing
 
 outgoingHeaders :: IO RequestHeaders
 outgoingHeaders = do

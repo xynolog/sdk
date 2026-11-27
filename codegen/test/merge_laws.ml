@@ -8,8 +8,9 @@
      ([disputed]). Of those, title, description, $comment, default, examples
      and discriminator only describe a value. The rest are assertions JSON
      Schema applies from every part, which the merge takes from the later
-     one: format, an allOf a part keeps, and additionalProperties and
-     unevaluatedProperties when neither part closes the object. Two
+     one: format, x-xynolog-codes, an allOf a part keeps, and
+     additionalProperties and unevaluatedProperties when neither part closes
+     the object. Two
      propertyNames, or two nots, are joined in the order of their parts.
      $schema, $id and $defs, which only a file's root states, are the later
      part's too.
@@ -49,6 +50,7 @@ let part : Schema.schema Gen.t =
   let* description = stated [ "One."; "Another." ] in
   let* type_ = stated [ [ Schema.String ]; [ Object ] ] in
   let* format = stated [ Schema.Uri; Date_time ] in
+  let* codes = stated [ "control"; "busRequest" ] in
   let* enum =
     stated
       [
@@ -87,6 +89,8 @@ let part : Schema.schema Gen.t =
   let* one_of = stated [ [ text ]; [ long; text ] ] in
   let* not_ = stated [ text; long ] in
   let* defs = stated [ [ ("D", text) ]; [ ("D", long) ] ] in
+  let* type_parameters = stated [ [ "V" ]; [ "K"; "V" ] ] in
+  let* type_parameter = stated [ "V"; "K" ] in
   let+ discriminator =
     stated
       [
@@ -103,6 +107,7 @@ let part : Schema.schema Gen.t =
     description;
     type_;
     format;
+    codes;
     enum;
     const;
     default;
@@ -129,6 +134,8 @@ let part : Schema.schema Gen.t =
     not_;
     defs;
     discriminator;
+    type_parameters;
+    type_parameter;
   }
 
 (* [later] without each keyword the merge takes from the later part where
@@ -145,6 +152,7 @@ let undisputed (earlier : Schema.schema)
        description;
        type_;
        format;
+       codes;
        enum;
        const;
        default;
@@ -171,6 +179,8 @@ let undisputed (earlier : Schema.schema)
        not_;
        defs;
        discriminator;
+       type_parameters;
+       type_parameter;
      } :
       Schema.schema) : Schema.schema =
   let disputed theirs ours =
@@ -194,6 +204,7 @@ let undisputed (earlier : Schema.schema)
     description = disputed earlier.description description;
     type_;
     format = disputed earlier.format format;
+    codes = disputed earlier.codes codes;
     enum;
     const;
     default = disputed earlier.default default;
@@ -222,6 +233,8 @@ let undisputed (earlier : Schema.schema)
     not_ = disputed earlier.not_ not_;
     defs = disputed earlier.defs defs;
     discriminator = disputed earlier.discriminator discriminator;
+    type_parameters = disputed earlier.type_parameters type_parameters;
+    type_parameter = disputed earlier.type_parameter type_parameter;
   }
 
 (* What a schema requires of a value: an allOf that states nothing else is

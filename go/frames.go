@@ -40,8 +40,8 @@ type Frame struct {
 	Envelope
 	Payload json.RawMessage
 	// Trace is the trace the work done for the frame continues (Continuing);
-	// the zero TraceContext when it was sent under none.
-	Trace TraceContext
+	// nil when it was sent under none.
+	Trace *api.TraceCarrier
 	// place is the place a recorded event delivered on its scope reaches,
 	// kept when the frame is bridged into a client's bus for everyone; the
 	// zero eventPlace for any other frame.

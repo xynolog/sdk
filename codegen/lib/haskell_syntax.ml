@@ -23,6 +23,8 @@ type type_ =
   | T_tuple of type_ list
   | T_fun of type_ * type_
   | T_promoted of string  (** A constructor as a type: ['Global]. *)
+  | T_constrained of (string * string) list * type_
+      (** A type its variables' classes constrain: [Show a => a -> Text]. *)
 
 (* What a clause or an alternative matches: a constructor matches what it
    holds by a pattern each, and a variable matches anything and names it. *)
@@ -127,6 +129,12 @@ type decl =
       type_ : type_;
       values : (string * expr) list;
     }  (** Several values of one type, under one signature. *)
+  | Class of {
+      about : string list;
+      name : string;
+      param : string;
+      methods : (string * type_) list;  (** Each method's name and type. *)
+    }
   | Instance of {
       context : (string * string) list;
           (** The classes a type variable is of, as [ToJSON value =>]. *)
@@ -160,6 +168,10 @@ let instance ?(context = []) class_ instance methods =
 (* A method of one clause that takes no arguments. *)
 let method_ name body = (name, { patterns = []; body })
 let alias ?(about = []) name type_ = Alias { about; name; type_ }
+
+(* A record's field for its member [key]: the record's name begun lower case
+   and the member's in Pascal case. *)
+let field record key = String.uncapitalize_ascii record ^ Text.pascal key
 
 let value ?(about = []) name type_ body =
   Value { about; name; type_; clauses = [ { patterns = []; body } ] }
@@ -232,9 +244,15 @@ let rec type_ = function
       (match a with T_fun _ -> "(" ^ type_ a ^ ")" | _ -> type_ a)
       ^ " -> " ^ type_ b
   | T_promoted name -> "'" ^ checked name
+  | T_constrained (context, t) -> constraint_ context ^ type_ t
+
+and constraint_ = function
+  | [] -> ""
+  | cs ->
+      tuple (List.map (fun (c, v) -> checked c ^ " " ^ variable v) cs) ^ " => "
 
 and type_argument = function
-  | (T_apply _ | T_fun _) as t -> "(" ^ type_ t ^ ")"
+  | (T_apply _ | T_fun _ | T_constrained _) as t -> "(" ^ type_ t ^ ")"
   | t -> type_ t
 
 let rec pattern = function
@@ -359,7 +377,9 @@ let import_line { module_; qualified; items } =
       " (" ^ String.concat ", " (List.map item items) ^ ")"
 
 let exports = function
-  | Data { name; _ } | Record { name; _ } | Gadt { name; _ } -> [ All name ]
+  | Data { name; _ } | Record { name; _ } | Gadt { name; _ } | Class { name; _ }
+    ->
+      [ All name ]
   | Newtype { name; opaque; _ } -> [ (if opaque then Plain name else All name) ]
   | Reexport name -> [ Module name ]
   | Alias { name; _ } | Value { name; _ } -> [ Plain name ]
@@ -455,6 +475,12 @@ let rec decl = function
         :: List.map
              (fun (name, e) -> checked name ^ " = " ^ expr ~depth:0 e)
              values
+  | Class { about; name; param; methods } ->
+      doc about
+      @ ("class " ^ checked name ^ " " ^ variable param ^ " where")
+        :: List.map
+             (fun (m, t) -> indentation 1 ^ checked m ^ " :: " ^ type_ t)
+             methods
   | Instance { context; class_; instance; methods } -> (
       let context =
         match context with
@@ -498,6 +524,9 @@ let uses body =
     | T_fun (a, b) ->
         type_ a;
         type_ b
+    | T_constrained (context, t) ->
+        List.iter (fun (c, _) -> type_use c) context;
+        type_ t
   in
   let rec pattern = function
     | Constructor (name, held) ->
@@ -578,6 +607,7 @@ let uses body =
     | Values { type_ = t; values; _ } ->
         type_ t;
         List.iter (fun (_, e) -> expr e) values
+    | Class { methods; _ } -> List.iter (fun (_, t) -> type_ t) methods
     | Instance { context; class_; instance; methods } ->
         List.iter (fun (c, _) -> type_use c) context;
         type_use class_;
@@ -612,3 +642,13 @@ let text m =
       @ (imports :: List.map decl m.body))
   in
   String.concat "\n\n" (List.map (String.concat "\n") blocks) ^ "\n"
+
+(* Where module [name] is in the sdk checkout, under the SDK's [under]
+   directory: Xynolog.Types under src is haskell/sdk/src/Xynolog/Types.hs. *)
+let path ~under name =
+  "haskell/sdk/" ^ under ^ "/"
+  ^ String.concat "/" (String.split_on_char '.' name)
+  ^ ".hs"
+
+(* A module, written at its path under [under]. *)
+let file ~under m = { Output.path = path ~under m.name; text = text m }

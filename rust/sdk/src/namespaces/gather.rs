@@ -19,14 +19,10 @@ use crate::types::{
 /// An annotation elsewhere that refers to a resource.
 pub(super) type ReferencedBy = GetReferencedByResponseReferencedByItem;
 
-/// How much of the source an annotation's context takes, in characters,
-/// when its caller states no window. Every SDK sends the same: the cases of
-/// protocol/specs/src/client/surface.json hold each to it.
-const CONTEXT_WINDOW: u16 = 2000;
-
 /// What a resource's context takes when its caller states nothing: two hops
-/// of the graph, ten resources, their content, and no summary. Held by the
-/// same cases.
+/// of the graph, ten resources, their content, and no summary. Every SDK
+/// sends the same: the cases of protocol/specs/src/client/surface.json hold
+/// each to it.
 const DEPTH: u16 = 2;
 const MAX_RESOURCES: u16 = 10;
 const INCLUDE_CONTENT: bool = true;
@@ -81,10 +77,10 @@ impl GatherNamespace {
         })
     }
 
-    /// The context around one annotation, as `options` say: a window of two
-    /// thousand characters of its source when they state none, and the
-    /// source's context and the target's each included or left out as
-    /// stated, and as the gatherer decides when not.
+    /// The context around one annotation, as `options` say: its window of
+    /// the source, and the source's context and the target's each included
+    /// or left out, as stated, and as the gatherer decides when not. Options
+    /// that state nothing are not sent.
     pub fn annotation(
         &self,
         resource_id: &ResourceId,
@@ -95,10 +91,7 @@ impl GatherNamespace {
         let request = GatherAnnotationRequest {
             annotation_id: annotation_id.clone(),
             resource_id: resource_id.clone(),
-            options: Some(GatherAnnotationOptions {
-                context_window: Some(options.context_window.unwrap_or(CONTEXT_WINDOW)),
-                ..options
-            }),
+            options: (options != GatherAnnotationOptions::default()).then_some(options),
         };
         Running::new(|_| async move { links.request::<GatherRequested>(&request).await })
     }

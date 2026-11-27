@@ -9,6 +9,7 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ConformanceFailure
+import Xynolog.Internal.Generated.Models.HeldJobRecord
 import Xynolog.Internal.Generated.Models.ResourceId
 
 data ConformanceDriverLine = ConformanceDriverLineReady ConformanceDriverLineReady | ConformanceDriverLineOk ConformanceDriverLineOk | ConformanceDriverLineFailed ConformanceDriverLineFailed | ConformanceDriverLineAbandoned ConformanceDriverLineAbandoned | ConformanceDriverLineUnsupported ConformanceDriverLineUnsupported | ConformanceDriverLineMisuse ConformanceDriverLineMisuse | ConformanceDriverLineState ConformanceDriverLineState | ConformanceDriverLineFrame ConformanceDriverLineFrame | ConformanceDriverLineErrorStream ConformanceDriverLineErrorStream | ConformanceDriverLineProgress ConformanceDriverLineProgress | ConformanceDriverLineEmission ConformanceDriverLineEmission | ConformanceDriverLineCompleted ConformanceDriverLineCompleted | ConformanceDriverLineClaimed ConformanceDriverLineClaimed | ConformanceDriverLineRefused ConformanceDriverLineRefused | ConformanceDriverLineSignalled ConformanceDriverLineSignalled | ConformanceDriverLineStalled ConformanceDriverLineStalled deriving (Eq, Show)
@@ -50,7 +51,7 @@ instance FromJSON ConformanceDriverLineAbandonedAbandoned where parseJSON = chec
 instance ToJSON ConformanceDriverLineAbandonedAbandoned where toJSON ConformanceDriverLineAbandonedAbandonedTrue = Bool True
 
 data ConformanceDriverLineClaimed = MkConformanceDriverLineClaimed
-  { conformanceDriverLineClaimedClaimed :: KM.KeyMap Value
+  { conformanceDriverLineClaimedClaimed :: HeldJobRecord
   }
   deriving (Eq, Show)
 
@@ -223,13 +224,13 @@ instance ToJSON ConformanceDriverLineProgress where toJSON value = Object (KM.fr
 data ConformanceDriverLineProgressProgress = ConformanceDriverLineProgressProgress
   { conformanceDriverLineProgressProgressUpload :: Integer,
     conformanceDriverLineProgressProgressBytesUploaded :: Integer,
-    conformanceDriverLineProgressProgressTotalBytes :: Integer
+    conformanceDriverLineProgressProgressTotalBytes :: Maybe Integer
   }
   deriving (Eq, Show)
 
-instance FromJSON ConformanceDriverLineProgressProgress where parseJSON = checked "ConformanceDriverLineProgressProgress" $ withObject "ConformanceDriverLineProgressProgress" (\fields -> ConformanceDriverLineProgressProgress <$> (fields .: "upload") <*> (fields .: "bytesUploaded") <*> (fields .: "totalBytes"))
+instance FromJSON ConformanceDriverLineProgressProgress where parseJSON = checked "ConformanceDriverLineProgressProgress" $ withObject "ConformanceDriverLineProgressProgress" (\fields -> ConformanceDriverLineProgressProgress <$> (fields .: "upload") <*> (fields .: "bytesUploaded") <*> optional fields "totalBytes")
 
-instance ToJSON ConformanceDriverLineProgressProgress where toJSON value = Object (KM.fromList (concat [[("upload", toJSON (conformanceDriverLineProgressProgressUpload value))], [("bytesUploaded", toJSON (conformanceDriverLineProgressProgressBytesUploaded value))], [("totalBytes", toJSON (conformanceDriverLineProgressProgressTotalBytes value))]]))
+instance ToJSON ConformanceDriverLineProgressProgress where toJSON value = Object (KM.fromList (concat [[("upload", toJSON (conformanceDriverLineProgressProgressUpload value))], [("bytesUploaded", toJSON (conformanceDriverLineProgressProgressBytesUploaded value))], optionalPair "totalBytes" (conformanceDriverLineProgressProgressTotalBytes value)]))
 
 data ConformanceDriverLineReady = MkConformanceDriverLineReady
   { conformanceDriverLineReadyReady :: ConformanceDriverLineReadyReady

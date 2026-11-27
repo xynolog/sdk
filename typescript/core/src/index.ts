@@ -136,6 +136,12 @@ export type {
   MatchQuality,
   FrameRefusalReason,
   DiscoveryAbsentReason,
+  DiscoveryAbsent,
+  DiscoveryManaged,
+  DiscoveryUnchanged,
+  DiscoveryState,
+  DiscoveryRead,
+  DiscoveryDiff,
   BeginAuthorizationOptions,
   DeviceCode,
   IssuedTokens,
@@ -151,6 +157,16 @@ export type {
   JobPollOptions,
   MatchSearchOptions,
   ResourceSearchFilters,
+  TraceCarrier,
+  ConnectionState,
+  WorkerVitals,
+  WorkerActiveJob,
+  HeldJobStall,
+  ClaimRefusal,
+  JobCheckpoint,
+  JobFailure,
+  JobReached,
+  HeldJobRecord,
 } from './payload-types';
 
 // Event utilities
@@ -162,7 +178,6 @@ export {
   ScopedEventBus,
   type BusFrame,
   type BusEnvelope,
-  type TraceCarrier,
 } from './event-bus';
 export { relayFrames, type FrameSource, type FrameSink } from './relay-frames';
 
@@ -261,7 +276,6 @@ export type {
   PutBinaryOptions,
   ResourceRepresentationStream,
   PutBinaryProgress,
-  ConnectionState,
   HealthCheckResponse,
   StatusResponse,
   UserResponse,
@@ -301,6 +315,7 @@ export * from './cache-refresh';
 // protocol/specs/src/errors/codes.json — the table every SDK generates from.
 export {
   transportErrorCodeForStatus,
+  limitRefusalTransportCodes,
   type BusRequestErrorCode,
   type TransportErrorCode,
   type JobErrorCode,

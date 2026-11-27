@@ -6,11 +6,14 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use xynolog::discovery::{
-    DISCOVERY_INTERVAL, DiscoveryAbsentReason, DiscoveryDiff, DiscoveryRead, DiscoveryState,
-    DiscoveryTransport, parse_discovery_document, subscribe_discovery, text_discovery,
+    DISCOVERY_INTERVAL, DiscoveryTransport, parse_discovery_document, subscribe_discovery,
+    text_discovery,
 };
 use xynolog::transport::BoxFuture;
-use xynolog::types::DiscoveredKB;
+use xynolog::types::{
+    DiscoveredKB, DiscoveryAbsent, DiscoveryAbsentReason, DiscoveryDiff, DiscoveryManaged,
+    DiscoveryRead, DiscoveryState, DiscoveryUnchanged,
+};
 
 fn entry(host: &str, port: u16, did: &str) -> Value {
     json!({
@@ -29,15 +32,15 @@ fn kb(value: Value) -> DiscoveredKB {
 
 fn reason(state: &DiscoveryState) -> Option<DiscoveryAbsentReason> {
     match state {
-        DiscoveryState::Absent { reason, .. } => Some(*reason),
-        DiscoveryState::Managed { .. } => None,
+        DiscoveryState::DiscoveryAbsent(absent) => Some(absent.reason),
+        DiscoveryState::DiscoveryManaged(_) => None,
     }
 }
 
 fn diagnostic(state: &DiscoveryState) -> String {
     match state {
-        DiscoveryState::Absent { diagnostic, .. } => diagnostic.clone().unwrap_or_default(),
-        DiscoveryState::Managed { .. } => String::new(),
+        DiscoveryState::DiscoveryAbsent(absent) => absent.diagnostic.clone().unwrap_or_default(),
+        DiscoveryState::DiscoveryManaged(_) => String::new(),
     }
 }
 
@@ -54,14 +57,15 @@ fn a_document_of_knowledge_bases_is_managed_and_one_of_none_is_managed_too() {
     });
     assert_eq!(
         parse_discovery_document(&document(&[entry("localhost", 4000, A), codespace.clone()])),
-        DiscoveryState::Managed {
-            kbs: vec![kb(entry("localhost", 4000, A)), kb(codespace)]
-        }
+        DiscoveryState::DiscoveryManaged(DiscoveryManaged::new(vec![
+            kb(entry("localhost", 4000, A)),
+            kb(codespace)
+        ]))
     );
     // A launcher that manages nothing is there. It is not absent.
     assert_eq!(
         parse_discovery_document(&document(&[])),
-        DiscoveryState::Managed { kbs: vec![] }
+        DiscoveryState::DiscoveryManaged(DiscoveryManaged::new(vec![]))
     );
 }
 
@@ -147,22 +151,17 @@ async fn read_of(text: Result<Option<String>, String>) -> DiscoveryRead {
 async fn text_is_read_through_the_one_validator() {
     assert_eq!(
         read_of(Ok(Some(document(&[entry("localhost", 4000, A)])))).await,
-        DiscoveryRead::State(DiscoveryState::Managed {
-            kbs: vec![kb(entry("localhost", 4000, A))]
-        })
+        DiscoveryManaged::new(vec![kb(entry("localhost", 4000, A))]).into()
     );
     assert_eq!(
         read_of(Ok(None)).await,
-        DiscoveryRead::State(DiscoveryState::Absent {
-            reason: DiscoveryAbsentReason::NotFound,
-            diagnostic: None,
-        })
+        DiscoveryRead::DiscoveryAbsent(DiscoveryAbsent::new(DiscoveryAbsentReason::NotFound))
     );
     assert_eq!(
         read_of(Err("permission denied".to_owned())).await,
-        DiscoveryRead::State(DiscoveryState::Absent {
-            reason: DiscoveryAbsentReason::Unreadable,
+        DiscoveryRead::DiscoveryAbsent(DiscoveryAbsent {
             diagnostic: Some("permission denied".to_owned()),
+            ..DiscoveryAbsent::new(DiscoveryAbsentReason::Unreadable)
         })
     );
 }
@@ -185,8 +184,8 @@ impl Script {
             .lock()
             .expect("reads")
             .extend(texts.iter().map(|text| match text {
-                Some(text) => DiscoveryRead::State(parse_discovery_document(text)),
-                None => DiscoveryRead::Unchanged,
+                Some(text) => DiscoveryRead::from(parse_discovery_document(text)),
+                None => DiscoveryRead::from(DiscoveryUnchanged::new()),
             }));
         Arc::new(script)
     }
@@ -204,7 +203,7 @@ impl DiscoveryTransport for Script {
             .lock()
             .expect("reads")
             .pop_front()
-            .unwrap_or(DiscoveryRead::Unchanged);
+            .unwrap_or_else(|| DiscoveryUnchanged::new().into());
         Box::pin(async move { next })
     }
 }
@@ -356,7 +355,7 @@ async fn two_entries_at_one_address_are_named_and_neither_is_dropped_from_the_st
 
     assert_eq!(told[0].duplicated, at(&["localhost:4000"]));
     match &told[0].state {
-        DiscoveryState::Managed { kbs } => assert_eq!(kbs.len(), 3),
+        DiscoveryState::DiscoveryManaged(managed) => assert_eq!(managed.kbs.len(), 3),
         other => panic!("a managed state was expected, not {other:?}"),
     }
 }

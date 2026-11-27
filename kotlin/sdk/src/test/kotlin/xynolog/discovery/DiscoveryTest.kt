@@ -28,7 +28,13 @@ import xynolog.Spec
 import xynolog.http.CallersHttp
 import xynolog.http.httpDiscovery
 import xynolog.types.DiscoveredKB
+import xynolog.types.DiscoveryAbsent
 import xynolog.types.DiscoveryAbsentReason
+import xynolog.types.DiscoveryDiff
+import xynolog.types.DiscoveryManaged
+import xynolog.types.DiscoveryRead
+import xynolog.types.DiscoveryState
+import xynolog.types.DiscoveryUnchanged
 import xynolog.types.wireJson
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -76,9 +82,12 @@ private class Script(vararg reads: DiscoveryRead) : DiscoveryTransport {
 
     override suspend fun read(): DiscoveryRead {
         asked += 1
-        return if (reads.isEmpty()) Unchanged else reads.removeAt(0)
+        return if (reads.isEmpty()) DiscoveryUnchanged() else reads.removeAt(0)
     }
 }
+
+/** The text read as the document, as every reader reads it. */
+private fun parsed(text: String): DiscoveryRead = readOf(parseDiscoveryDocument(text))
 
 /** Every change told of in `polls` readings. */
 private fun TestScope.changes(script: Script, polls: Int): List<DiscoveryDiff> {
@@ -97,7 +106,7 @@ private typealias Summary = Triple<List<String>, List<String>, List<String>>
 
 private fun summary(diff: DiscoveryDiff): Summary = Triple(addresses(diff.added), addresses(diff.updated), addresses(diff.removed))
 
-private fun reasonOf(state: DiscoveryState): DiscoveryAbsentReason? = (state as? Absent)?.reason
+private fun reasonOf(state: DiscoveryState): DiscoveryAbsentReason? = (state as? DiscoveryAbsent)?.reason
 
 /** What the launcher's stand-in answers a read with: a status, its headers and a body, or no answer at all. */
 private class Served(val status: Int = 200, val body: String = "", val headers: Map<String, String> = mapOf("Content-Type" to "application/json"), val hold: Boolean = false)
@@ -143,9 +152,9 @@ class DiscoveryTest {
 
     @Test
     fun aDocumentOfKnowledgeBasesIsManagedAndOneOfNoneIsManagedToo() {
-        assertEquals(Managed(listOf(kb(entry("localhost", 4000, A)), kb(CODESPACE))), parseDiscoveryDocument(document(entry("localhost", 4000, A), CODESPACE)))
+        assertEquals(DiscoveryManaged(kbs = listOf(kb(entry("localhost", 4000, A)), kb(CODESPACE))), parseDiscoveryDocument(document(entry("localhost", 4000, A), CODESPACE)))
         // A launcher that manages nothing is there. It is not absent.
-        assertEquals(Managed(emptyList()), parseDiscoveryDocument(document()))
+        assertEquals(DiscoveryManaged(kbs = emptyList()), parseDiscoveryDocument(document()))
     }
 
     @TestFactory
@@ -166,7 +175,7 @@ class DiscoveryTest {
         document(entry("localhost", 70000, A)) to DiscoveryAbsentReason.Invalid,
     ).map { (text, expected) ->
         DynamicTest.dynamicTest(text) {
-            val state = assertInstanceOf(Absent::class.java, parseDiscoveryDocument(text))
+            val state = assertInstanceOf(DiscoveryAbsent::class.java, parseDiscoveryDocument(text))
             assertEquals(expected, state.reason)
             assertTrue(!state.diagnostic.isNullOrEmpty(), "no diagnostic")
         }
@@ -174,7 +183,7 @@ class DiscoveryTest {
 
     @Test
     fun aDocumentOfAnotherVersionIsNotReadInPart() {
-        val state = assertInstanceOf(Absent::class.java, parseDiscoveryDocument("""{"version":2,"kbs":[${entry("localhost", 4000, A)}]}"""))
+        val state = assertInstanceOf(DiscoveryAbsent::class.java, parseDiscoveryDocument("""{"version":2,"kbs":[${entry("localhost", 4000, A)}]}"""))
         assertEquals(DiscoveryAbsentReason.UnsupportedVersion, state.reason)
         assertTrue(checkNotNull(state.diagnostic).contains("version 2"), state.diagnostic)
     }
@@ -183,7 +192,7 @@ class DiscoveryTest {
     fun oneEntryThatIsNotOneMakesTheWholeDocumentAbsent() {
         // A reading of the good entry alone would hide a running knowledge base.
         val withoutADid = JsonObject(entry("localhost", 4100, A) - "did")
-        val state = assertInstanceOf(Absent::class.java, parseDiscoveryDocument(document(entry("localhost", 4000, A), withoutADid)))
+        val state = assertInstanceOf(DiscoveryAbsent::class.java, parseDiscoveryDocument(document(entry("localhost", 4000, A), withoutADid)))
         assertEquals(DiscoveryAbsentReason.Invalid, state.reason)
         assertTrue(checkNotNull(state.diagnostic).contains("did"), state.diagnostic)
     }
@@ -192,9 +201,9 @@ class DiscoveryTest {
 
     @Test
     fun textIsReadThroughTheOneValidator() = runBlocking {
-        assertEquals(Managed(listOf(kb(entry("localhost", 4000, A)))), textDiscovery { document(entry("localhost", 4000, A)) }.read())
-        assertEquals(Absent(DiscoveryAbsentReason.NotFound), textDiscovery { throw NoSuchFileException("/state/discovery/kbs.json") }.read())
-        val refused = assertInstanceOf(Absent::class.java, textDiscovery { throw AccessDeniedException("/state/discovery/kbs.json", null, "permission denied") }.read())
+        assertEquals(DiscoveryManaged(kbs = listOf(kb(entry("localhost", 4000, A)))), textDiscovery { document(entry("localhost", 4000, A)) }.read())
+        assertEquals(DiscoveryAbsent(reason = DiscoveryAbsentReason.NotFound), textDiscovery { throw NoSuchFileException("/state/discovery/kbs.json") }.read())
+        val refused = assertInstanceOf(DiscoveryAbsent::class.java, textDiscovery { throw AccessDeniedException("/state/discovery/kbs.json", null, "permission denied") }.read())
         assertEquals(DiscoveryAbsentReason.Unreadable, refused.reason)
         assertTrue(checkNotNull(refused.diagnostic).contains("permission denied"), refused.diagnostic)
     }
@@ -205,9 +214,9 @@ class DiscoveryTest {
     fun theFirstReadingIsToldWholeAndEachOneAfterByWhatChanged() = runTest {
         val renamed = with(entry("localhost", 4000, A), "siteName", JsonPrimitive("Renamed"))
         val script = Script(
-            parseDiscoveryDocument(document(entry("localhost", 4000, A))),
-            parseDiscoveryDocument(document(renamed, entry("localhost", 4100, B))),
-            parseDiscoveryDocument(document(entry("localhost", 4100, B))),
+            parsed(document(entry("localhost", 4000, A))),
+            parsed(document(renamed, entry("localhost", 4100, B))),
+            parsed(document(entry("localhost", 4100, B))),
         )
         val told = changes(script, 4)
         assertEquals(
@@ -224,7 +233,7 @@ class DiscoveryTest {
 
     @Test
     fun aKnowledgeBaseThatMovesPortIsRemovedAndAdded() = runTest {
-        val script = Script(parseDiscoveryDocument(document(entry("localhost", 4000, A))), parseDiscoveryDocument(document(entry("localhost", 4001, A))))
+        val script = Script(parsed(document(entry("localhost", 4000, A))), parsed(document(entry("localhost", 4001, A))))
         val told = changes(script, 2)
         assertEquals(2, told.size)
         assertEquals(Summary(listOf("localhost:4001"), emptyList(), listOf("localhost:4000")), summary(told[1]))
@@ -232,27 +241,27 @@ class DiscoveryTest {
 
     @Test
     fun aReadingThatChangedNothingIsNotTold() = runTest {
-        val same = parseDiscoveryDocument(document(entry("localhost", 4000, A)))
-        val script = Script(same, Unchanged, same, parseDiscoveryDocument(document(entry("localhost", 4000, A))))
+        val same = parsed(document(entry("localhost", 4000, A)))
+        val script = Script(same, DiscoveryUnchanged(), same, parsed(document(entry("localhost", 4000, A))))
         assertEquals(1, changes(script, 5).size)
         assertEquals(5, script.asked)
     }
 
     @Test
     fun anEntryWithOptionalMembersReadAgainUnchangedIsNotTold() = runTest {
-        val script = Script(parseDiscoveryDocument(document(CODESPACE)), parseDiscoveryDocument(document(CODESPACE)))
+        val script = Script(parsed(document(CODESPACE)), parsed(document(CODESPACE)))
         assertEquals(1, changes(script, 2).size)
     }
 
     @Test
     fun aLauncherThatGoesAndComesBackIsToldWithWhatItTookAndBrought() = runTest {
         val script = Script(
-            parseDiscoveryDocument("not json"),
-            parseDiscoveryDocument(document(entry("localhost", 4000, A))),
-            parseDiscoveryDocument("not json"),
+            parsed("not json"),
+            parsed(document(entry("localhost", 4000, A))),
+            parsed("not json"),
             // Absent for another reason is a change too; for the same one it is not.
-            parseDiscoveryDocument("[]"),
-            parseDiscoveryDocument("{}"),
+            parsed("[]"),
+            parsed("{}"),
         )
         assertEquals(
             listOf<Pair<DiscoveryAbsentReason?, Summary>>(
@@ -267,8 +276,8 @@ class DiscoveryTest {
 
     @Test
     fun oneKnowledgeBaseInTwoPlacesIsTwoEntriesAndEachIsItsOwn() = runTest {
-        val both = parseDiscoveryDocument(document(entry("localhost", 4000, A), entry("localhost", 4100, A)))
-        val told = changes(Script(both, both, parseDiscoveryDocument(document(entry("localhost", 4100, A)))), 4)
+        val both = parsed(document(entry("localhost", 4000, A), entry("localhost", 4100, A)))
+        val told = changes(Script(both, both, parsed(document(entry("localhost", 4100, A)))), 4)
         // No change while both are there, and the one that stops is not hidden by the one that goes on.
         assertEquals(
             listOf<Summary>(
@@ -282,15 +291,15 @@ class DiscoveryTest {
 
     @Test
     fun twoEntriesAtOneAddressAreNamedAndNeitherIsDroppedFromTheState() = runTest {
-        val told = changes(Script(parseDiscoveryDocument(document(entry("localhost", 4000, A), entry("localhost", 4000, B), entry("localhost", 4100, B)))), 1)
+        val told = changes(Script(parsed(document(entry("localhost", 4000, A), entry("localhost", 4000, B), entry("localhost", 4100, B)))), 1)
         assertEquals(1, told.size)
         assertEquals(listOf("localhost:4000"), told[0].duplicated)
-        assertEquals(3, assertInstanceOf(Managed::class.java, told[0].state).kbs.size)
+        assertEquals(3, assertInstanceOf(DiscoveryManaged::class.java, told[0].state).kbs.size)
     }
 
     @Test
     fun readingStopsWhenNobodyListensOrTheReadingIsClosed() = runTest {
-        val script = Script(parseDiscoveryDocument(document()))
+        val script = Script(parsed(document()))
         val listening = launch { subscribeDiscovery(script, DISCOVERY_INTERVAL).collect { } }
         advanceTimeBy(DISCOVERY_INTERVAL * 2)
         runCurrent()
@@ -301,7 +310,7 @@ class DiscoveryTest {
         assertEquals(asked, script.asked, "asked after the reader left")
 
         // Closed, it reads no more, though its reader still waits.
-        val again = Script(parseDiscoveryDocument(document()))
+        val again = Script(parsed(document()))
         val reading = subscribeDiscovery(again, DISCOVERY_INTERVAL)
         val waiting = launch { reading.collect { } }
         advanceTimeBy(DISCOVERY_INTERVAL / 2)
@@ -323,9 +332,9 @@ class DiscoveryTest {
             served(document(), contentType = "application/json; charset=utf-8", etag = "\"v2\""),
         ).use { launcher ->
             val reader = httpDiscovery(launcher.url)
-            assertEquals(Managed(listOf(kb(entry("localhost", 4000, A)))), reader.read())
-            assertEquals(Unchanged, reader.read())
-            assertEquals(Managed(emptyList()), reader.read())
+            assertEquals(DiscoveryManaged(kbs = listOf(kb(entry("localhost", 4000, A)))), reader.read())
+            assertEquals(DiscoveryUnchanged(), reader.read())
+            assertEquals(DiscoveryManaged(kbs = emptyList()), reader.read())
             assertEquals(listOf(null, "\"v1\"", "\"v1\""), launcher.tags.toList())
         }
     }
@@ -344,19 +353,19 @@ class DiscoveryTest {
             val reads = List(5) { reader.read() }
             assertEquals(
                 listOf(DiscoveryAbsentReason.NotFound, DiscoveryAbsentReason.NotFound, DiscoveryAbsentReason.NotFound, DiscoveryAbsentReason.NotJson, DiscoveryAbsentReason.NotJson),
-                reads.map { (it as Absent).reason },
+                reads.map { (it as DiscoveryAbsent).reason },
             )
             // The tag of a document that did not read was not kept: it is not believed the next time.
             assertEquals(List(5) { null }, launcher.tags.toList())
         }
-        assertEquals(DiscoveryAbsentReason.Unreadable, (httpDiscovery("http://127.0.0.1:9$PATH").read() as Absent).reason)
+        assertEquals(DiscoveryAbsentReason.Unreadable, (httpDiscovery("http://127.0.0.1:9$PATH").read() as DiscoveryAbsent).reason)
     }
 
     @Test
     fun aReaderGivenItsCallersClientReadsTheDocumentWithIt() = runBlocking {
         Launcher(served(document(entry("localhost", 4000, A)))).use { launcher ->
             val http = CallersHttp()
-            assertEquals(Managed(listOf(kb(entry("localhost", 4000, A)))), httpDiscovery(launcher.url, http).read())
+            assertEquals(DiscoveryManaged(kbs = listOf(kb(entry("localhost", 4000, A)))), httpDiscovery(launcher.url, http).read())
             assertEquals(listOf(PATH), http.made.toList())
         }
     }
@@ -368,7 +377,7 @@ class DiscoveryTest {
             val read = httpDiscovery(launcher.url, 300).read()
             val tookMs = (System.nanoTime() - started) / 1_000_000
             assertTrue(tookMs in 300..2_300, "took ${tookMs}ms")
-            assertEquals(Absent(DiscoveryAbsentReason.Unreadable, "the document was not served within 300ms"), read)
+            assertEquals(DiscoveryAbsent(reason = DiscoveryAbsentReason.Unreadable, diagnostic = "the document was not served within 300ms"), read)
         }
     }
 }

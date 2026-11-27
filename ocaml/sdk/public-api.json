@@ -116,45 +116,46 @@
     "lib/bus_reply_bounds.ml": "f2b227aadf8284d8a8060f036e4d159f057d26f7ee21dc97af938c699b53d66c",
     "lib/cache_state.ml": "b270721df6ee9432f61bfa450fb280036a1c1a1f880de8eabed84aec0fab8c5a",
     "lib/cache_state.mli": "0453793e8b7bcc4873b255d34f12d4f230b7d5bf28b32f571bf3b6dc0cb5067b",
-    "lib/claims.ml": "2fb04d8e371ae91acd9f8d707ef7d88dbae0dd31cb3de66ceef43b4da7ab1ebe",
-    "lib/claims.mli": "e0a2ea854986b746ccf39d3c18b731ca289dbc05c8baf1f06aa1da6cc787913d",
+    "lib/claims.ml": "b3588f1c699659d33d1cd067485db060e12b04a63bf039b2f366fcefcbe59c26",
+    "lib/claims.mli": "4996e729b6dc400b97b4854e7f00e3b07e8a5a956d67441d2bd6f54d0250cf2d",
     "lib/client.ml": "bd8b8934d2931bd1037c34763287324828ae26e726ecaa832e3e11cbc91340ad",
     "lib/client.mli": "6e08b6b7851820acced98ca320e6ec093455f2d0340828149b2f43e255d30e39",
-    "lib/client_core.ml": "7e46dd2724a15e740cd5735d673e36e04f8477f70fd8678923948800b389a94b",
-    "lib/client_core.mli": "6447ce3fa3e333c2d325e99556c31833416a8589950613a0703d9017c710ff3f",
-    "lib/client_query.ml": "93a5d538eea97cefee9000a06454a1885ba7328e6a74f13b6542e9a75a7277df",
-    "lib/client_record.ml": "bab8e90abf6e54c353d077b90334bda3f9895673179f70bf70641dd92a09b6a2",
-    "lib/client_timing.ml": "f0eba736f2f18a07c65f734c629fa94cfe6648e3e967b8b9e03447ba04cb2606",
-    "lib/client_timing.mli": "09c3204e45443ed9764d70785a9a4f33a3b76818c9901f0e870322cc8c0168af",
+    "lib/client_core.ml": "57e9fbee449ba234b23404593bd1a97d997de3d832dfc1a1c4658f68b472707f",
+    "lib/client_core.mli": "35aaaed3e6d2e409e9edb07120415a24b999bf98b686543938e60b2a978a974e",
+    "lib/client_query.ml": "3b6ac0b18f6355d48c820f630413af174a5cb395a3dce5af93d9f4f8a55e2785",
+    "lib/client_record.ml": "d09a4ac6b0d5158b9250a03ae798ff8237d2f2ef5c1482990ffb1f3f9b207f77",
+    "lib/client_timing.ml": "d2e1c504c3f2fc6a9f5941244cb241b4d12aaacf236e3195b447b3e19bd6fe84",
+    "lib/client_timing.mli": "ec472cfb9d3f778a1e8df92364478a6492b2fc69d759cd9a5b174f8c8ba3a057",
     "lib/clock.ml": "71063b036aa3069ad2ed649ba8a73505b4eb4a00631c48af43a01f732c6623ab",
     "lib/clock.mli": "5333b1d2447f81415c54bfc99d87ae98362a4ce249695d7783c35df41cdab364",
     "lib/control.ml": "e59aa7ab3626e5093d2414f08bfd9625b383a2a675ca6e32c1276d6c8c6a4562",
-    "lib/delegation.ml": "06caa65f7726158e217303619a87a53c1f5cf468552a6d3876cd89c72c46e0fc",
-    "lib/delegation.mli": "acf0397656d1185b5f3308a9e9858cf967a3630c52500957c3aeb109a1cf0838",
-    "lib/discovery.ml": "030f2dc4fdb85017b8c810053e2c851eae68a4ae575167e6f3ed3008fa085b06",
-    "lib/discovery.mli": "965ec952d3195c633ee3b4c5f262a6feb3ab62d44467908da0037cbfbedfd080",
+    "lib/delegation.ml": "f788730076a28002ed32979d1f99ff3a6ccd03f72deacc16a2a2d7f8c8eb413b",
+    "lib/delegation.mli": "80280d85e9950ea481bcebeed16c884239334f37d9cb17aaaf7d49cdbe9f3c44",
+    "lib/discovery.ml": "b523ae68da9a63858e9dde0059fb58db3a755113cbf211c99f4079d142e4843d",
+    "lib/discovery.mli": "9b498e1514c2215afdef4f827e3d6a6e3ec67b53446cb28ad44ec2e4e78d83f4",
     "lib/dispatcher_messages.ml": "de3216f424fe297f08f80696f2aa490f004c8995568fca13ee3f3bdccd5065d8",
-    "lib/dune": "edd7021f4c909a66e409a973b2db7ebb6ac44d31a7b08002183fb40d6443a65f",
+    "lib/dune": "1518991b807af927b4e71d57d6097ef120d03f5e773f5ea4adf31ac6baa9f4a6",
     "lib/embedding_requests.ml": "cae3ff1469b45d5421de0048d70e2fea9d2f0e5f5a060de176910b70aefec950",
     "lib/encoding_facts.ml": "dc9602d08894d9a3bd5334cb3254218f7a74dad0528d552acb00cec4061bb9bb",
-    "lib/enums.ml": "9ffe82fd45bee98792aca12a888d1a46f1443271ae3698f5c3564fa5837fbd37",
-    "lib/error_codes.ml": "42e9a5f92a93a58143d30f8a803ba3cb8fd45945accebd03d25a1ab334eb618d",
+    "lib/enums.ml": "599d400d6ca0662532b1fd92408ada95169b35e90332507fea551606b42c0359",
+    "lib/error_codes.ml": "d7b5d357867ca1286dcd24e9033fb5006beffd4e8b730b04f8d2b1071bc37009",
     "lib/frame.ml": "6e0ba59a959758ccdc672cec1d8d802be2f882a5d1354ded4e5ab21398716d54",
     "lib/gateway_http.ml": "cbcd0c640321c0ec910cb7f23f3991a766b24587e8b4e0dcb0c9870ab43cf251",
     "lib/gateway_media_token.ml": "3e8e99df97fa6e0d8d53664f5b18c2807b1551f6ea2eb7c593ac3c62866f3dd7",
     "lib/gateway_messages.ml": "25f713862810dc3325fd6068e96c752bc0765e6eaa4ca8956cbe012a22764765",
     "lib/gateway_response_headers.ml": "ec26450be954b4758c1ac2d5e0568cc0d89feb3fecde9097a33c254b32ed6275",
     "lib/gather.ml": "79ce316d7cb74f60d07da80acbf3570d57ba949e4a3fbec81e4da34a6ca9ce6f",
-    "lib/gather_state.ml": "f2600f1104077a6df23fadaf662d715026732537af6eb8d216f0a4f6b97127d7",
+    "lib/gather_state.ml": "9692d712f4ff45afc4e3791b67a93c2f471cdd8cf5681d809b6cf6a17ba6283b",
     "lib/gather_state.mli": "f5da939b80588f462f13befe2c6974e46448be17e64bb43bfaabfaf848cfe6ae",
     "lib/graph_schema.ml": "60629639fec1c9666f455a28e28eb511500f519c604d138363bd3b6246837c40",
+    "lib/held_job_members.ml": "956498482537e526b9c0a187437d0c7342ac30423088d882eff2600fc46d097f",
     "lib/host_name.ml": "d4895a9a34e8e1bd70aa25452c24a73efa06e4d648c654d6e52982f8a2bb3635",
     "lib/host_name.mli": "ae48395a873d6cb0d60dc1fce328a283adb07c6e0bb9d7107260a1ae8d57bc69",
     "lib/hover_dwell.ml": "2a8e9fef90c75ce18569793c04f553523e3dc523d53d869ceef4dab6a7702122",
     "lib/hover_dwell.mli": "3bf63911f6482ad960a6e4d3881e4a637caa0d9929dc8d62dbf7b69421fa19af",
     "lib/http_facts.ml": "22bb288902aa4a0b628b9d02e7b694480c375b2b9e7ae856c3e27965055271d8",
-    "lib/http_wire.ml": "c16987ae2a68e3c0c5032456780bf4aeac6c3f2fa4aca028f60f1d7329a10d72",
-    "lib/http_wire.mli": "7eea10dae63be96409cf8be44a9656177f8aadee5d68a66a4dd09d2048a2e595",
+    "lib/http_wire.ml": "2e312542c1005af7ef92846513678dcceeed3b534732d8d44466bdf9a477bd5d",
+    "lib/http_wire.mli": "e48b45932242a9efe9b594a0daf569b2096ae8fe597a56721ed775d7ff5d1c32",
     "lib/identifiers.ml": "1ee61e8298715512590d2e8045869efb0687ace6df642970da0d54baffe26448",
     "lib/identifiers.mli": "d344831d9323c9ab0934e9027f4e8269b5d3554ef347c1d71b04cedc65d6a92b",
     "lib/identity.ml": "926a5ae2b89b08a294af2bbee6975347194bdaea78109f82a777b9fcff388e58",
@@ -171,8 +172,8 @@
     "lib/log_facts.ml": "1bf6dc1bb379d78ebf88e28eaad640364552b8f2f469926f7f62333313d04d97",
     "lib/mark.ml": "7bb5dc6de229d81c29c5349f719a2902263b1026d02a10e274facc4781d82b82",
     "lib/mark.mli": "daa70a35284997cf8b5796bda5f3262c19e8690a40090dc415729c4e3dddbbb3",
-    "lib/mark_state.ml": "224e07e4b03f548ad4fbd9276aafb06107da35731facd9cc1d0d0183e8b48f0c",
-    "lib/mark_state.mli": "bf975ad19fabb066cc94f6815911fe1fd39c7fcfd8274525a97539af770e5afb",
+    "lib/mark_state.ml": "8b90c42dfaa937d0f5eb09e20371c16fbe2e347a8681f45c5f2636281980482c",
+    "lib/mark_state.mli": "f58f22c5da0e978832c2dbfa15f1554472912379a798135f81640b812c25c90d",
     "lib/match.ml": "688566865cf768c0b4bfb6cddeda957366e7dedce57ddd19d8a2588927f821e6",
     "lib/match.mli": "54ac094a6a9f8e8a09b7bc5f175ae198788c3d82b9b80a1f7efc9014fd135179",
     "lib/match_state.ml": "8d3d588b7ab99009b18a659570975d30f14c349e9c6aedd145e84333c7720107",
@@ -180,8 +181,8 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "055ae2eedf1039a9e463258c1aedec60909e49ea0bb5cc884250c4f1dc754658",
-    "lib/models.mli": "274216df0b5534a46697f7106134b2ea7b27818ebcad21ff83e4495d09d87715",
+    "lib/models.ml": "24a4afee8264b6c31b4f274fe542daaa575b148bc52c9891f7c5bea13565b1a0",
+    "lib/models.mli": "7d57557991c3cebecf9f6f61c4e582493d2475b287e4abc8fe75d00c1b98b6a3",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "d908e2497f7a14f92a98e35cd9be8b92f717faaa2e20480e703efd6fb8ef09a0",
     "lib/oauth.mli": "b535175120377dd42d5d60ce71dbf893b51839f4fe61db06135f6f525728543d",
@@ -189,11 +190,11 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "94b8dea8dbfcea9f37e20417007d9a45a53e1e6b230c64713edfeb073a9a4de8",
-    "lib/records.mli": "060347bb9e21b0670955ca0d0f11ee75f0eaeb80285b735900c1e7efa569375a",
+    "lib/records.ml": "e19922fc9c32ce7722a6ce2480538d96361cd26a2cac09c58ad043ec4e82613f",
+    "lib/records.mli": "8ce17fe7d72a47b592db5e1981b4157a7d43d3e473288d5f90f10ed552bafddf",
     "lib/redirect_sign_in.ml": "80c9bafb2de127baf0cd4f7148041d5445e442b17737be235afdee854eb821e9",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
-    "lib/registry.ml": "bcdbad6e3fd5d932886ce97c6dbe4b6d6c5a414e348c37bdc7adb2ec9271d788",
+    "lib/registry.ml": "b0ae885fbe618775bb821efbba0a6acd233557ba043cfa160ba1469994e86e7f",
     "lib/registry.mli": "2faf0a93878d53522db748155ea015638da686c86a0fd62ca134d7997558872a",
     "lib/registry_facts.ml": "ad2d706c130785002585a0797b2ec8a070790257bd364a85b34f51f839dfcd63",
     "lib/resources.ml": "b5304c8b1d16637743f5036069431ea2b0f4f5ef4d856e76d14583178bf506f5",
@@ -204,7 +205,7 @@
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "1695b47348167ac3bf314e106084cdbc4a9a6ebd03de269f6fdb59f8c66ebf72",
+    "lib/schema_shapes.ml": "add64e48ab7edf10eb7c9abb4ef6d426a83c4e2945e7e53872c77b086860521e",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "f631bad7d16a82910665c02614d271aa21ec4e8f8262848c82b360f95072e07a",
@@ -212,7 +213,7 @@
     "lib/selector_codec.mli": "df9b5a9e17ee1634c1fe107d7285dccb23f6282581b5db0b5090bd0a705dc296",
     "lib/service_environment.ml": "c296da92b69dd0116b0b688d8af30f4ed01829d78c6114ac6c1c8c24a97cfc1f",
     "lib/service_environment_boot_refusals.ml": "1c9eda3e55439b222f025be9a1e4d7100ef80b6f03e09725bf5f104400837612",
-    "lib/service_environment_variables.ml": "b462fc6af1ec95baffd13f3d461e11010ac736c3a0eeaf134beeaf1157dbeb9f",
+    "lib/service_environment_variables.ml": "57b7c4937f61b7c21d62e639f110e07d58bc3caa791a6db526d9b97789006753",
     "lib/service_tables.ml": "15c15003c3f7582e961bb16753426919a1e8ab0ade52e84d11553ab5fd6496cb",
     "lib/service_telemetry_log_lines.ml": "5085a4d7b17f1418801858c14ab1cd3ae756d4c3991b7f98310a68b551c29733",
     "lib/service_telemetry_telemetry.ml": "334813031472f0949a1bc90ead76a0b60a226d423752a68e0dd388b771590a31",
@@ -223,10 +224,10 @@
     "lib/session_notices.ml": "cccea843423b06e5802f1675a614063b9533b8a5ea8038fa19d76db1f8eeec59",
     "lib/session_signals.ml": "7241256a68a2a0b4703d06a95d7867cc4f739268c32612fe1401c924608acef4",
     "lib/session_signals.mli": "75d9e803669a38f99e84aa96938790d283100139f1dc35ae9a28d642fe21db5b",
-    "lib/session_state.ml": "e55c81756d5ab58bc72ba369d90905075a60b560f3dddca40ffc8278d1a0c322",
-    "lib/session_state.mli": "9e7179985cf0a05b166d65ddb7e6f4600eadf55361884240fe76aa18802cc13e",
-    "lib/sign_in_store.ml": "8831eabba6d361b42dbf91f9140bb57f733a1ce78dd63933f0a842402585a1e1",
-    "lib/sign_in_store.mli": "e2a35e93c105d84d53ce7b6a1cf8117f4c9645a077d66d3d38d614e92e942ba6",
+    "lib/session_state.ml": "e37d27a40b24138dba753797521206e02b8c3f7c24c45aa485167ca38d7b999b",
+    "lib/session_state.mli": "0c8500f016d8e498c20ccd34471a3707fd26415781b8c4aba9c7aea1e6b7abf5",
+    "lib/sign_in_store.ml": "951bb5092bccf879340eadd835c30ac7109d2a509398f6e5b8c5c055f29e1ffb",
+    "lib/sign_in_store.mli": "2d2a6e92d0d18c3653604ff8249ef509c7679b790e3cd21c7114c9458ee18b63",
     "lib/sign_in_store_names.ml": "3339dba3b41d74a767840d9afeb9e41390c025c28a5e98659e518cd9b25ae514",
     "lib/smelter_messages.ml": "b8e465e5674f6aa99f3689a6a470d6aa1d3f483ae7be948ee970e9c5f9fd8ca0",
     "lib/state_task.ml": "2061a7893545d7ecf7f52b0235c21fa2a5346ef3c65334e043e63dd7dfc74c8c",
@@ -236,18 +237,18 @@
     "lib/state_value.mli": "c84e7db498c8d1f618daa2e6572f8d529f7f6da07622b3cdb8c700de370fdec0",
     "lib/storage.ml": "505555eebf627916590432c9556fa670b586c47fd52cb01698470d01560f3cb6",
     "lib/storage.mli": "0d967c727c51cbf65bcfefd25b8cf75c656e0bc9ab582054117d1e5286514015",
-    "lib/storage_persister.ml": "6a7d361bf32a9d83357ac7500162e61c0e71d127798fbb5beb47d4a2b088a527",
-    "lib/storage_persister.mli": "c12ba34f02a5aeaea05e24362bd5f944ad322a08512e6c6d3ca8490cd52ac91a",
+    "lib/storage_persister.ml": "5507a1c8cabf1c3cd3cde71c520319920b6632375bb27d5b2e6b508c09a7f285",
+    "lib/storage_persister.mli": "fdfcad14c314c05475eead1af50603793e2a30ced1c53bf686e3eeca91ff7cb6",
     "lib/store_lock.c": "eabd8be0cddddbbc42d15612aca09cadae3faff4b1da1dcb2b78df1c47e6c88f",
     "lib/store_policy.ml": "7bfd8187be45e4f0c13ed8ccfd0fb3de109e7437ad66d00f4e1de1cd4cbf68a6",
     "lib/strict_json.ml": "19a2f3c4c5a828e0fe55cd36eb25b685e965f0b79c21cd57cc4a17c53d0112d6",
     "lib/strict_json.mli": "818f38488855a5ce525bbf7fa483feb6aad993670115a63065029201999b50a7",
-    "lib/subscription.ml": "777777ae8b122fb1e29cf913256894423498c5a84aedc4e53032050efd96e188",
-    "lib/subscription.mli": "83750f9a319153381a9300b17a12f5152c7947fba03f7df947c072aba0fcba79",
+    "lib/subscription.ml": "a1da148608d6bc9a3d9dfb6be1ed0655f203b18a594f3c677ccb9b1caa7ec07b",
+    "lib/subscription.mli": "d48af5ae5c39888e5cd6c4cd5d103e3682465dfaec639b04944b4e6fa6c1df70",
     "lib/system.ml": "2b48cd685aa8882505bcdb8b75ba376730082ff377aeb67caeaabde6b4070459",
-    "lib/table_codec.ml": "a31ae04ea9c3299f8b56363e69ba54c257f122a6b6b579b07d5b853ea392cb37",
-    "lib/telemetry.ml": "d3e6ba70a0b5a00eb4733a8fc973c1c3b98ea5d07661da3297f2d71ee77da306",
-    "lib/telemetry.mli": "6968385e5ecbd2db1b9003eb403766c066975b0ff116e9d81da367ec87b4137f",
+    "lib/table_codec.ml": "7feebb4db456d0038484a1cbac9ac08004acf9ac4b1b2ac6d89c1ef265c2c5ea",
+    "lib/telemetry.ml": "34a37e065b0e01d85e631334204d4f6df3432544a3909227ee3e9722841c6e61",
+    "lib/telemetry.mli": "621a2b22cc1c772d6759995561e88c666d566da26e7fdfc026459912b0b5d6db",
     "lib/telemetry_facts.ml": "abd1ec8dd54a246db71223dcf1cb7b4085df79c48de53dca7a36f5a747ee0f83",
     "lib/testing.ml": "1e1028e8d857bc17cbc5b0bdf145a6c5f642a02c9950731dd75921483bbfeca4",
     "lib/testing.mli": "10b6a61833fa0f78c5e0c7610f7d67135f7e1b8ee508447964579a1ed37ec691",
@@ -260,11 +261,12 @@
     "lib/types.mli": "3ec616457afe2af244044e7f01a04bc7fbc3489e0a78517526d34bcdf393fc81",
     "lib/upload.ml": "fe94bfbfee4573abda5b6527367f76f8bce42459d5ae0a5bede7aebaaea35903",
     "lib/upload.mli": "2da3e555f0e86db3441a21ce158920509c48a0bafd9d446d8c9d5dc428b658c6",
-    "lib/wire_stream.ml": "e0f78c6122d7cc0ef8888c9c017d494236db9cd7f97197c296250c16ff33135c",
-    "lib/wire_stream.mli": "fb81a134b8f0930c3864f3cbb36eda63a890190055a82fe15640ef2428f8c8a6",
-    "lib/worker.ml": "f6586f2974f26af0d5f00f0769108136af85a30202dab53f8541f6081a9cb137",
-    "lib/worker.mli": "e47f1ab832d6d61141a8351b3c9eefebf0940efba38f687630f665af9d5baf5a",
+    "lib/wire_stream.ml": "cf1f72d3c871ab9d305d229b9fe8c2e0cbd34c346062cb846d66fc2ca4a893b9",
+    "lib/wire_stream.mli": "9f3d5ac3500f9829c589430fedf9de25742dc4d5db4a33aa1b7b5e06ed85a9d0",
+    "lib/worker.ml": "17031209705e16c5414e15531a74f401b99428dddb3786a966fd7e454478af41",
+    "lib/worker.mli": "1150f0a488fd3638c77f4b847cc4964d9b227ff652783d44091d7a4c9168b27d",
     "lib/worker_answer_formats.ml": "da2a821edb0788848608a6195f7fb7f2109cdeac8e29223064da7fcba0efaebe",
+    "lib/worker_facts.ml": "2d7077df05d7d6f8099e878b30a29fefadb5d78f4078a57e9aa878cacb81557e",
     "lib/worker_messages.ml": "f1afd7b85f6a93528e39a878d15d51c8047c00320f07417fd85ccef28554cfc7",
     "lib/xynolog.ml": "ccc4740213b707ba9592ad6a22806169da7e100b90ed81840a1cb5d74976476d",
     "lib/xynolog.mli": "b0e32d5d046398887addfbf5fa70cc028a1ecc8d19156fe6d088c3d96c6652a8",
@@ -626,6 +628,43 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Enums.Control_sender",
+      "declaration": "module Control_sender :\n  sig\n    type t = Client | Launcher\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Control_sender.t",
+      "declaration": "type t = Client | Launcher",
+      "representation": "variant",
+      "constructors": [
+        "Client",
+        "Launcher"
+      ],
+      "variants": [
+        {
+          "name": "Client",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Launcher",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Control_sender.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Control_sender.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Enums.Durability_evidence",
       "declaration": "module Durability_evidence :\n  sig\n    type t =\n        Acknowledged\n      | Probe_confirmed\n      | Probe_refused\n      | Probe_unreachable\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
     },
@@ -822,6 +861,73 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Enums.Inference_provider",
+      "declaration": "module Inference_provider :\n  sig\n    type t =\n        Anthropic\n      | Google\n      | Llamacpp\n      | Ollama\n      | Openai\n      | Together\n      | Vllm\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Inference_provider.t",
+      "declaration": "type t = Anthropic | Google | Llamacpp | Ollama | Openai | Together | Vllm",
+      "representation": "variant",
+      "constructors": [
+        "Anthropic",
+        "Google",
+        "Llamacpp",
+        "Ollama",
+        "Openai",
+        "Together",
+        "Vllm"
+      ],
+      "variants": [
+        {
+          "name": "Anthropic",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Google",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Llamacpp",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Ollama",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Openai",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Together",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Vllm",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Inference_provider.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Inference_provider.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Enums.Job_type",
       "declaration": "module Job_type :\n  sig\n    type t = Mark | Yield\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
     },
@@ -855,6 +961,43 @@
     {
       "kind": "value",
       "path": "Xynolog.Enums.Job_type.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Enums.Kb_placement",
+      "declaration": "module Kb_placement :\n  sig\n    type t = Local | Codespace\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Kb_placement.t",
+      "declaration": "type t = Local | Codespace",
+      "representation": "variant",
+      "constructors": [
+        "Local",
+        "Codespace"
+      ],
+      "variants": [
+        {
+          "name": "Local",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Codespace",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Kb_placement.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Kb_placement.of_string",
       "declaration": "val of_string : string -> t option"
     },
     {
@@ -1715,6 +1858,49 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Enums.System",
+      "declaration": "module System :\n  sig\n    type t = Macos | Windows | Other\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.System.t",
+      "declaration": "type t = Macos | Windows | Other",
+      "representation": "variant",
+      "constructors": [
+        "Macos",
+        "Windows",
+        "Other"
+      ],
+      "variants": [
+        {
+          "name": "Macos",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Windows",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Other",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.System.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.System.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Enums.Anchor_method",
       "declaration": "module Anchor_method :\n  sig\n    type t = Unique_match | Context_recovered | First_of_many | Fuzzy_match\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
     },
@@ -1760,6 +1946,171 @@
     {
       "kind": "value",
       "path": "Xynolog.Enums.Anchor_method.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Enums.Cache_status",
+      "declaration": "module Cache_status :\n  sig\n    type t = Pending | Ready | Failed\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Cache_status.t",
+      "declaration": "type t = Pending | Ready | Failed",
+      "representation": "variant",
+      "constructors": [
+        "Pending",
+        "Ready",
+        "Failed"
+      ],
+      "variants": [
+        {
+          "name": "Pending",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Ready",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Failed",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Cache_status.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Cache_status.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Enums.Connection_state",
+      "declaration": "module Connection_state :\n  sig\n    type t =\n        Initial\n      | Connecting\n      | Open\n      | Reconnecting\n      | Degraded\n      | Unauthenticated\n      | Closed\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Connection_state.t",
+      "declaration": "type t =\n    Initial\n  | Connecting\n  | Open\n  | Reconnecting\n  | Degraded\n  | Unauthenticated\n  | Closed",
+      "representation": "variant",
+      "constructors": [
+        "Initial",
+        "Connecting",
+        "Open",
+        "Reconnecting",
+        "Degraded",
+        "Unauthenticated",
+        "Closed"
+      ],
+      "variants": [
+        {
+          "name": "Initial",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Connecting",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Open",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Reconnecting",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Degraded",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Unauthenticated",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Closed",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Connection_state.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Connection_state.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Enums.Discovery_absent_reason",
+      "declaration": "module Discovery_absent_reason :\n  sig\n    type t =\n        Not_found\n      | Not_json\n      | Invalid\n      | Unsupported_version\n      | Unreadable\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Enums.Discovery_absent_reason.t",
+      "declaration": "type t = Not_found | Not_json | Invalid | Unsupported_version | Unreadable",
+      "representation": "variant",
+      "constructors": [
+        "Not_found",
+        "Not_json",
+        "Invalid",
+        "Unsupported_version",
+        "Unreadable"
+      ],
+      "variants": [
+        {
+          "name": "Not_found",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Not_json",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Invalid",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Unsupported_version",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Unreadable",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Discovery_absent_reason.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Enums.Discovery_absent_reason.of_string",
       "declaration": "val of_string : string -> t option"
     },
     {
@@ -1840,61 +2191,6 @@
     {
       "kind": "value",
       "path": "Xynolog.Enums.Match_quality.of_string",
-      "declaration": "val of_string : string -> t option"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Enums.Discovery_absent_reason",
-      "declaration": "module Discovery_absent_reason :\n  sig\n    type t =\n        Not_found\n      | Not_json\n      | Invalid\n      | Unsupported_version\n      | Unreadable\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Enums.Discovery_absent_reason.t",
-      "declaration": "type t = Not_found | Not_json | Invalid | Unsupported_version | Unreadable",
-      "representation": "variant",
-      "constructors": [
-        "Not_found",
-        "Not_json",
-        "Invalid",
-        "Unsupported_version",
-        "Unreadable"
-      ],
-      "variants": [
-        {
-          "name": "Not_found",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Not_json",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Invalid",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Unsupported_version",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Unreadable",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Enums.Discovery_absent_reason.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Enums.Discovery_absent_reason.of_string",
       "declaration": "val of_string : string -> t option"
     },
     {
@@ -3654,6 +3950,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.access_token",
+      "declaration": "val access_token : [ `AccessToken ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.agent",
       "declaration": "val agent : [ `Agent ] descriptor"
     },
@@ -4134,6 +4435,16 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.byte_source",
+      "declaration": "val byte_source : [ `ByteSource ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.cache_status",
+      "declaration": "val cache_status : [ `CacheStatus ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.cancelled",
       "declaration": "val cancelled : [ `Cancelled ] descriptor"
     },
@@ -4144,8 +4455,23 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.claim_refusal",
+      "declaration": "val claim_refusal : [ `ClaimRefusal ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.client_connection_states",
+      "declaration": "val client_connection_states : [ `ClientConnectionStates ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.client_discovery_absent",
       "declaration": "val client_discovery_absent : [ `ClientDiscoveryAbsent ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.client_option_defaults",
+      "declaration": "val client_option_defaults : [ `ClientOptionDefaults ] descriptor"
     },
     {
       "kind": "value",
@@ -4219,6 +4545,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.connection_state",
+      "declaration": "val connection_state : [ `ConnectionState ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.content_format",
       "declaration": "val content_format : [ `ContentFormat ] descriptor"
     },
@@ -4231,6 +4562,16 @@
       "kind": "value",
       "path": "Xynolog.Models.control_cli",
       "declaration": "val control_cli : [ `ControlCli ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.control_rpc_codes",
+      "declaration": "val control_rpc_codes : [ `ControlRpcCodes ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.control_sender",
+      "declaration": "val control_sender : [ `ControlSender ] descriptor"
     },
     {
       "kind": "value",
@@ -4274,13 +4615,43 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.discovery_absent",
+      "declaration": "val discovery_absent : [ `DiscoveryAbsent ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.discovery_absent_reason",
       "declaration": "val discovery_absent_reason : [ `DiscoveryAbsentReason ] descriptor"
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.discovery_diff",
+      "declaration": "val discovery_diff : [ `DiscoveryDiff ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.discovery_document",
       "declaration": "val discovery_document : [ `DiscoveryDocument ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.discovery_managed",
+      "declaration": "val discovery_managed : [ `DiscoveryManaged ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.discovery_read",
+      "declaration": "val discovery_read : [ `DiscoveryRead ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.discovery_state",
+      "declaration": "val discovery_state : [ `DiscoveryState ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.discovery_unchanged",
+      "declaration": "val discovery_unchanged : [ `DiscoveryUnchanged ] descriptor"
     },
     {
       "kind": "value",
@@ -4409,6 +4780,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.fault",
+      "declaration": "val fault : [ `Fault ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.field_fault",
       "declaration": "val field_fault : [ `FieldFault ] descriptor"
     },
@@ -4436,6 +4812,11 @@
       "kind": "value",
       "path": "Xynolog.Models.frame_add_tag_schema_command",
       "declaration": "val frame_add_tag_schema_command : [ `FrameAddTagSchemaCommand ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.frame_refusal",
+      "declaration": "val frame_refusal : [ `FrameRefusal ] descriptor"
     },
     {
       "kind": "value",
@@ -4594,6 +4975,16 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.held_job_record",
+      "declaration": "val held_job_record : [ `HeldJobRecord ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.held_job_stall",
+      "declaration": "val held_job_stall : [ `HeldJobStall ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.highlighting_job_params",
       "declaration": "val highlighting_job_params : [ `HighlightingJobParams ] descriptor"
     },
@@ -4669,6 +5060,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.inference_provider",
+      "declaration": "val inference_provider : [ `InferenceProvider ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.issued_tokens",
       "declaration": "val issued_tokens : [ `IssuedTokens ] descriptor"
     },
@@ -4716,6 +5112,11 @@
       "kind": "value",
       "path": "Xynolog.Models.job_cancelled",
       "declaration": "val job_cancelled : [ `JobCancelled ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.job_checkpoint",
+      "declaration": "val job_checkpoint : [ `JobCheckpoint ] descriptor"
     },
     {
       "kind": "value",
@@ -4781,6 +5182,11 @@
       "kind": "value",
       "path": "Xynolog.Models.job_failed_payload",
       "declaration": "val job_failed_payload : [ `JobFailedPayload ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.job_failure",
+      "declaration": "val job_failure : [ `JobFailure ] descriptor"
     },
     {
       "kind": "value",
@@ -4879,6 +5285,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.job_reached",
+      "declaration": "val job_reached : [ `JobReached ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.job_record",
       "declaration": "val job_record : [ `JobRecord ] descriptor"
     },
@@ -4961,6 +5372,11 @@
       "kind": "value",
       "path": "Xynolog.Models.kb_identity_conflict",
       "declaration": "val kb_identity_conflict : [ `KbIdentityConflict ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.kb_placement",
+      "declaration": "val kb_placement : [ `KbPlacement ] descriptor"
     },
     {
       "kind": "value",
@@ -5356,6 +5772,11 @@
       "kind": "value",
       "path": "Xynolog.Models.principal_profiled_payload",
       "declaration": "val principal_profiled_payload : [ `PrincipalProfiledPayload ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.principals_roles",
+      "declaration": "val principals_roles : [ `PrincipalsRoles ] descriptor"
     },
     {
       "kind": "value",
@@ -5874,6 +6295,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.system",
+      "declaration": "val system : [ `System ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.tab_check",
       "declaration": "val tab_check : [ `TabCheck ] descriptor"
     },
@@ -5931,6 +6357,11 @@
       "kind": "value",
       "path": "Xynolog.Models.textual_body",
       "declaration": "val textual_body : [ `TextualBody ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.trace_carrier",
+      "declaration": "val trace_carrier : [ `TraceCarrier ] descriptor"
     },
     {
       "kind": "value",
@@ -5999,6 +6430,11 @@
     },
     {
       "kind": "value",
+      "path": "Xynolog.Models.worker_active_job",
+      "declaration": "val worker_active_job : [ `WorkerActiveJob ] descriptor"
+    },
+    {
+      "kind": "value",
       "path": "Xynolog.Models.worker_config",
       "declaration": "val worker_config : [ `WorkerConfig ] descriptor"
     },
@@ -6031,6 +6467,11 @@
       "kind": "value",
       "path": "Xynolog.Models.worker_pool",
       "declaration": "val worker_pool : [ `WorkerPool ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.worker_vitals",
+      "declaration": "val worker_vitals : [ `WorkerVitals ] descriptor"
     },
     {
       "kind": "value",
@@ -6159,12 +6600,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Connection_identity",
-      "declaration": "module Connection_identity :\n  sig\n    type t = {\n      did : string;\n      description : [ `KbDescription ] Xynolog__.Models.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Connection_identity :\n  sig\n    type t = {\n      did : Xynolog__.Identifiers.User_id.t;\n      description : [ `KbDescription ] Xynolog__.Models.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Connection_identity.t",
-      "declaration": "type t = {\n  did : string;\n  description : [ `KbDescription ] Xynolog__.Models.t;\n}",
+      "declaration": "type t = {\n  did : Xynolog__.Identifiers.User_id.t;\n  description : [ `KbDescription ] Xynolog__.Models.t;\n}",
       "representation": "record",
       "fields": [
         "did",
@@ -6300,79 +6741,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Session_ended",
-      "declaration": "module Session_ended :\n  sig\n    type t = { reason : Xynolog__.Enums.Session_end_reason.t; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Session_ended.t",
-      "declaration": "type t = { reason : Xynolog__.Enums.Session_end_reason.t; }",
-      "representation": "record",
-      "fields": [
-        "reason"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Session_ended.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Session_ended.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Permission_denied",
-      "declaration": "module Permission_denied :\n  sig\n    type t = { detail : string option; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Permission_denied.t",
-      "declaration": "type t = { detail : string option; }",
-      "representation": "record",
-      "fields": [
-        "detail"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Permission_denied.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Permission_denied.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Kb_identity_conflict",
-      "declaration": "module Kb_identity_conflict :\n  sig\n    type t = { expected_did : string; observed_did : string; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Kb_identity_conflict.t",
-      "declaration": "type t = { expected_did : string; observed_did : string; }",
-      "representation": "record",
-      "fields": [
-        "expected_did",
-        "observed_did"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Kb_identity_conflict.of_json",
-      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Kb_identity_conflict.to_json",
-      "declaration": "val to_json : t -> Yojson.Safe.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Stored_session",
       "declaration": "module Stored_session :\n  sig\n    type t = {\n      access : string;\n      refresh : string;\n      client_id : string;\n      token_endpoint : string;\n      revocation_endpoint : string option;\n      person_key : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6479,6 +6847,31 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Claim_refusal",
+      "declaration": "module Claim_refusal :\n  sig\n    type t = {\n      code : Xynolog__.Error_codes.Bus_request.t option;\n      message : string;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Claim_refusal.t",
+      "declaration": "type t = {\n  code : Xynolog__.Error_codes.Bus_request.t option;\n  message : string;\n}",
+      "representation": "record",
+      "fields": [
+        "code",
+        "message"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Claim_refusal.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Claim_refusal.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Create_from_token_options",
       "declaration": "module Create_from_token_options :\n  sig\n    type t = {\n      token : string;\n      name : string;\n      content : string;\n      archive_original : bool option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6533,6 +6926,76 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Discovery_absent",
+      "declaration": "module Discovery_absent :\n  sig\n    type t = {\n      reason : Xynolog__.Enums.Discovery_absent_reason.t;\n      diagnostic : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Discovery_absent.t",
+      "declaration": "type t = {\n  reason : Xynolog__.Enums.Discovery_absent_reason.t;\n  diagnostic : string option;\n}",
+      "representation": "record",
+      "fields": [
+        "reason",
+        "diagnostic"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_absent.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_absent.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Discovery_managed",
+      "declaration": "module Discovery_managed :\n  sig\n    type t = { kbs : [ `DiscoveredKB ] Xynolog__.Models.t list; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Discovery_managed.t",
+      "declaration": "type t = { kbs : [ `DiscoveredKB ] Xynolog__.Models.t list; }",
+      "representation": "record",
+      "fields": [
+        "kbs"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_managed.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_managed.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Discovery_unchanged",
+      "declaration": "module Discovery_unchanged :\n  sig\n    type t = unit\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Discovery_unchanged.t",
+      "declaration": "type t = unit",
+      "representation": "abstract"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_unchanged.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_unchanged.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Engine_with_limits",
       "declaration": "module Engine_with_limits :\n  sig\n    type t = {\n      engine : [ `Engine ] Xynolog__.Models.t;\n      jobs : [ `JobFilter ] Xynolog__.Models.t list option;\n      limits : [ `InferenceLimits ] Xynolog__.Models.t option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6555,6 +7018,60 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Engine_with_limits.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Fault",
+      "declaration": "module Fault :\n  sig\n    type t = {\n      member : string;\n      reason : Xynolog__.Enums.Frame_refusal_reason.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Fault.t",
+      "declaration": "type t = {\n  member : string;\n  reason : Xynolog__.Enums.Frame_refusal_reason.t;\n}",
+      "representation": "record",
+      "fields": [
+        "member",
+        "reason"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Fault.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Fault.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Frame_refusal",
+      "declaration": "module Frame_refusal :\n  sig\n    type t = {\n      channel : string;\n      member : string;\n      reason : Xynolog__.Enums.Frame_refusal_reason.t;\n      payload : Yojson.Safe.t option;\n      scope : Xynolog__.Identifiers.Resource_id.t option;\n      correlation_id : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Frame_refusal.t",
+      "declaration": "type t = {\n  channel : string;\n  member : string;\n  reason : Xynolog__.Enums.Frame_refusal_reason.t;\n  payload : Yojson.Safe.t option;\n  scope : Xynolog__.Identifiers.Resource_id.t option;\n  correlation_id : string option;\n}",
+      "representation": "record",
+      "fields": [
+        "channel",
+        "member",
+        "reason",
+        "payload",
+        "scope",
+        "correlation_id"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Frame_refusal.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Frame_refusal.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -6587,6 +7104,66 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Held_job_record",
+      "declaration": "module Held_job_record :\n  sig\n    type t = {\n      job_id : Xynolog__.Identifiers.Job_id.t;\n      job_type : Xynolog__.Enums.Job_type.t;\n      resource_id : Xynolog__.Identifiers.Resource_id.t;\n      params : [ `JobParams ] Xynolog__.Models.t;\n      completed_units : string list;\n      unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list;\n      retry_count : int;\n      max_retries : int;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Held_job_record.t",
+      "declaration": "type t = {\n  job_id : Xynolog__.Identifiers.Job_id.t;\n  job_type : Xynolog__.Enums.Job_type.t;\n  resource_id : Xynolog__.Identifiers.Resource_id.t;\n  params : [ `JobParams ] Xynolog__.Models.t;\n  completed_units : string list;\n  unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list;\n  retry_count : int;\n  max_retries : int;\n}",
+      "representation": "record",
+      "fields": [
+        "job_id",
+        "job_type",
+        "resource_id",
+        "params",
+        "completed_units",
+        "unit_cursors",
+        "retry_count",
+        "max_retries"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Held_job_record.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Held_job_record.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Held_job_stall",
+      "declaration": "module Held_job_stall :\n  sig\n    type t = {\n      job_id : Xynolog__.Identifiers.Job_id.t;\n      job_type : Xynolog__.Enums.Job_type.t;\n      held_since : string;\n      last_activity_at : string;\n      silent_for_ms : int;\n      threshold_ms : int;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Held_job_stall.t",
+      "declaration": "type t = {\n  job_id : Xynolog__.Identifiers.Job_id.t;\n  job_type : Xynolog__.Enums.Job_type.t;\n  held_since : string;\n  last_activity_at : string;\n  silent_for_ms : int;\n  threshold_ms : int;\n}",
+      "representation": "record",
+      "fields": [
+        "job_id",
+        "job_type",
+        "held_since",
+        "last_activity_at",
+        "silent_for_ms",
+        "threshold_ms"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Held_job_stall.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Held_job_stall.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Issued_tokens",
       "declaration": "module Issued_tokens :\n  sig\n    type t = { access : string; refresh : string; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6612,6 +7189,57 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Job_checkpoint",
+      "declaration": "module Job_checkpoint :\n  sig\n    type t = {\n      completed_units : string list;\n      unit_cursors :\n        (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Job_checkpoint.t",
+      "declaration": "type t = {\n  completed_units : string list;\n  unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n}",
+      "representation": "record",
+      "fields": [
+        "completed_units",
+        "unit_cursors"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_checkpoint.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_checkpoint.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Job_failure",
+      "declaration": "module Job_failure :\n  sig\n    type t = {\n      completed_units : string list option;\n      unit_cursors :\n        (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n      failure_class : Xynolog__.Enums.Failure_class.t option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Job_failure.t",
+      "declaration": "type t = {\n  completed_units : string list option;\n  unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n  failure_class : Xynolog__.Enums.Failure_class.t option;\n}",
+      "representation": "record",
+      "fields": [
+        "completed_units",
+        "unit_cursors",
+        "failure_class"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_failure.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_failure.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Job_poll_options",
       "declaration": "module Job_poll_options :\n  sig\n    type t = { every_ms : int option; within_ms : int option; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6633,6 +7261,56 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Job_poll_options.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Job_reached",
+      "declaration": "module Job_reached :\n  sig\n    type t = {\n      completed_units : string list option;\n      unit_cursors :\n        (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Job_reached.t",
+      "declaration": "type t = {\n  completed_units : string list option;\n  unit_cursors : (string * [ `UnitCursor ] Xynolog__.Models.t) list option;\n}",
+      "representation": "record",
+      "fields": [
+        "completed_units",
+        "unit_cursors"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_reached.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Job_reached.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Kb_identity_conflict",
+      "declaration": "module Kb_identity_conflict :\n  sig\n    type t = { expected_did : string; observed_did : string; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Kb_identity_conflict.t",
+      "declaration": "type t = { expected_did : string; observed_did : string; }",
+      "representation": "record",
+      "fields": [
+        "expected_did",
+        "observed_did"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_identity_conflict.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Kb_identity_conflict.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -6691,12 +7369,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Pending_annotation",
-      "declaration": "module Pending_annotation :\n  sig\n    type t = {\n      selector : [ `AnnotationSelector ] Xynolog__.Models.t;\n      motivation : [ `Motivation ] Xynolog__.Models.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Pending_annotation :\n  sig\n    type t = {\n      selector : [ `AnnotationSelector ] Xynolog__.Models.t;\n      motivation : Xynolog__.Enums.Motivation.t;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Pending_annotation.t",
-      "declaration": "type t = {\n  selector : [ `AnnotationSelector ] Xynolog__.Models.t;\n  motivation : [ `Motivation ] Xynolog__.Models.t;\n}",
+      "declaration": "type t = {\n  selector : [ `AnnotationSelector ] Xynolog__.Models.t;\n  motivation : Xynolog__.Enums.Motivation.t;\n}",
       "representation": "record",
       "fields": [
         "selector",
@@ -6715,13 +7393,37 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Permission_denied",
+      "declaration": "module Permission_denied :\n  sig\n    type t = { detail : string option; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Permission_denied.t",
+      "declaration": "type t = { detail : string option; }",
+      "representation": "record",
+      "fields": [
+        "detail"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Permission_denied.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Permission_denied.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Put_binary_request",
-      "declaration": "module Put_binary_request :\n  sig\n    type t = {\n      name : string;\n      file : string;\n      format : string;\n      storage_uri : string;\n      language : string option;\n      entity_types : string list option;\n      source_annotation_id : string option;\n      source_resource_id : string option;\n      generation_prompt : string option;\n      generator : [ `OneOrMoreAgents ] Xynolog__.Models.t option;\n      job_id : string option;\n      is_draft : bool option;\n      clone_token : string option;\n      archive_original : bool option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Put_binary_request :\n  sig\n    type t = {\n      name : string;\n      file : string;\n      format : string;\n      storage_uri : string;\n      language : string option;\n      entity_types : string list option;\n      source_annotation_id : Xynolog__.Identifiers.Annotation_id.t option;\n      source_resource_id : Xynolog__.Identifiers.Resource_id.t option;\n      generation_prompt : string option;\n      generator : [ `OneOrMoreAgents ] Xynolog__.Models.t option;\n      job_id : Xynolog__.Identifiers.Job_id.t option;\n      is_draft : bool option;\n      clone_token : string option;\n      archive_original : bool option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Put_binary_request.t",
-      "declaration": "type t = {\n  name : string;\n  file : string;\n  format : string;\n  storage_uri : string;\n  language : string option;\n  entity_types : string list option;\n  source_annotation_id : string option;\n  source_resource_id : string option;\n  generation_prompt : string option;\n  generator : [ `OneOrMoreAgents ] Xynolog__.Models.t option;\n  job_id : string option;\n  is_draft : bool option;\n  clone_token : string option;\n  archive_original : bool option;\n}",
+      "declaration": "type t = {\n  name : string;\n  file : string;\n  format : string;\n  storage_uri : string;\n  language : string option;\n  entity_types : string list option;\n  source_annotation_id : Xynolog__.Identifiers.Annotation_id.t option;\n  source_resource_id : Xynolog__.Identifiers.Resource_id.t option;\n  generation_prompt : string option;\n  generator : [ `OneOrMoreAgents ] Xynolog__.Models.t option;\n  job_id : Xynolog__.Identifiers.Job_id.t option;\n  is_draft : bool option;\n  clone_token : string option;\n  archive_original : bool option;\n}",
       "representation": "record",
       "fields": [
         "name",
@@ -6904,6 +7606,30 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Session_ended",
+      "declaration": "module Session_ended :\n  sig\n    type t = { reason : Xynolog__.Enums.Session_end_reason.t; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Session_ended.t",
+      "declaration": "type t = { reason : Xynolog__.Enums.Session_end_reason.t; }",
+      "representation": "record",
+      "fields": [
+        "reason"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Session_ended.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Session_ended.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Text_span",
       "declaration": "module Text_span :\n  sig\n    type t = {\n      start : int;\n      end_ : int;\n      exact : string;\n      prefix : string option;\n      suffix : string option;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -6932,13 +7658,38 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Trace_carrier",
+      "declaration": "module Trace_carrier :\n  sig\n    type t = { traceparent : string; tracestate : string option; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Trace_carrier.t",
+      "declaration": "type t = { traceparent : string; tracestate : string option; }",
+      "representation": "record",
+      "fields": [
+        "traceparent",
+        "tracestate"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Trace_carrier.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Trace_carrier.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Upload_progress",
-      "declaration": "module Upload_progress :\n  sig\n    type t =\n        Started of { total_bytes : int; }\n      | Progress of { bytes_uploaded : int; total_bytes : int; }\n      | Finished of { resource_id : string; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+      "declaration": "module Upload_progress :\n  sig\n    type t =\n        Started of { total_bytes : int option; }\n      | Progress of { bytes_uploaded : int; total_bytes : int option; }\n      | Finished of { resource_id : Xynolog__.Identifiers.Resource_id.t; }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Upload_progress.t",
-      "declaration": "type t =\n    Started of { total_bytes : int; }\n  | Progress of { bytes_uploaded : int; total_bytes : int; }\n  | Finished of { resource_id : string; }",
+      "declaration": "type t =\n    Started of { total_bytes : int option; }\n  | Progress of { bytes_uploaded : int; total_bytes : int option; }\n  | Finished of { resource_id : Xynolog__.Identifiers.Resource_id.t; }",
       "representation": "variant",
       "constructors": [
         "Started",
@@ -6978,6 +7729,35 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Upload_progress.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Worker_vitals",
+      "declaration": "module Worker_vitals :\n  sig\n    type t = {\n      last_queued_event_at : string option;\n      last_claim_at : string option;\n      last_finished_at : string option;\n      last_activity_at : string option;\n      active_job : [ `WorkerActiveJob ] Xynolog__.Models.t option;\n      jobs_completed : int;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Worker_vitals.t",
+      "declaration": "type t = {\n  last_queued_event_at : string option;\n  last_claim_at : string option;\n  last_finished_at : string option;\n  last_activity_at : string option;\n  active_job : [ `WorkerActiveJob ] Xynolog__.Models.t option;\n  jobs_completed : int;\n}",
+      "representation": "record",
+      "fields": [
+        "last_queued_event_at",
+        "last_claim_at",
+        "last_finished_at",
+        "last_activity_at",
+        "active_job",
+        "jobs_completed"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_vitals.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_vitals.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -7067,6 +7847,86 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Discovery_read",
+      "declaration": "module Discovery_read :\n  sig\n    type t =\n        Absent of Discovery_absent.t\n      | Managed of Discovery_managed.t\n      | Unchanged\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Discovery_read.t",
+      "declaration": "type t =\n    Absent of Discovery_absent.t\n  | Managed of Discovery_managed.t\n  | Unchanged",
+      "representation": "variant",
+      "constructors": [
+        "Absent",
+        "Managed",
+        "Unchanged"
+      ],
+      "variants": [
+        {
+          "name": "Absent",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Managed",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Unchanged",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_read.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_read.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Discovery_state",
+      "declaration": "module Discovery_state :\n  sig\n    type t = Absent of Discovery_absent.t | Managed of Discovery_managed.t\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Discovery_state.t",
+      "declaration": "type t = Absent of Discovery_absent.t | Managed of Discovery_managed.t",
+      "representation": "variant",
+      "constructors": [
+        "Absent",
+        "Managed"
+      ],
+      "variants": [
+        {
+          "name": "Absent",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Managed",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_state.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_state.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Engines_with_limits",
       "declaration": "module Engines_with_limits :\n  sig\n    type t = Engine_with_limits.t list\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
     },
@@ -7084,6 +7944,34 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Engines_with_limits.to_json",
+      "declaration": "val to_json : t -> Yojson.Safe.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Discovery_diff",
+      "declaration": "module Discovery_diff :\n  sig\n    type t = {\n      state : Discovery_state.t;\n      added : [ `DiscoveredKB ] Xynolog__.Models.t list;\n      updated : [ `DiscoveredKB ] Xynolog__.Models.t list;\n      removed : [ `DiscoveredKB ] Xynolog__.Models.t list;\n      duplicated : string list;\n    }\n    val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result\n    val to_json : t -> Yojson.Safe.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Discovery_diff.t",
+      "declaration": "type t = {\n  state : Discovery_state.t;\n  added : [ `DiscoveredKB ] Xynolog__.Models.t list;\n  updated : [ `DiscoveredKB ] Xynolog__.Models.t list;\n  removed : [ `DiscoveredKB ] Xynolog__.Models.t list;\n  duplicated : string list;\n}",
+      "representation": "record",
+      "fields": [
+        "state",
+        "added",
+        "updated",
+        "removed",
+        "duplicated"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_diff.of_json",
+      "declaration": "val of_json : Yojson.Safe.t -> (t, Xynolog__.Models.fault) result"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Discovery_diff.to_json",
       "declaration": "val to_json : t -> Yojson.Safe.t"
     },
     {
@@ -8363,49 +9251,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Discovered_kb",
-      "declaration": "module Discovered_kb :\n  sig\n    module Placement :\n      sig\n        type t = Local | Codespace\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      host : string;\n      port : int;\n      placement : Placement.t;\n      repo : string option;\n      did : string;\n      site_name : string option;\n      managed_by : string;\n    }\n    val of_model : [ `DiscoveredKB ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `DiscoveredKB ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Discovered_kb.Placement",
-      "declaration": "module Placement :\n  sig\n    type t = Local | Codespace\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Discovered_kb.Placement.t",
-      "declaration": "type t = Local | Codespace",
-      "representation": "variant",
-      "constructors": [
-        "Local",
-        "Codespace"
-      ],
-      "variants": [
-        {
-          "name": "Local",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Codespace",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Discovered_kb.Placement.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Discovered_kb.Placement.of_string",
-      "declaration": "val of_string : string -> t option"
+      "declaration": "module Discovered_kb :\n  sig\n    type t = {\n      host : string;\n      port : int;\n      placement : Xynolog__.Enums.Kb_placement.t;\n      repo : string option;\n      did : string;\n      site_name : string option;\n      managed_by : string;\n    }\n    val of_model : [ `DiscoveredKB ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `DiscoveredKB ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Discovered_kb.t",
-      "declaration": "type t = {\n  host : string;\n  port : int;\n  placement : Placement.t;\n  repo : string option;\n  did : string;\n  site_name : string option;\n  managed_by : string;\n}",
+      "declaration": "type t = {\n  host : string;\n  port : int;\n  placement : Xynolog__.Enums.Kb_placement.t;\n  repo : string option;\n  did : string;\n  site_name : string option;\n  managed_by : string;\n}",
       "representation": "record",
       "fields": [
         "host",
@@ -12812,79 +13663,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Engine",
-      "declaration": "module Engine :\n  sig\n    module Provider :\n      sig\n        type t =\n            Anthropic\n          | Google\n          | Llamacpp\n          | Ollama\n          | Openai\n          | Together\n          | Vllm\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = { provider : Provider.t; model : string; }\n    val of_model : [ `Engine ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Engine ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Engine.Provider",
-      "declaration": "module Provider :\n  sig\n    type t =\n        Anthropic\n      | Google\n      | Llamacpp\n      | Ollama\n      | Openai\n      | Together\n      | Vllm\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Engine.Provider.t",
-      "declaration": "type t = Anthropic | Google | Llamacpp | Ollama | Openai | Together | Vllm",
-      "representation": "variant",
-      "constructors": [
-        "Anthropic",
-        "Google",
-        "Llamacpp",
-        "Ollama",
-        "Openai",
-        "Together",
-        "Vllm"
-      ],
-      "variants": [
-        {
-          "name": "Anthropic",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Google",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Llamacpp",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Ollama",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Openai",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Together",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Vllm",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Engine.Provider.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Engine.Provider.of_string",
-      "declaration": "val of_string : string -> t option"
+      "declaration": "module Engine :\n  sig\n    type t = {\n      provider : Xynolog__.Enums.Inference_provider.t;\n      model : string;\n    }\n    val of_model : [ `Engine ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Engine ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Engine.t",
-      "declaration": "type t = { provider : Provider.t; model : string; }",
+      "declaration": "type t = { provider : Xynolog__.Enums.Inference_provider.t; model : string; }",
       "representation": "record",
       "fields": [
         "provider",
@@ -14091,44 +14875,7 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Root",
-      "declaration": "module Root :\n  sig\n    module Placement :\n      sig\n        type t = Local | Codespace\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    module Current :\n      sig\n        type t = Cwd | Xynolog_root\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      placement : Placement.t;\n      path : string option;\n      present : bool option;\n      current : Current.t option;\n      registered : bool;\n      running : bool;\n      last_used : string option;\n      did : string option;\n      site_name : string option;\n      identity_error : string option;\n      config : string option;\n      configs : string list option;\n      repo : string option;\n      codespace : string option;\n      codespace_state : string option;\n      forward_port : int option;\n      forwarded : bool option;\n      reachable : bool option;\n    }\n    val of_model : [ `Root ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Root ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Root.Placement",
-      "declaration": "module Placement :\n  sig\n    type t = Local | Codespace\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Root.Placement.t",
-      "declaration": "type t = Local | Codespace",
-      "representation": "variant",
-      "constructors": [
-        "Local",
-        "Codespace"
-      ],
-      "variants": [
-        {
-          "name": "Local",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Codespace",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Root.Placement.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Root.Placement.of_string",
-      "declaration": "val of_string : string -> t option"
+      "declaration": "module Root :\n  sig\n    module Current :\n      sig\n        type t = Cwd | Xynolog_root\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      placement : Xynolog__.Enums.Kb_placement.t;\n      path : string option;\n      present : bool option;\n      current : Current.t option;\n      registered : bool;\n      running : bool;\n      last_used : string option;\n      did : string option;\n      site_name : string option;\n      identity_error : string option;\n      config : string option;\n      configs : string list option;\n      repo : string option;\n      codespace : string option;\n      codespace_state : string option;\n      forward_port : int option;\n      forwarded : bool option;\n      reachable : bool option;\n    }\n    val of_model : [ `Root ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Root ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
     },
     {
       "kind": "module",
@@ -14170,7 +14917,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Records.Root.t",
-      "declaration": "type t = {\n  placement : Placement.t;\n  path : string option;\n  present : bool option;\n  current : Current.t option;\n  registered : bool;\n  running : bool;\n  last_used : string option;\n  did : string option;\n  site_name : string option;\n  identity_error : string option;\n  config : string option;\n  configs : string list option;\n  repo : string option;\n  codespace : string option;\n  codespace_state : string option;\n  forward_port : int option;\n  forwarded : bool option;\n  reachable : bool option;\n}",
+      "declaration": "type t = {\n  placement : Xynolog__.Enums.Kb_placement.t;\n  path : string option;\n  present : bool option;\n  current : Current.t option;\n  registered : bool;\n  running : bool;\n  last_used : string option;\n  did : string option;\n  site_name : string option;\n  identity_error : string option;\n  config : string option;\n  configs : string list option;\n  repo : string option;\n  codespace : string option;\n  codespace_state : string option;\n  forward_port : int option;\n  forwarded : bool option;\n  reachable : bool option;\n}",
       "representation": "record",
       "fields": [
         "placement",
@@ -15003,49 +15750,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Target",
-      "declaration": "module Target :\n  sig\n    module Kind :\n      sig\n        type t = Local | Codespace\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = { kind : Kind.t; root : string option; repo : string option; }\n    val of_model : [ `Target ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Target ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Target.Kind",
-      "declaration": "module Kind :\n  sig\n    type t = Local | Codespace\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Target.Kind.t",
-      "declaration": "type t = Local | Codespace",
-      "representation": "variant",
-      "constructors": [
-        "Local",
-        "Codespace"
-      ],
-      "variants": [
-        {
-          "name": "Local",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Codespace",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Target.Kind.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Target.Kind.of_string",
-      "declaration": "val of_string : string -> t option"
+      "declaration": "module Target :\n  sig\n    type t = {\n      kind : Xynolog__.Enums.Kb_placement.t;\n      root : string option;\n      repo : string option;\n    }\n    val of_model : [ `Target ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Target ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Target.t",
-      "declaration": "type t = { kind : Kind.t; root : string option; repo : string option; }",
+      "declaration": "type t = {\n  kind : Xynolog__.Enums.Kb_placement.t;\n  root : string option;\n  repo : string option;\n}",
       "representation": "record",
       "fields": [
         "kind",
@@ -16125,6 +16835,37 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Worker_active_job",
+      "declaration": "module Worker_active_job :\n  sig\n    type t = {\n      job_id : string;\n      type_ : Xynolog__.Enums.Job_type.t;\n      since : string;\n    }\n    val of_model : [ `WorkerActiveJob ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `WorkerActiveJob ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Worker_active_job.t",
+      "declaration": "type t = {\n  job_id : string;\n  type_ : Xynolog__.Enums.Job_type.t;\n  since : string;\n}",
+      "representation": "record",
+      "fields": [
+        "job_id",
+        "type_",
+        "since"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_active_job.of_model",
+      "declaration": "val of_model : [ `WorkerActiveJob ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_active_job.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Worker_active_job.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `WorkerActiveJob ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Mark_job_filter_params",
       "declaration": "module Mark_job_filter_params :\n  sig\n    type t = { motivation : Xynolog__.Enums.Motivation.t; }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -16790,13 +17531,34 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Client_connection_states_states_item",
+      "declaration": "module Client_connection_states_states_item :\n  sig\n    type t = {\n      state : Xynolog__.Enums.Connection_state.t;\n      meaning : string;\n      moves : Xynolog__.Enums.Connection_state.t list;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_connection_states_states_item.t",
+      "declaration": "type t = {\n  state : Xynolog__.Enums.Connection_state.t;\n  meaning : string;\n  moves : Xynolog__.Enums.Connection_state.t list;\n}",
+      "representation": "record",
+      "fields": [
+        "state",
+        "meaning",
+        "moves"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_connection_states_states_item.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Client_discovery_absent_reasons_item",
-      "declaration": "module Client_discovery_absent_reasons_item :\n  sig\n    type t = { reason : string; docs : string; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+      "declaration": "module Client_discovery_absent_reasons_item :\n  sig\n    type t = {\n      reason : Xynolog__.Enums.Discovery_absent_reason.t;\n      docs : string;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Client_discovery_absent_reasons_item.t",
-      "declaration": "type t = { reason : string; docs : string; }",
+      "declaration": "type t = {\n  reason : Xynolog__.Enums.Discovery_absent_reason.t;\n  docs : string;\n}",
       "representation": "record",
       "fields": [
         "reason",
@@ -16806,6 +17568,159 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Client_discovery_absent_reasons_item.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_reference_type_arguments_value",
+      "declaration": "module Client_option_defaults_defaults_item_schema_reference_type_arguments_value :\n  sig\n    type t = { type_parameter : string; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_reference_type_arguments_value.t",
+      "declaration": "type t = { type_parameter : string; }",
+      "representation": "record",
+      "fields": [
+        "type_parameter"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_reference_type_arguments_value.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time",
+      "declaration": "module Client_option_defaults_defaults_item_schema_date_time :\n  sig\n    module Type_ :\n      sig\n        type t = Integer | String | Boolean\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    module Format :\n      sig\n        type t = Date_time\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      type_ : Type_.t;\n      minimum : int option;\n      format : Format.t option;\n      description : string;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.Type_",
+      "declaration": "module Type_ :\n  sig\n    type t = Integer | String | Boolean\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.Type_.t",
+      "declaration": "type t = Integer | String | Boolean",
+      "representation": "variant",
+      "constructors": [
+        "Integer",
+        "String",
+        "Boolean"
+      ],
+      "variants": [
+        {
+          "name": "Integer",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "String",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Boolean",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.Type_.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.Type_.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.Format",
+      "declaration": "module Format :\n  sig\n    type t = Date_time\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.Format.t",
+      "declaration": "type t = Date_time",
+      "representation": "variant",
+      "constructors": [
+        "Date_time"
+      ],
+      "variants": [
+        {
+          "name": "Date_time",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.Format.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.Format.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.t",
+      "declaration": "type t = {\n  type_ : Type_.t;\n  minimum : int option;\n  format : Format.t option;\n  description : string;\n}",
+      "representation": "record",
+      "fields": [
+        "type_",
+        "minimum",
+        "format",
+        "description"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_date_time.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_type_parameter",
+      "declaration": "module Client_option_defaults_defaults_item_schema_type_parameter :\n  sig\n    type t = { type_parameter : string; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_type_parameter.t",
+      "declaration": "type t = { type_parameter : string; }",
+      "representation": "record",
+      "fields": [
+        "type_parameter"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_type_parameter.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided_by",
+      "declaration": "module Client_option_defaults_defaults_item_schema_decided_decided_by :\n  sig type t = { member : string; } val to_json : t -> Yojson.Raw.t end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided_by.t",
+      "declaration": "type t = { member : string; }",
+      "representation": "record",
+      "fields": [
+        "member"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided_by.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -17303,79 +18218,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Conformance_step_state",
-      "declaration": "module Conformance_step_state :\n  sig\n    module State :\n      sig\n        type t =\n            Initial\n          | Connecting\n          | Open\n          | Reconnecting\n          | Degraded\n          | Unauthenticated\n          | Closed\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = { state : State.t; }\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Conformance_step_state.State",
-      "declaration": "module State :\n  sig\n    type t =\n        Initial\n      | Connecting\n      | Open\n      | Reconnecting\n      | Degraded\n      | Unauthenticated\n      | Closed\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Conformance_step_state.State.t",
-      "declaration": "type t =\n    Initial\n  | Connecting\n  | Open\n  | Reconnecting\n  | Degraded\n  | Unauthenticated\n  | Closed",
-      "representation": "variant",
-      "constructors": [
-        "Initial",
-        "Connecting",
-        "Open",
-        "Reconnecting",
-        "Degraded",
-        "Unauthenticated",
-        "Closed"
-      ],
-      "variants": [
-        {
-          "name": "Initial",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Connecting",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Open",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Reconnecting",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Degraded",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Unauthenticated",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Closed",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Conformance_step_state.State.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Conformance_step_state.State.of_string",
-      "declaration": "val of_string : string -> t option"
+      "declaration": "module Conformance_step_state :\n  sig\n    type t = { state : Xynolog__.Enums.Connection_state.t; }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Conformance_step_state.t",
-      "declaration": "type t = { state : State.t; }",
+      "declaration": "type t = { state : Xynolog__.Enums.Connection_state.t; }",
       "representation": "record",
       "fields": [
         "state"
@@ -17389,79 +18237,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Conformance_step_stays",
-      "declaration": "module Conformance_step_stays :\n  sig\n    module Stays :\n      sig\n        type t =\n            Initial\n          | Connecting\n          | Open\n          | Reconnecting\n          | Degraded\n          | Unauthenticated\n          | Closed\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = { stays : Stays.t; }\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Conformance_step_stays.Stays",
-      "declaration": "module Stays :\n  sig\n    type t =\n        Initial\n      | Connecting\n      | Open\n      | Reconnecting\n      | Degraded\n      | Unauthenticated\n      | Closed\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Conformance_step_stays.Stays.t",
-      "declaration": "type t =\n    Initial\n  | Connecting\n  | Open\n  | Reconnecting\n  | Degraded\n  | Unauthenticated\n  | Closed",
-      "representation": "variant",
-      "constructors": [
-        "Initial",
-        "Connecting",
-        "Open",
-        "Reconnecting",
-        "Degraded",
-        "Unauthenticated",
-        "Closed"
-      ],
-      "variants": [
-        {
-          "name": "Initial",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Connecting",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Open",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Reconnecting",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Degraded",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Unauthenticated",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Closed",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Conformance_step_stays.Stays.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Conformance_step_stays.Stays.of_string",
-      "declaration": "val of_string : string -> t option"
+      "declaration": "module Conformance_step_stays :\n  sig\n    type t = { stays : Xynolog__.Enums.Connection_state.t; }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Conformance_step_stays.t",
-      "declaration": "type t = { stays : Stays.t; }",
+      "declaration": "type t = { stays : Xynolog__.Enums.Connection_state.t; }",
       "representation": "record",
       "fields": [
         "stays"
@@ -18262,23 +19043,77 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status",
-      "declaration": "module Errors_codes_transport_codes_item_status :\n  sig\n    type t = { code : string; docs : string; status : int; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status_limit_refusals_item",
+      "declaration": "module Errors_codes_transport_codes_item_status_limit_refusals_item :\n  sig\n    module Code :\n      sig\n        type t =\n            Streams\n          | Emit_rate\n          | Unanswered_requests\n          | Capacity\n          | Refusal_rate\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = { status : int; code : Code.t; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status_limit_refusals_item.Code",
+      "declaration": "module Code :\n  sig\n    type t =\n        Streams\n      | Emit_rate\n      | Unanswered_requests\n      | Capacity\n      | Refusal_rate\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status.t",
-      "declaration": "type t = { code : string; docs : string; status : int; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs",
-        "status"
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status_limit_refusals_item.Code.t",
+      "declaration": "type t = Streams | Emit_rate | Unanswered_requests | Capacity | Refusal_rate",
+      "representation": "variant",
+      "constructors": [
+        "Streams",
+        "Emit_rate",
+        "Unanswered_requests",
+        "Capacity",
+        "Refusal_rate"
+      ],
+      "variants": [
+        {
+          "name": "Streams",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Emit_rate",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Unanswered_requests",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Capacity",
+          "fields": [],
+          "unit": true
+        },
+        {
+          "name": "Refusal_rate",
+          "fields": [],
+          "unit": true
+        }
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status.to_json",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status_limit_refusals_item.Code.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status_limit_refusals_item.Code.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status_limit_refusals_item.t",
+      "declaration": "type t = { status : int; code : Code.t; }",
+      "representation": "record",
+      "fields": [
+        "status",
+        "code"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status_limit_refusals_item.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -18340,6 +19175,28 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Errors_codes_job_codes_item.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Errors_codes_control_codes_item",
+      "declaration": "module Errors_codes_control_codes_item :\n  sig\n    type t = { code : string; docs : string; rpc : int; retryable : bool; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Errors_codes_control_codes_item.t",
+      "declaration": "type t = { code : string; docs : string; rpc : int; retryable : bool; }",
+      "representation": "record",
+      "fields": [
+        "code",
+        "docs",
+        "rpc",
+        "retryable"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes_control_codes_item.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -18603,6 +19460,26 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Media_types_registry_media_types_item.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Principals_roles_roles_item",
+      "declaration": "module Principals_roles_roles_item :\n  sig\n    type t = { role : string; docs : string; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Principals_roles_roles_item.t",
+      "declaration": "type t = { role : string; docs : string; }",
+      "representation": "record",
+      "fields": [
+        "role",
+        "docs"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Principals_roles_roles_item.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -18969,27 +19846,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Worker_engine_health_active_job",
-      "declaration": "module Worker_engine_health_active_job :\n  sig\n    type t = {\n      job_id : string;\n      type_ : Xynolog__.Enums.Job_type.t;\n      since : string;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Worker_engine_health_active_job.t",
-      "declaration": "type t = {\n  job_id : string;\n  type_ : Xynolog__.Enums.Job_type.t;\n  since : string;\n}",
-      "representation": "record",
-      "fields": [
-        "job_id",
-        "type_",
-        "since"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Worker_engine_health_active_job.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Conformance_driver_line_ready",
       "declaration": "module Conformance_driver_line_ready :\n  sig type t = { ready : bool; } val to_json : t -> Yojson.Raw.t end"
     },
@@ -19131,12 +19987,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Conformance_driver_line_progress_progress",
-      "declaration": "module Conformance_driver_line_progress_progress :\n  sig\n    type t = { upload : int; bytes_uploaded : int; total_bytes : int; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+      "declaration": "module Conformance_driver_line_progress_progress :\n  sig\n    type t = {\n      upload : int;\n      bytes_uploaded : int;\n      total_bytes : int option;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Conformance_driver_line_progress_progress.t",
-      "declaration": "type t = { upload : int; bytes_uploaded : int; total_bytes : int; }",
+      "declaration": "type t = { upload : int; bytes_uploaded : int; total_bytes : int option; }",
       "representation": "record",
       "fields": [
         "upload",
@@ -19272,12 +20128,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Conformance_driver_line_claimed",
-      "declaration": "module Conformance_driver_line_claimed :\n  sig\n    type t = { claimed : (string * Yojson.Raw.t) list; }\n    val to_json : t -> Yojson.Raw.t\n  end"
+      "declaration": "module Conformance_driver_line_claimed :\n  sig\n    type t = { claimed : Held_job_record.t; }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Conformance_driver_line_claimed.t",
-      "declaration": "type t = { claimed : (string * Yojson.Raw.t) list; }",
+      "declaration": "type t = { claimed : Held_job_record.t; }",
       "representation": "record",
       "fields": [
         "claimed"
@@ -20561,6 +21417,36 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Client_connection_states",
+      "declaration": "module Client_connection_states :\n  sig\n    type t = {\n      field_comment : string;\n      states : Client_connection_states_states_item.t list;\n    }\n    val of_model : [ `ClientConnectionStates ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ClientConnectionStates ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_connection_states.t",
+      "declaration": "type t = {\n  field_comment : string;\n  states : Client_connection_states_states_item.t list;\n}",
+      "representation": "record",
+      "fields": [
+        "field_comment",
+        "states"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_connection_states.of_model",
+      "declaration": "val of_model : [ `ClientConnectionStates ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_connection_states.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_connection_states.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `ClientConnectionStates ] Xynolog__.Models.t,\n   Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Client_discovery_absent",
       "declaration": "module Client_discovery_absent :\n  sig\n    type t = {\n      field_comment : string;\n      reasons : Client_discovery_absent_reasons_item.t list;\n    }\n    val of_model : [ `ClientDiscoveryAbsent ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ClientDiscoveryAbsent ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
@@ -21712,6 +22598,39 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Principals_roles",
+      "declaration": "module Principals_roles :\n  sig\n    type t = {\n      field_comment : string;\n      roles_claim : string;\n      roles : Principals_roles_roles_item.t list;\n      kind_claim : string;\n      agent_kind : string;\n    }\n    val of_model : [ `PrincipalsRoles ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `PrincipalsRoles ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Principals_roles.t",
+      "declaration": "type t = {\n  field_comment : string;\n  roles_claim : string;\n  roles : Principals_roles_roles_item.t list;\n  kind_claim : string;\n  agent_kind : string;\n}",
+      "representation": "record",
+      "fields": [
+        "field_comment",
+        "roles_claim",
+        "roles",
+        "kind_claim",
+        "agent_kind"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Principals_roles.of_model",
+      "declaration": "val of_model : [ `PrincipalsRoles ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Principals_roles.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Principals_roles.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `PrincipalsRoles ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Session_oauth",
       "declaration": "module Session_oauth :\n  sig\n    type t = {\n      field_comment : string;\n      clients : Session_oauth_clients_item.t list;\n      scopes : Session_oauth_scopes.t;\n    }\n    val of_model : [ `SessionOauth ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SessionOauth ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
     },
@@ -22545,6 +23464,77 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_reference",
+      "declaration": "module Client_option_defaults_defaults_item_schema_reference :\n  sig\n    type t = {\n      field_ref : string;\n      type_arguments :\n        (string *\n         Client_option_defaults_defaults_item_schema_reference_type_arguments_value.t)\n        list option;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_reference.t",
+      "declaration": "type t = {\n  field_ref : string;\n  type_arguments :\n    (string *\n     Client_option_defaults_defaults_item_schema_reference_type_arguments_value.t)\n    list option;\n}",
+      "representation": "record",
+      "fields": [
+        "field_ref",
+        "type_arguments"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_reference.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided",
+      "declaration": "module Client_option_defaults_defaults_item_schema_decided_decided :\n  sig\n    module In_ :\n      sig\n        type t = Takes\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      by : Client_option_defaults_defaults_item_schema_decided_decided_by.t;\n      in_ : In_.t;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided.In_",
+      "declaration": "module In_ :\n  sig\n    type t = Takes\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided.In_.t",
+      "declaration": "type t = Takes",
+      "representation": "variant",
+      "constructors": [
+        "Takes"
+      ],
+      "variants": [
+        {
+          "name": "Takes",
+          "fields": [],
+          "unit": true
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided.In_.to_string",
+      "declaration": "val to_string : t -> string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided.In_.of_string",
+      "declaration": "val of_string : string -> t option"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided.t",
+      "declaration": "type t = {\n  by : Client_option_defaults_defaults_item_schema_decided_decided_by.t;\n  in_ : In_.t;\n}",
+      "representation": "record",
+      "fields": [
+        "by",
+        "in_"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided_decided.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Client_refresh_queries_item_asks",
       "declaration": "module Client_refresh_queries_item_asks :\n  sig\n    module Per :\n      sig\n        type t = Resource | Annotation | Filters\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      name : string;\n      per : Per.t option;\n      asks : string;\n      persisted : bool option;\n      value : Client_refresh_queries_item_asks_value.t;\n      docs : string;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -22945,40 +23935,24 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_transport_codes_item",
-      "declaration": "module Errors_codes_transport_codes_item :\n  sig\n    type t =\n        Status of Errors_codes_transport_codes_item_status.t\n      | StatusFrom of Errors_codes_transport_codes_item_status_from.t\n      | NoStatus of Errors_codes_transport_codes_item_no_status.t\n    val to_json : t -> Yojson.Raw.t\n  end"
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status",
+      "declaration": "module Errors_codes_transport_codes_item_status :\n  sig\n    type t = {\n      code : string;\n      docs : string;\n      status : int;\n      limit_refusals :\n        Errors_codes_transport_codes_item_status_limit_refusals_item.t list\n        option;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_transport_codes_item.t",
-      "declaration": "type t =\n    Status of Errors_codes_transport_codes_item_status.t\n  | StatusFrom of Errors_codes_transport_codes_item_status_from.t\n  | NoStatus of Errors_codes_transport_codes_item_no_status.t",
-      "representation": "variant",
-      "constructors": [
-        "Status",
-        "StatusFrom",
-        "NoStatus"
-      ],
-      "variants": [
-        {
-          "name": "Status",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "StatusFrom",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "NoStatus",
-          "fields": [],
-          "unit": false
-        }
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status.t",
+      "declaration": "type t = {\n  code : string;\n  docs : string;\n  status : int;\n  limit_refusals :\n    Errors_codes_transport_codes_item_status_limit_refusals_item.t list\n    option;\n}",
+      "representation": "record",
+      "fields": [
+        "code",
+        "docs",
+        "status",
+        "limit_refusals"
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_transport_codes_item.to_json",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item_status.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -22999,6 +23973,26 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Errors_codes_job.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Errors_codes_control",
+      "declaration": "module Errors_codes_control :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_control_codes_item.t list;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Errors_codes_control.t",
+      "declaration": "type t = { docs : string; codes : Errors_codes_control_codes_item.t list; }",
+      "representation": "record",
+      "fields": [
+        "docs",
+        "codes"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes_control.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -24692,49 +25686,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Knowledge_base_status",
-      "declaration": "module Knowledge_base_status :\n  sig\n    module Placement :\n      sig\n        type t = Local | Codespace\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      name : string;\n      key : string;\n      recorded : bool;\n      placement : Placement.t;\n      root : string option;\n      repo : string option;\n      did : string option;\n      site_name : string option;\n      identity_error : string option;\n      kb : Discovered_kb.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      gateway : string option;\n      secret_store : string option;\n      lan : string option;\n      starting : bool;\n      session : Session.t option;\n      healthy : bool;\n      services : Service_status.t list;\n      workload : Workload_status.t option;\n    }\n    val of_model : [ `KnowledgeBaseStatus ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `KnowledgeBaseStatus ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Knowledge_base_status.Placement",
-      "declaration": "module Placement :\n  sig\n    type t = Local | Codespace\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Knowledge_base_status.Placement.t",
-      "declaration": "type t = Local | Codespace",
-      "representation": "variant",
-      "constructors": [
-        "Local",
-        "Codespace"
-      ],
-      "variants": [
-        {
-          "name": "Local",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Codespace",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Knowledge_base_status.Placement.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Knowledge_base_status.Placement.of_string",
-      "declaration": "val of_string : string -> t option"
+      "declaration": "module Knowledge_base_status :\n  sig\n    type t = {\n      name : string;\n      key : string;\n      recorded : bool;\n      placement : Xynolog__.Enums.Kb_placement.t;\n      root : string option;\n      repo : string option;\n      did : string option;\n      site_name : string option;\n      identity_error : string option;\n      kb : Discovered_kb.t option;\n      runtime : Xynolog__.Enums.Runtime.t option;\n      gateway : string option;\n      secret_store : string option;\n      lan : string option;\n      starting : bool;\n      session : Session.t option;\n      healthy : bool;\n      services : Service_status.t list;\n      workload : Workload_status.t option;\n    }\n    val of_model : [ `KnowledgeBaseStatus ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `KnowledgeBaseStatus ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Knowledge_base_status.t",
-      "declaration": "type t = {\n  name : string;\n  key : string;\n  recorded : bool;\n  placement : Placement.t;\n  root : string option;\n  repo : string option;\n  did : string option;\n  site_name : string option;\n  identity_error : string option;\n  kb : Discovered_kb.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  gateway : string option;\n  secret_store : string option;\n  lan : string option;\n  starting : bool;\n  session : Session.t option;\n  healthy : bool;\n  services : Service_status.t list;\n  workload : Workload_status.t option;\n}",
+      "declaration": "type t = {\n  name : string;\n  key : string;\n  recorded : bool;\n  placement : Xynolog__.Enums.Kb_placement.t;\n  root : string option;\n  repo : string option;\n  did : string option;\n  site_name : string option;\n  identity_error : string option;\n  kb : Discovered_kb.t option;\n  runtime : Xynolog__.Enums.Runtime.t option;\n  gateway : string option;\n  secret_store : string option;\n  lan : string option;\n  starting : bool;\n  session : Session.t option;\n  healthy : bool;\n  services : Service_status.t list;\n  workload : Workload_status.t option;\n}",
       "representation": "record",
       "fields": [
         "name",
@@ -25343,6 +26300,25 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided",
+      "declaration": "module Client_option_defaults_defaults_item_schema_decided :\n  sig\n    type t = {\n      decided : Client_option_defaults_defaults_item_schema_decided_decided.t;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided.t",
+      "declaration": "type t = {\n  decided : Client_option_defaults_defaults_item_schema_decided_decided.t;\n}",
+      "representation": "record",
+      "fields": [
+        "decided"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema_decided.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Client_refresh_queries_item",
       "declaration": "module Client_refresh_queries_item :\n  sig\n    type t =\n        Asks of Client_refresh_queries_item_asks.t\n      | Reads of Client_refresh_queries_item_reads.t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -25448,23 +26424,62 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_transport",
-      "declaration": "module Errors_codes_transport :\n  sig\n    type t = {\n      docs : string;\n      unclassified : string;\n      codes : Errors_codes_transport_codes_item.t list;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+      "path": "Xynolog.Records.Control_rpc_codes_codes_item",
+      "declaration": "module Control_rpc_codes_codes_item :\n  sig\n    type t = {\n      number : int;\n      name : string;\n      docs : string;\n      data : Error_data.t option;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_transport.t",
-      "declaration": "type t = {\n  docs : string;\n  unclassified : string;\n  codes : Errors_codes_transport_codes_item.t list;\n}",
+      "path": "Xynolog.Records.Control_rpc_codes_codes_item.t",
+      "declaration": "type t = {\n  number : int;\n  name : string;\n  docs : string;\n  data : Error_data.t option;\n}",
       "representation": "record",
       "fields": [
+        "number",
+        "name",
         "docs",
-        "unclassified",
-        "codes"
+        "data"
       ]
     },
     {
       "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_transport.to_json",
+      "path": "Xynolog.Records.Control_rpc_codes_codes_item.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item",
+      "declaration": "module Errors_codes_transport_codes_item :\n  sig\n    type t =\n        Status of Errors_codes_transport_codes_item_status.t\n      | StatusFrom of Errors_codes_transport_codes_item_status_from.t\n      | NoStatus of Errors_codes_transport_codes_item_no_status.t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item.t",
+      "declaration": "type t =\n    Status of Errors_codes_transport_codes_item_status.t\n  | StatusFrom of Errors_codes_transport_codes_item_status_from.t\n  | NoStatus of Errors_codes_transport_codes_item_no_status.t",
+      "representation": "variant",
+      "constructors": [
+        "Status",
+        "StatusFrom",
+        "NoStatus"
+      ],
+      "variants": [
+        {
+          "name": "Status",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "StatusFrom",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "NoStatus",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes_transport_codes_item.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -27162,6 +28177,36 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Control_rpc_codes",
+      "declaration": "module Control_rpc_codes :\n  sig\n    type t = {\n      field_comment : string;\n      codes : Control_rpc_codes_codes_item.t list;\n    }\n    val of_model : [ `ControlRpcCodes ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ControlRpcCodes ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Control_rpc_codes.t",
+      "declaration": "type t = {\n  field_comment : string;\n  codes : Control_rpc_codes_codes_item.t list;\n}",
+      "representation": "record",
+      "fields": [
+        "field_comment",
+        "codes"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Control_rpc_codes.of_model",
+      "declaration": "val of_model : [ `ControlRpcCodes ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Control_rpc_codes.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Control_rpc_codes.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `ControlRpcCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Stack_start_result",
       "declaration": "module Stack_start_result :\n  sig\n    type t = {\n      dry_run : bool;\n      knowledge_base : Knowledge_base_status.t option;\n      shared : Service_status.t list option;\n    }\n    val of_model : [ `StackStartResult ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `StackStartResult ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
@@ -27254,43 +28299,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Errors_codes",
-      "declaration": "module Errors_codes :\n  sig\n    type t = {\n      field_comment : string;\n      bus_request : Errors_codes_bus_request.t;\n      transport : Errors_codes_transport.t;\n      job : Errors_codes_job.t;\n      session : Errors_codes_job.t;\n      sign_in : Errors_codes_job.t;\n      kb_identity : Errors_codes_job.t;\n      span_refusal : Errors_codes_job.t;\n      control : Errors_codes_job.t;\n    }\n    val of_model : [ `ErrorsCodes ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ErrorsCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes.t",
-      "declaration": "type t = {\n  field_comment : string;\n  bus_request : Errors_codes_bus_request.t;\n  transport : Errors_codes_transport.t;\n  job : Errors_codes_job.t;\n  session : Errors_codes_job.t;\n  sign_in : Errors_codes_job.t;\n  kb_identity : Errors_codes_job.t;\n  span_refusal : Errors_codes_job.t;\n  control : Errors_codes_job.t;\n}",
-      "representation": "record",
-      "fields": [
-        "field_comment",
-        "bus_request",
-        "transport",
-        "job",
-        "session",
-        "sign_in",
-        "kb_identity",
-        "span_refusal",
-        "control"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes.of_model",
-      "declaration": "val of_model : [ `ErrorsCodes ] Xynolog__.Models.t -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes.to_model",
-      "declaration": "val to_model :\n  t ->\n  ([ `ErrorsCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Sdk_telemetry_telemetry",
       "declaration": "module Sdk_telemetry_telemetry :\n  sig\n    type t = {\n      field_comment : string;\n      spans : Sdk_telemetry_telemetry_spans_item.t list;\n      metrics : Sdk_telemetry_telemetry_metrics_item.t list;\n    }\n    val of_model : [ `SdkTelemetryTelemetry ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SdkTelemetryTelemetry ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
@@ -27323,7 +28331,7 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Smelter_health",
-      "declaration": "module Smelter_health :\n  sig\n    module Status :\n      sig\n        type t = Ok\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    module Stream :\n      sig\n        type t =\n            Initial\n          | Connecting\n          | Open\n          | Reconnecting\n          | Degraded\n          | Unauthenticated\n          | Closed\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      status : Status.t;\n      kb : string;\n      stream : Stream.t;\n      following : Follower_following.t;\n      events_processed : int;\n      reconcile : Smelter_health_reconcile.t;\n      index : Smelter_health_index.t;\n    }\n    val of_model : [ `SmelterHealth ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SmelterHealth ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Smelter_health :\n  sig\n    module Status :\n      sig\n        type t = Ok\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      status : Status.t;\n      kb : string;\n      stream : Xynolog__.Enums.Connection_state.t;\n      following : Follower_following.t;\n      events_processed : int;\n      reconcile : Smelter_health_reconcile.t;\n      index : Smelter_health_index.t;\n    }\n    val of_model : [ `SmelterHealth ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SmelterHealth ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "module",
@@ -27357,76 +28365,9 @@
       "declaration": "val of_string : string -> t option"
     },
     {
-      "kind": "module",
-      "path": "Xynolog.Records.Smelter_health.Stream",
-      "declaration": "module Stream :\n  sig\n    type t =\n        Initial\n      | Connecting\n      | Open\n      | Reconnecting\n      | Degraded\n      | Unauthenticated\n      | Closed\n    val to_string : t -> string\n    val of_string : string -> t option\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Smelter_health.Stream.t",
-      "declaration": "type t =\n    Initial\n  | Connecting\n  | Open\n  | Reconnecting\n  | Degraded\n  | Unauthenticated\n  | Closed",
-      "representation": "variant",
-      "constructors": [
-        "Initial",
-        "Connecting",
-        "Open",
-        "Reconnecting",
-        "Degraded",
-        "Unauthenticated",
-        "Closed"
-      ],
-      "variants": [
-        {
-          "name": "Initial",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Connecting",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Open",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Reconnecting",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Degraded",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Unauthenticated",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Closed",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Smelter_health.Stream.to_string",
-      "declaration": "val to_string : t -> string"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Smelter_health.Stream.of_string",
-      "declaration": "val of_string : string -> t option"
-    },
-    {
       "kind": "type",
       "path": "Xynolog.Records.Smelter_health.t",
-      "declaration": "type t = {\n  status : Status.t;\n  kb : string;\n  stream : Stream.t;\n  following : Follower_following.t;\n  events_processed : int;\n  reconcile : Smelter_health_reconcile.t;\n  index : Smelter_health_index.t;\n}",
+      "declaration": "type t = {\n  status : Status.t;\n  kb : string;\n  stream : Xynolog__.Enums.Connection_state.t;\n  following : Follower_following.t;\n  events_processed : int;\n  reconcile : Smelter_health_reconcile.t;\n  index : Smelter_health_index.t;\n}",
       "representation": "record",
       "fields": [
         "status",
@@ -27614,12 +28555,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Worker_engine_health",
-      "declaration": "module Worker_engine_health :\n  sig\n    type t = {\n      engine : Engine.t;\n      jobs : Job_filter.t list;\n      last_queued_event_at : string option;\n      last_claim_at : string option;\n      last_finished_at : string option;\n      last_activity_at : string option;\n      active_job : Worker_engine_health_active_job.t option;\n      jobs_completed : int;\n    }\n    val of_model : [ `WorkerEngineHealth ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `WorkerEngineHealth ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Worker_engine_health :\n  sig\n    type t = {\n      engine : Engine.t;\n      jobs : Job_filter.t list;\n      last_queued_event_at : string option;\n      last_claim_at : string option;\n      last_finished_at : string option;\n      last_activity_at : string option;\n      active_job : Worker_active_job.t option;\n      jobs_completed : int;\n    }\n    val of_model : [ `WorkerEngineHealth ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `WorkerEngineHealth ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Worker_engine_health.t",
-      "declaration": "type t = {\n  engine : Engine.t;\n  jobs : Job_filter.t list;\n  last_queued_event_at : string option;\n  last_claim_at : string option;\n  last_finished_at : string option;\n  last_activity_at : string option;\n  active_job : Worker_engine_health_active_job.t option;\n  jobs_completed : int;\n}",
+      "declaration": "type t = {\n  engine : Engine.t;\n  jobs : Job_filter.t list;\n  last_queued_event_at : string option;\n  last_claim_at : string option;\n  last_finished_at : string option;\n  last_activity_at : string option;\n  active_job : Worker_active_job.t option;\n  jobs_completed : int;\n}",
       "representation": "record",
       "fields": [
         "engine",
@@ -27736,6 +28677,50 @@
       "kind": "value",
       "path": "Xynolog.Records.Job_stored_progress.to_model",
       "declaration": "val to_model :\n  t ->\n  ([ `JobStoredProgress ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema",
+      "declaration": "module Client_option_defaults_defaults_item_schema :\n  sig\n    type t =\n        Reference of Client_option_defaults_defaults_item_schema_reference.t\n      | DateTime of Client_option_defaults_defaults_item_schema_date_time.t\n      | TypeParameter of\n          Client_option_defaults_defaults_item_schema_type_parameter.t\n      | Decided of Client_option_defaults_defaults_item_schema_decided.t\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema.t",
+      "declaration": "type t =\n    Reference of Client_option_defaults_defaults_item_schema_reference.t\n  | DateTime of Client_option_defaults_defaults_item_schema_date_time.t\n  | TypeParameter of\n      Client_option_defaults_defaults_item_schema_type_parameter.t\n  | Decided of Client_option_defaults_defaults_item_schema_decided.t",
+      "representation": "variant",
+      "constructors": [
+        "Reference",
+        "DateTime",
+        "TypeParameter",
+        "Decided"
+      ],
+      "variants": [
+        {
+          "name": "Reference",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "DateTime",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "TypeParameter",
+          "fields": [],
+          "unit": false
+        },
+        {
+          "name": "Decided",
+          "fields": [],
+          "unit": false
+        }
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item_schema.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
       "kind": "module",
@@ -27934,6 +28919,27 @@
       "kind": "value",
       "path": "Xynolog.Records.Conformance_step.to_model",
       "declaration": "val to_model :\n  t ->\n  ([ `ConformanceStep ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Errors_codes_transport",
+      "declaration": "module Errors_codes_transport :\n  sig\n    type t = {\n      docs : string;\n      unclassified : string;\n      codes : Errors_codes_transport_codes_item.t list;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Errors_codes_transport.t",
+      "declaration": "type t = {\n  docs : string;\n  unclassified : string;\n  codes : Errors_codes_transport_codes_item.t list;\n}",
+      "representation": "record",
+      "fields": [
+        "docs",
+        "unclassified",
+        "codes"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes_transport.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
       "kind": "module",
@@ -28842,6 +29848,43 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Errors_codes",
+      "declaration": "module Errors_codes :\n  sig\n    type t = {\n      field_comment : string;\n      bus_request : Errors_codes_bus_request.t;\n      transport : Errors_codes_transport.t;\n      job : Errors_codes_job.t;\n      session : Errors_codes_job.t;\n      sign_in : Errors_codes_job.t;\n      kb_identity : Errors_codes_job.t;\n      span_refusal : Errors_codes_job.t;\n      control : Errors_codes_control.t;\n    }\n    val of_model : [ `ErrorsCodes ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ErrorsCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Errors_codes.t",
+      "declaration": "type t = {\n  field_comment : string;\n  bus_request : Errors_codes_bus_request.t;\n  transport : Errors_codes_transport.t;\n  job : Errors_codes_job.t;\n  session : Errors_codes_job.t;\n  sign_in : Errors_codes_job.t;\n  kb_identity : Errors_codes_job.t;\n  span_refusal : Errors_codes_job.t;\n  control : Errors_codes_control.t;\n}",
+      "representation": "record",
+      "fields": [
+        "field_comment",
+        "bus_request",
+        "transport",
+        "job",
+        "session",
+        "sign_in",
+        "kb_identity",
+        "span_refusal",
+        "control"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes.of_model",
+      "declaration": "val of_model : [ `ErrorsCodes ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Errors_codes.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `ErrorsCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Issuer",
       "declaration": "module Issuer :\n  sig\n    module Kind :\n      sig\n        type t = Issuer\n        val to_string : t -> string\n        val of_string : string -> t option\n      end\n    type t = {\n      api_version : Xynolog__.Enums.Stack_api_version.t;\n      kind : Kind.t;\n      metadata : Metadata.t;\n      spec : Issuer_spec.t;\n    }\n    val of_model : [ `Issuer ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `Issuer ] Xynolog__.Models.t, Xynolog__.Models.decode_error) result\n  end"
     },
@@ -29326,6 +30369,31 @@
     },
     {
       "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item",
+      "declaration": "module Client_option_defaults_defaults_item :\n  sig\n    type t = {\n      method_ : string;\n      parameter : string;\n      option : string option;\n      value : Yojson.Raw.t;\n      schema : Client_option_defaults_defaults_item_schema.t option;\n      sends : string option;\n      docs : string;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item.t",
+      "declaration": "type t = {\n  method_ : string;\n  parameter : string;\n  option : string option;\n  value : Yojson.Raw.t;\n  schema : Client_option_defaults_defaults_item_schema.t option;\n  sends : string option;\n  docs : string;\n}",
+      "representation": "record",
+      "fields": [
+        "method_",
+        "parameter",
+        "option",
+        "value",
+        "schema",
+        "sends",
+        "docs"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults_defaults_item.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "module",
       "path": "Xynolog.Records.Inference_spec",
       "declaration": "module Inference_spec :\n  sig\n    type t = {\n      providers : (string * Provider.t) list;\n      engines : Archivist_engines.t;\n    }\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -29667,6 +30735,36 @@
       "kind": "value",
       "path": "Xynolog.Records.Job_claimed_result.to_model",
       "declaration": "val to_model :\n  t ->\n  ([ `JobClaimedResult ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n  result"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Records.Client_option_defaults",
+      "declaration": "module Client_option_defaults :\n  sig\n    type t = {\n      field_comment : string;\n      defaults : Client_option_defaults_defaults_item.t list;\n    }\n    val of_model : [ `ClientOptionDefaults ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ClientOptionDefaults ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Records.Client_option_defaults.t",
+      "declaration": "type t = {\n  field_comment : string;\n  defaults : Client_option_defaults_defaults_item.t list;\n}",
+      "representation": "record",
+      "fields": [
+        "field_comment",
+        "defaults"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults.of_model",
+      "declaration": "val of_model : [ `ClientOptionDefaults ] Xynolog__.Models.t -> t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults.to_json",
+      "declaration": "val to_json : t -> Yojson.Raw.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Records.Client_option_defaults.to_model",
+      "declaration": "val to_model :\n  t ->\n  ([ `ClientOptionDefaults ] Xynolog__.Models.t,\n   Xynolog__.Models.decode_error)\n  result"
     },
     {
       "kind": "module",
@@ -30832,18 +31930,8 @@
     },
     {
       "kind": "type",
-      "path": "Xynolog.Wire_stream.trace",
-      "declaration": "type trace = { parent : string; state : string option; }",
-      "representation": "record",
-      "fields": [
-        "parent",
-        "state"
-      ]
-    },
-    {
-      "kind": "type",
       "path": "Xynolog.Wire_stream.frame",
-      "declaration": "type frame =\n    Frame : { id : string option; route : route;\n      channel : 'a Xynolog__.Bus_registry.channel; trace : trace option;\n      payload :\n        ('a Xynolog__.Bus_registry.decoded,\n         Xynolog__.Bus_registry.decode_error)\n        result;\n    } -> frame",
+      "declaration": "type frame =\n    Frame : { id : string option; route : route;\n      channel : 'a Xynolog__.Bus_registry.channel;\n      trace : Xynolog__.Records.Trace_carrier.t option;\n      payload :\n        ('a Xynolog__.Bus_registry.decoded,\n         Xynolog__.Bus_registry.decode_error)\n        result;\n    } -> frame",
       "representation": "variant",
       "constructors": [
         "Frame"
@@ -30957,58 +32045,6 @@
     },
     {
       "kind": "type",
-      "path": "Xynolog.Subscription.state",
-      "declaration": "type state =\n    Initial\n  | Connecting\n  | Open\n  | Reconnecting\n  | Degraded\n  | Unauthenticated\n  | Closed",
-      "representation": "variant",
-      "constructors": [
-        "Initial",
-        "Connecting",
-        "Open",
-        "Reconnecting",
-        "Degraded",
-        "Unauthenticated",
-        "Closed"
-      ],
-      "variants": [
-        {
-          "name": "Initial",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Connecting",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Open",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Reconnecting",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Degraded",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Unauthenticated",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Closed",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "type",
       "path": "Xynolog.Subscription.scope",
       "declaration": "type scope = {\n  resource : Xynolog__.Identifiers.Resource_id.t;\n  channels : Xynolog__.Bus_registry.packed_channel list;\n}",
       "representation": "record",
@@ -31028,27 +32064,6 @@
         "scoped",
         "pending_replies"
       ]
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Subscription.timing",
-      "declaration": "type timing = {\n  stream_open_timeout_ms : int;\n  reconnect_ms : int;\n  max_reconnect_ms : int;\n  degraded_threshold_ms : int;\n  reconnect_debounce_ms : int;\n  lazy_remove_ms : int;\n  linger_ms : int;\n  bus_request_timeout_ms : int;\n}",
-      "representation": "record",
-      "fields": [
-        "stream_open_timeout_ms",
-        "reconnect_ms",
-        "max_reconnect_ms",
-        "degraded_threshold_ms",
-        "reconnect_debounce_ms",
-        "lazy_remove_ms",
-        "linger_ms",
-        "bus_request_timeout_ms"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Subscription.default_timing",
-      "declaration": "val default_timing : timing"
     },
     {
       "kind": "type",
@@ -31119,7 +32134,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Subscription.start",
-      "declaration": "val start :\n  ?timing:timing ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  ?positions:(string * string) list ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  client_id:string ->\n  global:Xynolog__.Bus_registry.packed_channel list ->\n  scopes:scope list ->\n  connect:(sw:Eio.Switch.t -> snapshot -> (Eio.Buf_read.t, open_error) result) ->\n  on_event:((Xynolog__.Wire_stream.frame, Xynolog__.Wire_stream.refusal)\n            result -> unit) ->\n  unit -> t"
+      "declaration": "val start :\n  ?timing:Xynolog__.Client_timing.transport ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  ?positions:(string * string) list ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  client_id:string ->\n  global:Xynolog__.Bus_registry.packed_channel list ->\n  scopes:scope list ->\n  connect:(sw:Eio.Switch.t -> snapshot -> (Eio.Buf_read.t, open_error) result) ->\n  on_event:((Xynolog__.Wire_stream.frame, Xynolog__.Wire_stream.refusal)\n            result -> unit) ->\n  unit -> t"
     },
     {
       "kind": "value",
@@ -31129,12 +32144,12 @@
     {
       "kind": "value",
       "path": "Xynolog.Subscription.state",
-      "declaration": "val state : t -> state"
+      "declaration": "val state : t -> Xynolog__.Enums.Connection_state.t"
     },
     {
       "kind": "value",
       "path": "Xynolog.Subscription.await_state_change",
-      "declaration": "val await_state_change : t -> from:state -> state"
+      "declaration": "val await_state_change :\n  t ->\n  from:Xynolog__.Enums.Connection_state.t ->\n  Xynolog__.Enums.Connection_state.t"
     },
     {
       "kind": "value",
@@ -31229,7 +32244,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Subscription.request",
-      "declaration": "val request :\n  t ->\n  ?timeout_ms:int ->\n  ?normalize_refusals:bool ->\n  correlation_id:string ->\n  ('request, 'result, 'failure) Xynolog__.Bus_registry.operation ->\n  send:(unit -> unit) -> (('result, 'failure) reply, request_error) result"
+      "declaration": "val request :\n  t ->\n  timeout_ms:int ->\n  ?normalize_refusals:bool ->\n  correlation_id:string ->\n  ('request, 'result, 'failure) Xynolog__.Bus_registry.operation ->\n  send:(unit -> unit) -> (('result, 'failure) reply, request_error) result"
     },
     {
       "kind": "value",
@@ -31355,19 +32370,6 @@
     },
     {
       "kind": "type",
-      "path": "Xynolog.Http_wire.timing",
-      "declaration": "type timing = {\n  emit_attempts : int;\n  emit_initial_delay_ms : int;\n  emit_max_delay_ms : int;\n  emit_timeout_ms : int;\n  request_timeout_ms : int;\n}",
-      "representation": "record",
-      "fields": [
-        "emit_attempts",
-        "emit_initial_delay_ms",
-        "emit_max_delay_ms",
-        "emit_timeout_ms",
-        "request_timeout_ms"
-      ]
-    },
-    {
-      "kind": "type",
       "path": "Xynolog.Http_wire.failure",
       "declaration": "type failure = {\n  code : Xynolog__.Error_codes.Transport.t;\n  status : int option;\n  message : string;\n}",
       "representation": "record",
@@ -31411,13 +32413,8 @@
     },
     {
       "kind": "value",
-      "path": "Xynolog.Http_wire.default_timing",
-      "declaration": "val default_timing : timing"
-    },
-    {
-      "kind": "value",
       "path": "Xynolog.Http_wire.make",
-      "declaration": "val make :\n  ?timing:timing ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  clock:Xynolog__.Clock.t ->\n  session:Xynolog__.Session.t ->\n  key:(unit -> string) ->\n  on_error:(failure -> unit) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  unit -> t"
+      "declaration": "val make :\n  ?timing:Xynolog__.Client_timing.transport ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  clock:Xynolog__.Clock.t ->\n  session:Xynolog__.Session.t ->\n  key:(unit -> string) ->\n  on_error:(failure -> unit) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  unit -> t"
     },
     {
       "kind": "value",
@@ -31427,7 +32424,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Http_wire.emit",
-      "declaration": "val emit :\n  t ->\n  client_id:string ->\n  ?scope:Xynolog__.Identifiers.Resource_id.t ->\n  ?correlation_id:string ->\n  ?trace:Xynolog__.Wire_stream.trace ->\n  'a Xynolog__.Bus_registry.channel -> string -> string"
+      "declaration": "val emit :\n  t ->\n  client_id:string ->\n  ?scope:Xynolog__.Identifiers.Resource_id.t ->\n  ?correlation_id:string ->\n  ?trace:Xynolog__.Records.Trace_carrier.t ->\n  'a Xynolog__.Bus_registry.channel -> string -> string"
     },
     {
       "kind": "value",
@@ -32098,6 +33095,11 @@
       "declaration": "val of_code : string -> t option"
     },
     {
+      "kind": "value",
+      "path": "Xynolog.Error_codes.limit_refusal_transport_codes",
+      "declaration": "val limit_refusal_transport_codes : (int * string * Transport.t) list"
+    },
+    {
       "kind": "module",
       "path": "Xynolog.Telemetry",
       "declaration": "module Telemetry = Xynolog__.Telemetry",
@@ -32162,7 +33164,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Telemetry.span",
-      "declaration": "type span = {\n  trace : Xynolog__.Wire_stream.trace option;\n  name : string;\n  kind : kind;\n  attributes : (string * attribute) list;\n  started : float;\n  ended : float;\n}",
+      "declaration": "type span = {\n  trace : Xynolog__.Records.Trace_carrier.t option;\n  name : string;\n  kind : kind;\n  attributes : (string * attribute) list;\n  started : float;\n  ended : float;\n}",
       "representation": "record",
       "fields": [
         "trace",
@@ -32197,7 +33199,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Telemetry.around",
-      "declaration": "val around :\n  ?trace:Xynolog__.Wire_stream.trace ->\n  t option ->\n  clock:Xynolog__.Clock.t ->\n  string * kind -> (string * attribute) list -> (unit -> 'a) -> 'a"
+      "declaration": "val around :\n  ?trace:Xynolog__.Records.Trace_carrier.t ->\n  t option ->\n  clock:Xynolog__.Clock.t ->\n  string * kind -> (string * attribute) list -> (unit -> 'a) -> 'a"
     },
     {
       "kind": "module",
@@ -32340,7 +33342,7 @@
     {
       "kind": "type",
       "path": "Xynolog.Worker.claim",
-      "declaration": "type claim =\n    Held of held\n  | Empty\n  | Refused of Xynolog__.Http_wire.request_code option",
+      "declaration": "type claim =\n    Held of held\n  | Empty\n  | Refused of Xynolog__.Records.Claim_refusal.t",
       "representation": "variant",
       "constructors": [
         "Held",
@@ -32367,13 +33369,48 @@
     },
     {
       "kind": "value",
-      "path": "Xynolog.Worker.channels",
-      "declaration": "val channels : Xynolog__.Bus_registry.packed_channel list"
+      "path": "Xynolog.Worker.record",
+      "declaration": "val record : held -> Xynolog__.Records.Held_job_record.t"
     },
     {
       "kind": "value",
-      "path": "Xynolog.Worker.commit_channels",
-      "declaration": "val commit_channels : Xynolog__.Bus_registry.packed_channel list"
+      "path": "Xynolog.Worker.job_id",
+      "declaration": "val job_id : held -> Xynolog__.Identifiers.Job_id.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.job_type",
+      "declaration": "val job_type : held -> Xynolog__.Enums.Job_type.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.resource_id",
+      "declaration": "val resource_id : held -> Xynolog__.Identifiers.Resource_id.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.params",
+      "declaration": "val params : held -> [ `JobParams ] Xynolog__.Models.t"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.completed_units",
+      "declaration": "val completed_units : held -> string list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.unit_cursors",
+      "declaration": "val unit_cursors : held -> (string * [ `UnitCursor ] Xynolog__.Models.t) list"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.retry_count",
+      "declaration": "val retry_count : held -> int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Worker.max_retries",
+      "declaration": "val max_retries : held -> int"
     },
     {
       "kind": "value",
@@ -32383,17 +33420,12 @@
     {
       "kind": "value",
       "path": "Xynolog.Worker.claim",
-      "declaration": "val claim :\n  Xynolog__.Subscription.t ->\n  Xynolog__.Http_wire.t ->\n  client_id:string ->\n  correlation_id:string ->\n  ?trace:Xynolog__.Wire_stream.trace ->\n  ?on_activity:(unit -> unit) ->\n  ?on_settled:(bool -> unit) ->\n  ?timeout_ms:int -> accepts:Yojson.Safe.t -> unit -> claim"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.view",
-      "declaration": "val view : held -> Yojson.Safe.t"
+      "declaration": "val claim :\n  Xynolog__.Subscription.t ->\n  Xynolog__.Http_wire.t ->\n  client_id:string ->\n  correlation_id:string ->\n  ?trace:Xynolog__.Records.Trace_carrier.t ->\n  ?on_activity:(unit -> unit) ->\n  ?on_settled:(bool -> unit) ->\n  ?timeout_ms:int -> accepts:Yojson.Safe.t -> unit -> claim"
     },
     {
       "kind": "value",
       "path": "Xynolog.Worker.trace",
-      "declaration": "val trace : held -> Xynolog__.Wire_stream.trace option"
+      "declaration": "val trace : held -> Xynolog__.Records.Trace_carrier.t option"
     },
     {
       "kind": "value",
@@ -32413,7 +33445,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Worker.checkpoint",
-      "declaration": "val checkpoint :\n  held -> completed:Yojson.Safe.t -> cursors:Yojson.Safe.t -> unit"
+      "declaration": "val checkpoint : held -> Xynolog__.Records.Job_checkpoint.t -> unit"
     },
     {
       "kind": "value",
@@ -32428,12 +33460,12 @@
     {
       "kind": "value",
       "path": "Xynolog.Worker.cancel",
-      "declaration": "val cancel : held -> completed:Yojson.Safe.t option -> unit"
+      "declaration": "val cancel : ?reached:Xynolog__.Records.Job_reached.t -> held -> unit"
     },
     {
       "kind": "value",
       "path": "Xynolog.Worker.fail",
-      "declaration": "val fail :\n  held ->\n  error:string ->\n  failure_class:Xynolog__.Enums.Failure_class.t option ->\n  completed:Yojson.Safe.t option -> cursors:Yojson.Safe.t option -> unit"
+      "declaration": "val fail :\n  ?failure:Xynolog__.Records.Job_failure.t -> held -> error:string -> unit"
     },
     {
       "kind": "value",
@@ -32459,46 +33491,6 @@
       "kind": "value",
       "path": "Xynolog.Worker.is_settled",
       "declaration": "val is_settled : held -> bool"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.job_id",
-      "declaration": "val job_id : held -> Xynolog__.Identifiers.Job_id.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.job_type",
-      "declaration": "val job_type : held -> Xynolog__.Enums.Job_type.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.resource_id",
-      "declaration": "val resource_id : held -> Xynolog__.Identifiers.Resource_id.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.params",
-      "declaration": "val params : held -> Yojson.Safe.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.completed_units",
-      "declaration": "val completed_units : held -> string list"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.unit_cursors",
-      "declaration": "val unit_cursors : held -> Yojson.Safe.t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.retry_count",
-      "declaration": "val retry_count : held -> int"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Worker.max_retries",
-      "declaration": "val max_retries : held -> int"
     },
     {
       "kind": "value",
@@ -32644,7 +33636,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Delegation.make",
-      "declaration": "val make :\n  ?silence_ms:int ->\n  ?poll_ms:int ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  subscription:Xynolog__.Subscription.t ->\n  http:Xynolog__.Http_wire.t ->\n  client_id:string -> correlation_id:(unit -> string) -> unit -> t"
+      "declaration": "val make :\n  ?timing:Xynolog__.Client_timing.client ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  subscription:Xynolog__.Subscription.t ->\n  http:Xynolog__.Http_wire.t ->\n  client_id:string -> correlation_id:(unit -> string) -> unit -> t"
     },
     {
       "kind": "value",
@@ -32795,7 +33787,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client.connect",
-      "declaration": "val connect :\n  ?timing:Xynolog__.Subscription.timing ->\n  ?http_timing:Xynolog__.Http_wire.timing ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  ?delegation_silence_ms:int ->\n  ?delegation_poll_ms:int ->\n  ?invalidation_window_ms:int ->\n  ?restore:(Xynolog__.Live_query.key -> Yojson.Safe.t option) ->\n  ?save:(Xynolog__.Live_query.key -> Yojson.Safe.t option -> unit) ->\n  ?persister:Xynolog__.Storage_persister.storage_persister ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  session:Xynolog__.Session.t ->\n  client_id:string ->\n  key:(unit -> string) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  global:Xynolog__.Bus_registry.packed_channel list ->\n  on_event:((Xynolog__.Wire_stream.frame, Xynolog__.Wire_stream.refusal)\n            result -> unit) ->\n  unit -> t"
+      "declaration": "val connect :\n  ?client_timing:Xynolog__.Client_timing.client ->\n  ?transport_timing:Xynolog__.Client_timing.transport ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  ?restore:(Xynolog__.Live_query.key -> Yojson.Safe.t option) ->\n  ?save:(Xynolog__.Live_query.key -> Yojson.Safe.t option -> unit) ->\n  ?persister:Xynolog__.Storage_persister.storage_persister ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  session:Xynolog__.Session.t ->\n  client_id:string ->\n  key:(unit -> string) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  global:Xynolog__.Bus_registry.packed_channel list ->\n  on_event:((Xynolog__.Wire_stream.frame, Xynolog__.Wire_stream.refusal)\n            result -> unit) ->\n  unit -> t"
     },
     {
       "kind": "value",
@@ -34803,7 +35795,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client.Job.claim",
-      "declaration": "val claim :\n  Xynolog__.Client_core.t ->\n  ?timeout_ms:int ->\n  ?stall_ms:int ->\n  ?stall_check_ms:int ->\n  ?trace:(unit -> Xynolog__.Wire_stream.trace option) ->\n  ?on_cancel:(Xynolog__.Worker.held -> unit) ->\n  [ `JobFilter ] Xynolog__.Models.t list -> Xynolog__.Claims.t"
+      "declaration": "val claim :\n  Xynolog__.Client_core.t ->\n  ?timeout_ms:int ->\n  ?stall_ms:int ->\n  ?stall_check_ms:int ->\n  ?trace:(unit -> Xynolog__.Records.Trace_carrier.t option) ->\n  ?on_cancel:(Xynolog__.Worker.held -> unit) ->\n  [ `JobFilter ] Xynolog__.Models.t list -> Xynolog__.Claims.t"
     },
     {
       "kind": "module",
@@ -35058,37 +36050,9 @@
       "declaration": "exception Invalid_store"
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Sign_in_store.platform",
-      "declaration": "type platform = Macos | Windows | Other",
-      "representation": "variant",
-      "constructors": [
-        "Macos",
-        "Windows",
-        "Other"
-      ],
-      "variants": [
-        {
-          "name": "Macos",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Windows",
-          "fields": [],
-          "unit": true
-        },
-        {
-          "name": "Other",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
       "kind": "value",
       "path": "Xynolog.Sign_in_store.state_directory",
-      "declaration": "val state_directory :\n  platform:platform ->\n  home:string option ->\n  xdg_state_home:string option ->\n  local_app_data:string option -> string option"
+      "declaration": "val state_directory :\n  platform:Xynolog__.Enums.System.t ->\n  home:string option ->\n  xdg_state_home:string option ->\n  local_app_data:string option -> string option"
     },
     {
       "kind": "value",
@@ -36976,7 +37940,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Job.claim",
-      "declaration": "val claim :\n  Xynolog__.Client_core.t ->\n  ?timeout_ms:int ->\n  ?stall_ms:int ->\n  ?stall_check_ms:int ->\n  ?trace:(unit -> Xynolog__.Wire_stream.trace option) ->\n  ?on_cancel:(Xynolog__.Worker.held -> unit) ->\n  [ `JobFilter ] Xynolog__.Models.t list -> Xynolog__.Claims.t"
+      "declaration": "val claim :\n  Xynolog__.Client_core.t ->\n  ?timeout_ms:int ->\n  ?stall_ms:int ->\n  ?stall_check_ms:int ->\n  ?trace:(unit -> Xynolog__.Records.Trace_carrier.t option) ->\n  ?on_cancel:(Xynolog__.Worker.held -> unit) ->\n  [ `JobFilter ] Xynolog__.Models.t list -> Xynolog__.Claims.t"
     },
     {
       "kind": "module",
@@ -37074,7 +38038,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Claims.make",
-      "declaration": "val make :\n  Xynolog__.Client_core.t ->\n  ?timeout_ms:int ->\n  ?stall_ms:int ->\n  ?stall_check_ms:int ->\n  ?trace:(unit -> Xynolog__.Wire_stream.trace option) ->\n  ?on_cancel:(Xynolog__.Worker.held -> unit) ->\n  [ `JobFilter ] Xynolog__.Models.t list -> t"
+      "declaration": "val make :\n  Xynolog__.Client_core.t ->\n  ?timeout_ms:int ->\n  ?stall_ms:int ->\n  ?stall_check_ms:int ->\n  ?trace:(unit -> Xynolog__.Records.Trace_carrier.t option) ->\n  ?on_cancel:(Xynolog__.Worker.held -> unit) ->\n  [ `JobFilter ] Xynolog__.Models.t list -> t"
     },
     {
       "kind": "value",
@@ -37102,33 +38066,19 @@
       "declaration": "val will_retry_after :\n  retry_count:int ->\n  max_retries:int -> Xynolog__.Enums.Failure_class.t option -> bool"
     },
     {
-      "kind": "type",
-      "path": "Xynolog.Claims.vitals",
-      "declaration": "type vitals = {\n  last_queued_event_at : float option;\n  last_claim_at : float option;\n  last_finished_at : float option;\n  last_activity_at : float option;\n  active_job : (Xynolog__.Worker.held * float) option;\n  jobs_completed : int;\n}",
-      "representation": "record",
-      "fields": [
-        "last_queued_event_at",
-        "last_claim_at",
-        "last_finished_at",
-        "last_activity_at",
-        "active_job",
-        "jobs_completed"
-      ]
-    },
-    {
       "kind": "value",
       "path": "Xynolog.Claims.refused",
-      "declaration": "val refused :\n  t ->\n  on_value:(Xynolog__.Http_wire.request_code option -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
+      "declaration": "val refused :\n  t ->\n  on_value:(Xynolog__.Records.Claim_refusal.t -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
     },
     {
       "kind": "value",
       "path": "Xynolog.Claims.stalled",
-      "declaration": "val stalled :\n  t ->\n  on_value:(Xynolog__.Worker.held -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
+      "declaration": "val stalled :\n  t ->\n  on_value:(Xynolog__.Records.Held_job_stall.t -> unit) ->\n  on_close:(unit -> unit) -> unit -> unit"
     },
     {
       "kind": "value",
       "path": "Xynolog.Claims.vitals",
-      "declaration": "val vitals : t -> vitals"
+      "declaration": "val vitals : t -> Xynolog__.Records.Worker_vitals.t"
     },
     {
       "kind": "module",
@@ -37138,66 +38088,9 @@
     },
     {
       "kind": "type",
-      "path": "Xynolog.Discovery.discovery_state",
-      "declaration": "type discovery_state =\n    Absent of Xynolog__.Enums.Discovery_absent_reason.t\n  | Managed of Xynolog__.Records.Discovered_kb.t list",
-      "representation": "variant",
-      "constructors": [
-        "Absent",
-        "Managed"
-      ],
-      "variants": [
-        {
-          "name": "Absent",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Managed",
-          "fields": [],
-          "unit": false
-        }
-      ]
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Discovery.discovery_read",
-      "declaration": "type discovery_read = Read of discovery_state | Unchanged",
-      "representation": "variant",
-      "constructors": [
-        "Read",
-        "Unchanged"
-      ],
-      "variants": [
-        {
-          "name": "Read",
-          "fields": [],
-          "unit": false
-        },
-        {
-          "name": "Unchanged",
-          "fields": [],
-          "unit": true
-        }
-      ]
-    },
-    {
-      "kind": "type",
       "path": "Xynolog.Discovery.discovery_transport",
-      "declaration": "type discovery_transport = unit -> discovery_read",
+      "declaration": "type discovery_transport = unit -> Xynolog__.Records.Discovery_read.t",
       "representation": "abstract"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Discovery.discovery_diff",
-      "declaration": "type discovery_diff = {\n  state : discovery_state;\n  added : Xynolog__.Records.Discovered_kb.t list;\n  updated : Xynolog__.Records.Discovered_kb.t list;\n  removed : Xynolog__.Records.Discovered_kb.t list;\n  duplicated : (string * int) list;\n}",
-      "representation": "record",
-      "fields": [
-        "state",
-        "added",
-        "updated",
-        "removed",
-        "duplicated"
-      ]
     },
     {
       "kind": "value",
@@ -37207,7 +38100,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Discovery.parse_discovery_document",
-      "declaration": "val parse_discovery_document : string -> discovery_state"
+      "declaration": "val parse_discovery_document : string -> Xynolog__.Records.Discovery_state.t"
     },
     {
       "kind": "value",
@@ -37227,12 +38120,12 @@
     {
       "kind": "value",
       "path": "Xynolog.Discovery.discovery_diff",
-      "declaration": "val discovery_diff :\n  discovery_state option -> discovery_state -> discovery_diff option"
+      "declaration": "val discovery_diff :\n  Xynolog__.Records.Discovery_state.t option ->\n  Xynolog__.Records.Discovery_state.t ->\n  Xynolog__.Records.Discovery_diff.t option"
     },
     {
       "kind": "value",
       "path": "Xynolog.Discovery.subscribe_discovery",
-      "declaration": "val subscribe_discovery :\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  ?interval_ms:int ->\n  discovery_transport -> on_change:(discovery_diff -> unit) -> unit -> unit"
+      "declaration": "val subscribe_discovery :\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  ?interval_ms:int ->\n  discovery_transport ->\n  on_change:(Xynolog__.Records.Discovery_diff.t -> unit) -> unit -> unit"
     },
     {
       "kind": "module",
@@ -37992,7 +38885,7 @@
     {
       "kind": "value",
       "path": "Xynolog.State_units.Mark.make",
-      "declaration": "val make :\n  ?silence_ms:int ->\n  Xynolog__.Client.t -> resource:Xynolog__.Identifiers.Resource_id.t -> t"
+      "declaration": "val make :\n  Xynolog__.Client.t -> resource:Xynolog__.Identifiers.Resource_id.t -> t"
     },
     {
       "kind": "value",
@@ -38146,7 +39039,7 @@
     {
       "kind": "value",
       "path": "Xynolog.State_units.Session.stream_state",
-      "declaration": "val stream_state : t -> Xynolog__.Subscription.state Xynolog__.State_value.t"
+      "declaration": "val stream_state :\n  t -> Xynolog__.Enums.Connection_state.t Xynolog__.State_value.t"
     },
     {
       "kind": "value",
@@ -38907,6 +39800,43 @@
       "declaration": "val checks_at_once_count : int"
     },
     {
+      "kind": "type",
+      "path": "Xynolog.Client_timing.client",
+      "declaration": "type client = {\n  bus_request_timeout_ms : int;\n  invalidation_window_ms : int;\n  job_silence_ms : int;\n  job_status_poll_ms : int;\n}",
+      "representation": "record",
+      "fields": [
+        "bus_request_timeout_ms",
+        "invalidation_window_ms",
+        "job_silence_ms",
+        "job_status_poll_ms"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.client_defaults",
+      "declaration": "val client_defaults : client"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Client_timing.transport",
+      "declaration": "type transport = {\n  emit_retry : Xynolog__.Records.Retry_budget.t;\n  http_request_timeout_ms : int;\n  stream_open_timeout_ms : int;\n  reconnect_ms : int;\n  linger_ms : int;\n  seen_event_ids_count : int;\n  lazy_remove_ms : int;\n}",
+      "representation": "record",
+      "fields": [
+        "emit_retry",
+        "http_request_timeout_ms",
+        "stream_open_timeout_ms",
+        "reconnect_ms",
+        "linger_ms",
+        "seen_event_ids_count",
+        "lazy_remove_ms"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.transport_defaults",
+      "declaration": "val transport_defaults : transport"
+    },
+    {
       "kind": "module",
       "path": "Xynolog.Storage_persister",
       "declaration": "module Storage_persister = Xynolog__.Storage_persister",
@@ -38921,7 +39851,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Storage_persister.make",
-      "declaration": "val make :\n  storage:Xynolog__.Storage.t ->\n  key:string ->\n  version:int ->\n  max_bytes:int -> clock:Xynolog__.Clock.t -> storage_persister"
+      "declaration": "val make :\n  storage:Xynolog__.Storage.t ->\n  key:string -> version:int -> clock:Xynolog__.Clock.t -> storage_persister"
     },
     {
       "kind": "value",

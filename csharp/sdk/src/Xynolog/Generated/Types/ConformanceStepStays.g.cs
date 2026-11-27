@@ -7,5 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceStepStays
 {
-    [global::Xynolog.Serialization.Wire("stays")] public required global::Xynolog.Types.ConformanceStepStaysStays Stays { get; init; }
+    [global::Xynolog.Serialization.Wire("stays")] public required global::Xynolog.Types.ConnectionState Stays { get; init; }
 }

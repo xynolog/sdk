@@ -39,6 +39,7 @@ export const REQUIRED_SCHEMAS: {
       'version',
     ],
   },
+  AccessToken: { kinds: ['string'], minLength: 1 },
   Agent: {
     kinds: ['object'],
     oneOf: [
@@ -1049,6 +1050,8 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['clientId', 'global', 'pendingReplies', 'scoped'],
   },
+  ByteSource: { kinds: ['string'] },
+  CacheStatus: { kinds: ['string'], enum: ['pending', 'ready', 'failed'] },
   Cancelled: {
     kinds: ['object'],
     required: ['requestId'],
@@ -1072,6 +1075,78 @@ export const REQUIRED_SCHEMAS: {
       'jobClaimTimeoutMs',
       'markCommitTimeoutMs',
     ],
+  },
+  ClaimRefusal: {
+    kinds: ['object'],
+    required: ['code', 'message'],
+    members: {
+      code: {
+        kinds: ['string', 'null'],
+        oneOf: [
+          { kinds: ['null'] },
+          {
+            kinds: ['string'],
+            enum: [
+              'bus.timeout',
+              'bus.rejected',
+              'bus.closed',
+              'bus.not-found',
+              'bus.unsubscribed',
+              'bus.peer-unavailable',
+              'bus.unauthorized',
+              'bus.none-pending',
+            ],
+          },
+        ],
+      },
+      message: { kinds: ['string'] },
+    },
+    closed: ['code', 'message'],
+  },
+  ClientConnectionStates: {
+    kinds: ['object'],
+    required: ['$comment', 'states'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      states: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['state', 'meaning', 'moves'],
+          members: {
+            meaning: { kinds: ['string'], minLength: 1 },
+            moves: { kinds: ['array'], items: { ref: 'ConnectionState' } },
+            state: { ref: 'ConnectionState' },
+          },
+          closed: ['meaning', 'moves', 'state'],
+        },
+      },
+    },
+    closed: ['$comment', 'states'],
   },
   ClientDiscoveryAbsent: {
     kinds: ['object'],
@@ -1109,27 +1184,307 @@ export const REQUIRED_SCHEMAS: {
           required: ['reason', 'docs'],
           members: {
             docs: { kinds: ['string'], minLength: 1 },
-            reason: {
-              kinds: ['string'],
-              pattern: [
-                { of: [[97, 122]], min: 1 },
-                {
-                  either: [
-                    [
-                      { of: [[45, 45]], min: 1, max: 1 },
-                      { of: [[97, 122]], min: 1 },
-                    ],
-                  ],
-                  min: 0,
-                },
-              ],
-            },
+            reason: { ref: 'DiscoveryAbsentReason' },
           },
           closed: ['docs', 'reason'],
         },
       },
     },
     closed: ['$comment', 'reasons'],
+  },
+  ClientOptionDefaults: {
+    kinds: ['object'],
+    required: ['$comment', 'defaults'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      defaults: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['method', 'parameter', 'value', 'docs'],
+          members: {
+            docs: { kinds: ['string'], minLength: 1 },
+            method: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[97, 122]], min: 1, max: 1 },
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+                { of: [[46, 46]], min: 1, max: 1 },
+                { of: [[97, 122]], min: 1, max: 1 },
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+            option: { kinds: ['string'], minLength: 1 },
+            parameter: { kinds: ['string'], minLength: 1 },
+            schema: {
+              kinds: ['object'],
+              oneOf: [
+                {
+                  kinds: ['object'],
+                  required: ['$ref'],
+                  members: {
+                    $ref: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[104, 104]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[112, 112]], min: 1, max: 1 },
+                        { of: [[115, 115]], min: 1, max: 1 },
+                        { of: [[58, 58]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[120, 120]], min: 1, max: 1 },
+                        { of: [[121, 121]], min: 1, max: 1 },
+                        { of: [[110, 110]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[108, 108]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[103, 103]], min: 1, max: 1 },
+                        { of: [[46, 46]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[114, 114]], min: 1, max: 1 },
+                        { of: [[103, 103]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[112, 112]], min: 1, max: 1 },
+                        { of: [[114, 114]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[116, 116]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[99, 99]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[108, 108]], min: 1, max: 1 },
+                        { of: [[47, 47]], min: 1, max: 1 },
+                        { of: [[65, 90]], min: 1, max: 1 },
+                        {
+                          of: [
+                            [65, 90],
+                            [97, 122],
+                          ],
+                          min: 0,
+                        },
+                        { of: [[46, 46]], min: 1, max: 1 },
+                        { of: [[106, 106]], min: 1, max: 1 },
+                        { of: [[115, 115]], min: 1, max: 1 },
+                        { of: [[111, 111]], min: 1, max: 1 },
+                        { of: [[110, 110]], min: 1, max: 1 },
+                        {
+                          either: [
+                            [
+                              { of: [[35, 35]], min: 1, max: 1 },
+                              {
+                                either: [
+                                  [
+                                    { of: [[47, 47]], min: 1, max: 1 },
+                                    { of: [[112, 112]], min: 1, max: 1 },
+                                    { of: [[114, 114]], min: 1, max: 1 },
+                                    { of: [[111, 111]], min: 1, max: 1 },
+                                    { of: [[112, 112]], min: 1, max: 1 },
+                                    { of: [[101, 101]], min: 1, max: 1 },
+                                    { of: [[114, 114]], min: 1, max: 1 },
+                                    { of: [[116, 116]], min: 1, max: 1 },
+                                    { of: [[105, 105]], min: 1, max: 1 },
+                                    { of: [[101, 101]], min: 1, max: 1 },
+                                    { of: [[115, 115]], min: 1, max: 1 },
+                                    { of: [[47, 47]], min: 1, max: 1 },
+                                    { of: [[97, 122]], min: 1, max: 1 },
+                                    {
+                                      of: [
+                                        [65, 90],
+                                        [97, 122],
+                                      ],
+                                      min: 0,
+                                    },
+                                  ],
+                                ],
+                                min: 1,
+                              },
+                            ],
+                          ],
+                          min: 0,
+                          max: 1,
+                        },
+                      ],
+                    },
+                    typeArguments: {
+                      kinds: ['object'],
+                      values: {
+                        kinds: ['object'],
+                        required: ['typeParameter'],
+                        members: {
+                          typeParameter: {
+                            kinds: ['string'],
+                            pattern: [
+                              { of: [[65, 90]], min: 1, max: 1 },
+                              {
+                                of: [
+                                  [65, 90],
+                                  [97, 122],
+                                ],
+                                min: 0,
+                              },
+                            ],
+                          },
+                        },
+                        closed: ['typeParameter'],
+                      },
+                      minMembers: 1,
+                    },
+                  },
+                  closed: ['$ref', 'typeArguments'],
+                },
+                {
+                  kinds: ['object'],
+                  required: ['type', 'description'],
+                  members: {
+                    description: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[0, 1114111]], min: 0 },
+                        {
+                          of: [
+                            [0, 8],
+                            [14, 31],
+                            [33, 159],
+                            [161, 5759],
+                            [5761, 8191],
+                            [8203, 8231],
+                            [8234, 8238],
+                            [8240, 8286],
+                            [8288, 12287],
+                            [12289, 65278],
+                            [65280, 1114111],
+                          ],
+                          min: 1,
+                          max: 1,
+                        },
+                        { of: [[0, 1114111]], min: 0 },
+                      ],
+                    },
+                    format: { kinds: ['string'], enum: ['date-time'] },
+                    minimum: { kinds: ['integer'] },
+                    type: {
+                      kinds: ['string'],
+                      enum: ['integer', 'string', 'boolean'],
+                    },
+                  },
+                  closed: ['description', 'format', 'minimum', 'type'],
+                },
+                {
+                  kinds: ['object'],
+                  required: ['typeParameter'],
+                  members: {
+                    typeParameter: {
+                      kinds: ['string'],
+                      pattern: [
+                        { of: [[65, 90]], min: 1, max: 1 },
+                        {
+                          of: [
+                            [65, 90],
+                            [97, 122],
+                          ],
+                          min: 0,
+                        },
+                      ],
+                    },
+                  },
+                  closed: ['typeParameter'],
+                },
+                {
+                  kinds: ['object'],
+                  required: ['decided'],
+                  members: {
+                    decided: {
+                      kinds: ['object'],
+                      required: ['by', 'in'],
+                      members: {
+                        by: {
+                          kinds: ['object'],
+                          required: ['member'],
+                          members: {
+                            member: { kinds: ['string'], minLength: 1 },
+                          },
+                          closed: ['member'],
+                        },
+                        in: { kinds: ['string'], enum: ['takes'] },
+                      },
+                      closed: ['by', 'in'],
+                    },
+                  },
+                  closed: ['decided'],
+                },
+              ],
+            },
+            sends: {
+              kinds: ['string'],
+              pattern: [
+                {
+                  either: [
+                    [
+                      { of: [[47, 47]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 1,
+                      },
+                    ],
+                  ],
+                  min: 1,
+                },
+              ],
+            },
+          },
+          closed: [
+            'docs',
+            'method',
+            'option',
+            'parameter',
+            'schema',
+            'sends',
+            'value',
+          ],
+        },
+      },
+    },
+    closed: ['$comment', 'defaults'],
   },
   ClientRefresh: {
     kinds: ['object'],
@@ -2051,7 +2406,7 @@ export const REQUIRED_SCHEMAS: {
         members: {
           progress: {
             kinds: ['object'],
-            required: ['upload', 'bytesUploaded', 'totalBytes'],
+            required: ['upload', 'bytesUploaded'],
             members: {
               bytesUploaded: { kinds: ['integer'], minimum: 0 },
               totalBytes: { kinds: ['integer'], minimum: 0 },
@@ -2114,7 +2469,7 @@ export const REQUIRED_SCHEMAS: {
       {
         kinds: ['object'],
         required: ['claimed'],
-        members: { claimed: { kinds: ['object'] } },
+        members: { claimed: { ref: 'HeldJobRecord' } },
         closed: ['claimed'],
       },
       {
@@ -2535,39 +2890,13 @@ export const REQUIRED_SCHEMAS: {
       {
         kinds: ['object'],
         required: ['state'],
-        members: {
-          state: {
-            kinds: ['string'],
-            enum: [
-              'initial',
-              'connecting',
-              'open',
-              'reconnecting',
-              'degraded',
-              'unauthenticated',
-              'closed',
-            ],
-          },
-        },
+        members: { state: { ref: 'ConnectionState' } },
         closed: ['state'],
       },
       {
         kinds: ['object'],
         required: ['stays'],
-        members: {
-          stays: {
-            kinds: ['string'],
-            enum: [
-              'initial',
-              'connecting',
-              'open',
-              'reconnecting',
-              'degraded',
-              'unauthenticated',
-              'closed',
-            ],
-          },
-        },
+        members: { stays: { ref: 'ConnectionState' } },
         closed: ['stays'],
       },
       {
@@ -2807,6 +3136,18 @@ export const REQUIRED_SCHEMAS: {
     required: ['did', 'description'],
     members: { description: { ref: 'KbDescription' }, did: { ref: 'UserId' } },
     closed: ['description', 'did'],
+  },
+  ConnectionState: {
+    kinds: ['string'],
+    enum: [
+      'initial',
+      'connecting',
+      'open',
+      'reconnecting',
+      'degraded',
+      'unauthenticated',
+      'closed',
+    ],
   },
   ContentFormat: { kinds: ['string'] },
   ContextualSummaryResponse: {
@@ -3067,6 +3408,90 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['$comment', 'commands'],
   },
+  ControlRpcCodes: {
+    kinds: ['object'],
+    required: ['$comment', 'codes'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      codes: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['number', 'name', 'docs'],
+          members: {
+            data: { ref: 'ErrorData' },
+            docs: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[0, 1114111]], min: 0 },
+                {
+                  of: [
+                    [0, 8],
+                    [14, 31],
+                    [33, 159],
+                    [161, 5759],
+                    [5761, 8191],
+                    [8203, 8231],
+                    [8234, 8238],
+                    [8240, 8286],
+                    [8288, 12287],
+                    [12289, 65278],
+                    [65280, 1114111],
+                  ],
+                  min: 1,
+                  max: 1,
+                },
+                { of: [[0, 1114111]], min: 0 },
+              ],
+            },
+            name: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[97, 122]], min: 1 },
+                {
+                  either: [
+                    [
+                      { of: [[45, 45]], min: 1, max: 1 },
+                      { of: [[97, 122]], min: 1 },
+                    ],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+            number: { kinds: ['integer'] },
+          },
+          closed: ['data', 'docs', 'name', 'number'],
+        },
+      },
+    },
+    closed: ['$comment', 'codes'],
+  },
+  ControlSender: { kinds: ['string'], enum: ['client', 'launcher'] },
   CreateAnnotationRequest: {
     kinds: ['object'],
     required: ['target', 'motivation'],
@@ -3132,11 +3557,21 @@ export const REQUIRED_SCHEMAS: {
       did: { kinds: ['string'] },
       host: { kinds: ['string'] },
       managedBy: { kinds: ['string'] },
-      placement: { kinds: ['string'], enum: ['local', 'codespace'] },
-      port: { kinds: ['integer'] },
+      placement: { ref: 'KbPlacement' },
+      port: { kinds: ['integer'], minimum: 1, maximum: 65535 },
       repo: { kinds: ['string'] },
       siteName: { kinds: ['string'] },
     },
+  },
+  DiscoveryAbsent: {
+    kinds: ['object'],
+    required: ['kind', 'reason'],
+    members: {
+      diagnostic: { kinds: ['string'], minLength: 1 },
+      kind: { kinds: ['string'], enum: ['absent'] },
+      reason: { ref: 'DiscoveryAbsentReason' },
+    },
+    closed: ['diagnostic', 'kind', 'reason'],
   },
   DiscoveryAbsentReason: {
     kinds: ['string'],
@@ -3148,6 +3583,21 @@ export const REQUIRED_SCHEMAS: {
       'unreadable',
     ],
   },
+  DiscoveryDiff: {
+    kinds: ['object'],
+    required: ['state', 'added', 'updated', 'removed', 'duplicated'],
+    members: {
+      added: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      duplicated: {
+        kinds: ['array'],
+        items: { kinds: ['string'], minLength: 1 },
+      },
+      removed: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      state: { ref: 'DiscoveryState' },
+      updated: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+    },
+    closed: ['added', 'duplicated', 'removed', 'state', 'updated'],
+  },
   DiscoveryDocument: {
     kinds: ['object'],
     required: ['version', 'kbs'],
@@ -3155,6 +3605,38 @@ export const REQUIRED_SCHEMAS: {
       kbs: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
       version: { kinds: ['integer'], enum: [1] },
     },
+  },
+  DiscoveryManaged: {
+    kinds: ['object'],
+    required: ['kind', 'kbs'],
+    members: {
+      kbs: { kinds: ['array'], items: { ref: 'DiscoveredKB' } },
+      kind: { kinds: ['string'], enum: ['managed'] },
+    },
+    closed: ['kbs', 'kind'],
+  },
+  DiscoveryRead: {
+    kinds: ['object'],
+    oneOf: [
+      { ref: 'DiscoveryAbsent' },
+      { ref: 'DiscoveryManaged' },
+      { ref: 'DiscoveryUnchanged' },
+    ],
+    discriminator: {
+      property: 'kind',
+      mapping: { absent: 0, managed: 1, unchanged: 2 },
+    },
+  },
+  DiscoveryState: {
+    kinds: ['object'],
+    oneOf: [{ ref: 'DiscoveryAbsent' }, { ref: 'DiscoveryManaged' }],
+    discriminator: { property: 'kind', mapping: { absent: 0, managed: 1 } },
+  },
+  DiscoveryUnchanged: {
+    kinds: ['object'],
+    required: ['kind'],
+    members: { kind: { kinds: ['string'], enum: ['unchanged'] } },
+    closed: ['kind'],
   },
   DispatcherConfig: {
     kinds: ['object'],
@@ -3255,18 +3737,7 @@ export const REQUIRED_SCHEMAS: {
     required: ['provider', 'model'],
     members: {
       model: { kinds: ['string'], minLength: 1 },
-      provider: {
-        kinds: ['string'],
-        enum: [
-          'anthropic',
-          'google',
-          'llamacpp',
-          'ollama',
-          'openai',
-          'together',
-          'vllm',
-        ],
-      },
+      provider: { ref: 'InferenceProvider' },
     },
     closed: ['model', 'provider'],
   },
@@ -3342,25 +3813,31 @@ export const REQUIRED_SCHEMAS: {
       choices: { kinds: ['array'], items: { ref: 'Target' } },
       code: {
         kinds: ['string'],
-        pattern: [
-          { of: [[99, 99]], min: 1, max: 1 },
-          { of: [[111, 111]], min: 1, max: 1 },
-          { of: [[110, 110]], min: 1, max: 1 },
-          { of: [[116, 116]], min: 1, max: 1 },
-          { of: [[114, 114]], min: 1, max: 1 },
-          { of: [[111, 111]], min: 1, max: 1 },
-          { of: [[108, 108]], min: 1, max: 1 },
-          { of: [[46, 46]], min: 1, max: 1 },
-          { of: [[97, 122]], min: 1 },
-          {
-            either: [
-              [
-                { of: [[45, 45]], min: 1, max: 1 },
-                { of: [[97, 122]], min: 1 },
-              ],
-            ],
-            min: 0,
-          },
+        enum: [
+          'control.invalid-params',
+          'control.unsupported-api-version',
+          'control.invalid-request',
+          'control.invalid-service',
+          'control.invalid-value',
+          'control.unknown-setting',
+          'control.target-required',
+          'control.target-ambiguous',
+          'control.root-not-found',
+          'control.root-not-registered',
+          'control.stack-not-running',
+          'control.stack-running',
+          'control.start-in-progress',
+          'control.runtime-unavailable',
+          'control.dependency-unavailable',
+          'control.unreachable',
+          'control.instance-in-use',
+          'control.instance-not-found',
+          'control.confirmation-required',
+          'control.unreadable-state',
+          'control.already-signed-in',
+          'control.sign-in-failed',
+          'control.cancelled',
+          'control.failed',
         ],
       },
       fields: { kinds: ['array'], items: { ref: 'FieldFault' } },
@@ -3538,7 +4015,7 @@ export const REQUIRED_SCHEMAS: {
             minItems: 1,
             items: {
               kinds: ['object'],
-              required: ['code', 'docs'],
+              required: ['code', 'docs', 'rpc', 'retryable'],
               members: {
                 code: {
                   kinds: ['string'],
@@ -3579,8 +4056,10 @@ export const REQUIRED_SCHEMAS: {
                     { of: [[0, 1114111]], min: 0 },
                   ],
                 },
+                retryable: { kinds: ['boolean'] },
+                rpc: { kinds: ['integer'] },
               },
-              closed: ['code', 'docs'],
+              closed: ['code', 'docs', 'retryable', 'rpc'],
             },
           },
           docs: {
@@ -4068,9 +4547,31 @@ export const REQUIRED_SCHEMAS: {
                         { of: [[0, 1114111]], min: 0 },
                       ],
                     },
+                    limitRefusals: {
+                      kinds: ['array'],
+                      minItems: 1,
+                      items: {
+                        kinds: ['object'],
+                        required: ['status', 'code'],
+                        members: {
+                          code: {
+                            kinds: ['string'],
+                            enum: [
+                              'streams',
+                              'emit-rate',
+                              'unanswered-requests',
+                              'capacity',
+                              'refusal-rate',
+                            ],
+                          },
+                          status: { ref: 'HttpStatus' },
+                        },
+                        closed: ['code', 'status'],
+                      },
+                    },
                     status: { ref: 'HttpStatus' },
                   },
-                  closed: ['code', 'docs', 'status'],
+                  closed: ['code', 'docs', 'limitRefusals', 'status'],
                 },
                 {
                   kinds: ['object'],
@@ -4276,6 +4777,49 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['string'],
     enum: ['transient', 'deterministic', 'withheld'],
   },
+  Fault: {
+    kinds: ['object'],
+    required: ['member', 'reason'],
+    members: {
+      member: {
+        kinds: ['string'],
+        pattern: [
+          {
+            either: [
+              [
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 1,
+                },
+                {
+                  either: [
+                    [
+                      { of: [[46, 46]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 1,
+                      },
+                    ],
+                  ],
+                  min: 0,
+                },
+              ],
+            ],
+            min: 0,
+            max: 1,
+          },
+        ],
+      },
+      reason: { ref: 'FrameRefusalReason' },
+    },
+    closed: ['member', 'reason'],
+  },
   FieldFault: {
     kinds: ['object'],
     required: ['field', 'message'],
@@ -4339,6 +4883,59 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['schema'],
     members: { _userId: { ref: 'UserId' }, schema: { ref: 'TagSchema' } },
+  },
+  FrameRefusal: {
+    kinds: ['object'],
+    required: ['channel', 'member', 'reason'],
+    members: {
+      channel: { kinds: ['string'], minLength: 1 },
+      correlationId: { kinds: ['string'], minLength: 1 },
+      member: {
+        kinds: ['string'],
+        pattern: [
+          {
+            either: [
+              [
+                {
+                  of: [
+                    [65, 90],
+                    [97, 122],
+                  ],
+                  min: 1,
+                },
+                {
+                  either: [
+                    [
+                      { of: [[46, 46]], min: 1, max: 1 },
+                      {
+                        of: [
+                          [65, 90],
+                          [97, 122],
+                        ],
+                        min: 1,
+                      },
+                    ],
+                  ],
+                  min: 0,
+                },
+              ],
+            ],
+            min: 0,
+            max: 1,
+          },
+        ],
+      },
+      reason: { ref: 'FrameRefusalReason' },
+      scope: { ref: 'ResourceId' },
+    },
+    closed: [
+      'channel',
+      'correlationId',
+      'member',
+      'payload',
+      'reason',
+      'scope',
+    ],
   },
   FrameRefusalReason: { kinds: ['string'], enum: ['lacks', 'malformed'] },
   GatewayConfig: {
@@ -4775,6 +5372,66 @@ export const REQUIRED_SCHEMAS: {
       version: { kinds: ['string'] },
     },
   },
+  HeldJobRecord: {
+    kinds: ['object'],
+    required: [
+      'jobId',
+      'jobType',
+      'resourceId',
+      'params',
+      'completedUnits',
+      'unitCursors',
+      'retryCount',
+      'maxRetries',
+    ],
+    members: {
+      completedUnits: { kinds: ['array'], items: { kinds: ['string'] } },
+      jobId: { ref: 'JobId' },
+      jobType: { ref: 'JobType' },
+      maxRetries: { kinds: ['integer'], minimum: 0 },
+      params: { ref: 'JobParams' },
+      resourceId: { ref: 'ResourceId' },
+      retryCount: { kinds: ['integer'], minimum: 0 },
+      unitCursors: { kinds: ['object'], values: { ref: 'UnitCursor' } },
+    },
+    closed: [
+      'completedUnits',
+      'jobId',
+      'jobType',
+      'maxRetries',
+      'params',
+      'resourceId',
+      'retryCount',
+      'unitCursors',
+    ],
+  },
+  HeldJobStall: {
+    kinds: ['object'],
+    required: [
+      'jobId',
+      'jobType',
+      'heldSince',
+      'lastActivityAt',
+      'silentForMs',
+      'thresholdMs',
+    ],
+    members: {
+      heldSince: { kinds: ['string'] },
+      jobId: { ref: 'JobId' },
+      jobType: { ref: 'JobType' },
+      lastActivityAt: { kinds: ['string'] },
+      silentForMs: { kinds: ['integer'], minimum: 0 },
+      thresholdMs: { kinds: ['integer'], minimum: 0 },
+    },
+    closed: [
+      'heldSince',
+      'jobId',
+      'jobType',
+      'lastActivityAt',
+      'silentForMs',
+      'thresholdMs',
+    ],
+  },
   HighlightingJobParams: {
     kinds: ['object'],
     required: ['motivation'],
@@ -5079,18 +5736,7 @@ export const REQUIRED_SCHEMAS: {
             kinds: ['object'],
             values: { ref: 'Provider' },
             minMembers: 1,
-            names: {
-              kinds: ['string'],
-              enum: [
-                'anthropic',
-                'google',
-                'llamacpp',
-                'ollama',
-                'openai',
-                'together',
-                'vllm',
-              ],
-            },
+            names: { ref: 'InferenceProvider' },
           },
         },
         closed: ['engines', 'providers'],
@@ -5120,6 +5766,18 @@ export const REQUIRED_SCHEMAS: {
         },
       },
     },
+  },
+  InferenceProvider: {
+    kinds: ['string'],
+    enum: [
+      'anthropic',
+      'google',
+      'llamacpp',
+      'ollama',
+      'openai',
+      'together',
+      'vllm',
+    ],
   },
   IssuedTokens: {
     kinds: ['object'],
@@ -5300,6 +5958,15 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['completedAt', 'metadata', 'params', 'startedAt', 'status'],
   },
+  JobCheckpoint: {
+    kinds: ['object'],
+    required: ['completedUnits'],
+    members: {
+      completedUnits: { kinds: ['array'], items: { kinds: ['string'] } },
+      unitCursors: { kinds: ['object'], values: { ref: 'UnitCursor' } },
+    },
+    closed: ['completedUnits', 'unitCursors'],
+  },
   JobCheckpointCommand: {
     kinds: ['object'],
     required: ['jobId', 'completedUnits'],
@@ -5456,6 +6123,15 @@ export const REQUIRED_SCHEMAS: {
       jobType: { ref: 'JobType' },
       willRetry: { kinds: ['boolean'] },
     },
+  },
+  JobFailure: {
+    kinds: ['object'],
+    members: {
+      completedUnits: { kinds: ['array'], items: { kinds: ['string'] } },
+      failureClass: { ref: 'FailureClass' },
+      unitCursors: { kinds: ['object'], values: { ref: 'UnitCursor' } },
+    },
+    closed: ['completedUnits', 'failureClass', 'unitCursors'],
   },
   JobFilter: {
     kinds: ['object'],
@@ -5686,6 +6362,14 @@ export const REQUIRED_SCHEMAS: {
     oneOf: [{ ref: 'MarkJobQueuedEvent' }, { ref: 'YieldJobQueuedEvent' }],
     discriminator: { property: 'jobType', mapping: { mark: 0, yield: 1 } },
   },
+  JobReached: {
+    kinds: ['object'],
+    members: {
+      completedUnits: { kinds: ['array'], items: { kinds: ['string'] } },
+      unitCursors: { kinds: ['object'], values: { ref: 'UnitCursor' } },
+    },
+    closed: ['completedUnits', 'unitCursors'],
+  },
   JobRecord: {
     kinds: ['object'],
     required: ['job', 'lastProgressAt'],
@@ -5869,6 +6553,7 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['expectedDid', 'observedDid'],
   },
+  KbPlacement: { kinds: ['string'], enum: ['local', 'codespace'] },
   KbRead: {
     kinds: ['object'],
     required: ['at'],
@@ -5962,7 +6647,7 @@ export const REQUIRED_SCHEMAS: {
       key: { kinds: ['string'] },
       lan: { kinds: ['string'] },
       name: { kinds: ['string'] },
-      placement: { kinds: ['string'], enum: ['local', 'codespace'] },
+      placement: { ref: 'KbPlacement' },
       recorded: { kinds: ['boolean'] },
       repo: { kinds: ['string'] },
       root: { kinds: ['string'] },
@@ -7268,6 +7953,67 @@ export const REQUIRED_SCHEMAS: {
     required: ['name'],
     members: { name: { kinds: ['string'] } },
   },
+  PrincipalsRoles: {
+    kinds: ['object'],
+    required: ['$comment', 'rolesClaim', 'roles', 'kindClaim', 'agentKind'],
+    members: {
+      $comment: {
+        kinds: ['string'],
+        pattern: [
+          { of: [[0, 1114111]], min: 0 },
+          {
+            of: [
+              [0, 8],
+              [14, 31],
+              [33, 159],
+              [161, 5759],
+              [5761, 8191],
+              [8203, 8231],
+              [8234, 8238],
+              [8240, 8286],
+              [8288, 12287],
+              [12289, 65278],
+              [65280, 1114111],
+            ],
+            min: 1,
+            max: 1,
+          },
+          { of: [[0, 1114111]], min: 0 },
+        ],
+      },
+      agentKind: { kinds: ['string'], minLength: 1 },
+      kindClaim: { kinds: ['string'], minLength: 1 },
+      roles: {
+        kinds: ['array'],
+        minItems: 1,
+        items: {
+          kinds: ['object'],
+          required: ['role', 'docs'],
+          members: {
+            docs: { kinds: ['string'], minLength: 1 },
+            role: {
+              kinds: ['string'],
+              pattern: [
+                { of: [[97, 122]], min: 1 },
+                {
+                  either: [
+                    [
+                      { of: [[45, 45]], min: 1, max: 1 },
+                      { of: [[97, 122]], min: 1 },
+                    ],
+                  ],
+                  min: 0,
+                },
+              ],
+            },
+          },
+          closed: ['docs', 'role'],
+        },
+      },
+      rolesClaim: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['$comment', 'agentKind', 'kindClaim', 'roles', 'rolesClaim'],
+  },
   Profile: {
     kinds: ['object'],
     required: ['name', 'since'],
@@ -7390,7 +8136,7 @@ export const REQUIRED_SCHEMAS: {
       archiveOriginal: { kinds: ['boolean'] },
       cloneToken: { kinds: ['string'] },
       entityTypes: { kinds: ['array'], items: { kinds: ['string'] } },
-      file: { ref: 'Binary' },
+      file: { ref: 'ByteSource' },
       format: { kinds: ['string'] },
       generationPrompt: { kinds: ['string'] },
       generator: { ref: 'OneOrMoreAgents' },
@@ -7874,7 +8620,7 @@ export const REQUIRED_SCHEMAS: {
       identityError: { kinds: ['string'] },
       lastUsed: { kinds: ['string'] },
       path: { kinds: ['string'] },
-      placement: { kinds: ['string'], enum: ['local', 'codespace'] },
+      placement: { ref: 'KbPlacement' },
       present: { kinds: ['boolean'] },
       reachable: { kinds: ['boolean'] },
       registered: { kinds: ['boolean'] },
@@ -9111,18 +9857,7 @@ export const REQUIRED_SCHEMAS: {
         closed: ['error', 'phase', 'summary'],
       },
       status: { kinds: ['string'], enum: ['ok'] },
-      stream: {
-        kinds: ['string'],
-        enum: [
-          'initial',
-          'connecting',
-          'open',
-          'reconnecting',
-          'degraded',
-          'unauthenticated',
-          'closed',
-        ],
-      },
+      stream: { ref: 'ConnectionState' },
     },
     closed: [
       'eventsProcessed',
@@ -9468,7 +10203,7 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['access', 'refresh', 'clientId', 'tokenEndpoint'],
     members: {
-      access: { kinds: ['string'] },
+      access: { ref: 'AccessToken' },
       clientId: { kinds: ['string'] },
       personKey: { kinds: ['string'] },
       refresh: { kinds: ['string'] },
@@ -9552,6 +10287,7 @@ export const REQUIRED_SCHEMAS: {
       value: { kinds: ['string'] },
     },
   },
+  System: { kinds: ['string'], enum: ['macos', 'windows', 'other'] },
   TabCheck: {
     kinds: ['object'],
     oneOf: [
@@ -9657,7 +10393,7 @@ export const REQUIRED_SCHEMAS: {
     kinds: ['object'],
     required: ['kind'],
     members: {
-      kind: { kinds: ['string'], enum: ['local', 'codespace'] },
+      kind: { ref: 'KbPlacement' },
       repo: {
         kinds: ['string'],
         pattern: [
@@ -9757,6 +10493,15 @@ export const REQUIRED_SCHEMAS: {
       value: { kinds: ['string'] },
     },
   },
+  TraceCarrier: {
+    kinds: ['object'],
+    required: ['traceparent'],
+    members: {
+      traceparent: { kinds: ['string'], minLength: 1 },
+      tracestate: { kinds: ['string'], minLength: 1 },
+    },
+    closed: ['traceparent', 'tracestate'],
+  },
   UnitCursor: {
     kinds: ['object'],
     required: ['next', 'size', 'found', 'emitted', 'errors'],
@@ -9785,7 +10530,7 @@ export const REQUIRED_SCHEMAS: {
     oneOf: [
       {
         kinds: ['object'],
-        required: ['phase', 'totalBytes'],
+        required: ['phase'],
         members: {
           phase: { kinds: ['string'], enum: ['started'] },
           totalBytes: { kinds: ['integer'], minimum: 0 },
@@ -9794,7 +10539,7 @@ export const REQUIRED_SCHEMAS: {
       },
       {
         kinds: ['object'],
-        required: ['phase', 'bytesUploaded', 'totalBytes'],
+        required: ['phase', 'bytesUploaded'],
         members: {
           bytesUploaded: { kinds: ['integer'], minimum: 0 },
           phase: { kinds: ['string'], enum: ['progress'] },
@@ -10002,6 +10747,16 @@ export const REQUIRED_SCHEMAS: {
     },
     closed: ['following', 'kb', 'reconcile', 'status'],
   },
+  WorkerActiveJob: {
+    kinds: ['object'],
+    required: ['jobId', 'type', 'since'],
+    members: {
+      jobId: { ref: 'JobId' },
+      since: { kinds: ['string'] },
+      type: { ref: 'JobType' },
+    },
+    closed: ['jobId', 'since', 'type'],
+  },
   WorkerConfig: {
     kinds: ['object'],
     required: [
@@ -10056,13 +10811,7 @@ export const REQUIRED_SCHEMAS: {
     members: {
       activeJob: {
         kinds: ['object', 'null'],
-        required: ['jobId', 'type', 'since'],
-        members: {
-          jobId: { ref: 'JobId' },
-          since: { kinds: ['string'] },
-          type: { ref: 'JobType' },
-        },
-        closed: ['jobId', 'since', 'type'],
+        oneOf: [{ kinds: ['null'] }, { ref: 'WorkerActiveJob' }],
       },
       engine: { ref: 'Engine' },
       jobs: { kinds: ['array'], minItems: 1, items: { ref: 'JobFilter' } },
@@ -10160,6 +10909,36 @@ export const REQUIRED_SCHEMAS: {
       },
     },
     closed: ['apiVersion', 'kind', 'metadata', 'spec'],
+  },
+  WorkerVitals: {
+    kinds: ['object'],
+    required: [
+      'lastQueuedEventAt',
+      'lastClaimAt',
+      'lastFinishedAt',
+      'lastActivityAt',
+      'activeJob',
+      'jobsCompleted',
+    ],
+    members: {
+      activeJob: {
+        kinds: ['object', 'null'],
+        oneOf: [{ kinds: ['null'] }, { ref: 'WorkerActiveJob' }],
+      },
+      jobsCompleted: { kinds: ['integer'], minimum: 0 },
+      lastActivityAt: { kinds: ['string', 'null'] },
+      lastClaimAt: { kinds: ['string', 'null'] },
+      lastFinishedAt: { kinds: ['string', 'null'] },
+      lastQueuedEventAt: { kinds: ['string', 'null'] },
+    },
+    closed: [
+      'activeJob',
+      'jobsCompleted',
+      'lastActivityAt',
+      'lastClaimAt',
+      'lastFinishedAt',
+      'lastQueuedEventAt',
+    ],
   },
   WorkloadStatus: {
     kinds: ['object'],

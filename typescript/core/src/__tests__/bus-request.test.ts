@@ -20,7 +20,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { XynologError } from '../errors';
 import type { EventMap } from '../bus-protocol';
-import type { ConnectionState } from '../transport';
+import type { ConnectionState } from '../payload-types';
 
 import { BusRequestError } from '../bus-request';
 import { Bus, type BusPrimitive } from '../bus';

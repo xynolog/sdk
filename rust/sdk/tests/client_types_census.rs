@@ -1,11 +1,13 @@
-//! SearchState and JobEvent are generic, so they are written by hand; this
-//! census holds each to its schema in protocol/specs/src/client/types. The
+//! SearchState, JobEvent and CacheState are generic, so they are written by
+//! hand; this census holds each to its schema in
+//! protocol/specs/src/client/types. The
 //! compiler holds each list below to the type, through a pattern that names
 //! every member and every variant, and the test holds the list to the
 //! schema, so a member or a branch either side gains or loses fails.
 
 use serde_json::Value;
 use std::collections::BTreeSet;
+use xynolog::cache::CacheState;
 use xynolog::namespaces::JobEvent;
 use xynolog::state::SearchState;
 
@@ -35,6 +37,21 @@ fn job_event_kind<C>(event: &JobEvent<C>) -> &'static str {
             reason: _,
         } => JOB_EVENT[3],
         JobEvent::Complete(_) => JOB_EVENT[4],
+    }
+}
+
+const CACHE_STATE: [(&str, &[&str]); 3] = [
+    ("pending", &["status"]),
+    ("ready", &["status", "value"]),
+    ("failed", &["status", "error"]),
+];
+
+#[allow(dead_code)]
+fn cache_state_branch<T>(state: &CacheState<T>) -> (&'static str, &'static [&'static str]) {
+    match state {
+        CacheState::Pending => CACHE_STATE[0],
+        CacheState::Ready(_) => CACHE_STATE[1],
+        CacheState::Failed(_) => CACHE_STATE[2],
     }
 }
 
@@ -86,4 +103,26 @@ fn job_event_has_the_schemas_branches_each_of_its_members() {
         .find(|branch| branch["properties"]["kind"]["enum"][0] == "refused")
         .expect("JobEvent has a refused branch");
     assert_eq!(names(&refused["properties"]["data"]), set(&REFUSED));
+}
+
+#[test]
+fn cache_state_has_the_schemas_branches_each_of_its_members() {
+    let cache_state = schema("CacheState");
+    let branches = cache_state["oneOf"]
+        .as_array()
+        .expect("CacheState is a union");
+    let told: BTreeSet<(String, BTreeSet<String>)> = branches
+        .iter()
+        .map(|branch| {
+            let status = branch["properties"]["status"]["enum"][0]
+                .as_str()
+                .expect("a branch is told by its status");
+            (status.to_owned(), names(branch))
+        })
+        .collect();
+    let held: BTreeSet<(String, BTreeSet<String>)> = CACHE_STATE
+        .iter()
+        .map(|(status, members)| ((*status).to_owned(), set(members)))
+        .collect();
+    assert_eq!(told, held);
 }

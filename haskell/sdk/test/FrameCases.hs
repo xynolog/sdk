@@ -59,8 +59,8 @@ withBus action = do
     )
     (Transport.dispose . fst)
     $ \(transport, input) -> do
-      Transport.setState input Transport.Connecting
-      Transport.setState input Transport.Open
+      Transport.setState input Transport.ConnectionStateConnecting
+      Transport.setState input Transport.ConnectionStateOpen
       clock <- newTVarIO 0
       let bus =
             Bus.newBus

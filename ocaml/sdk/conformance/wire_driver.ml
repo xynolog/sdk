@@ -19,6 +19,13 @@ let field name input =
 let string name input = J.to_string (field name input)
 let optional read name input = J.to_option read (field name input)
 
+(* The record [of_json] reads of an operation's arguments. *)
+let record of_json input =
+  match of_json input with
+  | Ok value -> value
+  | Error (fault : Xynolog.Models.fault) ->
+      raise (Misuse ("invalid argument " ^ fault.member))
+
 let write stdout value =
   Eio.Flow.copy_string (Yojson.Safe.to_string value ^ "\n") stdout
 
@@ -41,14 +48,7 @@ let resource_of_name value =
   | Ok value -> value
   | Error _ -> raise (Misuse "invalid resource ID")
 
-let state = function
-  | S.Initial -> "initial"
-  | S.Connecting -> "connecting"
-  | S.Open -> "open"
-  | S.Reconnecting -> "reconnecting"
-  | S.Degraded -> "degraded"
-  | S.Unauthenticated -> "unauthenticated"
-  | S.Closed -> "closed"
+let state = Xynolog.Enums.Connection_state.to_string
 
 let error ?status code =
   let fields = [ ("code", text code); ("detail", text code) ] in
@@ -77,23 +77,103 @@ type client = {
   client_id : string;
   http : H.t;
   clock : Xynolog.Clock.t;
+  request_timeout_ms : int;
 }
 
 type mode = Wire | Worker | Live
+
+(* A case's timing, each row read into what holds it. *)
+type timing = {
+  client : Xynolog.Client_timing.client;
+  transport : Xynolog.Client_timing.transport;
+  job_claim_timeout_ms : int option;
+  held_job_stall_ms : int option;
+  held_job_stall_check_ms : int option;
+  mark_commit_timeout_ms : int option;
+}
+
+let retry_budget value =
+  match
+    Xynolog.Models.decode Xynolog.Models.retry_budget
+      (Yojson.Safe.to_string value)
+  with
+  | Ok budget -> Xynolog.Records.Retry_budget.of_model budget
+  | Error _ -> raise (Misuse "invalid retry budget")
+
+(* Only a worker holds claim options, and a wire driver holds no client: a name
+   that nothing the mode builds holds is misuse. *)
+let read_timing mode settings =
+  let rows =
+    match settings with
+    | `Null -> []
+    | `Assoc rows -> rows
+    | _ -> raise (Misuse "timing is not an object")
+  in
+  let held = ref [] in
+  let row holds read name =
+    if holds then (
+      held := name :: !held;
+      Option.map read (List.assoc_opt name rows))
+    else None
+  in
+  let defaults = Xynolog.Client_timing.client_defaults in
+  let client : Xynolog.Client_timing.client =
+    let time name default =
+      Option.value (row (mode <> Wire) J.to_int name) ~default
+    in
+    {
+      bus_request_timeout_ms =
+        time "busRequestTimeoutMs" defaults.bus_request_timeout_ms;
+      invalidation_window_ms =
+        time "invalidationWindowMs" defaults.invalidation_window_ms;
+      job_silence_ms = time "jobSilenceMs" defaults.job_silence_ms;
+      job_status_poll_ms = time "jobStatusPollMs" defaults.job_status_poll_ms;
+    }
+  in
+  let defaults = Xynolog.Client_timing.transport_defaults in
+  let transport : Xynolog.Client_timing.transport =
+    let time name default = Option.value (row true J.to_int name) ~default in
+    {
+      emit_retry =
+        Option.value
+          (row true retry_budget "emitRetry")
+          ~default:defaults.emit_retry;
+      http_request_timeout_ms =
+        time "httpRequestTimeoutMs" defaults.http_request_timeout_ms;
+      stream_open_timeout_ms =
+        time "streamOpenTimeoutMs" defaults.stream_open_timeout_ms;
+      reconnect_ms = time "reconnectMs" defaults.reconnect_ms;
+      linger_ms = time "lingerMs" defaults.linger_ms;
+      seen_event_ids_count =
+        time "seenEventIdsCount" defaults.seen_event_ids_count;
+      lazy_remove_ms = time "lazyRemoveMs" defaults.lazy_remove_ms;
+    }
+  in
+  let claim = row (mode = Worker) J.to_int in
+  let timing =
+    {
+      client;
+      transport;
+      job_claim_timeout_ms = claim "jobClaimTimeoutMs";
+      held_job_stall_ms = claim "heldJobStallMs";
+      held_job_stall_check_ms = claim "heldJobStallCheckMs";
+      mark_commit_timeout_ms = claim "markCommitTimeoutMs";
+    }
+  in
+  match List.find_opt (fun (name, _) -> not (List.mem name !held)) rows with
+  | Some (name, _) -> raise (Misuse ("unknown timing " ^ name))
+  | None -> timing
 
 let query_key value =
   let name = string "query" value in
   let resource = optional J.to_string "resource" value in
   let argument =
-    if name = "resources" || name = "matchedResources" then
-      let page = [ ("limit", `Int 100); ("offset", `Int 0) ] in
-      let fields =
-        if name = "matchedResources" then
-          ("search", field "search" value) :: page
-        else page
-      in
-      Some (Yojson.Safe.to_string (`Assoc fields))
-    else optional J.to_string "annotation" value
+    match name with
+    | "resources" -> Some (Yojson.Safe.to_string (`Assoc []))
+    | "matchedResources" ->
+        Some
+          (Yojson.Safe.to_string (`Assoc [ ("search", field "search" value) ]))
+    | _ -> optional J.to_string "annotation" value
   in
   (name, resource, argument)
 
@@ -219,40 +299,7 @@ let run mode env =
         Cohttp.Header.to_list (Cohttp.Response.headers response),
         (body :> Eio.Flow.source_ty Eio.Resource.t) )
     in
-    let timing = field "timing" input in
-    let value settings name default =
-      Option.value (optional J.to_int name settings) ~default
-    in
-    let time name default = value timing name default in
-    let s = S.default_timing in
-    let subscription_timing : S.timing =
-      {
-        stream_open_timeout_ms =
-          time "streamOpenTimeoutMs" s.stream_open_timeout_ms;
-        reconnect_ms = time "reconnectMs" s.reconnect_ms;
-        max_reconnect_ms = time "maxReconnectMs" s.max_reconnect_ms;
-        degraded_threshold_ms =
-          time "degradedThresholdMs" s.degraded_threshold_ms;
-        reconnect_debounce_ms =
-          time "reconnectDebounceMs" s.reconnect_debounce_ms;
-        lazy_remove_ms = time "lazyRemoveMs" s.lazy_remove_ms;
-        linger_ms = time "lingerMs" s.linger_ms;
-        bus_request_timeout_ms =
-          time "busRequestTimeoutMs" s.bus_request_timeout_ms;
-      }
-    in
-    let h = H.default_timing in
-    let retry = field "emitRetry" timing in
-    let http_timing : H.timing =
-      {
-        emit_attempts = value retry "attempts" h.emit_attempts;
-        emit_initial_delay_ms =
-          value retry "initialDelayMs" h.emit_initial_delay_ms;
-        emit_max_delay_ms = value retry "maxDelayMs" h.emit_max_delay_ms;
-        emit_timeout_ms = time "emitTimeoutMs" h.emit_timeout_ms;
-        request_timeout_ms = time "httpRequestTimeoutMs" h.request_timeout_ms;
-      }
-    in
+    let timing = read_timing mode (field "timing" input) in
     let renewals =
       ref
         (Option.value
@@ -290,16 +337,15 @@ let run mode env =
     let global =
       match mode with
       | Worker ->
-          commit_timeout := optional J.to_int "markCommitTimeoutMs" timing;
           if field "commits" input = `Bool true then
-            W.channels @ W.commit_channels
-          else W.channels
+            Xynolog.Claims.job_claim_channels
+            @ Xynolog.Claims.job_commit_channels
+          else Xynolog.Claims.job_claim_channels
       | Live -> B.bridged_channels
       | Wire ->
           field "channels" input |> J.to_list
           |> List.map (fun value -> channel (J.to_string value))
     in
-    claim_timeout := optional J.to_int "jobClaimTimeoutMs" timing;
     let key () = uuid env in
     let http, subscription =
       match mode with
@@ -313,13 +359,9 @@ let run mode env =
             | _ -> ()
           in
           let facade =
-            Xynolog.Client.connect ~timing:subscription_timing ~http_timing
-              ?telemetry ~restore ~save
-              ?invalidation_window_ms:
-                (optional J.to_int "invalidationWindowMs" timing)
-              ?delegation_silence_ms:(optional J.to_int "jobSilenceMs" timing)
-              ?delegation_poll_ms:(optional J.to_int "jobStatusPollMs" timing)
-              ~sw ~clock ~session ~client_id ~key ~call ~global ~on_event ()
+            Xynolog.Client.connect ~client_timing:timing.client
+              ~transport_timing:timing.transport ?telemetry ~restore ~save ~sw
+              ~clock ~session ~client_id ~key ~call ~global ~on_event ()
           in
           let _release =
             Xynolog.Client.errors facade
@@ -337,8 +379,8 @@ let run mode env =
           (Xynolog.Client.http facade, Xynolog.Client.subscription facade)
       | Wire ->
           let http =
-            H.make ?telemetry ~clock ~session ~timing:http_timing ~key ~on_error
-              ~call ()
+            H.make ?telemetry ~clock ~session ~timing:timing.transport ~key
+              ~on_error ~call ()
           in
           let connect =
             S.authenticated
@@ -354,21 +396,33 @@ let run mode env =
               (H.subscribe http)
           in
           let subscription =
-            S.start ?telemetry ~timing:subscription_timing ~sw ~clock ~client_id
+            S.start ?telemetry ~timing:timing.transport ~sw ~clock ~client_id
               ~global ~scopes:[] ~connect ~on_event ()
           in
           (http, subscription)
     in
-    client := Some { subscription; session; client_id; http; clock };
-    stall_ms := Some (time "heldJobStallMs" W.default_stall_ms);
-    stall_check_ms := Some (time "heldJobStallCheckMs" W.default_stall_check_ms);
+    client :=
+      Some
+        {
+          subscription;
+          session;
+          client_id;
+          http;
+          clock;
+          request_timeout_ms = timing.client.bus_request_timeout_ms;
+        };
+    claim_timeout := timing.job_claim_timeout_ms;
+    stall_ms := timing.held_job_stall_ms;
+    stall_check_ms := timing.held_job_stall_check_ms;
+    commit_timeout := timing.mark_commit_timeout_ms;
     Fiber.fork_daemon ~sw (fun () ->
         let rec report previous =
           let current = S.await_state_change subscription ~from:previous in
           output_json (`Assoc [ ("state", text (state current)) ]);
-          if current <> S.Closed then report current
+          if current <> Xynolog.Enums.Connection_state.Closed then
+            report current
         in
-        report S.Initial;
+        report Xynolog.Enums.Connection_state.Initial;
         `Stop_daemon)
   in
   let emit client ?scope ?correlation_id channel payload =
@@ -512,25 +566,33 @@ let run mode env =
         (fun _ ->
           let hex () = String.concat "" (String.split_on_char '-' (uuid env)) in
           {
-            Xynolog.Wire_stream.parent =
+            Xynolog.Records.Trace_carrier.traceparent =
               "00-" ^ hex () ^ "-" ^ String.sub (hex ()) 0 16 ^ "-01";
-            state = None;
+            tracestate = None;
           })
         telemetry
     in
-    let on_refused code =
-      let code = Option.map H.request_code code in
+    let on_refused (refusal : Xynolog.Records.Claim_refusal.t) =
       let fields =
-        ("detail", text (Option.value code ~default:"invalid claim reply"))
-        :: Option.to_list (Option.map (fun code -> ("code", text code)) code)
+        ("detail", text refusal.message)
+        :: Option.to_list
+             (Option.map
+                (fun code ->
+                  ("code", text (Xynolog.Error_codes.Bus_request.code code)))
+                refusal.code)
       in
       output_json (`Assoc [ ("refused", `Assoc fields) ])
     in
     let on_cancel job =
       output_json (`Assoc [ ("signalled", text (W.id job)) ])
     in
-    let on_stalled job =
-      output_json (`Assoc [ ("stalled", text (W.id job)) ])
+    let on_stalled (stall : Xynolog.Records.Held_job_stall.t) =
+      output_json
+        (`Assoc
+           [
+             ( "stalled",
+               text (Xynolog.Identifiers.Job_id.to_string stall.job_id) );
+           ])
     in
     let stream =
       Xynolog.Client.Job.claim
@@ -550,28 +612,12 @@ let run mode env =
           match Xynolog.Claims.next stream with
           | Some job when not !stopping ->
               held := Some job;
-              let view =
-                `Assoc
-                  [
-                    ( "jobId",
-                      text (Xynolog.Identifiers.Job_id.to_string (W.job_id job))
-                    );
-                    ( "jobType",
-                      text (Xynolog.Enums.Job_type.to_string (W.job_type job))
-                    );
-                    ( "resourceId",
-                      text
-                        (Xynolog.Identifiers.Resource_id.to_string
-                           (W.resource_id job)) );
-                    ("params", W.params job);
-                    ( "completedUnits",
-                      `List (List.map text (W.completed_units job)) );
-                    ("unitCursors", W.unit_cursors job);
-                    ("retryCount", `Int (W.retry_count job));
-                    ("maxRetries", `Int (W.max_retries job));
-                  ]
-              in
-              output_json (`Assoc [ ("claimed", view) ]);
+              output_json
+                (`Assoc
+                   [
+                     ( "claimed",
+                       Xynolog.Records.Held_job_record.to_json (W.record job) );
+                   ]);
               consume ()
           | _ -> ()
         in
@@ -628,38 +674,13 @@ let run mode env =
     | "claim" when mode = Worker ->
         start_claims (field "accepts" input);
         done_
-    | "vitals" when mode = Worker ->
-        let vitals = Option.map Xynolog.Claims.vitals !claims in
-        let value get encode =
-          Option.fold ~none:`Null ~some:encode (Option.bind vitals get)
-        in
-        let stamp get = value get (fun time -> `Float time) in
-        let active_job =
-          value
-            (fun v -> v.Xynolog.Claims.active_job)
-            (fun (job, since) ->
-              `Assoc
-                [
-                  ("jobId", text (W.id job));
-                  ( "type",
-                    text (Xynolog.Enums.Job_type.to_string (W.job_type job)) );
-                  ("since", `Float since);
-                ])
-        in
-        ok
-          (`Assoc
-             [
-               ("lastQueuedEventAt", stamp (fun v -> v.last_queued_event_at));
-               ("lastClaimAt", stamp (fun v -> v.last_claim_at));
-               ("lastFinishedAt", stamp (fun v -> v.last_finished_at));
-               ("lastActivityAt", stamp (fun v -> v.last_activity_at));
-               ("activeJob", active_job);
-               ( "jobsCompleted",
-                 `Int
-                   (Option.fold ~none:0
-                      ~some:(fun v -> v.Xynolog.Claims.jobs_completed)
-                      vitals) );
-             ])
+    | "vitals" when mode = Worker -> (
+        match !claims with
+        | Some claims ->
+            ok
+              (Xynolog.Records.Worker_vitals.to_json
+                 (Xynolog.Claims.vitals claims))
+        | None -> raise (Misuse "no claims"))
     | "start" when mode = Worker ->
         W.start (job ());
         done_
@@ -670,8 +691,7 @@ let run mode env =
         done_
     | "checkpoint" when mode = Worker ->
         W.checkpoint (job ())
-          ~completed:(field "completedUnits" input)
-          ~cursors:(field "unitCursors" input);
+          (record Xynolog.Records.Job_checkpoint.of_json input);
         done_
     | "commit" when mode = Worker -> (
         let client = get_client () in
@@ -689,19 +709,12 @@ let run mode env =
         settle (fun job -> W.complete job (field "result" input));
         done_
     | "cancel" when mode = Worker ->
-        settle (fun job ->
-            W.cancel job ~completed:(optional Fun.id "completedUnits" input));
+        let reached = record Xynolog.Records.Job_reached.of_json input in
+        settle (fun job -> W.cancel job ~reached);
         done_
     | "fail" when mode = Worker ->
-        let failure_class =
-          Option.bind
-            (optional J.to_string "failureClass" input)
-            Xynolog.Enums.Failure_class.of_string
-        in
-        settle (fun job ->
-            W.fail job ~error:(string "error" input) ~failure_class
-              ~completed:(optional Fun.id "completedUnits" input)
-              ~cursors:(optional Fun.id "unitCursors" input));
+        let failure = record Xynolog.Records.Job_failure.of_json input in
+        settle (fun job -> W.fail job ~failure ~error:(string "error" input));
         done_
     | "delete" when mode = Live -> (
         let payload =
@@ -821,7 +834,10 @@ let run mode env =
         in
         match
           S.request client.subscription
-            ?timeout_ms:(optional J.to_int "timeoutMs" input)
+            ~timeout_ms:
+              (Option.value
+                 (optional J.to_int "timeoutMs" input)
+                 ~default:client.request_timeout_ms)
             ~correlation_id operation ~send
         with
         | Ok (S.Result payload) ->
@@ -902,11 +918,14 @@ let run mode env =
                    [
                      ( "progress",
                        `Assoc
-                         [
-                           ("upload", field "id" input);
-                           ("bytesUploaded", `Int bytes_uploaded);
-                           ("totalBytes", `Int total_bytes);
-                         ] );
+                         (List.filter_map Fun.id
+                            [
+                              Some ("upload", field "id" input);
+                              Some ("bytesUploaded", `Int bytes_uploaded);
+                              Option.map
+                                (fun total -> ("totalBytes", `Int total))
+                                total_bytes;
+                            ]) );
                    ])
           | Progress _ | Started _ | Finished _ -> ()
         in

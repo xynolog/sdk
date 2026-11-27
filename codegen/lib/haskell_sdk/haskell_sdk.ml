@@ -18,19 +18,6 @@ module Control = Control
 module H = Haskell_syntax
 
 let ( let* ) = Result.bind
-
-(* The member Xynolog.Discovery.Reasons names its type and constructors by,
-   as a failure vocabulary's are. *)
-let discovery_absent_member = "discoveryAbsent"
-
-let path ~under name =
-  "haskell/sdk/" ^ under ^ "/"
-  ^ String.concat "/" (String.split_on_char '.' name)
-  ^ ".hs"
-
-let file ~under (m : H.module_) =
-  { Output.path = path ~under m.name; text = H.text m }
-
 let banner from_ = Banner.lines ~from_ __FILE__
 
 (* The client types the SDK models, as their group states them. *)
@@ -113,9 +100,7 @@ let files ~root (spec : Spec.t) =
   let refused file message = [ { Decode.file; pointer = ""; message } ] in
   let within file result = Result.map_error (refused file) result in
   let* user_field = User_stamp.field spec.tables.identifiers_kinds in
-  let* transport =
-    within Transport.contract (Transport.derive ~root ~user_field spec)
-  in
+  let transport = Transport.derive ~user_field spec in
   let* http =
     within "openapi.json"
       (Http.routes ~prefix:Http.gateway_prefix ~no_content:false spec
@@ -133,7 +118,6 @@ let files ~root (spec : Spec.t) =
   let* definitions, validated_roots =
     within "openapi.json"
       (Definitions.derive spec ~adapters
-         ~carrier:(Transport.carrier_schema transport)
          ~http:(http.schemas @ archivist.schemas)
          ~envelopes:bus.envelopes)
   in
@@ -154,7 +138,7 @@ let files ~root (spec : Spec.t) =
     within "openapi.json"
       (stale ~root
          (List.map
-            (fun (m : H.module_) -> path ~under:"generated" m.name)
+            (fun (m : H.module_) -> H.path ~under:"generated" m.name)
             models.modules))
   in
   let named = List.map fst definitions in
@@ -174,22 +158,6 @@ let files ~root (spec : Spec.t) =
       (Channels.readers bus ~normalize ~definition ~typing:models.typing
          spec.tables.errors_codes)
   in
-  let* credential =
-    within Http.classifier
-      (let* c = Http.credential ~root in
-       let* limit = Result.bind (definition "LimitRefusal") normalize in
-       let* code =
-         match Option.bind limit.properties (List.assoc_opt c.field) with
-         | Some p -> normalize p
-         | None -> Error ("HTTP schema has no requested field: " ^ c.field)
-       in
-       if
-         code.type_ = Some [ String ]
-         && List.mem (Schema.String_literal c.refusal)
-              (Option.value code.enum ~default:[])
-       then Ok c
-       else Error "credential refusal reader no longer matches its schema")
-  in
   let* bus_event =
     within "openapi.json"
       (match Result.bind (definition "BusEventMessage") Normalize.layer with
@@ -202,6 +170,13 @@ let files ~root (spec : Spec.t) =
       | Error e -> Error e)
   in
   let* constants = within "client/surface.json" (Constants.modules spec) in
+  let* held_job =
+    within "client/surface.json"
+      (Held_job_members.module_
+         ~banner:
+           (banner "protocol/specs/src/client/surface.json and client/types")
+         spec models)
+  in
   let* control =
     within "control/methods.json"
       (Control.module_
@@ -215,7 +190,6 @@ let files ~root (spec : Spec.t) =
          ~root)
       (Carried_tables.modules spec)
   in
-  let* worker = Worker.modules ~root in
   let* manifest =
     within "haskell/sdk/xynolog.cabal.in" (manifest ~root models.module_names)
   in
@@ -265,6 +239,7 @@ let files ~root (spec : Spec.t) =
                Error (refused "openapi.json" (name ^ ": " ^ message)))
          models.definitions)
   in
+  let* codes = Error_codes.Table.derive spec.tables.errors_codes in
   let* round_trip =
     within "openapi.json"
       (Companions.round_trip_module
@@ -277,45 +252,43 @@ let files ~root (spec : Spec.t) =
       spec.tables.errors_codes.bus_request.unrecognized_failure
   in
   Ok
-    (List.map (file ~under:"generated") models.modules
+    (List.map (H.file ~under:"generated") models.modules
     @ [
-        file ~under:"src"
+        H.file ~under:"src"
           (Companions.types_module
              ~banner:(banner "protocol/specs/src")
              models.module_names);
-        file ~under:"generated"
+        H.file ~under:"generated"
           (Companions.schemas_module
              ~banner:(banner "protocol/specs/src")
+             ~vocabularies:(Error_codes.Table.vocabularies codes)
              validated);
-        file ~under:"test" round_trip;
-        file ~under:"src"
+        H.file ~under:"test" round_trip;
+        H.file ~under:"src"
           (Http.file
-             ~banner:
-               (banner
-                  "protocol/specs/src/openapi.json, its paths, and the \
-                   reference credential classifier")
-             http ~credential ~bus_event);
-        file ~under:"src"
+             ~banner:(banner "protocol/specs/src/openapi.json and its paths")
+             http ~bus_event);
+        H.file ~under:"src"
           (Http.archivist_file
              ~banner:
                (banner "protocol/specs/src/archivist/openapi.json and its paths")
              archivist);
-        file ~under:"src"
+        H.file ~under:"src"
           (Transport.file
              ~banner:
                (banner
-                  "TRANSPORT-HTTP.md, bus/registry.json and \
+                  "client/connection-states.json, bus/registry.json and \
                    identifiers/kinds.json")
              transport);
-        file ~under:"src"
+        H.file ~under:"src"
           (Channels.channels_file
              ~banner:(banner "protocol/specs/src/bus/registry.json")
              bus ~limits);
-        file ~under:"test"
+        H.file ~under:"test"
           (Channels.round_trip_file
              ~banner:(banner "protocol/specs/src/bus/registry.json")
              bus);
-        file ~under:"generated"
+        H.file ~under:"generated"
           (Channels.failure_file
              ~banner:
                (banner
@@ -323,22 +296,10 @@ let files ~root (spec : Spec.t) =
                    protocol/specs/src/errors/codes.json")
              ~unrecognized readers);
       ]
-    @ List.map (file ~under:"src") (control :: tables)
-    @ List.map (file ~under:"generated") constants
-    @ List.map (file ~under:"generated") worker
-    @ manifest
-    @ Error_codes.Haskell.modules
-        ~from_:"protocol/specs/src/client/discovery-absent.json"
-        ~module_name:"Xynolog.Discovery.Reasons"
-        ~test_name:"DiscoveryReasonRoundTrip"
-        [
-          {
-            Error_codes.Haskell.member = discovery_absent_member;
-            codes =
-              List.map
-                (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                  r.reason)
-                spec.tables.client_discovery_absent.reasons;
-            statuses = None;
-          };
-        ])
+    @ List.map (H.file ~under:"src") (control :: tables)
+    @ List.map (H.file ~under:"generated") constants
+    @ [
+        H.file ~under:"generated" (Worker.file spec);
+        H.file ~under:"generated" held_job;
+      ]
+    @ manifest)

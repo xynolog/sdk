@@ -32,10 +32,13 @@ type method_ = {
 }
 
 (* [schema] as [view] views a schema. A reference into a file is to a member
-   of the schema the file states, by [/properties/<member>]. *)
-let value ~ids ~view (schema : S.schema) =
+   of the schema the file states, by [/properties/<member>]. A type parameter
+   and a schema a value decides are a state unit's, which no method takes. *)
+let value ~ids ~view ~at:place (schema : S.schema) =
   match schema with
-  | Reference { ref } ->
+  | Type_parameter _ | Decided _ ->
+      D.refuse "%s %s: is a state unit's, which no method takes" file place
+  | Reference { ref; _ } ->
       let at =
         match Decode.resolve ids ref with
         | _, "" -> None
@@ -46,7 +49,7 @@ let value ~ids ~view (schema : S.schema) =
                 D.refuse "$ref %s points at no member of its schema" ref.target)
       in
       { view = view (Schema.Schema { Schema.empty with ref_ = Some ref }); at }
-  | Scalar { type_; minimum; description } ->
+  | Scalar { type_; minimum; format; description } ->
       let type_ : Schema.type_name =
         match type_ with
         | Integer -> Integer
@@ -61,6 +64,16 @@ let value ~ids ~view (schema : S.schema) =
                  Schema.empty with
                  type_ = Some [ type_ ];
                  minimum = Option.map float_of_int minimum;
+                 format =
+                   Option.map
+                     (fun word ->
+                       match
+                         Decode.run ~file:"client/surface.json" (`String word)
+                           Schema.format
+                       with
+                       | Ok (format, _) -> format
+                       | Error e -> D.refuse "%s" (Decode.error_to_string e))
+                     format;
                  description = Some description;
                });
         at = None;
@@ -99,8 +112,19 @@ let methods ~ids ~view ~schema (namespaces : S.namespaces_item list) =
                List.mapi
                  (fun k (p : S.parameters_item) ->
                    match p with
-                   | Value { parameter; schema = stated; required } ->
-                       let v = value ~ids ~view stated in
+                   | Value { parameter; schema = None; _ } ->
+                       D.refuse
+                         "%s /namespaces/%d/methods/%d/parameters/%d: %s is \
+                          the SDK's own, which a case cannot give"
+                         file n i k parameter
+                   | Value { parameter; schema = Some stated; required; _ } ->
+                       let v =
+                         value ~ids ~view
+                           ~at:
+                             (Printf.sprintf
+                                "/namespaces/%d/methods/%d/parameters/%d" n i k)
+                           stated
+                       in
                        {
                          name = parameter;
                          required;

@@ -15,6 +15,7 @@ import type {
   EnginesWithLimits,
   KbDescription,
   LimitsOperation,
+  ClientTiming,
   components,
 } from '@xynolog/core';
 import type {
@@ -23,7 +24,12 @@ import type {
   ResourceRepresentation,
   ResourceRepresentationStream,
 } from '@xynolog/core';
-import { Bus, BusRequestError, LIMITS_OPERATIONS } from '@xynolog/core';
+import {
+  Bus,
+  BusRequestError,
+  DEFAULT_CLIENT_TIMING,
+  LIMITS_OPERATIONS,
+} from '@xynolog/core';
 import {
   PERSISTED_QUERIES,
   WHOLE_KEY,
@@ -159,14 +165,8 @@ export class BrowseNamespace implements IBrowseNamespace {
   /** Subscribing to a resource-scoped query acquires the resource's scope. */
   private readonly scoped: ScopedSources;
 
-  /**
-   * Timeout passed to every `Bus.request` this namespace issues. `undefined`
-   * means `Bus.request`'s default (30 s). Injectable so the liveness
-   * properties can run the real composition on
-   * deterministic virtual time — the same knob `HttpTransportConfig.timeout`
-   * provides at the HTTP layer.
-   */
-  private readonly busTimeoutMs: number | undefined;
+  /** The deadline of every `Bus.request` this namespace issues. */
+  private readonly busRequestTimeoutMs: number;
 
   /** Applies the refresh table to this namespace's queries; B16 detaches it. */
   private readonly refresher: CacheRefresher<BrowseQuery>;
@@ -233,13 +233,8 @@ export class BrowseNamespace implements IBrowseNamespace {
     private readonly bus: EventBus,
     private readonly content: IContentTransport,
     options?: {
-      busTimeoutMs?: number;
-      /**
-       * B19's window, `invalidationWindowMs` of protocol/specs/src/client/timing.json,
-       * for a caller that must not wait it out: a test, or the conformance
-       * driver. Absent, the table's value stands.
-       */
-      invalidationWindowMs?: number;
+      /** What of the client's timing differs from `DEFAULT_CLIENT_TIMING`. */
+      timing?: Partial<ClientTiming>;
       /**
        * B17 — keep the persisted queries' values from construction on, for
        * the person signed in. Omitted = in-memory only until
@@ -249,7 +244,11 @@ export class BrowseNamespace implements IBrowseNamespace {
     },
   ) {
     this.wire = new Bus(transport);
-    this.busTimeoutMs = options?.busTimeoutMs;
+    const { busRequestTimeoutMs, invalidationWindowMs } = {
+      ...DEFAULT_CLIENT_TIMING,
+      ...options?.timing,
+    };
+    this.busRequestTimeoutMs = busRequestTimeoutMs;
     this.scoped = new ScopedSources(this.transport);
 
     const resource = createPersistableCache<
@@ -259,7 +258,7 @@ export class BrowseNamespace implements IBrowseNamespace {
       const result = await this.wire.request(
         'browse:resource-requested',
         { resourceId: id },
-        this.busTimeoutMs,
+        this.busRequestTimeoutMs,
       );
       return result.resource as ResourceDescriptor;
     });
@@ -273,10 +272,10 @@ export class BrowseNamespace implements IBrowseNamespace {
           {
             archived: filters.archived,
             entityType: filters.entityType,
-            limit: filters.limit ?? 100,
-            offset: filters.offset ?? 0,
+            limit: filters.limit,
+            offset: filters.offset,
           },
-          this.busTimeoutMs,
+          this.busRequestTimeoutMs,
         );
         // Brand the wire type (unbranded @id: string) to the SDK's ResourceDescriptor
         // (@id: ResourceId) at the boundary — same as resourceCache above.
@@ -306,7 +305,7 @@ export class BrowseNamespace implements IBrowseNamespace {
       const result = await this.wire.request(
         'browse:annotation-requested',
         { resourceId, annotationId },
-        this.busTimeoutMs,
+        this.busRequestTimeoutMs,
       );
       return result.annotation as Annotation;
     });
@@ -319,7 +318,7 @@ export class BrowseNamespace implements IBrowseNamespace {
       const result = await this.wire.request(
         'browse:entity-types-requested',
         {},
-        this.busTimeoutMs,
+        this.busRequestTimeoutMs,
       );
       return result.entityTypes;
     });
@@ -332,7 +331,7 @@ export class BrowseNamespace implements IBrowseNamespace {
       const result = await this.wire.request(
         'browse:tag-schemas-requested',
         {},
-        this.busTimeoutMs,
+        this.busRequestTimeoutMs,
       );
       return result.tagSchemas;
     });
@@ -367,7 +366,7 @@ export class BrowseNamespace implements IBrowseNamespace {
         const result = await this.wire.request(
           'browse:engines-requested',
           {},
-          this.busTimeoutMs,
+          this.busRequestTimeoutMs,
         );
         // Entries pass through unreshaped: `{ engine, jobs? }` — the jobs are
         // the point of the wrapper.
@@ -381,7 +380,7 @@ export class BrowseNamespace implements IBrowseNamespace {
     // own report, never the engines.
     this.limitsCache = createCache<LimitsOperation, EngineLimits[]>(
       async (operation) =>
-        this.wire.request(operation, {}, this.busTimeoutMs).then(
+        this.wire.request(operation, {}, this.busRequestTimeoutMs).then(
           (result) => result.limits,
           () => [],
         ),
@@ -411,7 +410,7 @@ export class BrowseNamespace implements IBrowseNamespace {
         const result = await this.wire.request(
           'browse:events-requested',
           { resourceId },
-          this.busTimeoutMs,
+          this.busRequestTimeoutMs,
         );
         return result.events;
       },
@@ -421,7 +420,7 @@ export class BrowseNamespace implements IBrowseNamespace {
       this.transport,
       this.bus,
       this.refreshActs(),
-      options?.invalidationWindowMs,
+      invalidationWindowMs,
     );
   }
 
@@ -588,7 +587,7 @@ export class BrowseNamespace implements IBrowseNamespace {
     const result = await this.wire.request(
       'browse:events-requested',
       { resourceId },
-      this.busTimeoutMs,
+      this.busRequestTimeoutMs,
     );
     return result.events;
   }
@@ -600,7 +599,7 @@ export class BrowseNamespace implements IBrowseNamespace {
     return this.wire.request(
       'browse:annotation-history-requested',
       { resourceId, annotationId },
-      this.busTimeoutMs,
+      this.busRequestTimeoutMs,
     );
   }
 
@@ -611,12 +610,16 @@ export class BrowseNamespace implements IBrowseNamespace {
     return this.wire.request(
       'browse:directory-requested',
       { path: dirPath ?? '.', sort: sort ?? 'name' },
-      this.busTimeoutMs,
+      this.busRequestTimeoutMs,
     );
   }
 
   async kb(): Promise<KbDescription> {
-    return this.wire.request('browse:kb-requested', {}, this.busTimeoutMs);
+    return this.wire.request(
+      'browse:kb-requested',
+      {},
+      this.busRequestTimeoutMs,
+    );
   }
 
   // ── UI signals (local bus fan-out) ────────────────────────────────────

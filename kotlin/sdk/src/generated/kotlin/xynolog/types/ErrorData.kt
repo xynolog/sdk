@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 public data class ErrorData(
     /** Why the request failed: a code of the control group of specs/src/errors/codes.json. */
-    public val code: String,
+    public val code: xynolog.errors.ControlErrorCode,
     /** Whether the same request can succeed sent again unchanged, once something outside it changes: a start finishes, a runtime is installed, a stack comes up. */
     public val retryable: Boolean,
     /** For params the contract refuses: each fault, where it is. */
@@ -23,7 +23,7 @@ public data class ErrorData(
 ) {
     /** How Java makes a `ErrorData`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val code: String,
+        private val code: xynolog.errors.ControlErrorCode,
         private val retryable: Boolean,
     ) {
         private var fields: kotlin.collections.List<FieldFault>? = null
@@ -42,6 +42,6 @@ public data class ErrorData(
     public companion object {
         /** A builder of a `ErrorData` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(code: String, retryable: Boolean): Builder = Builder(code, retryable)
+        public fun builder(code: xynolog.errors.ControlErrorCode, retryable: Boolean): Builder = Builder(code, retryable)
     }
 }

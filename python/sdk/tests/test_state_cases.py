@@ -38,6 +38,7 @@ from xynolog.state import (
 from xynolog.state_unit import StateUnit
 from xynolog.testing import Delay, DropReply, FaultAction, FaultyTransport, create_test_client, refuse_unscripted_operation
 from xynolog.transport import Frame, FrameRefusal, Transport
+from xynolog.types import GatherAnnotationOptions
 from xynolog.watched import Watched
 
 SETTLE_TURNS: Final = 200
@@ -262,6 +263,19 @@ def argument(method: Method, name: str, value: JsonValue) -> object:
     return TypeAdapter[object](stated).validate_python(resolved(value))
 
 
+OPTIONS: Final[Mapping[str, type[WireModel]]] = {"gatherAnnotation": GatherAnnotationOptions}
+"""The generated options each method's signature takes as `options`, which the Python method takes member by member, as its keywords."""
+
+
+def arguments(member: str, method: Method, args: Mapping[str, JsonValue]) -> dict[str, object]:
+    """The method's arguments, by its parameters' names: each the case states, and each member of the options it states."""
+    given = {snake(name): argument(method, snake(name), value) for name, value in args.items() if name != "options"}
+    if "options" in args:
+        options = OPTIONS[member].model_validate(resolved(args["options"]))
+        given |= {name: getattr(options, name) for name in options.model_fields_set}
+    return given
+
+
 def state_of(units: Mapping[str, StateUnit], name: str, member: str) -> Watched[object]:
     """The state a unit's member holds, read by the member's name."""
     state: Watched[object] = getattr(units[name], snake(member))
@@ -373,8 +387,9 @@ async def perform(
     elif "invoke" in step:
         args = step["args"]
         assert isinstance(args, dict)
-        method: Method = getattr(units[text(step["of"], "a unit")], snake(text(step["invoke"], "a member")))
-        method(**{snake(name): argument(method, snake(name), value) for name, value in args.items()})
+        invoked = text(step["invoke"], "a member")
+        method: Method = getattr(units[text(step["of"], "a unit")], snake(invoked))
+        method(**arguments(invoked, method, args))
     elif "pass" in step:
         # What is ready runs at the time it became ready, before the clock moves; what falls due runs to its end.
         await settle()

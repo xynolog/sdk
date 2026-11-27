@@ -3,38 +3,23 @@ import Foundation
 
 public let discoveryInterval: Duration = .milliseconds(Timings.discoveryIntervalMs)
 
-public struct Absent: Sendable {
-  public let reason: DiscoveryAbsentReason
-  public let diagnostic: String?
+public protocol DiscoveryTransport: Sendable {
+  func read() async -> DiscoveryRead
+}
 
-  public init(reason: DiscoveryAbsentReason, diagnostic: String? = nil) {
-    self.reason = reason
-    self.diagnostic = diagnostic
+private func discoveryRead(of state: DiscoveryState) -> DiscoveryRead {
+  switch state {
+  case .discoveryAbsent(let absent): .discoveryAbsent(absent)
+  case .discoveryManaged(let managed): .discoveryManaged(managed)
   }
 }
 
-public struct Managed: Sendable {
-  public let kbs: [DiscoveredKB]
-
-  public init(kbs: [DiscoveredKB]) { self.kbs = kbs }
-}
-
-public struct Unchanged: Sendable {
-  public init() {}
-}
-
-public enum DiscoveryState: Sendable {
-  case absent(Absent)
-  case managed(Managed)
-}
-
-public enum DiscoveryRead: Sendable {
-  case state(DiscoveryState)
-  case unchanged(Unchanged)
-}
-
-public protocol DiscoveryTransport: Sendable {
-  func read() async -> DiscoveryRead
+private func foundState(in read: DiscoveryRead) -> DiscoveryState? {
+  switch read {
+  case .discoveryAbsent(let absent): .discoveryAbsent(absent)
+  case .discoveryManaged(let managed): .discoveryManaged(managed)
+  case .discoveryUnchanged: nil
+  }
 }
 
 public func parseDiscoveryDocument(_ text: String) -> DiscoveryState {
@@ -44,27 +29,32 @@ public func parseDiscoveryDocument(_ text: String) -> DiscoveryState {
   do {
     parsed = try decoder.decode(JSONValue.self, from: data)
   } catch {
-    return .absent(Absent(reason: .notJson, diagnostic: String(describing: error)))
+    return .discoveryAbsent(
+      DiscoveryAbsent(reason: .notJson, diagnostic: String(describing: error)))
   }
   guard case .object(let fields) = parsed,
     case .number(let version) = fields["version"], version.rounded() == version
   else {
-    return .absent(Absent(reason: .invalid, diagnostic: "Missing a numeric discovery version"))
+    return .discoveryAbsent(
+      DiscoveryAbsent(reason: .invalid, diagnostic: "Missing a numeric discovery version"))
   }
   guard let encodedVersion = try? JSONEncoder().encode(version),
     (try? decoder.decode(DiscoveryDocumentVersion.self, from: encodedVersion)) != nil
   else {
-    return .absent(
-      Absent(reason: .unsupportedVersion, diagnostic: "Unsupported discovery version \(version)"))
+    return .discoveryAbsent(
+      DiscoveryAbsent(
+        reason: .unsupportedVersion, diagnostic: "Unsupported discovery version \(version)"))
   }
   do {
     let document = try decoder.decode(DiscoveryDocument.self, from: data)
     guard document.kbs.allSatisfy({ !$0.host.isEmpty && (1...65535).contains($0.port) }) else {
-      return .absent(Absent(reason: .invalid, diagnostic: "Invalid knowledge-base address"))
+      return .discoveryAbsent(
+        DiscoveryAbsent(reason: .invalid, diagnostic: "Invalid knowledge-base address"))
     }
-    return .managed(Managed(kbs: document.kbs))
+    return .discoveryManaged(DiscoveryManaged(kbs: document.kbs))
   } catch {
-    return .absent(Absent(reason: .invalid, diagnostic: String(describing: error)))
+    return .discoveryAbsent(
+      DiscoveryAbsent(reason: .invalid, diagnostic: String(describing: error)))
   }
 }
 
@@ -73,13 +63,14 @@ private struct TextDiscovery: DiscoveryTransport {
 
   func read() async -> DiscoveryRead {
     do {
-      return .state(parseDiscoveryDocument(try await text()))
+      return discoveryRead(of: parseDiscoveryDocument(try await text()))
     } catch let error as CocoaError
       where error.code == .fileReadNoSuchFile || error.code == .fileNoSuchFile
     {
-      return .state(.absent(Absent(reason: .notFound)))
+      return .discoveryAbsent(DiscoveryAbsent(reason: .notFound))
     } catch {
-      return .state(.absent(Absent(reason: .unreadable, diagnostic: String(describing: error))))
+      return .discoveryAbsent(
+        DiscoveryAbsent(reason: .unreadable, diagnostic: String(describing: error)))
     }
   }
 }
@@ -107,32 +98,34 @@ private actor HTTPDiscovery: DiscoveryTransport {
     if let tag { request.headers.add(name: "If-None-Match", value: tag) }
     do {
       let http = http
-      let (state, etag) = try await within(
+      let (found, etag) = try await within(
         .milliseconds(Timings.httpRequestTimeoutMs), on: clock
       ) { [request] in
         let response = try await http.execute(request, deadline: .distantFuture)
         if response.status.code == 304 {
-          return (DiscoveryRead.unchanged(Unchanged()), nil as String?)
+          return (DiscoveryRead.discoveryUnchanged(DiscoveryUnchanged()), nil as String?)
         }
         guard (200..<300).contains(response.status.code),
           response.headers.first(name: "Content-Type")?.lowercased().contains("json") == true
         else {
           return (
-            .state(.absent(Absent(reason: .notFound, diagnostic: "HTTP \(response.status.code)"))),
+            .discoveryAbsent(
+              DiscoveryAbsent(reason: .notFound, diagnostic: "HTTP \(response.status.code)")),
             nil
           )
         }
         var data = Data()
         for try await chunk in response.body { data.append(contentsOf: chunk.readableBytesView) }
         return (
-          .state(parseDiscoveryDocument(String(decoding: data, as: UTF8.self))),
+          discoveryRead(of: parseDiscoveryDocument(String(decoding: data, as: UTF8.self))),
           response.headers.first(name: "ETag")
         )
       }
-      if case .state(.managed) = state { tag = etag }
-      return state
+      if case .discoveryManaged = found { tag = etag }
+      return found
     } catch {
-      return .state(.absent(Absent(reason: .unreadable, diagnostic: String(describing: error))))
+      return .discoveryAbsent(
+        DiscoveryAbsent(reason: .unreadable, diagnostic: String(describing: error)))
     }
   }
 }
@@ -143,23 +136,15 @@ public func httpDiscovery(
   HTTPDiscovery(url: url, http: httpClient, clock: clock)
 }
 
-public struct DiscoveryDiff: Sendable {
-  public let state: DiscoveryState
-  public let added: [DiscoveredKB]
-  public let updated: [DiscoveredKB]
-  public let removed: [DiscoveredKB]
-  public let duplicated: [String]
-}
-
 private func address(_ kb: DiscoveredKB) -> String { "\(kb.host):\(kb.port)" }
 
 private func entries(_ state: DiscoveryState?) -> [DiscoveredKB] {
-  if case .managed(let managed) = state { return managed.kbs }
+  if case .discoveryManaged(let managed) = state { return managed.kbs }
   return []
 }
 
 private func reason(_ state: DiscoveryState?) -> DiscoveryAbsentReason? {
-  if case .absent(let absent) = state { return absent.reason }
+  if case .discoveryAbsent(let absent) = state { return absent.reason }
   return nil
 }
 
@@ -209,7 +194,7 @@ private actor DiscoveryWatcher {
         do { try await clock.sleep(for: interval) } catch { return nil }
       }
       readOnce = true
-      if case .state(let state) = await transport.read(), !Task.isCancelled,
+      if let state = foundState(in: await transport.read()), !Task.isCancelled,
         let changed = discoveryDiff(from: last, to: state)
       {
         last = state

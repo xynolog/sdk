@@ -46,12 +46,11 @@ the coming release's, and gathers its changes as they land.
 
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
-  trees are all `ArchivistLayoutEventStreamTree`, a placement is
-  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
-  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
-  and the rest. The type each reference was given of its own
-  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
-  gone.
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - `PutBinaryRequest` is `xynolog.types.PutBinaryRequest`, the type of
   Protocol's `client/types/PutBinaryRequest.json`, where it was
   `xynolog.transport.PutBinaryRequest`: `yield.resource`,
@@ -81,7 +80,7 @@ the coming release's, and gathers its changes as they land.
   that holds bytes compares and hashes them by what they hold.
 - A retry budget is `xynolog.types.RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
-  `Timing.emitRetry` is one, and `retryWithBackoff` and
+  `TransportTiming.emitRetry` is one, and `retryWithBackoff` and
   `retryWithBackoffFuture` take one. Its `attempts` is a `Long`.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
   whole, which is a `String`.
@@ -138,7 +137,7 @@ the coming release's, and gathers its changes as they land.
   `job.claim(ClaimOptions)`, and the gather state unit's two methods. A
   member left out is what was taken before.
 - A worker's vitals state its times as RFC 3339 text and its active job as
-  `WorkerEngineHealthActiveJob`, as `WorkerEngineHealth` does, and
+  `WorkerActiveJob`, as `WorkerEngineHealth` does, and
   `Claims.health(engine)` is that health. `xynolog.jobs.ActiveJob` is gone.
 - A channel that carries nothing is typed `xynolog.types.EmptyObject`, in
   place of `xynolog.channels.Empty`.
@@ -149,9 +148,76 @@ the coming release's, and gathers its changes as they land.
   `xynolog.http.PendingAuthorization`, and its issuer is
   `xynolog.types.PendingAuthorizationIssuer`, in place of
   `xynolog.http.IssuerEndpoints`. Java makes each with its `builder`.
+- What a worker's claims say is of the types Protocol states:
+  `xynolog.types.ClaimRefusal`, `xynolog.types.WorkerVitals` and
+  `xynolog.types.HeldJobStall`, in place of `xynolog.jobs.ClaimRefusal`,
+  `xynolog.jobs.WorkerVitals` and `xynolog.jobs.HeldJobStall`. A stall's
+  `heldSince` and `lastActivityAt` are RFC 3339 text, to the millisecond,
+  where they were `Instant`s. Java makes each with its `builder`.
+- A trace a frame was sent under is `xynolog.types.TraceCarrier`, the type
+  Protocol states, in place of `xynolog.transport.TraceContext`: a `Frame`'s,
+  a `Delivered`'s and a `HeldJob`'s `trace`.
+- A held job's `jobId`, `jobType`, `resourceId`, `params`, `completedUnits`,
+  `unitCursors`, `retryCount` and `maxRetries` are those of its `record`, the
+  `xynolog.types.HeldJobRecord` its claim hands it: `HeldJob` is a
+  `HeldJobRecordMembers`, generated from Protocol, and `record` is new.
+- Where a knowledge base runs is `KbPlacement`, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement` and
+  `TargetKind`; an engine's provider is `InferenceProvider`, in place of
+  `EngineProvider`.
+- A held job says what it reached as the types Protocol states:
+  `checkpoint(JobCheckpoint)`, in place of `checkpoint(completedUnits,
+  unitCursors = null)`; `fail(error, JobFailure? = null)`, in place of
+  `fail(error, failureClass = null, completedUnits = null, unitCursors =
+  null)`; and `cancel(JobReached? = null)`, in place of
+  `cancel(completedUnits = null, unitCursors = null)`. Java's
+  `checkpointFuture(JobCheckpoint)`, `failFuture(error, JobFailure)` and
+  `cancelFuture(JobReached)` take them the same way, made with each type's
+  `builder`.
+- `JOB_CLAIM_CHANNELS` and `JOB_COMMIT_CHANNELS` are generated, in
+  `xynolog/jobs/WorkerChannels.kt`. Java reads them from `WorkerChannelsKt`,
+  in place of `ClaimsKt`: `WorkerChannelsKt.getJOB_CLAIM_CHANNELS()`.
+- A default the service decides is no longer sent for it (protocol#109).
+  `browse.resources` and `match.resources` send no `limit` of 100 and no
+  `offset` of 0, `gather.annotation` no `contextWindow` of 2000, and
+  `match.search` no `useSemanticScoring` of true, when the caller leaves them
+  out: the service's own default applies. Options to `gather.annotation` that
+  state nothing are not sent.
+- The discovery types are Protocol's (protocol#126), in `xynolog.types`,
+  where they were hand-written in `xynolog.discovery`: `DiscoveryState` is a
+  `DiscoveryAbsent` or a `DiscoveryManaged`, `DiscoveryRead` is either or a
+  `DiscoveryUnchanged`, and `DiscoveryDiff` is the type of
+  `client/types/DiscoveryDiff.json`. `Absent`, `Managed` and `Unchanged` are
+  removed. A `DiscoveryState` is no longer a `DiscoveryRead`, though
+  `DiscoveryAbsent` and `DiscoveryManaged` are both. Java makes each with its
+  `builder`.
+- `DiscoveryAbsentReason` is the generated client type (protocol#124), and is
+  `@Serializable` as its wire spelling.
+- An upload's `UploadProgressStarted` and `UploadProgressProgress`, and the
+  conformance driver's `ConformanceDriverLineProgressProgress`, state
+  `totalBytes` as a `Long?` (protocol#121): a source of unstated length states
+  none. Their builders no longer take it; `totalBytes(...)` sets it. Every
+  upload today holds its bytes whole, and states its total.
+- The timing a caller may set is two records generated from Protocol's
+  `client/timing.json`, each member the entry its name says: `ClientTiming`,
+  which `XynologClient` takes, and `xynolog.TransportTiming`, which
+  `HttpTransport` takes, in place of `xynolog.http.Timing`.
+  `ClientTiming.busRequestMs` is `busRequestTimeoutMs`, and the transport's
+  `httpRequestMs` and `streamOpenMs` are `httpRequestTimeoutMs` and
+  `streamOpenTimeoutMs`. The constructor, `copy` and `componentN` of each take
+  its members in the table's order.
+- `sessionFromKept`, `sessionFromKeptFuture` and `HttpSessionFactory` take
+  `clientTiming` and `transportTiming`, after their other parameters: what the
+  client and the transport of each session they build keep.
+- `subscribeDiscovery`'s `intervalMs` and `HoverDwell`'s `delayMs` may be left
+  out, and are then the table's `discoveryIntervalMs` and `hoverDelayMs`.
 
 ### Removed
 
+- A `Cache`'s `saveDebounceMs`: it saves after Protocol's `saveDebounceMs`.
+  Java makes one with `Cache(fetch, persister, context)`.
+- `StoragePersister`'s `maxBytes`: a document larger than Protocol's
+  `maxStoredBytesCount` loses the entries received longest ago, until it fits.
 - `xynolog.types.Stated` is removed. No member of Protocol is both optional
   and nullable, so a model's optional property is a nullable type, absent when
   null.

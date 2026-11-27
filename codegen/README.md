@@ -83,12 +83,15 @@ writes:
   absent reasons as one more.
 - `timing`: the durations, retry budgets and counts a client waits and
   retries by, from `client/timing.json`, for the Go, Python, TypeScript,
-  OCaml and Haskell SDKs. `Timing.Table` holds each entry to the kind its name says (a name
-  ending in Ms is a duration, in Retry a budget, in Count a count), states
-  each once, and holds a budget's backoff at or below its ceiling.
-  `Timing.Go`, `Timing.Python` and `Timing.Typescript` write each SDK's
-  constants; `Timing.Haskell` writes Haskell's, and the settings
-  `Xynolog.Timing.Settings` overrides.
+  Rust, Kotlin, OCaml and Haskell SDKs; the `csharp-sdk` and `swift-sdk`
+  groups write theirs from the same `Timing.Table`. It holds each entry to
+  the kind its name says (a name ending in Ms is a duration, in Retry a
+  budget, in Count a count), states each once, holds a budget's backoff at or
+  below its ceiling, and puts each entry whose `override` is `client` or
+  `transport` in that record. Each SDK's writer gives a constant per entry,
+  and the `ClientTiming` and `TransportTiming` a caller sets, with the
+  table's values; Haskell's also the `Settings` its own modules read, made
+  of those two records over the table's values.
 - `cache-refresh`: what a client's live queries hold, and what each event on
   the bus, the reopening of a dropped stream and an event that cannot be read
   does to them, from `client/refresh.json`, for the Go, Python, TypeScript
@@ -149,6 +152,15 @@ writes:
   `MarkJobParams` is told apart by, for the TypeScript SDK.
 - `limits`: each gateway operation's `x-xynolog-limits` and each component
   property's `maxItems`, from `openapi.json`, for the TypeScript SDK.
+- `worker-channels`: each constant of `client/surface.json` that is the
+  channels a stream names (`jobClaimChannels`, `jobCommitChannels`), each
+  operation's result and failure channel from `bus/registry.json` then each
+  other channel, for every SDK but Haskell, whose `haskell-sdk` group writes
+  them from the same resolution.
+- `connection-states`: each state of a client's stream with the states it
+  moves to, from `client/connection-states.json`, over each SDK's generated
+  `ConnectionState`, for the Go, Python, Rust, TypeScript, Kotlin and Swift
+  SDKs; the `haskell-sdk` group writes Haskell's from the same table.
 - `client-types`: the shapes an SDK hands its callers that no wire message
   carries, from `client/types`, and the form a service account posts with a
   client secret, from `session/ClientSecretForm.json`, for the Haskell SDK:

@@ -1,8 +1,8 @@
-(* SearchState and JobEvent, written by hand, held to their schemas in
-   protocol/specs/src/client/types, and Claims.vitals to WorkerEngineHealth: a
-   member or a branch either side gains or loses fails. A record literal names every field and a match every
-   constructor, so either gaining one does not compile until it is named
-   here. *)
+(* SearchState, JobEvent and CacheState, written by hand, held to their
+   schemas in protocol/specs/src/client/types: a member or a branch either
+   side gains or loses fails. A record literal names every field and a match
+   every constructor, so either gaining one does not compile until it is
+   named here. *)
 
 open Xynolog
 module J = Yojson.Safe.Util
@@ -13,6 +13,7 @@ let properties schema =
 let schema = function
   | "SearchState" -> Protocol_cases.Client_types_search_state_schema.schema
   | "JobEvent" -> Protocol_cases.Client_types_job_event_schema.schema
+  | "CacheState" -> Protocol_cases.Client_types_cache_state_schema.schema
   | name -> failwith ("no client type " ^ name ^ " is written for these tests")
 
 let search_state () =
@@ -55,50 +56,34 @@ let job_event () =
     (List.sort compare
        (List.map kind [ Created; Progress; Retrying; Refused; Complete ]))
 
-(* Claims.vitals is what a worker's claims say of themselves: each member of
-   WorkerEngineHealth but the engine and the jobs, which the worker states. A
-   record literal of each names every field, so a member either side gains
-   does not compile until it is named here. *)
-let vitals () =
-  let ({
-         last_queued_event_at;
-         last_claim_at;
-         last_finished_at;
-         last_activity_at;
-         active_job = _;
-         jobs_completed;
-       }
-        : Claims.vitals) =
-    {
-      last_queued_event_at = Some 0.;
-      last_claim_at = Some 0.;
-      last_finished_at = Some 0.;
-      last_activity_at = Some 0.;
-      active_job = None;
-      jobs_completed = 0;
-    }
+(* CacheState is a live query's state: its status, and what it holds. *)
+let told : _ Live_query.state -> string * string list = function
+  | Pending -> ("pending", [ "status" ])
+  | Ready _ -> ("ready", [ "status"; "value" ])
+  | Failed _ -> ("failed", [ "error"; "status" ])
+
+let cache_state () =
+  let branches =
+    List.map
+      (fun branch ->
+        ( J.to_string
+            (List.hd
+               (J.to_list
+                  (J.member "enum"
+                     (J.member "status" (J.member "properties" branch))))),
+          properties branch ))
+      (J.to_list (J.member "oneOf" (schema "CacheState")))
   in
-  let stamp = Option.map (fun _ -> "2026-01-01T00:00:00Z") in
-  let health : Records.Worker_engine_health.t =
-    {
-      engine =
-        Records.Engine.of_model
-          (Result.get_ok
-             (Models.decode Models.engine {|{"provider":"ollama","model":"m"}|}));
-      jobs = [ YieldJobFilter { job_type = Yield } ];
-      last_queued_event_at = stamp last_queued_event_at;
-      last_claim_at = stamp last_claim_at;
-      last_finished_at = stamp last_finished_at;
-      last_activity_at = stamp last_activity_at;
-      active_job = None;
-      jobs_completed;
-    }
-  in
-  match Records.Worker_engine_health.to_model health with
-  | Ok _ -> ()
-  | Error (Models.Invalid_json message) -> Alcotest.fail message
-  | Error (Invalid_payload { member; _ }) ->
-      Alcotest.fail ("WorkerEngineHealth refuses the member " ^ member)
+  Alcotest.(check (list (pair string (list string))))
+    "statuses, each with its members"
+    (List.sort compare branches)
+    (List.sort compare
+       (List.map told
+          [
+            Pending;
+            Ready ();
+            Failed (Http_wire.Bus Error_codes.Bus_request.Closed);
+          ]))
 
 let () =
   Alcotest.run "client_types_census"
@@ -107,6 +92,6 @@ let () =
         [
           Alcotest.test_case "SearchState" `Quick search_state;
           Alcotest.test_case "JobEvent" `Quick job_event;
-          Alcotest.test_case "WorkerEngineHealth" `Quick vitals;
+          Alcotest.test_case "CacheState" `Quick cache_state;
         ] );
     ]

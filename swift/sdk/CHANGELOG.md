@@ -59,14 +59,38 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What a worker says of itself and of its claims is the generated client
+  types: `ClaimRefusal` (its text is `message`, where it was `detail`),
+  `WorkerVitals` with its `WorkerActiveJob`, and `HeldJobStall` (its
+  `silentForMs` and `thresholdMs`), where `Claims` declared its own. A vitals
+  stamp is the RFC 3339 string the wire carries, to the millisecond.
+- A held job keeps the `HeldJobRecord` its claim handed it, as `record`, and
+  its `jobId`, `jobType`, `resourceId`, `params`, `completedUnits`,
+  `unitCursors`, `retryCount` and `maxRetries` are the record's members, read
+  through it.
+- A held job's `trace`, and a received frame's, is the generated
+  `TraceCarrier`, where it was a `[String: String]` of its members.
+- A relayed frame's trace is held to the table before it is read as a
+  `TraceCarrier`, and a carrier the table refuses is ignored whole: one with
+  an empty `tracestate`, for one, no longer continues its `traceparent`.
+- A held job's checkpoint, failure and cancellation take the types Protocol
+  states for what each one says: `checkpoint(_ checkpoint: JobCheckpoint)`,
+  in place of `checkpoint(completedUnits:unitCursors:)`;
+  `fail(_ message: String, failure: JobFailure?)`, in place of
+  `fail(_:failureClass:completedUnits:unitCursors:)`; and
+  `cancel(_ reached: JobReached?)`, in place of
+  `cancel(completedUnits:unitCursors:)`.
+- `KbPlacement` names where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`; `InferenceProvider` names an inference provider, in
+  place of `EngineProvider`.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
-  trees are all `ArchivistLayoutEventStreamTree`, a placement is
-  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
-  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
-  and the rest. The type each reference was given of its own
-  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
-  gone.
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - Two failure vocabularies are named as every SDK names them, from the error
   codes' shared table: `SpanRefusal`, where it was `SpanRefusalErrorCode`
   (`SpanRefusedError.reason`), and `IdentityUnverifiableReason`, where it was
@@ -148,6 +172,34 @@ the coming release's, and gathers its changes as they land.
   takes `ResourceSearchFilters`, in place of `ResourceFilters`. Filters that
   send the same request share one live query.
 - A failure a bus request is answered with is read as `CommandError`.
+- What a caller leaves out of these options is not sent, and the service's
+  own default applies (protocol#109): `browse.resources` and
+  `match.resources` no longer send a `limit` of 100 and an `offset` of 0,
+  `gather.annotation` no longer sends a `contextWindow` of 2000, nor an
+  `options` member when it is given none, and `match.search` no longer sends
+  `useSemanticScoring` true. Its `limit` is still 10 when none is stated.
+- Discovery's types are the ones Protocol states: `parseDiscoveryDocument`
+  returns `DiscoveryState`, a `DiscoveryTransport` reads a `DiscoveryRead`
+  (`.discoveryAbsent`, `.discoveryManaged` or `.discoveryUnchanged`, where it
+  was `.state` or `.unchanged`), and `subscribeDiscovery` yields
+  `DiscoveryDiff`, which is `Codable` and `Hashable`. `Absent`, `Managed` and
+  `Unchanged` are `DiscoveryAbsent`, `DiscoveryManaged` and
+  `DiscoveryUnchanged`.
+- `UploadProgressStarted` and `UploadProgressProgress` state `totalBytes`
+  only when the upload's source states its length (protocol#121), so it is an
+  `Int?`. Every upload holds its bytes whole and still reports it.
+- What a caller may set of the timing is two types generated from Protocol's
+  `client/timing.json`, `ClientTiming` and `TransportTiming`, each member the
+  entry its name says. `XynologClient` takes `timing: ClientTiming`, in place
+  of `followTiming:`, `invalidationWindowMs:` and `busRequestTimeoutMs:`, and
+  `FollowTiming`'s `silenceMs` and `statusPollMs` are its `jobSilenceMs` and
+  `jobStatusPollMs`. `TransportTiming`'s `httpRequestMs` and `streamOpenMs` are
+  `httpRequestTimeoutMs` and `streamOpenTimeoutMs`, and its `emitAttempts`,
+  `emitInitialDelayMs` and `emitMaxDelayMs` are `emitRetry`, a `RetryBudget`.
+  Its initializer takes its members in the table's order, and none as `nil`.
+- `XynologClient.fromHttp`, `sessionFromKept` and `HttpSessionFactory` take
+  `clientTiming:` and `transportTiming:`, what the client and the transport of
+  each keep.
 
 ### Fixed
 
@@ -159,6 +211,7 @@ the coming release's, and gathers its changes as they land.
 
 - `ResourceFilters` and `WorkerTiming`: `BrowseResourcesRequest`,
   `ResourceSearchFilters` and `ClaimOptions` say what they said.
+- `FollowTiming`: `ClientTiming` says what it said.
 - `Stated` is removed. No member of Protocol is both optional and nullable, so
   a model's optional property is an optional, absent when `nil`.
 

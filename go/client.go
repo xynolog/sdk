@@ -8,6 +8,7 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 )
 
@@ -19,9 +20,9 @@ type ClientConfig struct {
 	Content ContentTransport
 	// Gateway answers for itself. Over HTTP the transport is all three.
 	Gateway GatewayOperations
-	// Timing is the waits the client keeps: DefaultTiming(), unless a caller
-	// that must not wait them out says otherwise.
-	Timing Timing
+	// Timing is the waits the client keeps: DefaultClientTiming(), unless a
+	// caller that must not wait them out says otherwise.
+	Timing ClientTiming
 	// Persistence is where the client keeps what its queries hold for one
 	// person, so the next client of the same knowledge base, for the same
 	// person, shows it at once; nil for a client that keeps nothing.
@@ -155,7 +156,7 @@ type links struct {
 	transport Transport
 	wire      *Wire
 	own       *EventBus
-	timing    Timing
+	timing    ClientTiming
 	// life is the client's: done once the client has closed.
 	life context.Context
 	end  context.CancelFunc
@@ -186,7 +187,7 @@ func (l *links) within(ctx context.Context) (inner context.Context, stop func())
 // client closed, while its caller still waited, failed as closed.
 func (l *links) closedUnder(caller context.Context, err error) error {
 	if errors.Is(err, context.Canceled) && l.life.Err() != nil && caller.Err() == nil {
-		return &BusRequestError{Code: BusRequestErrorCodeClosed, Message: "The client closed before the operation ended"}
+		return &BusRequestError{Code: api.BusRequestErrorCodeClosed, Message: "The client closed before the operation ended"}
 	}
 	return err
 }

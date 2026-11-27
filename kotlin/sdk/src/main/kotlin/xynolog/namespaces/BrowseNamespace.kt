@@ -98,15 +98,15 @@ public class BrowseNamespace internal constructor(private val links: Links, priv
     public fun resource(resourceId: ResourceId): Cached<ResourceDescriptor> = of(resourceId, live.resource, resourceId) { it }
 
     /**
-     * A page of the resources the filters admit, the first hundred when
-     * nothing is stated, `offset` of them passed over before the page begins:
-     * a live query. It is kept true by what every client hears and by the
-     * events of the resources this client holds the scope of, and by nothing
-     * else. Finding resources by text is `match.resources`.
+     * A page of the resources the filters admit, `offset` of them passed over
+     * before the page begins, and the service's own page when they state
+     * none: a live query. It is kept true by what every client hears and by
+     * the events of the resources this client holds the scope of, and by
+     * nothing else. Finding resources by text is `match.resources`.
      */
     @JvmOverloads
     public fun resources(filters: BrowseResourcesRequest = BrowseResourcesRequest()): Cached<ListResourcesResponse> =
-        live.query(Keyed(live.resources, filters.copy(offset = filters.offset ?: 0, limit = filters.limit ?: LIST_LIMIT), { it }))
+        live.query(Keyed(live.resources, filters, { it }))
 
     /** A resource's annotations: a live query. */
     @JvmExposeBoxed

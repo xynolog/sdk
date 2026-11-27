@@ -42,7 +42,7 @@ from xynolog.telemetry_table import (
     SpanKindName,
     SpanRow,
 )
-from xynolog.transport import TraceContext
+from xynolog.types import TraceCarrier
 
 __all__ = [
     "active",
@@ -100,14 +100,14 @@ def trace_headers() -> dict[str, str]:
     return carrier
 
 
-def active() -> TraceContext | None:
+def active() -> TraceCarrier | None:
     """The trace this code is running in, as the wire carries one."""
     carrier = trace_headers()
     traceparent = carrier.get("traceparent")
-    return None if traceparent is None else TraceContext(traceparent=traceparent, tracestate=carrier.get("tracestate") or None)
+    return None if traceparent is None else TraceCarrier(traceparent=traceparent, tracestate=carrier.get("tracestate") or None)
 
 
-def _carrier(trace: TraceContext) -> dict[str, str]:
+def _carrier(trace: TraceCarrier) -> dict[str, str]:
     """`trace` as the headers that carry it."""
     carrier = {"traceparent": trace.traceparent}
     if trace.tracestate is not None:
@@ -116,7 +116,7 @@ def _carrier(trace: TraceContext) -> dict[str, str]:
 
 
 @contextmanager
-def continuing(trace: TraceContext | None) -> Generator[None]:
+def continuing(trace: TraceCarrier | None) -> Generator[None]:
     """Hold the trace `trace` names: a span started while this is held continues it. With no trace, nothing is entered.
 
     `trace` is what a frame brought (`frame.trace`), or what a job a worker
@@ -154,7 +154,7 @@ def emitting(channel: str, scope: str | None) -> AbstractContextManager[None]:
     return _span(BUS_EMIT, attributes, channel=channel)
 
 
-def received(channel: str, scope: str | None, sent_under: TraceContext | None) -> TraceContext | None:
+def received(channel: str, scope: str | None, sent_under: TraceCarrier | None) -> TraceCarrier | None:
     """Mark a frame's arrival, in the trace it was sent under.
 
     Returns the trace the work done for the frame continues: the arrival's

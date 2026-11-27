@@ -65,18 +65,19 @@ use crate::locked;
 use crate::required::read_as;
 use crate::rfc3339::to_the_millisecond;
 use crate::timing::{HELD_JOB_STALL, HELD_JOB_STALL_CHECK, JOB_CLAIM_TIMEOUT, MARK_COMMIT_TIMEOUT};
-use crate::transport::{ConnectionState, Envelope, Events, TraceCarrier, Transport};
+use crate::transport::{Envelope, Events, Transport};
+use crate::types::ConnectionState;
 use crate::types::{
-    Annotation, AnnotationId, BrowseAnnotationRequest, ClaimOptions, DurabilityEvidence, Engine,
-    FailureClass, GatheredContext, GatheredContextFocus, JobCancelCommand, JobCancelRequest,
-    JobCheckpointCommand, JobClaimCommand, JobCompleteCommand, JobFailCommand, JobFilter, JobId,
-    JobMetadata, JobParams, JobProgress, JobReportProgressCommand, JobRunning, JobStartCommand,
-    JobType, MarkCommitCommand, MarkJobCompleteCommand, MarkJobResult, ResourceId, UnitCursor,
-    WorkerEngineHealth, WorkerEngineHealthActiveJob, YieldJobCompleteCommand, YieldJobResult,
+    Annotation, AnnotationId, BrowseAnnotationRequest, ClaimOptions, ClaimRefusal,
+    DurabilityEvidence, Engine, FailureClass, GatheredContext, GatheredContextFocus, HeldJobRecord,
+    HeldJobStall, JobCancelCommand, JobCancelRequest, JobCheckpointCommand, JobClaimCommand,
+    JobCompleteCommand, JobFailCommand, JobFailure, JobFilter, JobId, JobMetadata, JobParams,
+    JobProgress, JobReached, JobReportProgressCommand, JobRunning, JobStartCommand, JobType,
+    MarkCommitCommand, MarkJobCompleteCommand, MarkJobResult, ResourceId, TraceCarrier, UnitCursor,
+    WorkerActiveJob, WorkerEngineHealth, WorkerVitals, YieldJobCompleteCommand, YieldJobResult,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::BTreeMap;
 use std::future::Future;
 use std::marker::PhantomData;
 use std::pin::Pin;
@@ -86,31 +87,8 @@ use std::time::{Duration, SystemTime};
 use tokio::sync::{Notify, mpsc, watch};
 use tokio::time::{Instant, MissedTickBehavior};
 
-/// What a worker's stream names for its claims: the replies of `job:claim`,
-/// and the two broadcasts a worker reads. `job:queued` and
-/// `job:cancel-requested` reach only a stream that names them, so a transport
-/// made for a worker is given these beside the reply channels of whatever
-/// else the worker awaits.
-pub const JOB_CLAIM_CHANNELS: [&str; 4] = [
-    <<JobClaim as Request>::Result as Channel>::NAME,
-    <<JobClaim as Request>::Failure as Channel>::NAME,
-    JobQueued::NAME,
-    JobCancelRequested::NAME,
-];
-
-/// What a worker's stream names for its commits: the replies of `mark:commit`
-/// and of the question it asks when one goes unacknowledged.
-///
-/// The question is the read of ONE annotation, and not of a resource's list
-/// of them. Reply channels reach every stream that names them, and the list's
-/// replies are the frames of many megabytes a worker's stream exists to keep
-/// out; one annotation's frame is small.
-pub const JOB_COMMIT_CHANNELS: [&str; 4] = [
-    <<MarkCommit as Request>::Result as Channel>::NAME,
-    <<MarkCommit as Request>::Failure as Channel>::NAME,
-    <<BrowseAnnotationRequested as Request>::Result as Channel>::NAME,
-    <<BrowseAnnotationRequested as Request>::Failure as Channel>::NAME,
-];
+include!("generated/worker_channels.rs");
+include!("generated/held_job.rs");
 
 /// How weak an observation of a commit is, as evidence that the batch is on
 /// the record. The two a commit is not established by are equally weak: one
@@ -173,78 +151,15 @@ impl ClaimTiming {
     }
 }
 
-/// A claim that was refused for a reason other than "nothing pending".
-///
-/// `code` is the code the reply was given, or `None` when the refusal was
-/// the worker's own: a reply that names no job, or a claim that could not be
-/// sent. `NonePending` never appears: an empty queue is not a fault.
-/// `Unauthorized` means this credential cannot claim, and will not be able to
-/// later.
-#[derive(Debug, Clone, PartialEq)]
-pub struct ClaimRefusal {
-    pub code: Option<BusRequestErrorCode>,
-    pub message: String,
-}
-
-/// The job a worker holds, as its vitals name it.
-#[derive(Debug, Clone, PartialEq)]
-pub struct ActiveJob {
-    pub job_id: JobId,
-    pub job_type: JobType,
-    pub since: SystemTime,
-}
-
-/// What a worker can say of itself at any moment (WORKER-CONTRACT V1).
-///
-/// `last_queued_event_at` is any `job:queued` received, matching or not, one
-/// the transport refused among them. On
-/// an idle stack with an empty queue it stands still by design, so a still
-/// stamp alone is not a fault of the stream. `last_activity_at` (a claim, a
-/// progress report, a checkpoint, a settle) is the liveness of the work: a
-/// job stuck partway stops advancing it, and that is what the stall rule
-/// reads.
-#[derive(Debug, Clone, PartialEq)]
-pub struct WorkerVitals {
-    pub last_queued_event_at: Option<SystemTime>,
-    pub last_claim_at: Option<SystemTime>,
-    /// The last settle, whatever its outcome: a worker that fails and moves
-    /// on is alive.
-    pub last_finished_at: Option<SystemTime>,
-    pub last_activity_at: Option<SystemTime>,
-    pub active_job: Option<ActiveJob>,
-    pub jobs_completed: u64,
-}
-
-/// A held job that showed no activity for `threshold` (WORKER-CONTRACT V2).
-/// What its host does then is the host's.
-#[derive(Debug, Clone, PartialEq)]
-pub struct HeldJobStall {
-    pub job_id: JobId,
-    pub job_type: JobType,
-    pub held_since: SystemTime,
-    pub last_activity_at: SystemTime,
-    pub silent_for: Duration,
-    pub threshold: Duration,
-}
-
-/// What a failure carries beside its error. What the job's commits observed
-/// is the held job's own to state.
-#[derive(Debug, Clone, Default, PartialEq)]
-pub struct JobFailure {
-    /// The failure's class, when the worker knows it.
-    pub failure_class: Option<FailureClass>,
-    /// The units finished before the failure.
-    pub completed_units: Option<Vec<String>>,
-    /// The furthest each unit begun got, a finished unit's cursor where it
-    /// ended.
-    pub unit_cursors: Option<BTreeMap<String, UnitCursor>>,
-}
-
 /// The error of a job failed because its worker stopped, and not because the
 /// work failed.
 const STOPPED_WHILE_HELD: &str = "The worker stopped while it held the job";
 /// The error of a job whose handle was dropped before it was settled.
 const DROPPED_UNSETTLED: &str = "The worker let go of the job without settling it";
+
+fn whole_millis(span: Duration) -> u64 {
+    u64::try_from(span.as_millis()).unwrap_or(u64::MAX)
+}
 
 /// A failure this side made: nothing was sent, or what was sent got no
 /// further.
@@ -257,9 +172,7 @@ fn here(message: String) -> XynologError {
 /// A held job as its loop knows it: what its messages name it by, its
 /// budget, and whether it has been settled.
 struct Holding {
-    resource_id: ResourceId,
-    job_id: JobId,
-    job_type: JobType,
+    record: HeldJobRecord,
     /// Which attempt this is, 1-based.
     attempt: i64,
     annotation_id: Option<AnnotationId>,
@@ -308,9 +221,9 @@ impl Holding {
                 weakness(*observed) > weakness(DurabilityEvidence::ProbeConfirmed)
             }),
             ..JobFailCommand::new(
-                self.resource_id.clone(),
-                self.job_id.clone(),
-                self.job_type,
+                self.record.resource_id.clone(),
+                self.record.job_id.clone(),
+                self.record.job_type,
                 error,
             )
         }
@@ -460,7 +373,7 @@ impl Inner {
     fn signal_cancellation(&self, job_id: &JobId) {
         let held = locked(&self.state).held.clone();
         if let Some(holding) = held
-            && holding.job_id == *job_id
+            && holding.record.job_id == *job_id
             && !holding.settled.load(Ordering::SeqCst)
         {
             holding.cancelled.send_replace(true);
@@ -481,12 +394,12 @@ impl Inner {
             }
             state.stall_reported = true;
             HeldJobStall {
-                job_id: holding.job_id.clone(),
-                job_type: holding.job_type,
-                held_since: since,
-                last_activity_at: told,
-                silent_for,
-                threshold: self.timing.held_job_stall,
+                job_id: holding.record.job_id.clone(),
+                job_type: holding.record.job_type,
+                held_since: to_the_millisecond(since),
+                last_activity_at: to_the_millisecond(told),
+                silent_for_ms: whole_millis(silent_for),
+                threshold_ms: whole_millis(self.timing.held_job_stall),
             }
         };
         self.stalls.say(stall);
@@ -495,15 +408,17 @@ impl Inner {
     fn vitals(&self) -> WorkerVitals {
         let state = locked(&self.state);
         WorkerVitals {
-            last_queued_event_at: state.last_queued_event_at,
-            last_claim_at: state.last_claim_at,
-            last_finished_at: state.last_finished_at,
-            last_activity_at: state.last_activity.map(|(_, told)| told),
+            last_queued_event_at: state.last_queued_event_at.map(to_the_millisecond),
+            last_claim_at: state.last_claim_at.map(to_the_millisecond),
+            last_finished_at: state.last_finished_at.map(to_the_millisecond),
+            last_activity_at: state
+                .last_activity
+                .map(|(_, told)| to_the_millisecond(told)),
             active_job: match (&state.held, state.held_since) {
-                (Some(holding), Some(since)) => Some(ActiveJob {
-                    job_id: holding.job_id.clone(),
-                    job_type: holding.job_type,
-                    since,
+                (Some(holding), Some(since)) => Some(WorkerActiveJob {
+                    job_id: holding.record.job_id.clone(),
+                    r#type: holding.record.job_type,
+                    since: to_the_millisecond(since),
                 }),
                 _ => None,
             },
@@ -521,9 +436,6 @@ impl Inner {
 struct Core {
     inner: Arc<Inner>,
     holding: Arc<Holding>,
-    params: JobParams,
-    completed_units: Vec<String>,
-    unit_cursors: BTreeMap<String, UnitCursor>,
     /// Whether the job has said anything: `job:start` is its first message.
     begun: AtomicBool,
 }
@@ -533,7 +445,7 @@ impl Core {
         if self.holding.settled.load(Ordering::SeqCst) {
             return Err(here(format!(
                 "Job {} is already settled: it cannot say {saying}",
-                self.holding.job_id
+                self.holding.record.job_id
             )));
         }
         Ok(())
@@ -552,7 +464,7 @@ impl Core {
             // Its worker stopped, and failed it, while the work went on.
             return Err(here(format!(
                 "Job {} is already settled: it cannot say {}",
-                self.holding.job_id,
+                self.holding.record.job_id,
                 C::NAME
             )));
         }
@@ -619,8 +531,9 @@ struct Described<'a> {
 }
 
 impl<V> Held<V> {
-    pub fn job_id(&self) -> &JobId {
-        &self.core.holding.job_id
+    /// The job as its claim handed it.
+    pub fn record(&self) -> &HeldJobRecord {
+        &self.core.holding.record
     }
 
     /// Whether a filter the job was claimed with accepts it. The dispatcher
@@ -636,41 +549,6 @@ impl<V> Held<V> {
             .accepts
             .iter()
             .any(|filter| job_matches_filter(filter, &job))
-    }
-
-    pub fn job_type(&self) -> JobType {
-        self.core.holding.job_type
-    }
-
-    pub fn resource_id(&self) -> &ResourceId {
-        &self.core.holding.resource_id
-    }
-
-    /// The job's parameters as the dispatcher holds them: the description,
-    /// and what the dispatcher adds.
-    pub fn params(&self) -> &JobParams {
-        &self.core.params
-    }
-
-    /// The units earlier attempts finished. A worker does not do them again.
-    /// Empty on a first attempt.
-    pub fn completed_units(&self) -> &[String] {
-        &self.core.completed_units
-    }
-
-    /// The furthest each unit begun got on an earlier attempt, and what it
-    /// had counted there: a finished unit's is where it ended. Empty on a
-    /// first attempt.
-    pub fn unit_cursors(&self) -> &BTreeMap<String, UnitCursor> {
-        &self.core.unit_cursors
-    }
-
-    pub fn retry_count(&self) -> u64 {
-        self.core.holding.budget.retry_count
-    }
-
-    pub fn max_retries(&self) -> u64 {
-        self.core.holding.budget.max_retries
     }
 
     /// Which attempt this is, 1-based. Every lifecycle message states it.
@@ -711,9 +589,9 @@ impl<V> Held<V> {
             annotation_id: holding.annotation_id.clone(),
             attempt: Some(holding.attempt),
             ..JobStartCommand::new(
-                holding.resource_id.clone(),
-                holding.job_id.clone(),
-                holding.job_type,
+                holding.record.resource_id.clone(),
+                holding.record.job_id.clone(),
+                holding.record.job_type,
             )
         };
         self.core
@@ -742,9 +620,9 @@ impl<V> Held<V> {
                 ..progress
             }),
             ..JobReportProgressCommand::new(
-                holding.resource_id.clone(),
-                holding.job_id.clone(),
-                holding.job_type,
+                holding.record.resource_id.clone(),
+                holding.record.job_id.clone(),
+                holding.record.job_type,
                 percentage,
             )
         };
@@ -761,12 +639,15 @@ impl<V> Held<V> {
     /// cursor where it ended. Counts as activity.
     pub async fn checkpoint(
         &self,
-        completed_units: Vec<String>,
-        unit_cursors: Option<BTreeMap<String, UnitCursor>>,
+        checkpoint: crate::types::JobCheckpoint,
     ) -> Result<(), XynologError> {
         self.core.unsettled(JobCheckpoint::NAME)?;
         self.core.begun.store(true, Ordering::SeqCst);
         self.core.inner.active();
+        let crate::types::JobCheckpoint {
+            completed_units,
+            unit_cursors,
+        } = checkpoint;
         let reached = JobCheckpointCommand {
             unit_cursors,
             ..JobCheckpointCommand::new(self.job_id().clone(), completed_units)
@@ -812,7 +693,7 @@ impl<V> Held<V> {
         };
         let (inner, holding) = (&self.core.inner, &self.core.holding);
         let batch = MarkCommitCommand {
-            job_id: Some(holding.job_id.clone()),
+            job_id: Some(holding.record.job_id.clone()),
             ..MarkCommitCommand::new(resource_id.clone(), annotations)
         };
         let unanswered = match inner.ask::<MarkCommit>(&batch).await {
@@ -852,22 +733,22 @@ impl<V> Held<V> {
     }
 
     /// Settle: `job:cancel`, once the work has stopped for a cancellation,
-    /// with the units it finished, and the furthest each unit begun got, a
-    /// finished unit's cursor where it ended.
-    pub async fn cancel(
-        self,
-        completed_units: Option<Vec<String>>,
-        unit_cursors: Option<BTreeMap<String, UnitCursor>>,
-    ) -> Result<(), XynologError> {
+    /// with what it reached: the units it finished, and the furthest each
+    /// unit begun got, a finished unit's cursor where it ended.
+    pub async fn cancel(self, reached: Option<JobReached>) -> Result<(), XynologError> {
         let holding = &self.core.holding;
+        let JobReached {
+            completed_units,
+            unit_cursors,
+        } = reached.unwrap_or_default();
         let cancelled = JobCancelCommand {
             annotation_id: holding.annotation_id.clone(),
             completed_units,
             unit_cursors,
             ..JobCancelCommand::new(
-                holding.resource_id.clone(),
-                holding.job_id.clone(),
-                holding.job_type,
+                holding.record.resource_id.clone(),
+                holding.record.job_id.clone(),
+                holding.record.job_type,
             )
         };
         self.core.settle::<JobCancel>(cancelled, false).await
@@ -883,7 +764,10 @@ impl Held<Mark> {
             attempt: Some(holding.attempt),
             result: Some(result),
             durability: holding.observed(),
-            ..MarkJobCompleteCommand::new(holding.resource_id.clone(), holding.job_id.clone())
+            ..MarkJobCompleteCommand::new(
+                holding.record.resource_id.clone(),
+                holding.record.job_id.clone(),
+            )
         };
         self.core
             .settle::<JobComplete>(JobCompleteCommand::MarkJobCompleteCommand(completed), true)
@@ -901,7 +785,10 @@ impl Held<Yield> {
             annotation_id: holding.annotation_id.clone(),
             result: Some(result),
             durability: holding.observed(),
-            ..YieldJobCompleteCommand::new(holding.resource_id.clone(), holding.job_id.clone())
+            ..YieldJobCompleteCommand::new(
+                holding.record.resource_id.clone(),
+                holding.record.job_id.clone(),
+            )
         };
         self.core
             .settle::<JobComplete>(JobCompleteCommand::YieldJobCompleteCommand(completed), true)
@@ -934,41 +821,14 @@ impl HeldJob {
         either!(self, job => job.core.holding.settled.load(Ordering::SeqCst))
     }
 
-    pub fn job_id(&self) -> &JobId {
-        either!(self, job => job.job_id())
-    }
-
-    pub fn job_type(&self) -> JobType {
-        either!(self, job => job.job_type())
+    /// The job as its claim handed it.
+    pub fn record(&self) -> &HeldJobRecord {
+        either!(self, job => job.record())
     }
 
     /// Whether a filter the job was claimed with accepts it.
     pub fn accepted(&self) -> bool {
         either!(self, job => job.accepted())
-    }
-
-    pub fn resource_id(&self) -> &ResourceId {
-        either!(self, job => job.resource_id())
-    }
-
-    pub fn params(&self) -> &JobParams {
-        either!(self, job => job.params())
-    }
-
-    pub fn completed_units(&self) -> &[String] {
-        either!(self, job => job.completed_units())
-    }
-
-    pub fn unit_cursors(&self) -> &BTreeMap<String, UnitCursor> {
-        either!(self, job => job.unit_cursors())
-    }
-
-    pub fn retry_count(&self) -> u64 {
-        either!(self, job => job.retry_count())
-    }
-
-    pub fn max_retries(&self) -> u64 {
-        either!(self, job => job.max_retries())
     }
 
     pub fn attempt(&self) -> i64 {
@@ -997,10 +857,9 @@ impl HeldJob {
 
     pub async fn checkpoint(
         &self,
-        completed_units: Vec<String>,
-        unit_cursors: Option<BTreeMap<String, UnitCursor>>,
+        checkpoint: crate::types::JobCheckpoint,
     ) -> Result<(), XynologError> {
-        either!(self, job => job.checkpoint(completed_units, unit_cursors).await)
+        either!(self, job => job.checkpoint(checkpoint).await)
     }
 
     pub async fn commit(
@@ -1019,12 +878,8 @@ impl HeldJob {
         either!(self, job => job.fail(error, failure).await)
     }
 
-    pub async fn cancel(
-        self,
-        completed_units: Option<Vec<String>>,
-        unit_cursors: Option<BTreeMap<String, UnitCursor>>,
-    ) -> Result<(), XynologError> {
-        either!(self, job => job.cancel(completed_units, unit_cursors).await)
+    pub async fn cancel(self, reached: Option<JobReached>) -> Result<(), XynologError> {
+        either!(self, job => job.cancel(reached).await)
     }
 }
 
@@ -1054,9 +909,6 @@ fn held(
         metadata, params, ..
     } = claimed;
     let holding = Arc::new(Holding {
-        resource_id: params.resource_id.clone(),
-        job_id: metadata.id.clone(),
-        job_type: metadata.r#type,
         attempt: i64::try_from(metadata.retry_count)
             .unwrap_or(i64::MAX)
             .saturating_add(1),
@@ -1065,19 +917,26 @@ fn held(
         settled: AtomicBool::new(false),
         cancelled: watch::channel(false).0,
         durability: Mutex::new(None),
-        budget: metadata.clone(),
+        record: HeldJobRecord {
+            job_id: metadata.id.clone(),
+            job_type: metadata.r#type,
+            resource_id: params.resource_id.clone(),
+            params,
+            // Both appear on the metadata once an attempt has checkpointed.
+            // Absent, each is none.
+            completed_units: metadata.completed_units.clone().unwrap_or_default(),
+            unit_cursors: metadata.unit_cursors.clone().unwrap_or_default(),
+            retry_count: metadata.retry_count,
+            max_retries: metadata.max_retries,
+        },
+        budget: metadata,
     });
     let core = Core {
         inner: inner.clone(),
         holding: holding.clone(),
-        params,
-        // Both appear on the record once an attempt has checkpointed. Absent,
-        // each reads as none.
-        completed_units: metadata.completed_units.unwrap_or_default(),
-        unit_cursors: metadata.unit_cursors.unwrap_or_default(),
         begun: AtomicBool::new(false),
     };
-    let job = match holding.job_type {
+    let job = match holding.record.job_type {
         JobType::Mark => HeldJob::Mark(Held {
             core,
             verb: PhantomData,
@@ -1349,10 +1208,9 @@ impl Claims {
     }
 
     /// What a host's health answer says of the engine that claims through
-    /// this: which engine it is, the jobs it claims, and its vitals, each time
-    /// as RFC 3339 in UTC to the millisecond. `WorkerVitals` is
-    /// `WorkerEngineHealth` but for those two, so a member either gains or
-    /// loses fails to compile here.
+    /// this: which engine it is, the jobs it claims, and its vitals.
+    /// `WorkerVitals` is `WorkerEngineHealth` but for those two, so a member
+    /// either gains or loses fails to compile here.
     pub fn health(&self, engine: Engine) -> WorkerEngineHealth {
         let WorkerVitals {
             last_queued_event_at,
@@ -1365,23 +1223,11 @@ impl Claims {
         WorkerEngineHealth {
             engine,
             jobs: self.inner.accepts.clone(),
-            last_queued_event_at: last_queued_event_at.map(to_the_millisecond),
-            last_claim_at: last_claim_at.map(to_the_millisecond),
-            last_finished_at: last_finished_at.map(to_the_millisecond),
-            last_activity_at: last_activity_at.map(to_the_millisecond),
-            active_job: active_job.map(
-                |ActiveJob {
-                     job_id,
-                     job_type,
-                     since,
-                 }| {
-                    WorkerEngineHealthActiveJob {
-                        job_id,
-                        r#type: job_type,
-                        since: to_the_millisecond(since),
-                    }
-                },
-            ),
+            last_queued_event_at,
+            last_claim_at,
+            last_finished_at,
+            last_activity_at,
+            active_job,
             jobs_completed,
         }
     }

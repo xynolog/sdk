@@ -10,18 +10,28 @@ namespace Xynolog.Tests;
 
 public sealed partial class TransportTests
 {
-    // WorkerVitals is WorkerEngineHealth, by hand, without what the worker is told rather than knows: its engine and
-    // the jobs it takes. Protocol states no schema of its own for it.
+    // Claims.Health copies the vitals into the health member by member. Every member of WorkerVitals, each set to a value
+    // of its own, arrives in the health; a member of a type this census cannot fill fails it, so it grows with the type.
     [Fact]
-    public void VitalsAreAWorkersHealthButItsEngineAndJobs()
+    public void AWorkersHealthCarriesEveryMemberOfItsVitals()
     {
-        var health = typeof(WorkerEngineHealth).GetProperties()
-            .Where(property => property.Name is not (nameof(WorkerEngineHealth.Engine) or nameof(WorkerEngineHealth.Jobs)))
-            .Select(property => (property.Name, property.PropertyType)).OrderBy(member => member.Name, StringComparer.Ordinal);
-        var vitals = typeof(WorkerVitals).GetProperties()
-            .Select(property => (property.Name, property.PropertyType)).OrderBy(member => member.Name, StringComparer.Ordinal);
-        Assert.Equal(health, vitals);
+        var vitals = Activator.CreateInstance<WorkerVitals>();
+        var members = typeof(WorkerVitals).GetProperties();
+        foreach (var member in members) member.SetValue(vitals, VitalsSample(member));
+        var health = Claims.Health(vitals, new Engine { Provider = InferenceProvider.Ollama, Model = "model" }, []);
+        foreach (var member in members)
+            Assert.Equal(member.GetValue(vitals), typeof(WorkerEngineHealth).GetProperty(member.Name)?.GetValue(health));
+        Assert.All(typeof(WorkerEngineHealth).GetProperties(), member => Assert.NotNull(member.GetValue(health)));
     }
+
+    private static object VitalsSample(System.Reflection.PropertyInfo member) => member.PropertyType switch
+    {
+        var type when type == typeof(string) => member.Name,
+        var type when type == typeof(long) => (long)member.Name.Length,
+        var type when type == typeof(WorkerActiveJob) =>
+            new WorkerActiveJob { JobId = JobId.Parse("job-1"), Type = JobType.Mark, Since = member.Name },
+        var type => throw new InvalidOperationException("No sample for the vitals member " + member.Name + " of type " + type.Name),
+    };
 
     [Fact]
     public void JobFiltersAnswerTheSharedCases()
@@ -326,7 +336,7 @@ public sealed partial class TransportTests
         var heard = new List<string>();
         while (await told.WaitAsync(deadline.Token))
         {
-            heard.Add(refused.Current.Detail);
+            heard.Add(refused.Current.Message);
             told = refused.MoveNextAsync().AsTask();
         }
         Assert.Equal(details.TakeLast(most), heard);
@@ -377,7 +387,7 @@ public sealed partial class TransportTests
             var heard = new List<DateTimeOffset>();
             while (await told)
             {
-                heard.Add(stalls.Current.HeldSince);
+                heard.Add(DateTimeOffset.Parse(stalls.Current.HeldSince, System.Globalization.CultureInfo.InvariantCulture));
                 told = stalls.MoveNextAsync().AsTask();
             }
             Assert.Equal(claimedAt.TakeLast(most), heard);

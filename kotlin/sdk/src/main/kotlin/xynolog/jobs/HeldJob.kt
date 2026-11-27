@@ -14,24 +14,25 @@ import xynolog.errors.BusRequestError
 import xynolog.errors.BusRequestErrorCode
 import xynolog.errors.XynologError
 import xynolog.identifiers.AnnotationId
-import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
 import xynolog.telemetry.continuing
 import xynolog.telemetry.futureOf
-import xynolog.transport.TraceContext
 import xynolog.transport.Variable
 import xynolog.transport.Watched
 import xynolog.types.Annotation
 import xynolog.types.BrowseAnnotationRequest
 import xynolog.types.DurabilityEvidence
-import xynolog.types.FailureClass
 import xynolog.types.GatheredContext
 import xynolog.types.GatheredContextFocusAnnotation
+import xynolog.types.HeldJobRecord
 import xynolog.types.JobCancelCommand
+import xynolog.types.JobCheckpoint
 import xynolog.types.JobCheckpointCommand
 import xynolog.types.JobFailCommand
+import xynolog.types.JobFailure
 import xynolog.types.JobParams
 import xynolog.types.JobProgress
+import xynolog.types.JobReached
 import xynolog.types.JobReportProgressCommand
 import xynolog.types.JobRunning
 import xynolog.types.JobStartCommand
@@ -39,7 +40,7 @@ import xynolog.types.JobType
 import xynolog.types.MarkCommitCommand
 import xynolog.types.MarkJobCompleteCommand
 import xynolog.types.MarkJobResult
-import xynolog.types.UnitCursor
+import xynolog.types.TraceCarrier
 import xynolog.types.YieldJobCompleteCommand
 import xynolog.types.YieldJobResult
 import xynolog.types.wireJson
@@ -79,6 +80,18 @@ private fun anchorOf(jobType: JobType, params: JobParams): AnnotationId? {
     return (context.focus as? GatheredContextFocusAnnotation)?.annotation?.id
 }
 
+/** The job as `claimed` hands it. */
+private fun heldRecord(claimed: JobRunning): HeldJobRecord = HeldJobRecord(
+    jobId = claimed.metadata.id,
+    jobType = claimed.metadata.type,
+    resourceId = claimed.params.resourceId,
+    params = claimed.params,
+    completedUnits = claimed.metadata.completedUnits.orEmpty(),
+    unitCursors = claimed.metadata.unitCursors.orEmpty(),
+    retryCount = claimed.metadata.retryCount,
+    maxRetries = claimed.metadata.maxRetries,
+)
+
 /**
  * A job a worker holds, from its claim until it settles it: a `mark` job
  * (`HeldMarkJob`) or a `yield` one (`HeldYieldJob`), whose completion is its
@@ -99,31 +112,11 @@ public sealed class HeldJob(
     claimed: JobRunning,
     private val cancelling: Variable<Boolean>,
     /** The trace the job is run in: the one its reply arrived in, or none. */
-    public val trace: TraceContext?,
-) : AutoCloseable {
-    @get:JvmExposeBoxed
-    public val jobId: JobId = claimed.metadata.id
-
-    public val jobType: JobType = claimed.metadata.type
-
-    @get:JvmExposeBoxed
-    public val resourceId: ResourceId = claimed.params.resourceId
-
-    /** The job's parameters as the dispatcher holds them. */
-    public val params: JobParams = claimed.params
-
-    /** The units earlier attempts finished, which this one does not do again. Empty on a first attempt. */
-    public val completedUnits: List<String> = claimed.metadata.completedUnits.orEmpty()
-
-    /** The furthest each unit begun got on an earlier attempt, and what it had counted there; a finished unit's is where it ended. */
-    public val unitCursors: Map<String, UnitCursor> = claimed.metadata.unitCursors.orEmpty()
-
-    public val retryCount: Long = claimed.metadata.retryCount
-
-    public val maxRetries: Long = claimed.metadata.maxRetries
-
+    public val trace: TraceCarrier?,
+) : HeldJobRecordMembers(heldRecord(claimed)),
+    AutoCloseable {
     /** Which attempt this is, from 1. Every lifecycle message states it. */
-    public val attempt: Long = claimed.metadata.retryCount + 1
+    public val attempt: Long = retryCount + 1
 
     /** The annotation the job is anchored to: the one a `yield` job's context is focused on. */
     @get:JvmExposeBoxed
@@ -193,14 +186,13 @@ public sealed class HeldJob(
     public fun progressFuture(progress: JobProgress): CompletableFuture<Unit> = holder.scope.futureOf { progress(progress) }
 
     /** `job:checkpoint`: what a later attempt resumes from. The units finished, and the furthest each unit begun got. Counts as activity. */
-    public suspend fun checkpoint(completedUnits: List<String>, unitCursors: Map<String, UnitCursor>? = null) {
+    public suspend fun checkpoint(checkpoint: JobCheckpoint) {
         working(Channels.JOB_CHECKPOINT.name)
-        holder.wire.emit(Channels.JOB_CHECKPOINT, JobCheckpointCommand(jobId = jobId, completedUnits = completedUnits, unitCursors = unitCursors))
+        holder.wire.emit(Channels.JOB_CHECKPOINT, JobCheckpointCommand(jobId = jobId, completedUnits = checkpoint.completedUnits, unitCursors = checkpoint.unitCursors))
     }
 
     /** `checkpoint`, for Java. */
-    public fun checkpointFuture(completedUnits: List<String>, unitCursors: Map<String, UnitCursor>?): CompletableFuture<Unit> =
-        holder.scope.futureOf { checkpoint(completedUnits, unitCursors) }
+    public fun checkpointFuture(checkpoint: JobCheckpoint): CompletableFuture<Unit> = holder.scope.futureOf { checkpoint(checkpoint) }
 
     /**
      * `mark:commit` for this job, returning once the batch is established: the
@@ -268,21 +260,19 @@ public sealed class HeldJob(
     /**
      * Settle: `job:fail`, saying whether the queue will retry, from the
      * record's budget and the failure's class, and what a commit that was not
-     * established observed. `failureClass` is the failure's class when the
-     * worker knows it; `completedUnits` and `unitCursors` the checkpoint, when
-     * there is one.
+     * established observed. `failure` is what the worker knows beside the
+     * error: the failure's class, and what the job had reached.
      */
-    public suspend fun fail(error: String, failureClass: FailureClass? = null, completedUnits: List<String>? = null, unitCursors: Map<String, UnitCursor>? = null) {
+    public suspend fun fail(error: String, failure: JobFailure? = null) {
         settling(Channels.JOB_FAIL.name)
-        failed(error, failureClass, completedUnits, unitCursors)
+        failed(error, failure)
     }
 
     /** `fail`, for Java. */
-    public fun failFuture(error: String, failureClass: FailureClass?, completedUnits: List<String>?, unitCursors: Map<String, UnitCursor>?): CompletableFuture<Unit> =
-        holder.scope.futureOf { fail(error, failureClass, completedUnits, unitCursors) }
+    public fun failFuture(error: String, failure: JobFailure?): CompletableFuture<Unit> = holder.scope.futureOf { fail(error, failure) }
 
     /** Say `job:fail` for a job settled already, and release it. */
-    private suspend fun failed(error: String, failureClass: FailureClass?, completedUnits: List<String>?, unitCursors: Map<String, UnitCursor>?) {
+    private suspend fun failed(error: String, failure: JobFailure?) {
         // Stated only when a commit was not established: otherwise the failure says nothing of the job's commits.
         val observed = synchronized(this) { durability }
         val notEstablished = observed != null && weakness(observed) > weakness(DurabilityEvidence.ProbeConfirmed)
@@ -293,10 +283,10 @@ public sealed class HeldJob(
             attempt = attempt,
             annotationId = annotationId,
             error = error,
-            completedUnits = completedUnits,
-            unitCursors = unitCursors,
-            failureClass = failureClass,
-            willRetry = willRetryAfter(retryCount, maxRetries, failureClass),
+            completedUnits = failure?.completedUnits,
+            unitCursors = failure?.unitCursors,
+            failureClass = failure?.failureClass,
+            willRetry = willRetryAfter(retryCount, maxRetries, failure?.failureClass),
             durability = if (notEstablished) observed else null,
         )
         try {
@@ -315,7 +305,7 @@ public sealed class HeldJob(
     internal suspend fun failFor(reason: String) {
         if (!settlingIfUnsettled()) return
         try {
-            failed(reason, null, null, null)
+            failed(reason, null)
         } catch (_: XynologError) {
             // Released all the same.
         }
@@ -323,12 +313,13 @@ public sealed class HeldJob(
 
     /**
      * Settle: `job:cancel`, once the work has stopped for a cancellation, with
-     * the units it finished and the furthest each unit begun got. It names no
-     * attempt: the message is its command's fields and no more.
+     * what it had reached: the units it finished and the furthest each unit
+     * begun got. It names no attempt: the message is its command's fields and
+     * no more.
      */
-    public suspend fun cancel(completedUnits: List<String>? = null, unitCursors: Map<String, UnitCursor>? = null) {
+    public suspend fun cancel(reached: JobReached? = null) {
         settling(Channels.JOB_CANCEL.name)
-        val said = JobCancelCommand(resourceId = resourceId, jobId = jobId, jobType = jobType, annotationId = annotationId, completedUnits = completedUnits, unitCursors = unitCursors)
+        val said = JobCancelCommand(resourceId = resourceId, jobId = jobId, jobType = jobType, annotationId = annotationId, completedUnits = reached?.completedUnits, unitCursors = reached?.unitCursors)
         try {
             holder.wire.emit(Channels.JOB_CANCEL, said)
         } finally {
@@ -337,7 +328,7 @@ public sealed class HeldJob(
     }
 
     /** `cancel`, for Java. */
-    public fun cancelFuture(completedUnits: List<String>?, unitCursors: Map<String, UnitCursor>?): CompletableFuture<Unit> = holder.scope.futureOf { cancel(completedUnits, unitCursors) }
+    public fun cancelFuture(reached: JobReached?): CompletableFuture<Unit> = holder.scope.futureOf { cancel(reached) }
 
     /** Say `job:complete`, released whether or not the gateway took it. */
     internal suspend fun completed(say: suspend () -> Unit) {
@@ -353,7 +344,7 @@ public sealed class HeldJob(
         if (!settlingIfUnsettled()) return
         holder.scope.launch(continuing(trace)) {
             try {
-                failed(LET_GO_UNSETTLED, null, null, null)
+                failed(LET_GO_UNSETTLED, null)
             } catch (_: XynologError) {
                 // Released all the same: the dispatcher's sweep concludes it.
             }
@@ -366,7 +357,7 @@ public class HeldMarkJob internal constructor(
     holder: Holder,
     claimed: JobRunning,
     cancelling: Variable<Boolean>,
-    trace: TraceContext?,
+    trace: TraceCarrier?,
 ) : HeldJob(holder, claimed, cancelling, trace) {
     private val scope = holder.scope
     private val wire = holder.wire
@@ -387,7 +378,7 @@ public class HeldYieldJob internal constructor(
     holder: Holder,
     claimed: JobRunning,
     cancelling: Variable<Boolean>,
-    trace: TraceContext?,
+    trace: TraceCarrier?,
 ) : HeldJob(holder, claimed, cancelling, trace) {
     private val scope = holder.scope
     private val wire = holder.wire

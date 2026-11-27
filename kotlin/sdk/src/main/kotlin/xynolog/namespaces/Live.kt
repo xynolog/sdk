@@ -37,9 +37,6 @@ import xynolog.types.MatchResourcesResponse
 import xynolog.types.ResourceDescriptor
 import java.util.concurrent.ConcurrentHashMap
 
-/** How many resources a list asks for when its caller states no limit. Every SDK asks for as many: client/surface.json's cases hold each to it. */
-internal const val LIST_LIMIT = 100L
-
 /** The key of each key holder's report of its engines' limits: the name of the operation that asks it. */
 internal val LIMITS_HOLDERS: List<String> = LIMITS_OPERATIONS.map { it.request.name }
 

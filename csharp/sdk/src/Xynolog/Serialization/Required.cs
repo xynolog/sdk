@@ -7,21 +7,6 @@ using Xynolog.Types;
 
 namespace Xynolog.Serialization;
 
-/// <summary>The first thing wrong with a value: the way to the member it is at (the names of the members it is within,
-/// and its own, joined by dots; empty for the value itself), and why.</summary>
-internal sealed record Fault(string Member, FrameRefusalReason Reason)
-{
-    /// <summary>The fault of a value its decoder refuses that has no fault the table states: the value itself is
-    /// malformed.</summary>
-    internal static readonly Fault Undecoded = new("", FrameRefusalReason.Malformed);
-
-    /// <summary>What every SDK says of the fault.</summary>
-    public override string ToString() =>
-        Reason == FrameRefusalReason.Lacks ? "it has no `" + Member + "`"
-        : Member.Length == 0 ? "it is malformed"
-        : "its `" + Member + "` is malformed";
-}
-
 // The first fault of a value as one of the protocol's component schemas, and what a reader reads of it. Every SDK holds
 // what it reads to the table of what each schema requires, and names the first fault it finds the same way. The table is
 // Generated/RequiredSchemas.g.cs, written by the rules of codegen/lib/required/shape.ml, which states what each part of a
@@ -29,6 +14,20 @@ internal sealed record Fault(string Member, FrameRefusalReason Reason)
 // envelope of a schema's response, and the empty payload) beside it, by the same rules.
 internal static partial class Required
 {
+    /// <summary>The fault at <paramref name="member"/>, the way to the member it is at (the names of the members it is
+    /// within, and its own, joined by dots; empty for the value itself), for <paramref name="reason"/>.</summary>
+    internal static Fault At(string member, FrameRefusalReason reason) => new() { Member = member, Reason = reason };
+
+    /// <summary>The fault of a value its decoder refuses that has no fault the table states: the value itself is
+    /// malformed.</summary>
+    internal static readonly Fault Undecoded = At("", FrameRefusalReason.Malformed);
+
+    /// <summary>What every SDK says of <paramref name="fault"/>.</summary>
+    internal static string Said(this Fault fault) =>
+        fault.Reason == FrameRefusalReason.Lacks ? "it has no `" + fault.Member + "`"
+        : fault.Member.Length == 0 ? "it is malformed"
+        : "its `" + fault.Member + "` is malformed";
+
     private static readonly Dictionary<string, Shape> Schemas = ParseTable();
 
     /// <summary>The first fault <paramref name="value"/> has as the component schema <paramref name="schema"/>, by the
@@ -54,7 +53,7 @@ internal static partial class Required
         try { decoded = read.Deserialize<T>() ?? throw new JsonException(typeof(T).Name + " is null."); }
         catch (JsonException)
         {
-            fault = Fault.Undecoded;
+            fault = Undecoded;
             return false;
         }
         return true;
@@ -352,7 +351,7 @@ internal static partial class Required
     private static Fault? FaultAt(Shape shape, JsonElement value, string way, Place at, List<Place> unread)
     {
         var own = Resolved(shape);
-        if (!Allows(own.Kinds, value) || !IsAsStated(own, value)) return new Fault(way, FrameRefusalReason.Malformed);
+        if (!Allows(own.Kinds, value) || !IsAsStated(own, value)) return At(way, FrameRefusalReason.Malformed);
         if (value.ValueKind == JsonValueKind.Object && FaultOfMembers(own, value, way, at, unread) is { } inMembers) return inMembers;
         if (value.ValueKind == JsonValueKind.Array && own.Items is { } items)
         {
@@ -412,7 +411,7 @@ internal static partial class Required
                     || (held.ValueKind == JsonValueKind.Null && shape.Members is { } stated && stated.TryGetValue(name, out var member)
                         && !AllowsNull(Resolved(member).Kinds)))
                 {
-                    return new Fault(Within(way, name), FrameRefusalReason.Lacks);
+                    return At(Within(way, name), FrameRefusalReason.Lacks);
                 }
             }
         }
@@ -432,16 +431,16 @@ internal static partial class Required
         var names = value.EnumerateObject().Select(property => property.Name).Order(CodePoints.Order).ToArray();
         if (shape.Closed is { } closed && names.FirstOrDefault(name => !closed.Contains(name, StringComparer.Ordinal)) is { } unnamed)
         {
-            return new Fault(Within(way, unnamed), FrameRefusalReason.Malformed);
+            return At(Within(way, unnamed), FrameRefusalReason.Malformed);
         }
         if (shape.Names is { } named
             && names.FirstOrDefault(name => FaultAt(named, JsonSerializer.SerializeToElement(name), "", Place.Value, []) is not null) is { } misnamed)
         {
-            return new Fault(Within(way, misnamed), FrameRefusalReason.Malformed);
+            return At(Within(way, misnamed), FrameRefusalReason.Malformed);
         }
         if (shape.NotAll is { } notAll && notAll.Any(set => set.All(name => value.TryGetProperty(name, out _))))
         {
-            return new Fault(way, FrameRefusalReason.Malformed);
+            return At(way, FrameRefusalReason.Malformed);
         }
         if (shape.Values is { } values)
         {
@@ -467,7 +466,7 @@ internal static partial class Required
         {
             candidates = [variants[variantAt]];
         }
-        if (candidates.Count == 0) return new Fault(way, FrameRefusalReason.Malformed);
+        if (candidates.Count == 0) return At(way, FrameRefusalReason.Malformed);
         Fault? first = null;
         foreach (var candidate in candidates)
         {

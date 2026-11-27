@@ -153,12 +153,16 @@ let required_table () =
   refuses M.conformance_step {|{"wire":"HEAD /"}|};
   refuses M.conformance_step {|{"wire":"GETPOST /"}|};
   refuses M.conformance_step {|{"wire":"GET/"}|};
-  (* An error's code is ^control\.[a-z]+(-[a-z]+)*$. *)
-  accepts M.error_data {|{"code":"control.unknown","retryable":false}|};
-  accepts M.error_data {|{"code":"control.not-found-here","retryable":false}|};
-  faults M.error_data {|{"code":"control.not-","retryable":false}|} "code"
+  (* An error's code is one of errors/codes.json's control codes. *)
+  accepts M.error_data {|{"code":"control.failed","retryable":false}|};
+  faults M.error_data {|{"code":"control.unknown","retryable":false}|} "code"
     R.Malformed;
-  faults M.error_data {|{"code":"control.not--found","retryable":false}|} "code"
+  faults M.error_data {|{"code":"bus.timeout","retryable":false}|} "code"
+    R.Malformed;
+  (* A claim's refusal is one of the bus request codes, or null. *)
+  accepts M.claim_refusal {|{"code":"bus.unauthorized","message":"no"}|};
+  accepts M.claim_refusal {|{"code":null,"message":"no"}|};
+  faults M.claim_refusal {|{"code":"control.failed","message":"no"}|} "code"
     R.Malformed;
   (* A name is ^[0-9a-z]([-0-9a-z]*[0-9a-z])?$: the step in the group gives
      back the point the step after it takes. *)

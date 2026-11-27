@@ -2,6 +2,7 @@ import type {
   AnnotationId,
   CacheQuery,
   CacheValues,
+  ClientTiming,
   ResourceDescriptor,
   ResourceId,
   GatheredContext,
@@ -13,7 +14,7 @@ import type {
   MatchSearchOptions,
   ResourceSearchFilters,
 } from '@xynolog/core';
-import { Bus } from '@xynolog/core';
+import { Bus, DEFAULT_CLIENT_TIMING } from '@xynolog/core';
 import { CacheObservable, StreamObservable } from '../awaitable';
 import { createCache, type Cache } from '../cache';
 import { CacheRefresher } from '../cache-refresh';
@@ -50,13 +51,15 @@ export class MatchNamespace implements IMatchNamespace {
     private readonly transport: ITransport,
     private readonly bus: EventBus,
     options?: {
-      /** Timeout of the requests the live query issues; absent, `Bus.request`'s own. */
-      busTimeoutMs?: number;
-      /** B19's window; absent, `invalidationWindowMs` of protocol/specs/src/client/timing.json. */
-      invalidationWindowMs?: number;
+      /** What of the client's timing differs from `DEFAULT_CLIENT_TIMING`. */
+      timing?: Partial<ClientTiming>;
     },
   ) {
     this.wire = new Bus(transport);
+    const { busRequestTimeoutMs, invalidationWindowMs } = {
+      ...DEFAULT_CLIENT_TIMING,
+      ...options?.timing,
+    };
     this.resourcesCache = createCache<string, CacheValues['matchedResources']>(
       async (key) => {
         const asked = this.resourcesAsked.get(key);
@@ -70,10 +73,10 @@ export class MatchNamespace implements IMatchNamespace {
             search: asked.search,
             archived: asked.filters.archived,
             entityType: asked.filters.entityType,
-            limit: asked.filters.limit ?? 100,
-            offset: asked.filters.offset ?? 0,
+            limit: asked.filters.limit,
+            offset: asked.filters.offset,
           },
-          options?.busTimeoutMs,
+          busRequestTimeoutMs,
         );
         // Brand the wire type (unbranded @id: string) to the SDK's ResourceDescriptor
         // (@id: ResourceId) at the boundary. The whole envelope is cached, not
@@ -97,7 +100,7 @@ export class MatchNamespace implements IMatchNamespace {
             ),
         },
       },
-      options?.invalidationWindowMs,
+      invalidationWindowMs,
     );
   }
 
@@ -154,7 +157,7 @@ export class MatchNamespace implements IMatchNamespace {
             referenceId,
             context,
             limit: options?.limit ?? 10,
-            useSemanticScoring: options?.useSemanticScoring ?? true,
+            useSemanticScoring: options?.useSemanticScoring,
           },
           // The request's own deadline: the option above is the live query's.
           undefined,

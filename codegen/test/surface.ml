@@ -40,16 +40,20 @@ let definitions = { D.names = [ "Filters"; "Command" ]; schema }
 
 let reference target : S.schema =
   Reference
-    { ref = { Decode.target; file = "client/surface.json"; pointer = "" } }
+    {
+      ref = { Decode.target; file = "client/surface.json"; pointer = "" };
+      type_arguments = None;
+    }
 
 let value ?(required = true) parameter schema : S.parameters_item =
-  Value { parameter; schema; required }
+  Value { parameter; schema = Some schema; required; absent = None }
 
 let callback ?(required = false) parameter : S.parameters_item =
   Callback
     {
       parameter;
       calls = reference "../components/schemas/Command.json";
+      returns = None;
       required;
     }
 
@@ -129,7 +133,12 @@ let derived =
                 [
                   value ~required:false "ms"
                     (Scalar
-                       { type_ = Integer; minimum = Some 0; description = "d" });
+                       {
+                         type_ = Integer;
+                         minimum = Some 0;
+                         format = None;
+                         description = "d";
+                       });
                 ];
             ]
         with

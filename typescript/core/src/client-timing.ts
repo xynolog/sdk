@@ -18,10 +18,10 @@ export const EMIT_RETRY: RetryBudget = {
   maxDelayMs: 4000,
 };
 
-/** The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's own operations (who a token is, a media token, the resource metadata, health, status), the wait for a resource's bytes to begin arriving, a read of a resource's description or of its anchored text, a request to the issuer (its discovery, a grant, a revocation), and a read of a launcher's discovery document. Unanswered here, the request fails as one that got no answer. It bounds the read of a refusal's body too, of such a request or of the request that opens the stream (`streamOpenTimeoutMs`): a body not read by then is the refusal with none of the gateway's words, refused, renewed or retried as any refusal is. Without it, a gateway or an issuer that accepts a connection and never answers holds a session's start, and every renewal after it, for as long as the process lives. An upload has no deadline: how long it takes is how large the resource is. A read of anchored text may be held by the Archivist while the Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds` and `readSeconds` together, and the hold is shorter than `readSeconds`, which `lint:spec-protocol` holds. */
+/** The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's own operations (who a token is, a media token, the resource metadata, health, status), the wait for a resource's bytes to begin arriving, a read of a resource's description or of its anchored text, a request to the issuer (its discovery, a grant, a revocation), and a read of a launcher's discovery document. Unanswered here, the request fails as one that got no answer. It bounds the read of a refusal's body too, of such a request or of the request that opens the stream (`streamOpenTimeoutMs`): a body not read by then is the refusal with none of the gateway's words, refused, renewed or retried as any refusal is. Without it, a gateway or an issuer that accepts a connection and never answers holds a session's start, and every renewal after it, for as long as the process lives. An upload has no deadline: how long it takes is how large the resource is. A read of anchored text may be held by the Archivist while the Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds` and `readSeconds` together, and the hold is shorter than `readSeconds`, which the reader's protocol rules (`reader/lib/protocol_rules.ml`) hold. */
 export const HTTP_REQUEST_TIMEOUT_MS = 30000;
 
-/** The wait before an HTTP request that is neither the stream nor an emit is made a second time. It is made again when the gateway answered it with a status that promises recovery, or did not answer at all, and a repeat cannot cause a second effect: its method cannot, or it carries an `Idempotency-Key`, as an upload does (`transport` in specs/src/retry/rules.json); once, after this wait, or after a refusal's `Retry-After` when that is longer. A request whose credential was refused is renewed and sent again at once, without this wait, and one unanswered at its deadline (`httpRequestTimeoutMs`) is not made again. */
+/** The wait before an HTTP request that is neither the stream nor an emit is made a second time. It is made again when the gateway answered it with a status that promises recovery, or did not answer at all, and a repeat cannot cause a second effect: its method cannot, or it carries an `Idempotency-Key`, as an upload does (`transport` in specs/src/retry/rules.json); once, after this wait, or after a refusal's `Retry-After` when that is longer. A request whose credential was refused is renewed and sent again at once, without this wait, and one unanswered at its deadline (`httpRequestTimeoutMs`) is not made again. The naming request of an agent's sign-in is made once, and is not made again (contract/TRANSPORT-HTTP.md § An agent's sign-in). */
 export const REQUEST_RETRY_PAUSE_MS = 300;
 
 /** How long a client waits for the gateway to answer the request that opens its stream (POST /bus/subscribe): for the answer's status and headers. Unanswered here, the open has failed, and the stream is opened again on the backoff (`reconnectMs`), as after any open that failed. Without it, a gateway that accepts the connection and says nothing is waited on for as long as the process lives, and the stream is never opened again. The gateway answers an open as promptly as one of its own operations, so this is as long as `httpRequestTimeoutMs`. Only the answer is bounded here. An answer that refuses the open has its body read within `httpRequestTimeoutMs`, as any refusal's is: one not read by then is the refusal with none of the gateway's words. An open stream that carries nothing for a while has not failed, since a knowledge base where nothing happens has nothing to send. */
@@ -135,3 +135,52 @@ export const DISCOVERY_INTERVAL_MS = 5000;
 
 /** How many of the resources open in a knowledge base a registry checks against it at once when its session comes up. A connection that has just opened is not handed every check together. */
 export const CHECKS_AT_ONCE_COUNT = 4;
+
+/** What a caller may set of the timing a client keeps: each member is the entry of protocol/specs/src/client/timing.json that its name says, and has the table's value unless the caller states another. */
+export interface ClientTiming {
+  /** How long a bus request has, from the call, to be answered: the wait for the stream to open, the emit with its retries and the waits between them, and the wait for the reply. When it falls due the request fails as timed out, and an emit still in flight is given up, with no attempt after it. The gateway keeps a reply for redelivery at least twice this long (`replyRetentionSeconds` on POST /bus/subscribe), so a reply published during an outage is still there when the requester reconnects inside its own deadline. */
+  busRequestTimeoutMs: number;
+  /** How long bus-driven invalidations of one cache key fold together (CACHE-SEMANTICS B19). The first runs at once; any more inside the window become one refetch at its end. Each refetch is a request the session's principal pays for, and another principal's bulk write invalidates an observed key once per event. */
+  invalidationWindowMs: number;
+  /** How long a job a client is following may say nothing before the client asks for its status. A job's progress and its end reach the client as passing frames, which a dropped stream loses and nothing redelivers; `job:status-requested` is how a follower learns what it missed. Every frame of the job starts the wait again. */
+  jobSilenceMs: number;
+  /** How often a client asks for the status of a job that has been silent for `jobSilenceMs`, until the job says something or its status is an end. */
+  jobStatusPollMs: number;
+}
+
+/** The table's values of ClientTiming. */
+export const DEFAULT_CLIENT_TIMING: ClientTiming = {
+  busRequestTimeoutMs: BUS_REQUEST_TIMEOUT_MS,
+  invalidationWindowMs: INVALIDATION_WINDOW_MS,
+  jobSilenceMs: JOB_SILENCE_MS,
+  jobStatusPollMs: JOB_STATUS_POLL_MS,
+};
+
+/** What a caller may set of the timing a transport keeps: each member is the entry of protocol/specs/src/client/timing.json that its name says, and has the table's value unless the caller states another. */
+export interface TransportTiming {
+  /** The retry budget of ONE emit. Per request, never per boot pass: re-running a whole catch-up pass to recover from one refusal re-sends hundreds of emits that already succeeded. Small on purpose: an emit a caller awaits must fail while the caller still cares, and the patience for a gateway that is down belongs to the pass above it. */
+  emitRetry: RetryBudget;
+  /** The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's own operations (who a token is, a media token, the resource metadata, health, status), the wait for a resource's bytes to begin arriving, a read of a resource's description or of its anchored text, a request to the issuer (its discovery, a grant, a revocation), and a read of a launcher's discovery document. Unanswered here, the request fails as one that got no answer. It bounds the read of a refusal's body too, of such a request or of the request that opens the stream (`streamOpenTimeoutMs`): a body not read by then is the refusal with none of the gateway's words, refused, renewed or retried as any refusal is. Without it, a gateway or an issuer that accepts a connection and never answers holds a session's start, and every renewal after it, for as long as the process lives. An upload has no deadline: how long it takes is how large the resource is. A read of anchored text may be held by the Archivist while the Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds` and `readSeconds` together, and the hold is shorter than `readSeconds`, which the reader's protocol rules (`reader/lib/protocol_rules.ml`) hold. */
+  httpRequestTimeoutMs: number;
+  /** How long a client waits for the gateway to answer the request that opens its stream (POST /bus/subscribe): for the answer's status and headers. Unanswered here, the open has failed, and the stream is opened again on the backoff (`reconnectMs`), as after any open that failed. Without it, a gateway that accepts the connection and says nothing is waited on for as long as the process lives, and the stream is never opened again. The gateway answers an open as promptly as one of its own operations, so this is as long as `httpRequestTimeoutMs`. Only the answer is bounded here. An answer that refuses the open has its body read within `httpRequestTimeoutMs`, as any refusal's is: one not read by then is the refusal with none of the gateway's words. An open stream that carries nothing for a while has not failed, since a knowledge base where nothing happens has nothing to send. */
+  streamOpenTimeoutMs: number;
+  /** The first wait before a failed stream is opened again. Each further failure doubles it, up to `maxReconnectMs`, and a successful open resets it. Also the cadence at which a transport with no usable credential checks for one, which costs no request. */
+  reconnectMs: number;
+  /** How long a superseded connection keeps draining after a make-before-break handoff. Closing it the instant its replacement opens discards replies already written to the old socket and not yet read. The overlap doubles nothing: a frame both connections carry has one id, and is delivered once (`seenEventIdsCount`). */
+  lingerMs: number;
+  /** How many of the event ids it delivered last a client remembers. A frame whose id is among them is one it has delivered already, and is dropped: that is what makes a frame carried by both streams of a handoff, or replayed to the new one, arrive once. A client that remembers fewer delivers twice whenever more than that many events pass between the two copies. */
+  seenEventIdsCount: number;
+  /** How long a removal from the subscription waits before the stream is reopened without it. Removal only narrows delivery, and reopening on every scope a viewer brushes past would churn the connection. */
+  lazyRemoveMs: number;
+}
+
+/** The table's values of TransportTiming. */
+export const DEFAULT_TRANSPORT_TIMING: TransportTiming = {
+  emitRetry: EMIT_RETRY,
+  httpRequestTimeoutMs: HTTP_REQUEST_TIMEOUT_MS,
+  streamOpenTimeoutMs: STREAM_OPEN_TIMEOUT_MS,
+  reconnectMs: RECONNECT_MS,
+  lingerMs: LINGER_MS,
+  seenEventIdsCount: SEEN_EVENT_IDS_COUNT,
+  lazyRemoveMs: LAZY_REMOVE_MS,
+};

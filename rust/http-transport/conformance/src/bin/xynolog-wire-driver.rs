@@ -19,23 +19,21 @@ use tokio::sync::watch;
 use tokio::task::JoinSet;
 use xynolog::bus::{Bus, operation};
 use xynolog::errors::XynologError;
-use xynolog::transport::{
-    BoxFuture, ConnectionState, ContentTransport, Envelope, GatewayOperations, ResourceHold,
-    Transport,
-};
+use xynolog::transport::{BoxFuture, ContentTransport, Envelope, GatewayOperations, ResourceHold, Transport};
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     ConformanceDriverLine, ConformanceDriverLineErrorStream, ConformanceDriverLineFrame,
     ConformanceDriverLineFrameFrame, ConformanceDriverLineProgress,
     ConformanceDriverLineProgressProgress, ConformanceDriverLineState, PutBinaryRequest, ResourceId,
-    RetryBudget, UploadProgress,
+    UploadProgress,
 };
 use xynolog_conformance_drivers::{
     Arguments, Driver, Ended, Running, count, failure, identifier, locked, object,
-    optional_identifier, optional_text, say, serve, text, texts,
+    optional_identifier, optional_text, read_timing, say, serve, text, texts, transport_row,
 };
 use xynolog_http_transport::content::HttpContentTransport;
 use xynolog_http_transport::transport::{
-    HttpTransport, HttpTransportConfig, Timing, TokenRefresher,
+    HttpTransport, HttpTransportConfig, TokenRefresher, TransportTiming,
 };
 
 struct Client {
@@ -96,36 +94,10 @@ impl Wire {
         if locked(&self.client).is_some() {
             return Err(Ended::Misuse("a transport is already open".to_owned()));
         }
-        let mut timing = Timing::default();
-        let stated = match args.get("timing") {
-            None => &Arguments::new(),
-            Some(_) => object(args, "timing")?,
-        };
-        let ms = |name: &str| count(stated, name).map(Duration::from_millis);
-        for name in stated.keys() {
-            match name.as_str() {
-                "reconnectMs" => timing.reconnect = ms(name)?,
-                "lazyRemoveMs" => timing.lazy_remove = ms(name)?,
-                "lingerMs" => timing.linger = ms(name)?,
-                "seenEventIdsCount" => {
-                    timing.seen_event_ids = usize::try_from(count(stated, name)?)
-                        .map_err(|_| Ended::Misuse(format!("{name} is too large")))?;
-                }
-                "emitRetry" => {
-                    let budget = object(stated, name)?;
-                    timing.emit_retry = RetryBudget {
-                        attempts: count(budget, "attempts")?,
-                        initial_delay_ms: count(budget, "initialDelayMs")?,
-                        max_delay_ms: count(budget, "maxDelayMs")?,
-                    };
-                }
-                other => {
-                    return Err(Ended::Misuse(format!(
-                        "this driver cannot override {other}"
-                    )));
-                }
-            }
-        }
+        let mut transport_timing = TransportTiming::default();
+        read_timing(args, |stated, row| {
+            transport_row(&mut transport_timing, stated, row)
+        })?;
         let (token, tokens) = watch::channel(Some(text(args, "token")?.to_owned()));
         let token = Arc::new(token);
         let refresher: Option<Arc<dyn TokenRefresher>> = match args.get("renewals") {
@@ -141,8 +113,7 @@ impl Wire {
             refresher,
             channels: texts(args, "channels")?,
             http: reqwest::Client::new(),
-            timing,
-
+            timing: transport_timing,
             random: None,
         });
 

@@ -48,18 +48,21 @@ export {
 // hands out, and what a transport made for a worker names.
 export {
   ClaimsObservable,
-  JOB_CLAIM_CHANNELS,
-  JOB_COMMIT_CHANNELS,
   willRetryAfter,
-  type ClaimRefusal,
   type HeldJob,
-  type HeldJobStall,
   type HeldMarkJob,
   type HeldYieldJob,
-  type JobCheckpoint,
-  type JobFailure,
-  type WorkerVitals,
 } from './claims';
+export type {
+  ClaimRefusal,
+  HeldJobRecord,
+  HeldJobStall,
+  JobCheckpoint,
+  JobFailure,
+  JobReached,
+  WorkerVitals,
+} from '@xynolog/core';
+export { JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS } from './worker-channels';
 
 // The SWR cache primitive behind every `browse.*` live query. Exported so
 // consumers of its observables (react-ui's `trackList`) can be tested against
@@ -132,6 +135,9 @@ export type {
   ClaimOptions,
   CreateFromTokenOptions,
   ResourceSearchFilters,
+  // The timing a caller may set, of the client and of its HTTP transport
+  ClientTiming,
+  TransportTiming,
   // Transport contracts
   ConnectionState,
   IContentTransport,
@@ -354,10 +360,13 @@ export {
   textDiscovery,
   subscribeDiscovery,
 } from './discovery';
+export type { DiscoveryTransport } from './discovery';
 export type {
+  DiscoveryAbsentReason,
+  DiscoveryAbsent,
+  DiscoveryManaged,
+  DiscoveryUnchanged,
   DiscoveryState,
-  DiscoveryReadResult,
-  DiscoveryTransport,
+  DiscoveryRead,
   DiscoveryDiff,
-} from './discovery';
-export type { DiscoveryAbsentReason } from '@xynolog/core';
+} from '@xynolog/core';

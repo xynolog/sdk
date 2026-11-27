@@ -356,7 +356,7 @@ let client = client(
         refresher: Some(agent.clone()),
         channels,
         http,
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: None,
     },
     ClientOptions::default(),
@@ -460,7 +460,7 @@ The Python SDK is one package, `xynolog`. `AgentToken`, held with `async with`, 
 ```python
 from xynolog.annotations import QuotedText, annotation_of_span, reconcile
 from xynolog.channels import PRINCIPAL_PROFILE
-from xynolog.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, ClaimRefusal, HeldMarkJob, HeldYieldJob
+from xynolog.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, HeldMarkJob, HeldYieldJob
 from xynolog.client import XynologClient
 from xynolog.http import AgentToken, HttpTransport, KeyCredential, ServiceToken, private_key_from_pem
 from xynolog.identifiers import AnnotationId
@@ -469,6 +469,8 @@ from xynolog.types import (
     AgentSoftware,
     Annotation,
     ClaimOptions,
+    ClaimRefusal,
+    JobFailure,
     JobProgress,
     MarkJobDone,
     MarkJobFilter,
@@ -529,7 +531,7 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
                     case ClaimRefusal():
                         print(f"claim refused: {handed.message}")
                     case HeldYieldJob():
-                        await handed.fail("this worker runs no yield job", failure_class="deterministic")
+                        await handed.fail("this worker runs no yield job", JobFailure(failure_class="deterministic"))
                     case HeldMarkJob():
                         # A job left unsettled at the end of this block is failed.
                         async with handed as job:

@@ -34,7 +34,7 @@ func refusedAs(t *testing.T, why string, err error, said string) {
 		t.Errorf("%s: read, or failed as %v, and it has a fault", why, err)
 		return
 	}
-	if refused.Code != xynolog.TransportErrorCodeError || refused.Message != said {
+	if refused.Code != api.TransportErrorCodeError || refused.Message != said {
 		t.Errorf("%s: refused as %s %q, not as an error saying %q", why, refused.Code, refused.Message, said)
 	}
 }
@@ -50,7 +50,7 @@ func asked(t *testing.T, response string) (api.BrowseResourceResult, error) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return xynolog.Request(context.Background(), xynolog.NewWire(transport), bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: resource}, xynolog.DefaultTiming().BusRequestTimeout)
+	return xynolog.Request(context.Background(), xynolog.NewWire(transport), bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: resource}, xynolog.DefaultClientTiming().BusRequestTimeout)
 }
 
 func TestAReplyWithAFaultIsRefusedNamingIt(t *testing.T) {
@@ -111,10 +111,10 @@ func TestAWrappedResponseIsHeldToItsSchemaFromTheResponse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = xynolog.Request(context.Background(), xynolog.NewWire(transport), bus.JobCancelRequested, api.JobCancelRequest{JobId: job}, xynolog.DefaultTiming().BusRequestTimeout)
+	_, err = xynolog.Request(context.Background(), xynolog.NewWire(transport), bus.JobCancelRequested, api.JobCancelRequest{JobId: job}, xynolog.DefaultClientTiming().BusRequestTimeout)
 	refusedAs(t, "an empty response", err, "a payload on job:cancel-ok is not that channel's: it has no `response.cancelled`")
 	transport.QueueReply(bus.JobCancelRequested.Request().Channel(), nil)
-	_, err = xynolog.Request(context.Background(), xynolog.NewWire(transport), bus.JobCancelRequested, api.JobCancelRequest{JobId: job}, xynolog.DefaultTiming().BusRequestTimeout)
+	_, err = xynolog.Request(context.Background(), xynolog.NewWire(transport), bus.JobCancelRequested, api.JobCancelRequest{JobId: job}, xynolog.DefaultClientTiming().BusRequestTimeout)
 	refusedAs(t, "no response", err, "a payload on job:cancel-ok is not that channel's: it has no `response`")
 }
 
@@ -129,7 +129,7 @@ func failed(t *testing.T, failure string) (byType, byChannel error) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	within := xynolog.DefaultTiming().BusRequestTimeout
+	within := xynolog.DefaultClientTiming().BusRequestTimeout
 	wire := xynolog.NewWire(transport)
 	_, byType = xynolog.Request(context.Background(), wire, bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: resource}, within)
 	_, byChannel = wire.RequestOf(context.Background(), bus.BrowseResourceRequested.Request().Channel(), map[string]any{"resourceId": "res-1"}, within)
@@ -157,7 +157,7 @@ func TestAFailureWhoseCodeTheWireDoesNotListIsRejectedInItsOwnWords(t *testing.T
 	byType, byChannel := failed(t, `{"message":"a code from a later peer","code":"not-a-code-yet"}`)
 	for _, err := range []error{byType, byChannel} {
 		var rejected *xynolog.BusRequestError
-		if !errors.As(err, &rejected) || rejected.Code != xynolog.BusRequestErrorCodeRejected || rejected.Message != "a code from a later peer" {
+		if !errors.As(err, &rejected) || rejected.Code != api.BusRequestErrorCodeRejected || rejected.Message != "a code from a later peer" {
 			t.Errorf("failed with %v, not as a rejection in the failure's words", err)
 		}
 	}
@@ -173,7 +173,7 @@ func TestAnAnswerWithAFaultIsRefusedNamingIt(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(c.answer))
 		}))
-		transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{BaseURL: gateway.URL, Token: xynolog.NewVariable(""), HTTP: &http.Client{}, Timing: xynolog.DefaultTiming()})
+		transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{BaseURL: gateway.URL, Token: xynolog.NewVariable(""), HTTP: &http.Client{}, Timing: xynolog.DefaultTransportTiming()})
 		_, err := transport.GetCurrentUser(context.Background())
 		refusedAs(t, c.why, err, "GET /api/users/me answered what is not its declared body: "+c.said)
 		var refused *xynolog.TransportError

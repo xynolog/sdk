@@ -7,10 +7,8 @@ open Tables.Errors_codes
 
 let file = "errors/codes.json"
 
-(* The bus vocabulary: its member of the table, and its type's name in Go,
-   Python and TypeScript. *)
+(* The bus vocabulary's member of the table. *)
 let bus_member = "busRequest"
-let bus_name = "BusRequestErrorCode"
 
 (* What every transport code states alike, whatever status it is read from. *)
 let transport_code_and_docs : transport_codes_item -> string * string = function
@@ -46,14 +44,14 @@ type t = {
   from : (int * code) option;
       (** The status every one at or above which becomes the code. *)
   unclassified : code;  (** What any other status becomes. *)
+  limit_refusals : (int * string * code) list;
+      (** Each gateway refusal of a limit, by its status and LimitRefusal code,
+          that is the transport code too (a transport code's [limitRefusals]).
+      *)
   others : vocabulary list;
       (** The vocabularies that state nothing but their codes. *)
   control : vocabulary;  (** The control plane's codes. *)
 }
-
-(* Every vocabulary: the bus's, the transport's, the others and the control
-   plane's. *)
-let vocabularies t = (t.bus :: t.transport :: t.others) @ [ t.control ]
 
 (* A code's part after its last dot, which names its Go constant: lower-case
    words of letters and digits joined by hyphens. *)
@@ -86,7 +84,8 @@ let derive (table : Tables.Errors_codes.t) =
   in
   (* Each vocabulary's codes, each stated once and each a distinct Go
      constant. *)
-  let vocabulary ~member ~name ~go_name ~docs codes =
+  let vocabulary ~member ~docs codes =
+    let name, go_name = Code_names.named member in
     let stated = Hashtbl.create 16 and constants = Hashtbl.create 16 in
     let codes =
       List.mapi
@@ -120,8 +119,7 @@ let derive (table : Tables.Errors_codes.t) =
     { member; name; go_name; docs; codes }
   in
   let bus =
-    vocabulary ~member:bus_member ~name:bus_name ~go_name:bus_name
-      ~docs:table.bus_request.docs
+    vocabulary ~member:bus_member ~docs:table.bus_request.docs
       (List.map
          (fun (c : codes_item) -> (c.code, c.docs))
          table.bus_request.codes)
@@ -180,8 +178,7 @@ let derive (table : Tables.Errors_codes.t) =
            (command_error_code_value wire))
   | Some { wire = None; _ } | None -> ());
   let transport =
-    vocabulary ~member:"transport" ~name:"TransportErrorCode"
-      ~go_name:"TransportErrorCode" ~docs:table.transport.docs
+    vocabulary ~member:"transport" ~docs:table.transport.docs
       (List.map transport_code_and_docs table.transport.codes)
   in
   let mapped =
@@ -259,23 +256,19 @@ let derive (table : Tables.Errors_codes.t) =
                code.code)
       | Status _ | Status_from _ | No_status _ -> ())
     mapped;
-  let plain ~member ~name ~go_name (v : Tables.Errors_codes.job) =
-    vocabulary ~member ~name ~go_name ~docs:v.docs
+  let plain ~member (v : Tables.Errors_codes.job) =
+    vocabulary ~member ~docs:v.docs
       (List.map
          (fun (c : Tables.Errors_codes.job_codes_item) -> (c.code, c.docs))
          v.codes)
   in
   let others =
     [
-      plain ~member:"job" ~name:"JobErrorCode" ~go_name:"JobErrorCode" table.job;
-      plain ~member:"session" ~name:"XynologSessionErrorCode"
-        ~go_name:"SessionErrorCode" table.session;
-      plain ~member:"signIn" ~name:"SignInErrorCode" ~go_name:"SignInErrorCode"
-        table.sign_in;
-      plain ~member:"kbIdentity" ~name:"IdentityUnverifiableReason"
-        ~go_name:"IdentityUnverifiableReason" table.kb_identity;
-      plain ~member:"spanRefusal" ~name:"SpanRefusal" ~go_name:"SpanRefusal"
-        table.span_refusal;
+      plain ~member:"job" table.job;
+      plain ~member:"session" table.session;
+      plain ~member:"signIn" table.sign_in;
+      plain ~member:"kbIdentity" table.kb_identity;
+      plain ~member:"spanRefusal" table.span_refusal;
     ]
   in
   match (List.rev !refusals, unrecognized, unclassified) with
@@ -289,9 +282,34 @@ let derive (table : Tables.Errors_codes.t) =
           exact = List.map (fun (_, status, code) -> (status, code)) exact;
           from;
           unclassified;
+          limit_refusals =
+            List.concat_map
+              (fun (stated, (code : code)) ->
+                match stated with
+                | Status { limit_refusals = Some refusals; _ } ->
+                    List.map
+                      (fun (r : limit_refusals_item) ->
+                        (r.status, limit_refusal_code_value r.code, code))
+                      refusals
+                | Status _ | Status_from _ | No_status _ -> [])
+              (List.combine table.transport.codes transport.codes);
           others;
           control =
-            plain ~member:"control" ~name:"ControlErrorCode"
-              ~go_name:"ControlErrorCode" table.control;
+            vocabulary ~member:"control" ~docs:table.control.docs
+              (List.map
+                 (fun (c : Tables.Errors_codes.control_codes_item) ->
+                   (c.code, c.docs))
+                 table.control.codes);
         }
   | refusals, _, _ -> Error refusals
+
+(* Every vocabulary, in the table's order. *)
+let vocabularies t = (t.bus :: t.transport :: t.others) @ [ t.control ]
+
+(* The codes of the vocabulary [member] names among [vocabularies], as the
+   texts a schema's [enum] states ([x-xynolog-codes]). *)
+let enum vocabularies member =
+  Option.map
+    (fun (v : vocabulary) ->
+      List.map (fun (c : code) -> Schema.String_literal c.code) v.codes)
+    (List.find_opt (fun (v : vocabulary) -> v.member = member) vocabularies)

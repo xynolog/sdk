@@ -89,7 +89,7 @@ public sealed partial class TransportTests
                 Assert.True(JsonElement.DeepEquals(stated.TryGetProperty("read", out var stating) ? stating : frame.GetProperty("payload"), readByType),
                     "its typed reader reads " + readByType.GetRawText());
             }
-            AssertToldNoFrame(Fault.Undecoded, await failures.NextAsync());
+            AssertToldNoFrame(Xynolog.Serialization.Required.Undecoded, await failures.NextAsync());
             return;
         }
 
@@ -97,7 +97,7 @@ public sealed partial class TransportTests
         JsonNode? framed = stated.TryGetProperty("frame", out var shown) ? JsonNode.Parse(shown.GetRawText()) : null;
         Assert.Equal(new[] { "member", "reason", "refused", "told", "why", line is null ? "frame" : "data" }.Order(StringComparer.Ordinal),
             stated.EnumerateObject().Select(member => member.Name).Where(name => name is not ("correlationId" or "request")).Order(StringComparer.Ordinal));
-        var fault = new Fault(Text(stated, "member"), stated.GetProperty("reason").Deserialize<FrameRefusalReason>());
+        var fault = Xynolog.Serialization.Required.At(Text(stated, "member"), stated.GetProperty("reason").Deserialize<FrameRefusalReason>());
         var replied = framed?["channel"] is JsonValue named && named.TryGetValue<string>(out var channelNamed) && channelNamed == replies.Result.Name;
         var channel = replied ? replies.Result.Name : BusChannels.BeckonFocus.Name;
         var correlation = stated.TryGetProperty("correlationId", out var carriedId) ? carriedId.GetString() : null;
@@ -149,13 +149,13 @@ public sealed partial class TransportTests
                 {
                     Assert.Equal(refusal, Assert.Single(came));
                 }
-                AssertToldNoFrame(Fault.Undecoded, await told.NextAsync());
+                AssertToldNoFrame(Xynolog.Serialization.Required.Undecoded, await told.NextAsync());
                 break;
             case "failure-report":
                 Assert.Empty(came);
                 Assert.Empty(read);
                 AssertToldNoFrame(fault, await told.NextAsync());
-                AssertToldNoFrame(Fault.Undecoded, await told.NextAsync());
+                AssertToldNoFrame(Xynolog.Serialization.Required.Undecoded, await told.NextAsync());
                 break;
             case var whom:
                 throw new InvalidOperationException("told to whom the table does not give: " + whom);
@@ -167,7 +167,7 @@ public sealed partial class TransportTests
             case "fails":
                 var failure = await Assert.ThrowsAsync<TransportError>(() => request.WaitAsync(deadline.Token));
                 Assert.Equal(TransportErrorCode.Error, failure.Code);
-                Assert.Equal("a frame on " + channel + " is not that channel's: " + fault, failure.Message);
+                Assert.Equal("a frame on " + channel + " is not that channel's: " + fault.Said(), failure.Message);
                 break;
             case "waits":
                 Assert.NotSame(request, await Task.WhenAny(request, Task.Delay(TimeSpan.FromMilliseconds(100), deadline.Token)));
@@ -209,7 +209,7 @@ public sealed partial class TransportTests
     private static void AssertToldNoFrame(Fault fault, XynologError failure)
     {
         var error = Assert.IsType<TransportError>(failure);
-        Assert.Equal((TransportErrorCode.Error, (int?)null, "the stream carried what is not a frame: " + fault), (error.Code, error.Status, error.Message));
+        Assert.Equal((TransportErrorCode.Error, (int?)null, "the stream carried what is not a frame: " + fault.Said()), (error.Code, error.Status, error.Message));
     }
 
     /// <summary>A reading of <paramref name="source"/> begun at once, so it hears what is carried from now on.</summary>

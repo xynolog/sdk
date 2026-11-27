@@ -1,3 +1,9 @@
+//go:build go1.27
+
+// Built by Go 1.27 and later only: rows of it run on bubbledStage, whose
+// network is httptest.NewTestServer's, which is new in 1.27, while the module
+// admits 1.26.
+
 package registry_test
 
 // protocol/specs/src/session/registry-errors-cases.json: how a registry reads
@@ -27,6 +33,7 @@ import (
 	"slices"
 	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	xynolog "github.com/xynolog/sdk/go"
@@ -50,20 +57,20 @@ type registryErrorsCase struct {
 	// Said is what the session says on its errors, in order: each one of its
 	// own errors, or a failure of its transport with that message.
 	Said []struct {
-		Own       *xynolog.SessionErrorCode   `json:"own"`
-		Transport *xynolog.TransportErrorCode `json:"transport"`
-		Message   *string                     `json:"message"`
+		Own       *api.SessionErrorCode   `json:"own"`
+		Transport *api.TransportErrorCode `json:"transport"`
+		Message   *string                 `json:"message"`
 	} `json:"said"`
-	RegistryErrors []xynolog.SessionErrorCode `json:"registryErrors"`
+	RegistryErrors []api.SessionErrorCode `json:"registryErrors"`
 	// PermissionDenied is nil for a case that says no refusal for lack of
 	// permission through the session's signals.
 	PermissionDenied *string `json:"permissionDenied"`
 }
 
 type registryClosingRow struct {
-	Why            string                     `json:"why"`
-	Owed           *bool                      `json:"owed"`
-	RegistryErrors []xynolog.SessionErrorCode `json:"registryErrors"`
+	Why            string                 `json:"why"`
+	Owed           *bool                  `json:"owed"`
+	RegistryErrors []api.SessionErrorCode `json:"registryErrors"`
 }
 
 // readRegistryErrorsCases is the table, read whole: a member it gains that
@@ -121,27 +128,24 @@ func runRegistryErrorsCase(t *testing.T, c registryErrorsCase) {
 
 // keepingSessions is a factory of sessions over the stage's gateway, made by
 // xynolog.SessionFromKept over kept: each session's client keeps what it holds
-// for the person kept names, in caches, a save saveWait after what it holds
-// last changed. It reads none of its sessions' errors.
+// for the person kept names, in caches. It reads none of its sessions' errors.
 type keepingSessions struct {
-	stage    *stage
-	kept     xynolog.SignInKept
-	caches   xynolog.SessionStorage
-	saveWait time.Duration
+	stage  *stage
+	kept   xynolog.SignInKept
+	caches xynolog.SessionStorage
 }
 
 func (f keepingSessions) Session(ctx context.Context, options registry.SessionFactoryOptions) (*xynolog.Session, func(), error) {
 	issuer := f.stage.issuerOf()
-	timing := issuer.Timing
-	timing.SaveDebounce = f.saveWait
 	return xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-		Kb:           api.KbTarget{Endpoint: options.Kb.Endpoint, Id: options.Kb.Id, Label: options.Kb.Label},
-		Kept:         f.kept,
-		HTTP:         issuer.HTTP,
-		Timing:       timing,
-		Channels:     bus.BridgedChannels,
-		Storage:      f.caches,
-		OnAuthFailed: options.Signals.NotifySessionEnded,
+		Kb:              api.KbTarget{Endpoint: options.Kb.Endpoint, Id: options.Kb.Id, Label: options.Kb.Label},
+		Kept:            f.kept,
+		HTTP:            issuer.HTTP,
+		ClientTiming:    xynolog.DefaultClientTiming(),
+		TransportTiming: issuer.Timing,
+		Channels:        bus.BridgedChannels,
+		Storage:         f.caches,
+		OnAuthFailed:    options.Signals.NotifySessionEnded,
 	})
 }
 
@@ -186,7 +190,7 @@ func runOwnErrorsCase(t *testing.T, c registryErrorsCase) {
 	switch c.While {
 	case "opening":
 		for _, each := range c.Said {
-			if each.Own == nil || *each.Own != xynolog.SessionErrorCodeKeepFailed {
+			if each.Own == nil || *each.Own != api.SessionErrorCodeKeepFailed {
 				t.Fatalf("this runner cannot have a session over the stage say %s as its factory builds it", marshal(each))
 			}
 		}
@@ -197,18 +201,18 @@ func runOwnErrorsCase(t *testing.T, c registryErrorsCase) {
 		t.Fatalf("while %q is none this runner knows", c.While)
 	}
 	keptNamingAlice(ctx, t, s, kept)
-	gate := gated{SessionFactory: keepingSessions{stage: s, kept: kept, caches: caches, saveWait: time.Millisecond}, open: make(chan struct{})}
+	gate := gated{SessionFactory: keepingSessions{stage: s, kept: kept, caches: caches}, open: make(chan struct{})}
 	browser := stagedRegistry(t, s, gate)
 	heard := hearRegistry(ctx, browser)
 	close(gate.open)
 	session := liveOver(t, browser)
 	refusals := watchPermissionRefusals(ctx, t, browser)
 
-	codes := []xynolog.SessionErrorCode{}
+	codes := []api.SessionErrorCode{}
 	for n, each := range c.Said {
 		resource := id(fmt.Sprintf("res-%d", n+1))
 		if each.Transport != nil {
-			if *each.Transport != xynolog.TransportErrorCodeForbidden {
+			if *each.Transport != api.TransportErrorCodeForbidden {
 				t.Fatalf("over the stage this runner has the gateway refuse a read for lack of permission only, not %s", *each.Transport)
 			}
 			s.refuseRead(resource, *each.Message)
@@ -222,9 +226,9 @@ func runOwnErrorsCase(t *testing.T, c registryErrorsCase) {
 		}
 		if c.While == "active" {
 			switch *each.Own {
-			case xynolog.SessionErrorCodeSaveRefused:
+			case api.SessionErrorCodeSaveRefused:
 				caches.sets.Store(true)
-			case xynolog.SessionErrorCodeKeepFailed:
+			case api.SessionErrorCodeKeepFailed:
 				readable.unreadable.Store(true)
 			default:
 				t.Fatalf("this runner cannot have an active session say %s", *each.Own)
@@ -281,7 +285,7 @@ func (f failingAsItBuilds) Session(ctx context.Context, options registry.Session
 // registry reads any.
 func runTransportFailuresCase(t *testing.T, c registryErrorsCase) {
 	last := c.Said[len(c.Said)-1]
-	if *last.Transport != xynolog.TransportErrorCodeForbidden {
+	if *last.Transport != api.TransportErrorCodeForbidden {
 		t.Fatalf("a case whose last failure is %s has no effect this runner can wait for", *last.Transport)
 	}
 	failures := make([]*xynolog.TransportError, len(c.Said))
@@ -388,7 +392,7 @@ func detailed(detail string) func(api.PermissionDenied) bool {
 // holdSaid holds what the case says the registry made of what its session
 // said, once the last of it had its effect: codes, said on the registry's
 // errors, and refusals, said through the session's signals.
-func holdSaid(t *testing.T, c registryErrorsCase, codes []xynolog.SessionErrorCode, refusals []api.PermissionDenied) {
+func holdSaid(t *testing.T, c registryErrorsCase, codes []api.SessionErrorCode, refusals []api.PermissionDenied) {
 	t.Helper()
 	if !slices.Equal(codes, c.RegistryErrors) {
 		t.Errorf("the registry said %v on its errors; the case's are %v", codes, c.RegistryErrors)
@@ -407,41 +411,44 @@ func holdSaid(t *testing.T, c registryErrorsCase, codes []xynolog.SessionErrorCo
 
 // runRegistryClosing has kb-a's session over the stage owe a save of a fresh
 // resource, or nothing, to caches that refuse every write once the registry
-// closes, and reads the registry's errors from its close until they end.
+// closes, and reads the registry's errors from its close until they end. On the
+// test's own clock, which nothing moves between a read and the close: a save
+// owed is made by the close.
 func runRegistryClosing(t *testing.T, row registryClosingRow) {
 	if row.Owed == nil || row.RegistryErrors == nil {
 		t.Fatal("the row states no owed, or no registryErrors")
 	}
-	s := newStage(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	kept := &xynolog.MemorySignIn{}
-	keptNamingAlice(ctx, t, s, kept)
-	caches := &refusing{SharedStorage: xynologtest.NewSharedStorage()}
-	// Nothing the client holds is written before the registry closes.
-	browser := stagedRegistry(t, s, keepingSessions{stage: s, kept: kept, caches: caches, saveWait: time.Hour})
-	session := liveOver(t, browser)
-	if *row.Owed {
-		_, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
-		must(t, err)
-		if session.Client().PersistenceSettled() {
-			t.Fatal("the client owes no save before the registry closes")
+	synctest.Test(t, func(t *testing.T) {
+		s := bubbledStage(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		kept := &xynolog.MemorySignIn{}
+		keptNamingAlice(ctx, t, s, kept)
+		caches := &refusing{SharedStorage: xynologtest.NewSharedStorage()}
+		browser := stagedRegistry(t, s, keepingSessions{stage: s, kept: kept, caches: caches})
+		session := liveOver(t, browser)
+		if *row.Owed {
+			_, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
+			must(t, err)
+			if session.Client().PersistenceSettled() {
+				t.Fatal("the client owes no save before the registry closes")
+			}
+		} else {
+			until(t, "the client owes nothing", session.Client().PersistenceSettled)
 		}
-	} else {
-		until(t, "the client owes nothing", session.Client().PersistenceSettled)
-	}
 
-	caches.sets.Store(true)
-	caches.deletes.Store(true)
-	caches.updates.Store(true)
-	heard := hearRegistry(ctx, browser)
-	must(t, browser.Close())
+		caches.sets.Store(true)
+		caches.deletes.Store(true)
+		caches.updates.Store(true)
+		heard := hearRegistry(ctx, browser)
+		must(t, browser.Close())
 
-	codes := codesOf(heard.rest(t))
-	if ctx.Err() != nil {
-		t.Fatal("the registry's errors did not end once it closed: what ended them was the wait")
-	}
-	if !slices.Equal(codes, row.RegistryErrors) {
-		t.Errorf("from its close until its errors ended the registry said %v; the row's are %v", codes, row.RegistryErrors)
-	}
+		codes := codesOf(heard.rest(t))
+		if ctx.Err() != nil {
+			t.Fatal("the registry's errors did not end once it closed: what ended them was the wait")
+		}
+		if !slices.Equal(codes, row.RegistryErrors) {
+			t.Errorf("from its close until its errors ended the registry said %v; the row's are %v", codes, row.RegistryErrors)
+		}
+	})
 }

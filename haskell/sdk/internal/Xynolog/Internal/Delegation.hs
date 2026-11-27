@@ -33,10 +33,11 @@ import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (BusRequestError, TransportError (..))
 import Xynolog.Internal.Bus qualified as Typed
 import Xynolog.Internal.Generated.OperationReports
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Lifetime qualified as Lifetime
 import Xynolog.Internal.Running qualified as Running
 import Xynolog.Internal.Transport qualified as Local
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Base
 import Xynolog.Types hiding (Progress)
 
 -- Native exception data retains absent failure words and an unknown job id.
@@ -68,11 +69,11 @@ data Event
   | Status Integer (Either SomeException JobStatusResponse)
   | Stalled Integer
 
-deriveStallDeadlineMs :: Timing.Settings -> Maybe Scientific -> Scientific
-deriveStallDeadlineMs settings tokens =
+deriveStallDeadlineMs :: Maybe Scientific -> Scientific
+deriveStallDeadlineMs tokens =
   max
-    (fromInteger (Timing.generationStallFloorMs settings))
-    (fromMaybe (fromInteger (Timing.generationStallAssumedTokensCount settings)) tokens * fromInteger (Timing.generationStallPerTokenMs settings))
+    (fromInteger Base.generationStallFloorMs)
+    (fromMaybe (fromInteger Base.generationStallAssumedTokensCount) tokens * fromInteger Base.generationStallPerTokenMs)
 
 newFollower :: Bus.Bus -> Local.EventBus -> Bus.BusOptions -> Timing.Settings -> IO Follower
 newFollower wire local clock timing = do

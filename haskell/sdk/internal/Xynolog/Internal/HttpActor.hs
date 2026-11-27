@@ -36,8 +36,8 @@ import Xynolog.Internal.StreamFrame qualified as StreamFrame
 import Xynolog.Internal.Telemetry qualified as Telemetry
 import Xynolog.Internal.Transport qualified as Transport
 import Xynolog.Retry qualified as Retry
+import Xynolog.Timing qualified as Timing
 import Xynolog.Timing.Settings qualified as Settings
-import Xynolog.Transport.Facts (ConnectionState (..))
 import Xynolog.Types
 
 data Connection = Connection (Async ()) (TMVar (Either HttpFailure ()))
@@ -68,10 +68,10 @@ runActor http = do
   where
     transition next = do
       before <- atomically (State.current (Transport.state (transport http)))
-      when (before == Open && next /= Open && next /= Closed) (Transport.setState (input http) Reconnecting)
+      when (before == ConnectionStateOpen && next /= ConnectionStateOpen && next /= ConnectionStateClosed) (Transport.setState (input http) ConnectionStateReconnecting)
       when
-        (next == Open && before `elem` [Reconnecting, Degraded, Unauthenticated, Initial])
-        (Transport.setState (input http) Connecting)
+        (next == ConnectionStateOpen && before `elem` [ConnectionStateReconnecting, ConnectionStateDegraded, ConnectionStateUnauthenticated, ConnectionStateInitial])
+        (Transport.setState (input http) ConnectionStateConnecting)
       Transport.setState (input http) next
     snapshot = atomically $ do
       (_, scopes, pending, _) <- Transport.subscriptions (input http)
@@ -84,7 +84,7 @@ runActor http = do
         then do
           forM_ live stop
           forM_ retiring cancel
-          transition Unauthenticated
+          transition ConnectionStateUnauthenticated
           pause http (Settings.reconnectMs (httpTiming (options http)))
           loop seen Nothing Nothing (Settings.reconnectMs (httpTiming (options http))) Nothing renewedOutage
         else
@@ -92,14 +92,14 @@ runActor http = do
             then do
               forM_ live stop
               forM_ retiring cancel
-              case live of { Just _ -> transition Reconnecting; Nothing -> pure () }
+              case live of { Just _ -> transition ConnectionStateReconnecting; Nothing -> pure () }
               atomically $ do
                 (_, desired, _, _) <- Transport.subscriptions (input http)
                 check (not (null desired))
               loop seen Nothing Nothing cap outage renewedOutage
             else do
               before <- atomically (State.current (Transport.state (transport http)))
-              case live of { Nothing -> unless (before == Connecting) (transition Connecting); Just _ -> pure () }
+              case live of { Nothing -> unless (before == ConnectionStateConnecting) (transition ConnectionStateConnecting); Just _ -> pure () }
               saved <- Map.union <$> readTVarIO (positions http) <*> httpLoadPositions (options http)
               let body =
                     BusSubscribeRequest {busSubscribeRequestClientId = (clientId http), busSubscribeRequestGlobal = (Just (Set.toAscList (httpGlobalChannels (options http)))), busSubscribeRequestPendingReplies = (Just pending), busSubscribeRequestScoped = (Just [BusSubscribeRequestScopedItem {busSubscribeRequestScopedItemChannels = scopedChannels, busSubscribeRequestScopedItemLastEventId = (Map.lookup scope saved), busSubscribeRequestScopedItemScope = scope} | scope <- scopes])}
@@ -119,7 +119,7 @@ runActor http = do
                   raced <- raceOwned http awaitOpen (atomically (done current))
                   case raced of
                     Left opened -> pure opened
-                    Right () -> transition Reconnecting >> awaitOpen
+                    Right () -> transition ConnectionStateReconnecting >> awaitOpen
               case outcome of
                 Left problem -> do
                   stop connection
@@ -135,35 +135,35 @@ runActor http = do
                       forM_ retiring cancel
                       forM_ token (quarantine http)
                       unless renewedOutage (forM_ token (void . renew http))
-                      transition Unauthenticated
+                      transition ConnectionStateUnauthenticated
                       loop seen Nothing Nothing (Settings.reconnectMs (httpTiming (options http))) outage True
                     else do
-                      case active of { Nothing -> transition Reconnecting; Just _ -> pure () }
+                      case active of { Nothing -> transition ConnectionStateReconnecting; Just _ -> pure () }
                       started <- maybe now pure outage
                       elapsed <- now
-                      when (isNothing active && elapsed - started >= (Settings.degradedThresholdMs (httpTiming (options http))) * 1000000) (transition Degraded)
+                      when (isNothing active && elapsed - started >= Timing.degradedThresholdMs * 1000000) (transition ConnectionStateDegraded)
                       (nextLive, nextOutage) <- recover active cap (retryAfterMs (failure problem)) (if isNothing active then Just started else Nothing)
-                      loop seen nextLive retiring (min (Settings.maxReconnectMs (httpTiming (options http))) (cap * 2)) nextOutage renewedOutage
+                      loop seen nextLive retiring (min Timing.maxReconnectMs (cap * 2)) nextOutage renewedOutage
                 Right () -> do
                   forM_ retiring cancel
                   draining <- case live of
                     Nothing -> pure Nothing
                     Just current -> Just <$> spawn http (pause http (Settings.lingerMs (httpTiming (options http))) `finally` stop current)
-                  transition Open
+                  transition ConnectionStateOpen
                   let changed = atomically $ do
                         (_, actual, _, _) <- Transport.subscriptions (input http)
                         check (actual /= scopes)
                         pure actual
                       waitForChange = do
                         actual <- changed
-                        pause http (if any (`notElem` scopes) actual then (Settings.reconnectDebounceMs (httpTiming (options http))) else (Settings.lazyRemoveMs (httpTiming (options http))))
+                        pause http (if any (`notElem` scopes) actual then Timing.reconnectDebounceMs else (Settings.lazyRemoveMs (httpTiming (options http))))
                   result <- raceOwned http (atomically (done connection)) waitForChange
                   case result of
                     Left () -> do
-                      transition Reconnecting
+                      transition ConnectionStateReconnecting
                       started <- now
                       _ <- recover Nothing (Settings.reconnectMs (httpTiming (options http))) Nothing (Just started)
-                      loop seen Nothing draining (min (Settings.maxReconnectMs (httpTiming (options http))) ((Settings.reconnectMs (httpTiming (options http))) * 2)) (Just started) False
+                      loop seen Nothing draining (min Timing.maxReconnectMs ((Settings.reconnectMs (httpTiming (options http))) * 2)) (Just started) False
                     Right () -> loop seen (Just connection) draining (Settings.reconnectMs (httpTiming (options http))) Nothing False
 
     recover live cap floorDelay outage = do
@@ -173,8 +173,8 @@ runActor http = do
       let due = began + 1000000 * max (ceiling (fromInteger cap * (1 + toRational draw) / 2)) (maybe 0 id floorDelay)
           waitUntil = Retry.retryWaitUntil (httpTime (options http))
           withoutLive started = do
-            elapsed <- raceOwned http (waitUntil due) (waitUntil (started + (Settings.degradedThresholdMs (httpTiming (options http))) * 1000000))
-            case elapsed of { Left () -> pure (); Right () -> transition Degraded >> waitUntil due }
+            elapsed <- raceOwned http (waitUntil due) (waitUntil (started + Timing.degradedThresholdMs * 1000000))
+            case elapsed of { Left () -> pure (); Right () -> transition ConnectionStateDegraded >> waitUntil due }
             pure (Nothing, Just started)
       case live of
         Nothing -> withoutLive (maybe began id outage)
@@ -182,7 +182,7 @@ runActor http = do
           result <- raceOwned http (waitUntil due) (atomically (done current))
           case result of
             Left () -> pure (live, Nothing)
-            Right () -> transition Reconnecting >> now >>= withoutLive
+            Right () -> transition ConnectionStateReconnecting >> now >>= withoutLive
 
     connect seen token body = do
       opened <- newEmptyTMVarIO
@@ -220,7 +220,7 @@ runActor http = do
               let identity = SSE.assignedId event >>= \value -> if Text.null value then Nothing else Just value
               claimed <- atomically $ do
                 queue <- readTVar seen
-                closed <- (== Closed) <$> State.current (Transport.state (transport http))
+                closed <- (== ConnectionStateClosed) <$> State.current (Transport.state (transport http))
                 if closed || maybe False (`elem` toList queue) identity
                   then pure False
                   else do
@@ -234,7 +234,7 @@ runActor http = do
                         BusLog.frame (logger http) "RECV" frame
                         context <- getContext
                         atomically $ do
-                          closed <- (== Closed) <$> State.current (Transport.state (transport http))
+                          closed <- (== ConnectionStateClosed) <$> State.current (Transport.state (transport http))
                           if closed
                             then pure Nothing
                             else do

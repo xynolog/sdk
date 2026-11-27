@@ -216,6 +216,10 @@ async def as_me(kb: KbTarget, home: str) -> None:
   ([Telemetry](#telemetry)). Everything else it needs, it is given: an
   application reads its own environment (`HOME`, a secret, an address) and
   says what it found.
+- **Its timing is the protocol's unless it is given another.**
+  `session_from_kept` and `HttpSessionFactory` take `client_timing`, a
+  `ClientTiming` for the client they build, and `transport_timing`, a
+  `TransportTiming` for its transport.
 - **Its HTTP client can be the application's.** Everything that makes a
   request over HTTP takes `http=`, an `httpx.AsyncClient` the application
   builds: `HttpTransport`, `ServiceToken`, `AgentToken`, `session_from_kept`,
@@ -340,9 +344,10 @@ Every method returns one of nine shapes, and the table says which:
   session (`session_from_kept`) holds one as `session.client`.
 - **A client is generic in its transport.** Code that takes a
   `XynologClient[Transport]` runs over HTTP and over a test's doubles alike.
-- **What it sends unasked is the table's**: a list's first hundred, a
-  search's ten candidates, a context's two thousand characters. An option
-  given as `None` is an option not given, and is not sent.
+- **What it sends unasked is the table's**: a search's ten candidates, a
+  resource's context two links deep and ten resources wide. An option given
+  as `None` is an option not given, and is not sent: a list's page, a
+  context's window and how a search scores are the service's when unstated.
 
 Why the shapes are these eight, in every SDK, is
 [the reactive model][reactive-model].
@@ -479,7 +484,7 @@ comes to hold, one at a time, and a held job says its own lifecycle.
 ```python
 from xynolog.annotations import QuotedText, annotation_of_span, reconcile
 from xynolog.channels import PRINCIPAL_PROFILE
-from xynolog.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, ClaimRefusal, HeldMarkJob, HeldYieldJob
+from xynolog.claims import JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, HeldMarkJob, HeldYieldJob
 from xynolog.client import XynologClient
 from xynolog.http import AgentToken, HttpTransport, KeyCredential, ServiceToken, private_key_from_pem
 from xynolog.identifiers import AnnotationId
@@ -488,6 +493,8 @@ from xynolog.types import (
     AgentSoftware,
     Annotation,
     ClaimOptions,
+    ClaimRefusal,
+    JobFailure,
     JobProgress,
     MarkJobDone,
     MarkJobFilter,
@@ -548,7 +555,7 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
                     case ClaimRefusal():
                         print(f"claim refused: {handed.message}")
                     case HeldYieldJob():
-                        await handed.fail("this worker runs no yield job", failure_class="deterministic")
+                        await handed.fail("this worker runs no yield job", JobFailure(failure_class="deterministic"))
                     case HeldMarkJob():
                         # A job left unsettled at the end of this block is failed.
                         async with handed as job:
@@ -601,9 +608,9 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
   worker was killed waits for the dispatcher's sweep.
 - **`fail` says whether the queue will run the job again**, from the budget
   on the record the worker claimed and the failure's class:
-  `failure_class="deterministic"` is a failure no second attempt can change,
-  and `failure_class="withheld"` an answer the model's provider withheld. The
-  queue retries neither.
+  `JobFailure(failure_class="deterministic")` is a failure no second attempt
+  can change, and `JobFailure(failure_class="withheld")` an answer the
+  model's provider withheld. The queue retries neither.
 - **A cancellation is signalled.** `job.cancelled` becomes true when a
   cancellation names the held job: the work stops where it can, and says
   `await job.cancel()`.
@@ -613,14 +620,14 @@ async def work(gateway: str, issuer: str, client_id: str, key: str) -> None:
   reply arrived in, which is its claim's: a span a worker that exports
   telemetry starts in the block, and what the job sends from inside it,
   continue that trace. `job.trace` is the same trace as a value, a
-  `TraceContext` (`traceparent`, and `tracestate` when there is one) or
+  `TraceCarrier` (`traceparent`, and `tracestate` when there is one) or
   `None` for a reply that arrived in none: for what is done for the job
   where its block does not reach, such as another task, which enters it with
   `with xynolog.telemetry.continuing(job.trace):`.
 - **`claims.vitals()`** is what the worker can say of itself: when it last
   heard an announcement, claimed, was active and settled, the job it holds,
-  and how many it has completed. It is an engine's `WorkerEngineHealth` less
-  the engine and its jobs, its members named and written as that type's are.
+  and how many it has completed, as a `WorkerVitals`: an engine's
+  `WorkerEngineHealth` less the engine and its jobs.
   **`claims.stalled()`** tells of each held
   job that has shown no activity for fifteen minutes. Its first reader is
   given the latest `ERRORS_KEPT_FOR_FIRST_READER_COUNT` found before it came,

@@ -4,9 +4,10 @@
 //              the records Protocol states in its tables (codegen/lib/table_records.ml)
 //              the client types it names, of protocol/specs/src/client/types
 //              the schemas of the tables it carries as values (codegen/lib/typescript_types/table_modules.ml)
-//              protocol/specs/src/client/discovery-absent.json
 //              protocol/specs/src/identifiers/kinds.json, for the brands
 // Regenerate:  make generate  (codegen/lib/typescript_types/typescript_types.ml)
+
+import type { BusRequestErrorCode, ControlErrorCode } from './error-codes';
 
 export interface components {
   schemas: {
@@ -635,10 +636,7 @@ export interface components {
     BeckonSparkleEvent: {
       annotationId: components['schemas']['AnnotationId'];
     };
-    /**
-     * Bytes held whole. They can be read more than once, and sent again when an
-     * upload is retried.
-     */
+    /** Bytes held whole: all of them at once, read as often as wanted. */
     Binary: Blob;
     /**
      * One edit to a linking annotation's body list: add or remove a body item,
@@ -1123,14 +1121,38 @@ export interface components {
       reason?: string;
     };
     /**
+     * client/connection-states.json: where a client's stream can be, and where
+     * it can move from each.
+     */
+    ClientConnectionStates: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /**
+       * Each state, in ConnectionState's order, what it means, and the states
+       * it can move to.
+       */
+      states: ClientConnectionStatesStatesItem[];
+    };
+    /**
      * client/discovery-absent.json: why a client that read a launcher's
      * discovery document found no launcher.
      */
     ClientDiscoveryAbsent: {
       /** The rule the table states, in prose. */
       $comment: string;
-      /** Each reason, and what it means. */
+      /** Each reason, in DiscoveryAbsentReason's order, and what it means. */
       reasons: ClientDiscoveryAbsentReasonsItem[];
+    };
+    /**
+     * client/option-defaults.json: what a public option of a Xynolog client is
+     * when its caller leaves it out, where the client, not the service,
+     * decides.
+     */
+    ClientOptionDefaults: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** Each default, once. */
+      defaults: ClientOptionDefaultsDefaultsItem[];
     };
     /** client/refresh.json: what a Xynolog client asks again for, and when. */
     ClientRefresh: {
@@ -1399,6 +1421,19 @@ export interface components {
       | ConformanceStepSignalled
       | ConformanceStepStalled;
     /**
+     * Where a client's stream is: one of the states of
+     * client/connection-states.json, which says what each means and where it
+     * moves.
+     */
+    ConnectionState:
+      | 'initial'
+      | 'connecting'
+      | 'open'
+      | 'reconnecting'
+      | 'degraded'
+      | 'unauthenticated'
+      | 'closed';
+    /**
      * Content format as a MIME type, optionally with parameters. The base type
      * (everything before the first ';') MUST be a SupportedMediaType;
      * parameters such as charset are preserved as metadata. Semantic validation
@@ -1427,6 +1462,21 @@ export interface components {
       /** Each command, by its name. */
       commands: { [key: string]: ControlCliCommandsValue };
     };
+    /**
+     * control/rpc-codes.json: the JSON-RPC error codes the control API answers
+     * with.
+     */
+    ControlRpcCodes: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      codes: ControlRpcCodesCodesItem[];
+    };
+    /**
+     * Which side of the control API sends a message: the client, whose
+     * notifications arrive on the launcher's stdin, or the launcher, whose
+     * notifications leave on its stdout (LAUNCHER-CONTROL.md F1).
+     */
+    ControlSender: 'client' | 'launcher';
     CreateAnnotationRequest: {
       motivation: components['schemas']['Motivation'];
       target: components['schemas']['AnnotationTarget'];
@@ -1495,7 +1545,7 @@ export interface components {
        * Where the stack actually runs. "local": containers on this machine.
        * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
        */
-      placement: DiscoveredKBPlacement;
+      placement: components['schemas']['KbPlacement'];
       /**
        * owner/name GitHub slug — present for codespace placements, where the
        * repo is the stack's identity
@@ -1528,6 +1578,17 @@ export interface components {
        */
       managedBy: string;
     };
+    /**
+     * Why a client that read a launcher's discovery document found no launcher:
+     * one of the reasons of client/discovery-absent.json, which says what each
+     * means.
+     */
+    DiscoveryAbsentReason:
+      | 'not-found'
+      | 'not-json'
+      | 'invalid'
+      | 'unsupported-version'
+      | 'unreadable';
     /**
      * The launcher's KB discovery document — the schema authority for
      * <stateDir>/discovery/kbs.json, which the Xynolog CLI (xynolog/cli)
@@ -1630,13 +1691,7 @@ export interface components {
      * person who does a job uses none.
      */
     Engine: {
-      /**
-       * The inference provider: who serves the model. `anthropic`, `google`,
-       * `openai` and `together` are those companies' own APIs. `llamacpp`,
-       * `ollama` and `vllm` are servers a deployment runs or reaches, each
-       * named for the server's software.
-       */
-      provider: EngineProvider;
+      provider: components['schemas']['InferenceProvider'];
       /** The model identifier, as the provider names it. */
       model: string;
     };
@@ -1713,7 +1768,7 @@ export interface components {
        * Why the request failed: a code of the control group of
        * specs/src/errors/codes.json.
        */
-      code: string;
+      code: ControlErrorCode;
       /**
        * Whether the same request can succeed sent again unchanged, once
        * something outside it changes: a start finishes, a runtime is installed,
@@ -1787,10 +1842,11 @@ export interface components {
        */
       spanRefusal: ErrorsCodesJob;
       /**
-       * A vocabulary that states nothing of its codes but each one's docs:
-       * here, why a job its client follows ended without a result.
+       * Why a request of the launcher's control API failed: each code, the
+       * JSON-RPC code an answer carries it under, and whether a request that
+       * fails with it is retryable.
        */
-      control: ErrorsCodesJob;
+      control: ErrorsCodesControl;
     };
     /**
      * Metadata added at persistence time. Part of every StoredEvent. Integrity
@@ -2357,6 +2413,35 @@ export interface components {
       timestamp: string;
     };
     /**
+     * The job a worker holds, as its claim hands it: read from the `JobRunning`
+     * that `job:claimed` carries, its metadata's id, type, units, cursors and
+     * retries, and its params with the resource they name. A unit the job has
+     * not reached is no member of `completedUnits` and no key of `unitCursors`.
+     */
+    HeldJobRecord: {
+      jobId: components['schemas']['JobId'];
+      jobType: components['schemas']['JobType'];
+      resourceId: components['schemas']['ResourceId'];
+      params: components['schemas']['JobParams'];
+      /**
+       * The units a worker has finished, merged across checkpoints and failures
+       * as a set.
+       */
+      completedUnits: string[];
+      /**
+       * The furthest each unit begun got, keyed by unit, with what it had
+       * counted there. A finished unit keeps its cursor: where it ended, and
+       * its final counts.
+       */
+      unitCursors: { [key: string]: components['schemas']['UnitCursor'] };
+      retryCount: number;
+      /**
+       * How many transient failures the queue retries: 0 for generation, whose
+       * re-run produces different content; 1 for every other type.
+       */
+      maxRetries: number;
+    };
+    /**
      * What a highlighting job takes: passages of the resource worth a reader's
      * attention are marked, with no text of the job's own.
      */
@@ -2539,6 +2624,20 @@ export interface components {
     InferenceLimitsResult: {
       response: InferenceLimitsResultResponse;
     };
+    /**
+     * The inference provider: who serves the model. `anthropic`, `google`,
+     * `openai` and `together` are those companies' own APIs. `llamacpp`,
+     * `ollama` and `vllm` are servers a deployment runs or reaches, each named
+     * for the server's software.
+     */
+    InferenceProvider:
+      | 'anthropic'
+      | 'google'
+      | 'llamacpp'
+      | 'ollama'
+      | 'openai'
+      | 'together'
+      | 'vllm';
     /**
      * The issuer the launcher runs for the knowledge bases on a machine, with a
      * realm for each, and the database it keeps their realms in. It belongs to
@@ -3412,6 +3511,11 @@ export interface components {
       domain: string;
     };
     /**
+     * Where a knowledge base's stack runs: on this machine (local), or in a
+     * GitHub codespace whose knowledge base is forwarded here (codespace).
+     */
+    KbPlacement: 'local' | 'codespace';
+    /**
      * When a knowledge base last described itself, and what it said beyond its
      * name. A client shows it as current only while a session to the knowledge
      * base is live, and as of `at` otherwise.
@@ -3479,11 +3583,7 @@ export interface components {
        * by name.
        */
       recorded: boolean;
-      /**
-       * Where the stack actually runs. "local": containers on this machine.
-       * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-       */
-      placement: DiscoveredKBPlacement;
+      placement: components['schemas']['KbPlacement'];
       /** Its clone, for a local stack. */
       root?: string;
       /**
@@ -4429,6 +4529,25 @@ export interface components {
       name: string;
     };
     /**
+     * principals/roles.json: the claims a token carries for the gateway to read
+     * its holder's roles and kind by, and each role.
+     */
+    PrincipalsRoles: {
+      /** The rule the table states, in prose. */
+      $comment: string;
+      /** The claim whose value is a flat array of the account's roles. */
+      rolesClaim: string;
+      /** Each role the gateway reads. */
+      roles: PrincipalsRolesRolesItem[];
+      /** The claim that says what kind of account the token's is. */
+      kindClaim: string;
+      /**
+       * What the kind claim holds on an agent's account. A person's account
+       * carries any other value, or none.
+       */
+      agentKind: string;
+    };
+    /**
      * What a principal last said it is called, and when: the profile a
      * `principal:profiled` event gives.
      */
@@ -4823,7 +4942,7 @@ export interface components {
     ResourceUpload: {
       /** Human-readable resource name */
       name: string;
-      /** Binary content */
+      /** The bytes, as the part carries them. */
       file: components['schemas']['Binary'];
       /**
        * Media type of the content (e.g. text/plain, text/markdown, image/png)
@@ -4921,11 +5040,7 @@ export interface components {
      * the stack and the forward are separate facts, each stated as it is.
      */
     Root: {
-      /**
-       * Where the stack actually runs. "local": containers on this machine.
-       * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
-       */
-      placement: DiscoveredKBPlacement;
+      placement: components['schemas']['KbPlacement'];
       /** For a local root: the clone's path. */
       path?: string;
       /**
@@ -5749,11 +5864,11 @@ export interface components {
        */
       kb: components['schemas']['KbDid'];
       /**
-       * The state of its own stream of the record, one of the seven of
-       * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it
-       * while it is `open`.
+       * The state of its own stream of the record, one of
+       * client/connection-states.json's. Events are delivered to it while it is
+       * `open`.
        */
-      stream: SmelterHealthStream;
+      stream: components['schemas']['ConnectionState'];
       /**
        * How far it has followed the record. Its sweep is also `due` where its
        * start's reconcile failed.
@@ -6122,6 +6237,11 @@ export interface components {
       value: string;
     };
     /**
+     * What a state home differs by (sign-in-store/README.md): macOS, Windows,
+     * and every other system.
+     */
+    System: 'macos' | 'windows' | 'other';
+    /**
      * A single category within a tag schema (e.g. 'Issue' in IRAC,
      * 'distinguished' in legal-citation-treatment). Each category carries
      * methodology-bound semantics: a name, a description, and examples used in
@@ -6195,7 +6315,7 @@ export interface components {
        * Where the stack runs: on this machine (local), or on a GitHub codespace
        * whose knowledge base is forwarded here (codespace).
        */
-      kind: TargetKind;
+      kind: components['schemas']['KbPlacement'];
       /**
        * For a local target: the knowledge base's clone, by path or by the
        * basename of a registered root, as --root takes it. Absent: the local
@@ -6493,6 +6613,13 @@ export interface components {
        */
       reconcile: WeaverHealthReconcile;
     };
+    /** The job an engine holds: which it is, of what type, and since when. */
+    WorkerActiveJob: {
+      jobId: components['schemas']['JobId'];
+      type: components['schemas']['JobType'];
+      /** When it was handed the job. */
+      since: string;
+    };
     /**
      * Everything a worker reads at boot: nothing in it is defaulted by the
      * worker. The launcher writes it for the machine's worker, from the
@@ -6573,7 +6700,7 @@ export interface components {
       /** When it was last active, or null. */
       lastActivityAt: string | null;
       /** The job it holds, or null. */
-      activeJob: WorkerEngineHealthActiveJob | null;
+      activeJob: components['schemas']['WorkerActiveJob'] | null;
       /** How many jobs it has completed since the service started. */
       jobsCompleted: number;
     };
@@ -6961,6 +7088,12 @@ export interface components {
  */
 export interface records {
   /**
+   * An access token, as its issuer issued it: short-lived, and what a session's
+   * transport sends as a Bearer token. Opaque to a client, which reads nothing
+   * in it but its expiry.
+   */
+  AccessToken: string;
+  /**
    * How a quoted selection was found in a text. Which word a span is found by
    * is reconcile's rule (specs/src/annotations/reconcile-cases.json).
    */
@@ -6993,6 +7126,22 @@ export interface records {
     expectedName?: string;
   };
   /**
+   * Bytes opened afresh each time they are to be sent. Each opening reads them
+   * from the first byte, in order, once, and gives the same bytes as every
+   * other; whoever opened them releases what they opened. Their length is
+   * stated when it is known and stated by nothing when it is not. An upload
+   * takes its bytes so: held whole, a file larger than memory could not be sent
+   * at all, and read once, as a ByteStream is, an upload sent again would have
+   * nothing left to send.
+   */
+  ByteSource: Blob;
+  /**
+   * Where a live query's key stands (contract/CACHE-SEMANTICS.md): pending,
+   * with no value yet; ready, with a stored value; or failed, a value-less
+   * key's failure, which is an emission and not the stream's end.
+   */
+  CacheStatus: 'pending' | 'ready' | 'failed';
+  /**
    * What a worker's claiming of jobs is told: the jobs it takes, and how long
    * it waits for what it waits on. A wait left out is client/timing.json's of
    * the same name.
@@ -7020,6 +7169,22 @@ export interface records {
      * in milliseconds.
      */
     markCommitTimeoutMs?: number;
+  };
+  /**
+   * A claim refused for a reason other than that nothing is pending, which is
+   * no fault: what a worker's claims say on `refused`
+   * (contract/WORKER-CONTRACT.md § Claiming). `bus.unauthorized` means the
+   * credential cannot claim, and will not be able to later.
+   */
+  ClaimRefusal: {
+    /**
+     * The bus code the reply was read as, or null when the refusal was the
+     * worker's own: a reply its schema does not allow. Never a code the reply
+     * did not state, and never `bus.none-pending`.
+     */
+    code: BusRequestErrorCode | null;
+    /** What the refusal said. */
+    message: string;
   };
   /**
    * Who the knowledge base at an address says it is, asked with a token just
@@ -7059,6 +7224,62 @@ export interface records {
     /** How many seconds the code stays good for. */
     expiresIn: number;
   };
+  /** No launcher was found, and why. */
+  DiscoveryAbsent: {
+    kind: 'absent';
+    /** Why. */
+    reason: components['schemas']['DiscoveryAbsentReason'];
+    /** What was wrong, in words, when there is more to say. */
+    diagnostic?: string;
+  };
+  /** How one poll's knowledge bases changed since the last state it gave. */
+  DiscoveryDiff: {
+    /** The state the poll found. */
+    state: records['DiscoveryState'];
+    /** Each knowledge base the last state did not have. */
+    added: components['schemas']['DiscoveredKB'][];
+    /**
+     * Each knowledge base the last state had at the same address, now
+     * otherwise.
+     */
+    updated: components['schemas']['DiscoveredKB'][];
+    /** Each knowledge base the last state had, and this one does not. */
+    removed: components['schemas']['DiscoveredKB'][];
+    /**
+     * Each address, as host:port, that more than one of the state's knowledge
+     * bases is at. At most one of them is true: `added` and `removed` count
+     * each address once, and every one is in `state`.
+     */
+    duplicated: string[];
+  };
+  /**
+   * The knowledge bases a launcher manages: none is a launcher that manages
+   * nothing.
+   */
+  DiscoveryManaged: {
+    kind: 'managed';
+    /** Each knowledge base, as the document lists it. */
+    kbs: components['schemas']['DiscoveredKB'][];
+  };
+  /**
+   * What one read of a launcher's discovery document gave: a DiscoveryState's
+   * absent or managed, or that nothing changed since the last read. Told apart
+   * by `kind`, as DiscoveryState's are.
+   */
+  DiscoveryRead:
+    | records['DiscoveryAbsent']
+    | records['DiscoveryManaged']
+    | records['DiscoveryUnchanged'];
+  /**
+   * What a launcher's discovery document says, told apart by `kind`: no
+   * launcher was found, or the knowledge bases one manages. A launcher that
+   * manages none is not an absent one.
+   */
+  DiscoveryState: records['DiscoveryAbsent'] | records['DiscoveryManaged'];
+  /** Nothing changed since the last read of a launcher's discovery document. */
+  DiscoveryUnchanged: {
+    kind: 'unchanged';
+  };
   /**
    * One of the knowledge base's engines as a client joins it: the entry
    * `browse:engines-result` names, with the inference limits the service
@@ -7089,6 +7310,47 @@ export interface records {
     did: string;
     /** The name they believed it has. Absent when they had none. */
     name?: string;
+  };
+  /**
+   * The first fault a value has as its schema allows: where it is, and why
+   * (contract/TRANSPORT-CONTRACT.md § Identity). What a refusal of a frame, a
+   * payload or an answer names.
+   */
+  Fault: {
+    /**
+     * The way from the value to its first fault: the names of the members it is
+     * within, and its own, joined by dots; empty for the value itself.
+     */
+    member: string;
+    /** Why it is at fault. */
+    reason: records['FrameRefusalReason'];
+  };
+  /**
+   * A frame refused, given to its readers in its place: by its transport, for
+   * its first fault as BusFrame, or by its channel's typed read, for its
+   * payload's first fault as its channel's (contract/TRANSPORT-CONTRACT.md §
+   * Frames). A transport's own, never on the wire.
+   */
+  FrameRefusal: {
+    /** The channel the frame names. */
+    channel: string;
+    /**
+     * The way from the frame to its first fault; a fault of its payload is
+     * within `payload`.
+     */
+    member: string;
+    /** Why it is at fault. */
+    reason: records['FrameRefusalReason'];
+    payload?: unknown;
+    /**
+     * The resource whose scope it was delivered on; absent when it names none.
+     */
+    scope?: components['schemas']['ResourceId'];
+    /**
+     * The frame's correlation id, when it carries one BusFrame allows: a
+     * request awaiting the reply it names is told of the refusal at once.
+     */
+    correlationId?: string;
   };
   /**
    * Why a reader refused a frame, for its first fault: `lacks`, a member it
@@ -7122,6 +7384,26 @@ export interface records {
      */
     excludeEntityTypes?: string[];
   };
+  /**
+   * A held job that showed no activity for `heldJobStallMs`
+   * (contract/WORKER-CONTRACT.md V2): what a worker's claims say on `stalled`.
+   * What its host does then is the host's.
+   */
+  HeldJobStall: {
+    jobId: components['schemas']['JobId'];
+    jobType: components['schemas']['JobType'];
+    /** When the worker was handed the job. */
+    heldSince: string;
+    /**
+     * When the job last showed activity: its claim, a progress report, a
+     * checkpoint or a commit.
+     */
+    lastActivityAt: string;
+    /** How long it has shown none, in milliseconds. */
+    silentForMs: number;
+    /** The `heldJobStallMs` it was held to, in milliseconds. */
+    thresholdMs: number;
+  };
   /** The tokens an issuer issued at the end of a sign-in. */
   IssuedTokens: {
     /** The access token: short-lived, sent as a Bearer token. */
@@ -7130,6 +7412,54 @@ export interface records {
      * The refresh token: what renews the access token without another sign-in.
      */
     refresh: string;
+  };
+  /**
+   * What a held job states when it checkpoints (`job:checkpoint`,
+   * contract/JOBS.md § Checkpoints): the units finished, and the furthest each
+   * unit begun got.
+   */
+  JobCheckpoint: {
+    /**
+     * Entity-type units whose annotations have been fully emitted so far.
+     * Unioned into the running job's metadata checkpoint; a retry after
+     * recovery skips them.
+     */
+    completedUnits: string[];
+    /**
+     * The furthest each unit begun got, keyed by unit, with what it had counted
+     * there — the grain `completedUnits` cannot express. A unit named in
+     * `completedUnits` is stated here too, by the cursor it ended at: a later
+     * attempt skips it whole and counts it by that cursor. A cursor never says
+     * a unit is finished; only `completedUnits` does. Merged monotonically per
+     * unit, finished or not: a stale snapshot must never move a cursor
+     * backward.
+     */
+    unitCursors?: { [key: string]: components['schemas']['UnitCursor'] };
+  };
+  /**
+   * What a held job's failure states beside its error (`job:fail`): what it had
+   * reached, and the failure's class when the worker knows it. What its commits
+   * observed is the held job's own to state.
+   */
+  JobFailure: {
+    /**
+     * Entity-type units whose annotations were fully emitted before this
+     * failure (checkpointed resume). The queue records them on the retried
+     * job's metadata; a retried claim skips them so completed work is neither
+     * redone nor duplicated.
+     */
+    completedUnits?: string[];
+    /**
+     * The furthest each unit begun got, keyed by unit, with what it had counted
+     * there — the grain `completedUnits` cannot express. A unit named in
+     * `completedUnits` is stated here too, by the cursor it ended at: a later
+     * attempt skips it whole and counts it by that cursor. A cursor never says
+     * a unit is finished; only `completedUnits` does. Merged monotonically per
+     * unit, finished or not: a stale snapshot must never move a cursor
+     * backward.
+     */
+    unitCursors?: { [key: string]: components['schemas']['UnitCursor'] };
+    failureClass?: components['schemas']['FailureClass'];
   };
   /**
    * How a job's `pollUntilComplete` asks for the job's status: how long it
@@ -7146,9 +7476,31 @@ export interface records {
     withinMs?: number;
   };
   /**
+   * What a held job that stops on a cancellation states it had reached
+   * (`job:cancel`): the units finished, and the furthest each unit begun got.
+   */
+  JobReached: {
+    /**
+     * The units the worker had finished when it stopped. Recorded on the
+     * cancelled job's metadata so the work already done stays visible.
+     */
+    completedUnits?: string[];
+    /**
+     * The furthest each unit begun got, keyed by unit, with what it had counted
+     * there — the grain `completedUnits` cannot express. A unit named in
+     * `completedUnits` is stated here too, by the cursor it ended at: a later
+     * attempt skips it whole and counts it by that cursor. A cursor never says
+     * a unit is finished; only `completedUnits` does. Merged monotonically per
+     * unit, finished or not: a stale snapshot must never move a cursor
+     * backward.
+     */
+    unitCursors?: { [key: string]: components['schemas']['UnitCursor'] };
+  };
+  /**
    * A different knowledge base answers at a registered address. Both dids,
    * because neither alone says what to do: a person has to recognise which
-   * knowledge base they registered and which one answers.
+   * knowledge base they registered and which one answers. What the session's
+   * signals raise (client/surface.json's `sessionSignals`).
    */
   KbIdentityConflict: {
     /** The did the entry records. */
@@ -7265,7 +7617,10 @@ export interface records {
      */
     expectedName?: string;
   };
-  /** A request was refused for lack of permission. */
+  /**
+   * A request was refused for lack of permission. What the session's signals
+   * raise (client/surface.json's `sessionSignals`).
+   */
   PermissionDenied: {
     /** The refusal's own message, untranslated; null when it gave none. */
     detail: string | null;
@@ -7278,8 +7633,11 @@ export interface records {
   PutBinaryRequest: {
     /** Human-readable resource name */
     name: string;
-    /** Binary content */
-    file: components['schemas']['Binary'];
+    /**
+     * The bytes, opened for each sending of the upload: the multipart body's
+     * `file` part each time.
+     */
+    file: records['ByteSource'];
     /** Media type of the content (e.g. text/plain, text/markdown, image/png) */
     format: string;
     /**
@@ -7366,7 +7724,10 @@ export interface records {
    * `refused`, the gateway refused a token its issuer had just issued.
    */
   SessionEndReason: 'expired' | 'refused';
-  /** A session ended, and why. */
+  /**
+   * A session ended, and why. What the session's signals raise
+   * (client/surface.json's `sessionSignals`).
+   */
   SessionEnded: {
     /** Why it ended. */
     reason: records['SessionEndReason'];
@@ -7421,7 +7782,7 @@ export interface records {
    */
   StoredSession: {
     /** The access token: short-lived, sent as a Bearer token. */
-    access: string;
+    access: records['AccessToken'];
     /**
      * The refresh token: what renews the access token at the issuer without
      * another sign-in.
@@ -7484,36 +7845,49 @@ export interface records {
     suffix?: string;
   };
   /**
-   * What an upload reports as it goes, told apart by `phase`: its size first,
-   * then the bytes sent so far, then the resource made.
+   * A W3C trace context, as a relayed frame's trace field carries it
+   * (bus/registry.json `trace`) and a held job states it as its `trace`: the
+   * trace a frame was sent under, so its reader's work is recorded in the same
+   * trace.
+   */
+  TraceCarrier: {
+    /** W3C `traceparent` (`00-<traceId>-<spanId>-<flags>`). */
+    traceparent: string;
+    /** W3C `tracestate`, when the trace has one. */
+    tracestate?: string;
+  };
+  /**
+   * What an upload reports as it goes, told apart by `phase`: that it began,
+   * with its size when its ByteSource states one, then the bytes sent so far,
+   * then the resource made. An upload whose source states no length reports
+   * none: a size it made up would be a size the caller could not tell from a
+   * true one.
    */
   UploadProgress:
     UploadProgressStarted | UploadProgressProgress | UploadProgressFinished;
-  /** Why no launcher was found. */
-  DiscoveryAbsentReason:
+  /**
+   * What a worker can say of itself at any moment (contract/WORKER-CONTRACT.md
+   * V1): what a worker's claims hand it as `vitals`, and what the worker
+   * service answers of each engine beside the engine and its jobs
+   * (worker/WorkerEngineHealth.json).
+   */
+  WorkerVitals: {
+    /** When a `job:queued` last reached it, or null. */
+    lastQueuedEventAt: string | null;
     /**
-     * There is no document where it was looked for: no file, an HTTP status
-     * that is not success, or a page that is not JSON.
+     * When it was last handed a job, or null. A claim answered with none
+     * pending is not one.
      */
-    | 'not-found'
-    /** There is a document, and it is not JSON. */
-    | 'not-json'
-    /**
-     * It is JSON, and not a discovery document: one entry that is not what the
-     * schema says makes the whole document invalid, since a partial reading
-     * would hide a running knowledge base without a trace.
-     */
-    | 'invalid'
-    /**
-     * It is a discovery document of a version this client does not speak, and
-     * is not read in part.
-     */
-    | 'unsupported-version'
-    /**
-     * It could not be read at all: the file could not be opened or decoded, or
-     * the request got no answer by its deadline.
-     */
-    | 'unreadable';
+    lastClaimAt: string | null;
+    /** When a job it held last settled, or null. */
+    lastFinishedAt: string | null;
+    /** When it was last active, or null. */
+    lastActivityAt: string | null;
+    /** The job it holds, or null. */
+    activeJob: components['schemas']['WorkerActiveJob'] | null;
+    /** How many jobs it has completed since the service started. */
+    jobsCompleted: number;
+  };
 }
 
 /** The tables the SDK carries as values, and what only they reach. */
@@ -9067,8 +9441,11 @@ export type TabCheckUnknownVerdict = records['TabVerdict'] & 'unknown';
 /** The upload began. */
 export type UploadProgressStarted = {
   phase: 'started';
-  /** How many bytes the upload is. */
-  totalBytes: number;
+  /**
+   * How many bytes the upload is: its ByteSource's length. Absent when the
+   * source states none.
+   */
+  totalBytes?: number;
 };
 
 /** Bytes were sent. */
@@ -9076,8 +9453,11 @@ export type UploadProgressProgress = {
   phase: 'progress';
   /** How many bytes are sent so far. */
   bytesUploaded: number;
-  /** How many bytes the upload is. */
-  totalBytes: number;
+  /**
+   * How many bytes the upload is: its ByteSource's length. Absent when the
+   * source states none.
+   */
+  totalBytes?: number;
 };
 
 /** The upload ended, and the resource is made. */
@@ -9255,11 +9635,133 @@ export type BusSubscribeRequestScopedItem = {
   lastEventId?: string;
 };
 
+export type ClientConnectionStatesStatesItem = {
+  state: components['schemas']['ConnectionState'];
+  /** What the state is, in prose. */
+  meaning: string;
+  /**
+   * The states it can move to, in ConnectionState's order; none for a terminal
+   * state.
+   */
+  moves: components['schemas']['ConnectionState'][];
+};
+
 export type ClientDiscoveryAbsentReasonsItem = {
-  /** The reason, as every SDK spells it. */
-  reason: string;
+  reason: components['schemas']['DiscoveryAbsentReason'];
   /** What it is, in prose. */
   docs: string;
+};
+
+export type ClientOptionDefaultsDefaultsItem = {
+  /**
+   * What takes the option, as client/surface.json names it: a namespace's
+   * method, or a module's function, the two joined by a dot.
+   */
+  method: string;
+  /** The parameter it is, or the parameter whose member it is. */
+  parameter: string;
+  /**
+   * The member of the parameter it is, where the parameter is an object of
+   * options. Absent: the parameter itself.
+   */
+  option?: string;
+  value: unknown;
+  /**
+   * What the parameter is. Left out where it is the SDK's own: its error, which
+   * no schema states.
+   */
+  schema?: ClientOptionDefaultsDefaultsItemSchema;
+  /**
+   * Where in the request the method sends it, as a JSON Pointer into a case's
+   * `sends`. Absent: the option is not sent, and only changes what the client
+   * does.
+   */
+  sends?: string;
+  /** What the option is, in prose. */
+  docs: string;
+};
+
+/**
+ * What the parameter is. Left out where it is the SDK's own: its error, which
+ * no schema states.
+ */
+export type ClientOptionDefaultsDefaultsItemSchema =
+  | ClientOptionDefaultsDefaultsItemSchemaReference
+  | ClientOptionDefaultsDefaultsItemSchemaDateTime
+  | ClientOptionDefaultsDefaultsItemSchemaTypeParameter
+  | ClientOptionDefaultsDefaultsItemSchemaDecided;
+
+export type ClientOptionDefaultsDefaultsItemSchemaReference = {
+  /**
+   * The $id of a component, a member within one, or a client type of
+   * specs/src/client/types: an object is always one of these, so that it is
+   * named.
+   */
+  $ref: string;
+  /**
+   * What each of the client type's type parameters is here, by its name: a type
+   * parameter of the unit it is given in, one for each the client type's
+   * x-xynolog-typeParameters states, and only where it states any.
+   */
+  typeArguments?: {
+    [
+      key: string
+    ]: ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue;
+  };
+};
+
+export type ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue =
+  {
+    /**
+     * A type parameter of the state unit the member is of, by its name: what it
+     * is, the unit's maker says.
+     */
+    typeParameter: string;
+  };
+
+export type ClientOptionDefaultsDefaultsItemSchemaDateTime = {
+  /** The value's type, where no component states one. */
+  type: ClientOptionDefaultsDefaultsItemSchemaDateTimeType;
+  /** The least an integer may be. */
+  minimum?: number;
+  /** The string's format, where it has one: `date-time` is an RFC 3339 time. */
+  format?: 'date-time';
+  /** What the value is. */
+  description: string;
+};
+
+/** The value's type, where no component states one. */
+export type ClientOptionDefaultsDefaultsItemSchemaDateTimeType =
+  'integer' | 'string' | 'boolean';
+
+export type ClientOptionDefaultsDefaultsItemSchemaTypeParameter = {
+  /**
+   * A type parameter of the state unit the member is of, by its name: what it
+   * is, the unit's maker says.
+   */
+  typeParameter: string;
+};
+
+export type ClientOptionDefaultsDefaultsItemSchemaDecided = {
+  /** What a value decides: the schema a table names for it. */
+  decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided;
+};
+
+/** What a value decides: the schema a table names for it. */
+export type ClientOptionDefaultsDefaultsItemSchemaDecidedDecided = {
+  /** What decides it. */
+  by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy;
+  /**
+   * The table that names the schema: `takes`, the function's own, by each of
+   * the enum's values in its order.
+   */
+  in: 'takes';
+};
+
+/** What decides it. */
+export type ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy = {
+  /** A member beside the function, whose value is of an enum. */
+  member: string;
 };
 
 export type ClientRefreshQueriesItem =
@@ -9557,8 +10059,10 @@ export type ConformanceDriverLineProgressProgress = {
   upload: number;
   /** How many bytes it has sent. */
   bytesUploaded: number;
-  /** How many it will send. */
-  totalBytes: number;
+  /**
+   * How many it will send. Absent for an upload whose source states no length.
+   */
+  totalBytes?: number;
 };
 
 /** The live driver: an observer was given a state. */
@@ -9608,7 +10112,7 @@ export type ConformanceDriverLineCompleted = {
 /** A worker driver: its worker claimed a job. */
 export type ConformanceDriverLineClaimed = {
   /** The job, as the worker read the record. */
-  claimed: { [key: string]: unknown };
+  claimed: components['schemas']['HeldJobRecord'];
 };
 
 /** A worker driver: a claim was refused. */
@@ -9790,18 +10294,8 @@ export type ConformanceStepProgress = {
 /** The transport comes to report this state. */
 export type ConformanceStepState = {
   /** The state. */
-  state: ConformanceStepStateState;
+  state: components['schemas']['ConnectionState'];
 };
-
-/** The state. */
-export type ConformanceStepStateState =
-  | 'initial'
-  | 'connecting'
-  | 'open'
-  | 'reconnecting'
-  | 'degraded'
-  | 'unauthenticated'
-  | 'closed';
 
 /**
  * The transport is in this state and has reported no other since the case last
@@ -9809,18 +10303,8 @@ export type ConformanceStepStateState =
  */
 export type ConformanceStepStays = {
   /** The state. */
-  stays: ConformanceStepStaysStays;
+  stays: components['schemas']['ConnectionState'];
 };
-
-/** The state. */
-export type ConformanceStepStaysStays =
-  | 'initial'
-  | 'connecting'
-  | 'open'
-  | 'reconnecting'
-  | 'degraded'
-  | 'unauthenticated'
-  | 'closed';
 
 /** The next frame the client delivers on this channel is this one. */
 export type ConformanceStepFrame = {
@@ -10048,11 +10532,16 @@ export type ControlCliCommandsValueFlagsValueCliOnly = {
   cliOnly: string;
 };
 
-/**
- * Where the stack actually runs. "local": containers on this machine.
- * "codespace": a GitHub-hosted VM whose KB is port-forwarded here.
- */
-export type DiscoveredKBPlacement = 'local' | 'codespace';
+export type ControlRpcCodesCodesItem = {
+  /** The JSON-RPC error's code. */
+  number: number;
+  /** Its name, as every SDK names it. */
+  name: string;
+  /** When the launcher answers with it, in prose, by the contract's rules. */
+  docs: string;
+  /** The data every answer under it carries, whatever failed. */
+  data?: components['schemas']['ErrorData'];
+};
 
 /**
  * The JetStream broker holding the job queue, whose layout is
@@ -10108,21 +10597,6 @@ export type DispatcherConfigTiming = {
    */
   bootDeadlineMs: number;
 };
-
-/**
- * The inference provider: who serves the model. `anthropic`, `google`, `openai`
- * and `together` are those companies' own APIs. `llamacpp`, `ollama` and `vllm`
- * are servers a deployment runs or reaches, each named for the server's
- * software.
- */
-export type EngineProvider =
-  | 'anthropic'
-  | 'google'
-  | 'llamacpp'
-  | 'ollama'
-  | 'openai'
-  | 'together'
-  | 'vllm';
 
 export type EnrichedResourceEventValue = {
   /**
@@ -10215,7 +10689,49 @@ export type ErrorsCodesTransportCodesItemStatus = {
    */
   docs: string;
   status: components['schemas']['HttpStatus'];
+  /**
+   * The limit refusals read as this code and not as the code of their status:
+   * each a status and the LimitRefusal `code` it carries, as a row of
+   * gateway/messages.json states them.
+   */
+  limitRefusals?: ErrorsCodesTransportCodesItemStatusLimitRefusalsItem[];
 };
+
+export type ErrorsCodesTransportCodesItemStatusLimitRefusalsItem = {
+  status: components['schemas']['HttpStatus'];
+  /**
+   * `streams`: the principal already holds as many streams as its coefficient
+   * of `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the
+   * principal's emits have used its bucket, whose rate and burst are its
+   * coefficient of `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
+   * `unanswered-requests`: the client already awaits as many replies as
+   * `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway
+   * holds as many queued bytes as it can. `refusal-rate`: the request's
+   * credential was refused, and the requests its holder has had refused have
+   * used their allowance; it answers only a request whose token has already
+   * failed verification, so it says what a 401 says, and a client that can
+   * renew its token renews it and sends the request again rather than waiting
+   * (contract/TRANSPORT-CONTRACT.md § A refused credential).
+   */
+  code: LimitRefusalValueCode;
+};
+
+/**
+ * `streams`: the principal already holds as many streams as its coefficient of
+ * `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the principal's
+ * emits have used its bucket, whose rate and burst are its coefficient of
+ * `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
+ * `unanswered-requests`: the client already awaits as many replies as
+ * `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway holds
+ * as many queued bytes as it can. `refusal-rate`: the request's credential was
+ * refused, and the requests its holder has had refused have used their
+ * allowance; it answers only a request whose token has already failed
+ * verification, so it says what a 401 says, and a client that can renew its
+ * token renews it and sends the request again rather than waiting
+ * (contract/TRANSPORT-CONTRACT.md § A refused credential).
+ */
+export type LimitRefusalValueCode =
+  'streams' | 'emit-rate' | 'unanswered-requests' | 'capacity' | 'refusal-rate';
 
 /** A code read from every HTTP status at or above one. */
 export type ErrorsCodesTransportCodesItemStatusFrom = {
@@ -10257,6 +10773,40 @@ export type ErrorsCodesJobCodesItem = {
    * Its documentation, in prose: what a generated type or member says of it.
    */
   docs: string;
+};
+
+/**
+ * Why a request of the launcher's control API failed: each code, the JSON-RPC
+ * code an answer carries it under, and whether a request that fails with it is
+ * retryable.
+ */
+export type ErrorsCodesControl = {
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  codes: ErrorsCodesControlCodesItem[];
+};
+
+export type ErrorsCodesControlCodesItem = {
+  /** The code, as every SDK names it. */
+  code: string;
+  /**
+   * Its documentation, in prose: what a generated type or member says of it.
+   */
+  docs: string;
+  /**
+   * The JSON-RPC error's code an answer carries it under: a number of
+   * control/rpc-codes.json.
+   */
+  rpc: number;
+  /**
+   * Whether the same request can succeed sent again unchanged, once something
+   * outside it changes (contract/LAUNCHER-CONTROL.md E3): what ErrorData's
+   * retryable says of it when it is answered under its rpc. Under a code of
+   * control/rpc-codes.json that states its data, the data is that row's.
+   */
+  retryable: boolean;
 };
 
 export type ExtractedTextValue = {
@@ -10878,23 +11428,6 @@ export type LimitRefusalValue = {
   code: LimitRefusalValueCode;
 };
 
-/**
- * `streams`: the principal already holds as many streams as its coefficient of
- * `x-xynolog-limits.streamsPerPrincipal` allows. `emit-rate`: the principal's
- * emits have used its bucket, whose rate and burst are its coefficient of
- * `x-xynolog-limits.emitsPerPrincipal`, per gateway process.
- * `unanswered-requests`: the client already awaits as many replies as
- * `BusSubscribeRequest.pendingReplies` may name. `capacity`: the gateway holds
- * as many queued bytes as it can. `refusal-rate`: the request's credential was
- * refused, and the requests its holder has had refused have used their
- * allowance; it answers only a request whose token has already failed
- * verification, so it says what a 401 says, and a client that can renew its
- * token renews it and sends the request again rather than waiting
- * (contract/TRANSPORT-CONTRACT.md § A refused credential).
- */
-export type LimitRefusalValueCode =
-  'streams' | 'emit-rate' | 'unanswered-requests' | 'capacity' | 'refusal-rate';
-
 /** What the commit persisted. */
 export type MarkCommitOkResponse = {
   /**
@@ -10947,6 +11480,13 @@ export type MediaTypesRegistryMediaTypesItem = {
   authorable: boolean;
   uploadable: boolean;
   generatable: boolean;
+};
+
+export type PrincipalsRolesRolesItem = {
+  /** The role, as the token carries it. */
+  role: string;
+  /** What it grants, in prose. */
+  docs: string;
 };
 
 /**
@@ -11236,20 +11776,6 @@ export type SmeltSettledReason =
   | 'too-large';
 
 /**
- * The state of its own stream of the record, one of the seven of
- * TRANSPORT-HTTP.md § Connection lifecycle. Events are delivered to it while it
- * is `open`.
- */
-export type SmelterHealthStream =
-  | 'initial'
-  | 'connecting'
-  | 'open'
-  | 'reconnecting'
-  | 'degraded'
-  | 'unauthenticated'
-  | 'closed';
-
-/**
  * How far the latest reconcile has got: the pass's `summary` when it is done,
  * or its `error` when it failed.
  */
@@ -11449,12 +11975,6 @@ export type StatusResponseFeatures = {
   collaboration: string;
 };
 
-/**
- * Where the stack runs: on this machine (local), or on a GitHub codespace whose
- * knowledge base is forwarded here (codespace).
- */
-export type TargetKind = 'local' | 'codespace';
-
 /** The vector store, and where it is published. */
 export type VectorStoreSpec = {
   /** The vector store's driver: `qdrant`. */
@@ -11505,14 +12025,6 @@ export type WeaverHealthReconcileSummary = {
    * record holds no events for. Each is counted, and not healed.
    */
   orphaned: number;
-};
-
-/** The job it holds, or null. */
-export type WorkerEngineHealthActiveJob = {
-  jobId: components['schemas']['JobId'];
-  type: components['schemas']['JobType'];
-  /** When it was handed the job. */
-  since: string;
 };
 
 /** Where the worker signs in for this knowledge base, and as which client. */

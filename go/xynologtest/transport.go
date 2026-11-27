@@ -37,6 +37,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // MakeResponse is what the gateway answers a request with, given its
@@ -90,7 +91,7 @@ func RetryKeyOf(channel bus.Channel, payload json.RawMessage) string {
 // for: a refusal that names the operation, never a response made up.
 func RefuseUnscriptedOperation(operation bus.Channel, _ json.RawMessage) (json.RawMessage, error) {
 	return nil, &xynolog.TransportError{
-		Code: xynolog.TransportErrorCodeError,
+		Code: api.TransportErrorCodeError,
 		Message: fmt.Sprintf(`No response scripted for bus operation %q. `+
 			`Script one with QueueReply(%q, …) or build the transport with a MakeResponse that answers it.`, operation, operation),
 	}
@@ -136,7 +137,7 @@ type FaultyTransport struct {
 
 	hub      *xynolog.FrameHub
 	router   *xynolog.ReplyRouter
-	state    *xynolog.Variable[xynolog.ConnectionState]
+	state    *xynolog.Variable[api.ConnectionState]
 	failures *kept.Telling[*xynolog.TransportError]
 }
 
@@ -150,8 +151,8 @@ func NewFaultyTransport(config FaultyConfig) *FaultyTransport {
 		held:     map[api.ResourceId]int{},
 		hub:      xynolog.NewFrameHub(),
 		router:   xynolog.NewReplyRouter(),
-		state:    xynolog.NewVariable(xynolog.ConnectionStateOpen),
-		failures: kept.NewTelling[*xynolog.TransportError](xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount),
+		state:    xynolog.NewVariable(api.ConnectionStateOpen),
+		failures: kept.NewTelling[*xynolog.TransportError](timing.ErrorsKeptForFirstReaderCount),
 	}
 }
 
@@ -184,7 +185,7 @@ func (f *FaultyTransport) Fail(err *xynolog.TransportError) { f.failures.Report(
 
 // SetState changes the connection's state, as a wire would. A closed
 // transport's is closed.
-func (f *FaultyTransport) SetState(state xynolog.ConnectionState) { f.state.Set(state) }
+func (f *FaultyTransport) SetState(state api.ConnectionState) { f.state.Set(state) }
 
 // Counted makes every emit from here on report that the gateway counted n
 // subscribers. Zero is a room nobody is in.
@@ -310,7 +311,7 @@ func (f *FaultyTransport) Emit(_ context.Context, channel bus.Channel, payload m
 	f.log = append(f.log, RequestLogEntry{Channel: channel, Action: action, CorrelationID: envelope.CorrelationID, RetryKey: RetryKeyOf(channel, sent), Payload: sent, Scope: envelope.Scope})
 	if _, rejected := action.(RejectEmit); rejected {
 		f.mu.Unlock()
-		return 0, false, &xynolog.TransportError{Code: xynolog.TransportErrorCodeError, Message: fmt.Sprintf("FaultyTransport: emit rejected by schedule on %s", channel)}
+		return 0, false, &xynolog.TransportError{Code: api.TransportErrorCodeError, Message: fmt.Sprintf("FaultyTransport: emit rejected by schedule on %s", channel)}
 	}
 	refuse := f.refuse
 	f.mu.Unlock()
@@ -365,7 +366,7 @@ func (f *FaultyTransport) answer(channel bus.Channel, operation bus.Replies, req
 	for _, named := range operation.ReplyNames {
 		value, stated := asked[named]
 		if !stated {
-			return xynolog.Frame{}, &xynolog.TransportError{Code: xynolog.TransportErrorCodeError, Message: fmt.Sprintf("FaultyTransport: the reply to %s names %q, which this request does not state", channel, named)}
+			return xynolog.Frame{}, &xynolog.TransportError{Code: api.TransportErrorCodeError, Message: fmt.Sprintf("FaultyTransport: the reply to %s names %q, which this request does not state", channel, named)}
 		}
 		answered[named] = value
 	}
@@ -444,14 +445,15 @@ func (f *FaultyTransport) TrackReply(correlationID string, channels ...bus.Chann
 	return f.router.Track(correlationID, channels)
 }
 
-func (f *FaultyTransport) State() xynolog.Watched[xynolog.ConnectionState] { return f.state.Reading() }
+func (f *FaultyTransport) State() xynolog.Watched[api.ConnectionState] { return f.state.Reading() }
 
 func (f *FaultyTransport) BridgeInto(sink xynolog.FrameSink) { f.hub.Bridge(sink) }
 
 // Failures tells told each failure Fail reports from now on, until stop or
 // the transport closes. The first listener is told first the latest
-// ErrorsKeptForFirstReaderCount (xynolog.DefaultTiming) since the transport
-// was made; one who comes after the transport has closed, nothing.
+// errorsKeptForFirstReaderCount (protocol/specs/src/client/timing.json) since
+// the transport was made; one who comes after the transport has closed,
+// nothing.
 func (f *FaultyTransport) Failures(told func(*xynolog.TransportError)) (stop func()) {
 	return f.failures.Listen(told)
 }
@@ -464,7 +466,7 @@ func (f *FaultyTransport) Close() {
 	}
 	f.closed = true
 	f.mu.Unlock()
-	f.state.Set(xynolog.ConnectionStateClosed)
+	f.state.Set(api.ConnectionStateClosed)
 	f.state.End()
 	f.hub.Close()
 	f.router.Close()

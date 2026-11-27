@@ -24,7 +24,8 @@ use xynolog::testing::{
     TestSessionOptions, create_test_client, create_test_session,
 };
 use xynolog::timing::ERRORS_KEPT_FOR_FIRST_READER_COUNT;
-use xynolog::transport::{ConnectionState, ContentTransport, Events, Failures, Transport};
+use xynolog::transport::{ContentTransport, Events, Failures, Transport};
+use xynolog::types::ConnectionState;
 use xynolog::types::{
     AnchoredTextAnswer, GatherResourceOptions, HttpEndpoint, HttpEndpointProtocol, KbEndpoint,
     KbTarget, KnowledgeBase, PutBinaryRequest, ResourceId, UploadProgress, UploadProgressFinished,
@@ -82,7 +83,7 @@ async fn a_test_client_is_built_over_what_the_test_gives_it() {
     let gateway = StubGateway::new();
     let content = InMemoryContent::new();
     let timing = ClientTiming {
-        bus_request: Duration::from_secs(3),
+        bus_request_timeout: Duration::from_secs(3),
         ..ClientTiming::default()
     };
 
@@ -618,8 +619,14 @@ async fn an_upload_to_the_content_double_reports_its_size_its_bytes_and_the_reso
     assert_eq!(
         reports,
         [
-            UploadProgress::Started(UploadProgressStarted::new(10)),
-            UploadProgress::Progress(UploadProgressProgress::new(10, 10)),
+            UploadProgress::Started(UploadProgressStarted {
+                total_bytes: Some(10),
+                ..UploadProgressStarted::new()
+            }),
+            UploadProgress::Progress(UploadProgressProgress {
+                total_bytes: Some(10),
+                ..UploadProgressProgress::new(10)
+            }),
             UploadProgress::Finished(UploadProgressFinished::new(created.resource_id)),
         ]
     );

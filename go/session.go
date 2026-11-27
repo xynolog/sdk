@@ -24,9 +24,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // SignInKept is where one knowledge base's sign-in is kept.
@@ -140,7 +140,9 @@ type SessionConfig struct {
 	Validate func(ctx context.Context, token string) (api.UserResponse, error)
 	// OnAuthFailed is told why the session ended, when it ends. May be nil.
 	OnAuthFailed func(api.SessionEndReason)
-	Timing       Timing
+	// Timing is the timing of the client's transport, whose Reconnect is the
+	// first wait before a renewal that got no answer is tried again.
+	Timing TransportTiming
 	// Random is what the jitter of a renewal tried again after it got no
 	// answer is drawn from, as EqualJitter draws it.
 	Random *rand.Rand
@@ -211,7 +213,7 @@ func notRenewed(failure error) string {
 // one that asks nobody gives it at once. What the session does at its start,
 // it does on its own: Ready says when it is done.
 func StartSession(ctx context.Context, config SessionConfig) (*Session, error) {
-	return startSession(ctx, config, kept.NewStream[Error](config.Timing.ErrorsKeptForFirstReaderCount))
+	return startSession(ctx, config, kept.NewStream[Error](timing.ErrorsKeptForFirstReaderCount))
 }
 
 // startSession is StartSession, saying what goes wrong on failures: made
@@ -235,7 +237,7 @@ func startSession(ctx context.Context, config SessionConfig, failures *kept.Stre
 	s.work.Add(3)
 	go func() {
 		defer s.work.Done()
-		renewWhenDue(s.alive, config.Token, config.Timing, s.renewDue)
+		renewWhenDue(s.alive, config.Token, s.renewDue)
 	}()
 	go func() {
 		defer s.work.Done()
@@ -283,15 +285,18 @@ func (s *Session) Token() Watched[string] { return s.config.Token.Reading() }
 func (s *Session) User() Watched[*api.UserResponse] { return s.user.Reading() }
 
 // StreamState is the state of the client's connection.
-func (s *Session) StreamState() Watched[ConnectionState] { return s.config.Client.Transport.State() }
+func (s *Session) StreamState() Watched[api.ConnectionState] {
+	return s.config.Client.Transport.State()
+}
 
 // Errors is the session's one stream of what went wrong: its own failures
 // (a *SessionError) and its client's transport's (a *TransportError), each
 // said once, in the order they were met: a transport's failure is said
 // before the transport's call that met it returns. Its first reader is given
-// the latest ErrorsKeptForFirstReaderCount (Timing) said since the session
-// was made, the oldest dropped beyond them, and every later one what is
-// said from then on; saying never waits for a reader. It ends when the
+// the latest errorsKeptForFirstReaderCount
+// (protocol/specs/src/client/timing.json) said since the session was made, the
+// oldest dropped beyond them, and every later one what is said from then on;
+// saying never waits for a reader. It ends when the
 // session ends (Close), and a reader who comes after that, the first among
 // them, is given nothing. Whoever ends both closes the client first, so what
 // the client's closing flush meets is said before it ends; what the client
@@ -369,8 +374,8 @@ func (s *Session) Refresh(_ context.Context, refused string) (string, bool) {
 	if err != nil {
 		// A gateway that could not be asked refused nothing.
 		var refused *TransportError
-		if errors.As(err, &refused) && refused.Code == TransportErrorCodeUnauthorized && held {
-			s.signedOut(api.SessionEndReasonRefused, &SessionError{Code: SessionErrorCodeCredentialRefused, Message: justIssuedAndRefused, KbID: s.config.Kb.Id})
+		if errors.As(err, &refused) && refused.Code == api.TransportErrorCodeUnauthorized && held {
+			s.signedOut(api.SessionEndReasonRefused, &SessionError{Code: api.SessionErrorCodeCredentialRefused, Message: justIssuedAndRefused, KbID: s.config.Kb.Id})
 		}
 	} else if held {
 		s.user.Set(&user)
@@ -478,7 +483,7 @@ func (s *Session) renew(renewing string) (string, bool) {
 
 // renewWhenUnanswered renews again, after a renewal that got no answer, on
 // the reconnect backoff: each wait is the equal jitter of its step, the step
-// Reconnect doubling to MaxReconnect. It stops when a renewal is made or
+// the transport's Reconnect doubling to maxReconnectMs. It stops when a renewal is made or
 // refused, when a token arrives some other way, and when the session is
 // closed. A renewal made while nobody has said who the session's token is
 // asks the gateway once, as the start would have.
@@ -511,7 +516,7 @@ func (s *Session) renewWhenUnanswered() {
 			default:
 				s.renew("")
 			}
-			step = min(2*step, s.config.Timing.MaxReconnect)
+			step = min(2*step, timing.MaxReconnect)
 		}
 	}
 }
@@ -522,7 +527,7 @@ func (s *Session) renewWhenUnanswered() {
 // again, and so does the reconnect backoff.
 func (s *Session) unrenewed(failure error) {
 	s.config.Token.Set("")
-	err := &SessionError{Code: SessionErrorCodeRefreshExhausted, Message: notRenewed(failure), KbID: s.config.Kb.Id}
+	err := &SessionError{Code: api.SessionErrorCodeRefreshExhausted, Message: notRenewed(failure), KbID: s.config.Kb.Id}
 	if failure != nil && !refusedRenewal(failure) {
 		s.unanswered.Set(true)
 		s.failed(err)
@@ -578,14 +583,14 @@ func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 				// There was no session to end: the sign-in is forgotten, and
 				// nothing is said unless it could not be.
 				if forgotten := s.config.Kept.Forget(s.alive); forgotten != nil {
-					s.failed(notForgotten(&SessionError{Code: SessionErrorCodeRefreshExhausted, Message: notRenewed(failure), KbID: s.config.Kb.Id}, forgotten))
+					s.failed(notForgotten(&SessionError{Code: api.SessionErrorCodeRefreshExhausted, Message: notRenewed(failure), KbID: s.config.Kb.Id}, forgotten))
 				}
 			default:
 				// The issuer did not refuse it: the sign-in is kept, and
 				// renewed on the reconnect backoff or when a request is
 				// refused.
 				s.unanswered.Set(true)
-				s.failed(&SessionError{Code: SessionErrorCodeAuthFailed, Message: notRenewed(failure), KbID: s.config.Kb.Id})
+				s.failed(&SessionError{Code: api.SessionErrorCodeAuthFailed, Message: notRenewed(failure), KbID: s.config.Kb.Id})
 			}
 			return
 		}
@@ -602,7 +607,7 @@ func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 			return
 		}
 		var refused *TransportError
-		if errors.As(err, &refused) && refused.Code == TransportErrorCodeUnauthorized {
+		if errors.As(err, &refused) && refused.Code == api.TransportErrorCodeUnauthorized {
 			next, goOn := s.answerAtStart(token, held, justIssued)
 			if !goOn {
 				return
@@ -614,7 +619,7 @@ func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 			s.config.Token.Set(token)
 		}
 		if err != nil {
-			s.failed(&SessionError{Code: SessionErrorCodeAuthFailed, Message: err.Error(), KbID: s.config.Kb.Id})
+			s.failed(&SessionError{Code: api.SessionErrorCodeAuthFailed, Message: err.Error(), KbID: s.config.Kb.Id})
 			return
 		}
 		s.user.Set(&user)
@@ -627,7 +632,7 @@ func (s *Session) start(kept api.StoredSession, has, withheld bool) {
 // about next, given to the transport, or false when there is none.
 func (s *Session) answerAtStart(token, held string, justIssued bool) (string, bool) {
 	if justIssued {
-		s.signedOut(api.SessionEndReasonRefused, &SessionError{Code: SessionErrorCodeCredentialRefused, Message: justIssuedAndRefused, KbID: s.config.Kb.Id})
+		s.signedOut(api.SessionEndReasonRefused, &SessionError{Code: api.SessionErrorCodeCredentialRefused, Message: justIssuedAndRefused, KbID: s.config.Kb.Id})
 		return "", false
 	}
 	// The session's token changed while the gateway was asked: it fell due
@@ -655,13 +660,13 @@ func (s *Session) answerAtStart(token, held string, justIssued bool) (string, bo
 // other way starts a wait of its own, and a renewal that changed nothing is
 // due again a floor later. A token that names no expiry schedules nothing: it
 // is renewed when whoever it is shown to refuses it.
-func renewWhenDue(alive context.Context, token *Variable[string], timing Timing, renew func(due string)) {
+func renewWhenDue(alive context.Context, token *Variable[string], renew func(due string)) {
 	for {
 		current, changed := token.watch()
 		var due <-chan time.Time
 		var timer *time.Timer
 		if current != "" {
-			if delay, ok := RefreshDelay(current, time.Now(), timing); ok {
+			if delay, ok := RefreshDelay(current, time.Now()); ok {
 				timer = time.NewTimer(delay)
 				due = timer.C
 			}

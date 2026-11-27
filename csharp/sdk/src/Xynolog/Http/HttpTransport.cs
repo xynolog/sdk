@@ -14,29 +14,12 @@ using Xynolog.Types;
 
 namespace Xynolog.Http;
 
-/// <summary>Where a transport's bus stream stands.</summary>
-public enum ConnectionState
-{
-    /// <summary>Opening the stream for the first time.</summary>
-    Connecting,
-    /// <summary>Open, and delivering frames.</summary>
-    Open,
-    /// <summary>Opening the stream again after it failed.</summary>
-    Reconnecting,
-    /// <summary>Reconnecting for longer than the protocol's degraded threshold.</summary>
-    Degraded,
-    /// <summary>Waiting for a usable credential: there is none, or the gateway refused the one it has.</summary>
-    Unauthenticated,
-    /// <summary>Disposed; nothing opens the stream again.</summary>
-    Closed
-}
-
 public sealed partial class HttpTransport : IDisposable
 {
     private readonly object gate = new();
     private readonly HttpClient? client;
     private readonly HttpMessageInvoker? owned;
-    private readonly Timing timing;
+    private readonly TransportTiming timing;
     private readonly TimeProvider clock;
     private readonly Random random;
     private readonly Func<string?, CancellationToken, Task<string?>>? refresher;
@@ -73,14 +56,14 @@ public sealed partial class HttpTransport : IDisposable
     /// <summary>Starts opening the bus stream to the gateway at <paramref name="baseUrl"/>, subscribed to
     /// <paramref name="channels"/>, sending <paramref name="token"/> and renewing a refused one with
     /// <paramref name="refresher"/>.</summary>
-    public HttpTransport(string baseUrl, string? token, IEnumerable<string> channels, Timing? timing = null,
+    public HttpTransport(string baseUrl, string? token, IEnumerable<string> channels, TransportTiming? timing = null,
         Func<string?, CancellationToken, Task<string?>>? refresher = null, HttpClient? httpClient = null,
         TimeProvider? timeProvider = null, Random? random = null)
     {
         BaseUrl = baseUrl.TrimEnd('/');
         this.token = token;
         this.channels = channels.Distinct(StringComparer.Ordinal).ToArray();
-        this.timing = timing ?? new Timing();
+        this.timing = timing ?? new TransportTiming();
         clock = timeProvider ?? TimeProvider.System;
         this.random = random ?? Random.Shared;
         this.refresher = refresher;
@@ -95,7 +78,6 @@ public sealed partial class HttpTransport : IDisposable
     }
 
     internal TimeProvider Clock => clock;
-    internal Timing Settings => timing;
     internal CancellationToken Closed => lifetime.Token;
 
     /// <summary>The gateway's address, without a trailing slash.</summary>
@@ -263,7 +245,7 @@ public sealed partial class HttpTransport : IDisposable
             using var request = Request(GatewayRoute.EmitOnBus.Method, GatewayRoute.EmitOnBus.Path, sent);
             request.Headers.Add(GatewayHeader.IdempotencyKey, key);
             request.Content = JsonContent.Create(body);
-            using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(timing.EmitTimeoutMs), clock);
+            using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(Timings.EmitTimeoutMs), clock);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation, lifetime.Token, deadline.Token);
             HttpResponseMessage response;
             try { response = await SendAsync(request, linked.Token).ConfigureAwait(Spawning.Captures); }
@@ -298,19 +280,20 @@ public sealed partial class HttpTransport : IDisposable
     }
 
     /// <summary>Sends a request for <paramref name="operation"/> on the bus and returns its reply's response, if it has
-    /// one; a failure reply throws.</summary>
+    /// one; a failure reply throws. It has <paramref name="timeoutMs"/> to be answered, the protocol's
+    /// busRequestTimeoutMs when null.</summary>
     public async Task<JsonElement?> RequestAsync(string operation, JsonElement payload, int? timeoutMs = null, CancellationToken cancellation = default)
     {
-        var frame = await RequestFrameAsync(operation, payload, timeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
+        var frame = await RequestFrameAsync(operation, payload, timeoutMs ?? Timings.BusRequestTimeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
         return frame.Frame.Payload.TryGetProperty("response", out var value) ? value.Clone() : null;
     }
 
-    internal async Task<ReceivedBusFrame> RequestFrameAsync(string operation, JsonElement payload, int? timeoutMs, CancellationToken cancellation)
+    internal async Task<ReceivedBusFrame> RequestFrameAsync(string operation, JsonElement payload, int timeoutMs, CancellationToken cancellation)
     {
         var replies = BusRegistry.Operation(operation);
         foreach (var channel in BusRegistry.ReplyChannelsFor(operation))
             if (!IsSubscribed(channel)) throw BusRegistry.Unsubscribed(channel);
-        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutMs ?? timing.BusRequestTimeoutMs), clock);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutMs), clock);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token, lifetime.Token, cancellation);
         var correlation = Guid.NewGuid().ToString();
         var reply = new Pending(replies.Result, replies.Failure);
@@ -333,7 +316,7 @@ public sealed partial class HttpTransport : IDisposable
             var frame = await Spawning.WaitAsync(reply.Completion.Task, linked.Token).ConfigureAwait(Spawning.Captures) switch
             {
                 FrameRefusal refusal => throw new TransportError(TransportErrorCode.Error,
-                    "a frame on " + refusal.Channel + " is not that channel's: " + new Fault(refusal.Member, refusal.Reason)),
+                    "a frame on " + refusal.Channel + " is not that channel's: " + Required.At(refusal.Member, refusal.Reason).Said()),
                 ReceivedBusFrame received => received,
             };
             if (frame.Frame.Channel == replies.Failure) throw Answered(replies.Failure, frame.Frame.Payload);
@@ -357,7 +340,7 @@ public sealed partial class HttpTransport : IDisposable
     private XynologError Answered(string channel, JsonElement failure)
     {
         if (Required.FaultOf(failureSchemas[channel], failure, out var read) is { } fault)
-            return new TransportError(TransportErrorCode.Error, $"a payload on {channel} is not that channel's: {fault}");
+            return new TransportError(TransportErrorCode.Error, $"a payload on {channel} is not that channel's: {fault.Said()}");
         var answered = read.Deserialize<CommandError>()
             ?? throw new InvalidOperationException($"The schema of {channel} let a failure be null.");
         return new BusRequestError(FailureCodes.Of(answered.Code), answered.Message);
@@ -508,7 +491,7 @@ public sealed partial class HttpTransport : IDisposable
                                     break;
                                 case Line.Unaddressed(var fault):
                                     // What names no reader is told to the failure report.
-                                    failures.Publish(new TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: " + fault));
+                                    failures.Publish(new TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: " + fault.Said()));
                                     break;
                             }
                         }
@@ -530,10 +513,8 @@ public sealed partial class HttpTransport : IDisposable
         ActivityContext parent = default;
         if (frame.Payload.TryGetProperty(ProtocolFacts.TraceField, out var trace))
         {
-            if (trace.ValueKind == JsonValueKind.Object && trace.TryGetProperty("traceparent", out var traceparent) && traceparent.ValueKind == JsonValueKind.String)
-            {
-                ActivityContext.TryParse(traceparent.GetString(), trace.TryGetProperty("tracestate", out var tracestate) && tracestate.ValueKind == JsonValueKind.String ? tracestate.GetString() : null, isRemote: true, out parent);
-            }
+            if (Required.TryRead<TraceCarrier>(trace, out var carrier, out _))
+                ActivityContext.TryParse(carrier.Traceparent, carrier.Tracestate, isRemote: true, out parent);
             var payload = JsonNode.Parse(frame.Payload.GetRawText())?.AsObject() ?? throw new JsonException("Null frame payload");
             payload.Remove(ProtocolFacts.TraceField);
             frame = frame with { Payload = JsonSerializer.SerializeToElement(payload) };
@@ -569,7 +550,7 @@ public sealed partial class HttpTransport : IDisposable
     {
         JsonElement value;
         try { value = JsonSerializer.Deserialize<JsonElement>(data); }
-        catch (JsonException) { return new Line.Unaddressed(Fault.Undecoded); }
+        catch (JsonException) { return new Line.Unaddressed(Required.Undecoded); }
         if (TryFrame(value, out var frame, out var fault)) return new Line.Framed(frame);
         if (value.ValueKind != JsonValueKind.Object) return new Line.Unaddressed(fault);
         // Its channel and scope name its readers when a frame of them alone is one BusFrame allows.
@@ -607,7 +588,7 @@ public sealed partial class HttpTransport : IDisposable
         try { frame = carried.Deserialize<BusFrame>() ?? throw new JsonException("A frame is null."); }
         catch (JsonException)
         {
-            fault = Fault.Undecoded;
+            fault = Required.Undecoded;
             return false;
         }
         return true;
@@ -667,7 +648,7 @@ public sealed partial class HttpTransport : IDisposable
         try
         {
             using var body = JsonDocument.Parse(text);
-            if (status == 429 && body.RootElement.ValueKind == JsonValueKind.Object && body.RootElement.TryGetProperty("code", out var value) && value.ValueKind == JsonValueKind.String && value.Deserialize<LimitRefusalCode>() == LimitRefusalCode.RefusalRate) code = TransportErrorCode.Unauthorized;
+            if (Required.TryRead<LimitRefusal>(body.RootElement, out var refusal, out _) && TransportErrorCode.OfLimitRefusal(status, refusal.Code) is { } limited) code = limited;
         }
         catch (JsonException) { }
         return new TransportError(code, $"HTTP {status}: {text}", status);

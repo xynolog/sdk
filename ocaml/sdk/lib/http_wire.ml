@@ -1,23 +1,5 @@
 open Eio.Std
 
-type timing = {
-  emit_attempts : int;
-  emit_initial_delay_ms : int;
-  emit_max_delay_ms : int;
-  emit_timeout_ms : int;
-  request_timeout_ms : int;
-}
-
-let default_timing =
-  let retry = Client_timing.emit_retry in
-  {
-    emit_attempts = retry.attempts;
-    emit_initial_delay_ms = retry.initial_delay_ms;
-    emit_max_delay_ms = retry.max_delay_ms;
-    emit_timeout_ms = Client_timing.emit_timeout_ms;
-    request_timeout_ms = Client_timing.http_request_timeout_ms;
-  }
-
 type failure = {
   code : Error_codes.Transport.t;
   status : int option;
@@ -36,7 +18,7 @@ exception Failed of failure
 exception Deadline
 
 type t = {
-  timing : timing;
+  timing : Client_timing.transport;
   telemetry : Telemetry.t option;
   clock : Clock.t;
   session : Session.t;
@@ -52,8 +34,8 @@ type t = {
     int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t;
 }
 
-let make ?(timing = default_timing) ?telemetry ~clock ~session ~key ~on_error
-    ~call () =
+let make ?(timing = Client_timing.transport_defaults) ?telemetry ~clock ~session
+    ~key ~on_error ~call () =
   { timing; telemetry; clock; session; key; on_error; call }
 
 let fail t ?status ~message code =
@@ -61,23 +43,12 @@ let fail t ?status ~message code =
   t.on_error failure;
   raise (Failed failure)
 
-let json_text key source =
-  match Strict_json.parse source with
-  | Ok (`Assoc fields) -> (
-      match List.assoc_opt key fields with
-      | Some (`Stringlit literal) -> (
-          match Yojson.Safe.from_string literal with
-          | `String value -> Some value
-          | _ -> None)
-      | _ -> None)
-  | _ -> None
-
 (* A refusal in the gateway's own words when its body states them, as an
    ErrorResponse's error, and by its status when it does not. *)
 let refusal status body =
-  match json_text "error" body with
-  | Some words -> words
-  | None -> "HTTP " ^ string_of_int status
+  match Models.decode Models.error_response body with
+  | Ok response -> (Records.Error_response.of_model response).error
+  | Error _ -> "HTTP " ^ string_of_int status
 
 let unanswered = "The request got no answer before its deadline"
 let unreachable = "The gateway could not be reached"
@@ -89,8 +60,23 @@ let header name =
         Some value
       else None)
 
+(* Whether a refusal refuses the request's credential: a status read as the
+   transport's unauthorized code, or a gateway's refusal of a limit whose
+   status and LimitRefusal code are one that is unauthorized too. *)
 let credential_refused status body =
-  status = 401 || (status = 429 && json_text "code" body = Some "refusal-rate")
+  Http_facts.status_code status = Error_codes.Transport.Unauthorized
+  || List.exists
+       (fun (limited, code, transport) ->
+         transport = Error_codes.Transport.Unauthorized
+         && limited = status
+         &&
+         match Models.decode Models.limit_refusal body with
+         | Ok refusal ->
+             Records.Limit_refusal.Code.to_string
+               (Records.Limit_refusal.of_model refusal).code
+             = code
+         | Error _ -> false)
+       Error_codes.limit_refusal_transport_codes
 
 let bearer token headers =
   match token with
@@ -217,8 +203,8 @@ let emit t ~client_id ?scope ?correlation_id ?trace channel source =
       ?scope:(Option.map Identifiers.Resource_id.to_string scope)
       ?correlation_id
       ?trace:
-        (Option.bind trace (fun (trace : Wire_stream.trace) ->
-             Bus_log.trace_id trace.parent))
+        (Option.bind trace (fun (trace : Records.Trace_carrier.t) ->
+             Bus_log.trace_id trace.traceparent))
       (Yojson.Safe.from_string source);
   let attributes =
     (attr_bus_channel, Telemetry.String name)
@@ -243,33 +229,41 @@ let emit t ~client_id ?scope ?correlation_id ?trace channel source =
               time = Clock.wall_now t.clock;
             })
         t.telemetry;
-      let timing = t.timing in
-      exchange t ~auth:true ~timeout_ms:timing.emit_timeout_ms ~body
+      let retry = t.timing.emit_retry in
+      exchange t ~auth:true ~timeout_ms:Client_timing.emit_timeout_ms ~body
         ~headers:
           ([
              ("content-type", Gateway_http.Media.emit_on_bus_sends);
              (Gateway_http.Header.idempotency_key, t.key ());
            ]
           @ Option.fold ~none:[]
-              ~some:(fun (trace : Wire_stream.trace) ->
-                ("traceparent", trace.parent)
-                :: Option.to_list
-                     (Option.map
-                        (fun state -> ("tracestate", state))
-                        trace.state))
+              ~some:(fun trace ->
+                match Records.Trace_carrier.to_json trace with
+                | `Assoc members ->
+                    List.filter_map
+                      (function
+                        | header, `String value -> Some (header, value)
+                        | _ -> None)
+                      members
+                | _ -> [])
               trace)
-        ~attempts:timing.emit_attempts
-        ~initial_delay:timing.emit_initial_delay_ms
-        ~max_delay:timing.emit_max_delay_ms ~jitter:true
-        Gateway_http.emit_on_bus read_text)
+        ~attempts:retry.attempts ~initial_delay:retry.initial_delay_ms
+        ~max_delay:retry.max_delay_ms ~jitter:true Gateway_http.emit_on_bus
+        read_text)
 
 let bus_failure payload =
   Http_facts.bus_failure
-    (Option.map Http_facts.Failure_code.of_wire
-       (json_text "code" (Bus_registry.encode payload)))
+    (match Models.decode Models.command_error (Bus_registry.encode payload) with
+    | Ok failure ->
+        Option.map
+          (fun code ->
+            Http_facts.Failure_code.of_wire
+              (Records.Command_error.Code.to_string code))
+          (Records.Command_error.of_model failure).code
+    | Error _ -> None)
 
 let json_get t ?(auth = true) path =
-  exchange t ~auth ~timeout_ms:t.timing.request_timeout_ms ~attempts:2
+  exchange t ~auth ~timeout_ms:t.timing.http_request_timeout_ms ~attempts:2
     ~initial_delay:Client_timing.request_retry_pause_ms path read_text
 
 let health t = json_get t ~auth:false Gateway_http.get_health
@@ -299,7 +293,7 @@ let check_user t token =
               })
     in
     Fiber.first check (fun () ->
-        sleep t (float t.timing.request_timeout_ms);
+        sleep t (float t.timing.http_request_timeout_ms);
         Error
           {
             code = Error_codes.Transport.Unavailable;
@@ -355,7 +349,7 @@ let media_token t resource =
            ("resourceId", `String (Identifiers.Resource_id.to_string resource));
          ])
   in
-  exchange t ~auth:true ~timeout_ms:t.timing.request_timeout_ms ~body
+  exchange t ~auth:true ~timeout_ms:t.timing.http_request_timeout_ms ~body
     ~headers:[ ("content-type", Gateway_http.Media.create_media_token_sends) ]
     Gateway_http.create_media_token read_text
 
@@ -370,8 +364,8 @@ let with_content t ?(streaming = true) resource consume =
     else attrs
   in
   around t Telemetry_facts.content_get attrs (fun () ->
-      exchange t ~auth:true ~timeout_ms:t.timing.request_timeout_ms ~attempts:2
-        ~initial_delay:Client_timing.request_retry_pause_ms
+      exchange t ~auth:true ~timeout_ms:t.timing.http_request_timeout_ms
+        ~attempts:2 ~initial_delay:Client_timing.request_retry_pause_ms
         (on_resource Gateway_http.get_resource_representation resource)
         (fun headers stream ->
           let content_type =
@@ -439,9 +433,10 @@ let put t (request : Records.Put_binary_request.t) ~on_progress =
           reported := sent;
           on_progress
             (Records.Upload_progress.Progress
-               { bytes_uploaded = sent; total_bytes }))
+               { bytes_uploaded = sent; total_bytes = Some total_bytes }))
       in
-      on_progress (Records.Upload_progress.Started { total_bytes });
+      on_progress
+        (Records.Upload_progress.Started { total_bytes = Some total_bytes });
       let answer =
         exchange t ~auth:true ~body ~progress:report
           ~headers:
@@ -454,13 +449,16 @@ let put t (request : Records.Put_binary_request.t) ~on_progress =
           ~attempts:2 ~initial_delay:Client_timing.request_retry_pause_ms
           Gateway_http.upload_resource read_text
       in
-      match Models.decode Models.create_resource_response answer with
-      | Ok response ->
-          let created = Records.Create_resource_response.of_model response in
-          on_progress
-            (Records.Upload_progress.Finished
-               { resource_id = created.resource_id });
+      match
+        Result.map
+          (fun response ->
+            Identifiers.Resource_id.of_string
+              (Records.Create_resource_response.of_model response).resource_id)
+          (Models.decode Models.create_resource_response answer)
+      with
+      | Ok (Ok resource_id) ->
+          on_progress (Records.Upload_progress.Finished { resource_id });
           answer
-      | Error _ ->
+      | Ok (Error _) | Error _ ->
           fail t ~message:"The gateway's answer to the upload names no resource"
             Error_codes.Transport.Error)

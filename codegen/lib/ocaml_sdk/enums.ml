@@ -16,7 +16,8 @@ let client_types (spec : Spec.t) =
   List.filter
     (fun name ->
       match List.assoc_opt ("client/types/" ^ name ^ ".json") spec.schemas with
-      | Some (Schema.Schema { type_ = Some [ String ]; _ }) -> true
+      | Some (Schema.Schema { type_ = Some [ String ]; enum = Some _; _ }) ->
+          true
       | _ -> false)
     (Definitions.generated_client_types spec)
 
@@ -155,14 +156,6 @@ let derive (spec : Spec.t) table =
             { module_ = module_name name; variants = [] })
       (client_types spec)
   in
-  let discovery_absent =
-    enum ~file:"client/discovery-absent.json" ~pointer:"/reasons"
-      "Discovery_absent_reason"
-      (List.map
-         (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-           Schema.String_literal r.reason)
-         spec.tables.client_discovery_absent.reasons)
-  in
   let tabled =
     List.map
       (fun (key, module_, members) ->
@@ -170,7 +163,7 @@ let derive (spec : Spec.t) table =
         enum ~file ~pointer module_ members)
       (tabled spec.ids table)
   in
-  let enums = components @ clients @ (discovery_absent :: tabled) in
+  let enums = components @ clients @ tabled in
   let modules = List.map (fun e -> e.module_) enums in
   if List.length (List.sort_uniq compare modules) <> List.length modules then
     refusals :=

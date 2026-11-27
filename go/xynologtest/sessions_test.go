@@ -104,7 +104,7 @@ func TestATestSessionHoldsTheTokenItsSignInHeldAndThenTheOneTheTestSets(t *testi
 		test.Client.Close()
 		test.Session.Close()
 		test.Transport.Close()
-		if test.Transport.State().Value() != xynolog.ConnectionStateClosed {
+		if test.Transport.State().Value() != api.ConnectionStateClosed {
 			t.Error("the transport is not closed")
 		}
 	})
@@ -315,9 +315,9 @@ func TestScriptedSessionsRenewalsFailWithTheSignInErrorTheyWereGiven(t *testing.
 		renewal xynologtest.Renewal
 		ends    bool
 	}{
-		{"the issuer refuses", xynologtest.Renewal{Err: xynolog.NewSignInError(xynolog.SignInErrorCodeExchange, "invalid_grant", http.StatusBadRequest)}, true},
-		{"the issuer says not now", xynologtest.Renewal{Err: xynolog.NewSignInError(xynolog.SignInErrorCodeExchange, "temporarily_unavailable", http.StatusServiceUnavailable)}, false},
-		{"the issuer does not answer", xynologtest.Renewal{Err: &xynolog.SignInError{Code: xynolog.SignInErrorCodeExchange, Message: "the network is down"}}, false},
+		{"the issuer refuses", xynologtest.Renewal{Err: xynolog.NewSignInError(api.SignInErrorCodeExchange, "invalid_grant", http.StatusBadRequest)}, true},
+		{"the issuer says not now", xynologtest.Renewal{Err: xynolog.NewSignInError(api.SignInErrorCodeExchange, "temporarily_unavailable", http.StatusServiceUnavailable)}, false},
+		{"the issuer does not answer", xynologtest.Renewal{Err: &xynolog.SignInError{Code: api.SignInErrorCodeExchange, Message: "the network is down"}}, false},
 	} {
 		t.Run(row.why, func(t *testing.T) {
 			synctest.Test(t, func(t *testing.T) {
@@ -351,7 +351,7 @@ func TestScriptedSessionsCanRefuseToBuildAndKeepWhatWasRevoked(t *testing.T) {
 		sessions.RefuseToBuild("this knowledge base cannot be reached")
 		_, _, err := sessions.Session(context.Background(), a.of("kb-a"))
 		var refused *xynolog.SessionError
-		if !errors.As(err, &refused) || refused.Code != xynolog.SessionErrorCodeConstructFailed || refused.Message != "this knowledge base cannot be reached" || refused.KbID != "kb-a" {
+		if !errors.As(err, &refused) || refused.Code != api.SessionErrorCodeConstructFailed || refused.Message != "this knowledge base cannot be reached" || refused.KbID != "kb-a" {
 			t.Errorf("refused: %v", err)
 		}
 		if len(sessions.Transports("kb-a")) != 0 {

@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
 
@@ -18,11 +20,11 @@ import (
 func TestTheFirstListenerOfTheDoublesFailuresIsToldTheLatestFailedBeforeIt(t *testing.T) {
 	transport := xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{})
 	defer transport.Close()
-	most := xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount
+	most := timing.ErrorsKeptForFirstReaderCount
 	beyond := 5
 	failed := make([]*xynolog.TransportError, most+beyond)
 	for n := range failed {
-		failed[n] = &xynolog.TransportError{Code: xynolog.TransportErrorCodeUnavailable, Message: fmt.Sprintf("failure %d", n)}
+		failed[n] = &xynolog.TransportError{Code: api.TransportErrorCodeUnavailable, Message: fmt.Sprintf("failure %d", n)}
 		transport.Fail(failed[n])
 	}
 
@@ -31,7 +33,7 @@ func TestTheFirstListenerOfTheDoublesFailuresIsToldTheLatestFailedBeforeIt(t *te
 	defer stopFirst()
 	stopLater := transport.Failures(func(failure *xynolog.TransportError) { later = append(later, failure) })
 	defer stopLater()
-	following := &xynolog.TransportError{Code: xynolog.TransportErrorCodeUnavailable, Message: "after both listened"}
+	following := &xynolog.TransportError{Code: api.TransportErrorCodeUnavailable, Message: "after both listened"}
 	transport.Fail(following)
 
 	if want := append(slices.Clone(failed[beyond:]), following); !slices.Equal(first, want) {
@@ -46,7 +48,7 @@ func TestTheFirstListenerOfTheDoublesFailuresIsToldTheLatestFailedBeforeIt(t *te
 // what was kept for it was let go of at the close.
 func TestAFirstListenerWhoComesAfterTheDoubleHasClosedIsToldNothing(t *testing.T) {
 	transport := xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{})
-	transport.Fail(&xynolog.TransportError{Code: xynolog.TransportErrorCodeUnavailable, Message: "HTTP 503"})
+	transport.Fail(&xynolog.TransportError{Code: api.TransportErrorCodeUnavailable, Message: "HTTP 503"})
 	transport.Close()
 
 	var told []*xynolog.TransportError

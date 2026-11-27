@@ -2,10 +2,7 @@
    gateway's operations, typed by what it is asked and answers, with its
    method, path, status, media types, whether it needs a credential and the
    headers it requires; the schemas of what an operation states in place,
-   which the models name after it; the bus's event name; and what the
-   reference transport reads as a refused credential, read from
-   typescript/http-transport's refusesCredential and held to LimitRefusal's
-   codes. The Archivist's operations are ArchivistRoute's constructors, each
+   which the models name after it; and the bus's event name. The Archivist's operations are ArchivistRoute's constructors, each
    named Archivist and its operation, of the same facts, and an operation
    that answers with no content answers (). *)
 
@@ -180,107 +177,6 @@ let routes ~prefix ~no_content (spec : Spec.t) (document : Openapi.document) =
     refused "HTTP constructor collision"
   else Ok { routes = List.map fst rows; schemas = List.concat_map snd rows }
 
-(* What the reference transport reads as a refused credential: a status, or
-   another status with a body whose member is a code, which must be one of
-   LimitRefusal's. *)
-type credential = {
-  unauthorized : int;
-  limited : int;
-  field : string;
-  refusal : string;
-}
-
-let classifier = "typescript/http-transport/src/transport/api-error.ts"
-
-let credential ~root =
-  let source =
-    In_channel.with_open_bin
-      (Filename.concat root classifier)
-      In_channel.input_all
-  in
-  let signature =
-    "export function refusesCredential(status: number, body: unknown): boolean \
-     {"
-  in
-  let after text marker =
-    match Marker.find marker text with
-    | Some i -> String.sub text i (String.length text - i)
-    | None -> ""
-  in
-  let section = after source signature in
-  let body =
-    let from = String.index_opt section '{' in
-    match from with
-    | None -> ""
-    | Some i -> (
-        let rest = String.sub section i (String.length section - i) in
-        match Marker.find "\n}" rest with
-        | Some j -> String.sub rest 0 j
-        | None -> rest)
-  in
-  let words_of text =
-    List.filter (( <> ) "")
-      (String.split_on_char ' '
-         (String.map (function '\n' | '\t' | '\r' -> ' ' | c -> c) text))
-  in
-  let words = words_of body in
-  let strip ~prefix ~suffix text =
-    if String.starts_with ~prefix text && String.ends_with ~suffix text then
-      Some
-        (String.sub text (String.length prefix)
-           (String.length text - String.length prefix - String.length suffix))
-    else None
-  in
-  let* unauthorized, limited, field, constant =
-    match words with
-    | [
-     "{";
-     "return";
-     "(";
-     "status";
-     "===";
-     one;
-     "||";
-     "(status";
-     "===";
-     two;
-     "&&";
-     "isObject(body)";
-     "&&";
-     member;
-     "===";
-     symbol;
-     ");";
-    ] -> (
-        match
-          ( int_of_string_opt one,
-            int_of_string_opt two,
-            strip ~prefix:"body['" ~suffix:"']" member,
-            strip ~prefix:"" ~suffix:")" symbol )
-        with
-        | Some a, Some b, Some f, Some c -> Ok (a, b, f, c)
-        | _ -> refused "unreadable credential refusal")
-    | _ ->
-        refused
-          "credential refusal reference changed; update the Haskell derivation"
-  in
-  (* The constant's value, its declaration read as words: a line may break
-     after its [=]. *)
-  let* refusal =
-    let opening = "const " ^ constant ^ " = '" in
-    match after (String.concat " " (words_of source)) opening with
-    | "" -> refused "unreadable credential refusal constant"
-    | rest -> (
-        let value =
-          String.sub rest (String.length opening)
-            (String.length rest - String.length opening)
-        in
-        match String.index_opt value '\'' with
-        | Some i when i > 0 -> Ok (String.sub value 0 i)
-        | _ -> refused "unreadable credential refusal constant")
-  in
-  Ok { unauthorized; limited; field; refusal }
-
 (* What a route table is declared as: its GADT, and the functions that give
    each route's facts, named [lower] and the fact. *)
 type table = { gadt : string; lower : string }
@@ -378,7 +274,7 @@ let routes_module ~banner ~name body routes =
 
 (* The gateway's routes, each answering content: [routes ~no_content:false]
    refuses one that does not. *)
-let file ~banner t ~credential ~bus_event =
+let file ~banner t ~bus_event =
   let routes = t.routes in
   let content r =
     match r.output_media with
@@ -389,13 +285,7 @@ let file ~banner t ~credential ~bus_event =
     (declarations gateway routes
     @ [ dispatch gateway "MediaType" (text "ByteString") routes content ]
     @ headed gateway routes
-    @ [
-        H.value "unauthorizedStatus" (text "Int") (Int credential.unauthorized);
-        H.value "limitedStatus" (text "Int") (Int credential.limited);
-        H.value "refusalField" (text "Key") (Str credential.field);
-        H.value "refusalCode" (text "Text") (Str credential.refusal);
-        H.value "busEventName" (text "Text") (Str bus_event);
-      ])
+    @ [ H.value "busEventName" (text "Text") (Str bus_event) ])
     routes
 
 let archivist_file ~banner t =

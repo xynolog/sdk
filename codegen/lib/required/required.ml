@@ -60,9 +60,7 @@ let components (spec : Spec.t) =
 
 (* Each table record ([Table_records]), by its title, read where the table
    states it; each client type every SDK generates
-   ([Definitions.generated_client_types]), by its file's stem; and why a
-   client found no launcher (client/discovery-absent.json), as the one text
-   of its reasons each SDK states it as. *)
+   ([Definitions.generated_client_types]), by its file's stem. *)
 let records (spec : Spec.t) =
   let in_place = whole spec in
   let read (title, file, schema) =
@@ -83,29 +81,13 @@ let records (spec : Spec.t) =
         | None -> Error (refusal file "" "is no JSON Schema"))
       (Definitions.generated_client_types spec)
   in
-  let discovery_absent =
-    Ok
-      ( "DiscoveryAbsentReason",
-        "client/discovery-absent.json",
-        Schema.Schema
-          {
-            Schema.empty with
-            type_ = Some [ Schema.String ];
-            enum =
-              Some
-                (List.map
-                   (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                     Schema.String_literal r.reason)
-                   spec.tables.client_discovery_absent.reasons);
-          } )
-  in
   match Table_records.all spec with
   | Error message -> [ Error (refusal "" "" message) ]
   | Ok records ->
       List.map
         (fun (key, title, schema) -> read (title, file_of key, schema))
         records
-      @ client_types @ [ discovery_absent ]
+      @ client_types
 
 (* Each gateway operation's reply: the schema of its one successful
    response's one content, by its operationId, capitalized. *)
@@ -165,12 +147,19 @@ let collect results =
       | Error error, Error errors -> Error (error :: errors))
     results (Ok [])
 
+(* Each root schema and each table record, with its file. *)
+let roots (spec : Spec.t) = collect (components spec @ records spec)
+
+(* What each of [roots] requires, by its name. *)
+let derive_roots (spec : Spec.t) roots =
+  Result.bind (Error_codes.Table.derive spec.tables.errors_codes) (fun codes ->
+      Shape.derive ~ids:spec.ids
+        ~unrecognized:spec.tables.errors_codes.bus_request.unrecognized_failure
+        ~vocabularies:(Error_codes.Table.vocabularies codes)
+        roots)
+
 (* What each root schema and each table record requires, by its name. *)
-let derive (spec : Spec.t) =
-  Result.bind
-    (collect (components spec @ records spec))
-    (Shape.derive ~ids:spec.ids
-       ~unrecognized:spec.tables.errors_codes.bus_request.unrecognized_failure)
+let derive (spec : Spec.t) = Result.bind (roots spec) (derive_roots spec)
 
 let files ~root (spec : Spec.t) =
   let ( let* ) = Result.bind in

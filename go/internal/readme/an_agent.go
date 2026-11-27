@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // Work signs the agent in, and opens a stream as it.
 func Work(ctx context.Context, gateway, issuer, secret string) error {
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	service := xynolog.NewServiceToken(
 		xynolog.SecretCredential{Issuer: issuer, ClientID: "xynolog-smelter", ClientSecret: secret},
 		xynolog.Issuer{HTTP: http.DefaultClient, Timing: timing},
@@ -29,7 +30,7 @@ func Work(ctx context.Context, gateway, issuer, secret string) error {
 	defer transport.Close()
 	fmt.Println("working as", agent.DID()) // who its work is attributed to: its account, as the gateway names it
 	for state := range transport.State().Changes(ctx) {
-		if state == xynolog.ConnectionStateOpen {
+		if state == api.ConnectionStateOpen {
 			fmt.Println("its stream is open, as the agent")
 			return nil
 		}

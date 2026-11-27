@@ -139,8 +139,8 @@ newFaultyTransport clock schedule respond channels = do
         pure (Just 1)
   (over, input) <- Transport.newTransport (Transport.TransportOptions "faulty://simulator" (Set.union channels scoped) send (Tasks.dispose tasks))
   atomically (putTMVar inputCell input)
-  Transport.setState input Transport.Connecting
-  Transport.setState input Transport.Open
+  Transport.setState input Transport.ConnectionStateConnecting
+  Transport.setState input Transport.ConnectionStateOpen
   pure
     ( FaultyTransport
         over

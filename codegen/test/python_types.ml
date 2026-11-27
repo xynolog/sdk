@@ -7,7 +7,7 @@ open Fixture
 (* The module for [schemas] beside a kind of id, K. *)
 let written ?(keys = []) schemas =
   let schemas = ("K", {|{"type": "string"}|}) :: schemas in
-  Python_types.module_ ~also:[]
+  Python_types.module_
     (Typing.make (definitions schemas) ~roots:(List.map fst schemas)
        ~identifiers:[ "K" ] ~keys)
 

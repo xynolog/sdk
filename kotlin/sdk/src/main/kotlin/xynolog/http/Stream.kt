@@ -18,11 +18,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import xynolog.Timings
+import xynolog.TransportTiming
 import xynolog.bus.BusLog
 import xynolog.bus.Fault
 import xynolog.bus.Logged
 import xynolog.bus.UNDECODED
 import xynolog.bus.faultOf
+import xynolog.bus.readOf
 import xynolog.channels.RESOURCE_SCOPED_CHANNELS
 import xynolog.channels.TRACE_FIELD
 import xynolog.errors.TransportError
@@ -35,19 +37,20 @@ import xynolog.retry.retryAfterMs
 import xynolog.telemetry.Telemetry
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Events
 import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
 import xynolog.transport.FrameSink
 import xynolog.transport.Place
 import xynolog.transport.ReplyRouter
-import xynolog.transport.TraceContext
+import xynolog.transport.mayBecome
 import xynolog.transport.scope
 import xynolog.types.BusEventMessageEvent
 import xynolog.types.BusFrame
 import xynolog.types.BusSubscribeRequest
 import xynolog.types.BusSubscribeRequestScopedItem
+import xynolog.types.ConnectionState
+import xynolog.types.TraceCarrier
 import xynolog.types.wireJson
 import java.io.IOException
 import java.net.http.HttpClient
@@ -140,7 +143,7 @@ internal class Stream(
     private val refresher: TokenRefresher?,
     private val clientId: String,
     private val global: List<String>,
-    private val timing: Timing,
+    private val timing: TransportTiming,
     private val hub: FrameHub,
     private val router: ReplyRouter,
     private val failures: Broadcast<XynologError>,
@@ -409,9 +412,9 @@ internal class Stream(
         BusLog.line(Logged.RECV, channel, payload, scope, correlationId)
         // What closing a retired connection at once would have lost.
         if (conn in superseded) BusLog.note("LINGER", channel, "delivered on superseded connection")
-        var sentUnder: TraceContext? = null
+        var sentUnder: TraceCarrier? = null
         if (TRACE_FIELD in payload) {
-            sentUnder = sentUnder(payload[TRACE_FIELD])
+            sentUnder = sentUnder(payload.getValue(TRACE_FIELD))
             payload = JsonObject(payload - TRACE_FIELD)
         }
         val frame = Frame(channel, payload, correlationId, scope, Telemetry.received(channel, scope, sentUnder))
@@ -535,7 +538,7 @@ internal class Stream(
                 .header("Content-Type", SUBSCRIBE_TO_BUS_SENDS)
                 .header("Accept", SUBSCRIBE_TO_BUS_ANSWERS)
                 .build()
-            val response = withTimeoutOrNull(timing.streamOpenMs) { http.exchange(request, HttpResponse.BodyHandlers.ofPublisher()) }
+            val response = withTimeoutOrNull(timing.streamOpenTimeoutMs) { http.exchange(request, HttpResponse.BodyHandlers.ofPublisher()) }
             if (response == null) {
                 // No answer by the deadline: the stream's end, as no answer at all is.
                 reports.send(Ended(conn))
@@ -545,7 +548,7 @@ internal class Stream(
             if (status !in 200..299) {
                 // A refusal's body is read within the request deadline, as any other answer is: one not read by then says nothing.
                 val read = try {
-                    withTimeoutOrNull(timing.httpRequestMs) { readAll(response.body()) }
+                    withTimeoutOrNull(timing.httpRequestTimeoutMs) { readAll(response.body()) }
                 } catch (_: IOException) {
                     null
                 }
@@ -623,10 +626,13 @@ private fun correlationIdOf(channel: String, held: JsonElement?): String? {
     return held.jsonPrimitive.content
 }
 
-/** The trace a frame's payload says it was sent under, when it says so. */
-private fun sentUnder(carried: kotlinx.serialization.json.JsonElement?): TraceContext? {
-    val stated = carried as? JsonObject ?: return null
-    val traceparent = (stated["traceparent"] as? JsonPrimitive)?.takeIf { it.isString }?.content ?: return null
-    val tracestate = (stated["tracestate"] as? JsonPrimitive)?.takeIf { it.isString }?.content?.takeIf { it.isNotEmpty() }
-    return TraceContext(traceparent, tracestate)
+/** The trace a frame's payload says it was sent under: none, where the table refuses what it carries as one. */
+private fun sentUnder(carried: JsonElement): TraceCarrier? {
+    val asRead = readOf(TraceCarrier.serializer().descriptor, carried)
+    if (asRead.fault != null) return null
+    return try {
+        wireJson.decodeFromJsonElement(TraceCarrier.serializer(), asRead.value)
+    } catch (_: IllegalArgumentException) {
+        null
+    }
 }

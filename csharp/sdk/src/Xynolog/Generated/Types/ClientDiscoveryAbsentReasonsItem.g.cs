@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ClientDiscoveryAbsentReasonsItem
 {
-    [global::Xynolog.Serialization.Wire("reason")] public required string Reason { get; init; }
+    [global::Xynolog.Serialization.Wire("reason")] public required global::Xynolog.Types.DiscoveryAbsentReason Reason { get; init; }
     [global::Xynolog.Serialization.Wire("docs")] public required string Docs { get; init; }
 }

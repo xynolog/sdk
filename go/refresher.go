@@ -156,7 +156,7 @@ func (r *refresher) start() {
 		// open, and misses nothing.
 		opened, left := false, false
 		for state := range states {
-			if state == ConnectionStateOpen {
+			if state == api.ConnectionStateOpen {
 				if left {
 					r.refresh(CacheRefreshReopened, cacheSubject{})
 				}

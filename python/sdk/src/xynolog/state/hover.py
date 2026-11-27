@@ -2,7 +2,7 @@
 
 A pointer crossing the page hovers nothing on its way. `say` is told each
 change: the annotation hovered, or none. `client.beckon.hover` is what it is
-usually given, and `xynolog.timing.HOVER_DELAY_MS` the delay, unless the viewer
+usually given. The delay is `xynolog.timing.HOVER_DELAY_MS`, unless the viewer
 was told another. Disposing it forgets a rest that has not run its time, and it
 says nothing more.
 """
@@ -14,6 +14,7 @@ from typing import Final, Self, final, override
 
 from xynolog.identifiers import AnnotationId
 from xynolog.state_unit import StateUnit
+from xynolog.timing import HOVER_DELAY_MS
 
 __all__ = ["HoverDwell"]
 
@@ -22,7 +23,7 @@ __all__ = ["HoverDwell"]
 class HoverDwell(StateUnit):
     """See the module's documentation. Its rest is a timer of the running loop."""
 
-    def __init__(self, say: Callable[[AnnotationId | None], object], delay_ms: int) -> None:
+    def __init__(self, say: Callable[[AnnotationId | None], object], delay_ms: int = HOVER_DELAY_MS) -> None:
         self._say: Final = say
         self._delay: Final = delay_ms / 1000
         self._hovering: AnnotationId | None = None

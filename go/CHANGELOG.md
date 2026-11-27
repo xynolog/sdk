@@ -50,12 +50,11 @@ the coming release's, and gathers its changes as they land.
 
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
-  trees are all `ArchivistLayoutEventStreamTree`, a placement is
-  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
-  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
-  and the rest. The type each reference was given of its own
-  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
-  gone.
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - An upload is an `api.PutBinaryRequest`, the type of Protocol's
   `client/types/PutBinaryRequest.json`, where it was the SDK's own
   `PutBinaryRequest`: `ContentTransport.PutBinary` and
@@ -78,8 +77,8 @@ the coming release's, and gathers its changes as they land.
   own `EngineWithLimits`: an engine's `Engine` and `Jobs` are its own fields,
   where they were its `Entry`'s.
 - A retry budget is `api.RetryBudget`, the type of Protocol's
-  `client/RetryBudget.json`, where it was `RetryPolicy`: `Timing.EmitRetry`
-  and `Timing.RefreshRetry` are one, and `RetryWithBackoff` takes one. Its
+  `client/RetryBudget.json`, where it was `RetryPolicy`:
+  `TransportTiming.EmitRetry` is one, and `RetryWithBackoff` takes one. Its
   delays are whole milliseconds, `InitialDelayMs` and `MaxDelayMs`, as
   Protocol states them, where they were `time.Duration`s, `InitialDelay` and
   `MaxDelay`.
@@ -136,8 +135,8 @@ the coming release's, and gathers its changes as they land.
   that type, and `Bookmarks.Load` gives the places as `api.LastEventIds`.
 - `Browse.Resources` takes `api.BrowseResourcesRequest` and `Match.Resources`
   takes `api.ResourceSearchFilters`, the types Protocol states, in place of
-  `ResourceFilters`, which is gone. A limit left out (nil) is still the first
-  hundred; a limit stated as zero is now sent as zero.
+  `ResourceFilters`, which is gone. A limit stated as zero is now sent as
+  zero.
 - A union's member interface is exported (`api.MarkJobParamsMember`,
   `api.ConformanceDriverLineMember`, …), so a function can take any member
   of a union. Its marker method is still unexported: no other type joins it.
@@ -145,9 +144,102 @@ the coming release's, and gathers its changes as they land.
   and `within` durations; a wait left out (nil) is the client's timing.
 - `Job.Claim` takes `api.ClaimOptions`: the filters it accepts, and any of its
   four waits in place of the client's timing.
-- `ActiveJob.JobType` is `ActiveJob.Type`, as `WorkerEngineHealth` names it.
+- A worker's claims give the types Protocol states, in place of the
+  package's own: `api.ClaimRefusal` (in place of `ClaimRefusal`; a
+  `*api.ClaimRefusal` is the error the claims give), `api.WorkerVitals` and
+  `api.WorkerActiveJob` (in place of `WorkerVitals` and `ActiveJob`),
+  `api.HeldJobStall` (in place of `HeldJobStall`) and `api.JobFailure` (in
+  place of `JobFailure`), which `HeldJob.Fail` takes. A stamp is the RFC 3339
+  text the wire carries, in UTC to the millisecond, where it was a
+  `time.Time`; a vitals stamp that has not happened is nil, where it was the
+  zero time. A stall's silence and threshold are `SilentForMs` and
+  `ThresholdMs`, whole milliseconds, in place of `SilentFor` and `Threshold`.
+  A failure's `CompletedUnits` and `UnitCursors` are pointers, nil when it
+  states none, as `api.JobFailCommand`'s are.
+- A trace is `*api.TraceCarrier`, the type Protocol states, in place of
+  `TraceContext`, which is gone: `Frame.Trace`, `Delivered.Trace` and
+  `HeldJob.Trace` are nil for none, where they were the zero `TraceContext`,
+  and `Continuing` takes one. A trace with no tracestate has a nil
+  `Tracestate`, where it was "".
+- A held job's members as its claim handed it (`JobId`, `JobType`,
+  `ResourceId`, `Params`, `CompletedUnits`, `UnitCursors`, `RetryCount` and
+  `MaxRetries`) are `HeldJobRecordMembers`, generated from
+  `api.HeldJobRecord`, which `HeldJob` embeds. `HeldJob.Record` is the whole
+  record.
+- `api.KbPlacement` replaces `api.DiscoveredKBPlacement`, `api.RootPlacement`,
+  `api.KnowledgeBaseStatusPlacement` and `api.TargetKind`, and
+  `api.InferenceProvider` replaces `api.EngineProvider`: Protocol states each
+  once.
 - A resource's representation is held to the whole of its schema when it is
   read, not to its media type alone.
+- `HeldJob.Checkpoint` takes `api.JobCheckpoint`, the type Protocol states,
+  in place of its units and cursors: `Checkpoint(ctx, checkpoint
+  api.JobCheckpoint)` where it was `Checkpoint(ctx, completedUnits []string,
+  unitCursors map[string]api.UnitCursor)`. `HeldJob.Cancel` takes
+  `api.JobReached` likewise: `Cancel(ctx, reached api.JobReached)` where it
+  was `Cancel(ctx, completedUnits []string, unitCursors
+  map[string]api.UnitCursor)`; `api.JobReached{}` states nothing reached.
+- A frame's trace is read as `api.TraceCarrier` by the required table: one
+  the table refuses, such as one whose tracestate is empty, is no trace, and
+  is still taken off the payload.
+- A default the service owns is no longer sent when the caller leaves it
+  out, and the service's own applies (protocol#109): `Browse.Resources` and
+  `Match.Resources` no longer send `limit` 100 and `offset` 0,
+  `Gather.Annotation` no longer sends `contextWindow` 2000 (nor `options`
+  when every option is nil), and `Match.Search` no longer sends
+  `useSemanticScoring` true. A stated value is sent as stated, and a list or
+  a search stating a limit of 100 is no longer the one stating none.
+- The discovery types are Protocol's (protocol#126), in `api`, where they
+  were hand-written in `discovery`: `ParseDiscoveryDocument` gives an
+  `api.DiscoveryState`, `DiscoveryTransport.Read` an `api.DiscoveryRead`, and
+  `SubscribeDiscovery` each `api.DiscoveryDiff`. A state and a read are
+  unions, made with `From` and read with `Member`: a state holds an
+  `api.DiscoveryAbsent` or an `api.DiscoveryManaged`, and a read either or an
+  `api.DiscoveryUnchanged`.
+  `discovery.Absent`, `Managed`, `Unchanged`, `DiscoveryState`,
+  `DiscoveryRead` and `DiscoveryDiff` are removed. An absent's `Diagnostic`
+  is a `*string`, nil when there is no more to say, and a managed's entries
+  are `Kbs`.
+- `api.DiscoveryAbsentReason` is the generated client type
+  (`client/types/DiscoveryAbsentReason.json`), with a `Valid` method; its
+  values keep their names.
+- `api.UploadProgressStarted`, `api.UploadProgressProgress` and
+  `api.ConformanceDriverLineProgressProgress` state `TotalBytes` as an
+  `*int`: a source of unstated length states none. Every upload today holds
+  its bytes whole, and states its total.
+- `api.StoredSession`'s `Access` is an `api.AccessToken`, which is a `string`.
+- A caller sets only the timing Protocol's `client/timing.json` lets one set.
+  `Timing` and `DefaultTiming()` are removed for two records of those rows:
+  `ClientTiming` (`BusRequestTimeout`, `InvalidationWindow`, `JobSilence`,
+  `JobStatusPoll`), whose values `DefaultClientTiming()` gives, and
+  `TransportTiming` (`EmitRetry`, `HttpRequestTimeout`, `StreamOpenTimeout`,
+  `Reconnect`, `Linger`, `SeenEventIdsCount`, `LazyRemove`), whose values
+  `DefaultTransportTiming()` gives. Every other timing is the table's, and
+  nothing sets it; a claim's and a job poll's waits are stated in
+  `api.ClaimOptions` and `api.JobPollOptions`, as before.
+- `ClientConfig.Timing` and `xynologtest.TestClientConfig.Timing` are a
+  `ClientTiming`; `HTTPTransportConfig.Timing`, `Issuer.Timing`,
+  `AgentConfig.Timing`, `SessionConfig.Timing` and `ResumeConfig.Timing` are a
+  `TransportTiming`. `SessionFromKeptConfig` and `registry.HttpSessionFactory`
+  take a `ClientTiming` and a `TransportTiming`, in members of those names,
+  where they took `Timing`.
+- `DescribeConnection` takes a `ClientTiming` and a `TransportTiming` where it
+  took a `Timing`: `DescribeConnection(ctx, target, access, client,
+  clientTiming, transportTiming, random)`. `registry.CompleteSignIn` takes the
+  `ClientTiming` of the client it asks the knowledge base with, as a last
+  argument.
+- `RenewalDelay` and `RefreshDelay` take no timing: `RenewalDelay(lifetime,
+  remaining)` and `RefreshDelay(token, now)`.
+- `NewCache` takes no save wait: a cache saves `saveDebounceMs` after its
+  values last changed.
+- `NewStoragePersister` takes no size: `NewStoragePersister(storage, key)`. A
+  document larger than `maxStoredBytesCount` loses the entries that have gone
+  longest without a new value, until it fits.
+- `state.HoverDelay` and `state.SearchDebounce` hold the table's
+  `hoverDelayMs` and `searchDebounceMs`, which `DefaultTiming()` held:
+  `state.NewHoverDwell` and `state.NewSearchPipeline` take the delay and the
+  debounce their caller states.
+- `discovery.DiscoveryInterval` is a constant, where it was a variable.
 
 ## 0.8.1
 

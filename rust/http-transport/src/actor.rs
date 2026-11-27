@@ -34,10 +34,13 @@ use xynolog::bus_log::{bus_log, bus_note};
 use xynolog::channels::{RESOURCE_SCOPED_CHANNELS, TRACE_FIELD};
 use xynolog::errors::{TransportError, TransportErrorCode};
 use xynolog::gateway_http::SUBSCRIBE_TO_BUS;
+use xynolog::read_as;
 use xynolog::resume::is_place;
 use xynolog::retry::{equal_jitter, retry_after};
 use xynolog::timing::{DEGRADED_THRESHOLD, MAX_RECONNECT, RECONNECT_DEBOUNCE};
-use xynolog::transport::{ConnectionState, Frame, FrameRefusal, StreamId, TraceCarrier};
+use xynolog::transport::{CONNECTION_STATE_MOVES, Frame, FrameRefusal, StreamId};
+use xynolog::types::ConnectionState;
+use xynolog::types::TraceCarrier;
 use xynolog::types::{
     BusEventMessageEvent, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem,
 };
@@ -151,16 +154,9 @@ struct Actor {
 
 /// The transitions the connection's state may make.
 fn allowed(from: ConnectionState, to: ConnectionState) -> bool {
-    use ConnectionState::*;
-    match from {
-        Initial => matches!(to, Connecting | Unauthenticated | Closed),
-        Connecting => matches!(to, Open | Reconnecting | Unauthenticated | Closed),
-        Open => matches!(to, Reconnecting | Closed),
-        Reconnecting => matches!(to, Connecting | Degraded | Unauthenticated | Closed),
-        Degraded => matches!(to, Connecting | Unauthenticated | Closed),
-        Unauthenticated => matches!(to, Connecting | Closed),
-        Closed => false,
-    }
+    CONNECTION_STATE_MOVES
+        .iter()
+        .any(|(state, moves)| *state == from && moves.contains(&to))
 }
 
 impl Actor {
@@ -176,7 +172,7 @@ impl Actor {
             seen: SeenIds {
                 order: VecDeque::new(),
                 ids: HashSet::new(),
-                capacity: shared.timing.seen_event_ids,
+                capacity: shared.timing.seen_event_ids_count,
             },
             shared,
             state,
@@ -394,7 +390,10 @@ impl Actor {
                 return;
             }
         };
-        let trace = bus_frame.payload.remove(TRACE_FIELD).and_then(carrier);
+        let trace = bus_frame
+            .payload
+            .remove(TRACE_FIELD)
+            .and_then(|carrier| read_as::<TraceCarrier>(carrier).ok());
 
         bus_log(
             "RECV",
@@ -744,16 +743,6 @@ fn readers_of(value: &Value) -> Option<(String, Option<ResourceId>)> {
     Some((channel.to_owned(), scope))
 }
 
-fn carrier(value: Value) -> Option<TraceCarrier> {
-    Some(TraceCarrier {
-        traceparent: value.get("traceparent")?.as_str()?.to_owned(),
-        tracestate: value
-            .get("tracestate")
-            .and_then(Value::as_str)
-            .map(str::to_owned),
-    })
-}
-
 /// One connection: the subscribe request, and every event its stream
 /// carries, reported to the stream's task in order.
 async fn connection(
@@ -774,7 +763,7 @@ async fn connection(
         request = request.header(reqwest::header::ACCEPT, media);
     }
     let request = request.json(&body).send();
-    let response = match tokio::time::timeout(shared.timing.stream_open, request).await {
+    let response = match tokio::time::timeout(shared.timing.stream_open_timeout, request).await {
         Ok(Ok(response)) => response,
         Ok(Err(_)) | Err(_) => {
             let _ = events.send(Event::Ended { conn }).await;
@@ -791,10 +780,11 @@ async fn connection(
         );
         // A refusal's body is read within the request deadline, as any other
         // answer is: one not read by then is a refusal that says nothing.
-        let said = tokio::time::timeout(shared.timing.http_request, response.json::<Value>())
-            .await
-            .ok()
-            .and_then(Result::ok);
+        let said =
+            tokio::time::timeout(shared.timing.http_request_timeout, response.json::<Value>())
+                .await
+                .ok()
+                .and_then(Result::ok);
         let message = match gateway_words(said.as_ref()) {
             Some(words) => format!("SSE connect failed: {status}: {words}"),
             None => format!("SSE connect failed: {status}"),
@@ -879,7 +869,7 @@ pub(crate) async fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::transport::{HttpTransportConfig, Timing};
+    use crate::transport::{HttpTransportConfig, TransportTiming};
     use futures::{FutureExt, Stream};
     use serde_json::json;
     use xynolog::bus::StreamError;
@@ -908,69 +898,6 @@ mod tests {
         assert!(seen.remember("d"));
         assert!(seen.remember("a"), "the oldest has been forgotten");
         assert!(!seen.remember("c"));
-    }
-
-    /// Every state, each once. The match is exhaustive, so a state the enum
-    /// gains does not compile until it is listed here as well.
-    fn every_state() -> [ConnectionState; 7] {
-        use ConnectionState::*;
-        let _listed = |state: ConnectionState| match state {
-            Initial | Connecting | Open | Reconnecting | Degraded | Unauthenticated | Closed => (),
-        };
-        [
-            Initial,
-            Connecting,
-            Open,
-            Reconnecting,
-            Degraded,
-            Unauthenticated,
-            Closed,
-        ]
-    }
-
-    /// The graph protocol/contract/TRANSPORT-HTTP.md § Connection lifecycle
-    /// draws: each state, and what it may become. A transition the document
-    /// adds or drops, a state it names that the enum lacks, and a state of the
-    /// enum it does not draw each fail here.
-    #[test]
-    fn each_state_may_become_what_the_protocol_says_it_may() {
-        let document = include_str!("../../../protocol/contract/TRANSPORT-HTTP.md");
-        let drawn = document
-            .split("```\n")
-            .find(|block| block.starts_with("initial "))
-            .expect("the document no longer draws the graph where this test reads it");
-        let named = |name: &str| {
-            every_state()
-                .into_iter()
-                .find(|state| state.as_str() == name)
-                .unwrap_or_else(|| panic!("the document draws {name:?}, which is no state"))
-        };
-        let mut graph = HashMap::new();
-        for line in drawn.lines() {
-            let (from, to) = line
-                .split_once('→')
-                .unwrap_or_else(|| panic!("{line:?} draws no transition"));
-            let targets: HashSet<ConnectionState> = match to.trim() {
-                "(terminal)" => HashSet::new(),
-                targets => targets.split('|').map(|name| named(name.trim())).collect(),
-            };
-            assert!(
-                graph.insert(named(from.trim()), targets).is_none(),
-                "{line:?} draws a state twice"
-            );
-        }
-        for from in every_state() {
-            let targets = graph
-                .get(&from)
-                .unwrap_or_else(|| panic!("the document does not draw {from:?}"));
-            for to in every_state() {
-                assert_eq!(
-                    allowed(from, to),
-                    targets.contains(&to),
-                    "{from:?} to {to:?}"
-                );
-            }
-        }
     }
 
     /// The channel every case of the table told to its readers is on, but a
@@ -1042,7 +969,7 @@ mod tests {
             refresher: None,
             channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
             http: reqwest::Client::new(),
-            timing: Timing::default(),
+            timing: TransportTiming::default(),
             random: None,
         }))
     }

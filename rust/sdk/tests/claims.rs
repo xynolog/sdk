@@ -16,22 +16,23 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use xynolog::bus::reply_channels_for;
-use xynolog::claims::{
-    ClaimRefusal, Claims, HeldJob, HeldJobStall, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS,
-    JobFailure,
-};
+use xynolog::claims::{Claims, HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS};
 use xynolog::client::XynologClient;
 use xynolog::errors::{BusRequestError, BusRequestErrorCode, XynologError};
 use xynolog::testing::{FaultAction, FaultyTransport, TestClientOptions, create_test_client};
 use xynolog::timing::ERRORS_KEPT_FOR_FIRST_READER_COUNT;
-use xynolog::transport::{ConnectionState, Events, Frame, FrameRefusal, TraceCarrier};
+use xynolog::transport::{Events, Frame, FrameRefusal};
 use xynolog::types::BusFrame;
+use xynolog::types::ConnectionState;
 use xynolog::types::DurabilityEvidence::{
     Acknowledged, ProbeConfirmed, ProbeRefused, ProbeUnreachable,
 };
 use xynolog::types::{
     Annotation, ClaimOptions, DurabilityEvidence, Engine, FailureClass, FrameRefusalReason,
     JobFilter, JobProgress, JobType, MarkJobDone, ResourceId, YieldJobResult,
+};
+use xynolog::types::{
+    ClaimRefusal, HeldJobStall, JobCheckpoint, JobFailure, JobReached, TraceCarrier,
 };
 
 /// What the stand-in dispatcher answers the next claims with, and what the
@@ -586,7 +587,7 @@ async fn claims_again_as_soon_as_a_job_is_settled_however_it_is_settled() {
     let third = held(&claims).await;
     assert_eq!(w.claimed().len(), 3);
 
-    third.cancel(None, None).await.expect("sent");
+    third.cancel(None).await.expect("sent");
     turn().await;
     assert_eq!(
         w.claimed().len(),
@@ -913,10 +914,10 @@ async fn a_held_job_says_its_whole_lifecycle_itself() {
 
     job.start().await.expect("sent");
     job.progress(JobProgress::new(40.0)).await.expect("sent");
-    job.checkpoint(
-        vec!["Person".to_owned()],
-        Some(serde_json::from_value(json!({ "Place": cursor })).expect("cursors")),
-    )
+    job.checkpoint(JobCheckpoint {
+        unit_cursors: Some(serde_json::from_value(json!({ "Place": cursor })).expect("cursors")),
+        ..JobCheckpoint::new(vec!["Person".to_owned()])
+    })
     .await
     .expect("sent");
     job.commit(&resource("res-1"), vec![annotation("ann-1")])
@@ -1006,7 +1007,7 @@ async fn a_yield_job_focused_on_an_annotation_is_anchored_to_it_and_says_so() {
     // One focused on a resource is anchored to none.
     let other = held(&claims).await;
     assert_eq!(other.annotation_id(), None);
-    other.cancel(None, None).await.expect("sent");
+    other.cancel(None).await.expect("sent");
 }
 
 #[tokio::test(start_paused = true)]
@@ -1026,7 +1027,7 @@ async fn a_yield_job_whose_context_is_no_gathered_context_is_anchored_to_none() 
     let claims = w.claims(everything());
     let job = held(&claims).await;
     assert_eq!(job.annotation_id(), None);
-    job.cancel(None, None).await.expect("sent");
+    job.cancel(None).await.expect("sent");
 }
 
 #[tokio::test(start_paused = true)]
@@ -1131,7 +1132,10 @@ async fn a_cancel_says_the_units_finished_and_nothing_the_command_does_not_name(
 
     held(&claims)
         .await
-        .cancel(Some(vec!["Person".to_owned()]), None)
+        .cancel(Some(JobReached {
+            completed_units: Some(vec!["Person".to_owned()]),
+            ..JobReached::default()
+        }))
         .await
         .expect("sent");
 
@@ -1159,7 +1163,7 @@ async fn a_cancellation_that_names_the_held_job_is_signalled_and_any_other_is_no
     w.relay("job:cancel-requested", json!({ "jobId": "job-1" }));
     turn().await;
     assert!(*cancelled.borrow());
-    job.cancel(None, None).await.expect("sent");
+    job.cancel(None).await.expect("sent");
 }
 
 // A handle let go of is a job nobody will settle. It is failed, so the queue
@@ -1716,7 +1720,7 @@ async fn a_failure_for_another_reason_says_nothing_of_commits_that_were_all_esta
 async fn a_cancel_says_nothing_of_the_jobs_commits() {
     let (w, _claims, job) = committed(&[ProbeRefused]).await;
 
-    job.cancel(None, None).await.expect("sent");
+    job.cancel(None).await.expect("sent");
 
     assert_eq!(
         settle(&w, "job:cancel"),
@@ -1795,7 +1799,7 @@ async fn vitals_say_what_the_worker_heard_holds_and_has_done() {
     let holding = claims.vitals();
     let active = holding.active_job.expect("a job is held");
     assert_eq!(
-        (active.job_id.as_str(), active.job_type),
+        (active.job_id.as_str(), active.r#type),
         ("job-1", JobType::Mark)
     );
     assert_eq!(Some(active.since), holding.last_claim_at);
@@ -1909,8 +1913,8 @@ async fn a_held_job_that_shows_no_activity_is_stalled_and_one_that_keeps_reporti
     assert_eq!(stalled_jobs(&stalls), ["job-2"], "however long job-1 ran");
     let stall = &stalls[0];
     assert_eq!(stall.job_type, JobType::Mark);
-    assert!(stall.silent_for > Duration::from_millis(400));
-    assert_eq!(stall.threshold, Duration::from_millis(400));
+    assert!(stall.silent_for_ms > 400);
+    assert_eq!(stall.threshold_ms, 400);
 }
 
 // A commit is no lifecycle message, and is not activity.
@@ -2016,7 +2020,7 @@ async fn a_claim_is_made_in_no_trace_whatever_span_the_job_before_it_was_settled
         .expect("the failure is sent");
     let third = held(&claims).await;
     third
-        .cancel(None, None)
+        .cancel(None)
         .with_context(in_span('9'))
         .await
         .expect("the cancel is sent");

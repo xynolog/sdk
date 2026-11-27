@@ -2,23 +2,24 @@
    message carries (protocol/specs/src/client/types), and the form a service
    account posts with a client secret (session/ClientSecretForm.json), for the
    Haskell SDK. Each is read once into a model of its members, refusing a
-   keyword the model does not know, so a type that grows a shape the writers
-   cannot state stops the run. *)
+   keyword the model does not know: a type's refusals are its own, and stop
+   the run where a writer reads its members. *)
 
 let types = "client/types/"
 let form = "session/ClientSecretForm.json"
 
 (* What a member holds: a scalar by its JSON Schema type, a file's bytes, one
    of some words, another schema by its name (and whether that is a union of
-   branches), a list whose items the schema leaves open or states, or an object
-   stated in place. A member a schema states elsewhere ([$ref] to a member of
+   branches), a value of one of the type parameters its type is generic over,
+   by its name, a list of what each item holds, or an object stated in
+   place. A member a schema states elsewhere ([$ref] to a member of
    another schema) holds what that member holds. *)
 type held =
   | Scalar of Schema.type_name
   | Binary
   | Word of string list
   | Named of { name : string; union : bool }
-  | Open_list
+  | Parameter of string
   | List of held
   | Inline of member list
 
@@ -33,7 +34,8 @@ type shape =
   | Union of { tag : string; branches : (string * member list) list }
 
 type t = {
-  shapes : (string * shape) list;  (** Each client type, by its name. *)
+  shapes : (string * (shape, Decode.error list) result) list;
+      (** Each client type, by its name, or why the model holds none of it. *)
   form : member list;  (** The client secret form's members, in order. *)
   grant_type : string;  (** The client assertion's grant. *)
 }
@@ -49,13 +51,13 @@ let words_of literals =
     literals (Some [])
 
 let derive (spec : Spec.t) =
-  let refusals = ref [] in
+  let refusals : Decode.error list ref = ref [] in
   let refuse file pointer message =
     refusals := { Decode.file; pointer; message } :: !refusals
   in
   let schema file = List.assoc_opt file spec.schemas in
   (* The keywords a member's schema may state beyond what it holds: what is
-     said of it. A scalar's bounds and a list's least length no writer reads. *)
+     said of it. A scalar's bounds and pattern and a list's least length no writer reads. *)
   let described s =
     List.filter (fun k -> k <> "description") (Schema.keywords s)
   in
@@ -97,9 +99,9 @@ let derive (spec : Spec.t) =
                     refuse file pointer
                       ("refers to " ^ ref_.target ^ ", which is no schema");
                     None))
-        | { type_ = Some [ Array ]; items = None; _ }
-          when described l = [ "type" ] ->
-            Some Open_list
+        | { type_parameter = Some parameter; _ }
+          when described l = [ "x-xynolog-typeParameter" ] ->
+            Some (Parameter parameter)
         | { type_ = Some [ Array ]; items = Some (_, items); _ }
           when List.for_all
                  (fun k -> List.mem k [ "type"; "items"; "minItems" ])
@@ -121,7 +123,14 @@ let derive (spec : Spec.t) =
           when List.for_all
                  (fun k ->
                    List.mem k
-                     [ "type"; "minimum"; "maximum"; "minLength"; "maxLength" ])
+                     [
+                       "type";
+                       "minimum";
+                       "maximum";
+                       "minLength";
+                       "maxLength";
+                       "pattern";
+                     ])
                  (described l)
                && t <> Schema.Array ->
             Some (Scalar t)
@@ -149,6 +158,7 @@ let derive (spec : Spec.t) =
                       "properties";
                       "required";
                       "additionalProperties";
+                      "x-xynolog-typeParameters";
                     ])
                 keywords ->
         let required = Option.value s.required ~default:[] in
@@ -258,12 +268,22 @@ let derive (spec : Spec.t) =
     List.filter_map
       (fun (file, s) ->
         if String.starts_with ~prefix:types file && not (bytes s) then (
-          match whole s with
-          | Ok s ->
-              Option.map (fun shape -> (name_of file, shape)) (shape file s)
-          | Error message ->
-              refuse file "" message;
-              None)
+          let before = !refusals in
+          refusals := [];
+          let found =
+            match whole s with
+            | Ok s -> shape file s
+            | Error message ->
+                refuse file "" message;
+                None
+          in
+          let own = List.rev !refusals in
+          refusals := before;
+          Some
+            ( name_of file,
+              match (found, own) with
+              | Some shape, [] -> Ok shape
+              | _, own -> Error own ))
         else None)
       spec.schemas
   in

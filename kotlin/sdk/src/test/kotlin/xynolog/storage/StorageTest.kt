@@ -23,8 +23,8 @@ import xynolog.types.wireJson
 private val KEY = cacheKey("kb", "the key of jo", "resource")
 private val RESOURCE = ResourceId("res-1")
 
-private fun persister(storage: SessionStorage, version: Long = 1, maxBytes: Long = Timings.MAX_STORED_BYTES_COUNT) =
-    StoragePersister(storage, KEY, ResourceId.serializer(), ResourceDescriptor.serializer(), version, maxBytes)
+private fun persister(storage: SessionStorage, version: Long = 1) =
+    StoragePersister(storage, KEY, ResourceId.serializer(), ResourceDescriptor.serializer(), version)
 
 private fun descriptor(resource: ResourceId, name: String = "A resource"): JsonObject =
     Json.parseToJsonElement("""{"@context":"https://schema.org","@id":"${resource.value}","name":"$name","representations":[]}""").jsonObject
@@ -191,16 +191,13 @@ class StorageTest {
     @Test
     fun aDocumentTooLargeLosesTheEntriesReceivedLongestAgoUntilItFits() {
         val ids = (1..4).map { ResourceId("res-$it") }
-        val values = ids.associateWith { described(it) }
+        // Named at such length that a document of three of them fits, and one of four does not.
+        val long = "x".repeat(Timings.MAX_STORED_BYTES_COUNT.toInt() / 3 - 1_000)
+        val values = ids.associateWith { described(it, long) }
         fun kept(storage: SessionStorage) = storage.document().entries().map { it[0].jsonPrimitive.content }
 
-        // How large a document of three of them is, and so the most that keeps three and not four.
-        val measuring = MemoryStorage()
-        persister(measuring).save(ids.take(3).associateWith { values.getValue(it) })
-        val three = checkNotNull(measuring.get(KEY)).toByteArray().size.toLong() + 2
-
         val storage = MemoryStorage()
-        val keeping = persister(storage, maxBytes = three)
+        val keeping = persister(storage)
         // Written at different times, the second-written first in the mapping.
         keeping.save(mapOf(ids[0] to values.getValue(ids[0])))
         Thread.sleep(5)
@@ -214,9 +211,9 @@ class StorageTest {
         assertEquals(listOf("res-2", "res-3", "res-4"), kept(storage))
 
         // A document no entry fits in keeps none, and is still a document.
-        val tiny = MemoryStorage()
-        persister(tiny, maxBytes = 10).save(values)
-        assertEquals(emptyList<String>(), kept(tiny))
-        assertEquals(emptyMap<ResourceId, ResourceDescriptor>(), persister(tiny).load())
+        val alone = MemoryStorage()
+        persister(alone).save(mapOf(ids[0] to described(ids[0], "x".repeat(Timings.MAX_STORED_BYTES_COUNT.toInt()))))
+        assertEquals(emptyList<String>(), kept(alone))
+        assertEquals(emptyMap<ResourceId, ResourceDescriptor>(), persister(alone).load())
     }
 }

@@ -56,13 +56,15 @@ export function UploadProgressBar({
   }
 
   if (progress.phase === 'progress') {
-    const indeterminate = progress.totalBytes <= 0;
-    const percentage = indeterminate
-      ? 0
-      : Math.min(
-          100,
-          Math.round((progress.bytesUploaded / progress.totalBytes) * 100),
-        );
+    const total =
+      progress.totalBytes !== undefined && progress.totalBytes > 0
+        ? progress.totalBytes
+        : null;
+    const indeterminate = total === null;
+    const percentage =
+      total === null
+        ? 0
+        : Math.min(100, Math.round((progress.bytesUploaded / total) * 100));
     return (
       <div
         className="xynolog-progress-wrapper"
@@ -70,7 +72,7 @@ export function UploadProgressBar({
         aria-live="polite"
       >
         <div className="xynolog-progress__label">
-          {indeterminate ? (
+          {total === null ? (
             <span>
               {label}: {formatBytes(progress.bytesUploaded)}…
             </span>
@@ -80,8 +82,7 @@ export function UploadProgressBar({
                 {label}: {percentage}%
               </span>
               <span>
-                {formatBytes(progress.bytesUploaded)} /{' '}
-                {formatBytes(progress.totalBytes)}
+                {formatBytes(progress.bytesUploaded)} / {formatBytes(total)}
               </span>
             </>
           )}

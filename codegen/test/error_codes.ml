@@ -73,7 +73,10 @@ let table ?(bus = bus_codes) ?(unrecognized = "bus.rejected")
        [ entry ~docs:"Unreachable." "unreachable" ])
     (plain "Why a span was refused."
        [ entry ~docs:"Out of range." "span-out-of-range" ])
-    (plain "Control." [ entry ~docs:"Failed." "control.failed" ])
+    (plain "Control."
+       [
+         {|{"code":"control.failed","docs":"Failed.","rpc":-32603,"retryable":false}|};
+       ])
 
 let decode text =
   Decode.run ~file (Yojson.Safe.from_string text) Tables.Errors_codes.decode
@@ -308,9 +311,7 @@ let go =
 // The TypeScript, Python and Rust vocabularies are generated from the same
 // table.
 
-package xynolog
-
-import "github.com/xynolog/sdk/go/api"
+package api
 
 // Why a bus request failed.
 type BusRequestErrorCode string
@@ -336,18 +337,18 @@ const (
 // code the required table does not recognize out of the failure before it
 // decodes it, so a code CommandErrorCode does not name is none a failure is
 // read with: given one, it panics.
-func BusRequestErrorCodeOfWire(code *api.CommandErrorCode) BusRequestErrorCode {
+func BusRequestErrorCodeOfWire(code *CommandErrorCode) BusRequestErrorCode {
 ~if code == nil {
 ~~return BusRequestErrorCodeRejected
 ~}
 ~switch *code {
-~case api.CommandErrorCodeNotFound:
+~case CommandErrorCodeNotFound:
 ~~return BusRequestErrorCodeNotFound
-~case api.CommandErrorCodePeerUnavailable:
+~case CommandErrorCodePeerUnavailable:
 ~~return BusRequestErrorCodePeerUnavailable
-~case api.CommandErrorCodeUnauthorized:
+~case CommandErrorCodeUnauthorized:
 ~~return BusRequestErrorCodeUnauthorized
-~case api.CommandErrorCodeNonePending:
+~case CommandErrorCodeNonePending:
 ~~return BusRequestErrorCodeNonePending
 ~default:
 ~~panic("a failure's code \"" + string(*code) + "\" is none of CommandErrorCode's: the required table recognizes a code CommandError does not list")
@@ -357,16 +358,16 @@ func BusRequestErrorCodeOfWire(code *api.CommandErrorCode) BusRequestErrorCode {
 // Wire is the wire code a peer stated, when this code restates one: what a
 // service answers its own caller with. A failure only this side knows states
 // none, and ok is false.
-func (c BusRequestErrorCode) Wire() (code api.CommandErrorCode, ok bool) {
+func (c BusRequestErrorCode) Wire() (code CommandErrorCode, ok bool) {
 ~switch c {
 ~case BusRequestErrorCodeNotFound:
-~~return api.CommandErrorCodeNotFound, true
+~~return CommandErrorCodeNotFound, true
 ~case BusRequestErrorCodePeerUnavailable:
-~~return api.CommandErrorCodePeerUnavailable, true
+~~return CommandErrorCodePeerUnavailable, true
 ~case BusRequestErrorCodeUnauthorized:
-~~return api.CommandErrorCodeUnauthorized, true
+~~return CommandErrorCodeUnauthorized, true
 ~case BusRequestErrorCodeNonePending:
-~~return api.CommandErrorCodeNonePending, true
+~~return CommandErrorCodeNonePending, true
 ~default:
 ~~return "", false
 ~}
@@ -400,6 +401,21 @@ func TransportErrorCodeOfStatus(status int) TransportErrorCode {
 ~default:
 ~~return TransportErrorCodeError
 ~}
+}
+
+// LimitRefusalTransportCode is a gateway refusal of a limit that is a
+// transport code too: its status, its LimitRefusal code, and the transport
+// code it is.
+type LimitRefusalTransportCode struct {
+~Status    int
+~Code      string
+~Transport TransportErrorCode
+}
+
+// LimitRefusalTransportCodes is each gateway refusal of a limit that is a
+// transport code too.
+var LimitRefusalTransportCodes = []LimitRefusalTransportCode{
+
 }
 
 // an answered peer request gateway the request gateway an request the peer
@@ -467,8 +483,6 @@ codes to iterate.
 
 from typing import Final, Literal, assert_never
 
-from xynolog.types import CommandErrorCode
-
 __all__ = [
     "BUS_REQUEST_ERROR_CODES",
     "BusRequestErrorCode",
@@ -478,6 +492,7 @@ __all__ = [
     "IdentityUnverifiableReason",
     "JOB_ERROR_CODES",
     "JobErrorCode",
+    "LIMIT_REFUSAL_TRANSPORT_CODES",
     "SIGN_IN_ERROR_CODES",
     "SPAN_REFUSALS",
     "SignInErrorCode",
@@ -516,7 +531,9 @@ BUS_REQUEST_ERROR_CODES: Final[tuple[BusRequestErrorCode, ...]] = (
 )
 
 
-def bus_request_code_for_wire_code(code: CommandErrorCode | None) -> BusRequestErrorCode:
+def bus_request_code_for_wire_code(
+    code: Literal["not-found", "peer-unavailable", "unauthorized", "none-pending"] | None,
+) -> BusRequestErrorCode:
     """The bus code a failure's own code (`CommandError.code`) becomes.
 
     A failure that states none is the unrecognized failure, and so is one
@@ -571,6 +588,9 @@ def transport_error_code_for_status(status: int) -> TransportErrorCode:
         return "unavailable"
     return "error"
 
+
+LIMIT_REFUSAL_TRANSPORT_CODES: Final[tuple[tuple[int, str, TransportErrorCode], ...]] = ()
+"""Each gateway refusal of a limit that is a transport code too: its status, its `LimitRefusal` code, and the transport code it is."""
 
 # an answered peer request gateway the request gateway an request the peer transport status peer
 # status request status peer a status transport failure closed reply peer peer a refused
@@ -675,6 +695,9 @@ export function transportErrorCodeForStatus(status: number): TransportErrorCode 
   if (status >= 500) return 'unavailable';
   return 'error';
 }
+
+/** Each gateway refusal of a limit that is a transport code too: its status, its `LimitRefusal` code, and the transport code it is. */
+export const limitRefusalTransportCodes = [] as const;
 
 /** an answered peer request gateway the request gateway an request the peer transport status peer status request status peer a status transport failure closed reply peer peer a refused answered answered. */
 export type JobErrorCode =

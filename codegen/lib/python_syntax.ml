@@ -83,6 +83,12 @@ type stmt =
       doc : docstring option;
       body : stmt list;
     }
+  | Property of {
+      name : string;
+      returns : expr;
+      doc : docstring option;
+      body : stmt list;
+    }  (** A method of a class read as an attribute: [@property]. *)
   | Adjacent of stmt list
       (** Top-level statements with no blank line between. *)
   | Imports of import list list
@@ -341,7 +347,7 @@ let docstring ~indent = function
 let statement ~indent prefix value =
   L.render ~indent [ L.group [ L.Text prefix; assigned value ] ]
 
-let is_definition = function Class _ | Def _ -> true | _ -> false
+let is_definition = function Class _ | Def _ | Property _ -> true | _ -> false
 
 (* An import too long for its line is one name a line, as ruff leaves it. *)
 let import ~indent = function
@@ -426,10 +432,25 @@ let rec stmt ~indent s =
                @ stmt ~indent:inner s)
              body)
   | Def { name; params; returns; doc = d; body } ->
-      (at ^ "def " ^ checked name ^ "("
-      ^ String.concat ", "
-          (List.map (fun (p, t) -> checked p ^ ": " ^ flat t) params)
-      ^ ") -> " ^ flat returns ^ ":")
+      let param (p, t) = checked p ^ ": " ^ flat t in
+      let close = ") -> " ^ flat returns ^ ":" in
+      let line =
+        at ^ "def " ^ checked name ^ "("
+        ^ String.concat ", " (List.map param params)
+        ^ close
+      in
+      (* The Python SDK's formatter allows 140 columns, and puts each
+         parameter of a longer signature on a line of its own. *)
+      (if Text.length line <= 140 then [ line ]
+       else
+         (at ^ "def " ^ checked name ^ "(")
+         :: List.map (fun p -> spaces inner ^ param p ^ ",") params
+         @ [ at ^ close ])
+      @ Option.fold ~none:[] ~some:(docstring ~indent:inner) d
+      @ List.concat_map (stmt ~indent:inner) body
+  | Property { name; returns; doc = d; body } ->
+      (at ^ "@property")
+      :: (at ^ "def " ^ checked name ^ "(self) -> " ^ flat returns ^ ":")
       :: (Option.fold ~none:[] ~some:(docstring ~indent:inner) d
          @ List.concat_map (stmt ~indent:inner) body)
   | Adjacent stmts -> List.concat_map (stmt ~indent) stmts

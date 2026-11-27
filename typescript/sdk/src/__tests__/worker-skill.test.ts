@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 import * as ts from 'typescript';
 import { afterEach, describe, expect, it } from 'vitest';
 import { isObject, isString } from '@xynolog/core';
-import { JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS } from '../claims';
+import { JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS } from '../worker-channels';
 import { table as builderCases } from './cases/annotations_builder_cases';
 import { table as clientAssertion } from './cases/session_client_assertion_cases';
 

@@ -23,11 +23,7 @@ let types_directory = directory ^ "/xynolog/types"
    own schema and no component of the API. *)
 let spec_of (spec : Spec.t) : (Types.spec, string) result =
   match
-    let sign_in =
-      match List.assoc_opt Roots.sign_in_entry spec.schemas with
-      | Some s -> s
-      | None -> Names.refuse "%s is not in the spec" Roots.sign_in_entry
-    in
+    let sign_in = Definitions.sign_in spec in
     Types.spec
       [
         Typing.of_spec spec ~tables:(Service_tables.tables spec);
@@ -135,40 +131,6 @@ let stale ~root ~directory written =
       Error ("a generated file nothing writes: " ^ directory ^ "/" ^ name)
   | None -> Ok ()
 
-(* Why a client that read a launcher's discovery document found no launcher
-   (protocol/specs/src/client/discovery-absent.json): an entry a reason, its
-   value the reason's word. *)
-let discovery_absent (spec : Spec.t) =
-  let name = "DiscoveryAbsentReason" in
-  {
-    Output.path = path Types.types_package name;
-    text =
-      file ~package:Types.types_package ~imports:[]
-        [
-          K.class_
-            ~about:
-              (K.Doc
-                 "Why a client that read a launcher's discovery document found \
-                  no launcher.")
-            ~visibility:K.Public
-            ~constructor:
-              (K.constructor
-                 [
-                   K.param ~about:(K.Doc "The reason as every SDK spells it.")
-                     ~binding:
-                       (K.Bound { visibility = K.Public; mutable_ = false })
-                     "value" (K.Type "String");
-                 ])
-            ~entries:
-              (List.map
-                 (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                   K.entry ~about:(K.Doc r.docs) ~args:[ K.Str r.reason ]
-                     (Names.variant_of r.reason))
-                 spec.tables.client_discovery_absent.reasons)
-            K.Enum_class name;
-        ];
-  }
-
 let generate (spec : Spec.t) =
   let* types_spec = spec_of spec in
   match Types.generate types_spec with
@@ -186,14 +148,13 @@ let generate (spec : Spec.t) =
              file ~package:Types.identifiers_package ~imports:[]
                generated.identifier_decls;
          }
-         :: List.map
-              (fun (name, decls) ->
-                {
-                  Output.path = path Types.types_package name;
-                  text = file ~package:Types.types_package ~imports:kinds decls;
-                })
-              generated.types
-        @ [ discovery_absent spec ])
+        :: List.map
+             (fun (name, decls) ->
+               {
+                 Output.path = path Types.types_package name;
+                 text = file ~package:Types.types_package ~imports:kinds decls;
+               })
+             generated.types)
 
 (* The tables the SDK carries ([Service_tables.carried]), each object of
    them a file, each table read from its file under [root]'s

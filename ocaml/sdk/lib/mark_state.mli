@@ -1,8 +1,6 @@
 type t
 
-val make :
-  ?silence_ms:int -> Client.t -> resource:Identifiers.Resource_id.t -> t
-
+val make : Client.t -> resource:Identifiers.Resource_id.t -> t
 val pending_annotation : t -> Records.Pending_annotation.t option State_value.t
 val delegating_motivation : t -> string option State_value.t
 val progress : t -> Yojson.Safe.t option State_value.t

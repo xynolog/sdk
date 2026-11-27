@@ -52,55 +52,36 @@ from xynolog.http.gateway_http import (
 )
 from xynolog.http.sse import SseParser
 from xynolog.identifiers import ResourceId
-from xynolog.required import Fault, read_as
+from xynolog.required import Fault, as_read, read_as
 from xynolog.resume import is_place
 from xynolog.retry import equal_jitter, retry_after_ms
-from xynolog.timing import (
-    DEGRADED_THRESHOLD_MS,
-    EMIT_RETRY,
-    HTTP_REQUEST_TIMEOUT_MS,
-    LAZY_REMOVE_MS,
-    LINGER_MS,
-    MAX_RECONNECT_MS,
-    RECONNECT_DEBOUNCE_MS,
-    RECONNECT_MS,
-    SEEN_EVENT_IDS_COUNT,
-    STREAM_OPEN_TIMEOUT_MS,
+from xynolog.timing import DEGRADED_THRESHOLD_MS, MAX_RECONNECT_MS, RECONNECT_DEBOUNCE_MS, TransportTiming
+from xynolog.transport import CONNECTION_STATE_MAY_BECOME, ConnectionState, Frame, FrameHub, FrameRefusal, ReplyRouter
+from xynolog.types import (
+    BusEventMessage,
+    BusFrame,
+    BusSubscribeRequest,
+    BusSubscribeRequestScopedItem,
+    ErrorResponse,
+    TraceCarrier,
 )
-from xynolog.transport import CONNECTION_STATE_MAY_BECOME, ConnectionState, Frame, FrameHub, FrameRefusal, ReplyRouter, TraceContext
-from xynolog.types import BusEventMessage, BusFrame, BusSubscribeRequest, BusSubscribeRequestScopedItem, ErrorResponse, RetryBudget
 from xynolog.watched import Variable, Watched
 
-__all__ = ["Bookmarks", "SeenIds", "Stream", "Timing", "backoff_cap_ms"]
+__all__ = ["Bookmarks", "SeenIds", "Stream", "backoff_cap_ms"]
 
 # The event a bus frame comes as: the one value of BusEventMessage's `event`.
 _BUS_EVENT: Final = TypeAdapter[tuple[str]](tuple[str]).validate_python(get_args(BusEventMessage.model_fields["event"].annotation))[0]
 
 
-def _sent_under(carried: JsonValue) -> TraceContext | None:
-    """The trace a frame's payload says it was sent under, when it says so."""
-    if not isinstance(carried, dict):
+def _sent_under(carried: JsonValue) -> TraceCarrier | None:
+    """The trace a frame's payload says it was sent under: none, where the table refuses what it carries as one."""
+    read = as_read(TraceCarrier, carried)
+    if isinstance(read, Fault):
         return None
-    traceparent, tracestate = carried.get("traceparent"), carried.get("tracestate")
-    if not isinstance(traceparent, str):
+    try:
+        return TraceCarrier.model_validate(read)
+    except ValidationError:
         return None
-    return TraceContext(traceparent=traceparent, tracestate=tracestate if isinstance(tracestate, str) and tracestate else None)
-
-
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class Timing:
-    """The timing a transport keeps: `protocol/specs/src/client/timing.json`'s, unless a caller that must not wait it out says otherwise."""
-
-    reconnect_ms: int = RECONNECT_MS
-    lazy_remove_ms: int = LAZY_REMOVE_MS
-    linger_ms: int = LINGER_MS
-    emit_retry: RetryBudget = EMIT_RETRY
-    seen_event_ids_count: int = SEEN_EVENT_IDS_COUNT
-    http_request_ms: int = HTTP_REQUEST_TIMEOUT_MS
-    """The deadline on one request that is neither the stream nor an emit, and on reading any refusal's body, the stream's too."""
-    stream_open_ms: int = STREAM_OPEN_TIMEOUT_MS
-    """The deadline on the gateway's answer to the request that opens the stream: its status and headers."""
 
 
 def backoff_cap_ms(reconnect_ms: int, failures: int) -> int:
@@ -306,7 +287,7 @@ class Stream:
         refresher: TokenRefresher | None,
         client_id: str,
         channels: tuple[str, ...],
-        timing: Timing,
+        timing: TransportTiming,
         hub: FrameHub,
         router: ReplyRouter,
         failures: KeptForFirstReader[XynologError],
@@ -600,7 +581,7 @@ class Stream:
             # What closing a retired connection at once would have lost.
             bus_note("LINGER", read.channel, "delivered on superseded connection")
         payload = read.payload
-        sent_under: TraceContext | None = None
+        sent_under: TraceCarrier | None = None
         if TRACE_FIELD in payload:
             sent_under = _sent_under(payload[TRACE_FIELD])
             payload = {name: value for name, value in payload.items() if name != TRACE_FIELD}
@@ -741,11 +722,11 @@ class Stream:
         )
         try:
             # Only the answer has a deadline: an open stream says nothing for as long as nothing happens.
-            async with asyncio.timeout(self._timing.stream_open_ms / 1000):
+            async with asyncio.timeout(self._timing.stream_open_timeout_ms / 1000):
                 response = await self._http.send(request, stream=True)
             try:
                 if not response.is_success:
-                    self._reports.put_nowait(_Refused(conn, await _refusal(response, self._timing.http_request_ms)))
+                    self._reports.put_nowait(_Refused(conn, await _refusal(response, self._timing.http_request_timeout_ms)))
                     return
                 self._reports.put_nowait(_Opened(conn))
                 parser = SseParser()

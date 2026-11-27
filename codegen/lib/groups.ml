@@ -30,6 +30,9 @@ let writers =
     { name = "locales"; files = Locales.files };
     { name = "job-storage"; files = Job_storage.files };
     { name = "limits"; files = Limits.files };
+    { name = "worker-channels"; files = Worker_channels.files };
+    { name = "held-job"; files = Held_job.files };
+    { name = "connection-states"; files = Connection_states.files };
     { name = "client-types"; files = Client_types.files };
     { name = "surface"; files = Surface.Calls.files };
     { name = "testing"; files = Testing.files };

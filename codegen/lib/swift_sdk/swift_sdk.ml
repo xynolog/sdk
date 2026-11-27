@@ -17,47 +17,6 @@ let models_path = "swift/sdk/Sources/Xynolog/Generated/Models.swift"
 let tables_path = "swift/sdk/Sources/Xynolog/Generated/ServiceTables.swift"
 let bridge_path = "swift/sdk/Tests/XynologTests/Generated/TestBridge.swift"
 let banner = Banner.lines ~from_:"protocol/specs/src" __FILE__
-
-(* Why a client that read a launcher's discovery document found no launcher
-   (protocol/specs/src/client/discovery-absent.json): a case a reason, its
-   raw value the reason's word. *)
-let discovery_absent (spec : Spec.t) =
-  {
-    S.doc =
-      [
-        "Why a client that read a launcher's discovery document found no \
-         launcher.";
-      ];
-    modifiers = [ "public" ];
-    body =
-      S.Enum
-        {
-          name = "DiscoveryAbsentReason";
-          inherits =
-            [
-              S.Named "String";
-              S.Named "Codable";
-              S.Named "Sendable";
-              S.Named "CaseIterable";
-            ];
-          layout = S.Lines;
-          members =
-            List.map
-              (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-                {
-                  S.doc = Text.wrapped ~lead:"  /// " ~width:100 r.docs;
-                  modifiers = [];
-                  body =
-                    S.Case
-                      {
-                        name = Models.enum_case r.reason;
-                        value = S.Raw (S.String r.reason);
-                      };
-                })
-              spec.tables.client_discovery_absent.reasons;
-        };
-  }
-
 let import module_ = { S.module_; testable = false }
 
 (* A service table's model: its own schema's ([Places.schema_of]), named as
@@ -144,11 +103,7 @@ let swift_files ~root (spec : Spec.t) =
   let* user_field = User_stamp.field spec.tables.identifiers_kinds in
   match
     let bundle = D.bundle spec in
-    let sign_in =
-      match List.assoc_opt Roots.sign_in_entry spec.schemas with
-      | Some s -> s
-      | None -> D.refuse "Protocol has no %s" Roots.sign_in_entry
-    in
+    let sign_in = D.sign_in spec in
     let models =
       Models.create
         [
@@ -175,9 +130,7 @@ let swift_files ~root (spec : Spec.t) =
         S.banner;
         imports = [ import "Foundation" ];
         decls =
-          List.map
-            (fun d -> (S.Blank, d))
-            (Models.declarations models @ [ discovery_absent spec ])
+          List.map (fun d -> (S.Blank, d)) (Models.declarations models)
           @ List.mapi
               (fun i d -> ((if i = 0 then S.Blank else S.Line), d))
               tables;

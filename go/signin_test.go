@@ -21,6 +21,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/optional"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // stack is a stand-in gateway and the issuer it trusts. Each handler of the
@@ -101,11 +102,12 @@ func (s *stack) grantsMade() int {
 	return s.grants
 }
 
-func quickTiming() Timing {
-	timing := DefaultTiming()
-	timing.RefreshRetry = api.RetryBudget{Attempts: 3, InitialDelayMs: 1, MaxDelayMs: 1}
-	timing.HttpRequestTimeout = 5 * time.Second
-	return timing
+// quickTiming is the transport's timing with a request's deadline a test can
+// sit out.
+func quickTiming() TransportTiming {
+	quick := DefaultTransportTiming()
+	quick.HttpRequestTimeout = 5 * time.Second
+	return quick
 }
 
 func issuerOf() Issuer { return Issuer{HTTP: &http.Client{}, Timing: quickTiming()} }
@@ -132,7 +134,7 @@ func TestAKnowledgeBaseThatNamesNoIssuerHasNowhereToSignIn(t *testing.T) {
 	gateway := httptest.NewServer(http.NotFoundHandler())
 	defer gateway.Close()
 	var failed *SignInError
-	if _, err := issuerOf().Discover(context.Background(), gateway.URL); !errors.As(err, &failed) || failed.Code != SignInErrorCodeNoIssuer {
+	if _, err := issuerOf().Discover(context.Background(), gateway.URL); !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeNoIssuer {
 		t.Errorf("got %v, want no-issuer", err)
 	}
 }
@@ -196,7 +198,7 @@ func TestADeviceSignInTheIssuerDeniesIsDenied(t *testing.T) {
 	}
 	var failed *SignInError
 	_, err = issuerOf().SignInWithDeviceGrant(context.Background(), endpoints, func(api.DeviceCode) {})
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeDenied {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeDenied {
 		t.Errorf("got %v, want denied", err)
 	}
 }
@@ -219,7 +221,7 @@ func TestADeviceAuthorizationAnswerWithNoLifetimeIsRefused(t *testing.T) {
 	shown := 0
 	var failed *SignInError
 	_, err = issuerOf().SignInWithDeviceGrant(context.Background(), endpoints, func(api.DeviceCode) { shown++ })
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Fatalf("got %v, want exchange", err)
 	}
 	if status, ok := failed.Status(); !ok || status != http.StatusOK {
@@ -250,7 +252,7 @@ func TestADeviceAuthorizationAnswerWithALifetimeInFractionsOfASecondIsRefused(t 
 	shown := 0
 	var failed *SignInError
 	_, err = issuerOf().SignInWithDeviceGrant(context.Background(), endpoints, func(api.DeviceCode) { shown++ })
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Fatalf("got %v, want exchange", err)
 	}
 	s.mu.Lock()
@@ -304,7 +306,7 @@ func TestARenewalIsTriedAgainOnlyWhenTheIssuerSaysNotNow(t *testing.T) {
 	})
 	var failed *SignInError
 	_, err = issuerOf().RenewKept(context.Background(), entry, signedToken(2))
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Fatalf("got %v, want a refused exchange", err)
 	}
 	if status, ok := failed.Status(); !ok || status != http.StatusBadRequest || s.grantsMade() != 1 {
@@ -325,7 +327,7 @@ func TestAResumedSessionRenewsARefusedTokenAndKeepsTheRotation(t *testing.T) {
 	token := NewVariable("")
 	// The session's client, over a wire nothing is sent on.
 	wire := newWorkerWire()
-	client := NewClient(ClientConfig{Transport: wire, Timing: quickTiming()})
+	client := NewClient(ClientConfig{Transport: wire, Timing: DefaultClientTiming()})
 	session, err := ResumeSession(context.Background(), ResumeConfig{
 		Kb: gatewayTarget(t, "local", s.gateway.URL), Client: client, Kept: entry, Token: token,
 		HTTP: &http.Client{}, Timing: quickTiming(),
@@ -403,7 +405,7 @@ func TestASessionClosedWhileItsSignInIsRenewedGivesTheRefusalNoTokenAndKeepsTheR
 	token := NewVariable("")
 	// The session's client, over a wire nothing is sent on.
 	wire := newWorkerWire()
-	client := NewClient(ClientConfig{Transport: wire, Timing: quickTiming()})
+	client := NewClient(ClientConfig{Transport: wire, Timing: DefaultClientTiming()})
 	defer func() {
 		client.Close()
 		wire.Close()
@@ -484,8 +486,8 @@ func TestASessionClosedWhileItsSignInIsRenewedGivesTheRefusalNoTokenAndKeepsTheR
 // session would end as if the issuer had issued it.
 func TestARenewalOnTheBackoffIsHandedTheTokenWhoseRenewalGotNoAnswer(t *testing.T) {
 	s := newStack(t)
-	timing := quickTiming()
-	timing.Reconnect, timing.MaxReconnect = 20*time.Millisecond, 20*time.Millisecond
+	quick := quickTiming()
+	quick.Reconnect = 20 * time.Millisecond
 	s.set(func() {
 		s.token = func(w http.ResponseWriter, r *http.Request) {
 			// Every attempt of the first renewal finds the issuer down.
@@ -500,10 +502,10 @@ func TestARenewalOnTheBackoffIsHandedTheTokenWhoseRenewalGotNoAnswer(t *testing.
 	_, entry := keptAt(t, s, 1)
 	token := NewVariable("")
 	wire := newWorkerWire()
-	client := NewClient(ClientConfig{Transport: wire, Timing: timing})
+	client := NewClient(ClientConfig{Transport: wire, Timing: DefaultClientTiming()})
 	session, err := ResumeSession(context.Background(), ResumeConfig{
 		Kb: gatewayTarget(t, "local", s.gateway.URL), Client: client, Kept: entry, Token: token,
-		HTTP: &http.Client{}, Timing: timing,
+		HTTP: &http.Client{}, Timing: quick,
 	})
 	if err != nil {
 		client.Close()
@@ -511,7 +513,7 @@ func TestARenewalOnTheBackoffIsHandedTheTokenWhoseRenewalGotNoAnswer(t *testing.
 		t.Fatal(err)
 	}
 	errs := session.Errors()
-	var said []SessionErrorCode
+	var said []api.SessionErrorCode
 	heard := make(chan struct{})
 	go func() {
 		defer close(heard)
@@ -554,8 +556,8 @@ func TestARenewalOnTheBackoffIsHandedTheTokenWhoseRenewalGotNoAnswer(t *testing.
 	case <-time.After(10 * time.Second):
 		t.Fatal("the session's errors stream did not end once the session was closed")
 	}
-	if !slices.Equal(said, []SessionErrorCode{SessionErrorCodeRefreshExhausted}) {
-		t.Errorf("the session said %v on its errors stream, want the one %s", said, SessionErrorCodeRefreshExhausted)
+	if !slices.Equal(said, []api.SessionErrorCode{api.SessionErrorCodeRefreshExhausted}) {
+		t.Errorf("the session said %v on its errors stream, want the one %s", said, api.SessionErrorCodeRefreshExhausted)
 	}
 }
 
@@ -573,7 +575,7 @@ func TestAWaitThatRanOutForATokenSinceReplacedRenewsNothing(t *testing.T) {
 	var handed []string
 	token := NewVariable("")
 	wire := newWorkerWire()
-	client := NewClient(ClientConfig{Transport: wire, Timing: quickTiming()})
+	client := NewClient(ClientConfig{Transport: wire, Timing: DefaultClientTiming()})
 	session, err := StartSession(context.Background(), SessionConfig{
 		Kb: api.KbTarget{Id: "local"}, Client: client, Token: token, Kept: kept,
 		Refresh: func(_ context.Context, renewing string) (string, error) {
@@ -636,8 +638,8 @@ func TestASessionFromAKeptSignInAsksWhoItsTokenIsUnlessToldNotTo(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 			session, end, err := SessionFromKept(ctx, SessionFromKeptConfig{
-				Kb: gatewayTarget(t, "local", s.gateway.URL), Kept: entry, HTTP: &http.Client{}, Timing: quickTiming(),
-				SkipAskingWhoTokenIs: row.skip,
+				Kb: gatewayTarget(t, "local", s.gateway.URL), Kept: entry, HTTP: &http.Client{},
+				ClientTiming: DefaultClientTiming(), TransportTiming: quickTiming(), SkipAskingWhoTokenIs: row.skip,
 			})
 			if err != nil {
 				t.Fatal(err)

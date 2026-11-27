@@ -15,31 +15,31 @@ import {
   isObject,
   isRetryableRequestError,
   isString,
+  limitRefusalTransportCodes,
   retryAfterMs,
   transportErrorCodeForStatus,
   whyUnanswered,
   type TransportErrorCode,
   type HttpStatusError,
-  type components,
 } from '@xynolog/core';
 
 /**
- * The limit that answers only a request whose token has already failed
- * verification: it says what a 401 says.
- */
-const REFUSAL_RATE =
-  'refusal-rate' satisfies components['schemas']['LimitRefusal']['code'];
-
-/**
- * Whether a refusal refuses the request's credential: a 401, or a 429 whose
- * body is a `LimitRefusal` naming `refusal-rate`
+ * Whether a refusal refuses the request's credential: a status read as the
+ * transport's `unauthorized`, or a limit's refusal whose status and
+ * `LimitRefusal` code are one that is `unauthorized` too
  * (protocol/contract/TRANSPORT-CONTRACT.md § A refused credential). Such a
  * request is renewed or fails, and is never retried with the token refused.
  */
 export function refusesCredential(status: number, body: unknown): boolean {
   return (
-    status === 401 ||
-    (status === 429 && isObject(body) && body['code'] === REFUSAL_RATE)
+    transportErrorCodeForStatus(status) === 'unauthorized' ||
+    limitRefusalTransportCodes.some(
+      (refusal) =>
+        refusal.transport === 'unauthorized' &&
+        refusal.status === status &&
+        isObject(body) &&
+        body['code'] === refusal.code,
+    )
   );
 }
 

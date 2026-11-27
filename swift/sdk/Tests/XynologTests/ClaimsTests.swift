@@ -22,7 +22,7 @@ private func refusedAnnouncement(_ job: String) -> Carried {
   .refused(
     FrameRefusal(
       channel: Channels.jobQueued.name, member: "payload", reason: .malformed,
-      payload: .string(job), correlationId: nil, scope: nil))
+      payload: .string(job)))
 }
 
 private func claimsAsked(_ probe: ProbeTransport) -> Int {
@@ -101,6 +101,29 @@ private final class Answers: Sendable {
   await claims.stop()
 }
 
+// Claims' health copies the vitals into the health member by member. Every member of the vitals,
+// each set to a value of its own, arrives in the health; the vitals are held to have every member
+// set, so they grow with the type.
+@Test func aWorkersHealthCarriesEveryMemberOfItsVitals() throws {
+  let vitals = WorkerVitals(
+    lastQueuedEventAt: "2026-11-25T00:00:01.000Z", lastClaimAt: "2026-11-25T00:00:02.000Z",
+    lastFinishedAt: "2026-11-25T00:00:03.000Z", lastActivityAt: "2026-11-25T00:00:04.000Z",
+    activeJob: WorkerActiveJob(
+      jobId: try JobId("job-1"), type: .mark, since: "2026-11-25T00:00:05.000Z"),
+    jobsCompleted: 6)
+  let members = Mirror(reflecting: vitals).children
+  for member in members {
+    let value = Mirror(reflecting: member.value)
+    #expect(
+      value.displayStyle != .optional || !value.children.isEmpty, "\(member.label ?? "") is set")
+  }
+  let said = try wirePayload(vitals)
+  #expect(said.count == members.count)
+  let health = try wirePayload(
+    Claims.health(vitals, of: Engine(provider: .ollama, model: "model"), jobs: []))
+  for (name, value) in said { #expect(health[name] == value, "\(name) arrives") }
+}
+
 @Test func aRefusedAnnouncementWhileAClaimIsInFlightEarnsOneMoreClaim() async throws {
   let probe = ProbeTransport(channels: jobClaimChannels)
   let answers = Answers()
@@ -143,7 +166,7 @@ private final class Answers: Sendable {
   probe.deliver(refusedAnnouncement("job-8"))
   try await until { await claims.vitals.lastQueuedEventAt != nil }
   #expect(claimsAsked(probe) == 1)
-  try await job.fail("done", failureClass: nil, completedUnits: nil, unitCursors: nil)
+  try await job.fail("done", failure: nil)
   try await until { claimsAsked(probe) == 2 }
   await claims.stop()
   #expect(claimsAsked(probe) == 2, "the settle claims, and nothing was owed")
@@ -185,7 +208,7 @@ private func claimsRefused(_ refused: Int, over probe: ProbeTransport, client: X
 private func everyRefusal(_ refusals: Events<ClaimRefusal>) async throws -> [String] {
   try await withinTestDeadline {
     var heard: [String] = []
-    for try await refused in refusals { heard.append(refused.detail) }
+    for try await refused in refusals { heard.append(refused.message) }
     return heard
   }
 }
@@ -242,7 +265,7 @@ private func stallTheNext(_ jobs: inout Claims.AsyncIterator, on clock: TestCloc
   try await looking(on: clock)
   clock.advance(by: stallCheck)
   try await looking(on: clock)
-  try await job.fail("stalled", failureClass: nil, completedUnits: nil, unitCursors: nil)
+  try await job.fail("stalled", failure: nil)
   return job.jobId.value
 }
 

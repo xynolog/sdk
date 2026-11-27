@@ -16,13 +16,29 @@ import sys
 from contextlib import AsyncExitStack
 from typing import final
 
-from protocol import Arguments, Misuse, Operation, count, exporting, failure, object_of, optional_text, say, serve, text, texts
+from protocol import (
+    TRANSPORT_ROWS,
+    Arguments,
+    Misuse,
+    Operation,
+    count,
+    exporting,
+    failure,
+    object_of,
+    optional_text,
+    say,
+    serve,
+    text,
+    texts,
+    timing_of,
+    transport_timing,
+)
 from pydantic import JsonValue
 
 from xynolog.bus import request
 from xynolog.errors import XynologError
 from xynolog.events import Events
-from xynolog.http import HttpTransport, Timing, TokenRefresher
+from xynolog.http import HttpTransport, TokenRefresher
 from xynolog.identifiers import AnnotationId, InvalidIdentifier, JobId, ResourceId
 from xynolog.model import WireModel, stated
 from xynolog.operations import OPERATIONS
@@ -35,7 +51,6 @@ from xynolog.types import (
     ConformanceDriverLineProgressProgress,
     ConformanceDriverLineState,
     PutBinaryRequest,
-    RetryBudget,
     UploadProgressProgress,
 )
 from xynolog.watched import Variable
@@ -73,39 +88,6 @@ def _upload_of(args: Arguments) -> PutBinaryRequest:
 def _answered(answer: WireModel) -> JsonValue:
     """What the gateway answered, as the wire carried it."""
     return answer.model_dump(mode="json", exclude_unset=True)
-
-
-def _timing(stated: Arguments) -> Timing:
-    """The timing a case states, each entry by its name in `protocol/specs/src/client/timing.json`."""
-    known = Timing()
-    reconnect_ms, lazy_remove_ms, linger_ms = known.reconnect_ms, known.lazy_remove_ms, known.linger_ms
-    emit_retry, seen_event_ids_count = known.emit_retry, known.seen_event_ids_count
-    for name in stated:
-        match name:
-            case "reconnectMs":
-                reconnect_ms = count(stated, name)
-            case "lazyRemoveMs":
-                lazy_remove_ms = count(stated, name)
-            case "lingerMs":
-                linger_ms = count(stated, name)
-            case "seenEventIdsCount":
-                seen_event_ids_count = count(stated, name)
-            case "emitRetry":
-                budget = object_of(stated, name)
-                emit_retry = RetryBudget(
-                    attempts=count(budget, "attempts"),
-                    initial_delay_ms=count(budget, "initialDelayMs"),
-                    max_delay_ms=count(budget, "maxDelayMs"),
-                )
-            case _:
-                raise Misuse(f"this driver cannot override {name}")
-    return Timing(
-        reconnect_ms=reconnect_ms,
-        lazy_remove_ms=lazy_remove_ms,
-        linger_ms=linger_ms,
-        emit_retry=emit_retry,
-        seen_event_ids_count=seen_event_ids_count,
-    )
 
 
 @final
@@ -166,7 +148,8 @@ class Wire:
     async def open(self, _: int, args: Arguments) -> JsonValue:
         if self._transport is not None:
             raise Misuse("a transport is already open")
-        timing = _timing(object_of(args, "timing") if "timing" in args else {})
+        timed = timing_of(args, TRANSPORT_ROWS)
+        timing = transport_timing(timed)
         self._token.set(text(args, "token"))
         refresher = self._renewing(texts(args, "renewals")) if "renewals" in args else None
         transport = HttpTransport(

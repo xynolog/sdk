@@ -9,8 +9,9 @@ use xynolog::bus::{Bus, Operation, operation};
 use xynolog::channels::BRIDGED_CHANNELS;
 use xynolog::errors::{TransportErrorCode, XynologError};
 use xynolog::testing::{FaultAction, FaultyTransport};
-use xynolog::transport::{ConnectionState, Frame, STREAM_BACKLOG, Transport};
+use xynolog::transport::{Frame, STREAM_BACKLOG, Transport};
 use xynolog::types::BusFrame;
+use xynolog::types::ConnectionState;
 
 const WITHIN: Duration = Duration::from_secs(5);
 

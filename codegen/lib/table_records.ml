@@ -26,8 +26,8 @@ let stated (spec : Spec.t) (key, (s : Schema.t)) =
   | s -> Ok (key, s)
 
 (* Each record, by the file and pointer a [$ref] names it by, and named by its
-   title: the types a registry of knowledge bases hands its caller, what the
-   state units' signals say, why a session ended, the stored session, a
+   title: the types a registry of knowledge bases hands its caller, why a
+   session ended, the stored session, a
    sign-in pending its redirect, and where each stream was. The stored
    cache document is none: its entry is a tuple ([prefixItems]), which no
    writer of types reads, and each SDK's reader of it is held to it
@@ -49,7 +49,6 @@ let all (spec : Spec.t) : ((string * string * Schema.t) list, string) result =
   Result.map List.rev
   @@ List.fold_left titled (Ok [])
        (within "client/registry.json" "types" t.client_registry.types
-       @ within "client/state-units.json" "notices" t.client_state_units.notices
        @ [
            ("session/cases.json#/told", t.session_cases.told);
            ( "session/stored.json#/storedSession",

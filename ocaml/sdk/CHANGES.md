@@ -8,6 +8,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Client_timing.client` and `Client_timing.transport`, the records of what a
+  caller may override of the timing a client and its transport keep, with the
+  protocol's values of them, `client_defaults` and `transport_defaults`.
 - `Testing.delivery_op_name`: a delivery step as Protocol's word for it
   (`"write"`, `"transition"`), as the other SDKs carry it.
 - `Records.Engine_with_limits` and `Records.Engines_with_limits`, the types of
@@ -62,10 +65,11 @@ the coming release's, and gathers its changes as they land.
 
 - A schema a `$ref` names at a place within a file is one record, named
   where that place is stated, wherever it is referred to: every error
-  vocabulary of `Errors_codes` is `Errors_codes_job.t`, a file's mode and
+  vocabulary of `Errors_codes` whose codes state only their docs is
+  `Errors_codes_job.t`, a file's mode and
   access list in `Sign_in_store_owner_only` are its directory's, and what a
   kind of id refuses is `Identifiers_kinds_kinds_item_accepts_item.t`. The
-  module each reference was given of its own (`Errors_codes_control`,
+  module each reference was given of its own (`Errors_codes_session`,
   `Sign_in_store_owner_only_file_mode`,
   `Identifiers_kinds_kinds_item_refuses_item`, …) is gone.
 - `Browse.resource_representation` answers a
@@ -84,6 +88,34 @@ the coming release's, and gathers its changes as they land.
 - `Http_wire.check_user` gives a refusal its status's code (`Not_found` for
   404, `Unavailable` for 5xx), as every other request does, where every
   refusal that was not of the credential was `Unavailable`.
+- A frame's trace, a held job's and the one a worker's claims are made in is
+  the generated `Records.Trace_carrier.t` (`traceparent`, `tracestate`),
+  where `Wire_stream.trace` (`parent`, `state`) declared its own.
+- `Enums.Kb_placement` names where a knowledge base's stack runs, in place of
+  `Records.Discovered_kb.Placement`, `Records.Root.Placement`,
+  `Records.Knowledge_base_status.Placement` and `Records.Target.Kind`;
+  `Enums.Inference_provider` names an inference provider, in place of
+  `Records.Engine.Provider`.
+- A held job is its record, the generated `Records.Held_job_record.t`:
+  `Worker.record` returns it, and `Worker.job_id`, `job_type`, `resource_id`,
+  `params`, `completed_units`, `unit_cursors`, `retry_count` and
+  `max_retries` each read its member, as it types it. `Worker.params` is the
+  job's `[ \`JobParams ] Models.t` and `Worker.unit_cursors` a list of
+  `[ \`UnitCursor ] Models.t`, in place of JSON. `Worker.view` is gone.
+- `Worker.checkpoint` takes a `Records.Job_checkpoint.t`, `Worker.fail` an
+  optional `~failure:Records.Job_failure.t`, and `Worker.cancel` an optional
+  `~reached:Records.Job_reached.t`, in place of `~completed`, `~cursors` and
+  `~failure_class`. Each command carries every member of its record.
+- `Claims.vitals` is the generated `Records.Worker_vitals.t`, its times
+  date-times, in place of `Claims.vitals`'s seconds since the epoch;
+  `Claims.refused` says a `Records.Claim_refusal.t` (its code and message) in
+  place of a code; `Claims.stalled` says a `Records.Held_job_stall.t` in place
+  of the held job. `Worker.claim`'s `Refused` carries the refusal.
+- Each table record of `Records` holds an id member as its
+  `Identifiers` kind (`Records.Held_job_stall.job_id` is an
+  `Identifiers.Job_id.t`) and a member that names a string enum Protocol
+  roots as its `Enums` type (`Records.Job_failure.failure_class` is an
+  `Enums.Failure_class.t`), in place of a string and a `Models.t`.
 - `Annotations.span_refusal` is `Error_codes.Span_refusal.t`, the
   generated vocabulary, in place of a variant of its own.
 - A member that holds null where its schema does not allow null is refused
@@ -98,11 +130,10 @@ the coming release's, and gathers its changes as they land.
 - `Bus.frame_refusal_reason` is `Enums.Frame_refusal_reason.t`
   (`Lacks | Malformed`), as is every fault's reason, in place of
   `` [ `Lacks | `Malformed ] ``.
-- `Registry` hands and takes `Records.Open_resource.t`, `Discovery` hands
-  `Records.Discovered_kb.t`, `Annotations.locate_pdf` takes
-  `Records.Pdf_text_item.t`, and `Oauth.device` holds the
-  `Records.Device_code.t` the gateway answered, in place of records of their
-  own that restated those schemas.
+- `Registry` hands and takes `Records.Open_resource.t`,
+  `Annotations.locate_pdf` takes `Records.Pdf_text_item.t`, and
+  `Oauth.device` holds the `Records.Device_code.t` the gateway answered, in
+  place of records of their own that restated those schemas.
 - A sign-in by a page redirect that is under way is
   `Records.Pending_authorization.t`, and an issuer is
   `Records.Pending_authorization_issuer.t`, in place of
@@ -152,6 +183,10 @@ the coming release's, and gathers its changes as they land.
   `Retry.budget`; `Client_timing.emit_retry` and `Client_timing.refresh_retry`
   are one. `Client_timing`, the timing every SDK reads from Protocol, is
   public.
+- `Gather_state.gather_annotation`'s `?context_window` has no default: left
+  out, no `contextWindow` is sent, nor an `options` member when no option is
+  given, and the Librarian's own default applies (protocol#109), where it
+  sent 2000. Its type is the same.
 - An error code is a constructor of its vocabulary's `t`
   (`Error_codes.Bus_request.Timeout`), never a string. Each module of
   `Error_codes` holds `t`, `code` (its text) and `of_code` (the constructor a
@@ -173,6 +208,49 @@ the coming release's, and gathers its changes as they land.
   knowledge base the registry does not hold is `Registry.Unknown_kb`, and a
   sign-in whose id another knowledge base holds is `Id_conflict`, where each
   was a code Protocol does not state (`kb.not-found`, `kb.id-conflict`).
+- What discovery reads is the generated records Protocol names, in place of
+  `Discovery`'s own types: `Discovery.parse_discovery_document` gives a
+  `Records.Discovery_state.t` (`Absent` of a `Records.Discovery_absent.t`,
+  its reason and diagnostic, or `Managed` of a `Records.Discovery_managed.t`),
+  a transport reads a `Records.Discovery_read.t` (either of those, or
+  `Unchanged`), and `Discovery.discovery_diff` and `subscribe_discovery` give
+  a `Records.Discovery_diff.t`. Its knowledge bases are
+  `` [ `DiscoveredKB ] Models.t ``, where they were `Records.Discovered_kb.t`,
+  and an address more than one claims is its `host:port` text, where it was
+  a pair. The types `Discovery.discovery_state`, `discovery_read` and
+  `discovery_diff` go.
+- An upload's `Records.Upload_progress.Started` and `Progress` state
+  `total_bytes` as an `int option`, as does
+  `Records.Conformance_driver_line_progress_progress`: the total is stated
+  when the source states its length, as every upload's does today.
+- `Client.connect` takes `?client_timing`, a `Client_timing.client`, and
+  `?transport_timing`, a `Client_timing.transport`, in place of `?timing`,
+  `?http_timing`, `?delegation_silence_ms`, `?delegation_poll_ms` and
+  `?invalidation_window_ms`.
+- `Subscription.start`'s and `Http_wire.make`'s `?timing` is a
+  `Client_timing.transport`. Its `emit_retry` is a `Records.Retry_budget.t`,
+  in place of `emit_attempts`, `emit_initial_delay_ms` and
+  `emit_max_delay_ms`, and `http_request_timeout_ms` is what
+  `request_timeout_ms` was. A subscription remembers as many event ids as
+  `seen_event_ids_count` states.
+- `Delegation.make` takes `?timing`, a `Client_timing.client`, in place of
+  `?silence_ms` and `?poll_ms`, and its requests wait its
+  `bus_request_timeout_ms`.
+- `Subscription.request` takes `~timeout_ms`, which it no longer defaults: a
+  subscription holds no client's timing. `Client.request` still waits the
+  client's `bus_request_timeout_ms` when none is stated.
+
+### Removed
+
+- `Subscription.timing`, `Subscription.default_timing`, `Http_wire.timing` and
+  `Http_wire.default_timing`. `max_reconnect_ms`, `degraded_threshold_ms`,
+  `reconnect_debounce_ms` and `emit_timeout_ms` cannot be set: each is
+  `Client_timing`'s.
+- `Mark_state.make`'s `?silence_ms`: a quiet job is said after
+  `Client_timing.delegate_silence_ms`.
+- `Storage_persister.make`'s `~max_bytes`: a document larger than
+  `Client_timing.max_stored_bytes_count` bytes loses the entries written
+  longest ago, until it fits.
 
 ## 0.8.1
 

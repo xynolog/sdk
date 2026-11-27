@@ -32,7 +32,7 @@ import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
 import Xynolog.State.SessionSignals qualified as Signals
 import Xynolog.StateValue qualified as State
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -115,9 +115,9 @@ rig time fixtures = do
               pure (Just 1)
         (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://registry-runtime" (Set.fromList Channels.channelNames) send (pure ()))
         atomically (putTMVar inputCell input)
-        Transport.setState input Transport.Connecting
-        Transport.setState input Transport.Open
-        client <- Client.newClient carrier contents Nothing options Timing.protocolSettings Nothing
+        Transport.setState input Transport.ConnectionStateConnecting
+        Transport.setState input Transport.ConnectionStateOpen
+        client <- Client.newClient carrier contents Nothing options Settings.protocolClientTiming Nothing
         kept <- SignIn.newMemorySignIn
         let target = KbTarget {kbTargetEndpoint = (knowledgeBaseEndpoint kb), kbTargetId = (knowledgeBaseId kb), kbTargetLabel = (knowledgeBaseLabel kb)}
             settings =
@@ -130,7 +130,7 @@ rig time fixtures = do
                 Nothing
                 (atomically . Signals.notifySessionEnded (Factory.sessionFactoryOptionsSignals inputs))
                 (pure 1800000000)
-        session <- Session.newSession client settings clock Timing.protocolSettings
+        session <- Session.newSession client settings clock Settings.protocolTransportTiming
         closed <- newTVarIO False
         let close = do
               first <- atomically $ do before <- readTVar closed; writeTVar closed True; pure (not before)
@@ -156,12 +156,12 @@ cases fixtures = do
           (pure Nothing)
           (const (pure Nothing))
           (Retry.RetryOptions (Time.now time) (Time.waitUntil time) (pure 0))
-          Timing.protocolSettings
+          Settings.protocolTransportTiming
           fresh
           Set.empty
           (pure Map.empty)
           (\_ _ -> pure ())
-      config = Browser.XynologBrowserConfig storage factory http (pure 1800000000)
+      config = Browser.XynologBrowserConfig storage factory http Settings.protocolClientTiming (pure 1800000000)
       local name = KbEndpointLocalEndpoint (LocalEndpoint {localEndpointKbId = name, localEndpointKind = LocalEndpointKindLocal})
       proposed name domain = NewKnowledgeBase {newKnowledgeBaseDid = (either error userIdValue (Identity.kbDid domain)), newKnowledgeBaseEndpoint = (local name), newKnowledgeBaseLabel = name, newKnowledgeBaseLastRead = Nothing}
   grant <- fixture fixtures "StoredSession"
@@ -191,7 +191,7 @@ cases fixtures = do
     require "KB switch lost its per-KB viewed bookmark" . (== Just resource) =<< atomically (State.current (Browser.lastViewedResource browser))
     Time.settle
     let description = KbDescription {kbDescriptionDomain = "another.example.test", kbDescriptionGitBranch = Nothing, kbDescriptionName = "Another"}
-        newGrant = grant {storedSessionAccess = "another-issued-access", storedSessionRefresh = "another-refresh"}
+        newGrant = grant {storedSessionAccess = AccessToken "another-issued-access", storedSessionRefresh = "another-refresh"}
         signed = SignedIn {signedInDescription = description, signedInEndpoint = (knowledgeBaseEndpoint a), signedInExpectedDid = Nothing, signedInExpectedName = Nothing, signedInKbId = Nothing, signedInSession = newGrant}
     outcome <- Browser.signedIn browser signed
     Time.settle

@@ -6,12 +6,12 @@
 
 use crate::transport::locked;
 use std::sync::Mutex;
-use xynolog::discovery::{
-    DiscoveryAbsentReason, DiscoveryRead, DiscoveryState, DiscoveryTransport,
-    parse_discovery_document,
-};
+use xynolog::discovery::{DiscoveryTransport, parse_discovery_document};
 use xynolog::timing::HTTP_REQUEST_TIMEOUT;
 use xynolog::transport::BoxFuture;
+use xynolog::types::{
+    DiscoveryAbsent, DiscoveryAbsentReason, DiscoveryRead, DiscoveryState, DiscoveryUnchanged,
+};
 
 struct HttpDiscovery {
     url: String,
@@ -21,9 +21,9 @@ struct HttpDiscovery {
 }
 
 fn absent(reason: DiscoveryAbsentReason, diagnostic: String) -> DiscoveryRead {
-    DiscoveryRead::State(DiscoveryState::Absent {
-        reason,
+    DiscoveryRead::DiscoveryAbsent(DiscoveryAbsent {
         diagnostic: Some(diagnostic),
+        ..DiscoveryAbsent::new(reason)
     })
 }
 
@@ -53,7 +53,7 @@ impl DiscoveryTransport for HttpDiscovery {
             };
             let status = response.status();
             if status.as_u16() == 304 {
-                return DiscoveryRead::Unchanged;
+                return DiscoveryUnchanged::new().into();
             }
             if !status.is_success() {
                 return absent(
@@ -85,10 +85,10 @@ impl DiscoveryTransport for HttpDiscovery {
             let state = parse_discovery_document(&text);
             // Only a good document's tag is kept: one kept for a document
             // that did not read would have this believe it for good.
-            if matches!(state, DiscoveryState::Managed { .. }) {
+            if matches!(state, DiscoveryState::DiscoveryManaged(_)) {
                 *locked(&self.etag) = etag;
             }
-            DiscoveryRead::State(state)
+            state.into()
         })
     }
 }

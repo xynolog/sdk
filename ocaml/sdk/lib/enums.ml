@@ -60,6 +60,17 @@ module Body_purpose = struct
     | _ -> None
 end
 
+module Control_sender = struct
+  type t = Client | Launcher
+
+  let to_string = function Client -> "client" | Launcher -> "launcher"
+
+  let of_string = function
+    | "client" -> Some Client
+    | "launcher" -> Some Launcher
+    | _ -> None
+end
+
 module Durability_evidence = struct
   type t = Acknowledged | Probe_confirmed | Probe_refused | Probe_unreachable
 
@@ -128,6 +139,29 @@ module Failure_class = struct
     | _ -> None
 end
 
+module Inference_provider = struct
+  type t = Anthropic | Google | Llamacpp | Ollama | Openai | Together | Vllm
+
+  let to_string = function
+    | Anthropic -> "anthropic"
+    | Google -> "google"
+    | Llamacpp -> "llamacpp"
+    | Ollama -> "ollama"
+    | Openai -> "openai"
+    | Together -> "together"
+    | Vllm -> "vllm"
+
+  let of_string = function
+    | "anthropic" -> Some Anthropic
+    | "google" -> Some Google
+    | "llamacpp" -> Some Llamacpp
+    | "ollama" -> Some Ollama
+    | "openai" -> Some Openai
+    | "together" -> Some Together
+    | "vllm" -> Some Vllm
+    | _ -> None
+end
+
 module Job_type = struct
   type t = Mark | Yield
 
@@ -136,6 +170,17 @@ module Job_type = struct
   let of_string = function
     | "mark" -> Some Mark
     | "yield" -> Some Yield
+    | _ -> None
+end
+
+module Kb_placement = struct
+  type t = Local | Codespace
+
+  let to_string = function Local -> "local" | Codespace -> "codespace"
+
+  let of_string = function
+    | "local" -> Some Local
+    | "codespace" -> Some Codespace
     | _ -> None
 end
 
@@ -507,6 +552,21 @@ module Supported_media_type = struct
     | _ -> None
 end
 
+module System = struct
+  type t = Macos | Windows | Other
+
+  let to_string = function
+    | Macos -> "macos"
+    | Windows -> "windows"
+    | Other -> "other"
+
+  let of_string = function
+    | "macos" -> Some Macos
+    | "windows" -> Some Windows
+    | "other" -> Some Other
+    | _ -> None
+end
+
 module Anchor_method = struct
   type t = Unique_match | Context_recovered | First_of_many | Fuzzy_match
 
@@ -521,6 +581,70 @@ module Anchor_method = struct
     | "context-recovered" -> Some Context_recovered
     | "first-of-many" -> Some First_of_many
     | "fuzzy-match" -> Some Fuzzy_match
+    | _ -> None
+end
+
+module Cache_status = struct
+  type t = Pending | Ready | Failed
+
+  let to_string = function
+    | Pending -> "pending"
+    | Ready -> "ready"
+    | Failed -> "failed"
+
+  let of_string = function
+    | "pending" -> Some Pending
+    | "ready" -> Some Ready
+    | "failed" -> Some Failed
+    | _ -> None
+end
+
+module Connection_state = struct
+  type t =
+    | Initial
+    | Connecting
+    | Open
+    | Reconnecting
+    | Degraded
+    | Unauthenticated
+    | Closed
+
+  let to_string = function
+    | Initial -> "initial"
+    | Connecting -> "connecting"
+    | Open -> "open"
+    | Reconnecting -> "reconnecting"
+    | Degraded -> "degraded"
+    | Unauthenticated -> "unauthenticated"
+    | Closed -> "closed"
+
+  let of_string = function
+    | "initial" -> Some Initial
+    | "connecting" -> Some Connecting
+    | "open" -> Some Open
+    | "reconnecting" -> Some Reconnecting
+    | "degraded" -> Some Degraded
+    | "unauthenticated" -> Some Unauthenticated
+    | "closed" -> Some Closed
+    | _ -> None
+end
+
+module Discovery_absent_reason = struct
+  type t = Not_found | Not_json | Invalid | Unsupported_version | Unreadable
+
+  let to_string = function
+    | Not_found -> "not-found"
+    | Not_json -> "not-json"
+    | Invalid -> "invalid"
+    | Unsupported_version -> "unsupported-version"
+    | Unreadable -> "unreadable"
+
+  let of_string = function
+    | "not-found" -> Some Not_found
+    | "not-json" -> Some Not_json
+    | "invalid" -> Some Invalid
+    | "unsupported-version" -> Some Unsupported_version
+    | "unreadable" -> Some Unreadable
     | _ -> None
 end
 
@@ -547,25 +671,6 @@ module Match_quality = struct
     | "normalized" -> Some Normalized
     | "case-insensitive" -> Some Case_insensitive
     | "fuzzy" -> Some Fuzzy
-    | _ -> None
-end
-
-module Discovery_absent_reason = struct
-  type t = Not_found | Not_json | Invalid | Unsupported_version | Unreadable
-
-  let to_string = function
-    | Not_found -> "not-found"
-    | Not_json -> "not-json"
-    | Invalid -> "invalid"
-    | Unsupported_version -> "unsupported-version"
-    | Unreadable -> "unreadable"
-
-  let of_string = function
-    | "not-found" -> Some Not_found
-    | "not-json" -> Some Not_json
-    | "invalid" -> Some Invalid
-    | "unsupported-version" -> Some Unsupported_version
-    | "unreadable" -> Some Unreadable
     | _ -> None
 end
 

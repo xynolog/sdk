@@ -24,12 +24,14 @@ import Xynolog.Internal.Cache qualified as Cache (fetching)
 import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Generated.CachePersistence qualified as Persisted
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.TimingSettings (Settings, settingsOf)
 import Xynolog.Internal.Kept qualified as Kept
 import Xynolog.Internal.Persistence qualified as Persistence
 import Xynolog.Internal.Refresh qualified as Refresh
 import Xynolog.Internal.Transport qualified as Internal
 import Xynolog.SessionStorage qualified as Storage
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -50,12 +52,15 @@ withCarrier action = bracket
   (Transport.dispose . fst)
   $ \(carrier, input) -> bracket Internal.newEventBus Internal.closeEventBus $ \local ->
     bracket (Transport.bridgeInto carrier local) id $ \_ -> do
-      Transport.setState input Transport.Connecting
-      Transport.setState input Transport.Open
+      Transport.setState input Transport.ConnectionStateConnecting
+      Transport.setState input Transport.ConnectionStateOpen
       action carrier input local
 
+tableSettings :: Settings
+tableSettings = settingsOf Settings.protocolClientTiming Settings.protocolTransportTiming
+
 options :: Time.ControlledTime -> Cache.CacheOptions key value
-options time = Cache.CacheOptions (Time.now time) (Time.waitUntil time) (Timing.saveDebounceMs Timing.protocolSettings) Nothing (const (pure (pure ())))
+options time = Cache.CacheOptions (Time.now time) (Time.waitUntil time) Nothing (const (pure (pure ())))
 
 clock :: Time.ControlledTime -> Bus.BusOptions
 clock time = Bus.BusOptions (Time.now time) (Time.waitUntil time) (ioError (userError "refresh clock unexpectedly used request IDs"))
@@ -83,11 +88,11 @@ windowCases fixtures = withCarrier $ \carrier input local -> do
           Nothing
           (payload stored {storedEventResponseResourceId = Just identity})
           (Just identity)
-      waitWindow = Time.advance time (Timing.invalidationWindowMs Timing.protocolSettings * 1000000)
+      waitWindow = Time.advance time (Timing.invalidationWindowMs * 1000000)
   bracket (Cache.newCache fetch (options time)) Cache.dispose $ \cache -> do
     Cache.fetch cache resource >>= require "first cache read did not fetch" . (== 1)
     let control = Refresh.Acts (Refresh.cacheTargets cache matches) Nothing Nothing
-    bracket (Refresh.newRefresher local carrier (clock time) Timing.protocolSettings [(Fact.Events, control)]) Refresh.dispose $ \refresher -> do
+    bracket (Refresh.newRefresher local carrier (clock time) tableSettings [(Fact.Events, control)]) Refresh.dispose $ \refresher -> do
       Time.settle
       Transport.receive input (event other)
       Time.settle
@@ -112,7 +117,7 @@ windowCases fixtures = withCarrier $ \carrier input local -> do
       Time.settle
       readTVarIO count >>= require "source invalidations did not coalesce" . (== 3)
       require "coalescing let a bookmark outrun an owed invalidation" =<< atomically (Refresh.owes refresher)
-      Time.advance time (Timing.invalidationWindowMs Timing.protocolSettings * 1000000 - 1000000)
+      Time.advance time (Timing.invalidationWindowMs * 1000000 - 1000000)
       readTVarIO count >>= require "owed invalidation ran before its deadline" . (== 3)
       Time.advance time 1000000
       readTVarIO count >>= require "owed invalidation did not run at its deadline" . (== 4)
@@ -156,12 +161,12 @@ writeCases fixtures = withCarrier $ \carrier input local -> do
             local
             carrier
             (clock time)
-            Timing.protocolSettings
+            tableSettings
             [(Fact.Annotation, Refresh.Acts (Refresh.cacheTargets cache matches) Nothing Nothing)]
         ) ::
         IO (Either IOException Refresh.Refresher)
     require "a query owner claimed writes/removals it could not implement" (either (const True) (const False) invalid)
-    bracket (Refresh.newRefresher local carrier (clock time) Timing.protocolSettings [(Fact.Annotation, control)]) Refresh.dispose $ \refresher -> do
+    bracket (Refresh.newRefresher local carrier (clock time) tableSettings [(Fact.Annotation, control)]) Refresh.dispose $ \refresher -> do
       Transport.receive input (changed plain)
       Time.settle
       readTVarIO requests >>= require "unenriched change did not ask again" . (== 1)
@@ -170,7 +175,7 @@ writeCases fixtures = withCarrier $ \carrier input local -> do
       Transport.receive input (changed enriched {enrichedResourceEventAnnotation = Just updated})
       Time.settle
       require "enriched event did not write its value" . (== Just updated) =<< atomically (Cache.get cache identity)
-      Time.advance time (2 * Timing.invalidationWindowMs Timing.protocolSettings * 1000000)
+      Time.advance time (2 * Timing.invalidationWindowMs * 1000000)
       readTVarIO requests >>= require "a known-value write left an older invalidation owed" . (== 1)
       let gone = MarkDeleteOk (MarkDeleteOkResponse identity)
       Transport.receive input (BusFrame (Channel.channelName Channel.MarkDeleteOk) Nothing (payload gone) Nothing)
@@ -209,7 +214,7 @@ patchCases fixtures = withCarrier $ \carrier input local -> do
           Nothing
           (payload enriched {enrichedResourceEventResourceId = Just resource, enrichedResourceEventAnnotation = Just annotation})
           Nothing
-      window = Timing.invalidationWindowMs Timing.protocolSettings * 1000000
+      window = Timing.invalidationWindowMs * 1000000
   bracket (Cache.newCache fetch (options time)) Cache.dispose $ \cache -> do
     Cache.set cache resource 0
     let control =
@@ -217,7 +222,7 @@ patchCases fixtures = withCarrier $ \carrier input local -> do
             (Refresh.cacheTargets cache matches)
             (Just (Refresh.patchTargets cache matches (\_ prior -> prior + 100)))
             Nothing
-    bracket (Refresh.newRefresher local carrier (clock time) Timing.protocolSettings [(Fact.Annotations, control)]) Refresh.dispose $ \refresher -> do
+    bracket (Refresh.newRefresher local carrier (clock time) tableSettings [(Fact.Annotations, control)]) Refresh.dispose $ \refresher -> do
       Transport.receive input added
       Time.settle
       readTVarIO requests >>= require "an added mark did not ask again for its list" . (== 1)
@@ -243,12 +248,12 @@ reopenCases _ = withCarrier $ \carrier input local -> do
   bracket (Cache.newCache fetch (options time)) Cache.dispose $ \cache -> do
     Cache.set cache 1 1
     let control = Refresh.Acts (Refresh.cacheTargets cache (\_ _ -> False)) Nothing Nothing
-    bracket (Refresh.newRefresher local carrier (clock time) Timing.protocolSettings [(Fact.Resources, control)]) Refresh.dispose $ \_ -> do
+    bracket (Refresh.newRefresher local carrier (clock time) tableSettings [(Fact.Resources, control)]) Refresh.dispose $ \_ -> do
       Time.settle
       readTVarIO requests >>= require "initial open refreshed cached values" . (== 0)
-      Transport.setState input Transport.Reconnecting
-      Transport.setState input Transport.Connecting
-      Transport.setState input Transport.Open
+      Transport.setState input Transport.ConnectionStateReconnecting
+      Transport.setState input Transport.ConnectionStateConnecting
+      Transport.setState input Transport.ConnectionStateOpen
       Time.settle
       readTVarIO requests >>= require "reopening did not refresh held passing-event queries" . (== 1)
 
@@ -274,7 +279,6 @@ disposalCases fixtures = do
         Persistence.persister
           (Persistence.CachePersistence storage "kb" "person" (pure 1800000000000))
           coupled
-          Timing.protocolSettings
           Persisted.Resource
           (\key _ -> parseJSON key)
       let event =
@@ -287,7 +291,7 @@ disposalCases fixtures = do
       bracket (Cache.newCache (\(_ :: ResourceId) -> pure (1 :: Int)) ((options time) {Cache.cachePersister = Just persister})) Cache.dispose $ \cache -> do
         _ <- Cache.fetch cache resource
         let control = Refresh.Acts (Refresh.cacheTargets cache matches) Nothing Nothing
-        bracket (Refresh.newRefresher local carrier (clock time) Timing.protocolSettings [(Fact.Events, control)]) Refresh.dispose $ \refresher -> do
+        bracket (Refresh.newRefresher local carrier (clock time) tableSettings [(Fact.Events, control)]) Refresh.dispose $ \refresher -> do
           Coupled.start coupled (Cache.persistencePending cache) ((||) <$> Cache.fetching cache <*> Refresh.owes refresher)
           Time.settle
           when owing $ do

@@ -229,13 +229,18 @@ let whole =
                 ~recorded:
                   [ "components/schemas/Request.json#/properties/limit" ]
                 limit)));
-    case "a description beside a member written in place is refused" (fun () ->
+    case "a description beside a member written in place is what is said of it"
+      (fun () ->
         match
-          in_place
-            {|"m":{"$ref":"../../components/schemas/Request.json#/properties/limit","description":"d"}|}
+          member_of
+            (in_place
+               {|"m":{"$ref":"../../components/schemas/Request.json#/properties/limit","description":"d"}|})
         with
-        | exception Definitions.Refused _ -> ()
-        | _ -> Alcotest.fail "the description was dropped");
+        | Some
+            (Schema.Schema
+               { type_ = Some [ Integer ]; description = Some "d"; _ }) ->
+            ()
+        | _ -> Alcotest.fail "m is not the limit, described as d");
     case "a member that reaches itself in its place is refused" (fun () ->
         match
           in_place

@@ -10,4 +10,5 @@ public sealed record ErrorsCodesTransportCodesItemStatus
     [global::Xynolog.Serialization.Wire("code")] public required string Code { get; init; }
     [global::Xynolog.Serialization.Wire("docs")] public required string Docs { get; init; }
     [global::Xynolog.Serialization.Wire("status")] public required long Status { get; init; }
+    [global::Xynolog.Serialization.Wire("limitRefusals")] public global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ErrorsCodesTransportCodesItemStatusLimitRefusalsItem>? LimitRefusals { get; init; }
 }

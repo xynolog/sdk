@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"slices"
 	"sync"
-	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -30,45 +29,6 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/conformance/internal/protocol"
 )
-
-// timing is the client's timing, with what the case overrides, each entry by
-// its name in protocol/specs/src/client/timing.json: the transport's, and a worker's.
-func timing(args protocol.Arguments) (xynolog.Timing, error) {
-	timing := xynolog.DefaultTiming()
-	if _, given := args["timing"]; !given {
-		return timing, nil
-	}
-	var stated protocol.Arguments
-	if json.Unmarshal(args["timing"], &stated) != nil || stated == nil {
-		return timing, protocol.Misused("timing must be an object")
-	}
-	for name := range stated {
-		n, err := protocol.Count(stated, name)
-		if err != nil {
-			return timing, err
-		}
-		ms := time.Duration(n) * time.Millisecond
-		switch name {
-		case "reconnectMs":
-			timing.Reconnect = ms
-		case "lazyRemoveMs":
-			timing.LazyRemove = ms
-		case "lingerMs":
-			timing.Linger = ms
-		case "jobClaimTimeoutMs":
-			timing.JobClaimTimeout = ms
-		case "heldJobStallMs":
-			timing.HeldJobStall = ms
-		case "heldJobStallCheckMs":
-			timing.HeldJobStallCheck = ms
-		case "markCommitTimeoutMs":
-			timing.MarkCommitTimeout = ms
-		default:
-			return timing, protocol.Misused("this driver cannot override %s", name)
-		}
-	}
-	return timing, nil
-}
 
 // asTheSuiteWroteIt is what a case states as the wire carries it, as the
 // SDK's type for it. One the type refuses is the suite's mistake.
@@ -101,18 +61,6 @@ func units(args protocol.Arguments) ([]string, error) {
 	return protocol.Texts(args, "completedUnits")
 }
 
-// iso is a time as the protocol carries one; nil for one that has not
-// happened.
-func iso(at time.Time) any {
-	if at.IsZero() {
-		return nil
-	}
-	return stamp(at)
-}
-
-// stamp is at as the wire writes a time.
-func stamp(at time.Time) string { return at.UTC().Format("2006-01-02T15:04:05.000Z07:00") }
-
 // running is the held job, and the span it is run in.
 type running struct {
 	job  xynolog.HeldJob
@@ -131,11 +79,13 @@ type worker struct {
 	client    *xynolog.Client
 	closed    bool
 	claims    *xynolog.Claims
+	// options is the claims' waits, as the case's timing states them.
+	options api.ClaimOptions
 	// held is the job the worker last came to hold, as its claims handed it
 	// out.
 	held     *running
 	releases []func()
-	reported xynolog.ConnectionState
+	reported api.ConnectionState
 	// reporters is what says what the worker observes.
 	reporters sync.WaitGroup
 }
@@ -185,7 +135,7 @@ func (w *worker) settling(ctx context.Context) (*running, context.Context, func(
 
 // report says the state the transport is in, unless it is the one last
 // said.
-func (w *worker) report(state xynolog.ConnectionState) {
+func (w *worker) report(state api.ConnectionState) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if w.reported != state {
@@ -238,8 +188,9 @@ func (w *worker) open(args protocol.Arguments) error {
 	if open {
 		return protocol.Misused("a transport is already open")
 	}
-	timing, err := timing(args)
-	if err != nil {
+	clientTiming, transportTiming := xynolog.DefaultClientTiming(), xynolog.DefaultTransportTiming()
+	var options api.ClaimOptions
+	if err := protocol.Timing(args, &clientTiming, &transportTiming, &options); err != nil {
 		return err
 	}
 	baseURL, err := protocol.Text(args, "baseUrl")
@@ -261,23 +212,23 @@ func (w *worker) open(args protocol.Arguments) error {
 		channels = append(channels, xynolog.JobCommitChannels...)
 	}
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{
-		BaseURL: baseURL, Token: xynolog.NewVariable(token), Channels: channels, HTTP: &http.Client{}, Timing: timing,
+		BaseURL: baseURL, Token: xynolog.NewVariable(token), Channels: channels, HTTP: &http.Client{}, Timing: transportTiming,
 	})
 	// Taken at once, so every failure from the first request on is said, each
 	// before the call that met it returns, until the transport closes.
 	transport.Failures(func(failed *xynolog.TransportError) {
 		protocol.Say(api.ConformanceDriverLineErrorStream{Error: protocol.Failure(failed)})
 	})
-	c := xynolog.NewClient(xynolog.ClientConfig{Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: timing})
+	c := xynolog.NewClient(xynolog.ClientConfig{Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: clientTiming})
 	w.mu.Lock()
-	w.transport, w.client = transport, c
+	w.transport, w.client, w.options = transport, c, options
 	w.mu.Unlock()
 	w.reporters.Add(1)
 	go func() {
 		defer w.reporters.Done()
 		for state := range transport.State().Changes(context.Background()) {
 			w.report(state)
-			if state == xynolog.ConnectionStateClosed {
+			if state == api.ConnectionStateClosed {
 				return
 			}
 		}
@@ -336,7 +287,9 @@ func (w *worker) claim(args protocol.Arguments) error {
 	if w.claims != nil {
 		return protocol.Misused("the worker is already claiming")
 	}
-	claims := c.Job.Claim(api.ClaimOptions{Accepts: accepts})
+	options := w.options
+	options.Accepts = accepts
+	claims := c.Job.Claim(options)
 	w.claims = claims
 	w.reporters.Add(2)
 	go func() {
@@ -358,7 +311,7 @@ func (w *worker) claim(args protocol.Arguments) error {
 func (w *worker) reading(claims *xynolog.Claims) {
 	for job, err := range claims.All() {
 		if err != nil {
-			var refusal *xynolog.ClaimRefusal
+			var refusal *api.ClaimRefusal
 			if !errors.As(err, &refusal) {
 				protocol.Say(api.ConformanceDriverLineRefused{Refused: api.ConformanceFailure{Detail: err.Error()}})
 				continue
@@ -382,16 +335,7 @@ func (w *worker) reading(claims *xynolog.Claims) {
 				}
 			}
 		}()
-		protocol.Say(api.ConformanceDriverLineClaimed{Claimed: map[string]any{
-			"jobId":          job.JobId(),
-			"jobType":        job.JobType(),
-			"resourceId":     job.ResourceId(),
-			"params":         job.Params(),
-			"completedUnits": job.CompletedUnits(),
-			"unitCursors":    job.UnitCursors(),
-			"retryCount":     job.RetryCount(),
-			"maxRetries":     job.MaxRetries(),
-		}})
+		protocol.Say(api.ConformanceDriverLineClaimed{Claimed: job.Record()})
 	}
 }
 
@@ -434,15 +378,19 @@ func (w *worker) checkpoint(ctx context.Context, args protocol.Arguments) error 
 	if err != nil {
 		return err
 	}
+	checkpoint := api.JobCheckpoint{CompletedUnits: completed}
 	unitCursors, err := cursors(args)
 	if err != nil {
 		return err
+	}
+	if unitCursors != nil {
+		checkpoint.UnitCursors = &unitCursors
 	}
 	held, inSpan, err := w.working(ctx)
 	if err != nil {
 		return err
 	}
-	return held.job.Checkpoint(inSpan, completed, unitCursors)
+	return held.job.Checkpoint(inSpan, checkpoint)
 }
 
 // commit is the held job committing for itself: it cites its own id, and
@@ -502,7 +450,7 @@ func (w *worker) fail(ctx context.Context, args protocol.Arguments) error {
 	if err != nil {
 		return err
 	}
-	var failure xynolog.JobFailure
+	var failure api.JobFailure
 	if _, given := args["failureClass"]; given {
 		class, err := asTheSuiteWroteIt[api.FailureClass](args, "failureClass")
 		if err != nil {
@@ -510,11 +458,19 @@ func (w *worker) fail(ctx context.Context, args protocol.Arguments) error {
 		}
 		failure.FailureClass = &class
 	}
-	if failure.CompletedUnits, err = units(args); err != nil {
+	completed, err := units(args)
+	if err != nil {
 		return err
 	}
-	if failure.UnitCursors, err = cursors(args); err != nil {
+	if completed != nil {
+		failure.CompletedUnits = &completed
+	}
+	unitCursors, err := cursors(args)
+	if err != nil {
 		return err
+	}
+	if unitCursors != nil {
+		failure.UnitCursors = &unitCursors
 	}
 	held, inSpan, done, err := w.settling(ctx)
 	if err != nil {
@@ -525,20 +481,27 @@ func (w *worker) fail(ctx context.Context, args protocol.Arguments) error {
 }
 
 func (w *worker) cancel(ctx context.Context, args protocol.Arguments) error {
+	var reached api.JobReached
 	completed, err := units(args)
 	if err != nil {
 		return err
 	}
+	if completed != nil {
+		reached.CompletedUnits = &completed
+	}
 	unitCursors, err := cursors(args)
 	if err != nil {
 		return err
+	}
+	if unitCursors != nil {
+		reached.UnitCursors = &unitCursors
 	}
 	held, inSpan, done, err := w.settling(ctx)
 	if err != nil {
 		return err
 	}
 	defer done()
-	return held.job.Cancel(inSpan, completed, unitCursors)
+	return held.job.Cancel(inSpan, reached)
 }
 
 func (w *worker) vitals() (any, error) {
@@ -546,19 +509,7 @@ func (w *worker) vitals() (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	vitals := claims.Vitals()
-	var active *api.WorkerEngineHealthActiveJob
-	if job := vitals.ActiveJob; job != nil {
-		active = &api.WorkerEngineHealthActiveJob{JobId: job.JobId, Type: job.Type, Since: stamp(job.Since)}
-	}
-	return map[string]any{
-		"lastQueuedEventAt": iso(vitals.LastQueuedEventAt),
-		"lastClaimAt":       iso(vitals.LastClaimAt),
-		"lastFinishedAt":    iso(vitals.LastFinishedAt),
-		"lastActivityAt":    iso(vitals.LastActivityAt),
-		"activeJob":         active,
-		"jobsCompleted":     vitals.JobsCompleted,
-	}, nil
+	return claims.Vitals(), nil
 }
 
 // Finish is the suite done with this worker, which ends as a worker that is

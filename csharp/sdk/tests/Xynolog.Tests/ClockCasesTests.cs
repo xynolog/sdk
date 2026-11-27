@@ -70,6 +70,9 @@ public sealed class ClockCasesTests
         ["timedOutBusRequest"] = TimedOutBusRequestAsync,
         ["jobPoll"] = JobPollAsync,
         ["jobPollTimeout"] = JobPollTimeoutAsync,
+        ["refusedAgentSignIn"] = RefusedAgentSignInAsync,
+        ["unreachableAgentSignIn"] = UnreachableAgentSignInAsync,
+        ["refusedAgentGrant"] = RefusedAgentGrantAsync,
     };
 
     public static IEnumerable<object[]> Cases()
@@ -328,6 +331,33 @@ public sealed class ClockCasesTests
         return new Subject(() => Volatile.Read(ref renewals), null);
     }
 
+    // ── An agent's sign-in ──────────────────────────────────────────────────
+
+    private static Task<Subject> RefusedAgentSignInAsync(JsonElement given, Case play) =>
+        Task.FromResult(AgentSignIn(play, new AgentServers(play.Clock, null, GivenStatus(given), false)));
+
+    private static Task<Subject> UnreachableAgentSignInAsync(JsonElement given, Case play) =>
+        Task.FromResult(AgentSignIn(play, new AgentServers(play.Clock, null, null, true)));
+
+    private static Task<Subject> RefusedAgentGrantAsync(JsonElement given, Case play) =>
+        Task.FromResult(AgentSignIn(play, new AgentServers(play.Clock, GivenStatus(given), null, false)));
+
+    private static HttpStatusCode GivenStatus(JsonElement given) => (HttpStatusCode)given.GetProperty("status").GetInt32();
+
+    /// <summary>An agent's sign-in at <paramref name="servers"/>, set going as the case begins. It is to fail, and its failure is thrown to it.</summary>
+    private static Subject AgentSignIn(Case play, AgentServers servers)
+    {
+        var http = play.Keep(new HttpClient(servers) { Timeout = Timeout.InfiniteTimeSpan });
+        var service = play.Keep(new ServiceToken(IssuerUrl, "smelter", "a-client-secret", http, play.Clock, play.Random));
+        var agent = play.Keep(new AgentToken(Read<HttpEndpoint>("""{"kind":"http","host":"gateway.test","port":80,"protocol":"http"}"""), service, http));
+        var signingIn = play.Running(agent.SignInAsync);
+        return new Subject(() =>
+        {
+            if (signingIn.IsCompleted && signingIn.Exception is null) throw new CaseFailed($"the sign-in ended {signingIn.Status}, not thrown to its caller");
+            return servers.Sent;
+        }, null);
+    }
+
     // ── A worker's claims ───────────────────────────────────────────────────
 
     private static async Task<Subject> HeldJobStallAsync(JsonElement given, Case play)
@@ -354,8 +384,11 @@ public sealed class ClockCasesTests
 
     private static Task<Subject> DiscoveryAsync(JsonElement given, Case play)
     {
-        var document = new LauncherDocument(new Managed([Read<DiscoveredKB>(
-            """{"host":"localhost","port":4000,"placement":"local","managedBy":"xynolog-launcher","did":"did:web:example.org:kb-a"}""")]));
+        var document = new LauncherDocument(new DiscoveryRead.DiscoveryManaged(new DiscoveryManaged
+        {
+            Kbs = [Read<DiscoveredKB>(
+                """{"host":"localhost","port":4000,"placement":"local","managedBy":"xynolog-launcher","did":"did:web:example.org:kb-a"}""")],
+        }));
         play.Running(async stop =>
         {
             await foreach (var _ in LauncherDiscovery.SubscribeDiscovery(document, LauncherDiscovery.DiscoveryInterval, play.Clock, stop)) { }
@@ -756,14 +789,73 @@ public sealed class ClockCasesTests
             new(status) { Content = JsonContent.Create(body) };
     }
 
+    /// <summary>
+    /// An agent's issuer and the gateway it signs in at, in this process. The issuer answers each ask of its token endpoint
+    /// with <paramref name="grantStatus"/>, or a token that lives an hour; the gateway answers who the agent is with
+    /// <paramref name="namingStatus"/>, and every connection to it fails as it is made when
+    /// <paramref name="unreachable"/>. It counts what the sign-in sent: its grants, and its requests of the gateway, a
+    /// connection it tried among them.
+    /// </summary>
+    private sealed class AgentServers(TimeProvider clock, HttpStatusCode? grantStatus, HttpStatusCode? namingStatus, bool unreachable) : HttpMessageHandler
+    {
+        private int sent;
+        private string? stray;
+
+        internal int Sent => Volatile.Read(ref stray) is string asked
+            ? throw new CaseFailed($"the sign-in asked {asked}, which this subject does not have it answer")
+            : Volatile.Read(ref sent);
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var address = request.RequestUri ?? throw new CaseFailed("a request named no address");
+            var issuer = new Uri(IssuerUrl);
+            if (address.Host == "gateway.test")
+            {
+                Interlocked.Increment(ref sent);
+                if (unreachable)
+                    return Task.FromException<HttpResponseMessage>(new HttpRequestException(HttpRequestError.ConnectionError, "the gateway refused the connection"));
+                if (address.AbsolutePath != GatewayRoute.GetCurrentUser.Path || namingStatus is not HttpStatusCode refused) return Stray(request);
+                return Task.FromResult(Answer(refused, new Dictionary<string, object>()));
+            }
+            if (address.Host != issuer.Host) return Stray(request);
+            if (address.AbsolutePath == issuer.AbsolutePath + "/.well-known/openid-configuration")
+                return Task.FromResult(Answer(HttpStatusCode.OK, new Dictionary<string, object>
+                {
+                    ["issuer"] = IssuerUrl,
+                    ["authorization_endpoint"] = IssuerUrl + "/auth",
+                    ["token_endpoint"] = IssuerUrl + "/token",
+                }));
+            if (address.AbsolutePath != issuer.AbsolutePath + "/token") return Stray(request);
+            Interlocked.Increment(ref sent);
+            if (grantStatus is HttpStatusCode refusing)
+                return Task.FromResult(Answer(refusing, new Dictionary<string, object> { ["error"] = "temporarily_unavailable" }));
+            var now = clock.GetUtcNow().ToUnixTimeSeconds();
+            return Task.FromResult(Answer(HttpStatusCode.OK, new Dictionary<string, object>
+            {
+                ["access_token"] = TokenTests.Jwt(new { iat = now, exp = now + 3600 }),
+                ["token_type"] = "Bearer",
+                ["expires_in"] = 3600,
+            }));
+        }
+
+        private Task<HttpResponseMessage> Stray(HttpRequestMessage request)
+        {
+            Interlocked.CompareExchange(ref stray, $"{request.Method} {request.RequestUri}", null);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+        }
+
+        private static HttpResponseMessage Answer<T>(HttpStatusCode status, Dictionary<string, T> body) =>
+            new(status) { Content = JsonContent.Create(body) };
+    }
+
     /// <summary>A launcher's document: <paramref name="first"/> at the first read, and unchanged at every read after it.</summary>
-    private sealed class LauncherDocument(Managed first) : DiscoveryTransport
+    private sealed class LauncherDocument(DiscoveryRead.DiscoveryManaged first) : DiscoveryTransport
     {
         private int reads;
 
         internal int Reads => Volatile.Read(ref reads);
 
         public Task<DiscoveryRead> ReadAsync(CancellationToken cancellation = default) =>
-            Task.FromResult<DiscoveryRead>(Interlocked.Increment(ref reads) == 1 ? first : new Unchanged());
+            Task.FromResult<DiscoveryRead>(Interlocked.Increment(ref reads) == 1 ? first : new DiscoveryRead.DiscoveryUnchanged(new DiscoveryUnchanged()));
     }
 }

@@ -37,7 +37,7 @@ import Xynolog.SessionStorage qualified as Storage
 import Xynolog.StateValue qualified as State
 import Xynolog.Testing.Sessions qualified as Sessions
 import Xynolog.Testing.Transport qualified as Faulty
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types
 
 failure :: Text -> String -> IO result
@@ -141,7 +141,7 @@ runCase fixtures row = do
               (pure ()),
             Nothing
           )
-  scripted <- Sessions.newScriptedSessions clock busOptions Timing.protocolSettings (pure 1800000000) respond contents
+  scripted <- Sessions.newScriptedSessions clock busOptions Settings.protocolClientTiming Settings.protocolTransportTiming (pure 1800000000) respond contents
   Sessions.refuseWhen scripted gone
   fixture fixtures "UserResponse" >>= Sessions.saysWho scripted . Just
   grant <- fixture fixtures "StoredSession"
@@ -149,7 +149,7 @@ runCase fixtures row = do
   Browser.saveKnowledgeBases
     store
     [KnowledgeBase {knowledgeBaseDid = (either error userIdValue (Identity.kbDid kbDomain)), knowledgeBaseEndpoint = (KbEndpointLocalEndpoint (LocalEndpoint {localEndpointKbId = kbId, localEndpointKind = LocalEndpointKindLocal})), knowledgeBaseId = kbId, knowledgeBaseLabel = "Open", knowledgeBaseLastRead = Nothing}]
-  Browser.storeSession store kbId grant {storedSessionAccess = jwt 3600 1}
+  Browser.storeSession store kbId grant {storedSessionAccess = AccessToken (jwt 3600 1)}
   tabs <- forM (zip [0 ..] open) $ \(order, resource) -> do
     identity <- either (failure why) pure (mkResourceId resource)
     pure (OpenResource {openResourceId = identity, openResourceMediaType = Nothing, openResourceName = resource, openResourceOpenedAt = 1800000000000, openResourceOrder = order, openResourceStorageUri = Nothing})
@@ -162,12 +162,12 @@ runCase fixtures row = do
           (pure Nothing)
           (const (pure Nothing))
           clock
-          Timing.protocolSettings
+          Settings.protocolTransportTiming
           (UUID.fromWords 0 0 0 . fromInteger <$> fresh)
           Set.empty
           (pure Map.empty)
           (\_ _ -> pure ())
-  bracket (Browser.newXynologBrowser (Browser.XynologBrowserConfig store (Sessions.factory scripted) http (pure 1800000000))) Browser.dispose $ \browser -> do
+  bracket (Browser.newXynologBrowser (Browser.XynologBrowserConfig store (Sessions.factory scripted) http Settings.protocolClientTiming (pure 1800000000))) Browser.dispose $ \browser -> do
     Time.settle
     requests <- Sessions.transports scripted kbId >>= fmap concat . mapM Faulty.requestLog
     askedAbout <-

@@ -19,8 +19,7 @@ public data class WorkerEngineHealth(
     public val lastFinishedAt: String?,
     /** When it was last active, or null. */
     public val lastActivityAt: String?,
-    /** The job it holds, or null. */
-    public val activeJob: WorkerEngineHealthActiveJob?,
+    public val activeJob: WorkerActiveJob?,
     /** How many jobs it has completed since the service started. */
     public val jobsCompleted: Long,
 ) {
@@ -32,7 +31,7 @@ public data class WorkerEngineHealth(
         private val lastClaimAt: String?,
         private val lastFinishedAt: String?,
         private val lastActivityAt: String?,
-        private val activeJob: WorkerEngineHealthActiveJob?,
+        private val activeJob: WorkerActiveJob?,
         private val jobsCompleted: Long,
     ) {
         public fun build(): WorkerEngineHealth = WorkerEngineHealth(engine = engine, jobs = jobs, lastQueuedEventAt = lastQueuedEventAt, lastClaimAt = lastClaimAt, lastFinishedAt = lastFinishedAt, lastActivityAt = lastActivityAt, activeJob = activeJob, jobsCompleted = jobsCompleted)
@@ -41,6 +40,6 @@ public data class WorkerEngineHealth(
     public companion object {
         /** A builder of a `WorkerEngineHealth` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(engine: Engine, jobs: kotlin.collections.List<JobFilter>, lastQueuedEventAt: String?, lastClaimAt: String?, lastFinishedAt: String?, lastActivityAt: String?, activeJob: WorkerEngineHealthActiveJob?, jobsCompleted: Long): Builder = Builder(engine, jobs, lastQueuedEventAt, lastClaimAt, lastFinishedAt, lastActivityAt, activeJob, jobsCompleted)
+        public fun builder(engine: Engine, jobs: kotlin.collections.List<JobFilter>, lastQueuedEventAt: String?, lastClaimAt: String?, lastFinishedAt: String?, lastActivityAt: String?, activeJob: WorkerActiveJob?, jobsCompleted: Long): Builder = Builder(engine, jobs, lastQueuedEventAt, lastClaimAt, lastFinishedAt, lastActivityAt, activeJob, jobsCompleted)
     }
 }

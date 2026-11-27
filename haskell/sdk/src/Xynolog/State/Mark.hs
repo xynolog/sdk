@@ -42,7 +42,7 @@ import Xynolog.Internal.Transport qualified as Transport
 import Xynolog.Mark qualified as Mark
 import Xynolog.Retry (RetryOptions (..))
 import Xynolog.Running qualified as Running
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
 import Xynolog.Types
 
 data MarkStateUnit
@@ -51,7 +51,6 @@ data MarkStateUnit
       Client.Client
       ResourceId
       RetryOptions
-      Timing.Settings
       (State.StateValue (Maybe PendingAnnotation))
       (State.StateValue (Maybe Motivation))
       (State.StateValue (Maybe JobProgress))
@@ -59,12 +58,12 @@ data MarkStateUnit
       (State.StateValue (Maybe SomeException))
       (State.StateValue (Maybe JobId))
 
-newMarkStateUnit :: Client.Client -> ResourceId -> RetryOptions -> Timing.Settings -> IO MarkStateUnit
-newMarkStateUnit client resource clock timing = do
+newMarkStateUnit :: Client.Client -> ResourceId -> RetryOptions -> IO MarkStateUnit
+newMarkStateUnit client resource clock = do
   tasks <- Tasks.newTasks "mark state unit is closed"
   unit <-
     atomically
-      ( MarkStateUnit tasks client resource clock timing
+      ( MarkStateUnit tasks client resource clock
           <$> State.newStateValue Nothing
           <*> State.newStateValue Nothing
           <*> State.newStateValue Nothing
@@ -90,23 +89,23 @@ newMarkStateUnit client resource clock timing = do
   pure unit
 
 pendingAnnotation :: MarkStateUnit -> State.StateValue (Maybe PendingAnnotation)
-pendingAnnotation (MarkStateUnit _ _ _ _ _ value _ _ _ _ _) = value
+pendingAnnotation (MarkStateUnit _ _ _ _ value _ _ _ _ _) = value
 
 delegatingMotivation, progressMotivation :: MarkStateUnit -> State.StateValue (Maybe Motivation)
-delegatingMotivation (MarkStateUnit _ _ _ _ _ _ value _ _ _ _) = value
-progressMotivation (MarkStateUnit _ _ _ _ _ _ _ _ value _ _) = value
+delegatingMotivation (MarkStateUnit _ _ _ _ _ value _ _ _ _) = value
+progressMotivation (MarkStateUnit _ _ _ _ _ _ _ value _ _) = value
 
 progress :: MarkStateUnit -> State.StateValue (Maybe JobProgress)
-progress (MarkStateUnit _ _ _ _ _ _ _ value _ _ _) = value
+progress (MarkStateUnit _ _ _ _ _ _ value _ _ _) = value
 
 failure :: MarkStateUnit -> State.StateValue (Maybe SomeException)
-failure (MarkStateUnit _ _ _ _ _ _ _ _ _ value _) = value
+failure (MarkStateUnit _ _ _ _ _ _ _ _ value _) = value
 
 jobId :: MarkStateUnit -> State.StateValue (Maybe JobId)
-jobId (MarkStateUnit _ _ _ _ _ _ _ _ _ _ value) = value
+jobId (MarkStateUnit _ _ _ _ _ _ _ _ _ value) = value
 
 create :: MarkStateUnit -> MarkSubmitEvent -> IO ()
-create unit@(MarkStateUnit _ client resource _ _ _ _ _ _ _ _) submission = do
+create unit@(MarkStateUnit _ client resource _ _ _ _ _ _ _) submission = do
   let target = AnnotationTarget {annotationTargetSelector = (Just (markSubmitEventSelector submission)), annotationTargetSource = resource, annotationTargetType = Nothing}
       request = CreateAnnotationRequest {createAnnotationRequestBody = (markSubmitEventBody submission), createAnnotationRequestMotivation = (markSubmitEventMotivation submission), createAnnotationRequestTarget = target}
       work = Mark.annotation (Client.mark client) request >> atomically (State.update (pendingAnnotation unit) Nothing)
@@ -114,7 +113,7 @@ create unit@(MarkStateUnit _ client resource _ _ _ _ _ _ _ _) submission = do
   work `catches` [Handler (failed . busRequestErrorMessage), Handler (failed . transportErrorMessage)]
 
 requestDelegate :: MarkStateUnit -> MarkJobParams -> IO ()
-requestDelegate unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _ _) params = do
+requestDelegate unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _) params = do
   let motivation = markMotivation params
   accepted <- atomically $ do
     over <- Tasks.closed tasks
@@ -128,7 +127,7 @@ requestDelegate unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _ _) params = do
   when accepted (Tasks.submit tasks (follow unit params motivation))
 
 follow :: MarkStateUnit -> MarkJobParams -> Motivation -> IO () -> IO ()
-follow unit@(MarkStateUnit _ client resource clock timing _ _ _ _ _ _) params motivation acceptedJob = do
+follow unit@(MarkStateUnit _ client resource clock _ _ _ _ _ _) params motivation acceptedJob = do
   created <- newTVarIO Nothing
   let report event = do
         case event of { Delegation.Created _ -> acceptedJob; _ -> pure () }
@@ -172,9 +171,9 @@ follow unit@(MarkStateUnit _ client resource clock timing _ _ _ _ _ _) params mo
                           Delegation.Refused _ -> monitor listening due
                           _ -> do
                             now <- retryNow clock
-                            monitor True (now + Timing.delegateSilenceMs timing * 1000000)
+                            monitor True (now + Timing.delegateSilenceMs * 1000000)
           now <- retryNow clock
-          tracedWithAsync readEvents (\_ -> monitor True (now + Timing.delegateSilenceMs timing * 1000000))
+          tracedWithAsync readEvents (\_ -> monitor True (now + Timing.delegateSilenceMs * 1000000))
       failed problem cancelled = atomically $ do
         State.update (failure unit) (Just problem)
         unless cancelled (State.update (progress unit) Nothing >> State.update (progressMotivation unit) Nothing)
@@ -190,17 +189,17 @@ follow unit@(MarkStateUnit _ client resource clock timing _ _ _ _ _ _) params mo
     when (ours /= Nothing && ours == current) (State.update (jobId unit) Nothing)
 
 cancelPending :: MarkStateUnit -> STM ()
-cancelPending unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _ _) = Tasks.closed tasks >>= \over -> unless over (State.update (pendingAnnotation unit) Nothing)
+cancelPending unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _) = Tasks.closed tasks >>= \over -> unless over (State.update (pendingAnnotation unit) Nothing)
 
 dismissProgress :: MarkStateUnit -> STM ()
-dismissProgress unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _ _) =
+dismissProgress unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _) =
   Tasks.closed tasks >>= \over ->
     unless
       over
       (State.update (progress unit) Nothing >> State.update (progressMotivation unit) Nothing >> State.update (failure unit) Nothing)
 
 dispose :: MarkStateUnit -> IO ()
-dispose unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _ _) =
+dispose unit@(MarkStateUnit tasks _ _ _ _ _ _ _ _ _) =
   Tasks.dispose tasks
     `finally` atomically
       ( State.complete (pendingAnnotation unit)

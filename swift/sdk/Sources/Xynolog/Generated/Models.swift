@@ -63,6 +63,8 @@ public struct AboutResult: Codable, Sendable, Hashable {
   }
 }
 
+public typealias AccessToken = String
+
 public indirect enum Agent: Codable, Sendable, Hashable {
   case agentPerson(AgentPerson)
   case agentOrganization(AgentOrganization)
@@ -3429,6 +3431,14 @@ public struct BusSubscribeRequestScopedItem: Codable, Sendable, Hashable {
   }
 }
 
+public typealias ByteSource = Data
+
+public enum CacheStatus: String, Codable, Sendable, CaseIterable {
+  case pending = "pending"
+  case ready = "ready"
+  case failed = "failed"
+}
+
 public struct Cancelled: Codable, Sendable, Hashable {
   public var requestId: RequestId
   public var reason: String?
@@ -3488,6 +3498,70 @@ public struct ClaimOptions: Codable, Sendable, Hashable {
   }
 }
 
+public struct ClaimRefusal: Codable, Sendable, Hashable {
+  public var code: BusRequestErrorCode?
+  public var message: String
+  public init(code: BusRequestErrorCode?, message: String) {
+    self.code = code
+    self.message = message
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "message"], in: "ClaimRefusal")
+    self.code = try c.value("code")
+    self.message = try c.value("message")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.message, as: "message")
+  }
+}
+
+public struct ClientConnectionStates: Codable, Sendable, Hashable {
+  public var comment: String
+  public var states: [ClientConnectionStatesStatesItem]
+  public init(comment: String, states: [ClientConnectionStatesStatesItem]) {
+    self.comment = comment
+    self.states = states
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "states"], in: "ClientConnectionStates")
+    self.comment = try c.value("$comment")
+    self.states = try c.value("states")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.states, as: "states")
+  }
+}
+
+public struct ClientConnectionStatesStatesItem: Codable, Sendable, Hashable {
+  public var state: ConnectionState
+  public var meaning: String
+  public var moves: [ConnectionState]
+  public init(state: ConnectionState, meaning: String, moves: [ConnectionState]) {
+    self.state = state
+    self.meaning = meaning
+    self.moves = moves
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["state", "meaning", "moves"], in: "ClientConnectionStatesStatesItem")
+    self.state = try c.value("state")
+    self.meaning = try c.value("meaning")
+    self.moves = try c.value("moves")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.state, as: "state")
+    try c.encode(self.meaning, as: "meaning")
+    try c.encode(self.moves, as: "moves")
+  }
+}
+
 public struct ClientDiscoveryAbsent: Codable, Sendable, Hashable {
   public var comment: String
   public var reasons: [ClientDiscoveryAbsentReasonsItem]
@@ -3509,9 +3583,9 @@ public struct ClientDiscoveryAbsent: Codable, Sendable, Hashable {
 }
 
 public struct ClientDiscoveryAbsentReasonsItem: Codable, Sendable, Hashable {
-  public var reason: String
+  public var reason: DiscoveryAbsentReason
   public var docs: String
-  public init(reason: String, docs: String) {
+  public init(reason: DiscoveryAbsentReason, docs: String) {
     self.reason = reason
     self.docs = docs
   }
@@ -3525,6 +3599,309 @@ public struct ClientDiscoveryAbsentReasonsItem: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.reason, as: "reason")
     try c.encode(self.docs, as: "docs")
+  }
+}
+
+public struct ClientOptionDefaults: Codable, Sendable, Hashable {
+  public var comment: String
+  public var defaults: [ClientOptionDefaultsDefaultsItem]
+  public init(comment: String, defaults: [ClientOptionDefaultsDefaultsItem]) {
+    self.comment = comment
+    self.defaults = defaults
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "defaults"], in: "ClientOptionDefaults")
+    self.comment = try c.value("$comment")
+    self.defaults = try c.value("defaults")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.defaults, as: "defaults")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItem: Codable, Sendable, Hashable {
+  public var method: String
+  public var parameter: String
+  public var option: String?
+  public var value: JSONValue
+  public var schema: ClientOptionDefaultsDefaultsItemSchema?
+  public var sends: String?
+  public var docs: String
+  public init(
+    method: String, parameter: String, option: String? = nil, value: JSONValue,
+    schema: ClientOptionDefaultsDefaultsItemSchema? = nil, sends: String? = nil, docs: String
+  ) {
+    self.method = method
+    self.parameter = parameter
+    self.option = option
+    self.value = value
+    self.schema = schema
+    self.sends = sends
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["method", "parameter", "option", "value", "schema", "sends", "docs"],
+      in: "ClientOptionDefaultsDefaultsItem")
+    self.method = try c.value("method")
+    self.parameter = try c.value("parameter")
+    self.option = try c.ifPresent("option")
+    self.value = try c.value("value")
+    self.schema = try c.ifPresent("schema")
+    self.sends = try c.ifPresent("sends")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.method, as: "method")
+    try c.encode(self.parameter, as: "parameter")
+    try c.encodeIfPresent(self.option, as: "option")
+    try c.encode(self.value, as: "value")
+    try c.encodeIfPresent(self.schema, as: "schema")
+    try c.encodeIfPresent(self.sends, as: "sends")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
+public indirect enum ClientOptionDefaultsDefaultsItemSchema: Codable, Sendable, Hashable {
+  case reference(ClientOptionDefaultsDefaultsItemSchemaReference)
+  case dateTime(ClientOptionDefaultsDefaultsItemSchemaDateTime)
+  case typeParameter(ClientOptionDefaultsDefaultsItemSchemaTypeParameter)
+  case decided(ClientOptionDefaultsDefaultsItemSchemaDecided)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["$ref"], allowed: ["$ref", "typeArguments"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["type", "description"],
+        allowed: ["type", "minimum", "format", "description"],
+        fixed: [
+          .init(property: "type", values: [.text("integer"), .text("string"), .text("boolean")]),
+          .init(property: "format", values: [.text("date-time")]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["typeParameter"], allowed: ["typeParameter"], fixed: [],
+        values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["decided"], allowed: ["decided"], fixed: [], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "ClientOptionDefaultsDefaultsItemSchema", members: Self.members,
+      variants: [
+        (
+          "reference",
+          { decoder in
+            try Self.reference(ClientOptionDefaultsDefaultsItemSchemaReference(from: decoder))
+          }
+        ),
+        (
+          "dateTime",
+          { decoder in
+            try Self.dateTime(ClientOptionDefaultsDefaultsItemSchemaDateTime(from: decoder))
+          }
+        ),
+        (
+          "typeParameter",
+          { decoder in
+            try Self.typeParameter(
+              ClientOptionDefaultsDefaultsItemSchemaTypeParameter(from: decoder))
+          }
+        ),
+        (
+          "decided",
+          { decoder in
+            try Self.decided(ClientOptionDefaultsDefaultsItemSchemaDecided(from: decoder))
+          }
+        ),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .reference(let value): try value.encode(to: encoder)
+    case .dateTime(let value): try value.encode(to: encoder)
+    case .typeParameter(let value): try value.encode(to: encoder)
+    case .decided(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaDateTime: Codable, Sendable, Hashable {
+  public var type: ClientOptionDefaultsDefaultsItemSchemaDateTimeType
+  public var minimum: Int?
+  public var format: ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat?
+  public var description: String
+  public init(
+    type: ClientOptionDefaultsDefaultsItemSchemaDateTimeType, minimum: Int? = nil,
+    format: ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat? = nil, description: String
+  ) {
+    self.type = type
+    self.minimum = minimum
+    self.format = format
+    self.description = description
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["type", "minimum", "format", "description"],
+      in: "ClientOptionDefaultsDefaultsItemSchemaDateTime")
+    self.type = try c.value("type")
+    self.minimum = try c.ifPresent("minimum")
+    self.format = try c.ifPresent("format")
+    self.description = try c.value("description")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.type, as: "type")
+    try c.encodeIfPresent(self.minimum, as: "minimum")
+    try c.encodeIfPresent(self.format, as: "format")
+    try c.encode(self.description, as: "description")
+  }
+}
+
+public enum ClientOptionDefaultsDefaultsItemSchemaDateTimeFormat: String, Codable, Sendable,
+  CaseIterable
+{
+  case dateTime = "date-time"
+}
+
+public enum ClientOptionDefaultsDefaultsItemSchemaDateTimeType: String, Codable, Sendable,
+  CaseIterable
+{
+  case integer = "integer"
+  case string = "string"
+  case boolean = "boolean"
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaDecided: Codable, Sendable, Hashable {
+  public var decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided
+  public init(decided: ClientOptionDefaultsDefaultsItemSchemaDecidedDecided) {
+    self.decided = decided
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["decided"], in: "ClientOptionDefaultsDefaultsItemSchemaDecided")
+    self.decided = try c.value("decided")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.decided, as: "decided")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaDecidedDecided: Codable, Sendable, Hashable {
+  public var by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy
+  public let `in`: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn
+  public init(by: ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy) {
+    self.by = by
+    self.`in` = .takes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["by", "in"], in: "ClientOptionDefaultsDefaultsItemSchemaDecidedDecided")
+    self.by = try c.value("by")
+    self.`in` = try c.value("in")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.by, as: "by")
+    try c.encode(self.`in`, as: "in")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy: Codable, Sendable, Hashable {
+  public var member: String
+  public init(member: String) {
+    self.member = member
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["member"], in: "ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedBy")
+    self.member = try c.value("member")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.member, as: "member")
+  }
+}
+
+public enum ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedIn: String, Codable, Sendable,
+  CaseIterable
+{
+  case takes = "takes"
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaReference: Codable, Sendable, Hashable {
+  public var ref: String
+  public var typeArguments:
+    [String: ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue]?
+  public init(
+    ref: String,
+    typeArguments: [String: ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue]? =
+      nil
+  ) {
+    self.ref = ref
+    self.typeArguments = typeArguments
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$ref", "typeArguments"], in: "ClientOptionDefaultsDefaultsItemSchemaReference")
+    self.ref = try c.value("$ref")
+    self.typeArguments = try c.ifPresent("typeArguments")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.ref, as: "$ref")
+    try c.encodeIfPresent(self.typeArguments, as: "typeArguments")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue: Codable, Sendable,
+  Hashable
+{
+  public var typeParameter: String
+  public init(typeParameter: String) {
+    self.typeParameter = typeParameter
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["typeParameter"], in: "ClientOptionDefaultsDefaultsItemSchemaReferenceTypeArgumentsValue")
+    self.typeParameter = try c.value("typeParameter")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.typeParameter, as: "typeParameter")
+  }
+}
+
+public struct ClientOptionDefaultsDefaultsItemSchemaTypeParameter: Codable, Sendable, Hashable {
+  public var typeParameter: String
+  public init(typeParameter: String) {
+    self.typeParameter = typeParameter
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["typeParameter"], in: "ClientOptionDefaultsDefaultsItemSchemaTypeParameter")
+    self.typeParameter = try c.value("typeParameter")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.typeParameter, as: "typeParameter")
   }
 }
 
@@ -4503,8 +4880,8 @@ public enum ConformanceDriverLineAbandonedAbandoned: Codable, Sendable, Hashable
 }
 
 public struct ConformanceDriverLineClaimed: Codable, Sendable, Hashable {
-  public var claimed: [String: JSONValue]
-  public init(claimed: [String: JSONValue]) {
+  public var claimed: HeldJobRecord
+  public init(claimed: HeldJobRecord) {
     self.claimed = claimed
   }
   public init(from decoder: any Decoder) throws {
@@ -4842,8 +5219,8 @@ public struct ConformanceDriverLineProgress: Codable, Sendable, Hashable {
 public struct ConformanceDriverLineProgressProgress: Codable, Sendable, Hashable {
   public var upload: Int
   public var bytesUploaded: Int
-  public var totalBytes: Int
-  public init(upload: Int, bytesUploaded: Int, totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(upload: Int, bytesUploaded: Int, totalBytes: Int? = nil) {
     self.upload = upload
     self.bytesUploaded = bytesUploaded
     self.totalBytes = totalBytes
@@ -4854,13 +5231,13 @@ public struct ConformanceDriverLineProgressProgress: Codable, Sendable, Hashable
       ["upload", "bytesUploaded", "totalBytes"], in: "ConformanceDriverLineProgressProgress")
     self.upload = try c.value("upload")
     self.bytesUploaded = try c.value("bytesUploaded")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.upload, as: "upload")
     try c.encode(self.bytesUploaded, as: "bytesUploaded")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -5926,8 +6303,8 @@ public struct ConformanceStepStalled: Codable, Sendable, Hashable {
 }
 
 public struct ConformanceStepState: Codable, Sendable, Hashable {
-  public var state: ConformanceStepStateState
-  public init(state: ConformanceStepStateState) {
+  public var state: ConnectionState
+  public init(state: ConnectionState) {
     self.state = state
   }
   public init(from decoder: any Decoder) throws {
@@ -5941,19 +6318,9 @@ public struct ConformanceStepState: Codable, Sendable, Hashable {
   }
 }
 
-public enum ConformanceStepStateState: String, Codable, Sendable, CaseIterable {
-  case initial = "initial"
-  case connecting = "connecting"
-  case `open` = "open"
-  case reconnecting = "reconnecting"
-  case degraded = "degraded"
-  case unauthenticated = "unauthenticated"
-  case closed = "closed"
-}
-
 public struct ConformanceStepStays: Codable, Sendable, Hashable {
-  public var stays: ConformanceStepStaysStays
-  public init(stays: ConformanceStepStaysStays) {
+  public var stays: ConnectionState
+  public init(stays: ConnectionState) {
     self.stays = stays
   }
   public init(from decoder: any Decoder) throws {
@@ -5965,16 +6332,6 @@ public struct ConformanceStepStays: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.stays, as: "stays")
   }
-}
-
-public enum ConformanceStepStaysStays: String, Codable, Sendable, CaseIterable {
-  case initial = "initial"
-  case connecting = "connecting"
-  case `open` = "open"
-  case reconnecting = "reconnecting"
-  case degraded = "degraded"
-  case unauthenticated = "unauthenticated"
-  case closed = "closed"
 }
 
 public struct ConformanceStepWire: Codable, Sendable, Hashable {
@@ -6065,6 +6422,16 @@ public struct ConnectionIdentity: Codable, Sendable, Hashable {
     try c.encode(self.did, as: "did")
     try c.encode(self.description, as: "description")
   }
+}
+
+public enum ConnectionState: String, Codable, Sendable, CaseIterable {
+  case initial = "initial"
+  case connecting = "connecting"
+  case `open` = "open"
+  case reconnecting = "reconnecting"
+  case degraded = "degraded"
+  case unauthenticated = "unauthenticated"
+  case closed = "closed"
 }
 
 public typealias ContentFormat = String
@@ -6372,6 +6739,59 @@ public struct ControlCliCommandsValuePositionalsItemFields: Codable, Sendable, H
   }
 }
 
+public struct ControlRpcCodes: Codable, Sendable, Hashable {
+  public var comment: String
+  public var codes: [ControlRpcCodesCodesItem]
+  public init(comment: String, codes: [ControlRpcCodesCodesItem]) {
+    self.comment = comment
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["$comment", "codes"], in: "ControlRpcCodes")
+    self.comment = try c.value("$comment")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ControlRpcCodesCodesItem: Codable, Sendable, Hashable {
+  public var number: Int
+  public var name: String
+  public var docs: String
+  public var data: ErrorData?
+  public init(number: Int, name: String, docs: String, data: ErrorData? = nil) {
+    self.number = number
+    self.name = name
+    self.docs = docs
+    self.data = data
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["number", "name", "docs", "data"], in: "ControlRpcCodesCodesItem")
+    self.number = try c.value("number")
+    self.name = try c.value("name")
+    self.docs = try c.value("docs")
+    self.data = try c.ifPresent("data")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.number, as: "number")
+    try c.encode(self.name, as: "name")
+    try c.encode(self.docs, as: "docs")
+    try c.encodeIfPresent(self.data, as: "data")
+  }
+}
+
+public enum ControlSender: String, Codable, Sendable, CaseIterable {
+  case client = "client"
+  case launcher = "launcher"
+}
+
 public struct CreateAnnotationRequest: Codable, Sendable, Hashable {
   public var motivation: Motivation
   public var target: AnnotationTarget
@@ -6543,13 +6963,13 @@ public indirect enum DirectoryEntry: Codable, Sendable, Hashable {
 public struct DiscoveredKB: Codable, Sendable, Hashable {
   public var host: String
   public var port: Int
-  public var placement: DiscoveredKBPlacement
+  public var placement: KbPlacement
   public var repo: String?
   public var did: String
   public var siteName: String?
   public var managedBy: String
   public init(
-    host: String, port: Int, placement: DiscoveredKBPlacement, repo: String? = nil, did: String,
+    host: String, port: Int, placement: KbPlacement, repo: String? = nil, did: String,
     siteName: String? = nil, managedBy: String
   ) {
     self.host = host
@@ -6582,9 +7002,76 @@ public struct DiscoveredKB: Codable, Sendable, Hashable {
   }
 }
 
-public enum DiscoveredKBPlacement: String, Codable, Sendable, CaseIterable {
-  case local = "local"
-  case codespace = "codespace"
+public struct DiscoveryAbsent: Codable, Sendable, Hashable {
+  public let kind: DiscoveryAbsentKind
+  public var reason: DiscoveryAbsentReason
+  public var diagnostic: String?
+  public init(reason: DiscoveryAbsentReason, diagnostic: String? = nil) {
+    self.kind = .absent
+    self.reason = reason
+    self.diagnostic = diagnostic
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "reason", "diagnostic"], in: "DiscoveryAbsent")
+    self.kind = try c.value("kind")
+    self.reason = try c.value("reason")
+    self.diagnostic = try c.ifPresent("diagnostic")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.reason, as: "reason")
+    try c.encodeIfPresent(self.diagnostic, as: "diagnostic")
+  }
+}
+
+public enum DiscoveryAbsentKind: String, Codable, Sendable, CaseIterable {
+  case absent = "absent"
+}
+
+public enum DiscoveryAbsentReason: String, Codable, Sendable, CaseIterable {
+  case notFound = "not-found"
+  case notJson = "not-json"
+  case invalid = "invalid"
+  case unsupportedVersion = "unsupported-version"
+  case unreadable = "unreadable"
+}
+
+public struct DiscoveryDiff: Codable, Sendable, Hashable {
+  public var state: DiscoveryState
+  public var added: [DiscoveredKB]
+  public var updated: [DiscoveredKB]
+  public var removed: [DiscoveredKB]
+  public var duplicated: [String]
+  public init(
+    state: DiscoveryState, added: [DiscoveredKB], updated: [DiscoveredKB], removed: [DiscoveredKB],
+    duplicated: [String]
+  ) {
+    self.state = state
+    self.added = added
+    self.updated = updated
+    self.removed = removed
+    self.duplicated = duplicated
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["state", "added", "updated", "removed", "duplicated"], in: "DiscoveryDiff")
+    self.state = try c.value("state")
+    self.added = try c.value("added")
+    self.updated = try c.value("updated")
+    self.removed = try c.value("removed")
+    self.duplicated = try c.value("duplicated")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.state, as: "state")
+    try c.encode(self.added, as: "added")
+    try c.encode(self.updated, as: "updated")
+    try c.encode(self.removed, as: "removed")
+    try c.encode(self.duplicated, as: "duplicated")
+  }
 }
 
 public struct DiscoveryDocument: Codable, Sendable, Hashable {
@@ -6619,6 +7106,149 @@ public enum DiscoveryDocumentVersion: Codable, Sendable, Hashable {
     var c = encoder.singleValueContainer()
     try c.encode(1)
   }
+}
+
+public struct DiscoveryManaged: Codable, Sendable, Hashable {
+  public let kind: DiscoveryManagedKind
+  public var kbs: [DiscoveredKB]
+  public init(kbs: [DiscoveredKB]) {
+    self.kind = .managed
+    self.kbs = kbs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind", "kbs"], in: "DiscoveryManaged")
+    self.kind = try c.value("kind")
+    self.kbs = try c.value("kbs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+    try c.encode(self.kbs, as: "kbs")
+  }
+}
+
+public enum DiscoveryManagedKind: String, Codable, Sendable, CaseIterable {
+  case managed = "managed"
+}
+
+public indirect enum DiscoveryRead: Codable, Sendable, Hashable {
+  case discoveryAbsent(DiscoveryAbsent)
+  case discoveryManaged(DiscoveryManaged)
+  case discoveryUnchanged(DiscoveryUnchanged)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "reason"], allowed: ["kind", "reason", "diagnostic"],
+        fixed: [
+          .init(property: "kind", values: [.text("absent")]),
+          .init(
+            property: "reason",
+            values: [
+              .text("not-found"), .text("not-json"), .text("invalid"), .text("unsupported-version"),
+              .text("unreadable"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "kbs"], allowed: ["kind", "kbs"],
+        fixed: [.init(property: "kind", values: [.text("managed")])], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind"], allowed: ["kind"],
+        fixed: [.init(property: "kind", values: [.text("unchanged")])], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "DiscoveryRead", members: Self.members,
+      variants: [
+        (
+          "discoveryAbsent", { decoder in try Self.discoveryAbsent(DiscoveryAbsent(from: decoder)) }
+        ),
+        (
+          "discoveryManaged",
+          { decoder in try Self.discoveryManaged(DiscoveryManaged(from: decoder)) }
+        ),
+        (
+          "discoveryUnchanged",
+          { decoder in try Self.discoveryUnchanged(DiscoveryUnchanged(from: decoder)) }
+        ),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .discoveryAbsent(let value): try value.encode(to: encoder)
+    case .discoveryManaged(let value): try value.encode(to: encoder)
+    case .discoveryUnchanged(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public indirect enum DiscoveryState: Codable, Sendable, Hashable {
+  case discoveryAbsent(DiscoveryAbsent)
+  case discoveryManaged(DiscoveryManaged)
+  static let members: [[UnionSignature]] = [
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "reason"], allowed: ["kind", "reason", "diagnostic"],
+        fixed: [
+          .init(property: "kind", values: [.text("absent")]),
+          .init(
+            property: "reason",
+            values: [
+              .text("not-found"), .text("not-json"), .text("invalid"), .text("unsupported-version"),
+              .text("unreadable"),
+            ]),
+        ], values: nil)
+    ],
+    [
+      UnionSignature(
+        kind: .object, required: ["kind", "kbs"], allowed: ["kind", "kbs"],
+        fixed: [.init(property: "kind", values: [.text("managed")])], values: nil)
+    ],
+  ]
+  public init(from decoder: any Decoder) throws {
+    self = try UnionSignature.decode(
+      from: decoder, union: "DiscoveryState", members: Self.members,
+      variants: [
+        (
+          "discoveryAbsent", { decoder in try Self.discoveryAbsent(DiscoveryAbsent(from: decoder)) }
+        ),
+        (
+          "discoveryManaged",
+          { decoder in try Self.discoveryManaged(DiscoveryManaged(from: decoder)) }
+        ),
+      ])
+  }
+  public func encode(to encoder: any Encoder) throws {
+    switch self {
+    case .discoveryAbsent(let value): try value.encode(to: encoder)
+    case .discoveryManaged(let value): try value.encode(to: encoder)
+    }
+  }
+}
+
+public struct DiscoveryUnchanged: Codable, Sendable, Hashable {
+  public let kind: DiscoveryUnchangedKind
+  public init() {
+    self.kind = .unchanged
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["kind"], in: "DiscoveryUnchanged")
+    self.kind = try c.value("kind")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.kind, as: "kind")
+  }
+}
+
+public enum DiscoveryUnchangedKind: String, Codable, Sendable, CaseIterable {
+  case unchanged = "unchanged"
 }
 
 public struct DispatcherConfig: Codable, Sendable, Hashable {
@@ -6984,9 +7614,9 @@ public struct EmbeddingRequestsProvidersValue: Codable, Sendable, Hashable {
 }
 
 public struct Engine: Codable, Sendable, Hashable {
-  public var provider: EngineProvider
+  public var provider: InferenceProvider
   public var model: String
-  public init(provider: EngineProvider, model: String) {
+  public init(provider: InferenceProvider, model: String) {
     self.provider = provider
     self.model = model
   }
@@ -7041,16 +7671,6 @@ public struct EngineLimits: Codable, Sendable, Hashable {
     try c.encode(self.engine, as: "engine")
     try c.encode(self.limits, as: "limits")
   }
-}
-
-public enum EngineProvider: String, Codable, Sendable, CaseIterable {
-  case anthropic = "anthropic"
-  case google = "google"
-  case llamacpp = "llamacpp"
-  case ollama = "ollama"
-  case openai = "openai"
-  case together = "together"
-  case vllm = "vllm"
 }
 
 public struct EngineWithLimits: Codable, Sendable, Hashable {
@@ -7179,14 +7799,14 @@ public struct EntityTypesProjection: Codable, Sendable, Hashable {
 public typealias EphemeralEventId = String
 
 public struct ErrorData: Codable, Sendable, Hashable {
-  public var code: String
+  public var code: ControlErrorCode
   public var retryable: Bool
   public var fields: [FieldFault]?
   public var choices: [Target]?
   public var supported: [String]?
   public var mayStillRun: Bool?
   public init(
-    code: String, retryable: Bool, fields: [FieldFault]? = nil, choices: [Target]? = nil,
+    code: ControlErrorCode, retryable: Bool, fields: [FieldFault]? = nil, choices: [Target]? = nil,
     supported: [String]? = nil, mayStillRun: Bool? = nil
   ) {
     self.code = code
@@ -7254,11 +7874,11 @@ public struct ErrorsCodes: Codable, Sendable, Hashable {
   public var signIn: ErrorsCodesJob
   public var kbIdentity: ErrorsCodesJob
   public var spanRefusal: ErrorsCodesJob
-  public var control: ErrorsCodesJob
+  public var control: ErrorsCodesControl
   public init(
     comment: String, busRequest: ErrorsCodesBusRequest, transport: ErrorsCodesTransport,
     job: ErrorsCodesJob, session: ErrorsCodesJob, signIn: ErrorsCodesJob,
-    kbIdentity: ErrorsCodesJob, spanRefusal: ErrorsCodesJob, control: ErrorsCodesJob
+    kbIdentity: ErrorsCodesJob, spanRefusal: ErrorsCodesJob, control: ErrorsCodesControl
   ) {
     self.comment = comment
     self.busRequest = busRequest
@@ -7349,6 +7969,54 @@ public struct ErrorsCodesBusRequestCodesItem: Codable, Sendable, Hashable {
   }
 }
 
+public struct ErrorsCodesControl: Codable, Sendable, Hashable {
+  public var docs: String
+  public var codes: [ErrorsCodesControlCodesItem]
+  public init(docs: String, codes: [ErrorsCodesControlCodesItem]) {
+    self.docs = docs
+    self.codes = codes
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["docs", "codes"], in: "ErrorsCodesControl")
+    self.docs = try c.value("docs")
+    self.codes = try c.value("codes")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.codes, as: "codes")
+  }
+}
+
+public struct ErrorsCodesControlCodesItem: Codable, Sendable, Hashable {
+  public var code: String
+  public var docs: String
+  public var rpc: Int
+  public var retryable: Bool
+  public init(code: String, docs: String, rpc: Int, retryable: Bool) {
+    self.code = code
+    self.docs = docs
+    self.rpc = rpc
+    self.retryable = retryable
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["code", "docs", "rpc", "retryable"], in: "ErrorsCodesControlCodesItem")
+    self.code = try c.value("code")
+    self.docs = try c.value("docs")
+    self.rpc = try c.value("rpc")
+    self.retryable = try c.value("retryable")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.code, as: "code")
+    try c.encode(self.docs, as: "docs")
+    try c.encode(self.rpc, as: "rpc")
+    try c.encode(self.retryable, as: "retryable")
+  }
+}
+
 public struct ErrorsCodesJob: Codable, Sendable, Hashable {
   public var docs: String
   public var codes: [ErrorsCodesJobCodesItem]
@@ -7420,8 +8088,8 @@ public indirect enum ErrorsCodesTransportCodesItem: Codable, Sendable, Hashable 
   static let members: [[UnionSignature]] = [
     [
       UnionSignature(
-        kind: .object, required: ["code", "docs", "status"], allowed: ["code", "docs", "status"],
-        fixed: [], values: nil)
+        kind: .object, required: ["code", "docs", "status"],
+        allowed: ["code", "docs", "status", "limitRefusals"], fixed: [], values: nil)
     ],
     [
       UnionSignature(
@@ -7485,23 +8153,31 @@ public struct ErrorsCodesTransportCodesItemStatus: Codable, Sendable, Hashable {
   public var code: String
   public var docs: String
   public var status: HttpStatus
-  public init(code: String, docs: String, status: HttpStatus) {
+  public var limitRefusals: [ErrorsCodesTransportCodesItemStatusLimitRefusalsItem]?
+  public init(
+    code: String, docs: String, status: HttpStatus,
+    limitRefusals: [ErrorsCodesTransportCodesItemStatusLimitRefusalsItem]? = nil
+  ) {
     self.code = code
     self.docs = docs
     self.status = status
+    self.limitRefusals = limitRefusals
   }
   public init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["code", "docs", "status"], in: "ErrorsCodesTransportCodesItemStatus")
+    try c.refuseUnknown(
+      ["code", "docs", "status", "limitRefusals"], in: "ErrorsCodesTransportCodesItemStatus")
     self.code = try c.value("code")
     self.docs = try c.value("docs")
     self.status = try c.value("status")
+    self.limitRefusals = try c.ifPresent("limitRefusals")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.code, as: "code")
     try c.encode(self.docs, as: "docs")
     try c.encode(self.status, as: "status")
+    try c.encodeIfPresent(self.limitRefusals, as: "limitRefusals")
   }
 }
 
@@ -7527,6 +8203,27 @@ public struct ErrorsCodesTransportCodesItemStatusFrom: Codable, Sendable, Hashab
     try c.encode(self.code, as: "code")
     try c.encode(self.docs, as: "docs")
     try c.encode(self.statusFrom, as: "statusFrom")
+  }
+}
+
+public struct ErrorsCodesTransportCodesItemStatusLimitRefusalsItem: Codable, Sendable, Hashable {
+  public var status: HttpStatus
+  public var code: LimitRefusalValueCode
+  public init(status: HttpStatus, code: LimitRefusalValueCode) {
+    self.status = status
+    self.code = code
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["status", "code"], in: "ErrorsCodesTransportCodesItemStatusLimitRefusalsItem")
+    self.status = try c.value("status")
+    self.code = try c.value("code")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.status, as: "status")
+    try c.encode(self.code, as: "code")
   }
 }
 
@@ -7707,6 +8404,26 @@ public enum FailureClass: String, Codable, Sendable, CaseIterable {
   case transient = "transient"
   case deterministic = "deterministic"
   case withheld = "withheld"
+}
+
+public struct Fault: Codable, Sendable, Hashable {
+  public var member: String
+  public var reason: FrameRefusalReason
+  public init(member: String, reason: FrameRefusalReason) {
+    self.member = member
+    self.reason = reason
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["member", "reason"], in: "Fault")
+    self.member = try c.value("member")
+    self.reason = try c.value("reason")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.member, as: "member")
+    try c.encode(self.reason, as: "reason")
+  }
 }
 
 public struct FieldFault: Codable, Sendable, Hashable {
@@ -7890,6 +8607,46 @@ public struct FrameAddTagSchemaCommand: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.schema, as: "schema")
     try c.encodeIfPresent(self._userId, as: "_userId")
+  }
+}
+
+public struct FrameRefusal: Codable, Sendable, Hashable {
+  public var channel: String
+  public var member: String
+  public var reason: FrameRefusalReason
+  public var payload: JSONValue?
+  public var scope: ResourceId?
+  public var correlationId: String?
+  public init(
+    channel: String, member: String, reason: FrameRefusalReason, payload: JSONValue? = nil,
+    scope: ResourceId? = nil, correlationId: String? = nil
+  ) {
+    self.channel = channel
+    self.member = member
+    self.reason = reason
+    self.payload = payload
+    self.scope = scope
+    self.correlationId = correlationId
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["channel", "member", "reason", "payload", "scope", "correlationId"], in: "FrameRefusal")
+    self.channel = try c.value("channel")
+    self.member = try c.value("member")
+    self.reason = try c.value("reason")
+    self.payload = try c.ifPresent("payload")
+    self.scope = try c.ifPresent("scope")
+    self.correlationId = try c.ifPresent("correlationId")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.channel, as: "channel")
+    try c.encode(self.member, as: "member")
+    try c.encode(self.reason, as: "reason")
+    try c.encodeIfPresent(self.payload, as: "payload")
+    try c.encodeIfPresent(self.scope, as: "scope")
+    try c.encodeIfPresent(self.correlationId, as: "correlationId")
   }
 }
 
@@ -9670,6 +10427,98 @@ public struct HealthResponse: Codable, Sendable, Hashable {
   }
 }
 
+public struct HeldJobRecord: Codable, Sendable, Hashable {
+  public var jobId: JobId
+  public var jobType: JobType
+  public var resourceId: ResourceId
+  public var params: JobParams
+  public var completedUnits: [String]
+  public var unitCursors: [String: UnitCursor]
+  public var retryCount: Int
+  public var maxRetries: Int
+  public init(
+    jobId: JobId, jobType: JobType, resourceId: ResourceId, params: JobParams,
+    completedUnits: [String], unitCursors: [String: UnitCursor], retryCount: Int, maxRetries: Int
+  ) {
+    self.jobId = jobId
+    self.jobType = jobType
+    self.resourceId = resourceId
+    self.params = params
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
+    self.retryCount = retryCount
+    self.maxRetries = maxRetries
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "jobId", "jobType", "resourceId", "params", "completedUnits", "unitCursors", "retryCount",
+        "maxRetries",
+      ], in: "HeldJobRecord")
+    self.jobId = try c.value("jobId")
+    self.jobType = try c.value("jobType")
+    self.resourceId = try c.value("resourceId")
+    self.params = try c.value("params")
+    self.completedUnits = try c.value("completedUnits")
+    self.unitCursors = try c.value("unitCursors")
+    self.retryCount = try c.value("retryCount")
+    self.maxRetries = try c.value("maxRetries")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.jobId, as: "jobId")
+    try c.encode(self.jobType, as: "jobType")
+    try c.encode(self.resourceId, as: "resourceId")
+    try c.encode(self.params, as: "params")
+    try c.encode(self.completedUnits, as: "completedUnits")
+    try c.encode(self.unitCursors, as: "unitCursors")
+    try c.encode(self.retryCount, as: "retryCount")
+    try c.encode(self.maxRetries, as: "maxRetries")
+  }
+}
+
+public struct HeldJobStall: Codable, Sendable, Hashable {
+  public var jobId: JobId
+  public var jobType: JobType
+  public var heldSince: String
+  public var lastActivityAt: String
+  public var silentForMs: Int
+  public var thresholdMs: Int
+  public init(
+    jobId: JobId, jobType: JobType, heldSince: String, lastActivityAt: String, silentForMs: Int,
+    thresholdMs: Int
+  ) {
+    self.jobId = jobId
+    self.jobType = jobType
+    self.heldSince = heldSince
+    self.lastActivityAt = lastActivityAt
+    self.silentForMs = silentForMs
+    self.thresholdMs = thresholdMs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["jobId", "jobType", "heldSince", "lastActivityAt", "silentForMs", "thresholdMs"],
+      in: "HeldJobStall")
+    self.jobId = try c.value("jobId")
+    self.jobType = try c.value("jobType")
+    self.heldSince = try c.value("heldSince")
+    self.lastActivityAt = try c.value("lastActivityAt")
+    self.silentForMs = try c.value("silentForMs")
+    self.thresholdMs = try c.value("thresholdMs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.jobId, as: "jobId")
+    try c.encode(self.jobType, as: "jobType")
+    try c.encode(self.heldSince, as: "heldSince")
+    try c.encode(self.lastActivityAt, as: "lastActivityAt")
+    try c.encode(self.silentForMs, as: "silentForMs")
+    try c.encode(self.thresholdMs, as: "thresholdMs")
+  }
+}
+
 public struct HighlightingJobParams: Codable, Sendable, Hashable {
   public let motivation: HighlightingJobParamsMotivation
   public var instructions: String?
@@ -10081,6 +10930,16 @@ public struct InferenceLimitsResultResponse: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.limits, as: "limits")
   }
+}
+
+public enum InferenceProvider: String, Codable, Sendable, CaseIterable {
+  case anthropic = "anthropic"
+  case google = "google"
+  case llamacpp = "llamacpp"
+  case ollama = "ollama"
+  case openai = "openai"
+  case together = "together"
+  case vllm = "vllm"
 }
 
 public struct InferenceSpec: Codable, Sendable, Hashable {
@@ -10534,6 +11393,26 @@ public struct JobCancelled: Codable, Sendable, Hashable {
 
 public enum JobCancelledStatus: String, Codable, Sendable, CaseIterable {
   case cancelled = "cancelled"
+}
+
+public struct JobCheckpoint: Codable, Sendable, Hashable {
+  public var completedUnits: [String]
+  public var unitCursors: [String: UnitCursor]?
+  public init(completedUnits: [String], unitCursors: [String: UnitCursor]? = nil) {
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completedUnits", "unitCursors"], in: "JobCheckpoint")
+    self.completedUnits = try c.value("completedUnits")
+    self.unitCursors = try c.ifPresent("unitCursors")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.completedUnits, as: "completedUnits")
+    try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
+  }
 }
 
 public struct JobCheckpointCommand: Codable, Sendable, Hashable {
@@ -11028,6 +11907,33 @@ public struct JobFailedPayload: Codable, Sendable, Hashable {
 
 public enum JobFailedStatus: String, Codable, Sendable, CaseIterable {
   case failed = "failed"
+}
+
+public struct JobFailure: Codable, Sendable, Hashable {
+  public var completedUnits: [String]?
+  public var unitCursors: [String: UnitCursor]?
+  public var failureClass: FailureClass?
+  public init(
+    completedUnits: [String]? = nil, unitCursors: [String: UnitCursor]? = nil,
+    failureClass: FailureClass? = nil
+  ) {
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
+    self.failureClass = failureClass
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completedUnits", "unitCursors", "failureClass"], in: "JobFailure")
+    self.completedUnits = try c.ifPresent("completedUnits")
+    self.unitCursors = try c.ifPresent("unitCursors")
+    self.failureClass = try c.ifPresent("failureClass")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
+    try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
+    try c.encodeIfPresent(self.failureClass, as: "failureClass")
+  }
 }
 
 public indirect enum JobFilter: Codable, Sendable, Hashable {
@@ -11780,6 +12686,26 @@ public indirect enum JobQueuedEvent: Codable, Sendable, Hashable {
   }
 }
 
+public struct JobReached: Codable, Sendable, Hashable {
+  public var completedUnits: [String]?
+  public var unitCursors: [String: UnitCursor]?
+  public init(completedUnits: [String]? = nil, unitCursors: [String: UnitCursor]? = nil) {
+    self.completedUnits = completedUnits
+    self.unitCursors = unitCursors
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["completedUnits", "unitCursors"], in: "JobReached")
+    self.completedUnits = try c.ifPresent("completedUnits")
+    self.unitCursors = try c.ifPresent("unitCursors")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encodeIfPresent(self.completedUnits, as: "completedUnits")
+    try c.encodeIfPresent(self.unitCursors, as: "unitCursors")
+  }
+}
+
 public struct JobRecord: Codable, Sendable, Hashable {
   public var job: Job
   public var lastProgressAt: String
@@ -12427,6 +13353,11 @@ public struct KbIdentityConflict: Codable, Sendable, Hashable {
   }
 }
 
+public enum KbPlacement: String, Codable, Sendable, CaseIterable {
+  case local = "local"
+  case codespace = "codespace"
+}
+
 public struct KbRead: Codable, Sendable, Hashable {
   public var at: String
   public var gitBranch: String?
@@ -12613,7 +13544,7 @@ public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
   public var name: String
   public var key: String
   public var recorded: Bool
-  public var placement: DiscoveredKBPlacement
+  public var placement: KbPlacement
   public var root: String?
   public var repo: String?
   public var did: String?
@@ -12630,12 +13561,11 @@ public struct KnowledgeBaseStatus: Codable, Sendable, Hashable {
   public var services: [ServiceStatus]
   public var workload: WorkloadStatus?
   public init(
-    name: String, key: String, recorded: Bool, placement: DiscoveredKBPlacement,
-    root: String? = nil, repo: String? = nil, did: String? = nil, siteName: String? = nil,
-    identityError: String? = nil, kb: DiscoveredKB? = nil, runtime: Runtime? = nil,
-    gateway: String? = nil, secretStore: String? = nil, lan: String? = nil, starting: Bool,
-    session: Session? = nil, healthy: Bool, services: [ServiceStatus],
-    workload: WorkloadStatus? = nil
+    name: String, key: String, recorded: Bool, placement: KbPlacement, root: String? = nil,
+    repo: String? = nil, did: String? = nil, siteName: String? = nil, identityError: String? = nil,
+    kb: DiscoveredKB? = nil, runtime: Runtime? = nil, gateway: String? = nil,
+    secretStore: String? = nil, lan: String? = nil, starting: Bool, session: Session? = nil,
+    healthy: Bool, services: [ServiceStatus], workload: WorkloadStatus? = nil
   ) {
     self.name = name
     self.key = key
@@ -13352,6 +14282,14 @@ public struct LimitRefusal: Codable, Sendable, Hashable {
 }
 
 public enum LimitRefusalCode: String, Codable, Sendable, CaseIterable {
+  case streams = "streams"
+  case emitRate = "emit-rate"
+  case unansweredRequests = "unanswered-requests"
+  case capacity = "capacity"
+  case refusalRate = "refusal-rate"
+}
+
+public enum LimitRefusalValueCode: String, Codable, Sendable, CaseIterable {
   case streams = "streams"
   case emitRate = "emit-rate"
   case unansweredRequests = "unanswered-requests"
@@ -15165,6 +16103,62 @@ public struct PrincipalProfiledPayload: Codable, Sendable, Hashable {
   }
 }
 
+public struct PrincipalsRoles: Codable, Sendable, Hashable {
+  public var comment: String
+  public var rolesClaim: String
+  public var roles: [PrincipalsRolesRolesItem]
+  public var kindClaim: String
+  public var agentKind: String
+  public init(
+    comment: String, rolesClaim: String, roles: [PrincipalsRolesRolesItem], kindClaim: String,
+    agentKind: String
+  ) {
+    self.comment = comment
+    self.rolesClaim = rolesClaim
+    self.roles = roles
+    self.kindClaim = kindClaim
+    self.agentKind = agentKind
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      ["$comment", "rolesClaim", "roles", "kindClaim", "agentKind"], in: "PrincipalsRoles")
+    self.comment = try c.value("$comment")
+    self.rolesClaim = try c.value("rolesClaim")
+    self.roles = try c.value("roles")
+    self.kindClaim = try c.value("kindClaim")
+    self.agentKind = try c.value("agentKind")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.comment, as: "$comment")
+    try c.encode(self.rolesClaim, as: "rolesClaim")
+    try c.encode(self.roles, as: "roles")
+    try c.encode(self.kindClaim, as: "kindClaim")
+    try c.encode(self.agentKind, as: "agentKind")
+  }
+}
+
+public struct PrincipalsRolesRolesItem: Codable, Sendable, Hashable {
+  public var role: String
+  public var docs: String
+  public init(role: String, docs: String) {
+    self.role = role
+    self.docs = docs
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["role", "docs"], in: "PrincipalsRolesRolesItem")
+    self.role = try c.value("role")
+    self.docs = try c.value("docs")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.role, as: "role")
+    try c.encode(self.docs, as: "docs")
+  }
+}
+
 public struct Profile: Codable, Sendable, Hashable {
   public var name: String
   public var since: String
@@ -15380,7 +16374,7 @@ public struct Provider: Codable, Sendable, Hashable {
 
 public struct PutBinaryRequest: Codable, Sendable, Hashable {
   public var name: String
-  public var file: Binary
+  public var file: ByteSource
   public var format: String
   public var storageUri: String
   public var language: String?
@@ -15394,7 +16388,7 @@ public struct PutBinaryRequest: Codable, Sendable, Hashable {
   public var cloneToken: String?
   public var archiveOriginal: Bool?
   public init(
-    name: String, file: Binary, format: String, storageUri: String, language: String? = nil,
+    name: String, file: ByteSource, format: String, storageUri: String, language: String? = nil,
     entityTypes: [String]? = nil, sourceAnnotationId: AnnotationId? = nil,
     sourceResourceId: ResourceId? = nil, generationPrompt: String? = nil,
     generator: OneOrMoreAgents? = nil, jobId: JobId? = nil, isDraft: Bool? = nil,
@@ -15519,10 +16513,10 @@ public struct ReceivedFrame: Codable, Sendable, Hashable {
   public var eventId: String?
   public var payload: [String: JSONValue]
   public var scope: ResourceId?
-  public var trace: [String: String]?
+  public var trace: TraceCarrier?
   public init(
     channel: String, correlationId: String? = nil, eventId: String? = nil,
-    payload: [String: JSONValue], scope: ResourceId? = nil, trace: [String: String]? = nil
+    payload: [String: JSONValue], scope: ResourceId? = nil, trace: TraceCarrier? = nil
   ) {
     self.channel = channel
     self.correlationId = correlationId
@@ -16943,7 +17937,7 @@ public struct RetryRulesTransport: Codable, Sendable, Hashable {
 }
 
 public struct Root: Codable, Sendable, Hashable {
-  public var placement: DiscoveredKBPlacement
+  public var placement: KbPlacement
   public var path: String?
   public var present: Bool?
   public var current: RootCurrent?
@@ -16962,10 +17956,10 @@ public struct Root: Codable, Sendable, Hashable {
   public var forwarded: Bool?
   public var reachable: Bool?
   public init(
-    placement: DiscoveredKBPlacement, path: String? = nil, present: Bool? = nil,
-    current: RootCurrent? = nil, registered: Bool, running: Bool, lastUsed: String? = nil,
-    did: String? = nil, siteName: String? = nil, identityError: String? = nil,
-    config: String? = nil, configs: [String]? = nil, repo: String? = nil, codespace: String? = nil,
+    placement: KbPlacement, path: String? = nil, present: Bool? = nil, current: RootCurrent? = nil,
+    registered: Bool, running: Bool, lastUsed: String? = nil, did: String? = nil,
+    siteName: String? = nil, identityError: String? = nil, config: String? = nil,
+    configs: [String]? = nil, repo: String? = nil, codespace: String? = nil,
     codespaceState: String? = nil, forwardPort: Int? = nil, forwarded: Bool? = nil,
     reachable: Bool? = nil
   ) {
@@ -19553,13 +20547,13 @@ public struct SmelterConfig: Codable, Sendable, Hashable {
 public struct SmelterHealth: Codable, Sendable, Hashable {
   public let status: SmelterHealthStatus
   public var kb: KbDid
-  public var stream: SmelterHealthStream
+  public var stream: ConnectionState
   public var following: FollowerFollowing
   public var eventsProcessed: Int
   public var reconcile: SmelterHealthReconcile
   public var index: SmelterHealthIndex
   public init(
-    kb: KbDid, stream: SmelterHealthStream, following: FollowerFollowing, eventsProcessed: Int,
+    kb: KbDid, stream: ConnectionState, following: FollowerFollowing, eventsProcessed: Int,
     reconcile: SmelterHealthReconcile, index: SmelterHealthIndex
   ) {
     self.status = .ok
@@ -19691,16 +20685,6 @@ public enum SmelterHealthReconcilePhase: String, Codable, Sendable, CaseIterable
 
 public enum SmelterHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
-}
-
-public enum SmelterHealthStream: String, Codable, Sendable, CaseIterable {
-  case initial = "initial"
-  case connecting = "connecting"
-  case `open` = "open"
-  case reconnecting = "reconnecting"
-  case degraded = "degraded"
-  case unauthenticated = "unauthenticated"
-  case closed = "closed"
 }
 
 public struct SmelterMessages: Codable, Sendable, Hashable {
@@ -20815,14 +21799,14 @@ public struct StoredEventResponse: Codable, Sendable, Hashable {
 }
 
 public struct StoredSession: Codable, Sendable, Hashable {
-  public var access: String
+  public var access: AccessToken
   public var refresh: String
   public var clientId: String
   public var tokenEndpoint: String
   public var revocationEndpoint: String?
   public var personKey: String?
   public init(
-    access: String, refresh: String, clientId: String, tokenEndpoint: String,
+    access: AccessToken, refresh: String, clientId: String, tokenEndpoint: String,
     revocationEndpoint: String? = nil, personKey: String? = nil
   ) {
     self.access = access
@@ -20942,6 +21926,12 @@ public struct SvgSelector: Codable, Sendable, Hashable {
 
 public enum SvgSelectorType: String, Codable, Sendable, CaseIterable {
   case svgSelector = "SvgSelector"
+}
+
+public enum System: String, Codable, Sendable, CaseIterable {
+  case macos = "macos"
+  case windows = "windows"
+  case other = "other"
 }
 
 public indirect enum TabCheck: Codable, Sendable, Hashable {
@@ -21171,10 +22161,10 @@ public enum TaggingJobParamsMotivation: String, Codable, Sendable, CaseIterable 
 }
 
 public struct Target: Codable, Sendable, Hashable {
-  public var kind: TargetKind
+  public var kind: KbPlacement
   public var root: String?
   public var repo: String?
-  public init(kind: TargetKind, root: String? = nil, repo: String? = nil) {
+  public init(kind: KbPlacement, root: String? = nil, repo: String? = nil) {
     self.kind = kind
     self.root = root
     self.repo = repo
@@ -21192,11 +22182,6 @@ public struct Target: Codable, Sendable, Hashable {
     try c.encodeIfPresent(self.root, as: "root")
     try c.encodeIfPresent(self.repo, as: "repo")
   }
-}
-
-public enum TargetKind: String, Codable, Sendable, CaseIterable {
-  case local = "local"
-  case codespace = "codespace"
 }
 
 public struct TextPositionSelector: Codable, Sendable, Hashable {
@@ -21332,6 +22317,26 @@ public enum TextualBodyType: String, Codable, Sendable, CaseIterable {
   case textualBody = "TextualBody"
 }
 
+public struct TraceCarrier: Codable, Sendable, Hashable {
+  public var traceparent: String
+  public var tracestate: String?
+  public init(traceparent: String, tracestate: String? = nil) {
+    self.traceparent = traceparent
+    self.tracestate = tracestate
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["traceparent", "tracestate"], in: "TraceCarrier")
+    self.traceparent = try c.value("traceparent")
+    self.tracestate = try c.ifPresent("tracestate")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.traceparent, as: "traceparent")
+    try c.encodeIfPresent(self.tracestate, as: "tracestate")
+  }
+}
+
 public struct UnitCursor: Codable, Sendable, Hashable {
   public var next: Int
   public var size: Int
@@ -21389,12 +22394,12 @@ public indirect enum UploadProgress: Codable, Sendable, Hashable {
   static let members: [[UnionSignature]] = [
     [
       UnionSignature(
-        kind: .object, required: ["phase", "totalBytes"], allowed: ["phase", "totalBytes"],
+        kind: .object, required: ["phase"], allowed: ["phase", "totalBytes"],
         fixed: [.init(property: "phase", values: [.text("started")])], values: nil)
     ],
     [
       UnionSignature(
-        kind: .object, required: ["phase", "bytesUploaded", "totalBytes"],
+        kind: .object, required: ["phase", "bytesUploaded"],
         allowed: ["phase", "bytesUploaded", "totalBytes"],
         fixed: [.init(property: "phase", values: [.text("progress")])], values: nil)
     ],
@@ -21449,8 +22454,8 @@ public enum UploadProgressFinishedPhase: String, Codable, Sendable, CaseIterable
 public struct UploadProgressProgress: Codable, Sendable, Hashable {
   public let phase: UploadProgressProgressPhase
   public var bytesUploaded: Int
-  public var totalBytes: Int
-  public init(bytesUploaded: Int, totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(bytesUploaded: Int, totalBytes: Int? = nil) {
     self.phase = .progress
     self.bytesUploaded = bytesUploaded
     self.totalBytes = totalBytes
@@ -21460,13 +22465,13 @@ public struct UploadProgressProgress: Codable, Sendable, Hashable {
     try c.refuseUnknown(["phase", "bytesUploaded", "totalBytes"], in: "UploadProgressProgress")
     self.phase = try c.value("phase")
     self.bytesUploaded = try c.value("bytesUploaded")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.phase, as: "phase")
     try c.encode(self.bytesUploaded, as: "bytesUploaded")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -21476,8 +22481,8 @@ public enum UploadProgressProgressPhase: String, Codable, Sendable, CaseIterable
 
 public struct UploadProgressStarted: Codable, Sendable, Hashable {
   public let phase: UploadProgressStartedPhase
-  public var totalBytes: Int
-  public init(totalBytes: Int) {
+  public var totalBytes: Int?
+  public init(totalBytes: Int? = nil) {
     self.phase = .started
     self.totalBytes = totalBytes
   }
@@ -21485,12 +22490,12 @@ public struct UploadProgressStarted: Codable, Sendable, Hashable {
     let c = try decoder.container(keyedBy: WireKey.self)
     try c.refuseUnknown(["phase", "totalBytes"], in: "UploadProgressStarted")
     self.phase = try c.value("phase")
-    self.totalBytes = try c.value("totalBytes")
+    self.totalBytes = try c.ifPresent("totalBytes")
   }
   public func encode(to encoder: any Encoder) throws {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.phase, as: "phase")
-    try c.encode(self.totalBytes, as: "totalBytes")
+    try c.encodeIfPresent(self.totalBytes, as: "totalBytes")
   }
 }
 
@@ -21927,6 +22932,30 @@ public enum WeaverHealthStatus: String, Codable, Sendable, CaseIterable {
   case ok = "ok"
 }
 
+public struct WorkerActiveJob: Codable, Sendable, Hashable {
+  public var jobId: JobId
+  public var type: JobType
+  public var since: String
+  public init(jobId: JobId, type: JobType, since: String) {
+    self.jobId = jobId
+    self.type = type
+    self.since = since
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(["jobId", "type", "since"], in: "WorkerActiveJob")
+    self.jobId = try c.value("jobId")
+    self.type = try c.value("type")
+    self.since = try c.value("since")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.jobId, as: "jobId")
+    try c.encode(self.type, as: "type")
+    try c.encode(self.since, as: "since")
+  }
+}
+
 public struct WorkerAnswerFormats: Codable, Sendable, Hashable {
   public var comment: String
   public var formats: [WorkerAnswerFormatsFormatsItem]
@@ -22042,11 +23071,11 @@ public struct WorkerEngineHealth: Codable, Sendable, Hashable {
   public var lastClaimAt: String?
   public var lastFinishedAt: String?
   public var lastActivityAt: String?
-  public var activeJob: WorkerEngineHealthActiveJob?
+  public var activeJob: WorkerActiveJob?
   public var jobsCompleted: Int
   public init(
     engine: Engine, jobs: [JobFilter], lastQueuedEventAt: String?, lastClaimAt: String?,
-    lastFinishedAt: String?, lastActivityAt: String?, activeJob: WorkerEngineHealthActiveJob?,
+    lastFinishedAt: String?, lastActivityAt: String?, activeJob: WorkerActiveJob?,
     jobsCompleted: Int
   ) {
     self.engine = engine
@@ -22084,30 +23113,6 @@ public struct WorkerEngineHealth: Codable, Sendable, Hashable {
     try c.encode(self.lastActivityAt, as: "lastActivityAt")
     try c.encode(self.activeJob, as: "activeJob")
     try c.encode(self.jobsCompleted, as: "jobsCompleted")
-  }
-}
-
-public struct WorkerEngineHealthActiveJob: Codable, Sendable, Hashable {
-  public var jobId: JobId
-  public var type: JobType
-  public var since: String
-  public init(jobId: JobId, type: JobType, since: String) {
-    self.jobId = jobId
-    self.type = type
-    self.since = since
-  }
-  public init(from decoder: any Decoder) throws {
-    let c = try decoder.container(keyedBy: WireKey.self)
-    try c.refuseUnknown(["jobId", "type", "since"], in: "WorkerEngineHealthActiveJob")
-    self.jobId = try c.value("jobId")
-    self.type = try c.value("type")
-    self.since = try c.value("since")
-  }
-  public func encode(to encoder: any Encoder) throws {
-    var c = encoder.container(keyedBy: WireKey.self)
-    try c.encode(self.jobId, as: "jobId")
-    try c.encode(self.type, as: "type")
-    try c.encode(self.since, as: "since")
   }
 }
 
@@ -22550,6 +23555,49 @@ public struct WorkerPoolSpecWorker: Codable, Sendable, Hashable {
     var c = encoder.container(keyedBy: WireKey.self)
     try c.encode(self.image, as: "image")
     try c.encode(self.resources, as: "resources")
+  }
+}
+
+public struct WorkerVitals: Codable, Sendable, Hashable {
+  public var lastQueuedEventAt: String?
+  public var lastClaimAt: String?
+  public var lastFinishedAt: String?
+  public var lastActivityAt: String?
+  public var activeJob: WorkerActiveJob?
+  public var jobsCompleted: Int
+  public init(
+    lastQueuedEventAt: String?, lastClaimAt: String?, lastFinishedAt: String?,
+    lastActivityAt: String?, activeJob: WorkerActiveJob?, jobsCompleted: Int
+  ) {
+    self.lastQueuedEventAt = lastQueuedEventAt
+    self.lastClaimAt = lastClaimAt
+    self.lastFinishedAt = lastFinishedAt
+    self.lastActivityAt = lastActivityAt
+    self.activeJob = activeJob
+    self.jobsCompleted = jobsCompleted
+  }
+  public init(from decoder: any Decoder) throws {
+    let c = try decoder.container(keyedBy: WireKey.self)
+    try c.refuseUnknown(
+      [
+        "lastQueuedEventAt", "lastClaimAt", "lastFinishedAt", "lastActivityAt", "activeJob",
+        "jobsCompleted",
+      ], in: "WorkerVitals")
+    self.lastQueuedEventAt = try c.value("lastQueuedEventAt")
+    self.lastClaimAt = try c.value("lastClaimAt")
+    self.lastFinishedAt = try c.value("lastFinishedAt")
+    self.lastActivityAt = try c.value("lastActivityAt")
+    self.activeJob = try c.value("activeJob")
+    self.jobsCompleted = try c.value("jobsCompleted")
+  }
+  public func encode(to encoder: any Encoder) throws {
+    var c = encoder.container(keyedBy: WireKey.self)
+    try c.encode(self.lastQueuedEventAt, as: "lastQueuedEventAt")
+    try c.encode(self.lastClaimAt, as: "lastClaimAt")
+    try c.encode(self.lastFinishedAt, as: "lastFinishedAt")
+    try c.encode(self.lastActivityAt, as: "lastActivityAt")
+    try c.encode(self.activeJob, as: "activeJob")
+    try c.encode(self.jobsCompleted, as: "jobsCompleted")
   }
 }
 
@@ -23150,26 +24198,8 @@ public struct YieldedResource: Codable, Sendable, Hashable {
   }
 }
 
-/// Why a client that read a launcher's discovery document found no launcher.
-public enum DiscoveryAbsentReason: String, Codable, Sendable, CaseIterable {
-  /// There is no document where it was looked for: no file, an HTTP status that is not success, or
-  /// a page that is not JSON.
-  case notFound = "not-found"
-  /// There is a document, and it is not JSON.
-  case notJson = "not-json"
-  /// It is JSON, and not a discovery document: one entry that is not what the schema says makes the
-  /// whole document invalid, since a partial reading would hide a running knowledge base without a
-  /// trace.
-  case invalid = "invalid"
-  /// It is a discovery document of a version this client does not speak, and is not read in part.
-  case unsupportedVersion = "unsupported-version"
-  /// It could not be read at all: the file could not be opened or decoded, or the request got no
-  /// answer by its deadline.
-  case unreadable = "unreadable"
-}
-
 extension ReceivedFrame {
-  internal init(_ frame: BusFrame, trace: [String: String]?, eventId: String?) {
+  internal init(_ frame: BusFrame, trace: TraceCarrier?, eventId: String?) {
     self.init(
       channel: frame.channel, correlationId: frame.correlationId, eventId: eventId,
       payload: frame.payload, scope: frame.scope, trace: trace)
@@ -23217,6 +24247,59 @@ public enum Timings {
   public static let searchDebounceMs: Int = 250
   public static let discoveryIntervalMs: Int = 5000
   public static let checksAtOnceCount: Int = 4
+}
+/// What a caller may set of the timing a client keeps: each member is the entry of protocol/specs/src/client/timing.json that its name says, and has the table's value unless the caller states another.
+public struct ClientTiming: Sendable {
+  /// How long a bus request has, from the call, to be answered: the wait for the stream to open, the emit with its retries and the waits between them, and the wait for the reply. When it falls due the request fails as timed out, and an emit still in flight is given up, with no attempt after it. The gateway keeps a reply for redelivery at least twice this long (`replyRetentionSeconds` on POST /bus/subscribe), so a reply published during an outage is still there when the requester reconnects inside its own deadline.
+  public var busRequestTimeoutMs: Int
+  /// How long bus-driven invalidations of one cache key fold together (CACHE-SEMANTICS B19). The first runs at once; any more inside the window become one refetch at its end. Each refetch is a request the session's principal pays for, and another principal's bulk write invalidates an observed key once per event.
+  public var invalidationWindowMs: Int
+  /// How long a job a client is following may say nothing before the client asks for its status. A job's progress and its end reach the client as passing frames, which a dropped stream loses and nothing redelivers; `job:status-requested` is how a follower learns what it missed. Every frame of the job starts the wait again.
+  public var jobSilenceMs: Int
+  /// How often a client asks for the status of a job that has been silent for `jobSilenceMs`, until the job says something or its status is an end.
+  public var jobStatusPollMs: Int
+  public init(
+    busRequestTimeoutMs: Int = Timings.busRequestTimeoutMs,
+    invalidationWindowMs: Int = Timings.invalidationWindowMs,
+    jobSilenceMs: Int = Timings.jobSilenceMs, jobStatusPollMs: Int = Timings.jobStatusPollMs
+  ) {
+    self.busRequestTimeoutMs = busRequestTimeoutMs
+    self.invalidationWindowMs = invalidationWindowMs
+    self.jobSilenceMs = jobSilenceMs
+    self.jobStatusPollMs = jobStatusPollMs
+  }
+}
+/// What a caller may set of the timing a transport keeps: each member is the entry of protocol/specs/src/client/timing.json that its name says, and has the table's value unless the caller states another.
+public struct TransportTiming: Sendable {
+  /// The retry budget of ONE emit. Per request, never per boot pass: re-running a whole catch-up pass to recover from one refusal re-sends hundreds of emits that already succeeded. Small on purpose: an emit a caller awaits must fail while the caller still cares, and the patience for a gateway that is down belongs to the pass above it.
+  public var emitRetry: RetryBudget
+  /// The deadline on one HTTP request that is neither the stream nor an emit: one of the gateway's own operations (who a token is, a media token, the resource metadata, health, status), the wait for a resource's bytes to begin arriving, a read of a resource's description or of its anchored text, a request to the issuer (its discovery, a grant, a revocation), and a read of a launcher's discovery document. Unanswered here, the request fails as one that got no answer. It bounds the read of a refusal's body too, of such a request or of the request that opens the stream (`streamOpenTimeoutMs`): a body not read by then is the refusal with none of the gateway's words, refused, renewed or retried as any refusal is. Without it, a gateway or an issuer that accepts a connection and never answers holds a session's start, and every renewal after it, for as long as the process lives. An upload has no deadline: how long it takes is how large the resource is. A read of anchored text may be held by the Archivist while the Smelter reads the content, and the gateway waits for the Archivist as the Archivist's document states (specs/src/archivist/openapi.json): this deadline is longer than its `connectSeconds` and `readSeconds` together, and the hold is shorter than `readSeconds`, which the reader's protocol rules (`reader/lib/protocol_rules.ml`) hold.
+  public var httpRequestTimeoutMs: Int
+  /// How long a client waits for the gateway to answer the request that opens its stream (POST /bus/subscribe): for the answer's status and headers. Unanswered here, the open has failed, and the stream is opened again on the backoff (`reconnectMs`), as after any open that failed. Without it, a gateway that accepts the connection and says nothing is waited on for as long as the process lives, and the stream is never opened again. The gateway answers an open as promptly as one of its own operations, so this is as long as `httpRequestTimeoutMs`. Only the answer is bounded here. An answer that refuses the open has its body read within `httpRequestTimeoutMs`, as any refusal's is: one not read by then is the refusal with none of the gateway's words. An open stream that carries nothing for a while has not failed, since a knowledge base where nothing happens has nothing to send.
+  public var streamOpenTimeoutMs: Int
+  /// The first wait before a failed stream is opened again. Each further failure doubles it, up to `maxReconnectMs`, and a successful open resets it. Also the cadence at which a transport with no usable credential checks for one, which costs no request.
+  public var reconnectMs: Int
+  /// How long a superseded connection keeps draining after a make-before-break handoff. Closing it the instant its replacement opens discards replies already written to the old socket and not yet read. The overlap doubles nothing: a frame both connections carry has one id, and is delivered once (`seenEventIdsCount`).
+  public var lingerMs: Int
+  /// How many of the event ids it delivered last a client remembers. A frame whose id is among them is one it has delivered already, and is dropped: that is what makes a frame carried by both streams of a handoff, or replayed to the new one, arrive once. A client that remembers fewer delivers twice whenever more than that many events pass between the two copies.
+  public var seenEventIdsCount: Int
+  /// How long a removal from the subscription waits before the stream is reopened without it. Removal only narrows delivery, and reopening on every scope a viewer brushes past would churn the connection.
+  public var lazyRemoveMs: Int
+  public init(
+    emitRetry: RetryBudget = Timings.emitRetry,
+    httpRequestTimeoutMs: Int = Timings.httpRequestTimeoutMs,
+    streamOpenTimeoutMs: Int = Timings.streamOpenTimeoutMs, reconnectMs: Int = Timings.reconnectMs,
+    lingerMs: Int = Timings.lingerMs, seenEventIdsCount: Int = Timings.seenEventIdsCount,
+    lazyRemoveMs: Int = Timings.lazyRemoveMs
+  ) {
+    self.emitRetry = emitRetry
+    self.httpRequestTimeoutMs = httpRequestTimeoutMs
+    self.streamOpenTimeoutMs = streamOpenTimeoutMs
+    self.reconnectMs = reconnectMs
+    self.lingerMs = lingerMs
+    self.seenEventIdsCount = seenEventIdsCount
+    self.lazyRemoveMs = lazyRemoveMs
+  }
 }
 public enum TransportSpan: String, Codable, Sendable, CaseIterable {
   case busEmitChannel = "bus.emit:{channel}"
@@ -23333,6 +24416,10 @@ internal func busRequestCode(for wire: CommandErrorCode) -> BusRequestErrorCode 
   }
 }
 internal let unrecognizedBusFailure: BusRequestErrorCode = .busRejected
+/// Each gateway refusal of a limit that is a transport code too: its status, its LimitRefusal code, and the transport code it is.
+internal let limitRefusalTransportCodes: [(Int, String, TransportErrorCode)] = [
+  (429, "refusal-rate", .unauthorized)
+]
 public let telemetrySpans: [SpecTelemetrySpansItem] = [
   SpecTelemetrySpansItem(
     attributes: [
@@ -24974,6 +26061,7 @@ internal let requiredSchemas: [String: Shape] = {
     closed: [
       "apiVersions", "built", "commit", "development", "imageRegistry", "runtimes", "version",
     ])
+  shapes["AccessToken"] = Shape(kinds: [.string], minLength: 1)
   shapes["Agent"] = Shape(
     kinds: [.object],
     oneOf: [
@@ -25553,6 +26641,9 @@ internal let requiredSchemas: [String: Shape] = {
             "lastEventId": Shape(kinds: [.string]), "scope": Shape(ref: "ResourceId"),
           ], closed: ["channels", "lastEventId", "scope"])),
     ], closed: ["clientId", "global", "pendingReplies", "scoped"])
+  shapes["ByteSource"] = Shape(kinds: [.string])
+  shapes["CacheStatus"] = Shape(
+    kinds: [.string], enumeration: [.string("pending"), .string("ready"), .string("failed")])
   shapes["Cancelled"] = Shape(
     kinds: [.object], required: ["requestId"],
     members: ["reason": Shape(kinds: [.string]), "requestId": Shape(ref: "RequestId")],
@@ -25570,6 +26661,47 @@ internal let requiredSchemas: [String: Shape] = {
       "accepts", "heldJobStallCheckMs", "heldJobStallMs", "jobClaimTimeoutMs",
       "markCommitTimeoutMs",
     ])
+  shapes["ClaimRefusal"] = Shape(
+    kinds: [.object], required: ["code", "message"],
+    members: [
+      "code": Shape(
+        kinds: [.string, .null],
+        oneOf: [
+          Shape(kinds: [.null]),
+          Shape(
+            kinds: [.string],
+            enumeration: [
+              .string("bus.timeout"), .string("bus.rejected"), .string("bus.closed"),
+              .string("bus.not-found"), .string("bus.unsubscribed"),
+              .string("bus.peer-unavailable"), .string("bus.unauthorized"),
+              .string("bus.none-pending"),
+            ]),
+        ]), "message": Shape(kinds: [.string]),
+    ], closed: ["code", "message"])
+  shapes["ClientConnectionStates"] = Shape(
+    kinds: [.object], required: ["$comment", "states"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "states": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["state", "meaning", "moves"],
+          members: [
+            "meaning": Shape(kinds: [.string], minLength: 1),
+            "moves": Shape(kinds: [.array], items: Shape(ref: "ConnectionState")),
+            "state": Shape(ref: "ConnectionState"),
+          ], closed: ["meaning", "moves", "state"])),
+    ], closed: ["$comment", "states"])
   shapes["ClientDiscoveryAbsent"] = Shape(
     kinds: [.object], required: ["$comment", "reasons"],
     members: [
@@ -25590,21 +26722,183 @@ internal let requiredSchemas: [String: Shape] = {
           kinds: [.object], required: ["reason", "docs"],
           members: [
             "docs": Shape(kinds: [.string], minLength: 1),
-            "reason": Shape(
+            "reason": Shape(ref: "DiscoveryAbsentReason"),
+          ], closed: ["docs", "reason"])),
+    ], closed: ["$comment", "reasons"])
+  shapes["ClientOptionDefaults"] = Shape(
+    kinds: [.object], required: ["$comment", "defaults"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "defaults": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["method", "parameter", "value", "docs"],
+          members: [
+            "docs": Shape(kinds: [.string], minLength: 1),
+            "method": Shape(
               kinds: [.string],
               pattern: [
-                .step(Step(of: [97...122], min: 1, max: nil)),
+                .step(Step(of: [97...122], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                .step(Step(of: [46...46], min: 1, max: 1)),
+                .step(Step(of: [97...122], min: 1, max: 1)),
+                .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+              ]), "option": Shape(kinds: [.string], minLength: 1),
+            "parameter": Shape(kinds: [.string], minLength: 1),
+            "schema": Shape(
+              kinds: [.object],
+              oneOf: [
+                Shape(
+                  kinds: [.object], required: ["$ref"],
+                  members: [
+                    "$ref": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [104...104], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [112...112], min: 1, max: 1)),
+                        .step(Step(of: [115...115], min: 1, max: 1)),
+                        .step(Step(of: [58...58], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [120...120], min: 1, max: 1)),
+                        .step(Step(of: [121...121], min: 1, max: 1)),
+                        .step(Step(of: [110...110], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [108...108], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [103...103], min: 1, max: 1)),
+                        .step(Step(of: [46...46], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [114...114], min: 1, max: 1)),
+                        .step(Step(of: [103...103], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [112...112], min: 1, max: 1)),
+                        .step(Step(of: [114...114], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [116...116], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [99...99], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [108...108], min: 1, max: 1)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [65...90], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                        .step(Step(of: [46...46], min: 1, max: 1)),
+                        .step(Step(of: [106...106], min: 1, max: 1)),
+                        .step(Step(of: [115...115], min: 1, max: 1)),
+                        .step(Step(of: [111...111], min: 1, max: 1)),
+                        .step(Step(of: [110...110], min: 1, max: 1)),
+                        .group(
+                          Group(
+                            either: [
+                              [
+                                .step(Step(of: [35...35], min: 1, max: 1)),
+                                .group(
+                                  Group(
+                                    either: [
+                                      [
+                                        .step(Step(of: [47...47], min: 1, max: 1)),
+                                        .step(Step(of: [112...112], min: 1, max: 1)),
+                                        .step(Step(of: [114...114], min: 1, max: 1)),
+                                        .step(Step(of: [111...111], min: 1, max: 1)),
+                                        .step(Step(of: [112...112], min: 1, max: 1)),
+                                        .step(Step(of: [101...101], min: 1, max: 1)),
+                                        .step(Step(of: [114...114], min: 1, max: 1)),
+                                        .step(Step(of: [116...116], min: 1, max: 1)),
+                                        .step(Step(of: [105...105], min: 1, max: 1)),
+                                        .step(Step(of: [101...101], min: 1, max: 1)),
+                                        .step(Step(of: [115...115], min: 1, max: 1)),
+                                        .step(Step(of: [47...47], min: 1, max: 1)),
+                                        .step(Step(of: [97...122], min: 1, max: 1)),
+                                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                                      ]
+                                    ], min: 1, max: nil)),
+                              ]
+                            ], min: 0, max: 1)),
+                      ]),
+                    "typeArguments": Shape(
+                      kinds: [.object],
+                      values: Shape(
+                        kinds: [.object], required: ["typeParameter"],
+                        members: [
+                          "typeParameter": Shape(
+                            kinds: [.string],
+                            pattern: [
+                              .step(Step(of: [65...90], min: 1, max: 1)),
+                              .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                            ])
+                        ], closed: ["typeParameter"]), minMembers: 1),
+                  ], closed: ["$ref", "typeArguments"]),
+                Shape(
+                  kinds: [.object], required: ["type", "description"],
+                  members: [
+                    "description": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                        .step(
+                          Step(
+                            of: [
+                              0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
+                              8234...8238, 8240...8286, 8288...12287, 12289...65278,
+                              65280...1_114_111,
+                            ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                      ]), "format": Shape(kinds: [.string], enumeration: [.string("date-time")]),
+                    "minimum": Shape(kinds: [.integer]),
+                    "type": Shape(
+                      kinds: [.string],
+                      enumeration: [.string("integer"), .string("string"), .string("boolean")]),
+                  ], closed: ["description", "format", "minimum", "type"]),
+                Shape(
+                  kinds: [.object], required: ["typeParameter"],
+                  members: [
+                    "typeParameter": Shape(
+                      kinds: [.string],
+                      pattern: [
+                        .step(Step(of: [65...90], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 0, max: nil)),
+                      ])
+                  ], closed: ["typeParameter"]),
+                Shape(
+                  kinds: [.object], required: ["decided"],
+                  members: [
+                    "decided": Shape(
+                      kinds: [.object], required: ["by", "in"],
+                      members: [
+                        "by": Shape(
+                          kinds: [.object], required: ["member"],
+                          members: ["member": Shape(kinds: [.string], minLength: 1)],
+                          closed: ["member"]),
+                        "in": Shape(kinds: [.string], enumeration: [.string("takes")]),
+                      ], closed: ["by", "in"])
+                  ], closed: ["decided"]),
+              ]),
+            "sends": Shape(
+              kinds: [.string],
+              pattern: [
                 .group(
                   Group(
                     either: [
                       [
-                        .step(Step(of: [45...45], min: 1, max: 1)),
-                        .step(Step(of: [97...122], min: 1, max: nil)),
+                        .step(Step(of: [47...47], min: 1, max: 1)),
+                        .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
                       ]
-                    ], min: 0, max: nil)),
+                    ], min: 1, max: nil))
               ]),
-          ], closed: ["docs", "reason"])),
-    ], closed: ["$comment", "reasons"])
+          ], closed: ["docs", "method", "option", "parameter", "schema", "sends", "value"])),
+    ], closed: ["$comment", "defaults"])
   shapes["ClientRefresh"] = Shape(
     kinds: [.object], required: ["$comment", "queries", "refresh"],
     members: [
@@ -26161,7 +27455,7 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["progress"],
         members: [
           "progress": Shape(
-            kinds: [.object], required: ["upload", "bytesUploaded", "totalBytes"],
+            kinds: [.object], required: ["upload", "bytesUploaded"],
             members: [
               "bytesUploaded": Shape(kinds: [.integer], minimum: 0.0),
               "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
@@ -26199,7 +27493,7 @@ internal let requiredSchemas: [String: Shape] = {
         kinds: [.object], required: ["completed"], members: ["completed": Shape(kinds: [.string])],
         closed: ["completed"]),
       Shape(
-        kinds: [.object], required: ["claimed"], members: ["claimed": Shape(kinds: [.object])],
+        kinds: [.object], required: ["claimed"], members: ["claimed": Shape(ref: "HeldJobRecord")],
         closed: ["claimed"]),
       Shape(
         kinds: [.object], required: ["refused"],
@@ -26392,25 +27686,11 @@ internal let requiredSchemas: [String: Shape] = {
             ])
         ], closed: ["progress"]),
       Shape(
-        kinds: [.object], required: ["state"],
-        members: [
-          "state": Shape(
-            kinds: [.string],
-            enumeration: [
-              .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
-              .string("degraded"), .string("unauthenticated"), .string("closed"),
-            ])
-        ], closed: ["state"]),
+        kinds: [.object], required: ["state"], members: ["state": Shape(ref: "ConnectionState")],
+        closed: ["state"]),
       Shape(
-        kinds: [.object], required: ["stays"],
-        members: [
-          "stays": Shape(
-            kinds: [.string],
-            enumeration: [
-              .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
-              .string("degraded"), .string("unauthenticated"), .string("closed"),
-            ])
-        ], closed: ["stays"]),
+        kinds: [.object], required: ["stays"], members: ["stays": Shape(ref: "ConnectionState")],
+        closed: ["stays"]),
       Shape(
         kinds: [.object], required: ["frame", "is"],
         members: ["frame": Shape(kinds: [.string], minLength: 1)], closed: ["frame", "is"]),
@@ -26512,6 +27792,12 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["did", "description"],
     members: ["description": Shape(ref: "KbDescription"), "did": Shape(ref: "UserId")],
     closed: ["description", "did"])
+  shapes["ConnectionState"] = Shape(
+    kinds: [.string],
+    enumeration: [
+      .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
+      .string("degraded"), .string("unauthenticated"), .string("closed"),
+    ])
   shapes["ContentFormat"] = Shape(kinds: [.string])
   shapes["ContextualSummaryResponse"] = Shape(
     kinds: [.object], required: ["summary", "relevantFields", "context"],
@@ -26651,6 +27937,54 @@ internal let requiredSchemas: [String: Shape] = {
                 ])),
           ], closed: ["flags", "method", "parser", "positionals"])),
     ], closed: ["$comment", "commands"])
+  shapes["ControlRpcCodes"] = Shape(
+    kinds: [.object], required: ["$comment", "codes"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]),
+      "codes": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["number", "name", "docs"],
+          members: [
+            "data": Shape(ref: "ErrorData"),
+            "docs": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+                .step(
+                  Step(
+                    of: [
+                      0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                      8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+                    ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+              ]),
+            "name": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [97...122], min: 1, max: nil)),
+                .group(
+                  Group(
+                    either: [
+                      [
+                        .step(Step(of: [45...45], min: 1, max: 1)),
+                        .step(Step(of: [97...122], min: 1, max: nil)),
+                      ]
+                    ], min: 0, max: nil)),
+              ]), "number": Shape(kinds: [.integer]),
+          ], closed: ["data", "docs", "name", "number"])),
+    ], closed: ["$comment", "codes"])
+  shapes["ControlSender"] = Shape(
+    kinds: [.string], enumeration: [.string("client"), .string("launcher")])
   shapes["CreateAnnotationRequest"] = Shape(
     kinds: [.object], required: ["target", "motivation"],
     members: [
@@ -26687,23 +28021,59 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["host", "port", "placement", "did", "managedBy"],
     members: [
       "did": Shape(kinds: [.string]), "host": Shape(kinds: [.string]),
-      "managedBy": Shape(kinds: [.string]),
-      "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
-      "port": Shape(kinds: [.integer]), "repo": Shape(kinds: [.string]),
-      "siteName": Shape(kinds: [.string]),
+      "managedBy": Shape(kinds: [.string]), "placement": Shape(ref: "KbPlacement"),
+      "port": Shape(kinds: [.integer], minimum: 1.0, maximum: 65535.0),
+      "repo": Shape(kinds: [.string]), "siteName": Shape(kinds: [.string]),
     ])
+  shapes["DiscoveryAbsent"] = Shape(
+    kinds: [.object], required: ["kind", "reason"],
+    members: [
+      "diagnostic": Shape(kinds: [.string], minLength: 1),
+      "kind": Shape(kinds: [.string], enumeration: [.string("absent")]),
+      "reason": Shape(ref: "DiscoveryAbsentReason"),
+    ], closed: ["diagnostic", "kind", "reason"])
   shapes["DiscoveryAbsentReason"] = Shape(
     kinds: [.string],
     enumeration: [
       .string("not-found"), .string("not-json"), .string("invalid"), .string("unsupported-version"),
       .string("unreadable"),
     ])
+  shapes["DiscoveryDiff"] = Shape(
+    kinds: [.object], required: ["state", "added", "updated", "removed", "duplicated"],
+    members: [
+      "added": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "duplicated": Shape(kinds: [.array], items: Shape(kinds: [.string], minLength: 1)),
+      "removed": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "state": Shape(ref: "DiscoveryState"),
+      "updated": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+    ], closed: ["added", "duplicated", "removed", "state", "updated"])
   shapes["DiscoveryDocument"] = Shape(
     kinds: [.object], required: ["version", "kbs"],
     members: [
       "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
       "version": Shape(kinds: [.integer], enumeration: [.number(1.0)]),
     ])
+  shapes["DiscoveryManaged"] = Shape(
+    kinds: [.object], required: ["kind", "kbs"],
+    members: [
+      "kbs": Shape(kinds: [.array], items: Shape(ref: "DiscoveredKB")),
+      "kind": Shape(kinds: [.string], enumeration: [.string("managed")]),
+    ], closed: ["kbs", "kind"])
+  shapes["DiscoveryRead"] = Shape(
+    kinds: [.object],
+    oneOf: [
+      Shape(ref: "DiscoveryAbsent"), Shape(ref: "DiscoveryManaged"),
+      Shape(ref: "DiscoveryUnchanged"),
+    ],
+    discriminator: Discriminator(
+      property: "kind", mapping: ["absent": 0, "managed": 1, "unchanged": 2]))
+  shapes["DiscoveryState"] = Shape(
+    kinds: [.object], oneOf: [Shape(ref: "DiscoveryAbsent"), Shape(ref: "DiscoveryManaged")],
+    discriminator: Discriminator(property: "kind", mapping: ["absent": 0, "managed": 1]))
+  shapes["DiscoveryUnchanged"] = Shape(
+    kinds: [.object], required: ["kind"],
+    members: ["kind": Shape(kinds: [.string], enumeration: [.string("unchanged")])],
+    closed: ["kind"])
   shapes["DispatcherConfig"] = Shape(
     kinds: [.object],
     required: ["kb", "gatewayUrl", "identity", "queue", "port", "timing", "logLevel", "logFormat"],
@@ -26758,13 +28128,7 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["Engine"] = Shape(
     kinds: [.object], required: ["provider", "model"],
     members: [
-      "model": Shape(kinds: [.string], minLength: 1),
-      "provider": Shape(
-        kinds: [.string],
-        enumeration: [
-          .string("anthropic"), .string("google"), .string("llamacpp"), .string("ollama"),
-          .string("openai"), .string("together"), .string("vllm"),
-        ]),
+      "model": Shape(kinds: [.string], minLength: 1), "provider": Shape(ref: "InferenceProvider"),
     ], closed: ["model", "provider"])
   shapes["EngineEntry"] = Shape(
     kinds: [.object], required: ["engine"],
@@ -26810,22 +28174,19 @@ internal let requiredSchemas: [String: Shape] = {
       "choices": Shape(kinds: [.array], items: Shape(ref: "Target")),
       "code": Shape(
         kinds: [.string],
-        pattern: [
-          .step(Step(of: [99...99], min: 1, max: 1)), .step(Step(of: [111...111], min: 1, max: 1)),
-          .step(Step(of: [110...110], min: 1, max: 1)),
-          .step(Step(of: [116...116], min: 1, max: 1)),
-          .step(Step(of: [114...114], min: 1, max: 1)),
-          .step(Step(of: [111...111], min: 1, max: 1)),
-          .step(Step(of: [108...108], min: 1, max: 1)), .step(Step(of: [46...46], min: 1, max: 1)),
-          .step(Step(of: [97...122], min: 1, max: nil)),
-          .group(
-            Group(
-              either: [
-                [
-                  .step(Step(of: [45...45], min: 1, max: 1)),
-                  .step(Step(of: [97...122], min: 1, max: nil)),
-                ]
-              ], min: 0, max: nil)),
+        enumeration: [
+          .string("control.invalid-params"), .string("control.unsupported-api-version"),
+          .string("control.invalid-request"), .string("control.invalid-service"),
+          .string("control.invalid-value"), .string("control.unknown-setting"),
+          .string("control.target-required"), .string("control.target-ambiguous"),
+          .string("control.root-not-found"), .string("control.root-not-registered"),
+          .string("control.stack-not-running"), .string("control.stack-running"),
+          .string("control.start-in-progress"), .string("control.runtime-unavailable"),
+          .string("control.dependency-unavailable"), .string("control.unreachable"),
+          .string("control.instance-in-use"), .string("control.instance-not-found"),
+          .string("control.confirmation-required"), .string("control.unreadable-state"),
+          .string("control.already-signed-in"), .string("control.sign-in-failed"),
+          .string("control.cancelled"), .string("control.failed"),
         ]), "fields": Shape(kinds: [.array], items: Shape(ref: "FieldFault")),
       "mayStillRun": Shape(kinds: [.boolean]), "retryable": Shape(kinds: [.boolean]),
       "supported": Shape(kinds: [.array], items: Shape(kinds: [.string])),
@@ -26924,7 +28285,7 @@ internal let requiredSchemas: [String: Shape] = {
           "codes": Shape(
             kinds: [.array], minItems: 1,
             items: Shape(
-              kinds: [.object], required: ["code", "docs"],
+              kinds: [.object], required: ["code", "docs", "rpc", "retryable"],
               members: [
                 "code": Shape(
                   kinds: [.string],
@@ -26949,8 +28310,8 @@ internal let requiredSchemas: [String: Shape] = {
                           0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231,
                           8234...8238, 8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
                         ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
-                  ]),
-              ], closed: ["code", "docs"])),
+                  ]), "retryable": Shape(kinds: [.boolean]), "rpc": Shape(kinds: [.integer]),
+              ], closed: ["code", "docs", "retryable", "rpc"])),
           "docs": Shape(
             kinds: [.string],
             pattern: [
@@ -27223,8 +28584,21 @@ internal let requiredSchemas: [String: Shape] = {
                               8234...8238, 8240...8286, 8288...12287, 12289...65278,
                               65280...1_114_111,
                             ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
-                      ]), "status": Shape(ref: "HttpStatus"),
-                  ], closed: ["code", "docs", "status"]),
+                      ]),
+                    "limitRefusals": Shape(
+                      kinds: [.array], minItems: 1,
+                      items: Shape(
+                        kinds: [.object], required: ["status", "code"],
+                        members: [
+                          "code": Shape(
+                            kinds: [.string],
+                            enumeration: [
+                              .string("streams"), .string("emit-rate"),
+                              .string("unanswered-requests"), .string("capacity"),
+                              .string("refusal-rate"),
+                            ]), "status": Shape(ref: "HttpStatus"),
+                        ], closed: ["code", "status"])), "status": Shape(ref: "HttpStatus"),
+                  ], closed: ["code", "docs", "limitRefusals", "status"]),
                 Shape(
                   kinds: [.object], required: ["code", "docs", "statusFrom"],
                   members: [
@@ -27357,6 +28731,29 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["FailureClass"] = Shape(
     kinds: [.string],
     enumeration: [.string("transient"), .string("deterministic"), .string("withheld")])
+  shapes["Fault"] = Shape(
+    kinds: [.object], required: ["member", "reason"],
+    members: [
+      "member": Shape(
+        kinds: [.string],
+        pattern: [
+          .group(
+            Group(
+              either: [
+                [
+                  .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
+                  .group(
+                    Group(
+                      either: [
+                        [
+                          .step(Step(of: [46...46], min: 1, max: 1)),
+                          .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
+                        ]
+                      ], min: 0, max: nil)),
+                ]
+              ], min: 0, max: 1))
+        ]), "reason": Shape(ref: "FrameRefusalReason"),
+    ], closed: ["member", "reason"])
   shapes["FieldFault"] = Shape(
     kinds: [.object], required: ["field", "message"],
     members: ["field": Shape(kinds: [.string]), "message": Shape(kinds: [.string])],
@@ -27398,6 +28795,31 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["FrameAddTagSchemaCommand"] = Shape(
     kinds: [.object], required: ["schema"],
     members: ["_userId": Shape(ref: "UserId"), "schema": Shape(ref: "TagSchema")])
+  shapes["FrameRefusal"] = Shape(
+    kinds: [.object], required: ["channel", "member", "reason"],
+    members: [
+      "channel": Shape(kinds: [.string], minLength: 1),
+      "correlationId": Shape(kinds: [.string], minLength: 1),
+      "member": Shape(
+        kinds: [.string],
+        pattern: [
+          .group(
+            Group(
+              either: [
+                [
+                  .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
+                  .group(
+                    Group(
+                      either: [
+                        [
+                          .step(Step(of: [46...46], min: 1, max: 1)),
+                          .step(Step(of: [65...90, 97...122], min: 1, max: nil)),
+                        ]
+                      ], min: 0, max: nil)),
+                ]
+              ], min: 0, max: 1))
+        ]), "reason": Shape(ref: "FrameRefusalReason"), "scope": Shape(ref: "ResourceId"),
+    ], closed: ["channel", "correlationId", "member", "payload", "reason", "scope"])
   shapes["FrameRefusalReason"] = Shape(
     kinds: [.string], enumeration: [.string("lacks"), .string("malformed")])
   shapes["GatewayConfig"] = Shape(
@@ -27669,6 +29091,32 @@ internal let requiredSchemas: [String: Shape] = {
       "message": Shape(kinds: [.string]), "status": Shape(kinds: [.string]),
       "timestamp": Shape(kinds: [.string]), "version": Shape(kinds: [.string]),
     ])
+  shapes["HeldJobRecord"] = Shape(
+    kinds: [.object],
+    required: [
+      "jobId", "jobType", "resourceId", "params", "completedUnits", "unitCursors", "retryCount",
+      "maxRetries",
+    ],
+    members: [
+      "completedUnits": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "jobId": Shape(ref: "JobId"), "jobType": Shape(ref: "JobType"),
+      "maxRetries": Shape(kinds: [.integer], minimum: 0.0), "params": Shape(ref: "JobParams"),
+      "resourceId": Shape(ref: "ResourceId"), "retryCount": Shape(kinds: [.integer], minimum: 0.0),
+      "unitCursors": Shape(kinds: [.object], values: Shape(ref: "UnitCursor")),
+    ],
+    closed: [
+      "completedUnits", "jobId", "jobType", "maxRetries", "params", "resourceId", "retryCount",
+      "unitCursors",
+    ])
+  shapes["HeldJobStall"] = Shape(
+    kinds: [.object],
+    required: ["jobId", "jobType", "heldSince", "lastActivityAt", "silentForMs", "thresholdMs"],
+    members: [
+      "heldSince": Shape(kinds: [.string]), "jobId": Shape(ref: "JobId"),
+      "jobType": Shape(ref: "JobType"), "lastActivityAt": Shape(kinds: [.string]),
+      "silentForMs": Shape(kinds: [.integer], minimum: 0.0),
+      "thresholdMs": Shape(kinds: [.integer], minimum: 0.0),
+    ], closed: ["heldSince", "jobId", "jobType", "lastActivityAt", "silentForMs", "thresholdMs"])
   shapes["HighlightingJobParams"] = Shape(
     kinds: [.object], required: ["motivation"],
     members: [
@@ -27837,12 +29285,7 @@ internal let requiredSchemas: [String: Shape] = {
           "engines": Shape(ref: "ArchivistEngines"),
           "providers": Shape(
             kinds: [.object], values: Shape(ref: "Provider"), minMembers: 1,
-            names: Shape(
-              kinds: [.string],
-              enumeration: [
-                .string("anthropic"), .string("google"), .string("llamacpp"), .string("ollama"),
-                .string("openai"), .string("together"), .string("vllm"),
-              ])),
+            names: Shape(ref: "InferenceProvider")),
         ], closed: ["engines", "providers"]),
     ], closed: ["apiVersion", "kind", "metadata", "spec"])
   shapes["InferenceLimits"] = Shape(
@@ -27858,6 +29301,12 @@ internal let requiredSchemas: [String: Shape] = {
       "response": Shape(
         kinds: [.object], required: ["limits"],
         members: ["limits": Shape(kinds: [.array], items: Shape(ref: "EngineLimits"))])
+    ])
+  shapes["InferenceProvider"] = Shape(
+    kinds: [.string],
+    enumeration: [
+      .string("anthropic"), .string("google"), .string("llamacpp"), .string("ollama"),
+      .string("openai"), .string("together"), .string("vllm"),
     ])
   shapes["IssuedTokens"] = Shape(
     kinds: [.object], required: ["access", "refresh"],
@@ -27954,6 +29403,12 @@ internal let requiredSchemas: [String: Shape] = {
       "params": Shape(ref: "JobParams"), "startedAt": Shape(kinds: [.string]),
       "status": Shape(kinds: [.string], enumeration: [.string("cancelled")]),
     ], closed: ["completedAt", "metadata", "params", "startedAt", "status"])
+  shapes["JobCheckpoint"] = Shape(
+    kinds: [.object], required: ["completedUnits"],
+    members: [
+      "completedUnits": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "unitCursors": Shape(kinds: [.object], values: Shape(ref: "UnitCursor")),
+    ], closed: ["completedUnits", "unitCursors"])
   shapes["JobCheckpointCommand"] = Shape(
     kinds: [.object], required: ["jobId", "completedUnits"],
     members: [
@@ -28043,6 +29498,13 @@ internal let requiredSchemas: [String: Shape] = {
       "failureClass": Shape(ref: "FailureClass"), "jobId": Shape(ref: "JobId"),
       "jobType": Shape(ref: "JobType"), "willRetry": Shape(kinds: [.boolean]),
     ])
+  shapes["JobFailure"] = Shape(
+    kinds: [.object],
+    members: [
+      "completedUnits": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "failureClass": Shape(ref: "FailureClass"),
+      "unitCursors": Shape(kinds: [.object], values: Shape(ref: "UnitCursor")),
+    ], closed: ["completedUnits", "failureClass", "unitCursors"])
   shapes["JobFilter"] = Shape(
     kinds: [.object], oneOf: [Shape(ref: "MarkJobFilter"), Shape(ref: "YieldJobFilter")],
     discriminator: Discriminator(property: "jobType", mapping: ["mark": 0, "yield": 1]))
@@ -28182,6 +29644,12 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["JobQueuedEvent"] = Shape(
     kinds: [.object], oneOf: [Shape(ref: "MarkJobQueuedEvent"), Shape(ref: "YieldJobQueuedEvent")],
     discriminator: Discriminator(property: "jobType", mapping: ["mark": 0, "yield": 1]))
+  shapes["JobReached"] = Shape(
+    kinds: [.object],
+    members: [
+      "completedUnits": Shape(kinds: [.array], items: Shape(kinds: [.string])),
+      "unitCursors": Shape(kinds: [.object], values: Shape(ref: "UnitCursor")),
+    ], closed: ["completedUnits", "unitCursors"])
   shapes["JobRecord"] = Shape(
     kinds: [.object], required: ["job", "lastProgressAt"],
     members: ["job": Shape(ref: "Job"), "lastProgressAt": Shape(kinds: [.string])],
@@ -28282,6 +29750,8 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object], required: ["expectedDid", "observedDid"],
     members: ["expectedDid": Shape(kinds: [.string]), "observedDid": Shape(kinds: [.string])],
     closed: ["expectedDid", "observedDid"])
+  shapes["KbPlacement"] = Shape(
+    kinds: [.string], enumeration: [.string("local"), .string("codespace")])
   shapes["KbRead"] = Shape(
     kinds: [.object], required: ["at"],
     members: ["at": Shape(kinds: [.string]), "gitBranch": Shape(kinds: [.string])])
@@ -28333,10 +29803,9 @@ internal let requiredSchemas: [String: Shape] = {
       "healthy": Shape(kinds: [.boolean]), "identityError": Shape(kinds: [.string]),
       "kb": Shape(ref: "DiscoveredKB"), "key": Shape(kinds: [.string]),
       "lan": Shape(kinds: [.string]), "name": Shape(kinds: [.string]),
-      "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
-      "recorded": Shape(kinds: [.boolean]), "repo": Shape(kinds: [.string]),
-      "root": Shape(kinds: [.string]), "runtime": Shape(ref: "Runtime"),
-      "secretStore": Shape(kinds: [.string]),
+      "placement": Shape(ref: "KbPlacement"), "recorded": Shape(kinds: [.boolean]),
+      "repo": Shape(kinds: [.string]), "root": Shape(kinds: [.string]),
+      "runtime": Shape(ref: "Runtime"), "secretStore": Shape(kinds: [.string]),
       "services": Shape(kinds: [.array], items: Shape(ref: "ServiceStatus")),
       "session": Shape(ref: "Session"), "siteName": Shape(kinds: [.string]),
       "starting": Shape(kinds: [.boolean]), "workload": Shape(ref: "WorkloadStatus"),
@@ -29050,6 +30519,42 @@ internal let requiredSchemas: [String: Shape] = {
     members: ["_userId": Shape(ref: "UserId"), "name": Shape(kinds: [.string])])
   shapes["PrincipalProfiledPayload"] = Shape(
     kinds: [.object], required: ["name"], members: ["name": Shape(kinds: [.string])])
+  shapes["PrincipalsRoles"] = Shape(
+    kinds: [.object], required: ["$comment", "rolesClaim", "roles", "kindClaim", "agentKind"],
+    members: [
+      "$comment": Shape(
+        kinds: [.string],
+        pattern: [
+          .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+          .step(
+            Step(
+              of: [
+                0...8, 14...31, 33...159, 161...5759, 5761...8191, 8203...8231, 8234...8238,
+                8240...8286, 8288...12287, 12289...65278, 65280...1_114_111,
+              ], min: 1, max: 1)), .step(Step(of: [0...1_114_111], min: 0, max: nil)),
+        ]), "agentKind": Shape(kinds: [.string], minLength: 1),
+      "kindClaim": Shape(kinds: [.string], minLength: 1),
+      "roles": Shape(
+        kinds: [.array], minItems: 1,
+        items: Shape(
+          kinds: [.object], required: ["role", "docs"],
+          members: [
+            "docs": Shape(kinds: [.string], minLength: 1),
+            "role": Shape(
+              kinds: [.string],
+              pattern: [
+                .step(Step(of: [97...122], min: 1, max: nil)),
+                .group(
+                  Group(
+                    either: [
+                      [
+                        .step(Step(of: [45...45], min: 1, max: 1)),
+                        .step(Step(of: [97...122], min: 1, max: nil)),
+                      ]
+                    ], min: 0, max: nil)),
+              ]),
+          ], closed: ["docs", "role"])), "rolesClaim": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["$comment", "agentKind", "kindClaim", "roles", "rolesClaim"])
   shapes["Profile"] = Shape(
     kinds: [.object], required: ["name", "since"],
     members: ["name": Shape(kinds: [.string]), "since": Shape(kinds: [.string])],
@@ -29113,7 +30618,7 @@ internal let requiredSchemas: [String: Shape] = {
     members: [
       "archiveOriginal": Shape(kinds: [.boolean]), "cloneToken": Shape(kinds: [.string]),
       "entityTypes": Shape(kinds: [.array], items: Shape(kinds: [.string])),
-      "file": Shape(ref: "Binary"), "format": Shape(kinds: [.string]),
+      "file": Shape(ref: "ByteSource"), "format": Shape(kinds: [.string]),
       "generationPrompt": Shape(kinds: [.string]), "generator": Shape(ref: "OneOrMoreAgents"),
       "isDraft": Shape(kinds: [.boolean]), "jobId": Shape(ref: "JobId"),
       "language": Shape(kinds: [.string]), "name": Shape(kinds: [.string]),
@@ -29381,10 +30886,10 @@ internal let requiredSchemas: [String: Shape] = {
       "did": Shape(kinds: [.string]), "forwardPort": Shape(kinds: [.integer]),
       "forwarded": Shape(kinds: [.boolean]), "identityError": Shape(kinds: [.string]),
       "lastUsed": Shape(kinds: [.string]), "path": Shape(kinds: [.string]),
-      "placement": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
-      "present": Shape(kinds: [.boolean]), "reachable": Shape(kinds: [.boolean]),
-      "registered": Shape(kinds: [.boolean]), "repo": Shape(kinds: [.string]),
-      "running": Shape(kinds: [.boolean]), "siteName": Shape(kinds: [.string]),
+      "placement": Shape(ref: "KbPlacement"), "present": Shape(kinds: [.boolean]),
+      "reachable": Shape(kinds: [.boolean]), "registered": Shape(kinds: [.boolean]),
+      "repo": Shape(kinds: [.string]), "running": Shape(kinds: [.boolean]),
+      "siteName": Shape(kinds: [.string]),
     ],
     closed: [
       "codespace", "codespaceState", "config", "configs", "current", "did", "forwardPort",
@@ -30042,12 +31547,7 @@ internal let requiredSchemas: [String: Shape] = {
             ]), "summary": Shape(ref: "SmelterReconcileSummary"),
         ], closed: ["error", "phase", "summary"]),
       "status": Shape(kinds: [.string], enumeration: [.string("ok")]),
-      "stream": Shape(
-        kinds: [.string],
-        enumeration: [
-          .string("initial"), .string("connecting"), .string("open"), .string("reconnecting"),
-          .string("degraded"), .string("unauthenticated"), .string("closed"),
-        ]),
+      "stream": Shape(ref: "ConnectionState"),
     ], closed: ["eventsProcessed", "following", "index", "kb", "reconcile", "status", "stream"])
   shapes["SmelterReconcileSummary"] = Shape(
     kinds: [.object],
@@ -30230,7 +31730,7 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["StoredSession"] = Shape(
     kinds: [.object], required: ["access", "refresh", "clientId", "tokenEndpoint"],
     members: [
-      "access": Shape(kinds: [.string]), "clientId": Shape(kinds: [.string]),
+      "access": Shape(ref: "AccessToken"), "clientId": Shape(kinds: [.string]),
       "personKey": Shape(kinds: [.string]), "refresh": Shape(kinds: [.string]),
       "revocationEndpoint": Shape(kinds: [.string]), "tokenEndpoint": Shape(kinds: [.string]),
     ])
@@ -30267,6 +31767,8 @@ internal let requiredSchemas: [String: Shape] = {
       "type": Shape(kinds: [.string], enumeration: [.string("SvgSelector")]),
       "value": Shape(kinds: [.string]),
     ])
+  shapes["System"] = Shape(
+    kinds: [.string], enumeration: [.string("macos"), .string("windows"), .string("other")])
   shapes["TabCheck"] = Shape(
     kinds: [.object],
     oneOf: [
@@ -30325,7 +31827,7 @@ internal let requiredSchemas: [String: Shape] = {
   shapes["Target"] = Shape(
     kinds: [.object], required: ["kind"],
     members: [
-      "kind": Shape(kinds: [.string], enumeration: [.string("local"), .string("codespace")]),
+      "kind": Shape(ref: "KbPlacement"),
       "repo": Shape(
         kinds: [.string],
         pattern: [
@@ -30382,6 +31884,12 @@ internal let requiredSchemas: [String: Shape] = {
       "type": Shape(kinds: [.string], enumeration: [.string("TextualBody")]),
       "value": Shape(kinds: [.string]),
     ])
+  shapes["TraceCarrier"] = Shape(
+    kinds: [.object], required: ["traceparent"],
+    members: [
+      "traceparent": Shape(kinds: [.string], minLength: 1),
+      "tracestate": Shape(kinds: [.string], minLength: 1),
+    ], closed: ["traceparent", "tracestate"])
   shapes["UnitCursor"] = Shape(
     kinds: [.object], required: ["next", "size", "found", "emitted", "errors"],
     members: [
@@ -30401,13 +31909,13 @@ internal let requiredSchemas: [String: Shape] = {
     kinds: [.object],
     oneOf: [
       Shape(
-        kinds: [.object], required: ["phase", "totalBytes"],
+        kinds: [.object], required: ["phase"],
         members: [
           "phase": Shape(kinds: [.string], enumeration: [.string("started")]),
           "totalBytes": Shape(kinds: [.integer], minimum: 0.0),
         ], closed: ["phase", "totalBytes"]),
       Shape(
-        kinds: [.object], required: ["phase", "bytesUploaded", "totalBytes"],
+        kinds: [.object], required: ["phase", "bytesUploaded"],
         members: [
           "bytesUploaded": Shape(kinds: [.integer], minimum: 0.0),
           "phase": Shape(kinds: [.string], enumeration: [.string("progress")]),
@@ -30527,6 +32035,11 @@ internal let requiredSchemas: [String: Shape] = {
         ], closed: ["error", "phase", "summary"]),
       "status": Shape(kinds: [.string], enumeration: [.string("ok")]),
     ], closed: ["following", "kb", "reconcile", "status"])
+  shapes["WorkerActiveJob"] = Shape(
+    kinds: [.object], required: ["jobId", "type", "since"],
+    members: [
+      "jobId": Shape(ref: "JobId"), "since": Shape(kinds: [.string]), "type": Shape(ref: "JobType"),
+    ], closed: ["jobId", "since", "type"])
   shapes["WorkerConfig"] = Shape(
     kinds: [.object],
     required: ["knowledgeBases", "modelCatalogue", "port", "logLevel", "logFormat"],
@@ -30552,11 +32065,8 @@ internal let requiredSchemas: [String: Shape] = {
     ],
     members: [
       "activeJob": Shape(
-        kinds: [.object, .null], required: ["jobId", "type", "since"],
-        members: [
-          "jobId": Shape(ref: "JobId"), "since": Shape(kinds: [.string]),
-          "type": Shape(ref: "JobType"),
-        ], closed: ["jobId", "since", "type"]), "engine": Shape(ref: "Engine"),
+        kinds: [.object, .null], oneOf: [Shape(kinds: [.null]), Shape(ref: "WorkerActiveJob")]),
+      "engine": Shape(ref: "Engine"),
       "jobs": Shape(kinds: [.array], minItems: 1, items: Shape(ref: "JobFilter")),
       "jobsCompleted": Shape(kinds: [.integer], minimum: 0.0),
       "lastActivityAt": Shape(kinds: [.string, .null]),
@@ -30613,6 +32123,25 @@ internal let requiredSchemas: [String: Shape] = {
             closed: ["image", "resources"]),
         ], closed: ["logLevel", "worker"]),
     ], closed: ["apiVersion", "kind", "metadata", "spec"])
+  shapes["WorkerVitals"] = Shape(
+    kinds: [.object],
+    required: [
+      "lastQueuedEventAt", "lastClaimAt", "lastFinishedAt", "lastActivityAt", "activeJob",
+      "jobsCompleted",
+    ],
+    members: [
+      "activeJob": Shape(
+        kinds: [.object, .null], oneOf: [Shape(kinds: [.null]), Shape(ref: "WorkerActiveJob")]),
+      "jobsCompleted": Shape(kinds: [.integer], minimum: 0.0),
+      "lastActivityAt": Shape(kinds: [.string, .null]),
+      "lastClaimAt": Shape(kinds: [.string, .null]),
+      "lastFinishedAt": Shape(kinds: [.string, .null]),
+      "lastQueuedEventAt": Shape(kinds: [.string, .null]),
+    ],
+    closed: [
+      "activeJob", "jobsCompleted", "lastActivityAt", "lastClaimAt", "lastFinishedAt",
+      "lastQueuedEventAt",
+    ])
   shapes["WorkloadStatus"] = Shape(
     kinds: [.object],
     members: [

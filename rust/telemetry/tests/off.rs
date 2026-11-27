@@ -3,7 +3,7 @@
 //! process installed is the process's.
 
 use opentelemetry::trace::TraceContextExt;
-use xynolog::transport::TraceCarrier;
+use xynolog::types::TraceCarrier;
 use xynolog_telemetry::{
     active_trace, active_trace_id, bus_emit, bus_recv, content_get, content_get_anchored_text,
     content_get_annotations, content_get_graph, content_put, continued, continuing,

@@ -42,7 +42,7 @@ type Transport interface {
 	// State is the connection's state: what it is now, and each state it
 	// moves to. A slow reader may see the latest state in place of the ones
 	// it missed.
-	State() Watched[ConnectionState]
+	State() Watched[api.ConnectionState]
 	// BridgeInto delivers into sink, the client's own bus, every frame the
 	// transport delivers from now on, and every refusal it delivers in a
 	// frame's place, each published to everyone there whichever scope it
@@ -70,7 +70,7 @@ type Transport interface {
 // deliver.
 func Unsubscribed(channel bus.Channel) *BusRequestError {
 	return &BusRequestError{
-		Code:    BusRequestErrorCodeUnsubscribed,
+		Code:    api.BusRequestErrorCodeUnsubscribed,
 		Message: fmt.Sprintf("Transport is not subscribed to %s: a frame on it can never arrive on this connection. Add the channel to this client's channels.", channel),
 	}
 }

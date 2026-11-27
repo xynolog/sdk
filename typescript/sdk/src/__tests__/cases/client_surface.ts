@@ -69,8 +69,13 @@ export type Observes = {
 
 export type ItemVia = Request | Emit | Local | Content | Gateway | Observes;
 
+export type ValueSchema = {
+  typeParameter: string;
+};
+
 export type Reference = {
   $ref: string;
+  typeArguments?: { [key: string]: ValueSchema };
 };
 
 export type Type = 'integer' | 'string' | 'boolean';
@@ -78,21 +83,37 @@ export type Type = 'integer' | 'string' | 'boolean';
 export type Scalar = {
   type: Type;
   minimum?: number;
+  format?: 'date-time';
   description: string;
 };
 
-export type Schema = Reference | Scalar;
+export type By = {
+  member: string;
+};
+
+export type DecidedDecided = {
+  by: By;
+  in: 'takes';
+};
+
+export type Decided = {
+  decided: DecidedDecided;
+};
+
+export type Schema = Reference | Scalar | ValueSchema | Decided;
 
 export type Value = {
   parameter: string;
-  schema: Schema;
+  schema?: Schema;
   required: boolean;
+  absent?: boolean;
 };
 
 export type Callback = {
   parameter: string;
   calls: Schema;
   required: boolean;
+  returns: Schema | null;
 };
 
 export type ParametersItem = Value | Callback;
@@ -138,20 +159,92 @@ export type NamedValue = {
   why: string;
 };
 
+export type GivesValue = {
+  form: 'value';
+  schema?: Schema;
+  absent?: boolean;
+};
+
+export type Watched = {
+  form: 'watched';
+  schema?: Schema;
+  absent?: boolean;
+};
+
+export type Stream = {
+  form: 'stream';
+  schema?: Schema;
+};
+
+export type Settles = {
+  form: 'settles';
+};
+
+export type Cancels = {
+  form: 'cancels';
+};
+
+export type Handed = {
+  handed: string;
+};
+
+export type ReturnsFunction = {
+  function: string;
+};
+
+export type ReturnsStream = {
+  stream: Schema;
+};
+
+export type Items = {
+  list: Schema;
+};
+
+export type Returns =
+  | Reference
+  | Scalar
+  | ValueSchema
+  | Handed
+  | ReturnsFunction
+  | ReturnsStream
+  | Items;
+
+export type Signature = {
+  parameters: ParametersItem[];
+  returns: Returns | null;
+  absent?: boolean;
+};
+
+export type Function = {
+  form: 'function';
+  signature?: Signature;
+};
+
+export type Gives =
+  GivesValue | Watched | Stream | Settles | Cancels | Function;
+
 export type MembersItem = {
   member: string;
   named?: { [key: string]: NamedValue };
   takes?: { [key: string]: string };
+  gives: Gives;
 };
 
 export type WorkerItem = {
   handed: string;
   docs: string;
+  record?: string;
   members: MembersItem[];
+};
+
+export type TypeParametersItem = {
+  name: string;
+  docs: string;
 };
 
 export type ItemMembersItem = {
   member: string;
+  gives: Gives;
 };
 
 export type StateUnitsItem = {
@@ -159,11 +252,13 @@ export type StateUnitsItem = {
   docs: string;
   made: { [key: string]: string };
   madeBy: { [key: string]: string };
+  typeParameters?: TypeParametersItem[];
   members: ItemMembersItem[];
 };
 
 export type WireMembersItem = {
   member: string;
+  gives: Gives;
 };
 
 export type Wire = {
@@ -187,7 +282,7 @@ export type Reader = {
   kind: 'reader';
 };
 
-export type Function = {
+export type ModulesItemMembersItemFunction = {
   member: string;
   kind: 'function';
   named?: { [key: string]: string };
@@ -201,20 +296,28 @@ export type ModulesItemMembersItemType = {
   fields?: string[];
 };
 
+export type Names = {
+  repliesOf: string[];
+  channels: string[];
+};
+
 export type Constant = {
   member: string;
   kind: 'constant';
   named?: { [key: string]: string };
+  names?: Names;
+  value?: Json;
 };
 
 export type ModulesItemMembersItem =
-  Reader | Function | ModulesItemMembersItemType | Constant;
+  | Reader
+  | ModulesItemMembersItemFunction
+  | ModulesItemMembersItemType
+  | Constant;
 
 export type ModulesItem = {
   module: string;
   docs: string;
-  where: { [key: string]: string[] };
-  whole?: string[];
   members: ModulesItemMembersItem[];
 };
 
@@ -242,7 +345,7 @@ export type Table = {
 
 export const table: Table = {
   $comment:
-    "AUTHORITY for the surface of a Xynolog client: every namespace, every method, the shape of what it returns, and what calling it does first. Its behaviour is run: each SDK's surface test calls every method as each of its `cases` states and holds what the call did to the row. Which methods an SDK has is held by its own surface test, where the test keeps a census of them; what each takes and returns is held by no check yet. `parameters` is what a method takes, in order: each parameter by the name its cases' `args` give it, whether a caller must give it, and either its `schema` (a component, a member within one, or a client type of specs/src/client/types, so that every object is named; or a scalar where none states it) or, for a callback, the schema of what each call hands it (`calls`). Protocol's reader holds each case to its method's `parameters` (reader/lib/client_surface.ml): a case gives no argument the method does not take, every one it requires, and each as its parameter's schema says. A null is a value, which a caller gives only where the schema admits it. Every SDK takes each parameter the table states, and none another: an SDK's name for one is the table's, spelled by its language's convention, and how it takes one is its language's (positionally, by keyword, or as a member of a record its writer makes of an object whose members a caller may each leave out), as is the type it holds a count of milliseconds as. A language's own means of cancelling a call (Go's `context.Context`, C#'s `CancellationToken`) is no parameter here. The consumer-owned generator is to write each SDK's namespace types from each method's `parameters` and `shape`. A method name is the table's, in camelCase; an SDK spells it by its language's convention (`resourceContent` is `resource_content` in Rust and `ResourceContent` in Go, whose first letter is a capital), and a namespace whose name is a keyword there takes a trailing underscore (`yield_`, `match_`). Swift keeps both names, including its contextual `yield`. Neither is a keyword in Kotlin, which keeps both names; Java reaches them through their getters (`getYield()`), which Java's contextual `yield` does not touch. An `events` row is a property named `<method>$` in TypeScript. The table names no SDK that lacks part of the surface: which SDK lacks a method, a member, a unit, a module or a clock's maker, or is still to have one, and why, is each SDK repository's to record. Add a row here before adding a method to any SDK. `worker` is the surface of what a worker is handed: the claims `job.claim` returns, and a job the worker holds. Each lists its members by name, and every SDK is to match the list both ways: it lacks no member the list has, and has no public member the list lacks. No check holds an SDK to the list yet. A member is matched by its name alone, spelled as its language spells it, and its form is its language's: what a held job states is a property in TypeScript and Python and a method in Rust, and a property that gives a stream of values is named `<member>$` in TypeScript. What a language's own protocols give a type is no member here: how a type is made, Python's names that begin with an underscore, its `__aenter__` and `__anext__` among them, Rust's trait implementations, and what a TypeScript class inherits from a class the SDK does not declare. `named` gives the name an SDK has the member under where its ecosystem has a name of its own for it, and why: that SDK then has that name, and not the table's as well. `takes` marks a member a held job has as its verb's: for each verb, the schema of what the member takes. What a member does is not held here and these rows have no cases: contract/WORKER-CONTRACT.md states it, and the worker conformance suite (conformance/worker) holds each SDK to it. Add a member here before adding it to any SDK. `stateUnits` lists each state unit: what each SDK makes it as (`made`), and its members by name. Every SDK is to match it both ways, and no check holds one to it yet: it declares every unit, each as a `StateUnit`; every `StateUnit` it declares among its units is one a row makes; and each of its units has every member the list has and no public member the list lacks. A member is matched by its name alone, spelled as its language spells it, and its form is its language's, as for `worker`. `dispose` is no member here: every unit has it, being a `StateUnit`. How a unit is made is stated apart from its members: every unit can be made from outside its SDK, by the type's own public constructor (Rust's `pub fn new` in the type's own `impl`, Python's class), or by the public function that `madeBy` names for that SDK, spelled as that SDK spells it, where the constructor is not what makes it; Go has no constructors, so every Go unit names one. No unit is without a public way to make it, and a `madeBy` names a function its SDK has publicly. Public is reachable from outside the SDK, including what Swift declares `public` or `open`: what TypeScript's entry (sdk/typescript/sdk/src/index.ts) exports, an item a module Rust's crate root reaches declares or re-exports, a name in the `__all__` of a Python module whose path has no private part, what Kotlin declares `public`, and what Go exports from a package that is not internal. What a unit does is not held here: each SDK's tests of its units hold that. Add a unit or a member here before adding it to any SDK. `wire` is the typed bus over a client's transport, which every client hands out as `wire`: what each SDK makes it as (`made`), and its members by name. Every SDK is to match it both ways, as for a state unit, and no check holds one to it yet: it declares a bus, and its bus has every member the list has and no public member the list lacks. A member is matched by its name alone, as for `worker`; how a bus is made is no member. A Go method takes no type parameters, so a member of Go's bus that is generic in its channel is a function of its package that takes the bus (`Emit(ctx, w, bus.MarkSubmit, payload)`). TypeScript's bus is read where @xynolog/core declares it. A transport is no member: a bus hands out none. Add a member here before adding it to any SDK. `storage` is where a client keeps text under a key: the interface an application implements (a trait in Rust, a protocol in Python), what each SDK names it (`made`), and its members by name. Every SDK is to match it both ways, as for `wire`, and no check holds one to it yet: it declares a storage, and its storage has every member the list has and no public member the list lacks. A member is matched by its name alone, as for `worker`. What implements a storage is not read here. Add a member here before adding it to any SDK. `modules` is what each SDK has beside its namespaces: the free functions, types and values of its modules, each module with where each SDK keeps it and its members. A member is named as the table spells it and matched by its `kind`: a `function` is spelled by each language's convention, a `reader` as a function but `get` and its name in TypeScript, a `type` as the table spells it, and a `constant` in capitals with underscores but in Go, as a function, and in Swift, as the table spells it. `named` gives an SDK's own name where the rule does not, and is stale once it is not so. A module whose `whole` names an SDK is that SDK's files alone, and every public member of them is listed. `clock` is what a caller controls of an SDK's time and chance: the clock every wait keeps, and the random source every jitter draws, one row each. For every SDK a row says either how a caller controls the source from outside the SDK (`outside`), or which public makers take it (`takes`): each maker as its SDK spells it (`Type.member`, or `Type::member` in Rust, for a type's function), with the types it takes the source as. Every SDK is to match it both ways, and no check holds one to it yet: every public way of making a listed maker takes each of its types, or is handed another maker of the row that takes them already, and keeps that one's; and no parameter or field of an `outside` SDK has a type the row's `typeWords` name. When a wait ends under a moved clock is specs/src/client/clock-cases.json's.",
+    "AUTHORITY for the surface of a Xynolog client: every namespace, every method, the shape of what it returns, and what calling it does first. Its behaviour is run: each SDK's surface test calls every method as each of its `cases` states and holds what the call did to the row. Which methods an SDK has is held by its own surface test, where the test keeps a census of them; what each takes and returns is held by no check yet. `parameters` is what a method takes, in order: each parameter by the name its cases' `args` give it, whether a caller must give it, and either its `schema` (a component, a member within one, or a client type of specs/src/client/types, so that every object is named; or a scalar where none states it) or, for a callback, the schema of what each call hands it (`calls`). Protocol's reader holds each case to its method's `parameters` (reader/lib/client_surface.ml): a case gives no argument the method does not take, every one it requires, and each as its parameter's schema says. A null is a value, which a caller gives only where the schema admits it. Every SDK takes each parameter the table states, and none another: an SDK's name for one is the table's, spelled by its language's convention, and how it takes one is its language's (positionally, by keyword, or as a member of a record its writer makes of an object whose members a caller may each leave out), as is the type it holds a count of milliseconds as. A language's own means of cancelling a call (Go's `context.Context`, C#'s `CancellationToken`) is no parameter here. The consumer-owned generator is to write each SDK's namespace types from each method's `parameters` and `shape`. A method name is the table's, in camelCase; an SDK spells it by its language's convention (`resourceContent` is `resource_content` in Rust and `ResourceContent` in Go, whose first letter is a capital), and a namespace whose name is a keyword there takes a trailing underscore (`yield_`, `match_`). Swift keeps both names, including its contextual `yield`. Neither is a keyword in Kotlin, which keeps both names; Java reaches them through their getters (`getYield()`), which Java's contextual `yield` does not touch. An `events` row is a property named `<method>$` in TypeScript. The table names no SDK that lacks part of the surface: which SDK lacks a method, a member, a unit, a module or a clock's maker, or is still to have one, and why, is each SDK repository's to record. Add a row here before adding a method to any SDK. `worker` is the surface of what a worker is handed: the claims `job.claim` returns, and a job the worker holds. Each lists its members by name, and every SDK is to match the list both ways: it lacks no member the list has, and has no public member the list lacks. No check holds an SDK to the list yet. A member is matched by its name alone, spelled as its language spells it, and its form is its language's: what a held job states is a property in TypeScript and Python and a method in Rust, and a property that gives a stream of values is named `<member>$` in TypeScript. What a language's own protocols give a type is no member here: how a type is made, Python's names that begin with an underscore, its `__aenter__` and `__anext__` among them, Rust's trait implementations, and what a TypeScript class inherits from a class the SDK does not declare. `named` gives the name an SDK has the member under where its ecosystem has a name of its own for it, and why: that SDK then has that name, and not the table's as well. `takes` marks a member a held job has as its verb's: for each verb, the schema of what the member takes. What a member does is not held here and these rows have no cases: contract/WORKER-CONTRACT.md states it, and the worker conformance suite (conformance/worker) holds each SDK to it. Add a member here before adding it to any SDK. `stateUnits` lists each state unit: what each SDK makes it as (`made`), and its members by name. Every SDK is to match it both ways, and no check holds one to it yet: it declares every unit, each as a `StateUnit`; every `StateUnit` it declares among its units is one a row makes; and each of its units has every member the list has and no public member the list lacks. A member is matched by its name alone, spelled as its language spells it, and its form is its language's, as for `worker`. `dispose` is no member here: every unit has it, being a `StateUnit`. How a unit is made is stated apart from its members: every unit can be made from outside its SDK, by the type's own public constructor (Rust's `pub fn new` in the type's own `impl`, Python's class), or by the public function that `madeBy` names for that SDK, spelled as that SDK spells it, where the constructor is not what makes it; Go has no constructors, so every Go unit names one. No unit is without a public way to make it, and a `madeBy` names a function its SDK has publicly. Public is reachable from outside the SDK, including what Swift declares `public` or `open`: what TypeScript's entry exports, an item a module Rust's crate root reaches declares or re-exports, a name in the `__all__` of a Python module whose path has no private part, what Kotlin declares `public`, and what Go exports from a package that is not internal. What a unit does is not held here: each SDK's tests of its units hold that. Add a unit or a member here before adding it to any SDK. `wire` is the typed bus over a client's transport, which every client hands out as `wire`: what each SDK makes it as (`made`), and its members by name. Every SDK is to match it both ways, as for a state unit, and no check holds one to it yet: it declares a bus, and its bus has every member the list has and no public member the list lacks. A member is matched by its name alone, as for `worker`; how a bus is made is no member. A Go method takes no type parameters, so a member of Go's bus that is generic in its channel is a function of its package that takes the bus (`Emit(ctx, w, bus.MarkSubmit, payload)`). TypeScript's bus is read where @xynolog/core declares it. A transport is no member: a bus hands out none. Add a member here before adding it to any SDK. `storage` is where a client keeps text under a key: the interface an application implements (a trait in Rust, a protocol in Python), what each SDK names it (`made`), and its members by name. Every SDK is to match it both ways, as for `wire`, and no check holds one to it yet: it declares a storage, and its storage has every member the list has and no public member the list lacks. A member is matched by its name alone, as for `worker`. What implements a storage is not read here. Add a member here before adding it to any SDK. `modules` is what each SDK has beside its namespaces: the free functions, types and values of its modules, each module with its members. A member is named as the table spells it and matched by its `kind`: a `function` is spelled by each language's convention, a `reader` as a function but `get` and its name in TypeScript, a `type` as the table spells it, and a `constant` in capitals with underscores but in Go, as a function, and in Swift, as the table spells it. `named` gives an SDK's own name where the rule does not, and is stale once it is not so. `clock` is what a caller controls of an SDK's time and chance: the clock every wait keeps, and the random source every jitter draws, one row each. For every SDK a row says either how a caller controls the source from outside the SDK (`outside`), or which public makers take it (`takes`): each maker as its SDK spells it (`Type.member`, or `Type::member` in Rust, for a type's function), with the types it takes the source as. Every SDK is to match it both ways, and no check holds one to it yet: every public way of making a listed maker takes each of its types, or is handed another maker of the row that takes them already, and keeps that one's; and no parameter or field of an `outside` SDK has a type the row's `typeWords` name. When a wait ends under a moved clock is specs/src/client/clock-cases.json's.",
   shapes: {
     promise: 'Asked once, answered once: the value, or a failure with a code.',
     stream:
@@ -461,12 +564,9 @@ export const table: Table = {
           },
           cases: [
             {
-              why: 'no filters: the first hundred',
+              why: "no filters: the page is the Archivist's",
               args: {},
-              sends: {
-                limit: 100,
-                offset: 0,
-              },
+              sends: {},
             },
             {
               args: {
@@ -480,7 +580,6 @@ export const table: Table = {
                 archived: false,
                 entityType: 'Person',
                 limit: 5,
-                offset: 0,
               },
             },
             {
@@ -1635,7 +1734,7 @@ export const table: Table = {
           },
           cases: [
             {
-              why: 'no options: a window of two thousand characters',
+              why: "no options: the window and the contexts are the Librarian's",
               args: {
                 resourceId: 'res-1',
                 annotationId: 'ann-1',
@@ -1643,9 +1742,6 @@ export const table: Table = {
               sends: {
                 annotationId: 'ann-1',
                 resourceId: 'res-1',
-                options: {
-                  contextWindow: 2000,
-                },
               },
             },
             {
@@ -1665,7 +1761,7 @@ export const table: Table = {
               },
             },
             {
-              why: 'a context asked for or left out is sent as stated, false as well as true; the window not stated is two thousand',
+              why: 'a context asked for or left out is sent as stated, false as well as true; the window not stated is not sent',
               args: {
                 resourceId: 'res-1',
                 annotationId: 'ann-1',
@@ -1680,7 +1776,6 @@ export const table: Table = {
                 options: {
                   includeSourceContext: false,
                   includeTargetContext: true,
-                  contextWindow: 2000,
                 },
               },
             },
@@ -1845,7 +1940,7 @@ export const table: Table = {
           },
           cases: [
             {
-              why: 'no options: ten candidates, scored semantically',
+              why: 'no options: ten candidates, scored as the Librarian scores unasked',
               args: {
                 resourceId: 'res-1',
                 referenceId: 'ann-1',
@@ -1860,7 +1955,6 @@ export const table: Table = {
                   $fixture: 'context',
                 },
                 limit: 10,
-                useSemanticScoring: true,
               },
             },
             {
@@ -1961,14 +2055,12 @@ export const table: Table = {
           },
           cases: [
             {
-              why: 'no filters: the first hundred',
+              why: "no filters: the page is the Librarian's",
               args: {
                 search: 'cat',
               },
               sends: {
                 search: 'cat',
-                limit: 100,
-                offset: 0,
               },
             },
             {
@@ -1985,7 +2077,6 @@ export const table: Table = {
                 archived: false,
                 entityType: 'Person',
                 limit: 5,
-                offset: 0,
               },
             },
             {
@@ -2662,6 +2753,7 @@ export const table: Table = {
                 $ref: 'https://xynolog.org/protocol/JobStatusResponse.json',
               },
               required: false,
+              returns: null,
             },
           ],
           returns: {
@@ -2884,15 +2976,43 @@ export const table: Table = {
               why: "The claims are ranged over, `for job, err := range claims.All()`, and Go's standard library names the method that gives a sequence of every element `All` (`maps.All`, `slices.All`).",
             },
           },
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: {
+                handed: 'heldJob',
+              },
+              absent: true,
+            },
+          },
         },
         {
           member: 'refused',
+          gives: {
+            form: 'stream',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/ClaimRefusal.json',
+            },
+          },
         },
         {
           member: 'stalled',
+          gives: {
+            form: 'stream',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobStall.json',
+            },
+          },
         },
         {
           member: 'vitals',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/WorkerVitals.json',
+            },
+          },
         },
         {
           member: 'stop',
@@ -2906,63 +3026,209 @@ export const table: Table = {
               why: 'Go stops what is held with `Close`, the name `io.Closer` gives it and what a `defer` calls.',
             },
           },
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
       ],
     },
     {
       handed: 'heldJob',
       docs: "A job a worker holds, from its claim until it settles it. A held job is its verb's, `mark` or `yield`. A member with `takes` is one a held job has as its verb's, and it takes what that verb's entry names; every other member is the same for both verbs, and a job held as either verb's has it without its verb being asked.",
+      record: 'HeldJobRecord',
       members: [
         {
           member: 'jobId',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobId',
+            },
+          },
         },
         {
           member: 'jobType',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/jobType',
+            },
+          },
         },
         {
           member: 'resourceId',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/resourceId',
+            },
+          },
         },
         {
           member: 'params',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/params',
+            },
+          },
         },
         {
           member: 'completedUnits',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/completedUnits',
+            },
+          },
         },
         {
           member: 'unitCursors',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/unitCursors',
+            },
+          },
         },
         {
           member: 'retryCount',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/retryCount',
+            },
+          },
         },
         {
           member: 'maxRetries',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/HeldJobRecord.json#/properties/maxRetries',
+            },
+          },
         },
         {
           member: 'attempt',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobStartCommand.json#/properties/attempt',
+            },
+          },
         },
         {
           member: 'annotationId',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'trace',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/TraceCarrier.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'cancelled',
+          gives: {
+            form: 'cancels',
+          },
         },
         {
           member: 'settled',
+          gives: {
+            form: 'value',
+            schema: {
+              type: 'boolean',
+              description:
+                'Whether the job has settled: completed, failed or cancelled.',
+            },
+          },
         },
         {
           member: 'start',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
         {
           member: 'progress',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'progress',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/JobProgress.json',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'checkpoint',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'checkpoint',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/JobCheckpoint.json',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'commit',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'resourceId',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/MarkCommitCommand.json#/properties/resourceId',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'annotations',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/MarkCommitCommand.json#/properties/annotations',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'complete',
@@ -2970,12 +3236,69 @@ export const table: Table = {
             mark: 'MarkJobResult',
             yield: 'YieldJobResult',
           },
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'result',
+                  schema: {
+                    decided: {
+                      by: {
+                        member: 'jobType',
+                      },
+                      in: 'takes',
+                    },
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'fail',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'error',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/JobFailCommand.json#/properties/error',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'failure',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/JobFailure.json',
+                  },
+                  required: false,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'cancel',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'reached',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/JobReached.json',
+                  },
+                  required: false,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
       ],
     },
@@ -3003,30 +3326,98 @@ export const table: Table = {
       members: [
         {
           member: 'pendingAnnotation',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/PendingAnnotation.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'delegatingMotivation',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/Motivation.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'progress',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobProgress.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'progressMotivation',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/Motivation.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'failure',
+          gives: {
+            form: 'watched',
+            absent: true,
+          },
         },
         {
           member: 'jobId',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'requestDelegate',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'params',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/MarkJobParams.json',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'cancelPending',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
         {
           member: 'dismissProgress',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
       ],
     },
@@ -3052,24 +3443,88 @@ export const table: Table = {
       members: [
         {
           member: 'isGenerating',
+          gives: {
+            form: 'watched',
+            schema: {
+              type: 'boolean',
+              description: 'Whether a generation is on its way.',
+            },
+          },
         },
         {
           member: 'progress',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobProgress.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'outcome',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/YieldJobDone.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'failure',
+          gives: {
+            form: 'watched',
+            absent: true,
+          },
         },
         {
           member: 'jobId',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/JobId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'generate',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'params',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/GenerationJobParams.json',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'stallDeadlineMs',
+                  schema: {
+                    type: 'integer',
+                    minimum: 0,
+                    description:
+                      "How long the followed generation may say nothing, in milliseconds, before it is given up on. The follower's own, never sent: left out, it grows with the generation's `maxTokens` as client/timing.json's generationStall timings say.",
+                  },
+                  required: false,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'dismissProgress',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
       ],
     },
@@ -3095,30 +3550,117 @@ export const table: Table = {
       members: [
         {
           member: 'context',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/GatheredContext.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'loading',
+          gives: {
+            form: 'watched',
+            schema: {
+              type: 'boolean',
+              description: "Whether an annotation's gather is on its way.",
+            },
+          },
         },
         {
           member: 'error',
+          gives: {
+            form: 'watched',
+            absent: true,
+          },
         },
         {
           member: 'annotationId',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'resourceContext',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/GatheredContext.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'resourceLoading',
+          gives: {
+            form: 'watched',
+            schema: {
+              type: 'boolean',
+              description: "Whether a resource's gather is on its way.",
+            },
+          },
         },
         {
           member: 'resourceError',
+          gives: {
+            form: 'watched',
+            absent: true,
+          },
         },
         {
           member: 'gatherAnnotation',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'annotationId',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'options',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/GatherAnnotationOptions.json',
+                  },
+                  required: false,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'gatherResource',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'resourceId',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/ResourceId.json',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'options',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/GatherResourceOptions.json',
+                  },
+                  required: false,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
       ],
     },
@@ -3165,9 +3707,31 @@ export const table: Table = {
       members: [
         {
           member: 'hoveredAnnotationId',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'focus',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'annotationId',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
       ],
     },
@@ -3193,9 +3757,31 @@ export const table: Table = {
       members: [
         {
           member: 'enter',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'annotationId',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/AnnotationId.json',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'leave',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
       ],
     },
@@ -3218,15 +3804,55 @@ export const table: Table = {
         go: 'NewSearchPipeline',
         haskell: 'newSearchPipeline',
       },
+      typeParameters: [
+        {
+          name: 'R',
+          docs: 'What one result is: what the search the unit is made with gives.',
+        },
+      ],
       members: [
         {
           member: 'query',
+          gives: {
+            form: 'watched',
+            schema: {
+              type: 'string',
+              description: 'The query as last set.',
+            },
+          },
         },
         {
           member: 'state',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/SearchState.json',
+              typeArguments: {
+                R: {
+                  typeParameter: 'R',
+                },
+              },
+            },
+          },
         },
         {
           member: 'setQuery',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'value',
+                  schema: {
+                    type: 'string',
+                    description: 'The query.',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
       ],
     },
@@ -3252,30 +3878,117 @@ export const table: Table = {
       members: [
         {
           member: 'sessionEnded',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/SessionEnded.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'permissionDenied',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/PermissionDenied.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'kbIdentityConflict',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/KbIdentityConflict.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'notifySessionEnded',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'reason',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/SessionEnded.json#/properties/reason',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'notifyPermissionDenied',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'detail',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/PermissionDenied.json#/properties/detail',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'notifyKbIdentityConflict',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'conflict',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/KbIdentityConflict.json',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'acknowledgeSessionEnded',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
         {
           member: 'acknowledgePermissionDenied',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
         {
           member: 'acknowledgeKbIdentityConflict',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
       ],
     },
@@ -3298,48 +4011,255 @@ export const table: Table = {
         go: 'NewCache',
         haskell: 'newCache',
       },
+      typeParameters: [
+        {
+          name: 'K',
+          docs: 'What a query is keyed by: the parameters of the method it is made for, together.',
+        },
+        {
+          name: 'V',
+          docs: 'What the query holds: what that method returns.',
+        },
+      ],
       members: [
         {
           member: 'observe',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: {
+                stream: {
+                  $ref: 'https://xynolog.org/protocol/CacheState.json',
+                  typeArguments: {
+                    V: {
+                      typeParameter: 'V',
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         {
           member: 'fetch',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: {
+                typeParameter: 'V',
+              },
+            },
+          },
         },
         {
           member: 'get',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: {
+                typeParameter: 'V',
+              },
+              absent: true,
+            },
+          },
         },
         {
           member: 'known',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: {
+                type: 'boolean',
+                description:
+                  'Whether anything has asked for the key and not let go of it: it holds a value or a failure, or a fetch for it is on its way.',
+              },
+            },
+          },
         },
         {
           member: 'keys',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: {
+                list: {
+                  typeParameter: 'K',
+                },
+              },
+            },
+          },
         },
         {
           member: 'invalidate',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'invalidateAll',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: null,
+            },
+          },
         },
         {
           member: 'remove',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'gone',
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'set',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'value',
+                  schema: {
+                    typeParameter: 'V',
+                  },
+                  required: true,
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'patch',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'key',
+                  schema: {
+                    typeParameter: 'K',
+                  },
+                  required: true,
+                },
+                {
+                  parameter: 'change',
+                  calls: {
+                    typeParameter: 'V',
+                  },
+                  required: true,
+                  returns: {
+                    typeParameter: 'V',
+                  },
+                },
+              ],
+              returns: null,
+            },
+          },
         },
         {
           member: 'persistencePending',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: {
+                type: 'boolean',
+                description:
+                  "Whether the cache's content may be ahead of what it has persisted: a fetch on its way, or a save owed.",
+              },
+            },
+          },
         },
         {
           member: 'keptFetching',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'attach',
+          gives: {
+            form: 'function',
+          },
         },
         {
           member: 'query',
+          gives: {
+            form: 'function',
+          },
         },
       ],
     },
@@ -3367,36 +4287,117 @@ export const table: Table = {
       members: [
         {
           member: 'id',
+          gives: {
+            form: 'value',
+            schema: {
+              type: 'string',
+              description:
+                "The session's own id: a session made again for the same knowledge base has another.",
+            },
+          },
         },
         {
           member: 'kb',
+          gives: {
+            form: 'value',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/KbTarget.json',
+            },
+          },
         },
         {
           member: 'client',
+          gives: {
+            form: 'value',
+          },
         },
         {
           member: 'token',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/AccessToken.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'user',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/UserResponse.json',
+            },
+            absent: true,
+          },
         },
         {
           member: 'streamState',
+          gives: {
+            form: 'watched',
+            schema: {
+              $ref: 'https://xynolog.org/protocol/ConnectionState.json',
+            },
+          },
         },
         {
           member: 'errors',
+          gives: {
+            form: 'stream',
+          },
         },
         {
           member: 'ready',
+          gives: {
+            form: 'settles',
+          },
         },
         {
           member: 'expiresAt',
+          gives: {
+            form: 'value',
+            schema: {
+              type: 'string',
+              format: 'date-time',
+              description:
+                "When the session's token stops working, as the token states it.",
+            },
+            absent: true,
+          },
         },
         {
           member: 'refresh',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [
+                {
+                  parameter: 'refused',
+                  schema: {
+                    $ref: 'https://xynolog.org/protocol/AccessToken.json',
+                  },
+                  required: true,
+                  absent: true,
+                },
+              ],
+              returns: {
+                $ref: 'https://xynolog.org/protocol/AccessToken.json',
+              },
+              absent: true,
+            },
+          },
         },
         {
           member: 'renewer',
+          gives: {
+            form: 'function',
+            signature: {
+              parameters: [],
+              returns: {
+                function: 'refresh',
+              },
+            },
+          },
         },
       ],
     },
@@ -3417,24 +4418,45 @@ export const table: Table = {
     members: [
       {
         member: 'emit',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'frames',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'framesOf',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'request',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'emitOn',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'framesOn',
+        gives: {
+          form: 'function',
+        },
       },
       {
         member: 'requestOf',
+        gives: {
+          form: 'function',
+        },
       },
     ],
   },
@@ -3473,25 +4495,6 @@ export const table: Table = {
     {
       module: 'annotations',
       docs: "The readers of an annotation, its builders, and the reconciling of a quote: what a program that reads or makes annotations is given, so that none parses or builds one by hand. Held by specs/src/annotations's tables.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/annotations.mli'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/Annotations.hs'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Annotations'],
-        swift: [
-          'sdk/swift/sdk/Sources/Xynolog/Annotations/Readers.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Annotations/Spans.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Annotations/Builders.swift',
-        ],
-        typescript: [
-          'sdk/typescript/core/src/web-annotation-utils.ts',
-          'sdk/typescript/core/src/annotation-builders.ts',
-        ],
-        rust: ['sdk/rust/sdk/src/annotations.rs'],
-        python: ['sdk/python/sdk/src/xynolog/annotations.py'],
-        go: ['sdk/go/annotations'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/annotations'],
-      },
-      whole: ['typescript', 'rust', 'python', 'go', 'kotlin'],
       members: [
         {
           member: 'bodySource',
@@ -3637,18 +4640,6 @@ export const table: Table = {
     {
       module: 'jobFilter',
       docs: "Whether a job matches a filter: asked by the dispatcher choosing a claim's next job, and by a worker checking an announcement against its claim. Held by specs/src/jobs/filter-cases.json.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/job_filter.mli'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Jobs'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift'],
-        typescript: ['sdk/typescript/core/src/job-filter.ts'],
-        rust: ['sdk/rust/sdk/src/job_filter.rs'],
-        python: ['sdk/python/sdk/src/xynolog/job_filter.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/JobFilter.hs'],
-      },
-      whole: ['rust', 'python', 'haskell'],
       members: [
         {
           member: 'jobMatchesFilter',
@@ -3658,27 +4649,23 @@ export const table: Table = {
     },
     {
       module: 'claims',
-      docs: "What a worker's stream names, and whether a failed job is run again: the channels claiming reads (the replies of `job:claim`, and the announcements and cancellations a worker hears), the channels committing reads (the replies of `mark:commit`, and of the question whether a batch is recorded), and whether a failed attempt is retried, which a held job reports on `job:fail`. Held by specs/src/jobs/retry-cases.json.",
-      where: {
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Jobs'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/Worker/Claims.swift'],
-        typescript: ['sdk/typescript/sdk/src/claims.ts'],
-        rust: ['sdk/rust/sdk/src/claims.rs'],
-        python: ['sdk/python/sdk/src/xynolog/claims.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/jobs'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/Claims.hs'],
-        ocaml: ['sdk/ocaml/sdk/lib/claims.mli'],
-      },
-      whole: ['haskell'],
+      docs: "What a worker's stream names, and whether a failed job is run again: the channels claiming reads and the channels committing reads, each constant's `names`, and whether a failed attempt is retried, which a held job reports on `job:fail`. Held by specs/src/jobs/retry-cases.json.",
       members: [
         {
           member: 'jobClaimChannels',
           kind: 'constant',
+          names: {
+            repliesOf: ['job:claim'],
+            channels: ['job:queued', 'job:cancel-requested'],
+          },
         },
         {
           member: 'jobCommitChannels',
           kind: 'constant',
+          names: {
+            repliesOf: ['mark:commit', 'browse:annotation-requested'],
+            channels: [],
+          },
         },
         {
           member: 'willRetryAfter',
@@ -3689,17 +4676,6 @@ export const table: Table = {
     {
       module: 'retry',
       docs: 'Doing work again by a backoff, until it succeeds, it fails as nothing can mend, or the attempts run out.',
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/retry.mli'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Http'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/Transport/Retry.swift'],
-        typescript: ['sdk/typescript/core/src/retry.ts'],
-        rust: ['sdk/rust/sdk/src/retry.rs'],
-        python: ['sdk/python/sdk/src/xynolog/retry.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/retry'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/Retry.hs'],
-      },
       members: [
         {
           member: 'retryWithBackoff',
@@ -3710,18 +4686,6 @@ export const table: Table = {
     {
       module: 'hostName',
       docs: "Whether a host is one a knowledge base's HTTP endpoint may name. Held by specs/src/session/gateway-url-cases.json.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/host_name.mli'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Session'],
-        typescript: ['sdk/typescript/sdk/src/session/storage.ts'],
-        rust: ['sdk/rust/sdk/src/session/knowledge_base.rs'],
-        python: ['sdk/python/sdk/src/xynolog/http/endpoint.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/http'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/Session/Identity.swift'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/HostName.hs'],
-      },
-      whole: ['haskell'],
       members: [
         {
           member: 'isValidHostname',
@@ -3732,20 +4696,6 @@ export const table: Table = {
     {
       module: 'tokens',
       docs: 'What a session reads of an access token: a claim it names as text, when it expires, whether it has, and when to renew it. Held by specs/src/session/cases.json.',
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/tokens.mli'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/Tokens.hs'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Session'],
-        typescript: ['sdk/typescript/sdk/src/session/storage.ts'],
-        rust: [
-          'sdk/rust/sdk/src/session/mod.rs',
-          'sdk/rust/sdk/src/session/stored.rs',
-        ],
-        python: ['sdk/python/sdk/src/xynolog/session.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/session'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/Session/Tokens.swift'],
-      },
       members: [
         {
           member: 'textClaim',
@@ -3781,17 +4731,6 @@ export const table: Table = {
     {
       module: 'storagePersister',
       docs: "Where a client keeps its queries' values: a session storage, one key for each query it keeps for the person signed in, each kept within a size.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/storage_persister.mli'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/StoragePersister.hs'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/CachePersistence.swift'],
-        typescript: ['sdk/typescript/sdk/src/cache-persister.ts'],
-        rust: ['sdk/rust/sdk/src/cache.rs'],
-        python: ['sdk/python/sdk/src/xynolog/storage.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/storage'],
-      },
       members: [
         {
           member: 'StoragePersister',
@@ -3806,31 +4745,6 @@ export const table: Table = {
     {
       module: 'bus',
       docs: "What the bus's registry gives a program beside its channels: the reply channels of given operations, the refusal of a request whose replies cannot arrive, and the channels whose events the record keeps; and what a transport delivers in place of a frame it refuses, and why it refuses it.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/bus.ml'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog'],
-        swift: [
-          'sdk/swift/sdk/Sources/Xynolog/Bus/Bus.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Bus/Typed.swift',
-        ],
-        typescript: [
-          'sdk/typescript/core/src/bus.ts',
-          'sdk/typescript/core/src/bus-request.ts',
-          'sdk/typescript/core/src/persisted-events.ts',
-        ],
-        rust: ['sdk/rust/sdk/src/bus.rs', 'sdk/rust/sdk/src/transport.rs'],
-        python: [
-          'sdk/python/sdk/src/xynolog/bus.py',
-          'sdk/python/sdk/src/xynolog/transport.py',
-          'sdk/python/sdk/src/xynolog/channels.py',
-        ],
-        go: ['sdk/go', 'sdk/go/bus'],
-        kotlin: [
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/bus',
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/transport',
-        ],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/Bus.hs'],
-      },
       members: [
         {
           member: 'replyChannelsFor',
@@ -3861,45 +4775,6 @@ export const table: Table = {
     {
       module: 'registry',
       docs: "What an application holds beside its knowledge bases: the list it has registered, which one is active and its session, what a person has open in each, and what it keeps in its storage, under which keys. Sessions are built by a factory it is given; one over HTTP reaches a knowledge base at its gateway. A person's sign-in by a page redirect lands on the entry for the knowledge base that answered. The registry is the one reader of each session's errors, from the first thing the session said: each of the session's own it says on its own errors; a refusal for lack of permission is said through the session's signals; a refusal for want of a valid token, and a failure of its transport for any other reason, it does nothing with. It renews no session: the transport that met such a refusal renews the token it sent (contract/TRANSPORT-CONTRACT.md § A refused credential). A factory reads none of them, so a session built by a factory a host writes is read the same way.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/registry.mli'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Registry'],
-        swift: [
-          'sdk/swift/sdk/Sources/Xynolog/Registry/OpenResources.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Registry/XynologBrowser.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Registry/SessionFactory.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Registry/Stored.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Generated/Models.swift',
-        ],
-        typescript: [
-          'sdk/typescript/sdk/src/session/xynolog-browser.ts',
-          'sdk/typescript/sdk/src/session/session-factory.ts',
-          'sdk/typescript/sdk/src/session/http-session-factory.ts',
-          'sdk/typescript/sdk/src/session/knowledge-base.ts',
-          'sdk/typescript/sdk/src/session/open-resource.ts',
-          'sdk/typescript/sdk/src/session/storage.ts',
-        ],
-        rust: [
-          'sdk/rust/sdk/src/session/browser.rs',
-          'sdk/rust/sdk/src/session/factory.rs',
-          'sdk/rust/sdk/src/session/knowledge_base.rs',
-          'sdk/rust/sdk/src/session/open_resource.rs',
-          'sdk/rust/sdk/src/session/stored.rs',
-          'sdk/rust/http-transport/src/session.rs',
-        ],
-        python: [
-          'sdk/python/sdk/src/xynolog/stored.py',
-          'sdk/python/sdk/src/xynolog/registry.py',
-          'sdk/python/sdk/src/xynolog/http/session.py',
-        ],
-        go: ['sdk/go/registry'],
-        kotlin: [
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/registry',
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/http',
-        ],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/Registry.hs'],
-      },
-      whole: ['go'],
       members: [
         {
           member: 'XynologBrowser',
@@ -4053,18 +4928,7 @@ export const table: Table = {
     },
     {
       module: 'sessionNotices',
-      docs: "What a session's signals raise: that a session ended and why, that a request was refused for lack of permission, and that a different knowledge base answers at a registered address. specs/src/client/state-units.json's `notices` states each one.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/session_notices.ml'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/State/SessionSignals.hs'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/State'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/State/SessionSignals.swift'],
-        typescript: ['sdk/typescript/sdk/src/session/session-signals.ts'],
-        rust: ['sdk/rust/sdk/src/session/signals.rs'],
-        python: ['sdk/python/sdk/src/xynolog/session_signals.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/session'],
-      },
+      docs: "What a session's signals raise: that a session ended and why, that a request was refused for lack of permission, and that a different knowledge base answers at a registered address. Each is a client type of specs/src/client/types.",
       members: [
         {
           member: 'SessionEnded',
@@ -4083,40 +4947,6 @@ export const table: Table = {
     {
       module: 'redirectSignIn',
       docs: "A person's sign-in by a page redirect: the authorization-code grant with PKCE, its pending record kept across the trip to the issuer and back, and the question a completed sign-in asks the knowledge base, who it is.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/redirect_sign_in.ml'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Authorization'],
-        swift: [
-          'sdk/swift/sdk/Sources/Xynolog/Registry/RedirectSignIn.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Registry/Stored.swift',
-        ],
-        typescript: [
-          'sdk/typescript/sdk/src/session/oauth.ts',
-          'sdk/typescript/sdk/src/session/connect.ts',
-        ],
-        rust: [
-          'sdk/rust/http-transport/src/oauth.rs',
-          'sdk/rust/http-transport/src/session.rs',
-          'sdk/rust/sdk/src/errors.rs',
-        ],
-        python: [
-          'sdk/python/sdk/src/xynolog/stored.py',
-          'sdk/python/sdk/src/xynolog/http/oauth.py',
-          'sdk/python/sdk/src/xynolog/http/session.py',
-          'sdk/python/sdk/src/xynolog/errors.py',
-        ],
-        go: ['sdk/go'],
-        kotlin: [
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/registry',
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/http',
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/errors',
-        ],
-        haskell: [
-          'sdk/haskell/sdk/src/Xynolog/Issuer.hs',
-          'sdk/haskell/sdk/src/Xynolog/Registry/Identity.hs',
-          'sdk/haskell/sdk/src/Xynolog/Registry/Stored.hs',
-        ],
-      },
       members: [
         {
           member: 'codeChallenge',
@@ -4165,17 +4995,6 @@ export const table: Table = {
     {
       module: 'serviceToken',
       docs: "A service account's token, which a process holds for its own account at the issuer a knowledge base trusts: the issuer's token endpoint discovered once, through the HTTP client the token was made with, one client-credentials grant at a time, the token held until it is due for renewal, and the `Authorization` header's value it gives (`authorization`).",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/service_token.mli'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/ServiceToken.hs'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/SignIn/ServiceToken.swift'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/SignIn'],
-        typescript: ['sdk/typescript/core/src/service-account.ts'],
-        rust: ['sdk/rust/http-transport/src/service_account.rs'],
-        python: ['sdk/python/sdk/src/xynolog/http/agent.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/http'],
-      },
       members: [
         {
           member: 'ServiceToken',
@@ -4186,20 +5005,6 @@ export const table: Table = {
     {
       module: 'signInStore',
       docs: "The sign-ins `xynolog login` keeps, as specs/src/sign-in-store states them: the store, whose every change holds the lock every writer takes, and where the launcher's state home is on each system. Held by sign-in-store/cases.json.",
-      where: {
-        csharp: ['sdk/csharp/sdk/src/Xynolog/SignIn'],
-        swift: [
-          'sdk/swift/sdk/Sources/Xynolog/SignIn/SignInStore.swift',
-          'sdk/swift/sdk/Sources/Xynolog/SignIn/Kept.swift',
-        ],
-        typescript: ['sdk/typescript/sdk/src/session/sign-in-store.ts'],
-        rust: ['sdk/rust/sdk/src/sign_in_store.rs'],
-        python: ['sdk/python/sdk/src/xynolog/sign_in_store.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/signin'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/SignInStore.hs'],
-        ocaml: ['sdk/ocaml/sdk/lib/sign_in_store.mli'],
-      },
       members: [
         {
           member: 'SignInStore',
@@ -4249,37 +5054,6 @@ export const table: Table = {
     {
       module: 'keptSignIn',
       docs: "A sign-in a session holds and renews wherever it is kept (a registry's storage, through the registry's keptIn; the sign-ins `xynolog login` keeps; memory; a host's own), and what a script does with one: signs a person in to it by the device grant, opens a session over it, renews it at the issuer, and signs out of it. A session opened over one asks the gateway who its token is unless it is told not to (`validate`, true when it is left out). Its client keeps for the person the kept sign-in names from the start, whether or not it asks (specs/src/session/persisted-cases.json, `startup`); asking is how it learns the person when the sign-in names nobody yet, and a session that does not ask then keeps for nobody. docs/builder/SIGN-IN.md says which to use when.",
-      where: {
-        typescript: [
-          'sdk/typescript/sdk/src/session/sign-in-kept.ts',
-          'sdk/typescript/sdk/src/session/oauth.ts',
-        ],
-        rust: [
-          'sdk/rust/sdk/src/session/kept.rs',
-          'sdk/rust/http-transport/src/session.rs',
-          'sdk/rust/http-transport/src/oauth.rs',
-        ],
-        python: [
-          'sdk/python/sdk/src/xynolog/session.py',
-          'sdk/python/sdk/src/xynolog/http/session.py',
-          'sdk/python/sdk/src/xynolog/http/oauth.py',
-        ],
-        go: ['sdk/go'],
-        kotlin: [
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/signin',
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/http',
-        ],
-        swift: [
-          'sdk/swift/sdk/Sources/Xynolog/SignIn/Kept.swift',
-          'sdk/swift/sdk/Sources/Xynolog/SignIn/Issuer.swift',
-          'sdk/swift/sdk/Sources/Xynolog/Session/SessionFromKept.swift',
-        ],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/SignIn'],
-        haskell: [
-          'sdk/haskell/sdk/src/Xynolog/SignIn.hs',
-          'sdk/haskell/sdk/src/Xynolog/Session.hs',
-        ],
-      },
       members: [
         {
           member: 'SignInKept',
@@ -4320,34 +5094,15 @@ export const table: Table = {
     {
       module: 'discovery',
       docs: 'The knowledge bases a launcher manages, as it publishes them: its document read whole or not at all, absent told from empty, entries told apart by address, and what changed since it was last read.',
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/discovery.mli'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Discovery'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/Registry/Discovery.swift'],
-        typescript: ['sdk/typescript/sdk/src/discovery.ts'],
-        rust: [
-          'sdk/rust/sdk/src/discovery.rs',
-          'sdk/rust/http-transport/src/discovery.rs',
-        ],
-        python: [
-          'sdk/python/sdk/src/xynolog/discovery.py',
-          'sdk/python/sdk/src/xynolog/http/discovery.py',
-        ],
-        go: ['sdk/go/discovery'],
-        kotlin: [
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/discovery',
-          'sdk/kotlin/sdk/src/main/kotlin/xynolog/http',
-        ],
-        haskell: [
-          'sdk/haskell/sdk/src/Xynolog/Discovery.hs',
-          'sdk/haskell/sdk/src/Xynolog/Http/Discovery.hs',
-        ],
-      },
-      whole: ['go', 'python'],
       members: [
         {
           member: 'discoveryInterval',
           kind: 'constant',
+        },
+        {
+          member: 'discoveryUrlPath',
+          kind: 'constant',
+          value: '/discovery/kbs.json',
         },
         {
           member: 'DiscoveryAbsentReason',
@@ -4408,34 +5163,6 @@ export const table: Table = {
     {
       module: 'testing',
       docs: "What a consumer's tests hold a composition and a registry to: the liveness axioms, that under any behaviour of the wire something is eventually said and every event is delivered exactly once; a real session over test doubles; a factory of scripted sessions for a registry; and a storage several contexts share.",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/testing.mli'],
-        swift: [
-          'sdk/swift/sdk/Sources/XynologTesting/Liveness.swift',
-          'sdk/swift/sdk/Sources/XynologTesting/ScriptedTransport.swift',
-          'sdk/swift/sdk/Sources/XynologTesting/Sessions.swift',
-          'sdk/swift/sdk/Sources/XynologTesting/SharedStorage.swift',
-          'sdk/swift/sdk/Sources/XynologTesting/TestClock.swift',
-        ],
-        typescript: [
-          'sdk/typescript/core/src/liveness-axioms.ts',
-          'sdk/typescript/sdk/src/testing.ts',
-        ],
-        rust: [
-          'sdk/rust/sdk/src/testing/liveness.rs',
-          'sdk/rust/sdk/src/testing/client.rs',
-          'sdk/rust/sdk/src/testing/sessions.rs',
-          'sdk/rust/sdk/src/testing/storage.rs',
-        ],
-        python: [
-          'sdk/python/sdk/src/xynolog/testing/__init__.py',
-          'sdk/python/sdk/src/xynolog/testing/liveness.py',
-        ],
-        go: ['sdk/go/xynologtest'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/testing'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog/Testing'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/Testing.hs'],
-      },
       members: [
         {
           member: 'LivenessScenario',
@@ -4528,17 +5255,6 @@ export const table: Table = {
     {
       module: 'refusals',
       docs: "The first fault a body has as a component schema, and what every SDK says of it as it refuses it (`it has no `x``, `its `x` is malformed`, `it is malformed`): for an SDK whose HTTP transport is a package of its own, which reads its answers and holds its stream's frames by them. Held by the table of what each schema requires (the consumer-owned generator).",
-      where: {
-        ocaml: ['sdk/ocaml/sdk/lib/refusals.ml'],
-        typescript: ['sdk/typescript/core/src/required.ts'],
-        rust: ['sdk/rust/sdk/src/required.rs'],
-        python: ['sdk/python/sdk/src/xynolog/bus.py'],
-        go: ['sdk/go'],
-        kotlin: ['sdk/kotlin/sdk/src/main/kotlin/xynolog/bus'],
-        swift: ['sdk/swift/sdk/Sources/Xynolog/Bus/Bus.swift'],
-        csharp: ['sdk/csharp/sdk/src/Xynolog'],
-        haskell: ['sdk/haskell/sdk/src/Xynolog/Bus.hs'],
-      },
       members: [
         {
           member: 'faultSaid',

@@ -25,21 +25,15 @@ import {
   type EventMap,
   type Fault,
   type ResourceId,
-  type RetryBudget,
   type StateUnit,
   type TraceCarrier,
   type TransportErrorCode,
+  type TransportTiming,
+  DEFAULT_TRANSPORT_TIMING,
   DEGRADED_THRESHOLD_MS,
-  EMIT_RETRY,
   EMIT_TIMEOUT_MS,
-  HTTP_REQUEST_TIMEOUT_MS,
-  LAZY_REMOVE_MS,
-  LINGER_MS,
   MAX_RECONNECT_MS,
   RECONNECT_DEBOUNCE_MS,
-  RECONNECT_MS,
-  SEEN_EVENT_IDS_COUNT,
-  STREAM_OPEN_TIMEOUT_MS,
   gatewayHeaders,
   gatewayRoutes,
 } from '@xynolog/core';
@@ -60,6 +54,7 @@ import {
   refusalBody,
   retryableUnlessRefused,
 } from './api-error';
+import { CONNECTION_STATE_MOVES } from './connection-state-moves';
 import { MALFORMED } from './declared-body';
 import { fetchOf } from './fetch-of';
 import type { TokenRefresher } from './http-transport';
@@ -74,25 +69,8 @@ export interface ActorStateUnitOptions {
   baseUrl: string;
   token: string | (() => string);
   channels: string[];
-  /**
-   * Base of the failure-retry backoff ladder AND the flat cadence of the
-   * `unauthenticated` waiting tick (which polls the token getter, no
-   * network). A failure retry waits jitter(min(reconnectMs·2ⁿ, 60 s));
-   * n resets on a successful open. Default `RECONNECT_MS`.
-   */
-  reconnectMs?: number;
-  /**
-   * How long a connect waits for the gateway's answer (its status and
-   * headers). Unanswered by then, the connect has failed, and the stream is
-   * opened again on the backoff. Default `STREAM_OPEN_TIMEOUT_MS`.
-   */
-  streamOpenTimeoutMs?: number;
-  /**
-   * How long the body of a refused connect is read for, as any other answer
-   * is (`HttpTransportConfig.timeout`). Not read by then, the refusal is
-   * reported without the gateway's words. Default `HTTP_REQUEST_TIMEOUT_MS`.
-   */
-  httpRequestTimeoutMs?: number;
+  /** What of the stream's and the emits' timing differs from `DEFAULT_TRANSPORT_TIMING`. */
+  timing?: Partial<TransportTiming>;
   /**
    * The SAME hook `HttpTransportConfig.tokenRefresher` renews a refused
    * request's credential with — there is no second refresh mechanism.
@@ -106,22 +84,6 @@ export interface ActorStateUnitOptions {
    * single-sourced. A throwing refresher is treated as `null`.
    */
   tokenRefresher?: TokenRefresher;
-  /**
-   * Remove-side reconnect hysteresis. Scope
-   * additions need liveness quickly (100 ms debounce), but a removal only
-   * narrows delivery — extra events for a just-released scope are
-   * idempotent locally — so remove-only changes wait this long before
-   * reconnecting. Keeps hover-churn (transient per-citation previews)
-   * from turning every mouse pass into a reconnect storm; any addition
-   * flushes pending removals with it on the fast path.
-   */
-  lazyRemoveMs?: number;
-  /** The retry budget of one emit. Default `EMIT_RETRY`. */
-  emitRetry?: RetryBudget;
-  /** How long a superseded connection keeps draining after a handoff. Default `LINGER_MS`. */
-  lingerMs?: number;
-  /** How many of the event ids delivered last are remembered. Default `SEEN_EVENT_IDS_COUNT`. */
-  seenEventIdsCount?: number;
   /**
    * CACHE-SEMANTICS B17 — IO-abstracted persistence of the last seen
    * PERSISTED event id PER SCOPE, so a reloaded client resumes each
@@ -275,22 +237,6 @@ export interface ActorStateUnit
 const SUBSCRIBE = gatewayRoutes.subscribeToBus;
 const EMIT = gatewayRoutes.emitOnBus;
 
-/** Allowed transitions in the connection state machine. */
-const ALLOWED_TRANSITIONS: Record<
-  ConnectionState,
-  ReadonlyArray<ConnectionState>
-> = {
-  initial: ['connecting', 'unauthenticated', 'closed'],
-  connecting: ['open', 'reconnecting', 'unauthenticated', 'closed'],
-  open: ['reconnecting', 'closed'],
-  reconnecting: ['connecting', 'degraded', 'unauthenticated', 'closed'],
-  degraded: ['connecting', 'unauthenticated', 'closed'],
-  // Leaving `unauthenticated` takes a usable credential (the gate saw a
-  // different, non-empty token) → straight to `connecting`; or teardown.
-  unauthenticated: ['connecting', 'closed'],
-  closed: [],
-};
-
 export function createActorStateUnit(
   options: ActorStateUnitOptions,
 ): ActorStateUnit {
@@ -298,15 +244,17 @@ export function createActorStateUnit(
     baseUrl,
     token: tokenOrGetter,
     channels: initialChannels,
-    reconnectMs = RECONNECT_MS,
-    streamOpenTimeoutMs = STREAM_OPEN_TIMEOUT_MS,
-    httpRequestTimeoutMs = HTTP_REQUEST_TIMEOUT_MS,
-    lazyRemoveMs = LAZY_REMOVE_MS,
-    emitRetry = EMIT_RETRY,
-    lingerMs = LINGER_MS,
-    seenEventIdsCount = SEEN_EVENT_IDS_COUNT,
     tokenRefresher,
   } = options;
+  const {
+    reconnectMs,
+    streamOpenTimeoutMs,
+    httpRequestTimeoutMs,
+    lazyRemoveMs,
+    emitRetry,
+    lingerMs,
+    seenEventIdsCount,
+  } = { ...DEFAULT_TRANSPORT_TIMING, ...options.timing };
   const getToken =
     typeof tokenOrGetter === 'function' ? tokenOrGetter : () => tokenOrGetter;
 
@@ -354,14 +302,14 @@ export function createActorStateUnit(
    * that takes down the host process. A bad edge means a bug in the
    * reconnect loop, but degrading gracefully (keep the current state, warn)
    * is strictly better than killing a long-running job. The permitted edges
-   * are in `ALLOWED_TRANSITIONS`.
+   * are in `CONNECTION_STATE_MOVES`.
    *
    * Side effect: manages the `degraded` timer. Enters on
    * `reconnecting`, cleared on exit.
    */
   const transition = (next: ConnectionState): void => {
     if (currentState === next) return;
-    const allowed = ALLOWED_TRANSITIONS[currentState];
+    const allowed = CONNECTION_STATE_MOVES[currentState];
     if (!allowed.includes(next)) {
       console.warn(
         `[actor] ignoring invalid connection state transition: ${currentState} → ${next}`,

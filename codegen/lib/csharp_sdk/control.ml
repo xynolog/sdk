@@ -24,7 +24,7 @@ let model (models : Models.t) id =
       (Refused
          (Printf.sprintf "names %s, which the C# SDK models as no type" id))
 
-let sender from = String.capitalize_ascii (T.from_value from)
+let sender from = String.capitalize_ascii (T.control_sender_value from)
 
 (* A control method's or notification's property on ControlMethods. *)
 let property_name name = Text.pascal name
@@ -113,7 +113,7 @@ let file (models : Models.t) (spec : Spec.t) =
                             members =
                               List.map
                                 (fun from -> ([], sender from))
-                                T.from_all;
+                                T.control_sender_all;
                           };
                         C.Type
                           {

@@ -8,6 +8,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Xynolog.Timing.Settings` exports `ClientTiming` and `TransportTiming`, the
+  records of what a caller may set of the timing a client and a transport keep,
+  with the protocol's values of them, `protocolClientTiming` and
+  `protocolTransportTiming`.
 - A type for ten of Protocol's tables that no service keeps, each typed by
   the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
   `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
@@ -50,14 +54,22 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A held job keeps the `HeldJobRecord` its claim handed it, and `jobId`,
+  `jobType`, `resourceId`, `params`, `completedUnits`, `unitCursors`,
+  `retryCount` and `maxRetries` are read from it through
+  `HasHeldJobRecord`, generated from `client/surface.json` and typed as the
+  record types them.
+- `KbPlacement` names where a knowledge base's stack runs, in place of
+  `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
+  and `TargetKind`; `InferenceProvider` names an inference provider, in
+  place of `EngineProvider`.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
-  trees are all `ArchivistLayoutEventStreamTree`, a placement is
-  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
-  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
-  and the rest. The type each reference was given of its own
-  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
-  gone.
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - A resource's bytes, read whole, are a `ResourceRepresentation`, the type of
   Protocol's `client/types/ResourceRepresentation.json`, where they were
   `Content.BinaryContent`: `Browse.resourceRepresentation` and
@@ -105,8 +117,9 @@ the coming release's, and gathers its changes as they land.
   in place of `FaultReason` (`FrameRefusalReasonLacks`,
   `FrameRefusalReasonMalformed`).
 - `Job.claim` and `Worker.newClaims` take `ClaimOptions`, the type Protocol
-  states, in place of `WorkerOptions`; the claims' clock and timing are the
-  client's. A filter list that is empty, a stall check that is not positive,
+  states, in place of `WorkerOptions`; the claims' clock is the client's, and
+  `newClaims` takes no timing: each wait the options leave out is the
+  protocol's. A filter list that is empty, a stall check that is not positive,
   or a claim, stall or commit timeout that is negative, is
   `InvalidClaimOptions`, in place of `InvalidWorkerTiming`.
 - `Job.pollUntilComplete` takes `JobPollOptions`, the type Protocol states, in
@@ -162,16 +175,79 @@ the coming release's, and gathers its changes as they land.
   matches), in place of trying each member until one parses. Only that
   member is read, and a value it refuses is refused as that member refuses
   it, where it was refused as the last member tried refused it.
+- What a caller leaves out of these options is not sent, and the service's
+  own default applies (protocol#109): `Browse.resources` and
+  `Match.resources` no longer send a `limit` of 100 and an `offset` of 0,
+  `Gather.annotation` no longer sends a `contextWindow` of 2000, nor an
+  `options` member when it is given none, and `Match.search` no longer sends
+  `useSemanticScoring` true. Its `limit` is still 10 when none is stated.
+- What discovery reads is the generated types Protocol names, in place of
+  `Xynolog.Discovery`'s own: `parseDiscoveryDocument` gives a
+  `Xynolog.Types.DiscoveryState` (`DiscoveryStateDiscoveryAbsent` of a
+  `DiscoveryAbsent`, its reason and diagnostic, or
+  `DiscoveryStateDiscoveryManaged` of a `DiscoveryManaged`), `readDiscovery`
+  a `DiscoveryRead` (either of those, or `DiscoveryReadDiscoveryUnchanged`),
+  and `discoveryDiff` and `subscribeDiscovery` a `DiscoveryDiff`, whose
+  fields are `discoveryDiffState`, `discoveryDiffAdded`,
+  `discoveryDiffUpdated`, `discoveryDiffRemoved` and
+  `discoveryDiffDuplicated`. `Xynolog.Discovery` no longer exports
+  `DiscoveryState`, `DiscoveryRead` or `DiscoveryDiff`, nor `Absent`,
+  `Managed`, `Read` and `Unchanged`.
+- `SignIn`'s `signInToken` and `StoredSession`'s `storedSessionAccess` are
+  an `AccessToken` (protocol#124), in place of `Text`: one is built
+  `AccessToken token`, and read with `accessTokenValue`.
+- `UploadStarted` and `UploadProgress`'s total, and
+  `ConformanceDriverLineProgressProgress`'s
+  `conformanceDriverLineProgressProgressTotalBytes`, are a `Maybe Integer`:
+  an upload states its total only when its source states its length
+  (protocol#121), where an unsized source reported a total of 0.
+
+- Only what the protocol lets a caller override can be set, and by the record
+  of its home. `Client.newClient`, `Frame.newFrame`, `Bind.newBind` and
+  `Job.newJob` take a `ClientTiming`; `HttpOptions`' `httpTiming`,
+  `IssuerOptions`' `issuerTiming`, `Http.Discovery.httpDiscovery`,
+  `Session.newSession` and `TestSessionOptions`' `testSessionOptionsTiming` take
+  a `TransportTiming`.
+- What makes a client over HTTP takes the client's `ClientTiming` after its
+  `HttpOptions`: `Client.fromHttp`, `Session.fromHttp`,
+  `Session.fromIssuedSession`, `Session.fromKeptSession`,
+  `Session.signInDevice`, `Session.signInAgent`,
+  `Registry.newHttpSessionFactory` and
+  `Registry.Identity.describeConnection`. `XynologBrowserConfig` states it as
+  `registryClientTiming`, and `Testing.Sessions.newScriptedSessions` takes both
+  records.
+- `Xynolog.Timing.Settings.withOverrides` applies a JSON object to the record it
+  is given, and refuses a name that record does not hold.
+- `Tokens.renewalDelay`, `Tokens.refreshDelay`,
+  `Delegation.deriveStallDeadlineMs` and `State.Mark.newMarkStateUnit` take no
+  timing: what they read is fixed.
 
 ### Removed
 
+- `Xynolog.Timing.Settings` no longer exports `Settings` or `protocolSettings`.
+  A fixed timing is read from `Xynolog.Timing`, and cannot be set.
+- `CacheOptions` has no `cacheSaveDebounceMs`: a cache waits the protocol's
+  `saveDebounceMs` before it saves.
+- `StoragePersister` has no `persisterMaxBytes`: a document larger than the
+  protocol's `maxStoredBytesCount` loses the entries received longest ago,
+  until it fits.
 - `Session.signInAgent` takes no `RetryBudget`, and signs the agent in once,
   as every SDK does: a failure is thrown as it came, and starting the sign-in
   again is the service's, on its own backoff (Protocol's WORKER-SERVICE R3).
   It was `signInAgent http options budget service`; it is
-  `signInAgent http options service`.
+  `signInAgent http timing options service`.
 - `Xynolog.Types.Presence` is removed. No member of Protocol is both optional
   and nullable, so a model's optional field is a `Maybe`.
+- `Xynolog.Discovery.Reasons` is removed, and `Xynolog.Discovery` no longer
+  exports it: an absent launcher's reason is
+  `Xynolog.Types.DiscoveryAbsentReason`, the type Protocol states
+  (protocol#124), whose constructors are
+  `DiscoveryAbsentReasonNotFound`, `DiscoveryAbsentReasonNotJson`,
+  `DiscoveryAbsentReasonInvalid`, `DiscoveryAbsentReasonUnsupportedVersion`
+  and `DiscoveryAbsentReasonUnreadable`, and whose word is
+  `discoveryAbsentReasonText`, in place of `DiscoveryAbsentCode`,
+  `DiscoveryAbsentNotFound`, …, `discoveryAbsentCode` and
+  `parseDiscoveryAbsentCode`.
 
 ## 0.8.1
 

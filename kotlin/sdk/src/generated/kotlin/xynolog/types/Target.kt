@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 public data class Target(
     /** Where the stack runs: on this machine (local), or on a GitHub codespace whose knowledge base is forwarded here (codespace). */
-    public val kind: TargetKind,
+    public val kind: KbPlacement,
     /** For a local target: the knowledge base's clone, by path or by the basename of a registered root, as --root takes it. Absent: the local stack the command line chooses with --runtime, standing where the control server was started. */
     public val root: String? = null,
     /** For a codespace target: the GitHub repository, as --repo takes it. */
@@ -17,7 +17,7 @@ public data class Target(
 ) {
     /** How Java makes a `Target`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
-        private val kind: TargetKind,
+        private val kind: KbPlacement,
     ) {
         private var root: String? = null
         private var repo: String? = null
@@ -31,6 +31,6 @@ public data class Target(
     public companion object {
         /** A builder of a `Target` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(kind: TargetKind): Builder = Builder(kind)
+        public fun builder(kind: KbPlacement): Builder = Builder(kind)
     }
 }

@@ -65,22 +65,25 @@ import {
   isString,
   jobMatchesFilter,
   KeptForFirstReader,
-  replyChannelsFor,
 } from '@xynolog/core';
 import type {
   Annotation,
   AnnotationId,
-  BusOperationKey,
-  BusRequestErrorCode,
   BusPrimitive,
   ClaimOptions,
+  ClaimRefusal,
   EventMap,
+  HeldJobRecord,
+  HeldJobStall,
+  JobCheckpoint,
+  JobFailure,
   JobFilter,
   JobId,
+  JobReached,
   JobType,
   ResourceId,
   TraceCarrier,
-  UnitCursor,
+  WorkerVitals,
   components,
 } from '@xynolog/core';
 import {
@@ -88,6 +91,10 @@ import {
   withTraceparent,
   withoutTrace,
 } from '@xynolog/observability';
+import {
+  JOB_CLAIM_CHANNELS,
+  type JobCommitChannelsOperation,
+} from './worker-channels';
 
 /** The job a `job:claimed` reply carries, running under this worker: the spec's `JobRunning`. */
 type ClaimedJob = EventMap['job:claimed']['response'];
@@ -96,38 +103,6 @@ type YieldJobResult = components['schemas']['YieldJobResult'];
 type JobProgress = components['schemas']['JobProgress'];
 type DurabilityEvidence = components['schemas']['DurabilityEvidence'];
 type FailureClass = NonNullable<EventMap['job:fail']['failureClass']>;
-
-/**
- * What a worker's stream names for its claims: the replies of `job:claim`,
- * and the two broadcasts a worker reads. `job:queued` and
- * `job:cancel-requested` reach only a stream that names them, so a transport
- * made for a worker is given these beside the reply channels of whatever
- * else the worker awaits.
- */
-export const JOB_CLAIM_CHANNELS: readonly (keyof EventMap)[] = [
-  ...replyChannelsFor(['job:claim']),
-  'job:queued',
-  'job:cancel-requested',
-];
-
-/**
- * The requests a commit makes: the commit, and the question it asks when the
- * commit goes unacknowledged.
- *
- * The question is the read of ONE annotation, and not of a resource's list
- * of them. Reply channels reach every stream that names them, and the list's
- * replies are the frames of many megabytes a worker's stream exists to keep
- * out; one annotation's frame is small.
- */
-const COMMIT_OPERATIONS = [
-  'mark:commit',
-  'browse:annotation-requested',
-] as const satisfies readonly BusOperationKey[];
-type CommitOperation = (typeof COMMIT_OPERATIONS)[number];
-
-/** What a worker's stream names for its commits: the replies of `mark:commit` and of the question it asks when one goes unacknowledged. */
-export const JOB_COMMIT_CHANNELS: readonly (keyof EventMap)[] =
-  replyChannelsFor(COMMIT_OPERATIONS);
 
 /**
  * How weak each observation of a commit is, as evidence that the batch is on
@@ -183,75 +158,12 @@ export function willRetryAfter(
   );
 }
 
-/**
- * A claim that was refused for a reason other than "nothing pending".
- *
- * `code` is the `BusRequestError` code the reply was promoted to, or `null`
- * when the refusal was the worker's own: a reply with a fault as its schema's
- * (a member it lacks, or one its schema does not allow, a job type that is
- * neither verb among them). Never a
- * manufactured bus code. `bus.none-pending` never appears: an empty queue is
- * not a fault. `bus.unauthorized` means this credential cannot claim, and
- * will not be able to later.
- */
-export interface ClaimRefusal {
-  code: BusRequestErrorCode | null;
-  message: string;
-}
-
-/**
- * What a worker can say of itself at any moment (WORKER-CONTRACT V1).
- *
- * `lastQueuedEventAt` is any `job:queued` received, matching or not. On an
- * idle stack with an empty queue it stands still by design, so a still stamp
- * alone is not a fault of the stream. `lastActivityAt` (a claim, a progress
- * report, a checkpoint, a settle) is the liveness of the work: a job stuck
- * partway stops advancing it, and that is what the stall rule reads.
- */
-export interface WorkerVitals {
-  lastQueuedEventAt: string | null;
-  lastClaimAt: string | null;
-  /** The last settle, whatever its outcome: a worker that fails and moves on is alive. */
-  lastFinishedAt: string | null;
-  lastActivityAt: string | null;
-  activeJob: { jobId: JobId; type: JobType; since: string } | null;
-  jobsCompleted: number;
-}
-
-/** A held job that showed no activity for `thresholdMs` (WORKER-CONTRACT V2). What its host does then is the host's. */
-export interface HeldJobStall {
-  jobId: JobId;
-  jobType: JobType;
-  heldSince: string;
-  lastActivityAt: string;
-  silentForMs: number;
-  thresholdMs: number;
-}
-
-/** The checkpoint a worker states: the units finished, and the furthest each unit begun got, a finished unit's cursor where it ended. */
-export interface JobCheckpoint {
-  completedUnits: string[];
-  unitCursors?: Record<string, UnitCursor>;
-}
-
-/** What a failure carries beside its error. What the job's commits observed is the held job's own to state. */
-export interface JobFailure extends Partial<JobCheckpoint> {
-  /** The failure's class, when the worker knows it. */
-  failureClass?: FailureClass;
-}
-
-interface Held<T extends JobType, R> {
-  readonly jobId: JobId;
+interface Held<T extends JobType, R> extends Readonly<
+  Omit<HeldJobRecord, 'jobType'>
+> {
   readonly jobType: T;
-  readonly resourceId: ResourceId;
-  /** The job's parameters as the dispatcher holds them: the description, and what the dispatcher adds. */
-  readonly params: ClaimedJob['params'];
-  /** The units earlier attempts finished. A worker does not do them again. Empty on a first attempt. */
-  readonly completedUnits: readonly string[];
-  /** The furthest each unit begun got on an earlier attempt, and what it had counted there: a finished unit's is where it ended. Empty on a first attempt. */
-  readonly unitCursors: Readonly<Record<string, UnitCursor>>;
-  readonly retryCount: number;
-  readonly maxRetries: number;
+  /** The job as its claim hands it, whole. */
+  readonly record: HeldJobRecord;
   /** Which attempt this is, 1-based. Every lifecycle message states it. */
   readonly attempt: number;
   /** The annotation the job is anchored to: the one a `yield` job's context is focused on. */
@@ -288,7 +200,7 @@ interface Held<T extends JobType, R> {
    */
   fail(error: string, failure?: JobFailure): Promise<void>;
   /** Settle: `job:cancel`, once the work has stopped for a cancellation. */
-  cancel(reached?: Partial<JobCheckpoint>): Promise<void>;
+  cancel(reached?: JobReached): Promise<void>;
 }
 
 /** A `mark` job this worker holds. */
@@ -336,7 +248,7 @@ interface Holder {
     payload: EventMap[K],
   ): Promise<unknown>;
   /** One of a commit's requests, awaited for `markCommitTimeoutMs`. It fails as `Bus.request` fails. */
-  request<Op extends CommitOperation>(
+  request<Op extends JobCommitChannelsOperation>(
     operation: Op,
     payload: EventMap[Op],
   ): Promise<unknown>;
@@ -347,13 +259,7 @@ interface Holder {
 }
 
 class HeldJobOf<T extends JobType, R> implements Held<T, R> {
-  readonly jobId: JobId;
-  readonly resourceId: ResourceId;
-  readonly params: ClaimedJob['params'];
-  readonly completedUnits: readonly string[];
-  readonly unitCursors: Readonly<Record<string, UnitCursor>>;
-  readonly retryCount: number;
-  readonly maxRetries: number;
+  readonly record: HeldJobRecord;
   readonly attempt: number;
   readonly annotationId: AnnotationId | undefined;
   readonly trace: TraceCarrier | undefined;
@@ -381,18 +287,49 @@ class HeldJobOf<T extends JobType, R> implements Held<T, R> {
     ) => EventMap['job:complete'],
   ) {
     const { metadata, params } = claimed;
-    this.jobId = metadata.id;
-    this.resourceId = params.resourceId;
-    this.params = params;
-    // Both appear on the record once an attempt has checkpointed. Absent, each reads as none.
-    this.completedUnits = metadata.completedUnits ?? [];
-    this.unitCursors = metadata.unitCursors ?? {};
-    this.retryCount = metadata.retryCount;
-    this.maxRetries = metadata.maxRetries;
-    this.attempt = metadata.retryCount + 1;
+    this.record = {
+      jobId: metadata.id,
+      jobType,
+      resourceId: params.resourceId,
+      params,
+      // Both appear on the claimed record once an attempt has checkpointed. Absent, each reads as none.
+      completedUnits: metadata.completedUnits ?? [],
+      unitCursors: metadata.unitCursors ?? {},
+      retryCount: metadata.retryCount,
+      maxRetries: metadata.maxRetries,
+    };
+    this.attempt = this.record.retryCount + 1;
     this.annotationId = anchorOf(jobType, params);
     this.trace = trace;
     this.cancelled = this.cancellation.signal;
+  }
+
+  get jobId(): HeldJobRecord['jobId'] {
+    return this.record.jobId;
+  }
+
+  get resourceId(): HeldJobRecord['resourceId'] {
+    return this.record.resourceId;
+  }
+
+  get params(): HeldJobRecord['params'] {
+    return this.record.params;
+  }
+
+  get completedUnits(): HeldJobRecord['completedUnits'] {
+    return this.record.completedUnits;
+  }
+
+  get unitCursors(): HeldJobRecord['unitCursors'] {
+    return this.record.unitCursors;
+  }
+
+  get retryCount(): HeldJobRecord['retryCount'] {
+    return this.record.retryCount;
+  }
+
+  get maxRetries(): HeldJobRecord['maxRetries'] {
+    return this.record.maxRetries;
   }
 
   get settled(): boolean {
@@ -580,7 +517,7 @@ class HeldJobOf<T extends JobType, R> implements Held<T, R> {
     }));
   }
 
-  cancel(reached: Partial<JobCheckpoint> = {}): Promise<void> {
+  cancel(reached: JobReached = {}): Promise<void> {
     return this.settle('job:cancel', false, () => ({
       ...this.named,
       ...reached,
@@ -716,7 +653,7 @@ class ClaimLoop implements Holder {
     return this.wire.emit(channel, payload);
   }
 
-  request<Op extends CommitOperation>(
+  request<Op extends JobCommitChannelsOperation>(
     operation: Op,
     payload: EventMap[Op],
   ): Promise<unknown> {

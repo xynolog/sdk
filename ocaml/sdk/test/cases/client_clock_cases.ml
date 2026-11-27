@@ -11,6 +11,8 @@ type subject =
   | Job_follower
   | Job_poll
   | Job_poll_timeout
+  | Refused_agent_grant
+  | Refused_agent_sign_in
   | Refused_bus_request
   | Refused_stream
   | Renewal
@@ -21,6 +23,7 @@ type subject =
   | Unanswered_emit
   | Unanswered_request
   | Unanswered_stream
+  | Unreachable_agent_sign_in
 
 let subject_value = function
   | (Degraded_stream : subject) -> "degradedStream"
@@ -32,6 +35,8 @@ let subject_value = function
   | (Job_follower : subject) -> "jobFollower"
   | (Job_poll : subject) -> "jobPoll"
   | (Job_poll_timeout : subject) -> "jobPollTimeout"
+  | (Refused_agent_grant : subject) -> "refusedAgentGrant"
+  | (Refused_agent_sign_in : subject) -> "refusedAgentSignIn"
   | (Refused_bus_request : subject) -> "refusedBusRequest"
   | (Refused_stream : subject) -> "refusedStream"
   | (Renewal : subject) -> "renewal"
@@ -42,6 +47,7 @@ let subject_value = function
   | (Unanswered_emit : subject) -> "unansweredEmit"
   | (Unanswered_request : subject) -> "unansweredRequest"
   | (Unanswered_stream : subject) -> "unansweredStream"
+  | (Unreachable_agent_sign_in : subject) -> "unreachableAgentSignIn"
 
 let subject_json v = `String (subject_value v)
 
@@ -98,6 +104,7 @@ type given = {
   lifetime_seconds : int option;
   interval_seconds : int option;
   answers : string list option;
+  status : int option;
 }
 
 let given_json (r : given) =
@@ -117,6 +124,7 @@ let given_json (r : given) =
            (fun v ->
              ("answers", (fun l -> `List (List.map (fun s -> `String s) l)) v))
            r.answers;
+         Option.map (fun v -> ("status", (fun n -> `Int n) v)) r.status;
        ])
 
 type cases_item = {
@@ -234,18 +242,30 @@ let table : t =
         its own, over a transport that answers every `job:status-requested` \
         with that job `running`; it counts `job:status-requested` requests \
         sent. `jobPollTimeout`: as `jobPoll`; it counts the times the poll has \
-        failed as timed out. The subject is built, and set going, as the case \
-        begins. `steps` run in order: `\"settle\"` lets what is ready run, and \
-        what that makes ready, until nothing more is, and moves no time; \
-        `pass` settles, then moves the clock, letting what falls due run as it \
-        does; `\"act\"` does the subject's action, then settles; `counted` \
-        states how many times what the subject counts has happened since the \
-        case began, once what is ready has run. A duration is milliseconds, or \
-        `{\"timing\": <a name of specs/src/client/timing.json>}` with `times` \
-        and `plusMs` to scale and move it, the name of a retry budget followed \
-        by `.` and one of its members (`emitRetry.initialDelayMs`). A case \
-        states each wait's end as a pair: nothing at a millisecond before it, \
-        and the thing counted at it.";
+        failed as timed out. `refusedAgentSignIn`: an agent's sign-in \
+        (contract/TRANSPORT-HTTP.md \194\167 An agent's sign-in), whose issuer \
+        grants a token that lives an hour each time it is asked, and whose \
+        gateway answers every `GET /api/users/me` with `given.status`; it \
+        counts the requests the sign-in has sent, to the issuer and to the \
+        gateway. `unreachableAgentSignIn`: as `refusedAgentSignIn`, over a \
+        network whose every connection to the gateway fails as it is made; it \
+        counts the requests the sign-in has sent, to the issuer and to the \
+        gateway, a connection it tried among them. `refusedAgentGrant`: an \
+        agent's sign-in whose issuer answers every ask of its token endpoint \
+        with `given.status`; it counts the requests the sign-in has sent, to \
+        the issuer and to the gateway. The subject is built, and set going, as \
+        the case begins. `steps` run in order: `\"settle\"` lets what is ready \
+        run, and what that makes ready, until nothing more is, and moves no \
+        time; `pass` settles, then moves the clock, letting what falls due run \
+        as it does; `\"act\"` does the subject's action, then settles; \
+        `counted` states how many times what the subject counts has happened \
+        since the case began, once what is ready has run. A duration is \
+        milliseconds, or `{\"timing\": <a name of \
+        specs/src/client/timing.json>}` with `times` and `plusMs` to scale and \
+        move it, the name of a retry budget followed by `.` and one of its \
+        members (`emitRetry.initialDelayMs`). A case states each wait's end as \
+        a pair: nothing at a millisecond before it, and the thing counted at \
+        it.";
      cases =
        [
          ({
@@ -419,6 +439,7 @@ let table : t =
                    lifetime_seconds = None;
                    interval_seconds = None;
                    answers = None;
+                   status = None;
                  }
                   : given);
           }
@@ -503,6 +524,7 @@ let table : t =
                    lifetime_seconds = None;
                    interval_seconds = None;
                    answers = None;
+                   status = None;
                  }
                   : given);
           }
@@ -676,6 +698,7 @@ let table : t =
                    lifetime_seconds = Some 15;
                    interval_seconds = None;
                    answers = None;
+                   status = None;
                  }
                   : given);
           }
@@ -717,6 +740,7 @@ let table : t =
                    lifetime_seconds = Some 3600;
                    interval_seconds = None;
                    answers = None;
+                   status = None;
                  }
                   : given);
           }
@@ -771,6 +795,7 @@ let table : t =
                    lifetime_seconds = None;
                    interval_seconds = None;
                    answers = Some [ "authorization_pending" ];
+                   status = None;
                  }
                   : given);
           }
@@ -808,6 +833,7 @@ let table : t =
                    lifetime_seconds = None;
                    interval_seconds = Some 0;
                    answers = Some [ "authorization_pending" ];
+                   status = None;
                  }
                   : given);
           }
@@ -904,6 +930,7 @@ let table : t =
                    lifetime_seconds = None;
                    interval_seconds = None;
                    answers = Some [ "slow_down"; "authorization_pending" ];
+                   status = None;
                  }
                   : given);
           }
@@ -1406,6 +1433,7 @@ let table : t =
                    lifetime_seconds = None;
                    interval_seconds = None;
                    answers = None;
+                   status = None;
                  }
                   : given);
           }
@@ -1444,6 +1472,7 @@ let table : t =
                    lifetime_seconds = None;
                    interval_seconds = None;
                    answers = None;
+                   status = None;
                  }
                   : given);
           }
@@ -1522,6 +1551,142 @@ let table : t =
                 (Counted ({ counted = 1 } : counted) : steps_item);
               ];
             given = None;
+          }
+           : cases_item);
+         ({
+            subject = (Refused_agent_sign_in : subject);
+            case =
+              "a gateway that answers an agent's naming request with 503 is \
+               asked once, after one grant, and neither is made again after \
+               requestRetryPauseMs";
+            steps =
+              [
+                (Counted ({ counted = 2 } : counted) : steps_item);
+                (Pass
+                   ({
+                      pass =
+                        (Object
+                           ({
+                              timing = "requestRetryPauseMs";
+                              times = Some 10.;
+                              plus_ms = None;
+                            }
+                             : object_)
+                          : pass_pass);
+                    }
+                     : pass)
+                  : steps_item);
+                (Counted ({ counted = 2 } : counted) : steps_item);
+              ];
+            given =
+              Some
+                ({
+                   retry_after_seconds = None;
+                   lifetime_seconds = None;
+                   interval_seconds = None;
+                   answers = None;
+                   status = Some 503;
+                 }
+                  : given);
+          }
+           : cases_item);
+         ({
+            subject = (Refused_agent_sign_in : subject);
+            case =
+              "a gateway that refuses the token an agent was just granted is \
+               asked once, and no token is granted again to ask it with";
+            steps =
+              [
+                (Counted ({ counted = 2 } : counted) : steps_item);
+                (Pass
+                   ({
+                      pass =
+                        (Object
+                           ({
+                              timing = "requestRetryPauseMs";
+                              times = Some 10.;
+                              plus_ms = None;
+                            }
+                             : object_)
+                          : pass_pass);
+                    }
+                     : pass)
+                  : steps_item);
+                (Counted ({ counted = 2 } : counted) : steps_item);
+              ];
+            given =
+              Some
+                ({
+                   retry_after_seconds = None;
+                   lifetime_seconds = None;
+                   interval_seconds = None;
+                   answers = None;
+                   status = Some 401;
+                 }
+                  : given);
+          }
+           : cases_item);
+         ({
+            subject = (Unreachable_agent_sign_in : subject);
+            case =
+              "a gateway an agent cannot reach is tried once, after one grant, \
+               and neither is made again after requestRetryPauseMs";
+            steps =
+              [
+                (Counted ({ counted = 2 } : counted) : steps_item);
+                (Pass
+                   ({
+                      pass =
+                        (Object
+                           ({
+                              timing = "requestRetryPauseMs";
+                              times = Some 10.;
+                              plus_ms = None;
+                            }
+                             : object_)
+                          : pass_pass);
+                    }
+                     : pass)
+                  : steps_item);
+                (Counted ({ counted = 2 } : counted) : steps_item);
+              ];
+            given = None;
+          }
+           : cases_item);
+         ({
+            subject = (Refused_agent_grant : subject);
+            case =
+              "an issuer that answers an agent's grant with 503 is asked once, \
+               and the gateway is not asked";
+            steps =
+              [
+                (Counted ({ counted = 1 } : counted) : steps_item);
+                (Pass
+                   ({
+                      pass =
+                        (Object
+                           ({
+                              timing = "refreshRetry.maxDelayMs";
+                              times = Some 2.;
+                              plus_ms = None;
+                            }
+                             : object_)
+                          : pass_pass);
+                    }
+                     : pass)
+                  : steps_item);
+                (Counted ({ counted = 1 } : counted) : steps_item);
+              ];
+            given =
+              Some
+                ({
+                   retry_after_seconds = None;
+                   lifetime_seconds = None;
+                   interval_seconds = None;
+                   answers = None;
+                   status = Some 503;
+                 }
+                  : given);
           }
            : cases_item);
        ];

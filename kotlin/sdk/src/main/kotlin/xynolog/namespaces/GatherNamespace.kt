@@ -18,9 +18,6 @@ import xynolog.types.GatheredContext
 import xynolog.types.GetReferencedByResponseReferencedByItem
 import java.util.concurrent.CompletableFuture
 
-/** How many characters of an annotation's source its context takes when none is stated. */
-internal const val CONTEXT_WINDOW: Long = 2000
-
 /** How many links out from a resource its context reaches when none is stated. */
 internal const val RESOURCE_DEPTH: Long = 2
 
@@ -37,9 +34,9 @@ internal const val INCLUDES_SUMMARY: Boolean = false
 public class GatherNamespace internal constructor(private val links: Links, private val live: Live) {
     /**
      * The context around one annotation, taking `contextWindow` characters of
-     * its source: two thousand when `options` states none. The source's
-     * context and the target's are each included or left out as stated, and
-     * as the gatherer decides when not.
+     * its source, and the source's context and the target's each included or
+     * left out, as `options` states, and as the gatherer decides when not.
+     * Options that state nothing are not sent.
      */
     @JvmOverloads
     @JvmExposeBoxed
@@ -51,7 +48,7 @@ public class GatherNamespace internal constructor(private val links: Links, priv
         val request = GatherAnnotationRequest(
             annotationId = annotationId,
             resourceId = resourceId,
-            options = options.copy(contextWindow = options.contextWindow ?: CONTEXT_WINDOW),
+            options = options.takeUnless { it == GatherAnnotationOptions() },
         )
         return Running(links.scope) { links.request(Operations.GATHER_REQUESTED, request) }
     }

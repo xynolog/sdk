@@ -1,13 +1,5 @@
 type t
 
-type timing = {
-  emit_attempts : int;
-  emit_initial_delay_ms : int;
-  emit_max_delay_ms : int;
-  emit_timeout_ms : int;
-  request_timeout_ms : int;
-}
-
 type failure = {
   code : Error_codes.Transport.t;
   status : int option;
@@ -27,10 +19,8 @@ val request_code : request_code -> string
 
 exception Failed of failure
 
-val default_timing : timing
-
 val make :
-  ?timing:timing ->
+  ?timing:Client_timing.transport ->
   ?telemetry:Telemetry.t ->
   clock:Clock.t ->
   session:Session.t ->
@@ -59,7 +49,7 @@ val emit :
   client_id:string ->
   ?scope:Identifiers.Resource_id.t ->
   ?correlation_id:string ->
-  ?trace:Wire_stream.trace ->
+  ?trace:Records.Trace_carrier.t ->
   'a Bus_registry.channel ->
   string ->
   string

@@ -12,6 +12,7 @@ use opentelemetry_sdk::metrics::data::{AggregatedMetrics, MetricData};
 use opentelemetry_sdk::metrics::{InMemoryMetricExporter, SdkMeterProvider};
 use opentelemetry_sdk::propagation::TraceContextPropagator;
 use opentelemetry_sdk::trace::{InMemorySpanExporter, SdkTracerProvider, SpanData};
+use serde_json::json;
 use telemetry_gateway::{Gateway, HEARD, SENT, sparkle};
 use xynolog::transport::{Envelope, Transport};
 
@@ -56,7 +57,9 @@ async fn telemetry_installed_after_the_client_opened_is_what_the_transport_repor
             .await
             .expect("the emit is accepted");
     }
-    let frame = gateway.deliver(&transport, SENDER).await;
+    let frame = gateway
+        .deliver(&transport, json!({ "traceparent": SENDER }))
+        .await;
     let finished = spans.get_finished_spans().expect("the spans exported");
 
     // Each emit left under its own span's trace.

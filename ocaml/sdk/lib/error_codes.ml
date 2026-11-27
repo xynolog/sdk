@@ -268,3 +268,6 @@ module Control = struct
     | "control.failed" -> Some Failed
     | _ -> None
 end
+
+let limit_refusal_transport_codes =
+  [ (429, "refusal-rate", Transport.Unauthorized) ]

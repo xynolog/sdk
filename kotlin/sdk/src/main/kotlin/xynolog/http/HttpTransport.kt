@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonObject
 import xynolog.Timings
+import xynolog.TransportTiming
 import xynolog.bus.BusLog
 import xynolog.bus.Logged
 import xynolog.bus.faultIn
@@ -28,7 +29,6 @@ import xynolog.telemetry.Telemetry
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Events
 import xynolog.transport.FrameSink
 import xynolog.transport.GatewayOperations
@@ -40,11 +40,11 @@ import xynolog.transport.Watched
 import xynolog.transport.unsubscribed
 import xynolog.types.BusEmitAccepted
 import xynolog.types.BusEmitRequest
+import xynolog.types.ConnectionState
 import xynolog.types.HealthResponse
 import xynolog.types.MediaTokenRequest
 import xynolog.types.MediaTokenResponse
 import xynolog.types.ProtectedResourceMetadata
-import xynolog.types.RetryBudget
 import xynolog.types.StatusResponse
 import xynolog.types.UserResponse
 import xynolog.types.wireJson
@@ -57,19 +57,6 @@ import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
 import kotlin.time.TimeSource
-
-/** The timing a transport keeps: protocol/specs/src/client/timing.json's, unless a caller that must not wait it out says otherwise. */
-public data class Timing @JvmOverloads constructor(
-    public val reconnectMs: Long = Timings.RECONNECT_MS,
-    public val lazyRemoveMs: Long = Timings.LAZY_REMOVE_MS,
-    public val lingerMs: Long = Timings.LINGER_MS,
-    public val emitRetry: RetryBudget = Timings.EMIT_RETRY,
-    public val seenEventIdsCount: Int = Timings.SEEN_EVENT_IDS_COUNT.toInt(),
-    /** The deadline on one request that is neither the stream nor an emit, and on reading any refusal's body, the stream's too. */
-    public val httpRequestMs: Long = Timings.HTTP_REQUEST_TIMEOUT_MS,
-    /** The deadline on the gateway's answer to the request that opens the stream: its status and headers. */
-    public val streamOpenMs: Long = Timings.STREAM_OPEN_TIMEOUT_MS,
-)
 
 /**
  * The bus over HTTP: emits to `POST /bus/emit`, and one stream from
@@ -93,7 +80,7 @@ public class HttpTransport @JvmOverloads constructor(
     private val token: StateFlow<String?>,
     /** The channels the stream names on no scope. */
     private val channels: List<String>,
-    private val timing: Timing = Timing(),
+    private val timing: TransportTiming = TransportTiming(),
     private val refresher: TokenRefresher? = null,
     bookmarks: Bookmarks? = null,
     private val http: HttpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build(),
@@ -112,7 +99,7 @@ public class HttpTransport @JvmOverloads constructor(
 
     @Volatile
     private var closing = false
-    internal val exchange = Exchange(this.baseUrl, http, token, refresher, failureStream, timing.httpRequestMs) { closing }
+    internal val exchange = Exchange(this.baseUrl, http, token, refresher, failureStream, timing.httpRequestTimeoutMs) { closing }
     private val stream = Stream(this.baseUrl, http, token, refresher, clientId, channels, timing, hub, router, failureStream, scope, bookmarks, clock, random)
     private val holds = mutableMapOf<String, Int>()
 

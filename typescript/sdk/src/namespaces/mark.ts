@@ -5,13 +5,18 @@ import type {
   EventBus,
   EventMap,
   MarkJobParams,
+  ClientTiming,
   components,
 } from '@xynolog/core';
 import type { ITransport } from '@xynolog/core';
-import { Bus, isMarkJobResult, isReportedJobResult } from '@xynolog/core';
+import {
+  Bus,
+  DEFAULT_CLIENT_TIMING,
+  isMarkJobResult,
+  isReportedJobResult,
+} from '@xynolog/core';
 import type { DelegationObservable, MarkJobCompletion } from '../awaitable';
 import { delegated, type DelegatedVerb } from './delegation';
-import type { JobFollowTiming } from './job-status-poll';
 import type { MarkNamespace as IMarkNamespace } from './types';
 
 /** A `mark` job's completion, as its follower hears or learns it. */
@@ -36,13 +41,16 @@ const MARK: DelegatedVerb<MarkJobCompletion> = {
 
 export class MarkNamespace implements IMarkNamespace {
   private readonly wire: Bus;
+  /** What a job's follower keeps. */
+  private readonly timing: ClientTiming;
 
   constructor(
     private readonly transport: ITransport,
     private readonly bus: EventBus,
-    private readonly timing: JobFollowTiming = {},
+    timing?: Partial<ClientTiming>,
   ) {
     this.wire = new Bus(transport);
+    this.timing = { ...DEFAULT_CLIENT_TIMING, ...timing };
   }
 
   async annotation(

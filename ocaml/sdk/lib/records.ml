@@ -38,13 +38,18 @@ module Pending_authorization_issuer = struct
 end
 
 module Connection_identity = struct
-  type t = { did : string; description : [ `KbDescription ] Models.t }
+  type t = {
+    did : Identifiers.User_id.t;
+    description : [ `KbDescription ] Models.t;
+  }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
     let open Table_codec in
     function
     | `Assoc members ->
-        let* did = required string "did" members in
+        let* did =
+          required (identifier Identifiers.User_id.of_string) "did" members
+        in
         let* description =
           required (model Models.kb_description) "description" members
         in
@@ -56,7 +61,7 @@ module Connection_identity = struct
     fun value ->
       write
         [
-          ("did", Some (json_string value.did));
+          ("did", Some ((json_id Identifiers.User_id.to_string) value.did));
           ("description", Some (json_model value.description));
         ]
 end
@@ -151,69 +156,6 @@ module Tab_check = struct
             ("mediaType", Option.map json_string value.media_type);
           ]
     | Unknown -> write [ ("verdict", Some (json_string "unknown")) ]
-end
-
-module Session_ended = struct
-  type t = { reason : Enums.Session_end_reason.t }
-
-  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
-    let open Table_codec in
-    function
-    | `Assoc members ->
-        let* reason =
-          required (enum Enums.Session_end_reason.of_string) "reason" members
-        in
-        Ok { reason }
-    | _ -> malformed ""
-
-  let to_json : t -> Yojson.Safe.t =
-    let open Table_codec in
-    fun value ->
-      write
-        [
-          ( "reason",
-            Some ((json_enum Enums.Session_end_reason.to_string) value.reason)
-          );
-        ]
-end
-
-module Permission_denied = struct
-  type t = { detail : string option }
-
-  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
-    let open Table_codec in
-    function
-    | `Assoc members ->
-        let* detail = required (nullable string) "detail" members in
-        Ok { detail }
-    | _ -> malformed ""
-
-  let to_json : t -> Yojson.Safe.t =
-    let open Table_codec in
-    fun value ->
-      write [ ("detail", Some (json_nullable json_string value.detail)) ]
-end
-
-module Kb_identity_conflict = struct
-  type t = { expected_did : string; observed_did : string }
-
-  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
-    let open Table_codec in
-    function
-    | `Assoc members ->
-        let* expected_did = required string "expectedDid" members in
-        let* observed_did = required string "observedDid" members in
-        Ok { expected_did; observed_did }
-    | _ -> malformed ""
-
-  let to_json : t -> Yojson.Safe.t =
-    let open Table_codec in
-    fun value ->
-      write
-        [
-          ("expectedDid", Some (json_string value.expected_did));
-          ("observedDid", Some (json_string value.observed_did));
-        ]
 end
 
 module Stored_session = struct
@@ -359,6 +301,36 @@ module Claim_options = struct
         ]
 end
 
+module Claim_refusal = struct
+  type t = { code : Error_codes.Bus_request.t option; message : string }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* code =
+          required
+            (nullable (enum Error_codes.Bus_request.of_code))
+            "code" members
+        in
+        let* message = required string "message" members in
+        Ok { code; message }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ( "code",
+            Some
+              (json_nullable
+                 (json_enum Error_codes.Bus_request.code)
+                 value.code) );
+          ("message", Some (json_string value.message));
+        ]
+end
+
 module Create_from_token_options = struct
   type t = {
     token : string;
@@ -425,6 +397,78 @@ module Device_code = struct
         ]
 end
 
+module Discovery_absent = struct
+  type t = {
+    reason : Enums.Discovery_absent_reason.t;
+    diagnostic : string option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* () = required (fixed "absent") "kind" members in
+        let* reason =
+          required
+            (enum Enums.Discovery_absent_reason.of_string)
+            "reason" members
+        in
+        let* diagnostic = optional string "diagnostic" members in
+        Ok { reason; diagnostic }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("kind", Some (json_string "absent"));
+          ( "reason",
+            Some
+              ((json_enum Enums.Discovery_absent_reason.to_string) value.reason)
+          );
+          ("diagnostic", Option.map json_string value.diagnostic);
+        ]
+end
+
+module Discovery_managed = struct
+  type t = { kbs : [ `DiscoveredKB ] Models.t list }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* () = required (fixed "managed") "kind" members in
+        let* kbs = required (list (model Models.discovered_kb)) "kbs" members in
+        Ok { kbs }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("kind", Some (json_string "managed"));
+          ("kbs", Some ((json_list json_model) value.kbs));
+        ]
+end
+
+module Discovery_unchanged = struct
+  type t = unit
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* () = required (fixed "unchanged") "kind" members in
+        Ok ()
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun () -> write [ ("kind", Some (json_string "unchanged")) ]
+end
+
 module Engine_with_limits = struct
   type t = {
     engine : [ `Engine ] Models.t;
@@ -452,6 +496,79 @@ module Engine_with_limits = struct
           ("engine", Some (json_model value.engine));
           ("jobs", Option.map (json_list json_model) value.jobs);
           ("limits", Option.map json_model value.limits);
+        ]
+end
+
+module Fault = struct
+  type t = { member : string; reason : Enums.Frame_refusal_reason.t }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* member = required string "member" members in
+        let* reason =
+          required (enum Enums.Frame_refusal_reason.of_string) "reason" members
+        in
+        Ok { member; reason }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("member", Some (json_string value.member));
+          ( "reason",
+            Some ((json_enum Enums.Frame_refusal_reason.to_string) value.reason)
+          );
+        ]
+end
+
+module Frame_refusal = struct
+  type t = {
+    channel : string;
+    member : string;
+    reason : Enums.Frame_refusal_reason.t;
+    payload : Yojson.Safe.t option;
+    scope : Identifiers.Resource_id.t option;
+    correlation_id : string option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* channel = required string "channel" members in
+        let* member = required string "member" members in
+        let* reason =
+          required (enum Enums.Frame_refusal_reason.of_string) "reason" members
+        in
+        let* payload = optional any "payload" members in
+        let* scope =
+          optional
+            (identifier Identifiers.Resource_id.of_string)
+            "scope" members
+        in
+        let* correlation_id = optional string "correlationId" members in
+        Ok { channel; member; reason; payload; scope; correlation_id }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("channel", Some (json_string value.channel));
+          ("member", Some (json_string value.member));
+          ( "reason",
+            Some ((json_enum Enums.Frame_refusal_reason.to_string) value.reason)
+          );
+          ("payload", Option.map json_any value.payload);
+          ( "scope",
+            Option.map (json_id Identifiers.Resource_id.to_string) value.scope
+          );
+          ("correlationId", Option.map json_string value.correlation_id);
         ]
 end
 
@@ -499,6 +616,123 @@ module Gather_resource_options = struct
         ]
 end
 
+module Held_job_record = struct
+  type t = {
+    job_id : Identifiers.Job_id.t;
+    job_type : Enums.Job_type.t;
+    resource_id : Identifiers.Resource_id.t;
+    params : [ `JobParams ] Models.t;
+    completed_units : string list;
+    unit_cursors : (string * [ `UnitCursor ] Models.t) list;
+    retry_count : int;
+    max_retries : int;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* job_id =
+          required (identifier Identifiers.Job_id.of_string) "jobId" members
+        in
+        let* job_type =
+          required (enum Enums.Job_type.of_string) "jobType" members
+        in
+        let* resource_id =
+          required
+            (identifier Identifiers.Resource_id.of_string)
+            "resourceId" members
+        in
+        let* params = required (model Models.job_params) "params" members in
+        let* completed_units =
+          required (list string) "completedUnits" members
+        in
+        let* unit_cursors =
+          required (assoc (model Models.unit_cursor)) "unitCursors" members
+        in
+        let* retry_count = required int "retryCount" members in
+        let* max_retries = required int "maxRetries" members in
+        Ok
+          {
+            job_id;
+            job_type;
+            resource_id;
+            params;
+            completed_units;
+            unit_cursors;
+            retry_count;
+            max_retries;
+          }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("jobId", Some ((json_id Identifiers.Job_id.to_string) value.job_id));
+          ("jobType", Some ((json_enum Enums.Job_type.to_string) value.job_type));
+          ( "resourceId",
+            Some ((json_id Identifiers.Resource_id.to_string) value.resource_id)
+          );
+          ("params", Some (json_model value.params));
+          ( "completedUnits",
+            Some ((json_list json_string) value.completed_units) );
+          ("unitCursors", Some ((json_map json_model) value.unit_cursors));
+          ("retryCount", Some (json_int value.retry_count));
+          ("maxRetries", Some (json_int value.max_retries));
+        ]
+end
+
+module Held_job_stall = struct
+  type t = {
+    job_id : Identifiers.Job_id.t;
+    job_type : Enums.Job_type.t;
+    held_since : string;
+    last_activity_at : string;
+    silent_for_ms : int;
+    threshold_ms : int;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* job_id =
+          required (identifier Identifiers.Job_id.of_string) "jobId" members
+        in
+        let* job_type =
+          required (enum Enums.Job_type.of_string) "jobType" members
+        in
+        let* held_since = required string "heldSince" members in
+        let* last_activity_at = required string "lastActivityAt" members in
+        let* silent_for_ms = required int "silentForMs" members in
+        let* threshold_ms = required int "thresholdMs" members in
+        Ok
+          {
+            job_id;
+            job_type;
+            held_since;
+            last_activity_at;
+            silent_for_ms;
+            threshold_ms;
+          }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("jobId", Some ((json_id Identifiers.Job_id.to_string) value.job_id));
+          ("jobType", Some ((json_enum Enums.Job_type.to_string) value.job_type));
+          ("heldSince", Some (json_string value.held_since));
+          ("lastActivityAt", Some (json_string value.last_activity_at));
+          ("silentForMs", Some (json_int value.silent_for_ms));
+          ("thresholdMs", Some (json_int value.threshold_ms));
+        ]
+end
+
 module Issued_tokens = struct
   type t = { access : string; refresh : string }
 
@@ -521,6 +755,74 @@ module Issued_tokens = struct
         ]
 end
 
+module Job_checkpoint = struct
+  type t = {
+    completed_units : string list;
+    unit_cursors : (string * [ `UnitCursor ] Models.t) list option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* completed_units =
+          required (list string) "completedUnits" members
+        in
+        let* unit_cursors =
+          optional (assoc (model Models.unit_cursor)) "unitCursors" members
+        in
+        Ok { completed_units; unit_cursors }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ( "completedUnits",
+            Some ((json_list json_string) value.completed_units) );
+          ("unitCursors", Option.map (json_map json_model) value.unit_cursors);
+        ]
+end
+
+module Job_failure = struct
+  type t = {
+    completed_units : string list option;
+    unit_cursors : (string * [ `UnitCursor ] Models.t) list option;
+    failure_class : Enums.Failure_class.t option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* completed_units =
+          optional (list string) "completedUnits" members
+        in
+        let* unit_cursors =
+          optional (assoc (model Models.unit_cursor)) "unitCursors" members
+        in
+        let* failure_class =
+          optional (enum Enums.Failure_class.of_string) "failureClass" members
+        in
+        Ok { completed_units; unit_cursors; failure_class }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ( "completedUnits",
+            Option.map (json_list json_string) value.completed_units );
+          ("unitCursors", Option.map (json_map json_model) value.unit_cursors);
+          ( "failureClass",
+            Option.map
+              (json_enum Enums.Failure_class.to_string)
+              value.failure_class );
+        ]
+end
+
 module Job_poll_options = struct
   type t = { every_ms : int option; within_ms : int option }
 
@@ -540,6 +842,58 @@ module Job_poll_options = struct
         [
           ("everyMs", Option.map json_int value.every_ms);
           ("withinMs", Option.map json_int value.within_ms);
+        ]
+end
+
+module Job_reached = struct
+  type t = {
+    completed_units : string list option;
+    unit_cursors : (string * [ `UnitCursor ] Models.t) list option;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* completed_units =
+          optional (list string) "completedUnits" members
+        in
+        let* unit_cursors =
+          optional (assoc (model Models.unit_cursor)) "unitCursors" members
+        in
+        Ok { completed_units; unit_cursors }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ( "completedUnits",
+            Option.map (json_list json_string) value.completed_units );
+          ("unitCursors", Option.map (json_map json_model) value.unit_cursors);
+        ]
+end
+
+module Kb_identity_conflict = struct
+  type t = { expected_did : string; observed_did : string }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* expected_did = required string "expectedDid" members in
+        let* observed_did = required string "observedDid" members in
+        Ok { expected_did; observed_did }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("expectedDid", Some (json_string value.expected_did));
+          ("observedDid", Some (json_string value.observed_did));
         ]
 end
 
@@ -598,7 +952,7 @@ end
 module Pending_annotation = struct
   type t = {
     selector : [ `AnnotationSelector ] Models.t;
-    motivation : [ `Motivation ] Models.t;
+    motivation : Enums.Motivation.t;
   }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
@@ -609,7 +963,7 @@ module Pending_annotation = struct
           required (model Models.annotation_selector) "selector" members
         in
         let* motivation =
-          required (model Models.motivation) "motivation" members
+          required (enum Enums.Motivation.of_string) "motivation" members
         in
         Ok { selector; motivation }
     | _ -> malformed ""
@@ -620,8 +974,26 @@ module Pending_annotation = struct
       write
         [
           ("selector", Some (json_model value.selector));
-          ("motivation", Some (json_model value.motivation));
+          ( "motivation",
+            Some ((json_enum Enums.Motivation.to_string) value.motivation) );
         ]
+end
+
+module Permission_denied = struct
+  type t = { detail : string option }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* detail = required (nullable string) "detail" members in
+        Ok { detail }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write [ ("detail", Some (json_nullable json_string value.detail)) ]
 end
 
 module Put_binary_request = struct
@@ -632,11 +1004,11 @@ module Put_binary_request = struct
     storage_uri : string;
     language : string option;
     entity_types : string list option;
-    source_annotation_id : string option;
-    source_resource_id : string option;
+    source_annotation_id : Identifiers.Annotation_id.t option;
+    source_resource_id : Identifiers.Resource_id.t option;
     generation_prompt : string option;
     generator : [ `OneOrMoreAgents ] Models.t option;
-    job_id : string option;
+    job_id : Identifiers.Job_id.t option;
     is_draft : bool option;
     clone_token : string option;
     archive_original : bool option;
@@ -653,14 +1025,22 @@ module Put_binary_request = struct
         let* language = optional string "language" members in
         let* entity_types = optional (list string) "entityTypes" members in
         let* source_annotation_id =
-          optional string "sourceAnnotationId" members
+          optional
+            (identifier Identifiers.Annotation_id.of_string)
+            "sourceAnnotationId" members
         in
-        let* source_resource_id = optional string "sourceResourceId" members in
+        let* source_resource_id =
+          optional
+            (identifier Identifiers.Resource_id.of_string)
+            "sourceResourceId" members
+        in
         let* generation_prompt = optional string "generationPrompt" members in
         let* generator =
           optional (model Models.one_or_more_agents) "generator" members
         in
-        let* job_id = optional string "jobId" members in
+        let* job_id =
+          optional (identifier Identifiers.Job_id.of_string) "jobId" members
+        in
         let* is_draft = optional bool "isDraft" members in
         let* clone_token = optional string "cloneToken" members in
         let* archive_original = optional bool "archiveOriginal" members in
@@ -695,11 +1075,17 @@ module Put_binary_request = struct
           ("language", Option.map json_string value.language);
           ("entityTypes", Option.map (json_list json_string) value.entity_types);
           ( "sourceAnnotationId",
-            Option.map json_string value.source_annotation_id );
-          ("sourceResourceId", Option.map json_string value.source_resource_id);
+            Option.map
+              (json_id Identifiers.Annotation_id.to_string)
+              value.source_annotation_id );
+          ( "sourceResourceId",
+            Option.map
+              (json_id Identifiers.Resource_id.to_string)
+              value.source_resource_id );
           ("generationPrompt", Option.map json_string value.generation_prompt);
           ("generator", Option.map json_model value.generator);
-          ("jobId", Option.map json_string value.job_id);
+          ( "jobId",
+            Option.map (json_id Identifiers.Job_id.to_string) value.job_id );
           ("isDraft", Option.map json_bool value.is_draft);
           ("cloneToken", Option.map json_string value.clone_token);
           ("archiveOriginal", Option.map json_bool value.archive_original);
@@ -907,6 +1293,30 @@ module Resource_search_filters = struct
         ]
 end
 
+module Session_ended = struct
+  type t = { reason : Enums.Session_end_reason.t }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* reason =
+          required (enum Enums.Session_end_reason.of_string) "reason" members
+        in
+        Ok { reason }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ( "reason",
+            Some ((json_enum Enums.Session_end_reason.to_string) value.reason)
+          );
+        ]
+end
+
 module Text_span = struct
   type t = {
     start : int;
@@ -941,11 +1351,33 @@ module Text_span = struct
         ]
 end
 
+module Trace_carrier = struct
+  type t = { traceparent : string; tracestate : string option }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* traceparent = required string "traceparent" members in
+        let* tracestate = optional string "tracestate" members in
+        Ok { traceparent; tracestate }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("traceparent", Some (json_string value.traceparent));
+          ("tracestate", Option.map json_string value.tracestate);
+        ]
+end
+
 module Upload_progress = struct
   type t =
-    | Started of { total_bytes : int }
-    | Progress of { bytes_uploaded : int; total_bytes : int }
-    | Finished of { resource_id : string }
+    | Started of { total_bytes : int option }
+    | Progress of { bytes_uploaded : int; total_bytes : int option }
+    | Finished of { resource_id : Identifiers.Resource_id.t }
 
   let of_json : Yojson.Safe.t -> (t, Models.fault) result =
     let open Table_codec in
@@ -954,14 +1386,18 @@ module Upload_progress = struct
         let* tag = required string "phase" members in
         match tag with
         | "started" ->
-            let* total_bytes = required int "totalBytes" members in
+            let* total_bytes = optional int "totalBytes" members in
             Ok (Started { total_bytes })
         | "progress" ->
             let* bytes_uploaded = required int "bytesUploaded" members in
-            let* total_bytes = required int "totalBytes" members in
+            let* total_bytes = optional int "totalBytes" members in
             Ok (Progress { bytes_uploaded; total_bytes })
         | "finished" ->
-            let* resource_id = required string "resourceId" members in
+            let* resource_id =
+              required
+                (identifier Identifiers.Resource_id.of_string)
+                "resourceId" members
+            in
             Ok (Finished { resource_id })
         | _ -> malformed "phase")
     | _ -> malformed ""
@@ -973,21 +1409,82 @@ module Upload_progress = struct
         write
           [
             ("phase", Some (json_string "started"));
-            ("totalBytes", Some (json_int value.total_bytes));
+            ("totalBytes", Option.map json_int value.total_bytes);
           ]
     | Progress value ->
         write
           [
             ("phase", Some (json_string "progress"));
             ("bytesUploaded", Some (json_int value.bytes_uploaded));
-            ("totalBytes", Some (json_int value.total_bytes));
+            ("totalBytes", Option.map json_int value.total_bytes);
           ]
     | Finished value ->
         write
           [
             ("phase", Some (json_string "finished"));
-            ("resourceId", Some (json_string value.resource_id));
+            ( "resourceId",
+              Some
+                ((json_id Identifiers.Resource_id.to_string) value.resource_id)
+            );
           ]
+end
+
+module Worker_vitals = struct
+  type t = {
+    last_queued_event_at : string option;
+    last_claim_at : string option;
+    last_finished_at : string option;
+    last_activity_at : string option;
+    active_job : [ `WorkerActiveJob ] Models.t option;
+    jobs_completed : int;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* last_queued_event_at =
+          required (nullable string) "lastQueuedEventAt" members
+        in
+        let* last_claim_at = required (nullable string) "lastClaimAt" members in
+        let* last_finished_at =
+          required (nullable string) "lastFinishedAt" members
+        in
+        let* last_activity_at =
+          required (nullable string) "lastActivityAt" members
+        in
+        let* active_job =
+          required
+            (nullable (model Models.worker_active_job))
+            "activeJob" members
+        in
+        let* jobs_completed = required int "jobsCompleted" members in
+        Ok
+          {
+            last_queued_event_at;
+            last_claim_at;
+            last_finished_at;
+            last_activity_at;
+            active_job;
+            jobs_completed;
+          }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ( "lastQueuedEventAt",
+            Some (json_nullable json_string value.last_queued_event_at) );
+          ("lastClaimAt", Some (json_nullable json_string value.last_claim_at));
+          ( "lastFinishedAt",
+            Some (json_nullable json_string value.last_finished_at) );
+          ( "lastActivityAt",
+            Some (json_nullable json_string value.last_activity_at) );
+          ("activeJob", Some (json_nullable json_model value.active_job));
+          ("jobsCompleted", Some (json_int value.jobs_completed));
+        ]
 end
 
 module Signed_in = struct
@@ -1113,6 +1610,68 @@ module Pending_authorization = struct
         ]
 end
 
+module Discovery_read = struct
+  type t =
+    | Absent of Discovery_absent.t
+    | Managed of Discovery_managed.t
+    | Unchanged
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members -> (
+        let* tag = required string "kind" members in
+        match tag with
+        | "absent" ->
+            Result.map
+              (fun value -> Absent value)
+              (Discovery_absent.of_json (`Assoc members))
+        | "managed" ->
+            Result.map
+              (fun value -> Managed value)
+              (Discovery_managed.of_json (`Assoc members))
+        | "unchanged" ->
+            Result.map
+              (fun () -> Unchanged)
+              (Discovery_unchanged.of_json (`Assoc members))
+        | _ -> malformed "kind")
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    function
+    | Absent value -> Discovery_absent.to_json value
+    | Managed value -> Discovery_managed.to_json value
+    | Unchanged -> Discovery_unchanged.to_json ()
+end
+
+module Discovery_state = struct
+  type t = Absent of Discovery_absent.t | Managed of Discovery_managed.t
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members -> (
+        let* tag = required string "kind" members in
+        match tag with
+        | "absent" ->
+            Result.map
+              (fun value -> Absent value)
+              (Discovery_absent.of_json (`Assoc members))
+        | "managed" ->
+            Result.map
+              (fun value -> Managed value)
+              (Discovery_managed.of_json (`Assoc members))
+        | _ -> malformed "kind")
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    function
+    | Absent value -> Discovery_absent.to_json value
+    | Managed value -> Discovery_managed.to_json value
+end
+
 module Engines_with_limits = struct
   type t = Engine_with_limits.t list
 
@@ -1123,6 +1682,48 @@ module Engines_with_limits = struct
   let to_json : t -> Yojson.Safe.t =
     let open Table_codec in
     json_list Engine_with_limits.to_json
+end
+
+module Discovery_diff = struct
+  type t = {
+    state : Discovery_state.t;
+    added : [ `DiscoveredKB ] Models.t list;
+    updated : [ `DiscoveredKB ] Models.t list;
+    removed : [ `DiscoveredKB ] Models.t list;
+    duplicated : string list;
+  }
+
+  let of_json : Yojson.Safe.t -> (t, Models.fault) result =
+    let open Table_codec in
+    function
+    | `Assoc members ->
+        let* state =
+          required (record Discovery_state.of_json) "state" members
+        in
+        let* added =
+          required (list (model Models.discovered_kb)) "added" members
+        in
+        let* updated =
+          required (list (model Models.discovered_kb)) "updated" members
+        in
+        let* removed =
+          required (list (model Models.discovered_kb)) "removed" members
+        in
+        let* duplicated = required (list string) "duplicated" members in
+        Ok { state; added; updated; removed; duplicated }
+    | _ -> malformed ""
+
+  let to_json : t -> Yojson.Safe.t =
+    let open Table_codec in
+    fun value ->
+      write
+        [
+          ("state", Some (Discovery_state.to_json value.state));
+          ("added", Some ((json_list json_model) value.added));
+          ("updated", Some ((json_list json_model) value.updated));
+          ("removed", Some ((json_list json_model) value.removed));
+          ("duplicated", Some ((json_list json_string) value.duplicated));
+        ]
 end
 
 module Agent_organization = struct
@@ -2082,21 +2683,10 @@ module Dir_entry = struct
 end
 
 module Discovered_kb = struct
-  module Placement = struct
-    type t = Local | Codespace
-
-    let to_string = function Local -> "local" | Codespace -> "codespace"
-
-    let of_string = function
-      | "local" -> Some Local
-      | "codespace" -> Some Codespace
-      | _ -> None
-  end
-
   type t = {
     host : string;
     port : int;
-    placement : Placement.t;
+    placement : Enums.Kb_placement.t;
     repo : string option;
     did : string;
     site_name : string option;
@@ -2108,7 +2698,8 @@ module Discovered_kb = struct
     {
       host = required reader string "host";
       port = required reader int "port";
-      placement = required reader (enum Placement.of_string) "placement";
+      placement =
+        required reader (enum Enums.Kb_placement.of_string) "placement";
       repo = maybe reader string "repo";
       did = required reader string "did";
       site_name = maybe reader string "siteName";
@@ -2123,7 +2714,8 @@ module Discovered_kb = struct
       [
         ("host", Some (json_string value.host));
         ("port", Some (json_int value.port));
-        ("placement", Some ((json_enum Placement.to_string) value.placement));
+        ( "placement",
+          Some ((json_enum Enums.Kb_placement.to_string) value.placement) );
         ("repo", Option.map json_string value.repo);
         ("did", Some (json_string value.did));
         ("siteName", Option.map json_string value.site_name);
@@ -5355,35 +5947,13 @@ module Storage_uri_entry = struct
 end
 
 module Engine = struct
-  module Provider = struct
-    type t = Anthropic | Google | Llamacpp | Ollama | Openai | Together | Vllm
-
-    let to_string = function
-      | Anthropic -> "anthropic"
-      | Google -> "google"
-      | Llamacpp -> "llamacpp"
-      | Ollama -> "ollama"
-      | Openai -> "openai"
-      | Together -> "together"
-      | Vllm -> "vllm"
-
-    let of_string = function
-      | "anthropic" -> Some Anthropic
-      | "google" -> Some Google
-      | "llamacpp" -> Some Llamacpp
-      | "ollama" -> Some Ollama
-      | "openai" -> Some Openai
-      | "together" -> Some Together
-      | "vllm" -> Some Vllm
-      | _ -> None
-  end
-
-  type t = { provider : Provider.t; model : string }
+  type t = { provider : Enums.Inference_provider.t; model : string }
 
   let project fields =
     let reader = start fields in
     {
-      provider = required reader (enum Provider.of_string) "provider";
+      provider =
+        required reader (enum Enums.Inference_provider.of_string) "provider";
       model = required reader string "model";
     }
 
@@ -5393,7 +5963,9 @@ module Engine = struct
   let to_json (value : t) =
     write
       [
-        ("provider", Some ((json_enum Provider.to_string) value.provider));
+        ( "provider",
+          Some ((json_enum Enums.Inference_provider.to_string) value.provider)
+        );
         ("model", Some (json_string value.model));
       ]
 
@@ -6239,17 +6811,6 @@ module Logs_follow_result = struct
 end
 
 module Root = struct
-  module Placement = struct
-    type t = Local | Codespace
-
-    let to_string = function Local -> "local" | Codespace -> "codespace"
-
-    let of_string = function
-      | "local" -> Some Local
-      | "codespace" -> Some Codespace
-      | _ -> None
-  end
-
   module Current = struct
     type t = Cwd | Xynolog_root
 
@@ -6262,7 +6823,7 @@ module Root = struct
   end
 
   type t = {
-    placement : Placement.t;
+    placement : Enums.Kb_placement.t;
     path : string option;
     present : bool option;
     current : Current.t option;
@@ -6285,7 +6846,8 @@ module Root = struct
   let project fields =
     let reader = start fields in
     {
-      placement = required reader (enum Placement.of_string) "placement";
+      placement =
+        required reader (enum Enums.Kb_placement.of_string) "placement";
       path = maybe reader string "path";
       present = maybe reader bool "present";
       current = maybe reader (enum Current.of_string) "current";
@@ -6311,7 +6873,8 @@ module Root = struct
   let to_json (value : t) =
     write
       [
-        ("placement", Some ((json_enum Placement.to_string) value.placement));
+        ( "placement",
+          Some ((json_enum Enums.Kb_placement.to_string) value.placement) );
         ("path", Option.map json_string value.path);
         ("present", Option.map json_bool value.present);
         ("current", Option.map (json_enum Current.to_string) value.current);
@@ -6982,23 +7545,16 @@ module Settings_unset_params = struct
 end
 
 module Target = struct
-  module Kind = struct
-    type t = Local | Codespace
-
-    let to_string = function Local -> "local" | Codespace -> "codespace"
-
-    let of_string = function
-      | "local" -> Some Local
-      | "codespace" -> Some Codespace
-      | _ -> None
-  end
-
-  type t = { kind : Kind.t; root : string option; repo : string option }
+  type t = {
+    kind : Enums.Kb_placement.t;
+    root : string option;
+    repo : string option;
+  }
 
   let project fields =
     let reader = start fields in
     {
-      kind = required reader (enum Kind.of_string) "kind";
+      kind = required reader (enum Enums.Kb_placement.of_string) "kind";
       root = maybe reader string "root";
       repo = maybe reader string "repo";
     }
@@ -7009,7 +7565,7 @@ module Target = struct
   let to_json (value : t) =
     write
       [
-        ("kind", Some ((json_enum Kind.to_string) value.kind));
+        ("kind", Some ((json_enum Enums.Kb_placement.to_string) value.kind));
         ("root", Option.map json_string value.root);
         ("repo", Option.map json_string value.repo);
       ]
@@ -7681,6 +8237,33 @@ module Qdrant_vectors_config = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
+module Worker_active_job = struct
+  type t = { job_id : string; type_ : Enums.Job_type.t; since : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      job_id = required reader string "jobId";
+      type_ = required reader (enum Enums.Job_type.of_string) "type";
+      since = required reader string "since";
+    }
+
+  let of_model (model : [ `WorkerActiveJob ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("jobId", Some (json_string value.job_id));
+        ("type", Some ((json_enum Enums.Job_type.to_string) value.type_));
+        ("since", Some (json_string value.since));
+      ]
+
+  let to_model value =
+    Models.decode Models.worker_active_job
+      (Yojson.Raw.to_string (to_json value))
+end
+
 module Mark_job_filter_params = struct
   type t = { motivation : Enums.Motivation.t }
 
@@ -8286,22 +8869,139 @@ module Archivist_config_staging = struct
       ]
 end
 
-module Client_discovery_absent_reasons_item = struct
-  type t = { reason : string; docs : string }
+module Client_connection_states_states_item = struct
+  type t = {
+    state : Enums.Connection_state.t;
+    meaning : string;
+    moves : Enums.Connection_state.t list;
+  }
 
   let project fields =
     let reader = start fields in
     {
-      reason = required reader string "reason";
+      state = required reader (enum Enums.Connection_state.of_string) "state";
+      meaning = required reader string "meaning";
+      moves =
+        required reader (list (enum Enums.Connection_state.of_string)) "moves";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ( "state",
+          Some ((json_enum Enums.Connection_state.to_string) value.state) );
+        ("meaning", Some (json_string value.meaning));
+        ( "moves",
+          Some
+            ((json_list (json_enum Enums.Connection_state.to_string))
+               value.moves) );
+      ]
+end
+
+module Client_discovery_absent_reasons_item = struct
+  type t = { reason : Enums.Discovery_absent_reason.t; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      reason =
+        required reader (enum Enums.Discovery_absent_reason.of_string) "reason";
       docs = required reader string "docs";
     }
 
   let to_json (value : t) =
     write
       [
-        ("reason", Some (json_string value.reason));
+        ( "reason",
+          Some
+            ((json_enum Enums.Discovery_absent_reason.to_string) value.reason)
+        );
         ("docs", Some (json_string value.docs));
       ]
+end
+
+module
+  Client_option_defaults_defaults_item_schema_reference_type_arguments_value =
+struct
+  type t = { type_parameter : string }
+
+  let project fields =
+    let reader = start fields in
+    { type_parameter = required reader string "typeParameter" }
+
+  let to_json (value : t) =
+    write [ ("typeParameter", Some (json_string value.type_parameter)) ]
+end
+
+module Client_option_defaults_defaults_item_schema_date_time = struct
+  module Type_ = struct
+    type t = Integer | String | Boolean
+
+    let to_string = function
+      | Integer -> "integer"
+      | String -> "string"
+      | Boolean -> "boolean"
+
+    let of_string = function
+      | "integer" -> Some Integer
+      | "string" -> Some String
+      | "boolean" -> Some Boolean
+      | _ -> None
+  end
+
+  module Format = struct
+    type t = Date_time
+
+    let to_string = function Date_time -> "date-time"
+    let of_string = function "date-time" -> Some Date_time | _ -> None
+  end
+
+  type t = {
+    type_ : Type_.t;
+    minimum : int option;
+    format : Format.t option;
+    description : string;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      type_ = required reader (enum Type_.of_string) "type";
+      minimum = maybe reader int "minimum";
+      format = maybe reader (enum Format.of_string) "format";
+      description = required reader string "description";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("type", Some ((json_enum Type_.to_string) value.type_));
+        ("minimum", Option.map json_int value.minimum);
+        ("format", Option.map (json_enum Format.to_string) value.format);
+        ("description", Some (json_string value.description));
+      ]
+end
+
+module Client_option_defaults_defaults_item_schema_type_parameter = struct
+  type t = { type_parameter : string }
+
+  let project fields =
+    let reader = start fields in
+    { type_parameter = required reader string "typeParameter" }
+
+  let to_json (value : t) =
+    write [ ("typeParameter", Some (json_string value.type_parameter)) ]
+end
+
+module Client_option_defaults_defaults_item_schema_decided_decided_by = struct
+  type t = { member : string }
+
+  let project fields =
+    let reader = start fields in
+    { member = required reader string "member" }
+
+  let to_json (value : t) =
+    write [ ("member", Some (json_string value.member)) ]
 end
 
 module Client_refresh_queries_item_asks_value = struct
@@ -8696,85 +9396,33 @@ module Conformance_step_progress = struct
 end
 
 module Conformance_step_state = struct
-  module State = struct
-    type t =
-      | Initial
-      | Connecting
-      | Open
-      | Reconnecting
-      | Degraded
-      | Unauthenticated
-      | Closed
-
-    let to_string = function
-      | Initial -> "initial"
-      | Connecting -> "connecting"
-      | Open -> "open"
-      | Reconnecting -> "reconnecting"
-      | Degraded -> "degraded"
-      | Unauthenticated -> "unauthenticated"
-      | Closed -> "closed"
-
-    let of_string = function
-      | "initial" -> Some Initial
-      | "connecting" -> Some Connecting
-      | "open" -> Some Open
-      | "reconnecting" -> Some Reconnecting
-      | "degraded" -> Some Degraded
-      | "unauthenticated" -> Some Unauthenticated
-      | "closed" -> Some Closed
-      | _ -> None
-  end
-
-  type t = { state : State.t }
+  type t = { state : Enums.Connection_state.t }
 
   let project fields =
     let reader = start fields in
-    { state = required reader (enum State.of_string) "state" }
+    { state = required reader (enum Enums.Connection_state.of_string) "state" }
 
   let to_json (value : t) =
-    write [ ("state", Some ((json_enum State.to_string) value.state)) ]
+    write
+      [
+        ( "state",
+          Some ((json_enum Enums.Connection_state.to_string) value.state) );
+      ]
 end
 
 module Conformance_step_stays = struct
-  module Stays = struct
-    type t =
-      | Initial
-      | Connecting
-      | Open
-      | Reconnecting
-      | Degraded
-      | Unauthenticated
-      | Closed
-
-    let to_string = function
-      | Initial -> "initial"
-      | Connecting -> "connecting"
-      | Open -> "open"
-      | Reconnecting -> "reconnecting"
-      | Degraded -> "degraded"
-      | Unauthenticated -> "unauthenticated"
-      | Closed -> "closed"
-
-    let of_string = function
-      | "initial" -> Some Initial
-      | "connecting" -> Some Connecting
-      | "open" -> Some Open
-      | "reconnecting" -> Some Reconnecting
-      | "degraded" -> Some Degraded
-      | "unauthenticated" -> Some Unauthenticated
-      | "closed" -> Some Closed
-      | _ -> None
-  end
-
-  type t = { stays : Stays.t }
+  type t = { stays : Enums.Connection_state.t }
 
   let project fields =
     let reader = start fields in
-    { stays = required reader (enum Stays.of_string) "stays" }
+    { stays = required reader (enum Enums.Connection_state.of_string) "stays" }
 
   let to_json (value : t) =
-    write [ ("stays", Some ((json_enum Stays.to_string) value.stays)) ]
+    write
+      [
+        ( "stays",
+          Some ((json_enum Enums.Connection_state.to_string) value.stays) );
+      ]
 end
 
 module Conformance_step_frame = struct
@@ -9342,23 +9990,45 @@ module Errors_codes_bus_request_codes_item = struct
       ]
 end
 
-module Errors_codes_transport_codes_item_status = struct
-  type t = { code : string; docs : string; status : int }
+module Errors_codes_transport_codes_item_status_limit_refusals_item = struct
+  module Code = struct
+    type t =
+      | Streams
+      | Emit_rate
+      | Unanswered_requests
+      | Capacity
+      | Refusal_rate
+
+    let to_string = function
+      | Streams -> "streams"
+      | Emit_rate -> "emit-rate"
+      | Unanswered_requests -> "unanswered-requests"
+      | Capacity -> "capacity"
+      | Refusal_rate -> "refusal-rate"
+
+    let of_string = function
+      | "streams" -> Some Streams
+      | "emit-rate" -> Some Emit_rate
+      | "unanswered-requests" -> Some Unanswered_requests
+      | "capacity" -> Some Capacity
+      | "refusal-rate" -> Some Refusal_rate
+      | _ -> None
+  end
+
+  type t = { status : int; code : Code.t }
 
   let project fields =
     let reader = start fields in
     {
-      code = required reader string "code";
-      docs = required reader string "docs";
       status = required reader int "status";
+      code = required reader (enum Code.of_string) "code";
     }
 
   let to_json (value : t) =
     write
       [
-        ("code", Some (json_string value.code));
-        ("docs", Some (json_string value.docs));
         ("status", Some (json_int value.status));
+        ("code", Some ((json_enum Code.to_string) value.code));
       ]
 end
 
@@ -9415,6 +10085,28 @@ module Errors_codes_job_codes_item = struct
       [
         ("code", Some (json_string value.code));
         ("docs", Some (json_string value.docs));
+      ]
+end
+
+module Errors_codes_control_codes_item = struct
+  type t = { code : string; docs : string; rpc : int; retryable : bool }
+
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+      rpc = required reader int "rpc";
+      retryable = required reader bool "retryable";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+        ("rpc", Some (json_int value.rpc));
+        ("retryable", Some (json_bool value.retryable));
       ]
 end
 
@@ -9636,6 +10328,24 @@ module Media_types_registry_media_types_item = struct
         ("authorable", Some (json_bool value.authorable));
         ("uploadable", Some (json_bool value.uploadable));
         ("generatable", Some (json_bool value.generatable));
+      ]
+end
+
+module Principals_roles_roles_item = struct
+  type t = { role : string; docs : string }
+
+  let project fields =
+    let reader = start fields in
+    {
+      role = required reader string "role";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("role", Some (json_string value.role));
+        ("docs", Some (json_string value.docs));
       ]
 end
 
@@ -9952,26 +10662,6 @@ module Worker_knowledge_base_config_identity = struct
       ]
 end
 
-module Worker_engine_health_active_job = struct
-  type t = { job_id : string; type_ : Enums.Job_type.t; since : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      job_id = required reader string "jobId";
-      type_ = required reader (enum Enums.Job_type.of_string) "type";
-      since = required reader string "since";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("jobId", Some (json_string value.job_id));
-        ("type", Some ((json_enum Enums.Job_type.to_string) value.type_));
-        ("since", Some (json_string value.since));
-      ]
-end
-
 module Conformance_driver_line_ready = struct
   type t = { ready : bool }
 
@@ -10082,14 +10772,14 @@ module Conformance_driver_line_frame_frame = struct
 end
 
 module Conformance_driver_line_progress_progress = struct
-  type t = { upload : int; bytes_uploaded : int; total_bytes : int }
+  type t = { upload : int; bytes_uploaded : int; total_bytes : int option }
 
   let project fields =
     let reader = start fields in
     {
       upload = required reader int "upload";
       bytes_uploaded = required reader int "bytesUploaded";
-      total_bytes = required reader int "totalBytes";
+      total_bytes = maybe reader int "totalBytes";
     }
 
   let to_json (value : t) =
@@ -10097,7 +10787,7 @@ module Conformance_driver_line_progress_progress = struct
       [
         ("upload", Some (json_int value.upload));
         ("bytesUploaded", Some (json_int value.bytes_uploaded));
-        ("totalBytes", Some (json_int value.total_bytes));
+        ("totalBytes", Option.map json_int value.total_bytes);
       ]
 end
 
@@ -10156,14 +10846,17 @@ module Conformance_driver_line_completed = struct
 end
 
 module Conformance_driver_line_claimed = struct
-  type t = { claimed : (string * Yojson.Raw.t) list }
+  type t = { claimed : Held_job_record.t }
 
   let project fields =
     let reader = start fields in
-    { claimed = required reader (map raw) "claimed" }
+    { claimed = required reader (tabled Held_job_record.of_json) "claimed" }
 
   let to_json (value : t) =
-    write [ ("claimed", Some ((json_map json_raw) value.claimed)) ]
+    write
+      [
+        ("claimed", Some ((json_tabled Held_job_record.to_json) value.claimed));
+      ]
 end
 
 module Conformance_driver_line_signalled = struct
@@ -11295,6 +11988,40 @@ module Archivist_streams_response = struct
 
   let to_model value =
     Models.decode Models.archivist_streams_response
+      (Yojson.Raw.to_string (to_json value))
+end
+
+module Client_connection_states = struct
+  type t = {
+    field_comment : string;
+    states : Client_connection_states_states_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      states =
+        required reader
+          (list (record Client_connection_states_states_item.project))
+          "states";
+    }
+
+  let of_model (model : [ `ClientConnectionStates ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "states",
+          Some
+            ((json_list Client_connection_states_states_item.to_json)
+               value.states) );
+      ]
+
+  let to_model value =
+    Models.decode Models.client_connection_states
       (Yojson.Raw.to_string (to_json value))
 end
 
@@ -12466,6 +13193,46 @@ module Media_types_registry = struct
   let to_model value =
     Models.decode Models.media_types_registry
       (Yojson.Raw.to_string (to_json value))
+end
+
+module Principals_roles = struct
+  type t = {
+    field_comment : string;
+    roles_claim : string;
+    roles : Principals_roles_roles_item.t list;
+    kind_claim : string;
+    agent_kind : string;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      roles_claim = required reader string "rolesClaim";
+      roles =
+        required reader
+          (list (record Principals_roles_roles_item.project))
+          "roles";
+      kind_claim = required reader string "kindClaim";
+      agent_kind = required reader string "agentKind";
+    }
+
+  let of_model (model : [ `PrincipalsRoles ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ("rolesClaim", Some (json_string value.roles_claim));
+        ( "roles",
+          Some ((json_list Principals_roles_roles_item.to_json) value.roles) );
+        ("kindClaim", Some (json_string value.kind_claim));
+        ("agentKind", Some (json_string value.agent_kind));
+      ]
+
+  let to_model value =
+    Models.decode Models.principals_roles (Yojson.Raw.to_string (to_json value))
 end
 
 module Session_oauth = struct
@@ -13647,6 +14414,79 @@ module Archivist_engines_actors = struct
       ]
 end
 
+module Client_option_defaults_defaults_item_schema_reference = struct
+  type t = {
+    field_ref : string;
+    type_arguments :
+      (string
+      * Client_option_defaults_defaults_item_schema_reference_type_arguments_value
+        .t)
+      list
+      option;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_ref = required reader string "$ref";
+      type_arguments =
+        maybe reader
+          (map
+             (record
+                Client_option_defaults_defaults_item_schema_reference_type_arguments_value
+                .project))
+          "typeArguments";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("$ref", Some (json_string value.field_ref));
+        ( "typeArguments",
+          Option.map
+            (json_map
+               Client_option_defaults_defaults_item_schema_reference_type_arguments_value
+               .to_json)
+            value.type_arguments );
+      ]
+end
+
+module Client_option_defaults_defaults_item_schema_decided_decided = struct
+  module In_ = struct
+    type t = Takes
+
+    let to_string = function Takes -> "takes"
+    let of_string = function "takes" -> Some Takes | _ -> None
+  end
+
+  type t = {
+    by : Client_option_defaults_defaults_item_schema_decided_decided_by.t;
+    in_ : In_.t;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      by =
+        required reader
+          (record
+             Client_option_defaults_defaults_item_schema_decided_decided_by
+             .project)
+          "by";
+      in_ = required reader (enum In_.of_string) "in";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ( "by",
+          Some
+            (Client_option_defaults_defaults_item_schema_decided_decided_by
+             .to_json value.by) );
+        ("in", Some ((json_enum In_.to_string) value.in_));
+      ]
+end
+
 module Client_refresh_queries_item_asks = struct
   module Per = struct
     type t = Resource | Annotation | Filters
@@ -14049,61 +14889,43 @@ module Errors_codes_bus_request = struct
       ]
 end
 
-module Errors_codes_transport_codes_item = struct
-  type t =
-    | Status of Errors_codes_transport_codes_item_status.t
-    | StatusFrom of Errors_codes_transport_codes_item_status_from.t
-    | NoStatus of Errors_codes_transport_codes_item_no_status.t
+module Errors_codes_transport_codes_item_status = struct
+  type t = {
+    code : string;
+    docs : string;
+    status : int;
+    limit_refusals :
+      Errors_codes_transport_codes_item_status_limit_refusals_item.t list option;
+  }
 
-  let members =
-    [
-      [
-        {
-          kind = Object_kind;
-          required = [ "code"; "docs"; "status" ];
-          allowed = Some [ "code"; "docs"; "status" ];
-          fixed = [];
-          values = None;
-        };
-      ];
-      [
-        {
-          kind = Object_kind;
-          required = [ "code"; "docs"; "statusFrom" ];
-          allowed = Some [ "code"; "docs"; "statusFrom" ];
-          fixed = [];
-          values = None;
-        };
-      ];
-      [
-        {
-          kind = Object_kind;
-          required = [ "code"; "docs" ];
-          allowed = Some [ "code"; "docs" ];
-          fixed = [];
-          values = None;
-        };
-      ];
-    ]
+  let project fields =
+    let reader = start fields in
+    {
+      code = required reader string "code";
+      docs = required reader string "docs";
+      status = required reader int "status";
+      limit_refusals =
+        maybe reader
+          (list
+             (record
+                Errors_codes_transport_codes_item_status_limit_refusals_item
+                .project))
+          "limitRefusals";
+    }
 
-  let read value =
-    match member members value with
-    | 0 ->
-        Status ((record Errors_codes_transport_codes_item_status.project) value)
-    | 1 ->
-        StatusFrom
-          ((record Errors_codes_transport_codes_item_status_from.project) value)
-    | 2 ->
-        NoStatus
-          ((record Errors_codes_transport_codes_item_no_status.project) value)
-    | _ -> assert false
-
-  let to_json = function
-    | Status value -> Errors_codes_transport_codes_item_status.to_json value
-    | StatusFrom value ->
-        Errors_codes_transport_codes_item_status_from.to_json value
-    | NoStatus value ->
-        Errors_codes_transport_codes_item_no_status.to_json value
+  let to_json (value : t) =
+    write
+      [
+        ("code", Some (json_string value.code));
+        ("docs", Some (json_string value.docs));
+        ("status", Some (json_int value.status));
+        ( "limitRefusals",
+          Option.map
+            (json_list
+               Errors_codes_transport_codes_item_status_limit_refusals_item
+               .to_json)
+            value.limit_refusals );
+      ]
 end
 
 module Errors_codes_job = struct
@@ -14125,6 +14947,29 @@ module Errors_codes_job = struct
         ("docs", Some (json_string value.docs));
         ( "codes",
           Some ((json_list Errors_codes_job_codes_item.to_json) value.codes) );
+      ]
+end
+
+module Errors_codes_control = struct
+  type t = { docs : string; codes : Errors_codes_control_codes_item.t list }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      codes =
+        required reader
+          (list (record Errors_codes_control_codes_item.project))
+          "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ( "codes",
+          Some ((json_list Errors_codes_control_codes_item.to_json) value.codes)
+        );
       ]
 end
 
@@ -15653,22 +16498,11 @@ module Conformance_implementations = struct
 end
 
 module Knowledge_base_status = struct
-  module Placement = struct
-    type t = Local | Codespace
-
-    let to_string = function Local -> "local" | Codespace -> "codespace"
-
-    let of_string = function
-      | "local" -> Some Local
-      | "codespace" -> Some Codespace
-      | _ -> None
-  end
-
   type t = {
     name : string;
     key : string;
     recorded : bool;
-    placement : Placement.t;
+    placement : Enums.Kb_placement.t;
     root : string option;
     repo : string option;
     did : string option;
@@ -15692,7 +16526,8 @@ module Knowledge_base_status = struct
       name = required reader string "name";
       key = required reader string "key";
       recorded = required reader bool "recorded";
-      placement = required reader (enum Placement.of_string) "placement";
+      placement =
+        required reader (enum Enums.Kb_placement.of_string) "placement";
       root = maybe reader string "root";
       repo = maybe reader string "repo";
       did = maybe reader string "did";
@@ -15720,7 +16555,8 @@ module Knowledge_base_status = struct
         ("name", Some (json_string value.name));
         ("key", Some (json_string value.key));
         ("recorded", Some (json_bool value.recorded));
-        ("placement", Some ((json_enum Placement.to_string) value.placement));
+        ( "placement",
+          Some ((json_enum Enums.Kb_placement.to_string) value.placement) );
         ("root", Option.map json_string value.root);
         ("repo", Option.map json_string value.repo);
         ("did", Option.map json_string value.did);
@@ -16538,6 +17374,31 @@ module Anchored_text_entry = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
+module Client_option_defaults_defaults_item_schema_decided = struct
+  type t = {
+    decided : Client_option_defaults_defaults_item_schema_decided_decided.t;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      decided =
+        required reader
+          (record
+             Client_option_defaults_defaults_item_schema_decided_decided.project)
+          "decided";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ( "decided",
+          Some
+            (Client_option_defaults_defaults_item_schema_decided_decided.to_json
+               value.decided) );
+      ]
+end
+
 module Client_refresh_queries_item = struct
   type t =
     | Asks of Client_refresh_queries_item_asks.t
@@ -16714,32 +17575,88 @@ module Control_cli_commands_value = struct
       ]
 end
 
-module Errors_codes_transport = struct
+module Control_rpc_codes_codes_item = struct
   type t = {
+    number : int;
+    name : string;
     docs : string;
-    unclassified : string;
-    codes : Errors_codes_transport_codes_item.t list;
+    data : Error_data.t option;
   }
 
   let project fields =
     let reader = start fields in
     {
+      number = required reader int "number";
+      name = required reader string "name";
       docs = required reader string "docs";
-      unclassified = required reader string "unclassified";
-      codes =
-        required reader (list Errors_codes_transport_codes_item.read) "codes";
+      data = maybe reader (record Error_data.project) "data";
     }
 
   let to_json (value : t) =
     write
       [
+        ("number", Some (json_int value.number));
+        ("name", Some (json_string value.name));
         ("docs", Some (json_string value.docs));
-        ("unclassified", Some (json_string value.unclassified));
-        ( "codes",
-          Some
-            ((json_list Errors_codes_transport_codes_item.to_json) value.codes)
-        );
+        ("data", Option.map Error_data.to_json value.data);
       ]
+end
+
+module Errors_codes_transport_codes_item = struct
+  type t =
+    | Status of Errors_codes_transport_codes_item_status.t
+    | StatusFrom of Errors_codes_transport_codes_item_status_from.t
+    | NoStatus of Errors_codes_transport_codes_item_no_status.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "docs"; "status" ];
+          allowed = Some [ "code"; "docs"; "status"; "limitRefusals" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "docs"; "statusFrom" ];
+          allowed = Some [ "code"; "docs"; "statusFrom" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "code"; "docs" ];
+          allowed = Some [ "code"; "docs" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 ->
+        Status ((record Errors_codes_transport_codes_item_status.project) value)
+    | 1 ->
+        StatusFrom
+          ((record Errors_codes_transport_codes_item_status_from.project) value)
+    | 2 ->
+        NoStatus
+          ((record Errors_codes_transport_codes_item_no_status.project) value)
+    | _ -> assert false
+
+  let to_json = function
+    | Status value -> Errors_codes_transport_codes_item_status.to_json value
+    | StatusFrom value ->
+        Errors_codes_transport_codes_item_status_from.to_json value
+    | NoStatus value ->
+        Errors_codes_transport_codes_item_no_status.to_json value
 end
 
 module Sdk_telemetry_telemetry_spans_item = struct
@@ -18679,6 +19596,38 @@ module Control_cli = struct
     Models.decode Models.control_cli (Yojson.Raw.to_string (to_json value))
 end
 
+module Control_rpc_codes = struct
+  type t = {
+    field_comment : string;
+    codes : Control_rpc_codes_codes_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      codes =
+        required reader
+          (list (record Control_rpc_codes_codes_item.project))
+          "codes";
+    }
+
+  let of_model (model : [ `ControlRpcCodes ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "codes",
+          Some ((json_list Control_rpc_codes_codes_item.to_json) value.codes) );
+      ]
+
+  let to_model value =
+    Models.decode Models.control_rpc_codes
+      (Yojson.Raw.to_string (to_json value))
+end
+
 module Stack_start_result = struct
   type t = {
     dry_run : bool;
@@ -18782,58 +19731,6 @@ module Status_snapshot_result = struct
       (Yojson.Raw.to_string (to_json value))
 end
 
-module Errors_codes = struct
-  type t = {
-    field_comment : string;
-    bus_request : Errors_codes_bus_request.t;
-    transport : Errors_codes_transport.t;
-    job : Errors_codes_job.t;
-    session : Errors_codes_job.t;
-    sign_in : Errors_codes_job.t;
-    kb_identity : Errors_codes_job.t;
-    span_refusal : Errors_codes_job.t;
-    control : Errors_codes_job.t;
-  }
-
-  let project fields =
-    let reader = start fields in
-    {
-      field_comment = required reader string "$comment";
-      bus_request =
-        required reader (record Errors_codes_bus_request.project) "busRequest";
-      transport =
-        required reader (record Errors_codes_transport.project) "transport";
-      job = required reader (record Errors_codes_job.project) "job";
-      session = required reader (record Errors_codes_job.project) "session";
-      sign_in = required reader (record Errors_codes_job.project) "signIn";
-      kb_identity =
-        required reader (record Errors_codes_job.project) "kbIdentity";
-      span_refusal =
-        required reader (record Errors_codes_job.project) "spanRefusal";
-      control = required reader (record Errors_codes_job.project) "control";
-    }
-
-  let of_model (model : [ `ErrorsCodes ] Models.t) =
-    project (fields_of (Models.json model))
-
-  let to_json (value : t) =
-    write
-      [
-        ("$comment", Some (json_string value.field_comment));
-        ("busRequest", Some (Errors_codes_bus_request.to_json value.bus_request));
-        ("transport", Some (Errors_codes_transport.to_json value.transport));
-        ("job", Some (Errors_codes_job.to_json value.job));
-        ("session", Some (Errors_codes_job.to_json value.session));
-        ("signIn", Some (Errors_codes_job.to_json value.sign_in));
-        ("kbIdentity", Some (Errors_codes_job.to_json value.kb_identity));
-        ("spanRefusal", Some (Errors_codes_job.to_json value.span_refusal));
-        ("control", Some (Errors_codes_job.to_json value.control));
-      ]
-
-  let to_model value =
-    Models.decode Models.errors_codes (Yojson.Raw.to_string (to_json value))
-end
-
 module Sdk_telemetry_telemetry = struct
   type t = {
     field_comment : string;
@@ -18885,40 +19782,10 @@ module Smelter_health = struct
     let of_string = function "ok" -> Some Ok | _ -> None
   end
 
-  module Stream = struct
-    type t =
-      | Initial
-      | Connecting
-      | Open
-      | Reconnecting
-      | Degraded
-      | Unauthenticated
-      | Closed
-
-    let to_string = function
-      | Initial -> "initial"
-      | Connecting -> "connecting"
-      | Open -> "open"
-      | Reconnecting -> "reconnecting"
-      | Degraded -> "degraded"
-      | Unauthenticated -> "unauthenticated"
-      | Closed -> "closed"
-
-    let of_string = function
-      | "initial" -> Some Initial
-      | "connecting" -> Some Connecting
-      | "open" -> Some Open
-      | "reconnecting" -> Some Reconnecting
-      | "degraded" -> Some Degraded
-      | "unauthenticated" -> Some Unauthenticated
-      | "closed" -> Some Closed
-      | _ -> None
-  end
-
   type t = {
     status : Status.t;
     kb : string;
-    stream : Stream.t;
+    stream : Enums.Connection_state.t;
     following : Follower_following.t;
     events_processed : int;
     reconcile : Smelter_health_reconcile.t;
@@ -18930,7 +19797,7 @@ module Smelter_health = struct
     {
       status = required reader (enum Status.of_string) "status";
       kb = required reader string "kb";
-      stream = required reader (enum Stream.of_string) "stream";
+      stream = required reader (enum Enums.Connection_state.of_string) "stream";
       following =
         required reader (record Follower_following.project) "following";
       events_processed = required reader int "eventsProcessed";
@@ -18947,7 +19814,8 @@ module Smelter_health = struct
       [
         ("status", Some ((json_enum Status.to_string) value.status));
         ("kb", Some (json_string value.kb));
-        ("stream", Some ((json_enum Stream.to_string) value.stream));
+        ( "stream",
+          Some ((json_enum Enums.Connection_state.to_string) value.stream) );
         ("following", Some (Follower_following.to_json value.following));
         ("eventsProcessed", Some (json_int value.events_processed));
         ("reconcile", Some (Smelter_health_reconcile.to_json value.reconcile));
@@ -19086,7 +19954,7 @@ module Worker_engine_health = struct
     last_claim_at : string option;
     last_finished_at : string option;
     last_activity_at : string option;
-    active_job : Worker_engine_health_active_job.t option;
+    active_job : Worker_active_job.t option;
     jobs_completed : int;
   }
 
@@ -19102,7 +19970,7 @@ module Worker_engine_health = struct
       last_activity_at = required reader (nullable string) "lastActivityAt";
       active_job =
         required reader
-          (nullable (record Worker_engine_health_active_job.project))
+          (nullable (record Worker_active_job.project))
           "activeJob";
       jobs_completed = required reader int "jobsCompleted";
     }
@@ -19123,9 +19991,7 @@ module Worker_engine_health = struct
         ( "lastActivityAt",
           Some ((json_nullable json_string) value.last_activity_at) );
         ( "activeJob",
-          Some
-            ((json_nullable Worker_engine_health_active_job.to_json)
-               value.active_job) );
+          Some ((json_nullable Worker_active_job.to_json) value.active_job) );
         ("jobsCompleted", Some (json_int value.jobs_completed));
       ]
 
@@ -19232,6 +20098,95 @@ module Job_stored_progress = struct
   let to_model value =
     Models.decode Models.job_stored_progress
       (Yojson.Raw.to_string (to_json value))
+end
+
+module Client_option_defaults_defaults_item_schema = struct
+  type t =
+    | Reference of Client_option_defaults_defaults_item_schema_reference.t
+    | DateTime of Client_option_defaults_defaults_item_schema_date_time.t
+    | TypeParameter of
+        Client_option_defaults_defaults_item_schema_type_parameter.t
+    | Decided of Client_option_defaults_defaults_item_schema_decided.t
+
+  let members =
+    [
+      [
+        {
+          kind = Object_kind;
+          required = [ "$ref" ];
+          allowed = Some [ "$ref"; "typeArguments" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "type"; "description" ];
+          allowed = Some [ "type"; "minimum"; "format"; "description" ];
+          fixed =
+            [
+              ( "type",
+                [
+                  Text_value "integer";
+                  Text_value "string";
+                  Text_value "boolean";
+                ] );
+              ("format", [ Text_value "date-time" ]);
+            ];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "typeParameter" ];
+          allowed = Some [ "typeParameter" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+      [
+        {
+          kind = Object_kind;
+          required = [ "decided" ];
+          allowed = Some [ "decided" ];
+          fixed = [];
+          values = None;
+        };
+      ];
+    ]
+
+  let read value =
+    match member members value with
+    | 0 ->
+        Reference
+          ((record Client_option_defaults_defaults_item_schema_reference.project)
+             value)
+    | 1 ->
+        DateTime
+          ((record Client_option_defaults_defaults_item_schema_date_time.project)
+             value)
+    | 2 ->
+        TypeParameter
+          ((record
+              Client_option_defaults_defaults_item_schema_type_parameter.project)
+             value)
+    | 3 ->
+        Decided
+          ((record Client_option_defaults_defaults_item_schema_decided.project)
+             value)
+    | _ -> assert false
+
+  let to_json = function
+    | Reference value ->
+        Client_option_defaults_defaults_item_schema_reference.to_json value
+    | DateTime value ->
+        Client_option_defaults_defaults_item_schema_date_time.to_json value
+    | TypeParameter value ->
+        Client_option_defaults_defaults_item_schema_type_parameter.to_json value
+    | Decided value ->
+        Client_option_defaults_defaults_item_schema_decided.to_json value
 end
 
 module Conformance_step = struct
@@ -19655,6 +20610,34 @@ module Conformance_step = struct
 
   let to_model value =
     Models.decode Models.conformance_step (Yojson.Raw.to_string (to_json value))
+end
+
+module Errors_codes_transport = struct
+  type t = {
+    docs : string;
+    unclassified : string;
+    codes : Errors_codes_transport_codes_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      docs = required reader string "docs";
+      unclassified = required reader string "unclassified";
+      codes =
+        required reader (list Errors_codes_transport_codes_item.read) "codes";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("docs", Some (json_string value.docs));
+        ("unclassified", Some (json_string value.unclassified));
+        ( "codes",
+          Some
+            ((json_list Errors_codes_transport_codes_item.to_json) value.codes)
+        );
+      ]
 end
 
 module Issuer_spec = struct
@@ -20550,6 +21533,58 @@ module Conformance_case = struct
     Models.decode Models.conformance_case (Yojson.Raw.to_string (to_json value))
 end
 
+module Errors_codes = struct
+  type t = {
+    field_comment : string;
+    bus_request : Errors_codes_bus_request.t;
+    transport : Errors_codes_transport.t;
+    job : Errors_codes_job.t;
+    session : Errors_codes_job.t;
+    sign_in : Errors_codes_job.t;
+    kb_identity : Errors_codes_job.t;
+    span_refusal : Errors_codes_job.t;
+    control : Errors_codes_control.t;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      bus_request =
+        required reader (record Errors_codes_bus_request.project) "busRequest";
+      transport =
+        required reader (record Errors_codes_transport.project) "transport";
+      job = required reader (record Errors_codes_job.project) "job";
+      session = required reader (record Errors_codes_job.project) "session";
+      sign_in = required reader (record Errors_codes_job.project) "signIn";
+      kb_identity =
+        required reader (record Errors_codes_job.project) "kbIdentity";
+      span_refusal =
+        required reader (record Errors_codes_job.project) "spanRefusal";
+      control = required reader (record Errors_codes_control.project) "control";
+    }
+
+  let of_model (model : [ `ErrorsCodes ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ("busRequest", Some (Errors_codes_bus_request.to_json value.bus_request));
+        ("transport", Some (Errors_codes_transport.to_json value.transport));
+        ("job", Some (Errors_codes_job.to_json value.job));
+        ("session", Some (Errors_codes_job.to_json value.session));
+        ("signIn", Some (Errors_codes_job.to_json value.sign_in));
+        ("kbIdentity", Some (Errors_codes_job.to_json value.kb_identity));
+        ("spanRefusal", Some (Errors_codes_job.to_json value.span_refusal));
+        ("control", Some (Errors_codes_control.to_json value.control));
+      ]
+
+  let to_model value =
+    Models.decode Models.errors_codes (Yojson.Raw.to_string (to_json value))
+end
+
 module Issuer = struct
   module Kind = struct
     type t = Issuer
@@ -20925,6 +21960,45 @@ module Gathered_context_focus_resource = struct
       ]
 end
 
+module Client_option_defaults_defaults_item = struct
+  type t = {
+    method_ : string;
+    parameter : string;
+    option : string option;
+    value : Yojson.Raw.t;
+    schema : Client_option_defaults_defaults_item_schema.t option;
+    sends : string option;
+    docs : string;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      method_ = required reader string "method";
+      parameter = required reader string "parameter";
+      option = maybe reader string "option";
+      value = required reader raw "value";
+      schema =
+        maybe reader Client_option_defaults_defaults_item_schema.read "schema";
+      sends = maybe reader string "sends";
+      docs = required reader string "docs";
+    }
+
+  let to_json (value : t) =
+    write
+      [
+        ("method", Some (json_string value.method_));
+        ("parameter", Some (json_string value.parameter));
+        ("option", Option.map json_string value.option);
+        ("value", Some (json_raw value.value));
+        ( "schema",
+          Option.map Client_option_defaults_defaults_item_schema.to_json
+            value.schema );
+        ("sends", Option.map json_string value.sends);
+        ("docs", Some (json_string value.docs));
+      ]
+end
+
 module Inference_spec = struct
   type t = {
     providers : (string * Provider.t) list;
@@ -21203,6 +22277,40 @@ module Job_claimed_result = struct
 
   let to_model value =
     Models.decode Models.job_claimed_result
+      (Yojson.Raw.to_string (to_json value))
+end
+
+module Client_option_defaults = struct
+  type t = {
+    field_comment : string;
+    defaults : Client_option_defaults_defaults_item.t list;
+  }
+
+  let project fields =
+    let reader = start fields in
+    {
+      field_comment = required reader string "$comment";
+      defaults =
+        required reader
+          (list (record Client_option_defaults_defaults_item.project))
+          "defaults";
+    }
+
+  let of_model (model : [ `ClientOptionDefaults ] Models.t) =
+    project (fields_of (Models.json model))
+
+  let to_json (value : t) =
+    write
+      [
+        ("$comment", Some (json_string value.field_comment));
+        ( "defaults",
+          Some
+            ((json_list Client_option_defaults_defaults_item.to_json)
+               value.defaults) );
+      ]
+
+  let to_model value =
+    Models.decode Models.client_option_defaults
       (Yojson.Raw.to_string (to_json value))
 end
 

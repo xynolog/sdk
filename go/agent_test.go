@@ -14,6 +14,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
 )
 
 type agentWorld struct {
@@ -273,7 +275,7 @@ func TestAnAgentNamedByNoUserResponseIsNotSignedIn(t *testing.T) {
 	w.user = map[string]any{"did": agentDID, "email": nil, "name": nil, "image": nil, "domain": nil}
 	_, err := w.signIn(t, "s3cret")
 	var failed *TransportError
-	if !errors.As(err, &failed) || failed.Code != TransportErrorCodeError {
+	if !errors.As(err, &failed) || failed.Code != api.TransportErrorCodeError {
 		t.Errorf("signed in, or failed as %v, named with a null domain", err)
 	}
 }
@@ -287,7 +289,7 @@ func TestARefusedServiceAccountNamesNoSecret(t *testing.T) {
 		t.Fatal("signed in with the wrong secret")
 	}
 	var failed *SignInError
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		t.Errorf("failed as %v", err)
 	}
 	if strings.Contains(err.Error(), "s3cret") || strings.Contains(err.Error(), "wrong") {

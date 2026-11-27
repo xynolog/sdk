@@ -264,10 +264,8 @@ let paths () =
   List.iter
     (fun (row : Store_cases.cases_item) ->
       let platform =
-        match row.os with
-        | "macos" -> Store.Macos
-        | "windows" -> Store.Windows
-        | _ -> Store.Other
+        Option.get
+          (Xynolog.Enums.System.of_string (Store_cases.system_value row.os))
       in
       let actual =
         Store.state_directory ~platform ~home:row.home

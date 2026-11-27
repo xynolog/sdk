@@ -1,13 +1,14 @@
 (* The vocabularies as the Go SDK reads them (go/errors.go): a named type per
    vocabulary with a constant per code, the bus code a wire code becomes, and
-   the transport code an HTTP status becomes. A wire code's constant is the
-   one the Go types group writes in package api for CommandErrorCode's value,
-   named by the same rule ([Naming.variant]). *)
+   the transport code an HTTP status becomes. They are in package api, beside
+   the types that name them ([Typing.Code]). A wire code's constant is the one
+   the Go types group writes for CommandErrorCode's value, named by the same
+   rule ([Naming.variant]). *)
 
 module G = Go_syntax
 
-let path = "go/errorcodes_gen.go"
-let wire_constant wire = G.Name ("api.CommandErrorCode" ^ Naming.variant wire)
+let path = "go/api/errorcodes_gen.go"
+let wire_constant wire = G.Name ("CommandErrorCode" ^ Naming.variant wire)
 
 (* A vocabulary: its type, and a constant per code in the table's order, each
    under its comment. *)
@@ -44,8 +45,8 @@ let text (t : Table.t) =
            The TypeScript, Python and Rust vocabularies are generated from the \
            same\n\
            table.";
-      package = "xynolog";
-      imports = [ [ "github.com/xynolog/sdk/go/api" ] ];
+      package = "api";
+      imports = [];
       decls =
         vocabulary t.bus
         @ [
@@ -61,7 +62,7 @@ let text (t : Table.t) =
                        code CommandErrorCode does not name is none a failure \
                        is read with: given one, it panics."
                       t.bus.go_name t.unrecognized.go))
-              ~params:[ ("code", G.Pointer (G.Named "api.CommandErrorCode")) ]
+              ~params:[ ("code", G.Pointer (G.Named "CommandErrorCode")) ]
               ~results:(G.Unnamed [ bus ]) (t.bus.go_name ^ "OfWire")
               (G.Block
                  [
@@ -110,8 +111,7 @@ let text (t : Table.t) =
               ~results:
                 (G.Named_results
                    [
-                     ("code", G.Named "api.CommandErrorCode");
-                     ("ok", G.Named "bool");
+                     ("code", G.Named "CommandErrorCode"); ("ok", G.Named "bool");
                    ])
               "Wire"
               (G.Block
@@ -162,6 +162,73 @@ let text (t : Table.t) =
                        default = Some [ G.Return [ G.Name t.unclassified.go ] ];
                      };
                  ]);
+          ]
+        @ [
+            G.Type
+              {
+                doc =
+                  G.prose
+                    "LimitRefusalTransportCode is a gateway refusal of a limit \
+                     that is a transport code too: its status, its \
+                     LimitRefusal code, and the transport code it is.";
+                name = "LimitRefusalTransportCode";
+                def =
+                  G.Struct
+                    {
+                      fields =
+                        List.map
+                          (fun (name, type_) ->
+                            { G.doc = []; names = [ name ]; type_; tag = None })
+                          [
+                            ("Status", G.Named "int");
+                            ("Code", G.Named "string");
+                            ("Transport", transport);
+                          ];
+                      spacing = G.Packed;
+                    };
+              };
+            G.Var
+              {
+                doc =
+                  G.prose
+                    "LimitRefusalTransportCodes is each gateway refusal of a \
+                     limit that is a transport code too.";
+                name = "LimitRefusalTransportCodes";
+                type_ = None;
+                value =
+                  G.Literal
+                    {
+                      of_ = Some (G.Slice (G.Named "LimitRefusalTransportCode"));
+                      layout = G.Lines G.Packed;
+                      elements =
+                        List.map
+                          (fun (status, limit, (c : Table.code)) ->
+                            {
+                              G.about = [];
+                              key = None;
+                              value =
+                                G.Literal
+                                  {
+                                    of_ = None;
+                                    layout = G.Inline;
+                                    elements =
+                                      List.map
+                                        (fun (k, v) ->
+                                          {
+                                            G.about = [];
+                                            key = Some (G.Name k);
+                                            value = v;
+                                          })
+                                        [
+                                          ("Status", G.Int status);
+                                          ("Code", G.Quoted limit);
+                                          ("Transport", G.Name c.go);
+                                        ];
+                                  };
+                            })
+                          t.limit_refusals;
+                    };
+              };
           ]
         @ List.concat_map vocabulary t.others
         @ vocabulary t.control;

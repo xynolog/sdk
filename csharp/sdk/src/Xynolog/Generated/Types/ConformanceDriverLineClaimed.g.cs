@@ -7,5 +7,5 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record ConformanceDriverLineClaimed
 {
-    [global::Xynolog.Serialization.Wire("claimed")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Text.Json.JsonElement> Claimed { get; init; }
+    [global::Xynolog.Serialization.Wire("claimed")] public required global::Xynolog.Types.HeldJobRecord Claimed { get; init; }
 }

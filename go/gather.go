@@ -13,9 +13,8 @@ import (
 // What a caller that states nothing is given. Every SDK sends the same: the
 // cases of protocol/specs/src/client/surface.json hold each to it.
 const (
-	gatherContextWindow = 2000
-	gatherDepth         = 2
-	gatherMaxResources  = 10
+	gatherDepth        = 2
+	gatherMaxResources = 10
 )
 
 // GatherResourceDefaults is what Gather.Resource is given when nothing else
@@ -32,16 +31,15 @@ type GatherNamespace struct {
 	live  *live
 }
 
-// Annotation is the context around one annotation, as options say: a window
-// of two thousand characters of its source when ContextWindow is nil, and the
-// source's context and the target's each included or left out as stated, and
-// as the gatherer decides when nil.
+// Annotation is the context around one annotation, as options say: the
+// window and the source's context and the target's each as stated, and as
+// the gatherer decides when nil. Options none of which is stated are not
+// sent.
 func (n *GatherNamespace) Annotation(resourceID api.ResourceId, annotationID api.AnnotationId, options api.GatherAnnotationOptions) *Running[api.GatherAnnotationComplete] {
-	if options.ContextWindow == nil {
-		window := gatherContextWindow
-		options.ContextWindow = &window
+	request := api.GatherAnnotationRequest{AnnotationId: annotationID, ResourceId: resourceID}
+	if options != (api.GatherAnnotationOptions{}) {
+		request.Options = &options
 	}
-	request := api.GatherAnnotationRequest{AnnotationId: annotationID, ResourceId: resourceID, Options: &options}
 	return &Running[api.GatherAnnotationComplete]{links: n.links, work: func(ctx context.Context, _ func(api.GatherAnnotationComplete)) (api.GatherAnnotationComplete, error) {
 		return ask(ctx, n.links, bus.GatherRequested, request)
 	}}

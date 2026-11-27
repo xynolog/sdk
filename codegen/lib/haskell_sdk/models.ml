@@ -28,10 +28,6 @@ module Named = Map.Make (String)
 
 let lower = String.uncapitalize_ascii
 
-(* A record's field for its member [key]: the record's name begun lower case
-   and the member's in Pascal case. *)
-let field record key = lower record ^ Text.pascal key
-
 (* An enumeration's constructor for [value]: the enumeration's name and the
    value's ([Naming.variant]). *)
 let constructor enumeration : Schema.literal -> string = function
@@ -451,6 +447,7 @@ let object_decls name ~constructor ~open_ ~names ~extra_type members =
 let scalar_of : T.scalar -> H.type_ = function
   | Text { binary = true; _ } -> T_name "ByteString"
   | Text _ -> T_name "Text"
+  | Code vocabulary -> T_name (Error_codes.Haskell.type_of vocabulary)
   | Integer _ -> T_name "Integer"
   | Number -> T_name "Scientific"
   | Boolean -> T_name "Bool"
@@ -685,7 +682,7 @@ and object_ state name original (members : T.member list) (rest : T.rest) ~open_
          (fun found (m : T.member) ->
            let* found = found in
            let key = m.wire in
-           let accessor = field name key in
+           let accessor = H.field name key in
            let nullable, ty =
              match m.ty with Nullable ty -> (true, ty) | ty -> (false, ty)
            in
@@ -850,6 +847,18 @@ let imports body dependencies =
            "withoutFields";
          ])
       (H.import "Xynolog.Internal.Codec")
+  @ (match
+       List.filter type_
+         (List.map
+            (fun (member, _) -> Error_codes.Haskell.type_of member)
+            Code_names.names)
+     with
+    | [] -> []
+    | codes ->
+        [
+          H.import "Xynolog.ErrorCodes"
+            ~items:(List.map (fun code -> H.All code) codes);
+        ])
   @ List.map (fun m -> H.import m) dependencies
 
 (* What [Typing] makes of [definitions]: each schema under its name's file

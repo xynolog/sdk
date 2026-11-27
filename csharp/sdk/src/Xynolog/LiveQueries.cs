@@ -38,11 +38,11 @@ internal sealed class LiveQueries : IDisposable
     /// it.</summary>
     internal Cached<IReadOnlyList<EngineWithLimits>> EnginesWithLimits { get; }
 
-    internal LiveQueries(Bus wire, EventBus bus, HttpTransport transport, HttpContentTransport content, CachePersistence? storage)
+    internal LiveQueries(Bus wire, EventBus bus, HttpTransport transport, HttpContentTransport content, CachePersistence? storage, ClientTiming timing)
     {
         var clock = transport.Clock;
         persistence = storage is null ? null : new LiveCacheStorage(storage, clock, RefetchOwed);
-        var window = TimeSpan.FromMilliseconds(transport.Settings.InvalidationWindowMs);
+        var window = TimeSpan.FromMilliseconds(timing.InvalidationWindowMs);
         ResourcesById = new(async (id, token) => (await wire.RequestAsync(BusOperations.BrowseResourceRequested,
             new BrowseResourceRequest { ResourceId = id }, cancellation: token).ConfigureAwait(Spawning.Captures)).Response.Resource, transport.SubscribeToResource, clock, window,
             persistence?.Changed(CacheQuery.Resource));

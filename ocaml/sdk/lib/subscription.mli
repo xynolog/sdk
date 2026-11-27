@@ -3,15 +3,6 @@
 
 type t
 
-type state =
-  | Initial
-  | Connecting
-  | Open
-  | Reconnecting
-  | Degraded
-  | Unauthenticated
-  | Closed
-
 type scope = {
   resource : Identifiers.Resource_id.t;
   channels : Bus_registry.packed_channel list;
@@ -23,19 +14,6 @@ type snapshot = {
   scoped : (scope * string option) list;
   pending_replies : string list;
 }
-
-type timing = {
-  stream_open_timeout_ms : int;
-  reconnect_ms : int;
-  max_reconnect_ms : int;
-  degraded_threshold_ms : int;
-  reconnect_debounce_ms : int;
-  lazy_remove_ms : int;
-  linger_ms : int;
-  bus_request_timeout_ms : int;
-}
-
-val default_timing : timing
 
 type open_error = Retry | Retry_after of int | No_credential
 
@@ -62,7 +40,7 @@ val authenticated :
 val encode_subscription : snapshot -> (string, Models.decode_error) result
 
 val start :
-  ?timing:timing ->
+  ?timing:Client_timing.transport ->
   ?telemetry:Telemetry.t ->
   ?positions:(string * string) list ->
   sw:Eio.Switch.t ->
@@ -81,8 +59,11 @@ val hold_scope : t -> scope -> unit -> unit
 (** Hold the listed channels on a resource. The returned function releases that
     hold once. A replacement opens before the current stream is retired. *)
 
-val state : t -> state
-val await_state_change : t -> from:state -> state
+val state : t -> Enums.Connection_state.t
+
+val await_state_change :
+  t -> from:Enums.Connection_state.t -> Enums.Connection_state.t
+
 val close : t -> unit
 val await_closed : t -> unit
 
@@ -102,7 +83,7 @@ type request_error =
 
 val request :
   t ->
-  ?timeout_ms:int ->
+  timeout_ms:int ->
   ?normalize_refusals:bool ->
   correlation_id:string ->
   ('request, 'result, 'failure) Bus_registry.operation ->

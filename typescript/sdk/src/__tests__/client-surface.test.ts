@@ -39,7 +39,8 @@ import {
   StreamObservable,
   UploadObservable,
 } from '../awaitable';
-import { ClaimsObservable, JOB_CLAIM_CHANNELS } from '../claims';
+import { ClaimsObservable } from '../claims';
+import { JOB_CLAIM_CHANNELS } from '../worker-channels';
 import { XynologClient } from '../client';
 import { FaultyTransport } from '../testing';
 import type {

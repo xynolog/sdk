@@ -263,14 +263,14 @@ func idOf(t *testing.T, text string) api.ResourceId {
 
 // jobTiming is the client's waits, with a followed job asked for its status
 // soon after it falls silent.
-func jobTiming() xynolog.Timing {
-	timing := xynolog.DefaultTiming()
+func jobTiming() xynolog.ClientTiming {
+	timing := xynolog.DefaultClientTiming()
 	timing.JobSilence, timing.JobStatusPoll = 50*time.Millisecond, 50*time.Millisecond
 	return timing
 }
 
 // testClient is a client over doubles, closed when the test ends.
-func testClient(t *testing.T, timing xynolog.Timing) xynologtest.TestClient {
+func testClient(t *testing.T, timing xynolog.ClientTiming) xynologtest.TestClient {
 	t.Helper()
 	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: timing})
 	t.Cleanup(func() {
@@ -374,7 +374,7 @@ func TestTheClient(t *testing.T) {
 }
 
 func TestLiveQueries(t *testing.T) {
-	made := testClient(t, xynolog.DefaultTiming())
+	made := testClient(t, xynolog.DefaultClientTiming())
 	resource := idOf(t, "res-1")
 	made.Content.SeedAnnotations(resource, api.GetAnnotationsResponse{Annotations: []api.Annotation{}, Total: 0})
 	watching, stop := context.WithTimeout(context.Background(), 300*time.Millisecond)
@@ -389,7 +389,7 @@ func TestLiveQueries(t *testing.T) {
 }
 
 func TestStateUnits(t *testing.T) {
-	made := testClient(t, xynolog.DefaultTiming())
+	made := testClient(t, xynolog.DefaultClientTiming())
 	beckon := state.NewBeckonStateUnit(made.Client, idOf(t, "res-1"))
 	done := make(chan struct{})
 	go func() {
@@ -413,7 +413,7 @@ func TestAWorker(t *testing.T) {
 	// A worker's stream names what its claims need, as the agent's does.
 	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{
 		Transport: xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{Channels: xynolog.JobClaimChannels}),
-		Timing:    xynolog.DefaultTiming(),
+		Timing:    xynolog.DefaultClientTiming(),
 	})
 	t.Cleanup(func() {
 		made.Client.Close()
@@ -426,8 +426,8 @@ func TestAWorker(t *testing.T) {
 		return nil
 	})
 	err := readme.Run(within(t), made.Client)
-	var refused *xynolog.ClaimRefusal
-	if !errors.As(err, &refused) || refused.Code == nil || *refused.Code != xynolog.BusRequestErrorCodeUnauthorized {
+	var refused *api.ClaimRefusal
+	if !errors.As(err, &refused) || refused.Code == nil || *refused.Code != api.BusRequestErrorCodeUnauthorized {
 		t.Fatalf("the worker stopped with %v", err)
 	}
 }

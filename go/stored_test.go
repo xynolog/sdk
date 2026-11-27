@@ -122,7 +122,7 @@ func TestAKeptDocumentAndThePlacesAreOfTheTablesForm(t *testing.T) {
 	table := readSessionTable(t)
 	storage := NewMemoryStorage()
 	key := CacheKey("kb-a", PersonKey("did:web:kb.example.org:users:jo%40example.org"), CacheQueryEntityTypes)
-	NewStoragePersister[whole, []string](storage, key, DefaultTiming().MaxStoredBytesCount).Save(map[whole][]string{{}: {"Person"}})
+	NewStoragePersister[whole, []string](storage, key).Save(map[whole][]string{{}: {"Person"}})
 	written, _ := storage.Get(key)
 	if got, want := membersOf(t, []byte(written)), slices.Sorted(maps.Keys(table.CacheDocument.Properties)); !slices.Equal(got, want) {
 		t.Errorf("a kept document is written with %v; the table's members are %v", got, want)
@@ -211,7 +211,7 @@ func TestAPendingSignInIsReadAsTheTableRequiresIt(t *testing.T) {
 					t.Error("the sign-in is still pending")
 				}
 				var refused *SignInError
-				if required && (!errors.As(err, &refused) || refused.Code != SignInErrorCodeNoPending) {
+				if required && (!errors.As(err, &refused) || refused.Code != api.SignInErrorCodeNoPending) {
 					t.Errorf("a sign-in pending without the %s the table requires: %v; want no-pending", strings.Join(way, "."), err)
 				}
 				if !required && err != nil {

@@ -20,6 +20,8 @@ import Xynolog.Internal.Browse qualified as Browse
 import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Delegation qualified as Delegation
 import Xynolog.Internal.Gather qualified as Gather
+import Xynolog.Internal.Generated.TimingSettings (settingsOf)
+import Xynolog.Internal.Http (checked)
 import Xynolog.Internal.Kept (lastEventIdKey)
 import Xynolog.Internal.Mark qualified as Mark
 import Xynolog.Internal.Match qualified as Match
@@ -63,11 +65,12 @@ data Client = Client
   }
 
 -- | A client given a CachePersistence keeps from construction on.
-newClient :: Transport.Transport -> Content.ContentTransport -> Maybe GatewayOperations -> Bus.BusOptions -> Timing.Settings -> Maybe CachePersistence -> IO Client
+newClient :: Transport.Transport -> Content.ContentTransport -> Maybe GatewayOperations -> Bus.BusOptions -> Timing.ClientTiming -> Maybe CachePersistence -> IO Client
 newClient carrier contents gateway options timing persistence = do
   keeping <- newTVarIO Unkept
   places <- newTVarIO Map.empty
-  made <- construct carrier contents gateway options timing keeping places
+  -- No part of a client reads a transport's timing, and this client's transport is its caller's.
+  made <- construct carrier contents gateway options timing Timing.protocolTransportTiming keeping places
   mapM_ (keepIn made) persistence `onException` dispose made
   pure made
 
@@ -76,21 +79,23 @@ construct ::
   Content.ContentTransport ->
   Maybe GatewayOperations ->
   Bus.BusOptions ->
-  Timing.Settings ->
+  Timing.ClientTiming ->
+  Timing.TransportTiming ->
   TVar Keeping ->
   TVar (Map.Map ResourceId Text) ->
   IO Client
-construct carrier contents gateway options timing keeping places =
+construct carrier contents gateway options timing transportTiming keeping places =
   bracketOnError Local.newEventBus Local.closeEventBus $ \local ->
     bracketOnError (Transport.bridgeInto carrier local) id $ \disconnect -> do
       let typed = Bus.newBus options carrier
-      bracketOnError (Delegation.newFollower typed local options timing) Delegation.dispose $ \follower ->
-        bracketOnError (Browse.newBrowse typed local carrier contents options timing) Browse.dispose $ \browseQueries ->
-          bracketOnError (Gather.newGather typed carrier options timing) Gather.dispose $ \gatherQueries ->
-            bracketOnError (Match.newMatch typed local options timing) Match.dispose $ \matchQueries -> do
+          settings = settingsOf timing transportTiming
+      bracketOnError (Delegation.newFollower typed local options settings) Delegation.dispose $ \follower ->
+        bracketOnError (Browse.newBrowse typed local carrier contents options settings) Browse.dispose $ \browseQueries ->
+          bracketOnError (Gather.newGather typed carrier options settings) Gather.dispose $ \gatherQueries ->
+            bracketOnError (Match.newMatch typed local options settings) Match.dispose $ \matchQueries -> do
               let controls = Browse.controls browseQueries ++ Gather.controls gatherQueries ++ Match.controls matchQueries
               unless (sort (map fst controls) == [minBound .. maxBound]) (ioError (userError "the client does not own every refresh-table query exactly once"))
-              bracketOnError (Refresh.newRefresher local carrier options timing controls) Refresh.dispose $ \refresher ->
+              bracketOnError (Refresh.newRefresher local carrier options settings controls) Refresh.dispose $ \refresher ->
                 pure
                   ( Client
                       carrier
@@ -103,8 +108,8 @@ construct carrier contents gateway options timing keeping places =
                       browseQueries
                       gatherQueries
                       matchQueries
-                      (Mark.newMark typed local timing follower)
-                      (Yield.newYield typed local contents timing follower)
+                      (Mark.newMark typed local settings follower)
+                      (Yield.newYield typed local contents settings follower)
                       follower
                       refresher
                       (newJob typed local carrier options timing)
@@ -118,8 +123,9 @@ construct carrier contents gateway options timing keeping places =
 -- | The client's stream begins each scope it holds no place in where the
 -- places kept say, and notes each place it reaches for them: these replace
 -- the options' own place actions.
-fromHttp :: Http.HttpOptions -> Maybe CachePersistence -> IO Client
-fromHttp options persistence = do
+fromHttp :: Http.HttpOptions -> Timing.ClientTiming -> Maybe CachePersistence -> IO Client
+fromHttp options timing persistence = do
+  _ <- checked timing
   keeping <- newTVarIO Unkept
   places <- newTVarIO Map.empty
   let noted scope identity =
@@ -131,7 +137,7 @@ fromHttp options persistence = do
   let time = Http.httpTime options
       busOptions = Bus.BusOptions (Retry.retryNow time) (Retry.retryWaitUntil time) (UUID.toText <$> Http.httpNewId options)
   made <-
-    construct (Http.transport http) (Http.content http) (Just (Http.gateway http)) busOptions (Http.httpTiming options) keeping places
+    construct (Http.transport http) (Http.content http) (Just (Http.gateway http)) busOptions timing (Http.httpTiming options) keeping places
       `onException` Http.dispose http
   mapM_ (keepIn made) persistence `onException` dispose made
   pure made

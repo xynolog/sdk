@@ -10,6 +10,9 @@ import (
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // CacheState is a key's state, the same for every observer of the key:
@@ -54,7 +57,7 @@ type CachePersister[K comparable, V any] interface {
 // closedRead is what a read of a closed client fails as: what a request of
 // a closed bus does.
 func closedRead() error {
-	return &BusRequestError{Code: BusRequestErrorCodeClosed, Message: "The client is closed"}
+	return &BusRequestError{Code: api.BusRequestErrorCodeClosed, Message: "The client is closed"}
 }
 
 // flight is one fetch of a key: what it came to once done is closed. What
@@ -110,10 +113,10 @@ func (k *cacheKey[V]) known() bool {
 // met, and never retries.
 //
 // A cache with a persister begins with what was kept and saves its values
-// saveWait after they last changed. A save the persister refuses leaves the
-// save owed: the next change, or the cache's closing, makes it again; a
-// closing waits for a save being made, so one refused meanwhile is made by
-// the closing. A value
+// saveDebounceMs (protocol/specs/src/client/timing.json) after they last
+// changed. A save the persister refuses leaves the save owed: the next change,
+// or the cache's closing, makes it again; a closing waits for a save being
+// made, so one refused meanwhile is made by the closing. A value
 // that was kept is shown at once and asked for again the first time it is
 // observed: nothing says it is still true. An observer that falls behind is
 // given the latest state, not each one it missed.
@@ -123,8 +126,7 @@ type Cache[K comparable, V any] struct {
 	persister CachePersister[K, V]
 	// refused is told each save the persister refuses, as the persister
 	// answered it.
-	refused  func(error)
-	saveWait time.Duration
+	refused func(error)
 	// saves is held by each save from the moment it takes the values until
 	// the persister has answered, and by Close throughout: one save at a
 	// time. Taken before mu, never while mu is held.
@@ -145,11 +147,11 @@ type Cache[K comparable, V any] struct {
 var _ StateUnit = (*Cache[string, string])(nil)
 
 // NewCache is a cache whose fetches run by run and ask fetch. With a
-// persister, it begins with what that kept, and saves to it saveWait after
-// its values last changed, logging a save the persister refuses; persister is
-// nil for a cache that keeps nothing.
-func NewCache[K comparable, V any](fetch func(ctx context.Context, key K) (V, error), run func(work func(ctx context.Context)), persister CachePersister[K, V], saveWait time.Duration) *Cache[K, V] {
-	c := &Cache[K, V]{fetch: fetch, run: run, saveWait: saveWait, keys: map[K]*cacheKey[V]{}, kept: map[K]bool{}}
+// persister, it begins with what that kept, and saves to it saveDebounceMs
+// after its values last changed, logging a save the persister refuses;
+// persister is nil for a cache that keeps nothing.
+func NewCache[K comparable, V any](fetch func(ctx context.Context, key K) (V, error), run func(work func(ctx context.Context)), persister CachePersister[K, V]) *Cache[K, V] {
+	c := &Cache[K, V]{fetch: fetch, run: run, keys: map[K]*cacheKey[V]{}, kept: map[K]bool{}}
 	if persister != nil {
 		c.attach(persister, unsaved)
 	}
@@ -222,7 +224,7 @@ func (c *Cache[K, V]) oweASave() {
 		c.saving.Stop()
 	}
 	persister, refused := c.persister, c.refused
-	c.saving = time.AfterFunc(c.saveWait, func() {
+	c.saving = time.AfterFunc(timing.SaveDebounce, func() {
 		c.saves.Lock()
 		defer c.saves.Unlock()
 		c.mu.Lock()

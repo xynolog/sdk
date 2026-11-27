@@ -35,7 +35,7 @@ export const unrecognizedFailureCode = 'bus.rejected' as const;
 
 /** Transport-neutral failure vocabulary. Every transport maps its native failures to one of these, so a routing layer matches on the code without knowing the wire kind. Over HTTP the mapping is by status: `status` is an exact status, `statusFrom` every status at or above it. */
 export type TransportErrorCode =
-  /** Authentication is required: the token is missing, expired, or refused. A 429 whose `code` is `refusal-rate` refuses the token too, and is reported as this code with its own status. */
+  /** Authentication is required: the token is missing, expired, or refused. A refusal of `limitRefusals` refuses the token too (contract/TRANSPORT-CONTRACT.md § A refused credential), and is reported as this code with its own status. */
   | 'unauthorized'
   /** Authenticated, and lacking permission. */
   | 'forbidden'
@@ -77,6 +77,11 @@ export function transportErrorCodeForStatus(
   if (status >= 500) return 'unavailable';
   return 'error';
 }
+
+/** Each gateway refusal of a limit that is a transport code too: its status, its `LimitRefusal` code, and the transport code it is. */
+export const limitRefusalTransportCodes = [
+  { status: 429, code: 'refusal-rate', transport: 'unauthorized' },
+] as const;
 
 /** Why a job its client follows ended without a result. A failure the queue will retry is not one of these: the job goes on, and its follower is told of the setback and keeps following. */
 export type JobErrorCode =
@@ -147,7 +152,7 @@ export type SpanRefusal =
 
 /** Why a request of the launcher's control API (`xynolog control`, contract/LAUNCHER-CONTROL.md) failed. The launcher sends one in each error's data, and Desktop reads it. A knowledge base never sends one. */
 export type ControlErrorCode =
-  /** The request's params are not what its method's schema admits. The error's fields name each fault; JSON-RPC's own invalid-params code (-32602) carries it. */
+  /** The request's params are not what its method's schema admits. The error's fields name each fault. */
   | 'control.invalid-params'
   /** The request is written to a version of the control API this launcher does not speak. The error's supported field names the ones it does. */
   | 'control.unsupported-api-version'

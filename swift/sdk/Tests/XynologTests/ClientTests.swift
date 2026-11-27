@@ -598,7 +598,7 @@ private let callsByName:
   let probe = ProbeTransport(channels: bridgedChannels)
   let bus = Bus(probe)
   let source = try await bus.frames(Channels.beckonFocus)
-  let trace = ["traceparent": "00-trace-parent-01"]
+  let trace = TraceCarrier(traceparent: "00-trace-parent-01")
   probe.deliver(
     .frame(
       ReceivedFrame(

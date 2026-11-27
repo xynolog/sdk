@@ -88,6 +88,7 @@ let rec type_of ~(names : names) (ty : Typing.ty) : T.type_ =
   | Nullable ty -> union [ type_of ~names ty; T_name "null" ]
   | Scalar (Text { binary = true; _ }) -> T_name "Blob"
   | Scalar (Text _) -> T_name "string"
+  | Scalar (Code vocabulary) -> T_name (fst (Code_names.named vocabulary))
   | Scalar (Integer _ | Number) -> T_name "number"
   | Scalar Boolean -> T_name "boolean"
   | List items ->
@@ -171,17 +172,6 @@ let declared ~names (d : Typing.declaration) =
   | Identifier _ -> branded d.name
   | form -> form_of ~names form d.composition
 
-(* Why a client that read a launcher's discovery document found no launcher
-   (protocol/specs/src/client/discovery-absent.json): a reason a case. *)
-let discovery_absent (spec : Spec.t) =
-  T.member (Ident "DiscoveryAbsentReason")
-    ~about:[ Doc "Why no launcher was found." ]
-    (T_cases
-       (List.map
-          (fun (r : Tables.Client_discovery_absent.reasons_item) ->
-            T.case ~about:[ Doc_prose [ Text.Words r.docs ] ] (T_str r.reason))
-          spec.tables.client_discovery_absent.reasons))
-
 (* [records[name]]: the type of a record Protocol states in a table, or of a
    schema only such records reach. *)
 let record name = T.T_index (T_name "records", T_str name)
@@ -249,7 +239,7 @@ let text (spec : Spec.t) =
             ];
           export = true;
           name = "records";
-          members = List.map schema records @ [ discovery_absent spec ];
+          members = List.map schema records;
         };
       T.Interface
         {
@@ -280,11 +270,19 @@ let text (spec : Spec.t) =
               "the client types it names, of protocol/specs/src/client/types";
               "the schemas of the tables it carries as values \
                (codegen/lib/typescript_types/table_modules.ml)";
-              "protocol/specs/src/client/discovery-absent.json";
               "protocol/specs/src/identifiers/kinds.json, for the brands";
             ]
           __FILE__;
-      body = interfaces @ aliases names;
+      body =
+        (match Typing.codes typing with
+          | [] -> []
+          | vocabularies ->
+              [
+                T.import ~type_only:true
+                  (List.map (fun v -> fst (Code_names.named v)) vocabularies)
+                  "./error-codes";
+              ])
+        @ interfaces @ aliases names;
     }
 
 (* The launcher's control API as the TypeScript SDK reads it

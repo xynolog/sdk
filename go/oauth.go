@@ -11,8 +11,9 @@ package xynolog
 // A refusal and an outage are different events. A *SignInError that carries a
 // status is the issuer's answer; one that carries none got no answer. A kept
 // sign-in's renewal is tried again only on the second kind, and on an issuerAnswer
-// that says "not now" (RetryRuleRefresh), inside Timing.RefreshRetry: a
-// refused grant is final. Each request of an issuer is answered within
+// that says "not now" (RetryRuleRefresh), inside the renewal budget
+// (refreshRetry, protocol/specs/src/client/timing.json): a refused grant is
+// final. Each request of an issuer is answered within
 // Timing.HttpRequestTimeout, or fails as unanswered.
 
 import (
@@ -30,6 +31,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/optional"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 const deviceGrant = "urn:ietf:params:oauth:grant-type:device_code"
@@ -38,7 +40,7 @@ const deviceGrant = "urn:ietf:params:oauth:grant-type:device_code"
 // SDK reads no environment: the HTTP client is the caller's.
 type Issuer struct {
 	HTTP   *http.Client
-	Timing Timing
+	Timing TransportTiming
 	// Random is what the jitter of a renewal tried again is drawn from, as
 	// EqualJitter draws it.
 	Random *rand.Rand
@@ -98,7 +100,7 @@ func (a issuerAnswer) refusal(status int) string {
 }
 
 func noIssuer() *SignInError {
-	return signInUnanswered(SignInErrorCodeNoIssuer, "The knowledge base trusts no external issuer")
+	return signInUnanswered(api.SignInErrorCodeNoIssuer, "The knowledge base trusts no external issuer")
 }
 
 // get is one JSON document read from an issuer, within the request deadline.
@@ -157,10 +159,10 @@ func (i Issuer) Discover(ctx context.Context, baseURL string) (api.PendingAuthor
 			if status, ok := refused.Status(); ok && status == http.StatusNotFound {
 				return api.PendingAuthorizationIssuer{}, noIssuer()
 			} else if ok {
-				return api.PendingAuthorizationIssuer{}, NewSignInError(SignInErrorCodeDiscovery, "The knowledge base did not answer its resource metadata: "+refused.Message, status)
+				return api.PendingAuthorizationIssuer{}, NewSignInError(api.SignInErrorCodeDiscovery, "The knowledge base did not answer its resource metadata: "+refused.Message, status)
 			}
 		}
-		return api.PendingAuthorizationIssuer{}, signInUnanswered(SignInErrorCodeDiscovery, "The knowledge base did not answer its resource metadata: "+err.Error())
+		return api.PendingAuthorizationIssuer{}, signInUnanswered(api.SignInErrorCodeDiscovery, "The knowledge base did not answer its resource metadata: "+err.Error())
 	}
 	if len(metadata.AuthorizationServers) == 0 {
 		return api.PendingAuthorizationIssuer{}, noIssuer()
@@ -168,16 +170,16 @@ func (i Issuer) Discover(ctx context.Context, baseURL string) (api.PendingAuthor
 	issuer := metadata.AuthorizationServers[0]
 	status, document, err := i.get(ctx, strings.TrimRight(issuer, "/")+"/.well-known/openid-configuration")
 	if err != nil {
-		return api.PendingAuthorizationIssuer{}, signInUnanswered(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: discovery was not answered: %v", issuer, err))
+		return api.PendingAuthorizationIssuer{}, signInUnanswered(api.SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: discovery was not answered: %v", issuer, err))
 	}
 	if status < 200 || status > 299 {
-		return api.PendingAuthorizationIssuer{}, NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: discovery answered HTTP %d", issuer, status), status)
+		return api.PendingAuthorizationIssuer{}, NewSignInError(api.SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: discovery answered HTTP %d", issuer, status), status)
 	}
 	named, _ := document.text("issuer")
 	authorization, hasAuthorization := document.text("authorization_endpoint")
 	token, hasToken := document.text("token_endpoint")
 	if named != issuer || !hasAuthorization || !hasToken {
-		return api.PendingAuthorizationIssuer{}, NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: its discovery document is not an OpenID configuration for it", issuer), status)
+		return api.PendingAuthorizationIssuer{}, NewSignInError(api.SignInErrorCodeDiscovery, fmt.Sprintf("Issuer %s: its discovery document is not an OpenID configuration for it", issuer), status)
 	}
 	device, _ := document.text("device_authorization_endpoint")
 	revocation, _ := document.text("revocation_endpoint")
@@ -191,11 +193,11 @@ func (i Issuer) Refresh(ctx context.Context, tokenEndpoint, clientID, refreshTok
 		"grant_type": {"refresh_token"}, "refresh_token": {refreshToken}, "client_id": {clientID},
 	})
 	if err != nil {
-		return api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
+		return api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
 	}
 	access, ok := answered.text("access_token")
 	if status != http.StatusOK || !ok {
-		return api.IssuedTokens{}, NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the token request (%s)", answered.refusal(status)), status)
+		return api.IssuedTokens{}, NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the token request (%s)", answered.refusal(status)), status)
 	}
 	rotated, ok := answered.text("refresh_token")
 	if !ok {
@@ -211,10 +213,10 @@ func (i Issuer) Revoke(ctx context.Context, revocationEndpoint, clientID, refres
 		"token": {refreshToken}, "token_type_hint": {"refresh_token"}, "client_id": {clientID},
 	})
 	if err != nil {
-		return signInUnanswered(SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
+		return signInUnanswered(api.SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
 	}
 	if status != http.StatusOK {
-		return NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the revocation (HTTP %d)", status), status)
+		return NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the revocation (HTTP %d)", status), status)
 	}
 	return nil
 }
@@ -239,7 +241,7 @@ func (i Issuer) RenewKept(ctx context.Context, kept SignInKept, holding string) 
 		return held.Access, nil
 	}
 	attempts := 0
-	tokens, err := RetryWithBackoff(ctx, i.Timing.RefreshRetry, i.Random,
+	tokens, err := RetryWithBackoff(ctx, timing.RefreshRetry, i.Random,
 		func(ctx context.Context) (api.IssuedTokens, error) {
 			attempts++
 			return i.Refresh(ctx, held.TokenEndpoint, held.ClientId, held.Refresh)
@@ -253,9 +255,9 @@ func (i Issuer) RenewKept(ctx context.Context, kept SignInKept, holding string) 
 		}
 		message := fmt.Sprintf("The session could not be renewed after %d attempts: %s", attempts, failed.Message)
 		if status, ok := failed.Status(); ok {
-			return "", NewSignInError(SignInErrorCodeExchange, message, status)
+			return "", NewSignInError(api.SignInErrorCodeExchange, message, status)
 		}
-		return "", signInUnanswered(SignInErrorCodeExchange, message)
+		return "", signInUnanswered(api.SignInErrorCodeExchange, message)
 	}
 	current, ok, err := kept.Renewed(ctx, held, tokens.Access, tokens.Refresh)
 	if err != nil || !ok {
@@ -265,7 +267,7 @@ func (i Issuer) RenewKept(ctx context.Context, kept SignInKept, holding string) 
 }
 
 func codeExpired() *SignInError {
-	return signInUnanswered(SignInErrorCodeExpired, "The code expired before it was approved")
+	return signInUnanswered(api.SignInErrorCodeExpired, "The code expired before it was approved")
 }
 
 // SignInWithDeviceGrant signs a person in from a process with no browser, at
@@ -274,19 +276,19 @@ func codeExpired() *SignInError {
 // interval until the tokens arrive. Cancelling ctx abandons the sign-in.
 func (i Issuer) SignInWithDeviceGrant(ctx context.Context, issuer api.PendingAuthorizationIssuer, onCode func(api.DeviceCode)) (api.IssuedTokens, error) {
 	if issuer.Device == nil {
-		return api.IssuedTokens{}, signInUnanswered(SignInErrorCodeDiscovery, fmt.Sprintf(
+		return api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeDiscovery, fmt.Sprintf(
 			"Issuer %s offers no device authorization endpoint: the device grant needs one enabled for client %s", issuer.Issuer, ScriptClientID))
 	}
 	status, body, err := i.postForm(ctx, *issuer.Device, url.Values{"client_id": {ScriptClientID}, "scope": {SignInScope}})
 	if err != nil {
-		return api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
+		return api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
 	}
 	deviceCode, hasDeviceCode := body.text("device_code")
 	userCode, hasUserCode := body.text("user_code")
 	verificationURI, hasVerificationURI := body.text("verification_uri")
 	expiresIn, hasExpiresIn := body.wholeSeconds("expires_in")
 	if status != http.StatusOK || !hasDeviceCode || !hasUserCode || !hasVerificationURI || !hasExpiresIn {
-		return api.IssuedTokens{}, NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the device authorization request (%s)", body.refusal(status)), status)
+		return api.IssuedTokens{}, NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the device authorization request (%s)", body.refusal(status)), status)
 	}
 	code := api.DeviceCode{UserCode: userCode, VerificationUri: verificationURI, ExpiresIn: expiresIn}
 	if complete, ok := body.text("verification_uri_complete"); ok {
@@ -296,9 +298,9 @@ func (i Issuer) SignInWithDeviceGrant(ctx context.Context, issuer api.PendingAut
 
 	interval, ok := body.seconds("interval")
 	if !ok {
-		interval = i.Timing.DevicePoll
+		interval = timing.DevicePoll
 	}
-	interval = max(interval, i.Timing.DevicePollFloor)
+	interval = max(interval, timing.DevicePollFloor)
 	deadline := time.Now().Add(time.Duration(expiresIn) * time.Second)
 	for {
 		if !pause(ctx, interval) {
@@ -314,25 +316,25 @@ func (i Issuer) SignInWithDeviceGrant(ctx context.Context, issuer api.PendingAut
 			if ctx.Err() != nil {
 				return api.IssuedTokens{}, ctx.Err()
 			}
-			return api.IssuedTokens{}, signInUnanswered(SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
+			return api.IssuedTokens{}, signInUnanswered(api.SignInErrorCodeExchange, "The issuer did not answer: "+err.Error())
 		}
 		if access, ok := answered.text("access_token"); status == http.StatusOK && ok {
 			refresh, ok := answered.text("refresh_token")
 			if !ok {
-				return api.IssuedTokens{}, NewSignInError(SignInErrorCodeExchange, "The issuer returned no refresh token: the session could not outlive its first access token", status)
+				return api.IssuedTokens{}, NewSignInError(api.SignInErrorCodeExchange, "The issuer returned no refresh token: the session could not outlive its first access token", status)
 			}
 			return api.IssuedTokens{Access: access, Refresh: refresh}, nil
 		}
 		switch failure, _ := answered.text("error"); failure {
 		case "authorization_pending":
 		case "slow_down":
-			interval += i.Timing.DeviceSlowDown
+			interval += timing.DeviceSlowDown
 		case "access_denied":
-			return api.IssuedTokens{}, NewSignInError(SignInErrorCodeDenied, "The sign-in was denied at the issuer", status)
+			return api.IssuedTokens{}, NewSignInError(api.SignInErrorCodeDenied, "The sign-in was denied at the issuer", status)
 		case "expired_token":
 			return api.IssuedTokens{}, codeExpired()
 		default:
-			return api.IssuedTokens{}, NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the token request (%s)", answered.refusal(status)), status)
+			return api.IssuedTokens{}, NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("The issuer refused the token request (%s)", answered.refusal(status)), status)
 		}
 	}
 }
@@ -359,7 +361,7 @@ func transientRenewal(err error) bool {
 // again until the budget is spent, is no refusal.
 func refusedRenewal(err error) bool {
 	var failed *SignInError
-	if !errors.As(err, &failed) || failed.Code != SignInErrorCodeExchange {
+	if !errors.As(err, &failed) || failed.Code != api.SignInErrorCodeExchange {
 		return false
 	}
 	_, answered := failed.Status()

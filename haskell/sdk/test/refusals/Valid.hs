@@ -6,9 +6,9 @@ import Data.Text (Text)
 import qualified Data.Text.IO as Text
 import qualified Xynolog.Bus as Bus
 import qualified Xynolog.Channels as Channels
-import Xynolog.Discovery (DiscoveryRead, readDiscovery, textDiscovery)
+import Xynolog.Discovery (readDiscovery, textDiscovery)
 import qualified Xynolog.Timing as Timing
-import Xynolog.Types (EmptyBusPayload, FrameAddEntityTypeCommand, ResourceId, mkResourceId)
+import Xynolog.Types (DiscoveryRead, EmptyBusPayload, FrameAddEntityTypeCommand, ResourceId, mkResourceId)
 
 identifier :: Either String ResourceId
 identifier = mkResourceId "probe"

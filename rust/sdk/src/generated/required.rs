@@ -52,6 +52,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "AccessToken",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            min_length: Some(1),
+            ..NONE
+        },
+    ),
+    (
         "Agent",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -1919,6 +1927,19 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             ..NONE
         },
     ),
+    ("ByteSource", of(&[Kind::String])),
+    (
+        "CacheStatus",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("pending"),
+                Listed::Text("ready"),
+                Listed::Text("failed"),
+            ]),
+            ..NONE
+        },
+    ),
     (
         "Cancelled",
         Shape {
@@ -1991,6 +2012,122 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "ClaimRefusal",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["code", "message"],
+            members: &[
+                (
+                    "code",
+                    Shape {
+                        kinds: Some(&[Kind::String, Kind::Null]),
+                        one_of: &[
+                            of(&[Kind::Null]),
+                            Shape {
+                                kinds: Some(&[Kind::String]),
+                                enumeration: Some(&[
+                                    Listed::Text("bus.timeout"),
+                                    Listed::Text("bus.rejected"),
+                                    Listed::Text("bus.closed"),
+                                    Listed::Text("bus.not-found"),
+                                    Listed::Text("bus.unsubscribed"),
+                                    Listed::Text("bus.peer-unavailable"),
+                                    Listed::Text("bus.unauthorized"),
+                                    Listed::Text("bus.none-pending"),
+                                ]),
+                                ..NONE
+                            },
+                        ],
+                        ..NONE
+                    },
+                ),
+                ("message", of(&[Kind::String])),
+            ],
+            closed: Some(&["code", "message"]),
+            ..NONE
+        },
+    ),
+    (
+        "ClientConnectionStates",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "states"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "states",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["state", "meaning", "moves"],
+                            members: &[
+                                (
+                                    "meaning",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "moves",
+                                    Shape {
+                                        kinds: Some(&[Kind::Array]),
+                                        items: Some(&reference("ConnectionState")),
+                                        ..NONE
+                                    },
+                                ),
+                                ("state", reference("ConnectionState")),
+                            ],
+                            closed: Some(&["meaning", "moves", "state"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "states"]),
+            ..NONE
+        },
+    ),
+    (
         "ClientDiscoveryAbsent",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -2049,36 +2186,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                                         ..NONE
                                     },
                                 ),
-                                (
-                                    "reason",
-                                    Shape {
-                                        kinds: Some(&[Kind::String]),
-                                        pattern: Some(&[
-                                            Term::Step(Step {
-                                                of: &[(97, 122)],
-                                                min: 1,
-                                                max: None,
-                                            }),
-                                            Term::Group(Group {
-                                                either: &[&[
-                                                    Term::Step(Step {
-                                                        of: &[(45, 45)],
-                                                        min: 1,
-                                                        max: Some(1),
-                                                    }),
-                                                    Term::Step(Step {
-                                                        of: &[(97, 122)],
-                                                        min: 1,
-                                                        max: None,
-                                                    }),
-                                                ]],
-                                                min: 0,
-                                                max: None,
-                                            }),
-                                        ]),
-                                        ..NONE
-                                    },
-                                ),
+                                ("reason", reference("DiscoveryAbsentReason")),
                             ],
                             closed: Some(&["docs", "reason"]),
                             ..NONE
@@ -2088,6 +2196,657 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
             ],
             closed: Some(&["$comment", "reasons"]),
+            ..NONE
+        },
+    ),
+    (
+        "ClientOptionDefaults",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "defaults"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "defaults",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["method", "parameter", "value", "docs"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "method",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(46, 46)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(65, 90), (97, 122)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "option",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "parameter",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "schema",
+                                    Shape {
+                                        kinds: Some(&[Kind::Object]),
+                                        one_of: &[
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["$ref"],
+                                                members: &[
+                                                    (
+                                                        "$ref",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(104, 104)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(116, 116)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(116, 116)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(112, 112)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(115, 115)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(58, 58)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(47, 47)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(47, 47)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(120, 120)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(121, 121)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(110, 110)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(111, 111)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(108, 108)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(111, 111)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(103, 103)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(46, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(111, 111)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(114, 114)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(103, 103)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(47, 47)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(112, 112)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(114, 114)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(111, 111)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(116, 116)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(111, 111)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(99, 99)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(111, 111)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(108, 108)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(47, 47)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(65, 90)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(65, 90), (97, 122)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(46, 46)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(106, 106)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(115, 115)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(111, 111)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(110, 110)],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Group(Group {
+                                                                    either: &[&[
+                                                                        Term::Step(Step {
+                                                                            of: &[(35, 35)],
+                                                                            min: 1,
+                                                                            max: Some(1),
+                                                                        }),
+                                                                        Term::Group(Group {
+                                                                            either: &[&[
+                                                                                Term::Step(Step {
+                                                                                    of: &[(47, 47)],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        112, 112,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        114, 114,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        111, 111,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        112, 112,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        101, 101,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        114, 114,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        116, 116,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        105, 105,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        101, 101,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        115, 115,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(47, 47)],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[(
+                                                                                        97, 122,
+                                                                                    )],
+                                                                                    min: 1,
+                                                                                    max: Some(1),
+                                                                                }),
+                                                                                Term::Step(Step {
+                                                                                    of: &[
+                                                                                        (65, 90),
+                                                                                        (97, 122),
+                                                                                    ],
+                                                                                    min: 0,
+                                                                                    max: None,
+                                                                                }),
+                                                                            ]],
+                                                                            min: 1,
+                                                                            max: None,
+                                                                        }),
+                                                                    ]],
+                                                                    min: 0,
+                                                                    max: Some(1),
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    (
+                                                        "typeArguments",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::Object]),
+                                                            values: Some(&Shape {
+                                                                kinds: Some(&[Kind::Object]),
+                                                                required: &["typeParameter"],
+                                                                members: &[(
+                                                                    "typeParameter",
+                                                                    Shape {
+                                                                        kinds: Some(&[
+                                                                            Kind::String,
+                                                                        ]),
+                                                                        pattern: Some(&[
+                                                                            Term::Step(Step {
+                                                                                of: &[(65, 90)],
+                                                                                min: 1,
+                                                                                max: Some(1),
+                                                                            }),
+                                                                            Term::Step(Step {
+                                                                                of: &[
+                                                                                    (65, 90),
+                                                                                    (97, 122),
+                                                                                ],
+                                                                                min: 0,
+                                                                                max: None,
+                                                                            }),
+                                                                        ]),
+                                                                        ..NONE
+                                                                    },
+                                                                )],
+                                                                closed: Some(&["typeParameter"]),
+                                                                ..NONE
+                                                            }),
+                                                            min_members: Some(1),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&["$ref", "typeArguments"]),
+                                                ..NONE
+                                            },
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["type", "description"],
+                                                members: &[
+                                                    (
+                                                        "description",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            pattern: Some(&[
+                                                                Term::Step(Step {
+                                                                    of: &[(0, 1114111)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[
+                                                                        (0, 8),
+                                                                        (14, 31),
+                                                                        (33, 159),
+                                                                        (161, 5759),
+                                                                        (5761, 8191),
+                                                                        (8203, 8231),
+                                                                        (8234, 8238),
+                                                                        (8240, 8286),
+                                                                        (8288, 12287),
+                                                                        (12289, 65278),
+                                                                        (65280, 1114111),
+                                                                    ],
+                                                                    min: 1,
+                                                                    max: Some(1),
+                                                                }),
+                                                                Term::Step(Step {
+                                                                    of: &[(0, 1114111)],
+                                                                    min: 0,
+                                                                    max: None,
+                                                                }),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    (
+                                                        "format",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            enumeration: Some(&[Listed::Text(
+                                                                "date-time",
+                                                            )]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                    ("minimum", of(&[Kind::Integer])),
+                                                    (
+                                                        "type",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::String]),
+                                                            enumeration: Some(&[
+                                                                Listed::Text("integer"),
+                                                                Listed::Text("string"),
+                                                                Listed::Text("boolean"),
+                                                            ]),
+                                                            ..NONE
+                                                        },
+                                                    ),
+                                                ],
+                                                closed: Some(&[
+                                                    "description",
+                                                    "format",
+                                                    "minimum",
+                                                    "type",
+                                                ]),
+                                                ..NONE
+                                            },
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["typeParameter"],
+                                                members: &[(
+                                                    "typeParameter",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::String]),
+                                                        pattern: Some(&[
+                                                            Term::Step(Step {
+                                                                of: &[(65, 90)],
+                                                                min: 1,
+                                                                max: Some(1),
+                                                            }),
+                                                            Term::Step(Step {
+                                                                of: &[(65, 90), (97, 122)],
+                                                                min: 0,
+                                                                max: None,
+                                                            }),
+                                                        ]),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["typeParameter"]),
+                                                ..NONE
+                                            },
+                                            Shape {
+                                                kinds: Some(&[Kind::Object]),
+                                                required: &["decided"],
+                                                members: &[(
+                                                    "decided",
+                                                    Shape {
+                                                        kinds: Some(&[Kind::Object]),
+                                                        required: &["by", "in"],
+                                                        members: &[
+                                                            (
+                                                                "by",
+                                                                Shape {
+                                                                    kinds: Some(&[Kind::Object]),
+                                                                    required: &["member"],
+                                                                    members: &[(
+                                                                        "member",
+                                                                        Shape {
+                                                                            kinds: Some(&[
+                                                                                Kind::String,
+                                                                            ]),
+                                                                            min_length: Some(1),
+                                                                            ..NONE
+                                                                        },
+                                                                    )],
+                                                                    closed: Some(&["member"]),
+                                                                    ..NONE
+                                                                },
+                                                            ),
+                                                            (
+                                                                "in",
+                                                                Shape {
+                                                                    kinds: Some(&[Kind::String]),
+                                                                    enumeration: Some(&[
+                                                                        Listed::Text("takes"),
+                                                                    ]),
+                                                                    ..NONE
+                                                                },
+                                                            ),
+                                                        ],
+                                                        closed: Some(&["by", "in"]),
+                                                        ..NONE
+                                                    },
+                                                )],
+                                                closed: Some(&["decided"]),
+                                                ..NONE
+                                            },
+                                        ],
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "sends",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[Term::Group(Group {
+                                            either: &[&[
+                                                Term::Step(Step {
+                                                    of: &[(47, 47)],
+                                                    min: 1,
+                                                    max: Some(1),
+                                                }),
+                                                Term::Step(Step {
+                                                    of: &[(65, 90), (97, 122)],
+                                                    min: 1,
+                                                    max: None,
+                                                }),
+                                            ]],
+                                            min: 1,
+                                            max: None,
+                                        })]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&[
+                                "docs",
+                                "method",
+                                "option",
+                                "parameter",
+                                "schema",
+                                "sends",
+                                "value",
+                            ]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "defaults"]),
             ..NONE
         },
     ),
@@ -4038,7 +4797,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         "progress",
                         Shape {
                             kinds: Some(&[Kind::Object]),
-                            required: &["upload", "bytesUploaded", "totalBytes"],
+                            required: &["upload", "bytesUploaded"],
                             members: &[
                                 (
                                     "bytesUploaded",
@@ -4158,7 +4917,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 Shape {
                     kinds: Some(&[Kind::Object]),
                     required: &["claimed"],
-                    members: &[("claimed", of(&[Kind::Object]))],
+                    members: &[("claimed", reference("HeldJobRecord"))],
                     closed: Some(&["claimed"]),
                     ..NONE
                 },
@@ -4796,44 +5555,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 Shape {
                     kinds: Some(&[Kind::Object]),
                     required: &["state"],
-                    members: &[(
-                        "state",
-                        Shape {
-                            kinds: Some(&[Kind::String]),
-                            enumeration: Some(&[
-                                Listed::Text("initial"),
-                                Listed::Text("connecting"),
-                                Listed::Text("open"),
-                                Listed::Text("reconnecting"),
-                                Listed::Text("degraded"),
-                                Listed::Text("unauthenticated"),
-                                Listed::Text("closed"),
-                            ]),
-                            ..NONE
-                        },
-                    )],
+                    members: &[("state", reference("ConnectionState"))],
                     closed: Some(&["state"]),
                     ..NONE
                 },
                 Shape {
                     kinds: Some(&[Kind::Object]),
                     required: &["stays"],
-                    members: &[(
-                        "stays",
-                        Shape {
-                            kinds: Some(&[Kind::String]),
-                            enumeration: Some(&[
-                                Listed::Text("initial"),
-                                Listed::Text("connecting"),
-                                Listed::Text("open"),
-                                Listed::Text("reconnecting"),
-                                Listed::Text("degraded"),
-                                Listed::Text("unauthenticated"),
-                                Listed::Text("closed"),
-                            ]),
-                            ..NONE
-                        },
-                    )],
+                    members: &[("stays", reference("ConnectionState"))],
                     closed: Some(&["stays"]),
                     ..NONE
                 },
@@ -5151,6 +5880,22 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("did", reference("UserId")),
             ],
             closed: Some(&["description", "did"]),
+            ..NONE
+        },
+    ),
+    (
+        "ConnectionState",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("initial"),
+                Listed::Text("connecting"),
+                Listed::Text("open"),
+                Listed::Text("reconnecting"),
+                Listed::Text("degraded"),
+                Listed::Text("unauthenticated"),
+                Listed::Text("closed"),
+            ]),
             ..NONE
         },
     ),
@@ -5567,6 +6312,145 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "ControlRpcCodes",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "codes"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "codes",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["number", "name", "docs"],
+                            members: &[
+                                ("data", reference("ErrorData")),
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[
+                                                    (0, 8),
+                                                    (14, 31),
+                                                    (33, 159),
+                                                    (161, 5759),
+                                                    (5761, 8191),
+                                                    (8203, 8231),
+                                                    (8234, 8238),
+                                                    (8240, 8286),
+                                                    (8288, 12287),
+                                                    (12289, 65278),
+                                                    (65280, 1114111),
+                                                ],
+                                                min: 1,
+                                                max: Some(1),
+                                            }),
+                                            Term::Step(Step {
+                                                of: &[(0, 1114111)],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "name",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: None,
+                                            }),
+                                            Term::Group(Group {
+                                                either: &[&[
+                                                    Term::Step(Step {
+                                                        of: &[(45, 45)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                ]],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                                ("number", of(&[Kind::Integer])),
+                            ],
+                            closed: Some(&["data", "docs", "name", "number"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "codes"]),
+            ..NONE
+        },
+    ),
+    (
+        "ControlSender",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("client"), Listed::Text("launcher")]),
+            ..NONE
+        },
+    ),
+    (
         "CreateAnnotationRequest",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -5681,18 +6565,47 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("did", of(&[Kind::String])),
                 ("host", of(&[Kind::String])),
                 ("managedBy", of(&[Kind::String])),
+                ("placement", reference("KbPlacement")),
                 (
-                    "placement",
+                    "port",
                     Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(1.0),
+                        maximum: Some(65535.0),
                         ..NONE
                     },
                 ),
-                ("port", of(&[Kind::Integer])),
                 ("repo", of(&[Kind::String])),
                 ("siteName", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryAbsent",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kind", "reason"],
+            members: &[
+                (
+                    "diagnostic",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("absent")]),
+                        ..NONE
+                    },
+                ),
+                ("reason", reference("DiscoveryAbsentReason")),
+            ],
+            closed: Some(&["diagnostic", "kind", "reason"]),
             ..NONE
         },
     ),
@@ -5707,6 +6620,54 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 Listed::Text("unsupported-version"),
                 Listed::Text("unreadable"),
             ]),
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryDiff",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["state", "added", "updated", "removed", "duplicated"],
+            members: &[
+                (
+                    "added",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "duplicated",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::String]),
+                            min_length: Some(1),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "removed",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+                ("state", reference("DiscoveryState")),
+                (
+                    "updated",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["added", "duplicated", "removed", "state", "updated"]),
             ..NONE
         },
     ),
@@ -5733,6 +6694,78 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     },
                 ),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryManaged",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kind", "kbs"],
+            members: &[
+                (
+                    "kbs",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&reference("DiscoveredKB")),
+                        ..NONE
+                    },
+                ),
+                (
+                    "kind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        enumeration: Some(&[Listed::Text("managed")]),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["kbs", "kind"]),
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryRead",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[
+                reference("DiscoveryAbsent"),
+                reference("DiscoveryManaged"),
+                reference("DiscoveryUnchanged"),
+            ],
+            discriminator: Some(Discriminator {
+                property: "kind",
+                mapping: &[("absent", 0), ("managed", 1), ("unchanged", 2)],
+            }),
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryState",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            one_of: &[reference("DiscoveryAbsent"), reference("DiscoveryManaged")],
+            discriminator: Some(Discriminator {
+                property: "kind",
+                mapping: &[("absent", 0), ("managed", 1)],
+            }),
+            ..NONE
+        },
+    ),
+    (
+        "DiscoveryUnchanged",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["kind"],
+            members: &[(
+                "kind",
+                Shape {
+                    kinds: Some(&[Kind::String]),
+                    enumeration: Some(&[Listed::Text("unchanged")]),
+                    ..NONE
+                },
+            )],
+            closed: Some(&["kind"]),
             ..NONE
         },
     ),
@@ -5973,22 +7006,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "provider",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[
-                            Listed::Text("anthropic"),
-                            Listed::Text("google"),
-                            Listed::Text("llamacpp"),
-                            Listed::Text("ollama"),
-                            Listed::Text("openai"),
-                            Listed::Text("together"),
-                            Listed::Text("vllm"),
-                        ]),
-                        ..NONE
-                    },
-                ),
+                ("provider", reference("InferenceProvider")),
             ],
             closed: Some(&["model", "provider"]),
             ..NONE
@@ -6148,68 +7166,31 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     "code",
                     Shape {
                         kinds: Some(&[Kind::String]),
-                        pattern: Some(&[
-                            Term::Step(Step {
-                                of: &[(99, 99)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(111, 111)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(110, 110)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(116, 116)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(114, 114)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(111, 111)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(108, 108)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(46, 46)],
-                                min: 1,
-                                max: Some(1),
-                            }),
-                            Term::Step(Step {
-                                of: &[(97, 122)],
-                                min: 1,
-                                max: None,
-                            }),
-                            Term::Group(Group {
-                                either: &[&[
-                                    Term::Step(Step {
-                                        of: &[(45, 45)],
-                                        min: 1,
-                                        max: Some(1),
-                                    }),
-                                    Term::Step(Step {
-                                        of: &[(97, 122)],
-                                        min: 1,
-                                        max: None,
-                                    }),
-                                ]],
-                                min: 0,
-                                max: None,
-                            }),
+                        enumeration: Some(&[
+                            Listed::Text("control.invalid-params"),
+                            Listed::Text("control.unsupported-api-version"),
+                            Listed::Text("control.invalid-request"),
+                            Listed::Text("control.invalid-service"),
+                            Listed::Text("control.invalid-value"),
+                            Listed::Text("control.unknown-setting"),
+                            Listed::Text("control.target-required"),
+                            Listed::Text("control.target-ambiguous"),
+                            Listed::Text("control.root-not-found"),
+                            Listed::Text("control.root-not-registered"),
+                            Listed::Text("control.stack-not-running"),
+                            Listed::Text("control.stack-running"),
+                            Listed::Text("control.start-in-progress"),
+                            Listed::Text("control.runtime-unavailable"),
+                            Listed::Text("control.dependency-unavailable"),
+                            Listed::Text("control.unreachable"),
+                            Listed::Text("control.instance-in-use"),
+                            Listed::Text("control.instance-not-found"),
+                            Listed::Text("control.confirmation-required"),
+                            Listed::Text("control.unreadable-state"),
+                            Listed::Text("control.already-signed-in"),
+                            Listed::Text("control.sign-in-failed"),
+                            Listed::Text("control.cancelled"),
+                            Listed::Text("control.failed"),
                         ]),
                         ..NONE
                     },
@@ -6494,7 +7475,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                                     min_items: Some(1),
                                     items: Some(&Shape {
                                         kinds: Some(&[Kind::Object]),
-                                        required: &["code", "docs"],
+                                        required: &["code", "docs", "rpc", "retryable"],
                                         members: &[
                                             (
                                                 "code",
@@ -6562,8 +7543,10 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                                                     ..NONE
                                                 },
                                             ),
+                                            ("retryable", of(&[Kind::Boolean])),
+                                            ("rpc", of(&[Kind::Integer])),
                                         ],
-                                        closed: Some(&["code", "docs"]),
+                                        closed: Some(&["code", "docs", "retryable", "rpc"]),
                                         ..NONE
                                     }),
                                     ..NONE
@@ -7339,9 +8322,60 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                                                             ..NONE
                                                         },
                                                     ),
+                                                    (
+                                                        "limitRefusals",
+                                                        Shape {
+                                                            kinds: Some(&[Kind::Array]),
+                                                            min_items: Some(1),
+                                                            items: Some(&Shape {
+                                                                kinds: Some(&[Kind::Object]),
+                                                                required: &["status", "code"],
+                                                                members: &[
+                                                                    (
+                                                                        "code",
+                                                                        Shape {
+                                                                            kinds: Some(&[
+                                                                                Kind::String,
+                                                                            ]),
+                                                                            enumeration: Some(&[
+                                                                                Listed::Text(
+                                                                                    "streams",
+                                                                                ),
+                                                                                Listed::Text(
+                                                                                    "emit-rate",
+                                                                                ),
+                                                                                Listed::Text(
+                                                                                    "unanswered-requests",
+                                                                                ),
+                                                                                Listed::Text(
+                                                                                    "capacity",
+                                                                                ),
+                                                                                Listed::Text(
+                                                                                    "refusal-rate",
+                                                                                ),
+                                                                            ]),
+                                                                            ..NONE
+                                                                        },
+                                                                    ),
+                                                                    (
+                                                                        "status",
+                                                                        reference("HttpStatus"),
+                                                                    ),
+                                                                ],
+                                                                closed: Some(&["code", "status"]),
+                                                                ..NONE
+                                                            }),
+                                                            ..NONE
+                                                        },
+                                                    ),
                                                     ("status", reference("HttpStatus")),
                                                 ],
-                                                closed: Some(&["code", "docs", "status"]),
+                                                closed: Some(&[
+                                                    "code",
+                                                    "docs",
+                                                    "limitRefusals",
+                                                    "status",
+                                                ]),
                                                 ..NONE
                                             },
                                             Shape {
@@ -7711,6 +8745,52 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "Fault",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["member", "reason"],
+            members: &[
+                (
+                    "member",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[Term::Group(Group {
+                            either: &[&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: None,
+                                }),
+                                Term::Group(Group {
+                                    either: &[&[
+                                        Term::Step(Step {
+                                            of: &[(46, 46)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(65, 90), (97, 122)],
+                                            min: 1,
+                                            max: None,
+                                        }),
+                                    ]],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]],
+                            min: 0,
+                            max: Some(1),
+                        })]),
+                        ..NONE
+                    },
+                ),
+                ("reason", reference("FrameRefusalReason")),
+            ],
+            closed: Some(&["member", "reason"]),
+            ..NONE
+        },
+    ),
+    (
         "FieldFault",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -7858,6 +8938,76 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("_userId", reference("UserId")),
                 ("schema", reference("TagSchema")),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "FrameRefusal",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["channel", "member", "reason"],
+            members: &[
+                (
+                    "channel",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "correlationId",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "member",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[Term::Group(Group {
+                            either: &[&[
+                                Term::Step(Step {
+                                    of: &[(65, 90), (97, 122)],
+                                    min: 1,
+                                    max: None,
+                                }),
+                                Term::Group(Group {
+                                    either: &[&[
+                                        Term::Step(Step {
+                                            of: &[(46, 46)],
+                                            min: 1,
+                                            max: Some(1),
+                                        }),
+                                        Term::Step(Step {
+                                            of: &[(65, 90), (97, 122)],
+                                            min: 1,
+                                            max: None,
+                                        }),
+                                    ]],
+                                    min: 0,
+                                    max: None,
+                                }),
+                            ]],
+                            min: 0,
+                            max: Some(1),
+                        })]),
+                        ..NONE
+                    },
+                ),
+                ("reason", reference("FrameRefusalReason")),
+                ("scope", reference("ResourceId")),
+            ],
+            closed: Some(&[
+                "channel",
+                "correlationId",
+                "member",
+                "payload",
+                "reason",
+                "scope",
+            ]),
             ..NONE
         },
     ),
@@ -8759,6 +9909,116 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "HeldJobRecord",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "jobId",
+                "jobType",
+                "resourceId",
+                "params",
+                "completedUnits",
+                "unitCursors",
+                "retryCount",
+                "maxRetries",
+            ],
+            members: &[
+                (
+                    "completedUnits",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("jobId", reference("JobId")),
+                ("jobType", reference("JobType")),
+                (
+                    "maxRetries",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("params", reference("JobParams")),
+                ("resourceId", reference("ResourceId")),
+                (
+                    "retryCount",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "unitCursors",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&reference("UnitCursor")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "completedUnits",
+                "jobId",
+                "jobType",
+                "maxRetries",
+                "params",
+                "resourceId",
+                "retryCount",
+                "unitCursors",
+            ]),
+            ..NONE
+        },
+    ),
+    (
+        "HeldJobStall",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "jobId",
+                "jobType",
+                "heldSince",
+                "lastActivityAt",
+                "silentForMs",
+                "thresholdMs",
+            ],
+            members: &[
+                ("heldSince", of(&[Kind::String])),
+                ("jobId", reference("JobId")),
+                ("jobType", reference("JobType")),
+                ("lastActivityAt", of(&[Kind::String])),
+                (
+                    "silentForMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                (
+                    "thresholdMs",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&[
+                "heldSince",
+                "jobId",
+                "jobType",
+                "lastActivityAt",
+                "silentForMs",
+                "thresholdMs",
+            ]),
+            ..NONE
+        },
+    ),
+    (
         "HighlightingJobParams",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -9301,19 +10561,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                                     kinds: Some(&[Kind::Object]),
                                     values: Some(&reference("Provider")),
                                     min_members: Some(1),
-                                    names: Some(&Shape {
-                                        kinds: Some(&[Kind::String]),
-                                        enumeration: Some(&[
-                                            Listed::Text("anthropic"),
-                                            Listed::Text("google"),
-                                            Listed::Text("llamacpp"),
-                                            Listed::Text("ollama"),
-                                            Listed::Text("openai"),
-                                            Listed::Text("together"),
-                                            Listed::Text("vllm"),
-                                        ]),
-                                        ..NONE
-                                    }),
+                                    names: Some(&reference("InferenceProvider")),
                                     ..NONE
                                 },
                             ),
@@ -9362,6 +10610,22 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     ..NONE
                 },
             )],
+            ..NONE
+        },
+    ),
+    (
+        "InferenceProvider",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("anthropic"),
+                Listed::Text("google"),
+                Listed::Text("llamacpp"),
+                Listed::Text("ollama"),
+                Listed::Text("openai"),
+                Listed::Text("together"),
+                Listed::Text("vllm"),
+            ]),
             ..NONE
         },
     ),
@@ -9708,6 +10972,33 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "JobCheckpoint",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["completedUnits"],
+            members: &[
+                (
+                    "completedUnits",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                (
+                    "unitCursors",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&reference("UnitCursor")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["completedUnits", "unitCursors"]),
+            ..NONE
+        },
+    ),
+    (
         "JobCheckpointCommand",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -9996,6 +11287,33 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("jobType", reference("JobType")),
                 ("willRetry", of(&[Kind::Boolean])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "JobFailure",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                (
+                    "completedUnits",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                ("failureClass", reference("FailureClass")),
+                (
+                    "unitCursors",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&reference("UnitCursor")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["completedUnits", "failureClass", "unitCursors"]),
             ..NONE
         },
     ),
@@ -10469,6 +11787,32 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "JobReached",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            members: &[
+                (
+                    "completedUnits",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        items: Some(&of(&[Kind::String])),
+                        ..NONE
+                    },
+                ),
+                (
+                    "unitCursors",
+                    Shape {
+                        kinds: Some(&[Kind::Object]),
+                        values: Some(&reference("UnitCursor")),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["completedUnits", "unitCursors"]),
+            ..NONE
+        },
+    ),
+    (
         "JobRecord",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -10803,6 +12147,14 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "KbPlacement",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
+            ..NONE
+        },
+    ),
+    (
         "KbRead",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -10943,14 +12295,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("key", of(&[Kind::String])),
                 ("lan", of(&[Kind::String])),
                 ("name", of(&[Kind::String])),
-                (
-                    "placement",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
-                        ..NONE
-                    },
-                ),
+                ("placement", reference("KbPlacement")),
                 ("recorded", of(&[Kind::Boolean])),
                 ("repo", of(&[Kind::String])),
                 ("root", of(&[Kind::String])),
@@ -13363,6 +14708,131 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "PrincipalsRoles",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["$comment", "rolesClaim", "roles", "kindClaim", "agentKind"],
+            members: &[
+                (
+                    "$comment",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        pattern: Some(&[
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                            Term::Step(Step {
+                                of: &[
+                                    (0, 8),
+                                    (14, 31),
+                                    (33, 159),
+                                    (161, 5759),
+                                    (5761, 8191),
+                                    (8203, 8231),
+                                    (8234, 8238),
+                                    (8240, 8286),
+                                    (8288, 12287),
+                                    (12289, 65278),
+                                    (65280, 1114111),
+                                ],
+                                min: 1,
+                                max: Some(1),
+                            }),
+                            Term::Step(Step {
+                                of: &[(0, 1114111)],
+                                min: 0,
+                                max: None,
+                            }),
+                        ]),
+                        ..NONE
+                    },
+                ),
+                (
+                    "agentKind",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "kindClaim",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "roles",
+                    Shape {
+                        kinds: Some(&[Kind::Array]),
+                        min_items: Some(1),
+                        items: Some(&Shape {
+                            kinds: Some(&[Kind::Object]),
+                            required: &["role", "docs"],
+                            members: &[
+                                (
+                                    "docs",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        min_length: Some(1),
+                                        ..NONE
+                                    },
+                                ),
+                                (
+                                    "role",
+                                    Shape {
+                                        kinds: Some(&[Kind::String]),
+                                        pattern: Some(&[
+                                            Term::Step(Step {
+                                                of: &[(97, 122)],
+                                                min: 1,
+                                                max: None,
+                                            }),
+                                            Term::Group(Group {
+                                                either: &[&[
+                                                    Term::Step(Step {
+                                                        of: &[(45, 45)],
+                                                        min: 1,
+                                                        max: Some(1),
+                                                    }),
+                                                    Term::Step(Step {
+                                                        of: &[(97, 122)],
+                                                        min: 1,
+                                                        max: None,
+                                                    }),
+                                                ]],
+                                                min: 0,
+                                                max: None,
+                                            }),
+                                        ]),
+                                        ..NONE
+                                    },
+                                ),
+                            ],
+                            closed: Some(&["docs", "role"]),
+                            ..NONE
+                        }),
+                        ..NONE
+                    },
+                ),
+                (
+                    "rolesClaim",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["$comment", "agentKind", "kindClaim", "roles", "rolesClaim"]),
+            ..NONE
+        },
+    ),
+    (
         "Profile",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -13593,7 +15063,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                ("file", reference("Binary")),
+                ("file", reference("ByteSource")),
                 ("format", of(&[Kind::String])),
                 ("generationPrompt", of(&[Kind::String])),
                 ("generator", reference("OneOrMoreAgents")),
@@ -14513,14 +15983,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ("identityError", of(&[Kind::String])),
                 ("lastUsed", of(&[Kind::String])),
                 ("path", of(&[Kind::String])),
-                (
-                    "placement",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
-                        ..NONE
-                    },
-                ),
+                ("placement", reference("KbPlacement")),
                 ("present", of(&[Kind::Boolean])),
                 ("reachable", of(&[Kind::Boolean])),
                 ("registered", of(&[Kind::Boolean])),
@@ -16822,22 +18285,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                         ..NONE
                     },
                 ),
-                (
-                    "stream",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[
-                            Listed::Text("initial"),
-                            Listed::Text("connecting"),
-                            Listed::Text("open"),
-                            Listed::Text("reconnecting"),
-                            Listed::Text("degraded"),
-                            Listed::Text("unauthenticated"),
-                            Listed::Text("closed"),
-                        ]),
-                        ..NONE
-                    },
-                ),
+                ("stream", reference("ConnectionState")),
             ],
             closed: Some(&[
                 "eventsProcessed",
@@ -17553,7 +19001,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             kinds: Some(&[Kind::Object]),
             required: &["access", "refresh", "clientId", "tokenEndpoint"],
             members: &[
-                ("access", of(&[Kind::String])),
+                ("access", reference("AccessToken")),
                 ("clientId", of(&[Kind::String])),
                 ("personKey", of(&[Kind::String])),
                 ("refresh", of(&[Kind::String])),
@@ -17655,6 +19103,18 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
                 ("value", of(&[Kind::String])),
             ],
+            ..NONE
+        },
+    ),
+    (
+        "System",
+        Shape {
+            kinds: Some(&[Kind::String]),
+            enumeration: Some(&[
+                Listed::Text("macos"),
+                Listed::Text("windows"),
+                Listed::Text("other"),
+            ]),
             ..NONE
         },
     ),
@@ -17850,14 +19310,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             kinds: Some(&[Kind::Object]),
             required: &["kind"],
             members: &[
-                (
-                    "kind",
-                    Shape {
-                        kinds: Some(&[Kind::String]),
-                        enumeration: Some(&[Listed::Text("local"), Listed::Text("codespace")]),
-                        ..NONE
-                    },
-                ),
+                ("kind", reference("KbPlacement")),
                 (
                     "repo",
                     Shape {
@@ -18058,6 +19511,33 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "TraceCarrier",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["traceparent"],
+            members: &[
+                (
+                    "traceparent",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+                (
+                    "tracestate",
+                    Shape {
+                        kinds: Some(&[Kind::String]),
+                        min_length: Some(1),
+                        ..NONE
+                    },
+                ),
+            ],
+            closed: Some(&["traceparent", "tracestate"]),
+            ..NONE
+        },
+    ),
+    (
         "UnitCursor",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -18134,7 +19614,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
             one_of: &[
                 Shape {
                     kinds: Some(&[Kind::Object]),
-                    required: &["phase", "totalBytes"],
+                    required: &["phase"],
                     members: &[
                         (
                             "phase",
@@ -18158,7 +19638,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 },
                 Shape {
                     kinds: Some(&[Kind::Object]),
-                    required: &["phase", "bytesUploaded", "totalBytes"],
+                    required: &["phase", "bytesUploaded"],
                     members: &[
                         (
                             "bytesUploaded",
@@ -18605,6 +20085,20 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
         },
     ),
     (
+        "WorkerActiveJob",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["jobId", "type", "since"],
+            members: &[
+                ("jobId", reference("JobId")),
+                ("since", of(&[Kind::String])),
+                ("type", reference("JobType")),
+            ],
+            closed: Some(&["jobId", "since", "type"]),
+            ..NONE
+        },
+    ),
+    (
         "WorkerConfig",
         Shape {
             kinds: Some(&[Kind::Object]),
@@ -18711,13 +20205,7 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                     "activeJob",
                     Shape {
                         kinds: Some(&[Kind::Object, Kind::Null]),
-                        required: &["jobId", "type", "since"],
-                        members: &[
-                            ("jobId", reference("JobId")),
-                            ("since", of(&[Kind::String])),
-                            ("type", reference("JobType")),
-                        ],
-                        closed: Some(&["jobId", "since", "type"]),
+                        one_of: &[of(&[Kind::Null]), reference("WorkerActiveJob")],
                         ..NONE
                     },
                 ),
@@ -18939,6 +20427,51 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
             ],
             closed: Some(&["apiVersion", "kind", "metadata", "spec"]),
+            ..NONE
+        },
+    ),
+    (
+        "WorkerVitals",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &[
+                "lastQueuedEventAt",
+                "lastClaimAt",
+                "lastFinishedAt",
+                "lastActivityAt",
+                "activeJob",
+                "jobsCompleted",
+            ],
+            members: &[
+                (
+                    "activeJob",
+                    Shape {
+                        kinds: Some(&[Kind::Object, Kind::Null]),
+                        one_of: &[of(&[Kind::Null]), reference("WorkerActiveJob")],
+                        ..NONE
+                    },
+                ),
+                (
+                    "jobsCompleted",
+                    Shape {
+                        kinds: Some(&[Kind::Integer]),
+                        minimum: Some(0.0),
+                        ..NONE
+                    },
+                ),
+                ("lastActivityAt", of(&[Kind::String, Kind::Null])),
+                ("lastClaimAt", of(&[Kind::String, Kind::Null])),
+                ("lastFinishedAt", of(&[Kind::String, Kind::Null])),
+                ("lastQueuedEventAt", of(&[Kind::String, Kind::Null])),
+            ],
+            closed: Some(&[
+                "activeJob",
+                "jobsCompleted",
+                "lastActivityAt",
+                "lastClaimAt",
+                "lastFinishedAt",
+                "lastQueuedEventAt",
+            ]),
             ..NONE
         },
     ),

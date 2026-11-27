@@ -7,6 +7,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializer
@@ -15,7 +16,6 @@ import xynolog.bus.Bus
 import xynolog.bus.Operations
 import xynolog.bus.decoded
 import xynolog.bus.heard
-import xynolog.bus.replyChannelsFor
 import xynolog.bus.resultOf
 import xynolog.channels.Channels
 import xynolog.errors.BusRequestError
@@ -26,7 +26,6 @@ import xynolog.stamped
 import xynolog.telemetry.futureOf
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Delivered
 import xynolog.transport.Events
 import xynolog.transport.Frame
@@ -34,23 +33,21 @@ import xynolog.transport.FrameRefusal
 import xynolog.transport.Transport
 import xynolog.transport.Variable
 import xynolog.types.ClaimOptions
+import xynolog.types.ClaimRefusal
+import xynolog.types.ConnectionState
 import xynolog.types.Engine
+import xynolog.types.HeldJobStall
 import xynolog.types.JobClaimCommand
 import xynolog.types.JobFilter
 import xynolog.types.JobType
+import xynolog.types.WorkerActiveJob
 import xynolog.types.WorkerEngineHealth
-import xynolog.types.WorkerEngineHealthActiveJob
+import xynolog.types.WorkerVitals
 import xynolog.types.wireJson
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
-
-/** What a worker's stream names for its claims: the replies of `job:claim`, and the two broadcasts a worker reads. */
-public val JOB_CLAIM_CHANNELS: List<String> = replyChannelsFor(Operations.JOB_CLAIM) + Channels.JOB_QUEUED.name + Channels.JOB_CANCEL_REQUESTED.name
-
-/** What a worker's stream names for its commits as well: the replies of `mark:commit`, and of the question whether a batch is recorded. */
-public val JOB_COMMIT_CHANNELS: List<String> = replyChannelsFor(Operations.MARK_COMMIT, Operations.BROWSE_ANNOTATION_REQUESTED)
 
 /** What one claim came to: a job held, a refusal, or nothing pending. */
 private sealed interface Answer {
@@ -185,24 +182,21 @@ public class Claims internal constructor(
             lastClaimAt = lastClaimAt?.let(::stamped),
             lastFinishedAt = lastFinishedAt?.let(::stamped),
             lastActivityAt = lastActivityAt?.let(::stamped),
-            activeJob = if (holding == null || since == null) null else WorkerEngineHealthActiveJob(jobId = holding.jobId, type = holding.jobType, since = stamped(since)),
+            activeJob = if (holding == null || since == null) null else WorkerActiveJob(jobId = holding.jobId, type = holding.jobType, since = stamped(since)),
             jobsCompleted = jobsCompleted,
         )
     }
 
-    /** This worker's health as `engine`'s, which its host reports among its knowledge base's engines: its vitals, and the jobs these claims take. */
+    /**
+     * This worker's health as `engine`'s, which its host reports among its
+     * knowledge base's engines: its vitals, and the jobs these claims take.
+     * Made by the wire, so every member of the vitals is the health's with no
+     * list of them here.
+     */
     public fun health(engine: Engine): WorkerEngineHealth {
-        val now = vitals()
-        return WorkerEngineHealth(
-            engine = engine,
-            jobs = accepts,
-            lastQueuedEventAt = now.lastQueuedEventAt,
-            lastClaimAt = now.lastClaimAt,
-            lastFinishedAt = now.lastFinishedAt,
-            lastActivityAt = now.lastActivityAt,
-            activeJob = now.activeJob,
-            jobsCompleted = now.jobsCompleted,
-        )
+        val now = wireJson.encodeToJsonElement(WorkerVitals.serializer(), vitals()).jsonObject
+        val claiming = mapOf("engine" to wireJson.encodeToJsonElement(Engine.serializer(), engine), "jobs" to JsonArray(filters))
+        return wireJson.decodeFromJsonElement(WorkerEngineHealth.serializer(), JsonObject(now + claiming))
     }
 
     /**
@@ -297,7 +291,7 @@ public class Claims internal constructor(
                 val silentForMs = mark.elapsedNow().inWholeMilliseconds
                 if (silentForMs <= heldJobStallMs) return@synchronized null
                 stallReported = true
-                HeldJobStall(holding.jobId, holding.jobType, since, last, silentForMs, heldJobStallMs)
+                HeldJobStall(jobId = holding.jobId, jobType = holding.jobType, heldSince = stamped(since), lastActivityAt = stamped(last), silentForMs = silentForMs, thresholdMs = heldJobStallMs)
             }
             if (found != null) stalls.deliver(found)
         }

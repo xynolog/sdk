@@ -41,15 +41,17 @@ import xynolog.cache.Cache
 import xynolog.cache.CachePersister
 import xynolog.cache.CacheRefreshTrigger
 import xynolog.channels.BRIDGED_CHANNELS
-import xynolog.discovery.DiscoveryRead
 import xynolog.discovery.DiscoveryTransport
-import xynolog.discovery.Managed
-import xynolog.discovery.Unchanged
 import xynolog.discovery.subscribeDiscovery
 import xynolog.errors.BusRequestError
 import xynolog.errors.BusRequestErrorCode
 import xynolog.errors.TransportError
+import xynolog.errors.XynologError
+import xynolog.http.AgentToken
+import xynolog.http.GET_CURRENT_USER
 import xynolog.http.HttpTransport
+import xynolog.http.SecretCredential
+import xynolog.http.ServiceToken
 import xynolog.http.signInDevice
 import xynolog.identifiers.JobId
 import xynolog.jobs.JOB_CLAIM_CHANNELS
@@ -66,10 +68,13 @@ import xynolog.signin.SCRIPT_CLIENT_ID
 import xynolog.testing.FaultyTransport
 import xynolog.testing.REFUSE_UNSCRIPTED
 import xynolog.testing.Respond
-import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
 import xynolog.types.ClaimOptions
+import xynolog.types.ConnectionState
 import xynolog.types.DiscoveredKB
+import xynolog.types.DiscoveryManaged
+import xynolog.types.DiscoveryRead
+import xynolog.types.DiscoveryUnchanged
 import xynolog.types.HighlightingJobParams
 import xynolog.types.JobFilter
 import xynolog.types.JobProgress
@@ -77,7 +82,9 @@ import xynolog.types.JobStatusResponse
 import xynolog.types.RetryBudget
 import xynolog.types.StoredSession
 import xynolog.types.wireJson
+import java.io.IOException
 import java.net.Authenticator
+import java.net.ConnectException
 import java.net.CookieHandler
 import java.net.ProxySelector
 import java.net.URI
@@ -218,12 +225,18 @@ private class Response<T>(private val request: HttpRequest, private val info: In
 
 /**
  * A network in this process: each request is answered at once, as `answer`
- * says, or never, when it says nothing. It opens no socket and starts no
- * thread, so it takes no time the test's clock does not give.
+ * says, or never, when it says nothing, or fails at once, when it throws an
+ * `IOException`. It opens no socket and starts no thread, so it takes no time
+ * the test's clock does not give.
  */
 private class Network(private val answer: (HttpRequest) -> Reply?) : HttpClient() {
     override fun <T> sendAsync(request: HttpRequest, handler: HttpResponse.BodyHandler<T>): CompletableFuture<HttpResponse<T>> {
-        val reply = answer(request) ?: return CompletableFuture()
+        val reply = try {
+            answer(request)
+        } catch (unreachable: IOException) {
+            return CompletableFuture.failedFuture(unreachable)
+        }
+        if (reply == null) return CompletableFuture()
         val info = Info(reply)
         val reader = handler.apply(info)
         val read = reader.body.toCompletableFuture()
@@ -493,6 +506,80 @@ private suspend fun renewal(given: JsonObject, bench: Bench): Subject {
     return Subject({ renewals }, null)
 }
 
+// ── An agent's sign-in ──────────────────────────────────────────────────
+
+/**
+ * An agent's issuer and gateway, in this process. The issuer grants a token
+ * that lives an hour, or answers each grant with `grantStatus`; the gateway
+ * answers who the agent is with `namingStatus`, or cannot be reached when
+ * `unreachable`. It counts the requests the sign-in sends to either, a
+ * connection it tried among them.
+ */
+private class AgentServers(private val grantStatus: Int?, private val namingStatus: Int?, private val unreachable: Boolean) {
+    var sent = 0
+        private set
+
+    fun answer(request: HttpRequest): Reply {
+        val uri = request.uri()
+        return when (val where = "${uri.scheme}://${uri.authority}${uri.path}") {
+            "$ISSUER/.well-known/openid-configuration" -> json(
+                200,
+                buildJsonObject {
+                    put("issuer", ISSUER)
+                    put("token_endpoint", "$ISSUER/token")
+                },
+            )
+            "$ISSUER/token" -> {
+                sent += 1
+                if (grantStatus == null) {
+                    json(
+                        200,
+                        buildJsonObject {
+                            put("access_token", token(3600, sent))
+                            put("token_type", "Bearer")
+                            put("expires_in", 3600)
+                        },
+                    )
+                } else {
+                    json(grantStatus, buildJsonObject { put("error", "temporarily_unavailable") })
+                }
+            }
+            "$GATEWAY${GET_CURRENT_USER.path}" -> {
+                sent += 1
+                if (unreachable) throw ConnectException("the gateway cannot be reached")
+                json(namingStatus ?: throw AssertionError("the gateway was asked after a refused grant"), JsonObject(emptyMap()))
+            }
+            else -> throw AssertionError("the agent's sign-in asked ${request.method()} $where, which it does not ask")
+        }
+    }
+}
+
+/** An agent's sign-in at `servers`, set going as the case begins. Every way it ends here is a failure, thrown to its caller. */
+private fun agentSignIn(servers: AgentServers, bench: Bench): Subject {
+    val network = Network(servers::answer)
+    val service = ServiceToken(SecretCredential(ISSUER, "smelter", "a-client-secret"), network, bench.context, bench.clock)
+    val agent = bench.held(AgentToken(GATEWAY, service, network, bench.context, LowestDraw))
+    val signingIn = bench.work.async { agent.signIn() }
+    return Subject(
+        {
+            if (signingIn.isCompleted) {
+                val failure = signingIn.getCompletionExceptionOrNull()
+                assertTrue(failure is XynologError, "the sign-in ended otherwise: $failure")
+            }
+            servers.sent
+        },
+        null,
+    )
+}
+
+private fun status(given: JsonObject): Int = given.getValue("status").jsonPrimitive.int
+
+private suspend fun refusedAgentSignIn(given: JsonObject, bench: Bench): Subject = agentSignIn(AgentServers(null, status(given), false), bench)
+
+private suspend fun unreachableAgentSignIn(given: JsonObject, bench: Bench): Subject = agentSignIn(AgentServers(null, null, true), bench)
+
+private suspend fun refusedAgentGrant(given: JsonObject, bench: Bench): Subject = agentSignIn(AgentServers(status(given), null, false), bench)
+
 // ── A worker's claims ───────────────────────────────────────────────────
 
 private val MARK_JOBS: List<JobFilter> = wireJson.decodeFromString(ListSerializer(serializer<JobFilter>()), """[{"jobType":"mark","params":{"motivation":"highlighting"}}]""")
@@ -511,8 +598,8 @@ private suspend fun heldJobStall(given: JsonObject, bench: Bench): Subject {
 
 // ── Discovery ───────────────────────────────────────────────────────────
 
-private val MANAGED = Managed(
-    listOf(wireJson.decodeFromString(DiscoveredKB.serializer(), """{"host":"localhost","port":4000,"placement":"local","managedBy":"xynolog-launcher","did":"did:web:example.org:kb-a"}""")),
+private val MANAGED = DiscoveryManaged(
+    kbs = listOf(wireJson.decodeFromString(DiscoveredKB.serializer(), """{"host":"localhost","port":4000,"placement":"local","managedBy":"xynolog-launcher","did":"did:web:example.org:kb-a"}""")),
 )
 
 /** A launcher's document: one managed knowledge base at the first read, and unchanged at every read after it. */
@@ -522,7 +609,7 @@ private class LauncherDocument : DiscoveryTransport {
 
     override suspend fun read(): DiscoveryRead {
         reads += 1
-        return if (reads == 1) MANAGED else Unchanged
+        return if (reads == 1) MANAGED else DiscoveryUnchanged()
     }
 }
 
@@ -555,7 +642,7 @@ private class Saves : CachePersister<String, Int> {
 
 private suspend fun saveDebounce(given: JsonObject, bench: Bench): Subject {
     val saves = Saves()
-    val cache = bench.held(Cache<String, Int>({ key -> throw AssertionError("a cache that is only written fetched $key") }, saves, Timings.SAVE_DEBOUNCE_MS, bench.context))
+    val cache = bench.held(Cache<String, Int>({ key -> throw AssertionError("a cache that is only written fetched $key") }, saves, bench.context))
     var changes = 0
     return Subject(
         { saves.saved.size },
@@ -639,6 +726,9 @@ private val SUBJECTS: Map<String, suspend (JsonObject, Bench) -> Subject> = mapO
     "timedOutBusRequest" to ::timedOutBusRequest,
     "jobPoll" to ::jobPoll,
     "jobPollTimeout" to ::jobPollTimeout,
+    "refusedAgentSignIn" to ::refusedAgentSignIn,
+    "unreachableAgentSignIn" to ::unreachableAgentSignIn,
+    "refusedAgentGrant" to ::refusedAgentGrant,
 )
 
 // ── A case, played ──────────────────────────────────────────────────────

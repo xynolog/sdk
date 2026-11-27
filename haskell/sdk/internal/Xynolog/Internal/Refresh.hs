@@ -35,13 +35,12 @@ import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (BusRequestError (..), TransportError (..))
 import Xynolog.Internal.Cache qualified as Cache
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Lifetime qualified as Lifetime
 import Xynolog.Internal.Required qualified as Required
 import Xynolog.Internal.StateValue qualified as State
 import Xynolog.Internal.Transport qualified as Transport
-import Xynolog.Timing.Settings qualified as Timing
-import Xynolog.Transport.Facts qualified as Connection
-import Xynolog.Types (Annotation, AnnotationId, BusFrame (..), BusFramePayload (..), ResourceId)
+import Xynolog.Types (Annotation, AnnotationId, BusFrame (..), BusFramePayload (..), ConnectionState (..), ResourceId)
 
 data SubjectInfo = SubjectInfo
   { subjectWhen :: Maybe Text,
@@ -149,10 +148,10 @@ newRefresher local wire options settings controls = mask $ \restore -> do
                 case item of
                   Left () -> pure ()
                   Right (state, rest) -> case state of
-                    Connection.Open -> do
+                    ConnectionStateOpen -> do
                       when (opened && dropped) (atomically (apply result Fact.reopened Nothing nothingNamed))
                       loop True False rest
-                    Connection.Closed -> pure ()
+                    ConnectionStateClosed -> pure ()
                     _ -> loop opened (dropped || opened) rest
           loop False False states
         pure result

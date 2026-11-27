@@ -31,9 +31,9 @@ use xynolog::errors::{TransportError, TransportErrorCode};
 use xynolog::gateway_http::{EMIT_ON_BUS, SUBSCRIBE_TO_BUS};
 use xynolog::testing::as_id;
 use xynolog::testing::liveness::{DeliverySubject, assert_exactly_once_delivery_on};
-use xynolog::transport::{BoxFuture, ConnectionState, ResourceHold, Transport};
-use xynolog::types::RetryBudget;
-use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
+use xynolog::transport::{BoxFuture, ResourceHold, Transport};
+use xynolog::types::{ConnectionState, RetryBudget};
+use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, TransportTiming};
 
 const CHANNEL: &str = "beckon:focus";
 const READ: &str = "browse:resource-requested";
@@ -259,7 +259,7 @@ impl Gateway {
         self.client_timed(quick(linger))
     }
 
-    fn client_timed(&self, timing: Timing) -> HttpTransport {
+    fn client_timed(&self, timing: TransportTiming) -> HttpTransport {
         // Already installed by another test of this process: one is enough.
         let _ = rustls::crypto::ring::default_provider().install_default();
         HttpTransport::new(HttpTransportConfig {
@@ -277,8 +277,8 @@ impl Gateway {
 }
 
 /// Timing a test does not wait out, with the stream's open left as it is.
-fn quick(linger: Duration) -> Timing {
-    Timing {
+fn quick(linger: Duration) -> TransportTiming {
+    TransportTiming {
         reconnect: Duration::from_millis(20),
         lazy_remove: Duration::from_millis(20),
         linger,
@@ -287,7 +287,7 @@ fn quick(linger: Duration) -> Timing {
             initial_delay_ms: 10,
             max_delay_ms: 10,
         },
-        ..Timing::default()
+        ..TransportTiming::default()
     }
 }
 
@@ -596,8 +596,8 @@ async fn a_refused_connect_whose_body_never_ends_is_reported_at_the_request_dead
 {
     let gateway = Gateway::start().await;
     gateway.refuse(StatusCode::SERVICE_UNAVAILABLE, Said::Unfinished);
-    let transport = gateway.client_timed(Timing {
-        http_request: Duration::from_millis(100),
+    let transport = gateway.client_timed(TransportTiming {
+        http_request_timeout: Duration::from_millis(100),
         ..quick(Duration::from_millis(60))
     });
     let mut failures = transport.failures();
@@ -647,8 +647,8 @@ async fn an_open_the_gateway_never_answers_has_failed_and_the_stream_is_opened_a
     // the end, so what it releases is never released.
     let (_never, held) = oneshot::channel::<()>();
     *gateway.staged.held.lock().unwrap() = Some(held);
-    let transport = gateway.client_timed(Timing {
-        stream_open: Duration::from_millis(100),
+    let transport = gateway.client_timed(TransportTiming {
+        stream_open_timeout: Duration::from_millis(100),
         ..quick(Duration::from_millis(60))
     });
     let states = states_of(&transport);

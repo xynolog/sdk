@@ -43,7 +43,6 @@ import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Broadcast
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Events
 import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
@@ -54,6 +53,7 @@ import xynolog.transport.ResourceHold
 import xynolog.transport.Transport
 import xynolog.transport.Watched
 import xynolog.types.CommentingJobParams
+import xynolog.types.ConnectionState
 import xynolog.types.FrameRefusalReason
 import xynolog.types.GenerationJobParams
 import xynolog.types.HighlightingJobParams

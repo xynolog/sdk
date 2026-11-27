@@ -133,7 +133,7 @@ describe('match.resources()', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('asks the search with its filters, and the first hundred when none are given', async () => {
+  it('asks the search with its filters, and no page when none is given', async () => {
     const h = harness();
     const match = new MatchNamespace(h.transport, h.bus);
 
@@ -146,21 +146,12 @@ describe('match.resources()', () => {
       }),
     );
 
-    expect(h.asked.map((a) => a.payload)).toEqual([
-      {
-        search: 'cat',
-        archived: undefined,
-        entityType: undefined,
-        limit: 100,
-        offset: 0,
-      },
-      {
-        search: 'cat',
-        archived: false,
-        entityType: 'Person',
-        limit: 5,
-        offset: 0,
-      },
+    // What goes on the wire: a member left unstated is not sent.
+    expect(
+      h.asked.map((a) => JSON.parse(JSON.stringify(a.payload)) as unknown),
+    ).toStrictEqual([
+      { search: 'cat' },
+      { search: 'cat', archived: false, entityType: 'Person', limit: 5 },
     ]);
     match.dispose();
   });
@@ -196,7 +187,7 @@ describe('match.resources()', () => {
   it('a resource created elsewhere asks every held search again, once per window', async () => {
     const h = harness();
     const match = new MatchNamespace(h.transport, h.bus, {
-      invalidationWindowMs: 50,
+      timing: { invalidationWindowMs: 50 },
     });
     await ready(match.resources('foo'));
     await ready(match.resources('bar'));
@@ -215,7 +206,7 @@ describe('match.resources()', () => {
   it('the stream open again after a drop asks every held search again', async () => {
     const h = harness();
     const match = new MatchNamespace(h.transport, h.bus, {
-      invalidationWindowMs: 50,
+      timing: { invalidationWindowMs: 50 },
     });
     await ready(match.resources('foo'));
 
@@ -230,7 +221,7 @@ describe('match.resources()', () => {
   it('a disposed namespace asks nothing more', async () => {
     const h = harness();
     const match = new MatchNamespace(h.transport, h.bus, {
-      invalidationWindowMs: 50,
+      timing: { invalidationWindowMs: 50 },
     });
     await ready(match.resources('foo'));
 
@@ -283,7 +274,7 @@ describe('gather.referencedBy()', () => {
   it('a gap in what the scope replayed asks again for the resource it names, and no other', async () => {
     const h = harness();
     const gather = new GatherNamespace(h.transport, h.bus, {
-      invalidationWindowMs: 50,
+      timing: { invalidationWindowMs: 50 },
     });
     const other = resourceId('res-2');
     const held = gather.referencedBy(RID);

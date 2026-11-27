@@ -29,16 +29,18 @@ use xynolog::gateway_http::{self, EMIT_ON_BUS, GET_CURRENT_USER, IDEMPOTENCY_KEY
 use xynolog::retry::{self, RetryFacts, retry_after, retry_with_backoff};
 use xynolog::timing;
 use xynolog::transport::{
-    BoxFuture, ConnectionState, Envelope, Events, FailureListener, FailureStream, Failures,
-    FrameHub, Frames, GatewayOperations, PendingReply, ReplyRouter, ResourceHold, TraceCarrier,
-    Transport, unsubscribed,
+    BoxFuture, Envelope, Events, FailureListener, FailureStream, Failures, FrameHub, Frames,
+    GatewayOperations, PendingReply, ReplyRouter, ResourceHold, Transport, unsubscribed,
 };
+use xynolog::types::ConnectionState;
+use xynolog::types::TraceCarrier;
 use xynolog::types::{
     BusEmitAccepted, BusEmitRequest, ErrorResponse, HealthResponse, LimitRefusal, LimitRefusalCode,
-    MediaTokenRequest, MediaTokenResponse, ProtectedResourceMetadata, RetryBudget, StatusResponse,
-    UserResponse,
+    MediaTokenRequest, MediaTokenResponse, ProtectedResourceMetadata, StatusResponse, UserResponse,
 };
 use xynolog::types::{LastEventIds, ResourceId, Schema};
+
+pub use xynolog::timing::TransportTiming;
 
 /// A key for one emit or one upload, made before its first attempt: sent as
 /// its `Idempotency-Key`, the same on every attempt at it, so a request sent
@@ -95,38 +97,6 @@ pub trait TokenRefresher: Send + Sync + 'static {
     fn refresh<'a>(&'a self, refused: Option<&'a str>) -> BoxFuture<'a, Option<String>>;
 }
 
-/// The timing a transport keeps, from protocol/specs/src/client/timing.json unless a
-/// caller that must not wait it out (a test, a conformance driver) says
-/// otherwise.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Timing {
-    pub reconnect: Duration,
-    pub lazy_remove: Duration,
-    pub linger: Duration,
-    pub emit_retry: RetryBudget,
-    pub seen_event_ids: usize,
-    /// The deadline on one request that is neither the stream nor an emit,
-    /// and on reading any refusal's body, the stream's too.
-    pub http_request: Duration,
-    /// The deadline on the gateway's answer to the request that opens the
-    /// stream: its status and headers.
-    pub stream_open: Duration,
-}
-
-impl Default for Timing {
-    fn default() -> Timing {
-        Timing {
-            reconnect: timing::RECONNECT,
-            lazy_remove: timing::LAZY_REMOVE,
-            linger: timing::LINGER,
-            emit_retry: timing::EMIT_RETRY,
-            seen_event_ids: timing::SEEN_EVENT_IDS_COUNT,
-            http_request: timing::HTTP_REQUEST_TIMEOUT,
-            stream_open: timing::STREAM_OPEN_TIMEOUT,
-        }
-    }
-}
-
 pub struct HttpTransportConfig {
     /// The gateway's origin.
     pub base_url: String,
@@ -144,7 +114,7 @@ pub struct HttpTransportConfig {
     /// transport hears what it is given.
     pub channels: Vec<String>,
     pub http: reqwest::Client,
-    pub timing: Timing,
+    pub timing: TransportTiming,
     /// What the jitter of the stream's reconnects and of each emit's retries
     /// is drawn from; the system's source when none is given.
     pub random: Option<Arc<Mutex<dyn Rng + Send>>>,
@@ -166,7 +136,7 @@ pub(crate) struct Shared {
     /// per connection, so both streams of a handoff present the same one.
     pub client_id: String,
     pub global: Vec<String>,
-    pub timing: Timing,
+    pub timing: TransportTiming,
     pub random: Option<Arc<Mutex<dyn Rng + Send>>>,
     pub hub: FrameHub,
     pub router: Arc<ReplyRouter>,
@@ -244,8 +214,9 @@ impl Shared {
     /// stream as it is returned.
     ///
     /// An attempt whose answer has not begun by the transport's deadline
-    /// (`Timing::http_request`) fails as one that got no answer, and is not
-    /// made again: the gateway has the request, and may yet act on it.
+    /// (`TransportTiming::http_request_timeout`) fails as one that got no
+    /// answer, and is not made again: the gateway has the request, and may
+    /// yet act on it.
     pub async fn send(
         &self,
         method: reqwest::Method,
@@ -257,7 +228,7 @@ impl Shared {
             method,
             path,
             authenticated,
-            Some(self.timing.http_request),
+            Some(self.timing.http_request_timeout),
             build,
         )
         .await
@@ -389,7 +360,7 @@ impl Shared {
             method,
             path,
             authenticated,
-            Some(self.timing.http_request),
+            Some(self.timing.http_request_timeout),
             build,
         )
         .await

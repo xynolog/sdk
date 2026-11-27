@@ -2,6 +2,7 @@ import type {
   AnnotationId,
   CacheQuery,
   CacheValues,
+  ClientTiming,
   components,
   ResourceId,
   EventBus,
@@ -9,7 +10,7 @@ import type {
 } from '@xynolog/core';
 import type { GatherResourceOptions, ITransport } from '@xynolog/core';
 import { CacheObservable, StreamObservable } from '../awaitable';
-import { Bus } from '@xynolog/core';
+import { Bus, DEFAULT_CLIENT_TIMING } from '@xynolog/core';
 import { createCache, type Cache } from '../cache';
 import { CacheRefresher, ScopedSources } from '../cache-refresh';
 import type {
@@ -42,13 +43,15 @@ export class GatherNamespace implements IGatherNamespace {
     private readonly transport: ITransport,
     private readonly bus: EventBus,
     options?: {
-      /** Timeout of the requests the live query issues; absent, `Bus.request`'s own. */
-      busTimeoutMs?: number;
-      /** B19's window; absent, `invalidationWindowMs` of protocol/specs/src/client/timing.json. */
-      invalidationWindowMs?: number;
+      /** What of the client's timing differs from `DEFAULT_CLIENT_TIMING`. */
+      timing?: Partial<ClientTiming>;
     },
   ) {
     this.wire = new Bus(transport);
+    const { busRequestTimeoutMs, invalidationWindowMs } = {
+      ...DEFAULT_CLIENT_TIMING,
+      ...options?.timing,
+    };
     this.scoped = new ScopedSources(this.transport);
 
     this.referencedByCache = createCache<
@@ -58,7 +61,7 @@ export class GatherNamespace implements IGatherNamespace {
       const result = await this.wire.request(
         'gather:referenced-by-requested',
         { resourceId },
-        options?.busTimeoutMs,
+        busRequestTimeoutMs,
       );
       return result.referencedBy;
     });
@@ -86,7 +89,7 @@ export class GatherNamespace implements IGatherNamespace {
           },
         },
       },
-      options?.invalidationWindowMs,
+      invalidationWindowMs,
     );
   }
 
@@ -117,19 +120,16 @@ export class GatherNamespace implements IGatherNamespace {
     annotationId: AnnotationId,
     options?: components['schemas']['GatherAnnotationOptions'],
   ): StreamObservable<GatherAnnotationComplete> {
+    // Options none of which is stated are not sent: each is the gatherer's.
+    const stated =
+      options !== undefined &&
+      Object.values(options).some((option) => option !== undefined);
     return new StreamObservable<GatherAnnotationComplete>((subscriber) => {
       const abandoned = new AbortController();
       this.wire
         .request(
           'gather:requested',
-          {
-            annotationId,
-            resourceId,
-            options: {
-              ...options,
-              contextWindow: options?.contextWindow ?? 2000,
-            },
-          },
+          { annotationId, resourceId, options: stated ? options : undefined },
           // The request's own deadline: the option above is the live query's.
           undefined,
           abandoned.signal,

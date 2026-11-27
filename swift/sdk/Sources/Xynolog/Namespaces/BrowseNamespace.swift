@@ -11,7 +11,7 @@ public struct BrowseNamespace: Sendable {
   public func resources(filters: BrowseResourcesRequest = BrowseResourcesRequest()) -> Cached<
     ListResourcesResponse
   > {
-    live.listedResources.observe(filters.paged)
+    live.listedResources.observe(filters)
   }
   public func engines() -> Cached<EnginesWithLimits> { live.enginesWithLimits }
 

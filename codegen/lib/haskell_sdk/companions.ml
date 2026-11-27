@@ -39,7 +39,50 @@ let rec value : Yojson.Safe.t -> H.expr = function
   | `Null -> Name "Null"
   | `Intlit _ -> invalid_arg "Companions: no JSON value of this kind"
 
-let schemas_module ~banner definitions =
+(* [schema] with each text of a vocabulary of errors/codes.json
+   ([x-xynolog-codes]) stated as an enumeration of its codes, which the
+   runtime form of a schema leaves out: the code types the models read it as
+   hold it to no other, as the required table does. One that also allows
+   null is either null or one of the codes. *)
+let coded (vocabularies : Error_codes.Table.vocabulary list) =
+  Schema.cata
+    ~boolean:(fun b -> Schema.Boolean_schema b)
+    ~schema:(fun (layer : Schema.schema) ->
+      match layer.codes with
+      | None -> Schema.Schema layer
+      | Some member -> (
+          match Error_codes.Table.enum vocabularies member with
+          | None ->
+              invalid_arg
+                ("Companions: errors/codes.json has no vocabulary " ^ member)
+          | Some codes -> (
+              let enum = Some codes in
+              match layer.type_ with
+              | Some [ Schema.String ] -> Schema.Schema { layer with enum }
+              | Some [ Schema.String; Schema.Null ] ->
+                  Schema.Schema
+                    {
+                      layer with
+                      type_ = None;
+                      one_of =
+                        Some
+                          [
+                            Schema.Schema
+                              { Schema.empty with type_ = Some [ Schema.Null ] };
+                            Schema.Schema
+                              {
+                                Schema.empty with
+                                type_ = Some [ Schema.String ];
+                                enum;
+                              };
+                          ];
+                    }
+              | _ ->
+                  invalid_arg
+                    ("Companions: a code of " ^ member
+                   ^ " is neither text nor text or null"))))
+
+let schemas_module ~banner ~vocabularies definitions =
   let body =
     [
       H.value "schemas" (T_name "Schemas")
@@ -49,7 +92,11 @@ let schemas_module ~banner definitions =
                List
                  (List.map
                     (fun (name, schema) ->
-                      H.Tuple [ Str name; value (Schema.runtime schema) ])
+                      H.Tuple
+                        [
+                          Str name;
+                          value (Schema.runtime (coded vocabularies schema));
+                        ])
                     definitions);
              ] ));
     ]

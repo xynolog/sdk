@@ -21,9 +21,11 @@
    And every record Protocol states in a table ([Table_records]) and every
    client type the SDK generates ([Definitions.generated_client_types]), but a
    string enum ([Enums]), as the SDK builds it and hands it its callers: an
-   object as a record of its members, and a union of inline branches as a
-   variant, a constructor per value of its tag carrying the branch's other
-   members. A member is the table record or the enum it names, a string, a
+   object as a record of its members, and a union as a variant, a constructor
+   per value of its tag carrying an inline branch's other members or the
+   table record a branch names. A member its schema fixes to one string is no
+   field: it is read as that string and written as it. A member is the
+   table record or the enum it names, a string, a
    boolean, an integer or a number, a string component as a string and any
    other as its [Models] value, or a list of one of those; one that may be
    absent, or null, is an option. Each is read from JSON and written to it
@@ -114,7 +116,7 @@ let variant_name tag =
 
 let scalar_of (s : T.scalar) =
   match s with
-  | Text _ -> Text
+  | Text _ | Code _ -> Text
   | Boolean -> Bool
   | Integer _ -> Int
   | Number -> Float
@@ -360,9 +362,13 @@ type base =
   | Int_base
   | Float_base
   | Enum_base of string  (** its module *)
+  | Id_base of string  (** its module of Identifiers *)
+  | Code_base of string  (** its module of Error_codes *)
   | Record_base of string  (** its module *)
   | Model_base of string  (** its component *)
   | List_base of base
+  | Map_base of base  (** an object of no named member, each of [base] *)
+  | Json_base  (** any value, as it is given *)
 
 type field = {
   json : string;
@@ -379,13 +385,20 @@ type tabled = {
 }
 
 and form =
-  | Fields of field list
+  | Fields of { fields : field list; fixed : (string * string) list }
+      (** its members, and each member fixed to one value, with that value *)
   | Map of base
       (** each member's value, the member named as the caller chooses *)
   | Items of base  (** each item of a list *)
   | Variants of { property : string; variants : variant list }
 
-and variant = { tag : string; constructor : string; fields : field list }
+and variant = { tag : string; constructor : string; body : body }
+
+and body =
+  | Stated of field list  (** the branch's other members, stated in place *)
+  | Branch of { module_ : string; unit : bool }
+      (** the table record the branch names, by its module, and whether its
+          every member is fixed, so its [t] is [unit] *)
 
 (* The table records but the string enums, each after the ones it names:
    [written] each one's key, title and name, [enum_of] the module of a
@@ -398,6 +411,14 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
         if title = name then Some (Enums.module_name title) else None)
       written
   in
+  (* The one string a required member's schema fixes it to in place: no
+     field, but read and written as that string. *)
+  let fixed_value (m : T.member) =
+    match (m.fixed, m.ty) with
+    | Some (Schema.String_literal value), T.Inline _ when m.required ->
+        Some value
+    | _ -> None
+  in
   (* The records of objects stated in place as members, each its owner's
      module and its member's name. *)
   let stated = ref [] in
@@ -409,23 +430,38 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
         match (enum_of name, module_of name) with
         | Some m, _ -> (Enum_base m, None)
         | None, Some m -> (Record_base m, Some m)
+        | None, None
+          when match (typing.find name).form with
+               | T.Alias (T.Scalar (T.Text _)) -> true
+               | _ -> false ->
+            (Text_base, None)
         | None, None when rooted name -> (
             match (typing.find name).form with
-            | T.Alias (T.Scalar (T.Text _)) | T.Identifier _ -> (Text_base, None)
+            | T.Identifier _ ->
+                (Id_base (Identifiers.Ocaml.module_name name), None)
+            | T.Enum { base = Some (T.Text _); _ } ->
+                (Enum_base (Enums.module_name name), None)
             | _ -> (Model_base name, None))
         | None, None ->
             refuse key at "names no schema the OCaml SDK has a type for")
     | T.Scalar (T.Text _) -> (Text_base, None)
+    | T.Scalar (T.Code vocabulary) ->
+        (Code_base (Error_codes.Ocaml.module_of vocabulary), None)
     | T.Scalar T.Boolean -> (Bool_base, None)
     | T.Scalar (T.Integer _) -> (Int_base, None)
     | T.Scalar T.Number -> (Float_base, None)
     | T.List (Some item) ->
         let item, need = base_of key at ~named item in
         (List_base item, need)
+    | T.Inline { form = T.Map { value; _ }; _ } ->
+        let value, need = base_of key at ~named:(named ^ "_value") value in
+        (Map_base value, need)
     | T.Inline { form = T.Record { members = ms; _ }; _ } ->
-        let fields, needs = members key at ~owner:named ms in
-        stated := { module_ = named; form = Fields fields; needs } :: !stated;
+        let fields, fixed, needs = members key at ~owner:named ms in
+        stated :=
+          { module_ = named; form = Fields { fields; fixed }; needs } :: !stated;
         (Record_base named, Some named)
+    | T.Any -> (Json_base, None)
     | _ -> refuse key at "is no member the OCaml SDK has a type for"
   (* A member, and the module of the table record it names. *)
   and member key at ~owner (m : T.member) =
@@ -447,11 +483,19 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
       },
       need )
   and members key at ~owner ms =
-    let typed = List.map (member key at ~owner) ms in
+    let fixed, held =
+      List.partition_map
+        (fun (m : T.member) ->
+          match fixed_value m with
+          | Some value -> Left (m.wire, value)
+          | None -> Right m)
+        ms
+    in
+    let typed = List.map (member key at ~owner) held in
     let labels = List.map (fun (f, _) -> f.label) typed in
     if List.length (List.sort_uniq compare labels) <> List.length labels then
       refuse key at "has two members OCaml names alike";
-    (List.map fst typed, List.filter_map snd typed)
+    (List.map fst typed, fixed, List.filter_map snd typed)
   in
   let derive (key, title) =
     let file, pointer = Enums.place key in
@@ -459,8 +503,8 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
     let module_ = Enums.module_name title in
     match (typing.find title).form with
     | T.Record { members = ms; _ } ->
-        let fields, needs = members key "" ~owner:module_ ms in
-        { module_; form = Fields fields; needs }
+        let fields, fixed, needs = members key "" ~owner:module_ ms in
+        { module_; form = Fields { fields; fixed }; needs }
     | T.Map { value; _ } ->
         let base, need =
           base_of key "/additionalProperties" ~named:(module_ ^ "_value") value
@@ -470,35 +514,54 @@ let tabled (typing : T.t) ~written ~enum_of ~rooted =
         let base, need = base_of key "/items" ~named:(module_ ^ "_item") item in
         { module_; form = Items base; needs = Option.to_list need }
     | T.Union { tag = Some { property; _ }; branches } ->
+        (* The value a branch's members fix its tag to, and the constructor
+           it names. *)
+        let tag_of at ms =
+          match
+            List.find_map
+              (fun (m : T.member) ->
+                match m.fixed with
+                | Some (Schema.String_literal tag) when m.wire = property ->
+                    Option.map (fun c -> (tag, c)) (variant_name tag)
+                | _ -> None)
+              ms
+          with
+          | Some tagged -> tagged
+          | None ->
+              refuse at "states no one value of its tag a constructor can name"
+        in
         let variants =
           List.mapi
             (fun i (b : T.branch) ->
               let at = Printf.sprintf "/oneOf/%d" i in
               match b.ty with
-              | T.Inline { form = T.Record { members = ms; _ }; _ } -> (
-                  let tag =
-                    List.find_map
-                      (fun (m : T.member) ->
-                        match m.fixed with
-                        | Some (Schema.String_literal tag)
-                          when m.wire = property ->
-                            Option.map (fun c -> (tag, c)) (variant_name tag)
-                        | _ -> None)
-                      ms
+              | T.Inline { form = T.Record { members = ms; _ }; _ } ->
+                  let tag, constructor = tag_of at ms in
+                  let fields, fixed, needs =
+                    members key at ~owner:module_
+                      (List.filter
+                         (fun (m : T.member) -> m.wire <> property)
+                         ms)
                   in
-                  match tag with
-                  | Some (tag, constructor) ->
-                      let fields, needs =
-                        members key at ~owner:module_
-                          (List.filter
-                             (fun (m : T.member) -> m.wire <> property)
-                             ms)
+                  if fixed <> [] then
+                    refuse at "fixes a member besides its tag to one value";
+                  ({ tag; constructor; body = Stated fields }, needs)
+              | T.Named name -> (
+                  match ((typing.find name).form, module_of name) with
+                  | T.Record { members = ms; _ }, Some branch ->
+                      let tag, constructor = tag_of at ms in
+                      let unit =
+                        List.for_all (fun m -> fixed_value m <> None) ms
                       in
-                      ({ tag; constructor; fields }, needs)
-                  | None ->
-                      refuse at
-                        "states no one value of its tag a constructor can name")
-              | _ -> refuse at "is no object stated in place")
+                      ( {
+                          tag;
+                          constructor;
+                          body = Branch { module_ = branch; unit };
+                        },
+                        [ branch ] )
+                  | _ ->
+                      refuse at "names no record the OCaml SDK has a type for")
+              | _ -> refuse at "is no object, stated in place or named")
             branches
         in
         let constructors = List.map (fun (v, _) -> v.constructor) variants in
@@ -554,18 +617,23 @@ let derive (spec : Spec.t) (typing : T.t) table =
           if List.mem name client_enums then Some (Enums.module_name name)
           else None
     in
-    let is_enum name =
-      match (typing.find name).form with T.Enum _ -> true | _ -> false
+    (* A string enum is its Enums type, and a scalar its OCaml one: neither
+       is a record. *)
+    let is_record name =
+      match (typing.find name).form with
+      | T.Enum _ | T.Alias (T.Scalar _) -> false
+      | _ -> true
     in
     let written =
       List.filter_map
         (fun (key, title, _) ->
-          if is_enum title then None else Some (key, title))
+          if is_record title then Some (key, title) else None)
         table
       @ List.filter_map
           (fun name ->
-            if is_enum name then None
-            else Some (Roots.client_types ^ name ^ ".json", name))
+            if is_record name then
+              Some (Roots.client_types ^ name ^ ".json", name)
+            else None)
           (Definitions.generated_client_types spec)
     in
     let tabled_records = tabled typing ~written ~enum_of ~rooted in
@@ -886,9 +954,14 @@ let rec base_type = function
   | Int_base -> O.type_ "int"
   | Float_base -> O.type_ "float"
   | Enum_base m -> O.type_ ("Enums." ^ m ^ ".t")
+  | Id_base m -> O.type_ ("Identifiers." ^ m ^ ".t")
+  | Code_base m -> O.type_ ("Error_codes." ^ m ^ ".t")
   | Record_base m -> O.type_ (m ^ ".t")
   | Model_base c -> O.type_ "Models.t" ~args:[ O.tags [ c ] ]
   | List_base b -> O.type_ "list" ~args:[ base_type b ]
+  | Map_base b ->
+      O.type_ "list" ~args:[ O.type_tuple [ O.type_ "string"; base_type b ] ]
+  | Json_base -> O.type_ "Yojson.Safe.t"
 
 let rec base_reader = function
   | Text_base -> O.ident "string"
@@ -896,9 +969,14 @@ let rec base_reader = function
   | Int_base -> O.ident "int"
   | Float_base -> O.ident "float"
   | Enum_base m -> O.call "enum" [ O.ident ("Enums." ^ m ^ ".of_string") ]
+  | Id_base m ->
+      O.call "identifier" [ O.ident ("Identifiers." ^ m ^ ".of_string") ]
+  | Code_base m -> O.call "enum" [ O.ident ("Error_codes." ^ m ^ ".of_code") ]
   | Record_base m -> O.call "record" [ O.ident (m ^ ".of_json") ]
   | Model_base c -> O.call "model" [ descriptor c ]
   | List_base b -> O.call "list" [ base_reader b ]
+  | Map_base b -> O.call "assoc" [ base_reader b ]
+  | Json_base -> O.ident "any"
 
 let rec base_writer = function
   | Text_base -> O.ident "json_string"
@@ -906,9 +984,14 @@ let rec base_writer = function
   | Int_base -> O.ident "json_int"
   | Float_base -> O.ident "json_float"
   | Enum_base m -> O.call "json_enum" [ O.ident ("Enums." ^ m ^ ".to_string") ]
+  | Id_base m ->
+      O.call "json_id" [ O.ident ("Identifiers." ^ m ^ ".to_string") ]
+  | Code_base m -> O.call "json_enum" [ O.ident ("Error_codes." ^ m ^ ".code") ]
   | Record_base m -> O.ident (m ^ ".to_json")
   | Model_base _ -> O.ident "json_model"
   | List_base b -> O.call "json_list" [ base_writer b ]
+  | Map_base b -> O.call "json_map" [ base_writer b ]
+  | Json_base -> O.ident "json_any"
 
 let field_type f =
   if f.required && not f.nullable then base_type f.base
@@ -925,14 +1008,17 @@ let codec_names =
     "int";
     "float";
     "enum";
+    "identifier";
     "record";
     "model";
     "list";
     "map";
+    "assoc";
     "nullable";
     "required";
     "optional";
     "malformed";
+    "fixed";
     "write";
   ]
 
@@ -980,7 +1066,9 @@ let files (entries, tabled) =
   let table t =
     let declaration =
       match t.form with
-      | Fields fields ->
+      | Fields { fields = []; _ } ->
+          O.type_declaration "t" O.Abstract ~manifest:(O.type_ "unit")
+      | Fields { fields; _ } ->
           O.type_declaration "t"
             (O.Record (List.map (fun f -> (f.label, field_type f)) fields))
       | Map base ->
@@ -996,10 +1084,15 @@ let files (entries, tabled) =
             (Variant
                (List.map
                   (fun v ->
-                    if v.fields = [] then O.constructor v.constructor
-                    else
-                      O.record_constructor v.constructor
-                        (List.map (fun f -> (f.label, field_type f)) v.fields))
+                    match v.body with
+                    | Stated [] -> O.constructor v.constructor
+                    | Stated fields ->
+                        O.record_constructor v.constructor
+                          (List.map (fun f -> (f.label, field_type f)) fields)
+                    | Branch { unit = true; _ } -> O.constructor v.constructor
+                    | Branch { module_; unit = false } ->
+                        O.constructor v.constructor
+                          ~args:[ O.type_ (module_ ^ ".t") ])
                   variants))
     in
     let built constructor fields =
@@ -1009,6 +1102,7 @@ let files (entries, tabled) =
       O.construct "Ok"
         ~arg:
           (match constructor with
+          | None when fields = [] -> O.unit
           | None -> record
           | Some c when fields = [] -> O.construct c
           | Some c -> O.construct c ~arg:record)
@@ -1023,8 +1117,20 @@ let files (entries, tabled) =
     in
     let read =
       match t.form with
-      | Fields fields ->
-          members (read_fields t.module_ fields (built None fields))
+      | Fields { fields; fixed } ->
+          members
+            (List.fold_right
+               (fun (member, value) body ->
+                 O.let_star O.Pattern.unit
+                   (O.call "required"
+                      [
+                        O.call "fixed" [ O.string value ];
+                        O.string member;
+                        O.ident "members";
+                      ])
+                   body)
+               fixed
+               (read_fields t.module_ fields (built None fields)))
       | Map base ->
           members (O.call "map" [ base_reader base; O.ident "members" ])
       | Items base -> O.call "list" [ base_reader base; O.string "" ]
@@ -1037,8 +1143,26 @@ let files (entries, tabled) =
                   (List.map
                      (fun v ->
                        O.case (O.Pattern.string v.tag)
-                         (read_fields t.module_ v.fields
-                            (built (Some v.constructor) v.fields)))
+                         (match v.body with
+                         | Stated fields ->
+                             read_fields t.module_ fields
+                               (built (Some v.constructor) fields)
+                         | Branch { module_; unit } ->
+                             O.call "Result.map"
+                               [
+                                 (if unit then
+                                    O.fun_ [ O.Pattern.unit ]
+                                      (O.construct v.constructor)
+                                  else
+                                    O.fun_
+                                      [ O.Pattern.var "value" ]
+                                      (O.construct v.constructor
+                                         ~arg:(O.ident "value")));
+                                 O.call (module_ ^ ".of_json")
+                                   [
+                                     O.variant "Assoc" ~arg:(O.ident "members");
+                                   ];
+                               ]))
                      variants
                   @ [
                       O.case O.Pattern.any
@@ -1059,10 +1183,26 @@ let files (entries, tabled) =
         ~type_:(O.arrow (O.type_ "t") json)
         (O.open_in "Table_codec"
            (match t.form with
-           | Fields fields ->
+           | Fields { fields; fixed } ->
                O.fun_
-                 [ O.Pattern.var "value" ]
-                 (O.call "write" [ O.list (written_fields value fields) ])
+                 [
+                   (if fields = [] then O.Pattern.unit
+                    else O.Pattern.var "value");
+                 ]
+                 (O.call "write"
+                    [
+                      O.list
+                        (List.map
+                           (fun (member, fixed) ->
+                             O.tuple
+                               [
+                                 O.string member;
+                                 O.some
+                                   (O.call "json_string" [ O.string fixed ]);
+                               ])
+                           fixed
+                        @ written_fields value fields);
+                    ])
            | Map base -> O.call "json_map" [ base_writer base ]
            | Items base -> base_writer (List_base base)
            | Variants { property; variants } ->
@@ -1076,16 +1216,26 @@ let files (entries, tabled) =
                             O.some (O.call "json_string" [ O.string v.tag ]);
                           ]
                       in
-                      if v.fields = [] then
-                        O.case
-                          (O.Pattern.construct v.constructor)
-                          (O.call "write" [ O.list [ tag ] ])
-                      else
-                        O.case
-                          (O.Pattern.construct v.constructor
-                             ~arg:(O.Pattern.var "value"))
-                          (O.call "write"
-                             [ O.list (tag :: written_fields value v.fields) ]))
+                      match v.body with
+                      | Stated [] ->
+                          O.case
+                            (O.Pattern.construct v.constructor)
+                            (O.call "write" [ O.list [ tag ] ])
+                      | Stated fields ->
+                          O.case
+                            (O.Pattern.construct v.constructor
+                               ~arg:(O.Pattern.var "value"))
+                            (O.call "write"
+                               [ O.list (tag :: written_fields value fields) ])
+                      | Branch { module_; unit = true } ->
+                          O.case
+                            (O.Pattern.construct v.constructor)
+                            (O.call (module_ ^ ".to_json") [ O.unit ])
+                      | Branch { module_; unit = false } ->
+                          O.case
+                            (O.Pattern.construct v.constructor
+                               ~arg:(O.Pattern.var "value"))
+                            (O.call (module_ ^ ".to_json") [ O.ident "value" ]))
                     variants)))
     in
     ( O.module_ t.module_ [ O.type_item declaration; of_json; to_json ],

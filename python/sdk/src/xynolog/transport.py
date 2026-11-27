@@ -22,11 +22,13 @@ from typing import Final, Literal, Protocol, Self, final
 
 from pydantic import JsonValue
 
+from xynolog._connection_states import CONNECTION_STATE_MAY_BECOME
 from xynolog.errors import BusRequestError, XynologError
 from xynolog.events import Broadcast, Events
 from xynolog.identifiers import ResourceId
 from xynolog.types import (
     AnchoredTextAnswer,
+    ConnectionState,
     CreateResourceResponse,
     FrameRefusalReason,
     GetAnnotationsResponse,
@@ -37,6 +39,7 @@ from xynolog.types import (
     PutBinaryRequest,
     ResourceRepresentation,
     StatusResponse,
+    TraceCarrier,
     UploadProgress,
     UploadProgressFinished,
     UserResponse,
@@ -44,7 +47,6 @@ from xynolog.types import (
 from xynolog.watched import Watched
 
 __all__ = [
-    "CONNECTION_STATES",
     "CONNECTION_STATE_MAY_BECOME",
     "ConnectionState",
     "ContentStream",
@@ -57,57 +59,11 @@ __all__ = [
     "PendingReply",
     "ReplyRouter",
     "ResourceHold",
-    "TraceContext",
     "Transport",
     "Upload",
     "UploadProgress",
     "unsubscribed",
 ]
-
-type ConnectionState = Literal["initial", "connecting", "open", "reconnecting", "degraded", "unauthenticated", "closed"]
-"""Whether the bus can deliver (`protocol/contract/TRANSPORT-HTTP.md` § Connection lifecycle).
-
-- `initial`: before the transport has started its stream.
-- `connecting`: a connect is in flight and no stream is live.
-- `open`: a stream is live. It is left only when the stream drops: a transport
-  that changes what its stream carries without missing anything stays open, so
-  `open` reached again always means something may have been missed.
-- `reconnecting`: the stream dropped, or a connect failed with none live.
-- `degraded`: has been reconnecting for longer than `DEGRADED_THRESHOLD_MS`.
-- `unauthenticated`: not attempting. There is no credential, or the one there
-  is was refused. Ends when a different credential appears.
-- `closed`: the transport was closed. Terminal.
-"""
-
-CONNECTION_STATES: Final[tuple[ConnectionState, ...]] = (
-    "initial",
-    "connecting",
-    "open",
-    "reconnecting",
-    "degraded",
-    "unauthenticated",
-    "closed",
-)
-
-CONNECTION_STATE_MAY_BECOME: Final[Mapping[ConnectionState, frozenset[ConnectionState]]] = {
-    "initial": frozenset({"connecting", "unauthenticated", "closed"}),
-    "connecting": frozenset({"open", "reconnecting", "unauthenticated", "closed"}),
-    "open": frozenset({"reconnecting", "closed"}),
-    "reconnecting": frozenset({"connecting", "degraded", "unauthenticated", "closed"}),
-    "degraded": frozenset({"connecting", "unauthenticated", "closed"}),
-    "unauthenticated": frozenset({"connecting", "closed"}),
-    "closed": frozenset(),
-}
-"""The states each state may be followed by."""
-
-
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class TraceContext:
-    """A W3C trace context, as the wire carries one."""
-
-    traceparent: str
-    tracestate: str | None = None
 
 
 @final
@@ -121,7 +77,7 @@ class Frame:
     """What pairs a reply with its request."""
     scope: ResourceId | None = None
     """The resource whose scope the frame was delivered on."""
-    trace: TraceContext | None = None
+    trace: TraceCarrier | None = None
     """The trace the work done for this frame continues, when the frame was sent under one."""
 
 

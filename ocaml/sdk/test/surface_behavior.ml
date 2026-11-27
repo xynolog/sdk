@@ -50,8 +50,7 @@ let defaults value base =
     (actual
     @ List.filter (fun (name, _) -> not (List.mem_assoc name actual)) base)
 
-let page args =
-  defaults (field "filters" args) [ ("limit", `Int 100); ("offset", `Int 0) ]
+let filters args = fields (field "filters" args)
 
 let args_payload name args =
   match name with
@@ -78,32 +77,25 @@ let args_payload name args =
           ("currentEntityTypes", field "current" args);
           ("updatedEntityTypes", field "updated" args);
         ]
-  | "gather.annotation" | "gather.resource" ->
-      let options = field "options" args in
-      let defaults_for_method =
-        if name = "gather.annotation" then [ ("contextWindow", `Int 2000) ]
-        else
-          [
-            ("depth", `Int 2);
-            ("maxResources", `Int 10);
-            ("includeContent", `Bool true);
-            ("includeSummary", `Bool false);
-          ]
-      in
+  | "gather.resource" ->
       let options =
         `Assoc
           (List.filter
              (fun pair -> pair <> ("excludeEntityTypes", `List []))
-             (fields options))
+             (fields (field "options" args)))
       in
       `Assoc
-        (("options", defaults options defaults_for_method)
+        (( "options",
+           defaults options
+             [
+               ("depth", `Int 2);
+               ("maxResources", `Int 10);
+               ("includeContent", `Bool true);
+               ("includeSummary", `Bool false);
+             ] )
         :: List.remove_assoc "options" (fields args))
   | "match.search" ->
-      let options =
-        defaults (field "options" args)
-          [ ("limit", `Int 10); ("useSemanticScoring", `Bool true) ]
-      in
+      let options = defaults (field "options" args) [ ("limit", `Int 10) ] in
       `Assoc (fields options @ List.remove_assoc "options" (fields args))
   | _ -> (
       match member "input" (fields args) with
@@ -113,8 +105,9 @@ let args_payload name args =
 let await_open client =
   let bus = C.subscription client in
   let rec wait = function
-    | Subscription.Open -> ()
-    | Subscription.Closed -> failwith "test subscription closed"
+    | Xynolog.Enums.Connection_state.Open -> ()
+    | Xynolog.Enums.Connection_state.Closed ->
+        failwith "test subscription closed"
     | previous -> wait (Subscription.await_state_change bus ~from:previous)
   in
   wait (Subscription.state bus)
@@ -261,7 +254,8 @@ let tests env ~name ~(via : Surface.item_via) ~(row : Surface.cases_item) =
         ignore
           (C.fresh
              (C.Browse.resources client
-                (decode B.Channels.browse_resources_requested (page args))))
+                (decode B.Channels.browse_resources_requested
+                   (`Assoc (filters args)))))
     | "browse.annotations" ->
         ignore (C.fresh (C.Browse.annotations client (resource ())))
     | "browse.annotation" ->
@@ -298,7 +292,7 @@ let tests env ~name ~(via : Surface.item_via) ~(row : Surface.cases_item) =
                    (args_payload name args))))
     | "match.resources" ->
         let payload =
-          `Assoc (("search", field "search" args) :: fields (page args))
+          `Assoc (("search", field "search" args) :: filters args)
         in
         ignore
           (C.fresh

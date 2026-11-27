@@ -184,12 +184,32 @@ public sealed partial class TransportTests
     }
 
     [Fact]
+    public async Task AFrameWhoseTraceTheTableRefusesArrivesWithNoTraceAndWithoutIt()
+    {
+        using var server = new Handler();
+        using var http = new HttpClient(server);
+        using var client = new XynologClient("http://unit.test", "token", http);
+        await OpenAsync(client.Transport);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await using var frames = client.Wire.Frames(BusChannels.BeckonFocus, cancellation: deadline.Token).GetAsyncEnumerator();
+        var first = frames.MoveNextAsync().AsTask();
+        server.Stream.Push("event: bus-event\ndata: " + """
+            {"channel":"beckon:focus","payload":{"resourceId":"r1","_trace":{"traceparent":"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01","tracestate":""}}}
+            """ + "\n\n");
+
+        Assert.True(await first);
+        var delivered = Assert.IsType<Heard<BeckonFocusEvent>.Delivered>(frames.Current);
+        Assert.Equal(default(System.Diagnostics.ActivityContext), delivered.Received.Trace);
+        Assert.False(delivered.Received.Frame.Payload.TryGetProperty("_trace", out _));
+    }
+
+    [Fact]
     public async Task TypedScopedFramesHoldAndReleaseTheResourceAndFilterOtherScopes()
     {
         using var server = new Handler();
         using var http = new HttpClient(server);
         using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"],
-            new Timing { LazyRemoveMs = 0, LingerMs = 0 }, httpClient: http);
+            new TransportTiming { LazyRemoveMs = 0, LingerMs = 0 }, httpClient: http);
         var bus = new Bus(transport);
         await OpenAsync(transport);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -524,7 +544,7 @@ public sealed partial class TransportTests
         };
         using var client = new HttpClient(server);
         using var transport = new HttpTransport("http://unit.test", "first", ["beckon:focus"],
-            new Timing { EmitRetry = new RetryBudget { Attempts = 2, InitialDelayMs = 1, MaxDelayMs = 1 } },
+            new TransportTiming { EmitRetry = new RetryBudget { Attempts = 2, InitialDelayMs = 1, MaxDelayMs = 1 } },
             refresher: async (refused, cancellation) =>
             {
                 if (refused == "first") return "second";
@@ -638,7 +658,7 @@ public sealed partial class TransportTests
             return Task.FromResult(response);
         };
         using var client = new HttpClient(server);
-        using var transport = new HttpTransport("http://unit.test", "token", [], new Timing { HttpRequestTimeoutMs = 1000 }, httpClient: client, timeProvider: clock);
+        using var transport = new HttpTransport("http://unit.test", "token", [], new TransportTiming { HttpRequestTimeoutMs = 1000 }, httpClient: client, timeProvider: clock);
         var request = transport.GetCurrentUserAsync();
         await clock.WaitForAsync(TimeSpan.FromSeconds(2));
         clock.Advance(TimeSpan.FromSeconds(1));
@@ -832,7 +852,7 @@ public sealed partial class TransportTests
         var clock = new TestClock();
         using var server = new Handler();
         using var client = new HttpClient(server);
-        using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], new Timing { LazyRemoveMs = 50, LingerMs = 0 }, httpClient: client, timeProvider: clock);
+        using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], new TransportTiming { LazyRemoveMs = 50, LingerMs = 0 }, httpClient: client, timeProvider: clock);
         await OpenAsync(transport);
         await server.Subscriptions.Reader.ReadAsync();
         var first = transport.SubscribeToResource(ResourceId.Parse("r1"));
@@ -873,7 +893,7 @@ public sealed partial class TransportTests
         var clock = new TestClock();
         using var server = new Handler { HoldSubscribe = true };
         using var client = new HttpClient(server);
-        using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], new Timing { StreamOpenTimeoutMs = 100 }, httpClient: client, timeProvider: clock);
+        using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], new TransportTiming { StreamOpenTimeoutMs = 100 }, httpClient: client, timeProvider: clock);
         await clock.WaitForAsync(TimeSpan.FromMilliseconds(100));
         clock.Advance(TimeSpan.FromMilliseconds(100));
         await using var states = transport.States().GetAsyncEnumerator();
@@ -898,7 +918,7 @@ public sealed partial class TransportTests
         var random = new ZeroRandom();
         using var server = new Handler();
         using var client = new HttpClient(server);
-        using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], new Timing { ReconnectMs = 50 }, httpClient: client,
+        using var transport = new HttpTransport("http://unit.test", "token", ["beckon:focus"], new TransportTiming { ReconnectMs = 50 }, httpClient: client,
             timeProvider: clock, random: random);
         await OpenAsync(transport);
         await server.Subscriptions.Reader.ReadAsync();
@@ -1019,29 +1039,6 @@ public sealed partial class TransportTests
         {
             if (disposing) withdraw();
             base.Dispose(disposing);
-        }
-    }
-
-    [Fact]
-    public void ConnectionStatesAreTheSuitesStatesButItsInitialOne()
-    {
-        var suite = Enum.GetNames<ConformanceStepStateState>().Except([nameof(ConformanceStepStateState.Initial)]);
-        Assert.Equal(suite.Order(StringComparer.Ordinal), Enum.GetNames<ConnectionState>().Order(StringComparer.Ordinal));
-    }
-
-    // Timing is the timing a caller may set, by hand: each member is an entry of client/timing.json, under its name,
-    // and the entry's value unless a caller sets its own.
-    [Fact]
-    public void EachTimingACallerSetsIsAnEntryOfTheTable()
-    {
-        var protocol = new Timing();
-        foreach (var property in typeof(Timing).GetProperties())
-        {
-            var entry = ProtocolTiming.Of(char.ToLowerInvariant(property.Name[0]) + property.Name[1..]);
-            var expected = entry.ValueKind == JsonValueKind.Object
-                ? (object)new RetryBudget { Attempts = entry.GetProperty("attempts").GetInt64(), InitialDelayMs = entry.GetProperty("initialDelayMs").GetInt64(), MaxDelayMs = entry.GetProperty("maxDelayMs").GetInt64() }
-                : entry.GetInt32();
-            Assert.Equal(expected, property.GetValue(protocol));
         }
     }
 

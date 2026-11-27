@@ -15,7 +15,7 @@ internal object ErrorsCodesTransportCodesItemSerializer : SignatureUnionSerializ
             Signature(
                 kind = Kind.OBJECT,
                 required = listOf("code", "docs", "status"),
-                allowed = listOf("code", "docs", "status"),
+                allowed = listOf("code", "docs", "status", "limitRefusals"),
                 fixed = emptyList(),
                 values = null,
             ),

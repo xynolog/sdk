@@ -801,36 +801,6 @@ let unions =
           };
         ];
       ] );
-    ( "Errors_codes_transport_codes_item",
-      [
-        [
-          {
-            kind = Object_kind;
-            required = [ "code"; "docs"; "status" ];
-            allowed = Some [ "code"; "docs"; "status" ];
-            fixed = [];
-            values = None;
-          };
-        ];
-        [
-          {
-            kind = Object_kind;
-            required = [ "code"; "docs"; "statusFrom" ];
-            allowed = Some [ "code"; "docs"; "statusFrom" ];
-            fixed = [];
-            values = None;
-          };
-        ];
-        [
-          {
-            kind = Object_kind;
-            required = [ "code"; "docs" ];
-            allowed = Some [ "code"; "docs" ];
-            fixed = [];
-            values = None;
-          };
-        ];
-      ] );
     ( "Graph_config",
       [
         [
@@ -1309,6 +1279,36 @@ let unions =
           };
         ];
       ] );
+    ( "Errors_codes_transport_codes_item",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "code"; "docs"; "status" ];
+            allowed = Some [ "code"; "docs"; "status"; "limitRefusals" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "code"; "docs"; "statusFrom" ];
+            allowed = Some [ "code"; "docs"; "statusFrom" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "code"; "docs" ];
+            allowed = Some [ "code"; "docs" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+      ] );
     ( "Anchored_text_answer",
       [
         [
@@ -1527,6 +1527,54 @@ let unions =
             kind = Object_kind;
             required = [];
             allowed = Some [];
+            fixed = [];
+            values = None;
+          };
+        ];
+      ] );
+    ( "Client_option_defaults_defaults_item_schema",
+      [
+        [
+          {
+            kind = Object_kind;
+            required = [ "$ref" ];
+            allowed = Some [ "$ref"; "typeArguments" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "type"; "description" ];
+            allowed = Some [ "type"; "minimum"; "format"; "description" ];
+            fixed =
+              [
+                ( "type",
+                  [
+                    Text_value "integer";
+                    Text_value "string";
+                    Text_value "boolean";
+                  ] );
+                ("format", [ Text_value "date-time" ]);
+              ];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "typeParameter" ];
+            allowed = Some [ "typeParameter" ];
+            fixed = [];
+            values = None;
+          };
+        ];
+        [
+          {
+            kind = Object_kind;
+            required = [ "decided" ];
+            allowed = Some [ "decided" ];
             fixed = [];
             values = None;
           };

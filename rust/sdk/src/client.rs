@@ -30,36 +30,12 @@ use crate::namespaces::{
 use crate::resume::CoupledBookmarks;
 use crate::session::SignInKept;
 use crate::storage::SessionStorage;
-use crate::timing::{BUS_REQUEST_TIMEOUT, INVALIDATION_WINDOW, JOB_SILENCE, JOB_STATUS_POLL};
-use crate::transport::{ConnectionState, ContentTransport, Envelope, GatewayOperations, Transport};
+use crate::transport::{ContentTransport, Envelope, GatewayOperations, Transport};
+use crate::types::ConnectionState;
 use std::sync::Arc;
-use std::time::Duration;
 use tokio::sync::watch;
 
-/// The waits a client keeps, each the value of protocol/specs/src/client/timing.json
-/// unless a caller that must not wait it out states another.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ClientTiming {
-    /// How long a bus request has, from the call, to be answered: its emit included.
-    pub bus_request: Duration,
-    /// How long a followed job may say nothing before its status is asked for.
-    pub job_silence: Duration,
-    /// How often a silent job's status is asked for after that.
-    pub job_status_poll: Duration,
-    /// How long the refetches events ask of one cached key fold into one.
-    pub invalidation_window: Duration,
-}
-
-impl Default for ClientTiming {
-    fn default() -> ClientTiming {
-        ClientTiming {
-            bus_request: BUS_REQUEST_TIMEOUT,
-            job_silence: JOB_SILENCE,
-            job_status_poll: JOB_STATUS_POLL,
-            invalidation_window: INVALIDATION_WINDOW,
-        }
-    }
-}
+pub use crate::timing::ClientTiming;
 
 /// Where a client keeps the queries protocol/specs/src/client/refresh.json
 /// marks `persisted`, so the next client of the same person on the same
@@ -112,7 +88,7 @@ impl Links {
         payload: &R::Payload,
     ) -> Result<<R::Result as Channel>::Payload, XynologError> {
         self.wire
-            .request::<R>(payload, self.timing.bus_request)
+            .request::<R>(payload, self.timing.bus_request_timeout)
             .await
     }
 

@@ -15,5 +15,5 @@ public sealed record ErrorsCodes
     [global::Xynolog.Serialization.Wire("signIn")] public required global::Xynolog.Types.ErrorsCodesJob SignIn { get; init; }
     [global::Xynolog.Serialization.Wire("kbIdentity")] public required global::Xynolog.Types.ErrorsCodesJob KbIdentity { get; init; }
     [global::Xynolog.Serialization.Wire("spanRefusal")] public required global::Xynolog.Types.ErrorsCodesJob SpanRefusal { get; init; }
-    [global::Xynolog.Serialization.Wire("control")] public required global::Xynolog.Types.ErrorsCodesJob Control { get; init; }
+    [global::Xynolog.Serialization.Wire("control")] public required global::Xynolog.Types.ErrorsCodesControl Control { get; init; }
 }

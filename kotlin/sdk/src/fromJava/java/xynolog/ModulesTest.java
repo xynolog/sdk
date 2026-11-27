@@ -22,10 +22,7 @@ import kotlinx.serialization.builtins.BuiltinSerializersKt;
 import org.junit.jupiter.api.Test;
 import xynolog.annotations.AnnotationsKt;
 import xynolog.bus.BusKt;
-import xynolog.discovery.DiscoveryDiff;
 import xynolog.discovery.DiscoveryKt;
-import xynolog.discovery.DiscoveryRead;
-import xynolog.discovery.Unchanged;
 import xynolog.errors.BusRequestError;
 import xynolog.errors.IdentityUnverifiableError;
 import xynolog.errors.IdentityUnverifiableReason;
@@ -54,6 +51,9 @@ import xynolog.types.Annotation;
 import xynolog.types.AnnotationSelector;
 import xynolog.types.BeginAuthorizationOptions;
 import xynolog.types.ConnectionIdentity;
+import xynolog.types.DiscoveryDiff;
+import xynolog.types.DiscoveryRead;
+import xynolog.types.DiscoveryUnchanged;
 import xynolog.types.Expected;
 import xynolog.types.HttpEndpoint;
 import xynolog.types.HttpEndpointProtocol;
@@ -158,7 +158,7 @@ final class ModulesTest {
     void aLaunchersDocumentIsWatchedFromJava() throws Exception {
         assertTrue(DiscoveryKt.DISCOVERY_INTERVAL > 0);
         assertNotNull(xynolog.http.DiscoveryKt.httpDiscovery("http://127.0.0.1:9"));
-        assertInstanceOf(DiscoveryRead.class, Unchanged.INSTANCE);
+        assertInstanceOf(DiscoveryRead.class, DiscoveryUnchanged.builder().build());
         try (Events<DiscoveryDiff> diffs = DiscoveryKt.subscribeDiscovery(DiscoveryKt.textDiscovery(() -> "{\"version\":1,\"kbs\":[]}"), 10)) {
             DiscoveryDiff first = first(diffs.asPublisher()).get(10, SECONDS);
             assertEquals(List.of(), first.getAdded());
@@ -242,7 +242,7 @@ final class ModulesTest {
     void aCachesValuesAreKeptFromJava() {
         MemoryStorage storage = new MemoryStorage();
         StoragePersister<String, String> persister = new StoragePersister<>(storage, "a-cache",
-                BuiltinSerializersKt.serializer(StringCompanionObject.INSTANCE), BuiltinSerializersKt.serializer(StringCompanionObject.INSTANCE), 1, 1_000_000);
+                BuiltinSerializersKt.serializer(StringCompanionObject.INSTANCE), BuiltinSerializersKt.serializer(StringCompanionObject.INSTANCE), 1);
         persister.save(Map.of("res-1", "its value"));
         assertEquals(Map.of("res-1", "its value"), persister.load());
     }

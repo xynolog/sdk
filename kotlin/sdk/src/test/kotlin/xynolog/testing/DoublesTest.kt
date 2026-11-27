@@ -31,8 +31,8 @@ import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Carried
-import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
+import xynolog.types.ConnectionState
 import xynolog.types.PutBinaryRequest
 import xynolog.types.ResourceRepresentation
 import xynolog.types.UploadProgressFinished

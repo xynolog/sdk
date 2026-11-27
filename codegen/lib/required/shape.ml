@@ -15,7 +15,10 @@
    [code] is one of, which is its [recognized] codes and no [enum]. codes.json
    reads a failure whose code the list does not name as its unrecognized
    failure, one that states none: so a reader reads such a code as absent, and
-   a writer is held to the list.
+   a writer is held to the list. And a text a schema states is a code of a
+   vocabulary of errors/codes.json ([x-xynolog-codes]) the table states as an
+   [enum] of that vocabulary's codes, as each SDK's code type reads it: one
+   that also allows null, as a [oneOf] of null and that [enum].
 
    A KIND is one of object, array, string, integer, number, boolean, null. An
    integer is a number with no fractional part, as JSON Schema has it, and a
@@ -461,8 +464,10 @@ let member_sets file at (negated : Schema.t) =
   | s -> [ only_required at s ]
 
 (* [components] are each component's name, its file and its schema.
-   [unrecognized] is the failure codes.json reads an unrecognized code as. *)
-let derive ~ids ~unrecognized components =
+   [unrecognized] is the failure codes.json reads an unrecognized code as,
+   and [vocabularies] are errors/codes.json's. *)
+let derive ~ids ~unrecognized
+    ~(vocabularies : Error_codes.Table.vocabulary list) components =
   try
     let command_error =
       match
@@ -660,19 +665,22 @@ let derive ~ids ~unrecognized components =
                    (Option.value schema.all_of ~default:[]))
     and shape_of l file at =
       match view file at l with
-      | Or_null inner ->
-          let kinds = union [ Null ] (plain_kinds file at inner) in
-          Shape
-            {
-              empty with
-              kinds = (if any_kind kinds then None else Some (ordered kinds));
-              one_of =
-                [
-                  Shape { empty with kinds = Some [ Null ] };
-                  plain_shape file at inner ~null:false;
-                ];
-            }
+      | Or_null inner -> or_null file at inner
+      | Plain { schema = { codes = Some _; _ } as schema; null = true } ->
+          or_null file at schema
       | Plain { schema; null } -> plain_shape file at schema ~null
+    and or_null file at inner =
+      let kinds = union [ Null ] (plain_kinds file at inner) in
+      Shape
+        {
+          empty with
+          kinds = (if any_kind kinds then None else Some (ordered kinds));
+          one_of =
+            [
+              Shape { empty with kinds = Some [ Null ] };
+              plain_shape file at inner ~null:false;
+            ];
+        }
     and plain_shape file at schema ~null =
       let {
         Schema.ref_;
@@ -705,17 +713,29 @@ let derive ~ids ~unrecognized components =
         one_of;
         not_;
         discriminator;
+        codes;
       } =
         schema
       in
-      (* A [const] is an [enum] of its one value. *)
+      (* A [const] is an [enum] of its one value, and a code of a vocabulary
+         an [enum] of its codes. *)
       let enum =
-        match (const, enum) with
-        | None, enum -> enum
-        | Some value, None -> Some [ value ]
-        | Some value, Some values when List.mem value values -> Some [ value ]
-        | Some _, Some _ ->
+        match (const, enum, codes) with
+        | None, enum, None -> enum
+        | Some value, None, None -> Some [ value ]
+        | Some value, Some values, None when List.mem value values ->
+            Some [ value ]
+        | Some _, Some _, None ->
             refuse file (at ^ "/const") "is none of the values its enum states"
+        | None, None, Some member -> (
+            match Error_codes.Table.enum vocabularies member with
+            | Some _ as codes -> codes
+            | None ->
+                refuse file (at ^ "/x-xynolog-codes")
+                  "is %s, which errors/codes.json has no vocabulary of" member)
+        | _, _, Some _ ->
+            refuse file (at ^ "/x-xynolog-codes")
+              "is beside a const or an enum, which the codes already state"
       in
       match Option.map target ref_ with
       | Some (`Named name) -> Ref name

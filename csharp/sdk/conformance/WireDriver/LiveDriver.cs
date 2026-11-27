@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Xynolog;
 using Xynolog.Errors;
-using Xynolog.Http;
 using Xynolog.Identifiers;
 using Xynolog.Registry;
 using Xynolog.Storage;
@@ -62,9 +61,10 @@ internal sealed class LiveDriver : IDisposable
         if (client is { State: not ConnectionState.Closed }) throw new InvalidOperationException("A client is already open");
         var persistence = args.TryGetProperty("persist", out var persist) && persist.GetBoolean()
             ? new CachePersistence(kept, "conformance", DriverKey) : null;
-        var timing = args.TryGetProperty("timing", out var values)
-            ? values.Deserialize<Timing>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) : null;
-        var opened = new XynologClient(Text(args, "baseUrl"), Text(args, "token"), timing: timing, persistence: persistence);
+        var rows = StatedTiming.Rows(args);
+        var clientTiming = StatedTiming.Read<ClientTiming>(StatedTiming.Take<ClientTiming>(rows));
+        var opened = new XynologClient(Text(args, "baseUrl"), Text(args, "token"), clientTiming: clientTiming,
+            transportTiming: StatedTiming.Read<TransportTiming>(rows), persistence: persistence);
         lock (gate)
         {
             reported = null;

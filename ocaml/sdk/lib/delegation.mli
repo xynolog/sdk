@@ -20,8 +20,7 @@ type failure = {
 }
 
 val make :
-  ?silence_ms:int ->
-  ?poll_ms:int ->
+  ?timing:Client_timing.client ->
   sw:Eio.Switch.t ->
   clock:Clock.t ->
   subscription:Subscription.t ->

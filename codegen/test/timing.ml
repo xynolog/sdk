@@ -16,9 +16,12 @@ let python_wrapped =
    stream closed peer peer an timer peer reply gateway an gateway closed the \
    wait request emit emit emit an emit reply the closed."
 
-let entry ?(docs = "Docs.") name value =
-  Printf.sprintf {|{"name":%s,"value":%s,"docs":%s}|} (Text.quoted name) value
+let entry ?(docs = "Docs.") ?override name value =
+  Printf.sprintf {|{"name":%s,"value":%s,"docs":%s%s}|} (Text.quoted name) value
     (Text.quoted docs)
+    (Option.fold ~none:""
+       ~some:(fun place -> {|,"override":|} ^ Text.quoted place)
+       override)
 
 let budget attempts initial max =
   Printf.sprintf {|{"attempts":%d,"initialDelayMs":%d,"maxDelayMs":%d}|}
@@ -26,9 +29,12 @@ let budget attempts initial max =
 
 let entries =
   [
-    entry ~docs:go_wrapped "lingerMs" "1000";
-    entry ~docs:python_wrapped "emitRetry" (budget 4 1000 4000);
+    entry ~docs:go_wrapped ~override:"transport" "lingerMs" "1000";
+    entry ~docs:python_wrapped ~override:"transport" "emitRetry"
+      (budget 4 1000 4000);
     entry ~docs:"Counted, */ even." "seenEventIdsCount" "512";
+    entry ~docs:"Silent." ~override:"client" "jobSilenceMs" "10000";
+    entry ~docs:"Hovered." ~override:"hoverDwell.delay" "hoverDelayMs" "150";
   ]
 
 let table entries =
@@ -86,10 +92,28 @@ let rules =
                 { attempts = 4; initial_delay_ms = 1000; max_delay_ms = 4000 }
             );
             ("seenEventIdsCount", Count 512);
+            ("jobSilenceMs", Duration 10000);
+            ("hoverDelayMs", Duration 150);
           ]
           (List.map
              (fun (e : Timing.Table.entry) -> (e.name, e.value))
              (derived (table entries))));
+    case "an entry is in the record its override names, and in no other"
+      (fun () ->
+        let t = derived (table entries) in
+        Alcotest.(check (list (pair string (list string))))
+          "records"
+          [
+            ("ClientTiming", [ "jobSilenceMs" ]);
+            ("TransportTiming", [ "lingerMs"; "emitRetry" ]);
+          ]
+          (List.map
+             (fun record ->
+               ( Timing.Table.record_name record,
+                 List.map
+                   (fun (e : Timing.Table.entry) -> e.name)
+                   (Timing.Table.members record t) ))
+             Timing.Table.records));
     case "a name of no kind is refused"
       (refuses
          (table
@@ -199,7 +223,41 @@ let names =
 (* A tab, in the expected text below, is written as a tilde. *)
 let tabs = Text.replace_all ~sub:"~" ~by:"\t"
 
-let go =
+let go_values =
+  {|// Code generated from protocol/specs/src/client/timing.json; DO NOT EDIT.
+//
+// Regenerate: make generate (codegen/lib/timing/go.ml)
+// The TypeScript, Python and Rust constants are generated from the same table.
+
+package timing
+
+import (
+~"time"
+
+~"github.com/xynolog/sdk/go/api"
+)
+
+// Linger is lingerMs: closed closed emit request the request a a gateway peer
+// closed reply a a request retry an gateway an closed reply peer the an an
+// gateway emit peer closed a closed closed closed the open.
+const Linger = 1000 * time.Millisecond
+
+// EmitRetry is emitRetry: timer wait request a retry retry wait open an the
+// wait gateway request stream closed peer peer an timer peer reply gateway an
+// gateway closed the wait request emit emit emit an emit reply the closed.
+var EmitRetry = api.RetryBudget{Attempts: 4, InitialDelayMs: 1000, MaxDelayMs: 4000}
+
+// SeenEventIdsCount is seenEventIdsCount: Counted, */ even.
+const SeenEventIdsCount = 512
+
+// JobSilence is jobSilenceMs: Silent.
+const JobSilence = 10000 * time.Millisecond
+
+// HoverDelay is hoverDelayMs: Hovered.
+const HoverDelay = 150 * time.Millisecond
+|}
+
+let go_records =
   {|// Code generated from protocol/specs/src/client/timing.json; DO NOT EDIT.
 //
 // Regenerate: make generate (codegen/lib/timing/go.ml)
@@ -211,14 +269,30 @@ import (
 ~"time"
 
 ~"github.com/xynolog/sdk/go/api"
+~"github.com/xynolog/sdk/go/internal/timing"
 )
 
-// Timing is the timing a Xynolog client keeps: its deadlines, its retry
-// budgets, the cadence of its stream, and what it keeps count of, as
-// protocol/specs/src/client/timing.json states them for every SDK. It holds
-// one field per entry, under the entry's name. DefaultTiming is the table's
-// values; a caller that wants another sets that field.
-type Timing struct {
+// ClientTiming holds what a caller may set of the timing a client keeps, one
+// field per entry of protocol/specs/src/client/timing.json under the entry's
+// name. DefaultClientTiming is the table's values; a caller that wants
+// another sets that field.
+type ClientTiming struct {
+~// JobSilence is jobSilenceMs: Silent.
+~JobSilence time.Duration
+}
+
+// DefaultClientTiming is the table's values of ClientTiming.
+func DefaultClientTiming() ClientTiming {
+~return ClientTiming{
+~~JobSilence: timing.JobSilence,
+~}
+}
+
+// TransportTiming holds what a caller may set of the timing a transport
+// keeps, one field per entry of protocol/specs/src/client/timing.json under
+// the entry's name. DefaultTransportTiming is the table's values; a caller
+// that wants another sets that field.
+type TransportTiming struct {
 ~// Linger is lingerMs: closed closed emit request the request a a gateway
 ~// peer closed reply a a request retry an gateway an closed reply peer the an
 ~// an gateway emit peer closed a closed closed closed the open.
@@ -228,16 +302,13 @@ type Timing struct {
 ~// an gateway closed the wait request emit emit emit an emit reply the
 ~// closed.
 ~EmitRetry api.RetryBudget
-~// SeenEventIdsCount is seenEventIdsCount: Counted, */ even.
-~SeenEventIdsCount int
 }
 
-// DefaultTiming is the table's values.
-func DefaultTiming() Timing {
-~return Timing{
-~~Linger:            1000 * time.Millisecond,
-~~EmitRetry:         api.RetryBudget{Attempts: 4, InitialDelayMs: 1000, MaxDelayMs: 4000},
-~~SeenEventIdsCount: 512,
+// DefaultTransportTiming is the table's values of TransportTiming.
+func DefaultTransportTiming() TransportTiming {
+~return TransportTiming{
+~~Linger:    timing.Linger,
+~~EmitRetry: timing.EmitRetry,
 ~}
 }
 |}
@@ -251,19 +322,25 @@ let python =
 cadence of its stream, and what it keeps count of.
 
 Each constant is an entry of the table every SDK generates from, under the
-entry's own name: `emitRetry` is `EMIT_RETRY`. `TIMING_NAMES` lists the names
-as the table states them, which is how a caller overrides one.
+entry's own name: `emitRetry` is `EMIT_RETRY`. `ClientTiming` and
+`TransportTiming` hold the entries a caller may set. `TIMING_NAMES` lists
+the names as the table states them.
 """
 
-from typing import Final
+from dataclasses import dataclass
+from typing import Final, final
 
 from xynolog.types import RetryBudget
 
 __all__ = [
+    "ClientTiming",
     "EMIT_RETRY",
+    "HOVER_DELAY_MS",
+    "JOB_SILENCE_MS",
     "LINGER_MS",
     "SEEN_EVENT_IDS_COUNT",
     "TIMING_NAMES",
+    "TransportTiming",
 ]
 
 # closed closed emit request the request a a gateway peer closed reply a a request retry an
@@ -279,40 +356,101 @@ EMIT_RETRY: Final = RetryBudget(attempts=4, initial_delay_ms=1000, max_delay_ms=
 # Counted, */ even.
 SEEN_EVENT_IDS_COUNT: Final = 512
 
+# Silent.
+JOB_SILENCE_MS: Final = 10000
+
+# Hovered.
+HOVER_DELAY_MS: Final = 150
+
 # Every entry's name, as the table states it.
 TIMING_NAMES: Final[tuple[str, ...]] = (
     "lingerMs",
     "emitRetry",
     "seenEventIdsCount",
+    "jobSilenceMs",
+    "hoverDelayMs",
 )
+
+
+@final
+@dataclass(frozen=True, slots=True, kw_only=True)
+class ClientTiming:
+    """What a caller may set of the timing a client keeps: each member is the entry of protocol/specs/src/client/timing.json that its name says, and has the table's value unless the caller states another."""
+
+    job_silence_ms: int = JOB_SILENCE_MS
+    """Silent."""
+
+
+@final
+@dataclass(frozen=True, slots=True, kw_only=True)
+class TransportTiming:
+    """What a caller may set of the timing a transport keeps: each member is the entry of protocol/specs/src/client/timing.json that its name says, and has the table's value unless the caller states another."""
+
+    linger_ms: int = LINGER_MS
+    """closed closed emit request the request a a gateway peer closed reply a a request retry an gateway an closed reply peer the an an gateway emit peer closed a closed closed closed the open."""
+    emit_retry: RetryBudget = EMIT_RETRY
+    """timer wait request a retry retry wait open an the wait gateway request stream closed peer peer an timer peer reply gateway an gateway closed the wait request emit emit emit an emit reply the closed."""
 |}
 
 let typescript =
-  Printf.sprintf
-    {|// ⚠ GENERATED FILE — do not edit.
+  {|// ⚠ GENERATED FILE — do not edit.
 //
 // Authority:   protocol/specs/src/client/timing.json
 // Regenerate:  make generate  (codegen/lib/timing/typescript.ml)
 
 import type { RetryBudget } from './retry';
 
-/** %s */
+/** closed closed emit request the request a a gateway peer closed reply a a request retry an gateway an closed reply peer the an an gateway emit peer closed a closed closed closed the open. */
 export const LINGER_MS = 1000;
 
-/** %s */
+/** timer wait request a retry retry wait open an the wait gateway request stream closed peer peer an timer peer reply gateway an gateway closed the wait request emit emit emit an emit reply the closed. */
 export const EMIT_RETRY: RetryBudget = { attempts: 4, initialDelayMs: 1000, maxDelayMs: 4000 };
 
 /** Counted, *\/ even. */
 export const SEEN_EVENT_IDS_COUNT = 512;
+
+/** Silent. */
+export const JOB_SILENCE_MS = 10000;
+
+/** Hovered. */
+export const HOVER_DELAY_MS = 150;
+
+/** What a caller may set of the timing a client keeps: each member is the entry of protocol/specs/src/client/timing.json that its name says, and has the table's value unless the caller states another. */
+export interface ClientTiming {
+  /** Silent. */
+  jobSilenceMs: number;
+}
+
+/** The table's values of ClientTiming. */
+export const DEFAULT_CLIENT_TIMING: ClientTiming = {
+  jobSilenceMs: JOB_SILENCE_MS,
+};
+
+/** What a caller may set of the timing a transport keeps: each member is the entry of protocol/specs/src/client/timing.json that its name says, and has the table's value unless the caller states another. */
+export interface TransportTiming {
+  /** closed closed emit request the request a a gateway peer closed reply a a request retry an gateway an closed reply peer the an an gateway emit peer closed a closed closed closed the open. */
+  lingerMs: number;
+  /** timer wait request a retry retry wait open an the wait gateway request stream closed peer peer an timer peer reply gateway an gateway closed the wait request emit emit emit an emit reply the closed. */
+  emitRetry: RetryBudget;
+}
+
+/** The table's values of TransportTiming. */
+export const DEFAULT_TRANSPORT_TIMING: TransportTiming = {
+  lingerMs: LINGER_MS,
+  emitRetry: EMIT_RETRY,
+};
 |}
-    go_wrapped python_wrapped
 
 let writers =
   [
-    case "Go's timing" (fun () ->
+    case "Go's timing values" (fun () ->
         Alcotest.(check string)
-          "text" (tabs go)
-          (Timing.Go.text (derived (table entries))));
+          "text" (tabs go_values)
+          (Timing.Go.values (derived (table entries))));
+    case "Go's timing records" (fun () ->
+        Alcotest.(check string)
+          "text" (tabs go_records)
+          (Timing.Go.records (derived (table entries))));
     case "Python's timing" (fun () ->
         Alcotest.(check string)
           "text" python

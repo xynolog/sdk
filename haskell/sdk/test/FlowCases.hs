@@ -18,11 +18,12 @@ import Streaming.Prelude qualified as Stream
 import System.FilePath ((</>))
 import System.Timeout (timeout)
 import Xynolog.Channels (Channel (BeckonHover), channelName)
+import Xynolog.Internal.Generated.TimingValues (timingValues)
 import Xynolog.Retry (RetryOptions (..))
 import Xynolog.State.HoverDwell qualified as Hover
 import Xynolog.State.Search qualified as Search
 import Xynolog.StateValue qualified as State
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
 
 require :: String -> Bool -> IO ()
 require label good = unless good (ioError (userError label))
@@ -59,7 +60,7 @@ flowCases root = do
       duration (Number number) = toRational number
       duration value =
         let key = member "timing" value
-            timing = case key of String name -> member name (toJSON Timing.protocolSettings); _ -> error "invalid flow timing"
+            timing = case key of String name -> member name (toJSON timingValues); _ -> error "invalid flow timing"
             scale = maybe 1 duration (optional "times" value)
             offset = maybe 0 duration (optional "plusMs" value)
          in duration timing * scale + offset
@@ -98,7 +99,7 @@ flowCases root = do
                     atomically $ do modifyTVar' queries (++ [text]); modifyTVar' streams (++ [queue])
                     let next = atomically (readTQueue queue) >>= publish >> next
                     next
-                  debounce = maybe (fromInteger (Timing.searchDebounceMs Timing.protocolSettings)) duration (optional "debounceMs" inputs)
+                  debounce = maybe (fromInteger Timing.searchDebounceMs) duration (optional "debounceMs" inputs)
               initial <- maybe (pure "") decode (optional "initialQuery" inputs)
               unit <- Search.newSearchPipeline clock (round debounce) initial source
               pure

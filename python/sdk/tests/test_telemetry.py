@@ -25,9 +25,9 @@ from opentelemetry.trace import SpanKind
 from xynolog import telemetry
 from xynolog.http import HttpTransport
 from xynolog.identifiers import ResourceId
-from xynolog.telemetry_table import METRICS, SPANS, SpanKindName, SpanRow
-from xynolog.transport import Frame, TraceContext
-from xynolog.types import PutBinaryRequest
+from xynolog.telemetry_table import BUS_RECV, METRICS, SPANS, SpanKindName, SpanRow
+from xynolog.transport import Frame
+from xynolog.types import PutBinaryRequest, TraceCarrier
 from xynolog.watched import Variable, reached
 
 KINDS: dict[SpanKindName, SpanKind] = {"client": SpanKind.CLIENT, "consumer": SpanKind.CONSUMER, "producer": SpanKind.PRODUCER}
@@ -143,6 +143,40 @@ def test_what_is_exported_is_what_the_table_lists(exported: tuple[InMemorySpanEx
     assert carried.split("-")[1:3] == [f"{sent.context.trace_id:032x}", f"{sent.context.span_id:016x}"]
 
 
+def test_a_frame_whose_trace_the_table_refuses_arrives_in_none_of_it_and_without_it(
+    exported: tuple[InMemorySpanExporter, InMemoryMetricReader],
+) -> None:
+    exporter, _ = exported
+    exporter.clear()
+
+    async def scenario() -> Frame:
+        async with (
+            GatewayServer() as gateway,
+            HttpTransport(gateway.origin, token=Variable[str | None]("t"), channels=("beckon:focus",)) as transport,
+        ):
+            await soon(reached(transport.state, lambda state: state == "open"))
+            frames = transport.frames("beckon:focus")
+            gateway.send(
+                "e-1",
+                {
+                    "channel": "beckon:focus",
+                    # TraceCarrier's `tracestate` is a text of at least one character.
+                    "payload": {"resourceId": "res-1", "annotationId": "a-1", "_trace": {"traceparent": SENT_UNDER, "tracestate": ""}},
+                },
+            )
+            frame = await soon(anext(frames))
+            assert isinstance(frame, Frame), frame
+            return frame
+
+    frame = run(scenario())
+    assert frame.payload == {"resourceId": "res-1", "annotationId": "a-1"}
+    (arrival,) = of(BUS_RECV, exporter.get_finished_spans())
+    assert arrival.parent is None, "a frame continues a trace the table refuses"
+    assert frame.trace is not None
+    assert arrival.context is not None
+    assert frame.trace.traceparent.split("-")[1] == f"{arrival.context.trace_id:032x}", "a frame's work continues another trace"
+
+
 def test_the_emits_sent_are_counted(exported: tuple[InMemorySpanExporter, InMemoryMetricReader]) -> None:
     _, reader = exported
 
@@ -171,7 +205,7 @@ def test_with_no_propagator_no_trace_travels(exported: tuple[InMemorySpanExporte
         with trace.get_tracer("test").start_as_current_span("work"):
             assert telemetry.trace_headers() == {}, "a request made in a trace carries one with no propagator to write it"
             assert telemetry.active() is None
-        sent = TraceContext(traceparent=SENT_UNDER, tracestate=None)
+        sent = TraceCarrier(traceparent=SENT_UNDER, tracestate=None)
         assert telemetry.received("beckon:focus", None, sent) == sent, "a frame is continued in another trace than the one it brought"
     finally:
         set_global_textmap(configured)

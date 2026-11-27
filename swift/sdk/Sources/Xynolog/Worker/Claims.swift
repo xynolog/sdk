@@ -1,17 +1,6 @@
 import Foundation
 import Synchronization
 
-public let jobClaimChannels = [
-  Operations.jobClaim.result.name, Operations.jobClaim.failure.name,
-  Channels.jobQueued.name, Channels.jobCancelRequested.name,
-].sorted()
-
-public let jobCommitChannels = [
-  Operations.markCommit.result.name, Operations.markCommit.failure.name,
-  Operations.browseAnnotationRequested.result.name,
-  Operations.browseAnnotationRequested.failure.name,
-].sorted()
-
 /// Each wait a claiming keeps: the one its options name, else client/timing.json's of that name.
 extension ClaimOptions {
   var claimTimeoutMs: Int { jobClaimTimeoutMs ?? Timings.jobClaimTimeoutMs }
@@ -20,33 +9,12 @@ extension ClaimOptions {
   var commitTimeoutMs: Int { markCommitTimeoutMs ?? Timings.markCommitTimeoutMs }
 }
 
-public struct ClaimRefusal: Error, Sendable {
-  public let code: BusRequestErrorCode?
-  public let detail: String
-}
+extension ClaimRefusal: Error {}
 
-public struct ActiveJob: Encodable, Sendable {
-  public let jobId: JobId
-  public let jobType: JobType
-  public let since: Date
-}
-
-public struct WorkerVitals: Encodable, Sendable {
-  public internal(set) var lastQueuedEventAt: Date?
-  public internal(set) var lastClaimAt: Date?
-  public internal(set) var lastFinishedAt: Date?
-  public internal(set) var lastActivityAt: Date?
-  public internal(set) var activeJob: ActiveJob?
-  public internal(set) var jobsCompleted = 0
-}
-
-public struct HeldJobStall: Sendable {
-  public let jobId: JobId
-  public let jobType: JobType
-  public let heldSince: Date
-  public let lastActivityAt: Date
-  public let silentFor: Duration
-  public let threshold: Duration
+/// A span of time in whole milliseconds, a part of one dropped.
+func wholeMilliseconds(_ span: Duration) -> Int {
+  let (seconds, attoseconds) = span.components
+  return Int(seconds) * 1000 + Int(attoseconds / 1_000_000_000_000_000)
 }
 
 public func jobMatchesFilter(_ filter: JSONValue, job: JSONValue) -> Bool {
@@ -85,23 +53,25 @@ public actor Claims: AsyncSequence {
   private let jobs: AsyncStream<any HeldJob>.Continuation
   private let refusals = Broadcast<ClaimRefusal>(keepingForFirst: true)
   private let stalls = Broadcast<HeldJobStall>(keepingForFirst: true)
-  private var currentVitals = WorkerVitals()
+  private var currentVitals = WorkerVitals(
+    lastQueuedEventAt: nil, lastClaimAt: nil, lastFinishedAt: nil, lastActivityAt: nil,
+    activeJob: nil, jobsCompleted: 0)
   public var vitals: WorkerVitals { currentVitals }
 
   /// What `engine`, claiming with these claims, says of itself to a worker's health endpoint: the
   /// engine, the jobs the claims accept, and their vitals.
   public func health(of engine: Engine) -> WorkerEngineHealth {
-    let vitals = currentVitals
-    return WorkerEngineHealth(
-      engine: engine, jobs: options.accepts,
-      lastQueuedEventAt: vitals.lastQueuedEventAt.map(dateTime),
-      lastClaimAt: vitals.lastClaimAt.map(dateTime),
-      lastFinishedAt: vitals.lastFinishedAt.map(dateTime),
-      lastActivityAt: vitals.lastActivityAt.map(dateTime),
-      activeJob: vitals.activeJob.map {
-        WorkerEngineHealthActiveJob(jobId: $0.jobId, type: $0.jobType, since: dateTime($0.since))
-      },
-      jobsCompleted: vitals.jobsCompleted)
+    Self.health(currentVitals, of: engine, jobs: options.accepts)
+  }
+
+  static func health(_ vitals: WorkerVitals, of engine: Engine, jobs: [JobFilter])
+    -> WorkerEngineHealth
+  {
+    WorkerEngineHealth(
+      engine: engine, jobs: jobs,
+      lastQueuedEventAt: vitals.lastQueuedEventAt, lastClaimAt: vitals.lastClaimAt,
+      lastFinishedAt: vitals.lastFinishedAt, lastActivityAt: vitals.lastActivityAt,
+      activeJob: vitals.activeJob, jobsCompleted: vitals.jobsCompleted)
   }
 
   private let iterated = Mutex(false)
@@ -217,7 +187,7 @@ public actor Claims: AsyncSequence {
   private func hear(_ carried: Carried) async {
     guard !stopped else { return }
     if carried.channel == Channels.jobQueued.name {
-      currentVitals.lastQueuedEventAt = Date()
+      currentVitals.lastQueuedEventAt = dateTime(Date())
       let wakes =
         switch carried {
         case .frame(let frame):
@@ -260,7 +230,7 @@ public actor Claims: AsyncSequence {
     }
   }
 
-  private func take(_ record: JobRunning, trace: [String: String]?) async {
+  private func take(_ record: JobRunning, trace: TraceCarrier?) async {
     let job: any WorkerLease
     switch record.metadata.type {
     case .mark:
@@ -273,15 +243,13 @@ public actor Claims: AsyncSequence {
         clock: clock)
     }
     if stopped {
-      try? await job.fail(
-        "The worker stopped while it held the job", failureClass: nil, completedUnits: nil,
-        unitCursors: nil)
+      try? await job.fail("The worker stopped while it held the job", failure: nil)
       return
     }
     held = job
-    let now = Date()
+    let now = dateTime(Date())
     currentVitals.lastClaimAt = now
-    currentVitals.activeJob = ActiveJob(jobId: job.jobId, jobType: job.jobType, since: now)
+    currentVitals.activeJob = WorkerActiveJob(jobId: job.jobId, type: job.jobType, since: now)
     active()
     stallReported = false
     wakeOwed = false
@@ -292,7 +260,7 @@ public actor Claims: AsyncSequence {
     guard !stopped else { return }
     let code = (error as? BusRequestError)?.reason
     if code != .busNonePending {
-      refusals.yield(ClaimRefusal(code: code, detail: String(describing: error)))
+      refusals.yield(ClaimRefusal(code: code, message: String(describing: error)))
     }
   }
 
@@ -303,7 +271,7 @@ public actor Claims: AsyncSequence {
 
   func active() {
     sinceActivity = stopwatch(clock)
-    currentVitals.lastActivityAt = Date()
+    currentVitals.lastActivityAt = dateTime(Date())
   }
 
   func released(_ job: any WorkerLease, completed: Bool) {
@@ -321,13 +289,13 @@ public actor Claims: AsyncSequence {
       let lastActivityAt = currentVitals.lastActivityAt
     else { return }
     let silence = sinceActivity()
-    let threshold = Duration.milliseconds(options.stallMs)
-    if silence > threshold {
+    if silence > .milliseconds(options.stallMs) {
       stallReported = true
       stalls.yield(
         HeldJobStall(
-          jobId: job.jobId, jobType: job.jobType, heldSince: job.since,
-          lastActivityAt: lastActivityAt, silentFor: silence, threshold: threshold))
+          jobId: job.jobId, jobType: job.type, heldSince: job.since,
+          lastActivityAt: lastActivityAt, silentForMs: wholeMilliseconds(silence),
+          thresholdMs: options.stallMs))
     }
   }
 
@@ -343,9 +311,7 @@ public actor Claims: AsyncSequence {
     let pending = claimTask
     let finish = spawn {
       if let job {
-        try? await job.fail(
-          "The worker stopped while it held the job", failureClass: nil, completedUnits: nil,
-          unitCursors: nil)
+        try? await job.fail("The worker stopped while it held the job", failure: nil)
       }
       await pending?.value
     }

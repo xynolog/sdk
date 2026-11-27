@@ -23,7 +23,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/kept"
 	"github.com/xynolog/sdk/go/internal/required"
@@ -278,7 +277,7 @@ func (p *progressReader) Read(buffer []byte) (int, error) {
 	if p.sent > *p.reported {
 		*p.reported = p.sent
 		var progress api.UploadProgress
-		if err := progress.From(api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: p.sent, TotalBytes: len(p.body)}); err != nil {
+		if err := progress.From(api.UploadProgressProgress{Phase: api.UploadProgressProgressPhaseProgress, BytesUploaded: p.sent, TotalBytes: new(len(p.body))}); err != nil {
 			return n, err
 		}
 		p.report(progress)
@@ -289,7 +288,7 @@ func (p *progressReader) Read(buffer []byte) (int, error) {
 // PutBinary uploads a resource. Every attempt carries the upload's one
 // Idempotency-Key, so an attempt answered with a status RetryRuleTransport
 // retries, or not answered at all, is sent once more, with the same key, bytes
-// and fields, after Timing.RequestRetryPause or the answer's Retry-After when
+// and fields, after requestRetryPauseMs or the answer's Retry-After when
 // that is longer. Its context abandons it: the connection is closed, nothing
 // is reported on the error stream, and it is not sent again.
 func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting api.PutBinaryRequest) *Upload {
@@ -299,10 +298,10 @@ func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting api.PutBin
 		defer span.End()
 		body, contentType, err := form(putting)
 		if err != nil {
-			return api.CreateResourceResponse{}, c.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an upload that cannot be written: %v", err), TransportErrorCodeError))
+			return api.CreateResourceResponse{}, c.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an upload that cannot be written: %v", err), api.TransportErrorCodeError))
 		}
 		var started api.UploadProgress
-		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: len(body)}); err != nil {
+		if err := started.From(api.UploadProgressStarted{Phase: api.UploadProgressStartedPhaseStarted, TotalBytes: new(len(body))}); err != nil {
 			return api.CreateResourceResponse{}, err
 		}
 		report(started)
@@ -340,7 +339,7 @@ func contentType(response *http.Response) string {
 
 // interrupted is a read whose bytes stopped coming.
 func interrupted(resource api.ResourceId, err error) *TransportError {
-	return transportErrorWithoutResponse(fmt.Sprintf("%s %s ended before its bytes did: %v", RouteGetResourceRepresentation.Method, resourcePath(RouteGetResourceRepresentation, resource), err), TransportErrorCodeUnavailable)
+	return transportErrorWithoutResponse(fmt.Sprintf("%s %s ended before its bytes did: %v", RouteGetResourceRepresentation.Method, resourcePath(RouteGetResourceRepresentation, resource), err), api.TransportErrorCodeUnavailable)
 }
 
 // GetBinary reads a resource's bytes, whole.
@@ -424,7 +423,7 @@ func (c *HTTPContentTransport) GetAnnotations(ctx context.Context, resource api.
 
 // GetAnchoredText reads a resource's anchored text. The Archivist may hold
 // this read while the Smelter settles the content, and the gateway passes
-// that wait through: the deadline (Timing.HttpRequestTimeout) outlasts it.
+// that wait through: the deadline (TransportTiming.HttpRequestTimeout) outlasts it.
 func (c *HTTPContentTransport) GetAnchoredText(ctx context.Context, resource api.ResourceId) (api.AnchoredTextAnswer, error) {
 	busLog(ctx, busGet, "content", map[string]any{"resourceId": resource, "anchoredText": true}, Envelope{})
 	ctx, span := reading(ctx, spanContentGetAnchoredText, resource)
@@ -446,7 +445,7 @@ func (t *HTTPTransport) GetMediaToken(ctx context.Context, resource api.Resource
 	spec := t.operation(RouteCreateMediaToken, true)
 	body, err := jsonBody(api.MediaTokenRequest{ResourceId: resource})
 	if err != nil {
-		return api.MediaTokenResponse{}, t.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("a media token request that does not serialize: %v", err), TransportErrorCodeError))
+		return api.MediaTokenResponse{}, t.shared.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("a media token request that does not serialize: %v", err), api.TransportErrorCodeError))
 	}
 	spec.body, spec.contentType = body, routeCreateMediaTokenSends
 	return answer[api.MediaTokenResponse](ctx, t.shared, spec)

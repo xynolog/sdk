@@ -61,14 +61,15 @@ import Xynolog.Internal.Http (HttpClient (..))
 import Xynolog.Retry qualified as Retry
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.SignIn qualified as SignIn
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Tokens qualified as Tokens
 import Xynolog.Types
 
 data IssuerOptions = IssuerOptions
   { issuerHttpClient :: HttpClient,
     issuerTime :: Retry.RetryOptions,
-    issuerTiming :: Timing.Settings
+    issuerTiming :: Settings.TransportTiming
   }
 
 data Answer = Answer Int Value
@@ -131,7 +132,7 @@ requestJson options code endpoint form = do
         -- Successful OAuth answers always require an actual JSON object.
         pure (Answer (statusCode (responseStatus response)) (either (const Null) Prelude.id (eitherDecodeStrict' bytes)))
   now <- Retry.retryNow (issuerTime options)
-  let due = now + Timing.httpRequestTimeoutMs (issuerTiming options) * 1000000
+  let due = now + Settings.httpRequestTimeoutMs (issuerTiming options) * 1000000
   answer <- try (race work (Retry.retryWaitUntil (issuerTime options) due))
   case answer of
     Left (_ :: HttpException) -> failWith code "The issuer request received no usable answer" Nothing
@@ -250,7 +251,7 @@ refreshSession :: IssuerOptions -> SignIn.KeptSignIn -> Maybe Text -> IO Scienti
 refreshSession options kept holding wallNow =
   Retry.retryWithBackoff
     (issuerTime options)
-    (Timing.refreshRetry (issuerTiming options))
+    Timing.refreshRetry
     (\failure -> Retry.retryable Retry.Refresh (signInStatus failure) Nothing False)
     (const Nothing)
     ( SignIn.renewKept kept holding (\access -> Tokens.isTokenExpired access <$> wallNow) $ \original ->
@@ -289,11 +290,10 @@ signInWithDeviceGrant options target onCode = do
   when (expires < 0) (failWith Code.SignInExchange "The device code has a negative lifetime" Nothing)
   onCode (DeviceCode {deviceCodeExpiresIn = expires, deviceCodeUserCode = userCode, deviceCodeVerificationUri = verification, deviceCodeVerificationUriComplete = (text "verification_uri_complete" body)})
   now <- Retry.retryNow (issuerTime options)
-  let settings = issuerTiming options
-      interval =
+  let interval =
         max
-          (fromInteger (Timing.devicePollFloorMs settings))
-          (maybe (fromInteger (Timing.devicePollMs settings)) (* 1000) (number "interval" body))
+          (fromInteger Timing.devicePollFloorMs)
+          (maybe (fromInteger Timing.devicePollMs) (* 1000) (number "interval" body))
       deadline = now + expires * 1000000000
       poll delay = do
         before <- Retry.retryNow (issuerTime options)
@@ -312,7 +312,7 @@ signInWithDeviceGrant options target onCode = do
             pure (issuer, IssuedTokens access refresh)
           _ -> case text "error" answer of
             Just "authorization_pending" -> poll delay
-            Just "slow_down" -> poll (delay + fromInteger (Timing.deviceSlowDownMs settings))
+            Just "slow_down" -> poll (delay + fromInteger Timing.deviceSlowDownMs)
             Just "access_denied" -> failWith Code.SignInDenied "The device sign-in was denied" (Just pollStatus)
             Just "expired_token" -> failWith Code.SignInExpired "The device code expired" (Just pollStatus)
             _ -> failWith Code.SignInExchange "The issuer refused the device token grant" (Just pollStatus)

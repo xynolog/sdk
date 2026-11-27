@@ -185,6 +185,7 @@ and type_of st what (ty : T.ty) =
   | T.Inline i -> in_place st what i
   | T.Scalar (T.Text { binary = true; _ }) -> G.Slice (named "byte")
   | T.Scalar (T.Text _) -> string_
+  | T.Scalar (T.Code vocabulary) -> named (snd (Code_names.named vocabulary))
   | T.Scalar T.Boolean -> named "bool"
   | T.Scalar T.Number -> named "float64"
   | T.Scalar (T.Integer _) -> named "int"
@@ -251,7 +252,7 @@ and enumeration name (base : T.scalar option) values doc =
           | Schema.Bool_literal v ->
               (Naming.variant (string_of_bool v), G.Name (string_of_bool v))
           | _ -> refuse "%s: a value of no boolean enumeration" name )
-    | Some T.Number | None ->
+    | Some (T.Number | T.Code _) | None ->
         refuse "%s: an enumeration of a type the generator does not know" name
   in
   let constants =
@@ -455,7 +456,7 @@ and union_declaration st name (u : T.union) doc =
         | T.Integer _ -> Some "int"
         | T.Number -> Some "float64"
         | T.Boolean -> Some "bool"
-        | T.Text _ -> None)
+        | T.Text _ | T.Code _ -> None)
     | _ -> None
   in
   let member_types =

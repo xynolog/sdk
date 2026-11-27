@@ -34,6 +34,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/required"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // Credential is a service account at an issuer, by how it proves itself: a
@@ -134,14 +135,14 @@ func (s *ServiceToken) endpoint(ctx context.Context) (string, error) {
 	discovery := strings.TrimRight(issuer, "/") + "/.well-known/openid-configuration"
 	status, document, err := s.issuer.get(ctx, discovery)
 	if err != nil {
-		return "", signInUnanswered(SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s got no answer: %v", issuer, err))
+		return "", signInUnanswered(api.SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s got no answer: %v", issuer, err))
 	}
 	if status < 200 || status > 299 {
-		return "", NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s failed: HTTP %d from %s", issuer, status, discovery), status)
+		return "", NewSignInError(api.SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s failed: HTTP %d from %s", issuer, status, discovery), status)
 	}
 	endpoint, ok := document.text("token_endpoint")
 	if !ok {
-		return "", NewSignInError(SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s returned no token_endpoint", issuer), status)
+		return "", NewSignInError(api.SignInErrorCodeDiscovery, fmt.Sprintf("OIDC discovery for %s returned no token_endpoint", issuer), status)
 	}
 	s.tokenEndpoint = endpoint
 	return endpoint, nil
@@ -174,25 +175,25 @@ func (s *ServiceToken) token(ctx context.Context, renewed bool) (string, error) 
 	issuer, clientID := s.credential.account()
 	form, err := s.credential.GrantForm(endpoint)
 	if err != nil {
-		return "", signInUnanswered(SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s could not be made: %v", clientID, issuer, err))
+		return "", signInUnanswered(api.SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s could not be made: %v", clientID, issuer, err))
 	}
 	status, answered, err := s.issuer.postForm(ctx, endpoint, form)
 	if err != nil {
-		return "", signInUnanswered(SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s got no answer", clientID, issuer))
+		return "", signInUnanswered(api.SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s got no answer", clientID, issuer))
 	}
 	if status < 200 || status > 299 {
 		// The status, never the body: an error body can echo the secret or the assertion.
-		return "", NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s failed (HTTP %d)", clientID, issuer, status), status)
+		return "", NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("Client-credentials grant for %s at %s failed (HTTP %d)", clientID, issuer, status), status)
 	}
 	token, ok := answered.text("access_token")
 	if !ok {
-		return "", NewSignInError(SignInErrorCodeExchange, fmt.Sprintf("Token endpoint for %s returned no access_token", issuer), status)
+		return "", NewSignInError(api.SignInErrorCodeExchange, fmt.Sprintf("Token endpoint for %s returned no access_token", issuer), status)
 	}
 	// Used until it is due for renewal, and never past its expiry.
 	lifetime, hasLifetime := answered.seconds("expires_in")
-	renewIn, scheduled := RefreshDelay(token, time.Now(), s.issuer.Timing)
+	renewIn, scheduled := RefreshDelay(token, time.Now())
 	if !scheduled && hasLifetime {
-		renewIn, scheduled = RenewalDelay(lifetime, lifetime, s.issuer.Timing), true
+		renewIn, scheduled = RenewalDelay(lifetime, lifetime), true
 	}
 	s.held, s.until = "", time.Time{}
 	if scheduled {
@@ -211,8 +212,10 @@ type AgentConfig struct {
 	// Service is the agent's account at its issuer.
 	Service *ServiceToken
 	// HTTP is the client the gateway is asked over.
-	HTTP   *http.Client
-	Timing Timing
+	HTTP *http.Client
+	// Timing is the timing of the sign-in's requests: the gateway is asked
+	// within its HttpRequestTimeout.
+	Timing TransportTiming
 	// Random is what the jitter of a renewal tried again is drawn from, as
 	// EqualJitter draws it.
 	Random *rand.Rand
@@ -264,7 +267,7 @@ func SignInAgent(ctx context.Context, config AgentConfig) (*AgentToken, error) {
 	a.work.Add(1)
 	go func() {
 		defer a.work.Done()
-		renewWhenDue(alive, a.token, config.Timing, a.renewWithinBudget)
+		renewWhenDue(alive, a.token, a.renewWithinBudget)
 	}()
 	return a, nil
 }
@@ -344,7 +347,7 @@ func (a *AgentToken) renew(renewing string) (string, error) {
 // the token is left as it is and the next is due an interval later, by the
 // schedule's floor.
 func (a *AgentToken) renewWithinBudget(due string) {
-	_, _ = RetryWithBackoff(a.alive, a.config.Timing.RefreshRetry, a.config.Random,
+	_, _ = RetryWithBackoff(a.alive, timing.RefreshRetry, a.config.Random,
 		func(context.Context) (string, error) { return a.renew(due) }, transientRenewal,
 		func(error) (time.Duration, bool) { return 0, false })
 }
@@ -361,20 +364,20 @@ func named(ctx context.Context, config AgentConfig, token string) (api.UserId, e
 	request.Header.Set("Authorization", "Bearer "+token)
 	response, err := config.HTTP.Do(request)
 	if err != nil {
-		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s got no answer: %v", target, err), TransportErrorCodeUnavailable)
+		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s got no answer: %v", target, err), api.TransportErrorCodeUnavailable)
 	}
 	defer response.Body.Close()
 	answered, err := io.ReadAll(io.LimitReader(response.Body, 1<<20))
 	if err != nil {
-		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s ended before its answer did: %v", target, err), TransportErrorCodeUnavailable)
+		return api.UserId{}, transportErrorWithoutResponse(fmt.Sprintf("%s ended before its answer did: %v", target, err), api.TransportErrorCodeUnavailable)
 	}
 	if response.StatusCode < 200 || response.StatusCode > 299 {
 		wait, hasWait := RetryAfter(response.Header.Get(HeaderRetryAfter))
 		return api.UserId{}, refusal(fmt.Sprintf("the gateway did not name the agent (HTTP %d)", response.StatusCode), response.StatusCode, wait, hasWait, answered)
 	}
 	user, read := required.ReadAs[api.UserResponse](answered)
-	if !read {
-		return api.UserId{}, &TransportError{Code: TransportErrorCodeError, Message: target + " did not answer a DID", status: response.StatusCode, hasStatus: true}
+	if !read || user.Did.IsZero() {
+		return api.UserId{}, &TransportError{Code: api.TransportErrorCodeError, Message: target + " did not answer a DID", status: response.StatusCode, hasStatus: true}
 	}
 	return user.Did, nil
 }

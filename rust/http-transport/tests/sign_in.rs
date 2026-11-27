@@ -35,11 +35,9 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use xynolog::annotations::{annotation_of_span, reconcile};
 use xynolog::cache::CacheState;
 use xynolog::channels::{BRIDGED_CHANNELS, PrincipalProfile};
-use xynolog::claims::{HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS, JobFailure};
-use xynolog::client::ClientOptions;
-use xynolog::discovery::{
-    DiscoveryAbsentReason, DiscoveryRead, DiscoveryState, DiscoveryTransport,
-};
+use xynolog::claims::{HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS};
+use xynolog::client::{ClientOptions, ClientTiming};
+use xynolog::discovery::DiscoveryTransport;
 use xynolog::errors::{
     BusRequestErrorCode, IdentityUnverifiable, IdentityUnverifiableReason, SessionError,
     SessionErrorCode, SignInError, SignInErrorCode, XynologError,
@@ -71,6 +69,8 @@ use xynolog::types::{
     PendingAuthorization, PrincipalProfileCommand, PutBinaryRequest, QuotedText, TextSpan,
 };
 use xynolog::types::{ClaimOptions, SessionEndReason, StoredSession};
+use xynolog::types::{DiscoveryAbsentReason, JobFailure};
+use xynolog::types::{DiscoveryManaged, DiscoveryRead, DiscoveryUnchanged};
 use xynolog_http_transport::agent::{AgentSignInError, AgentToken};
 use xynolog_http_transport::client::client;
 use xynolog_http_transport::client_assertion::{JWT_BEARER, LIFETIME_SECONDS, thumbprint};
@@ -87,7 +87,7 @@ use xynolog_http_transport::session::{
     HttpSessionFactory, SessionFromKept, begin_sign_in, complete_sign_in, describe_connection,
     session_from_kept, sign_in_device, sign_out,
 };
-use xynolog_http_transport::transport::{HttpTransportConfig, Timing, TokenRefresher};
+use xynolog_http_transport::transport::{HttpTransportConfig, TokenRefresher, TransportTiming};
 
 // ── The stand-in ────────────────────────────────────────────────────────
 
@@ -1165,6 +1165,8 @@ fn from_kept(world: &World, kept: Arc<dyn SignInKept>) -> SessionFromKept {
         storage: None,
         on_auth_failed: None,
         http: world.http.clone(),
+        client_timing: ClientTiming::default(),
+        transport_timing: TransportTiming::default(),
         random: None,
     }
 }
@@ -2385,7 +2387,12 @@ fn registered(world: &World, id: &str, did: &str) -> KnowledgeBase {
 fn browser(world: &World, storage: Arc<InMemorySessionStorage>) -> XynologBrowser {
     XynologBrowser::new(XynologBrowserConfig {
         storage,
-        session_factory: Arc::new(HttpSessionFactory::new(world.http.clone(), None)),
+        session_factory: Arc::new(HttpSessionFactory::new(
+            world.http.clone(),
+            ClientTiming::default(),
+            TransportTiming::default(),
+            None,
+        )),
     })
     .expect("a browser")
 }
@@ -2757,7 +2764,7 @@ fn serving(world: &World, status: u16, content_type: &str, body: &str, etag: Opt
 
 fn absent_for(read: &DiscoveryRead) -> Option<DiscoveryAbsentReason> {
     match read {
-        DiscoveryRead::State(DiscoveryState::Absent { reason, .. }) => Some(*reason),
+        DiscoveryRead::DiscoveryAbsent(absent) => Some(absent.reason),
         _ => None,
     }
 }
@@ -2777,10 +2784,13 @@ async fn a_document_that_has_not_changed_is_not_read_again() {
     );
 
     match discovery.read().await {
-        DiscoveryRead::State(DiscoveryState::Managed { kbs }) => assert_eq!(kbs.len(), 1),
+        DiscoveryRead::DiscoveryManaged(managed) => assert_eq!(managed.kbs.len(), 1),
         other => panic!("a managed state was expected, not {other:?}"),
     }
-    assert_eq!(discovery.read().await, DiscoveryRead::Unchanged);
+    assert_eq!(
+        discovery.read().await,
+        DiscoveryRead::DiscoveryUnchanged(DiscoveryUnchanged::new())
+    );
 
     // A new document has a new tag, and is read.
     serving(
@@ -2792,7 +2802,7 @@ async fn a_document_that_has_not_changed_is_not_read_again() {
     );
     assert_eq!(
         discovery.read().await,
-        DiscoveryRead::State(DiscoveryState::Managed { kbs: vec![] })
+        DiscoveryRead::DiscoveryManaged(DiscoveryManaged::new(vec![]))
     );
     assert_eq!(*world.staged.discovery_reads.lock().unwrap(), 3);
 }
@@ -3397,7 +3407,7 @@ impl World {
                 refresher: None,
                 channels: Vec::new(),
                 http: self.http.clone(),
-                timing: Timing::default(),
+                timing: TransportTiming::default(),
                 random: None,
             },
             ClientOptions::default(),
@@ -3735,8 +3745,8 @@ async fn a_launchers_document_that_is_never_served_is_unreadable_at_the_deadline
     );
     assert_eq!(absent_for(&read), Some(DiscoveryAbsentReason::Unreadable));
     match read {
-        DiscoveryRead::State(DiscoveryState::Absent { diagnostic, .. }) => assert_eq!(
-            diagnostic.as_deref(),
+        DiscoveryRead::DiscoveryAbsent(absent) => assert_eq!(
+            absent.diagnostic.as_deref(),
             Some("the document was not served within 30s")
         ),
         other => panic!("{other:?}"),
@@ -3773,6 +3783,8 @@ async fn a_script(
         storage: None,
         on_auth_failed: None,
         http,
+        client_timing: ClientTiming::default(),
+        transport_timing: TransportTiming::default(),
         random: None,
     })
     .await?;
@@ -3812,6 +3824,8 @@ async fn a_first_sign_in(
         storage: None,
         on_auth_failed: None,
         http,
+        client_timing: ClientTiming::default(),
+        transport_timing: TransportTiming::default(),
         random: None,
     })
     .await?;
@@ -3842,7 +3856,7 @@ async fn a_daemon(
             refresher: Some(agent.clone()),
             channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
             http,
-            timing: Timing::default(),
+            timing: TransportTiming::default(),
             random: None,
         },
         ClientOptions::default(),
@@ -3915,7 +3929,7 @@ async fn a_worker(
             refresher: Some(agent.clone()),
             channels,
             http,
-            timing: Timing::default(),
+            timing: TransportTiming::default(),
             random: None,
         },
         ClientOptions::default(),
@@ -4013,7 +4027,12 @@ async fn an_application(
     // The registry an application holds, with its sessions over HTTP.
     let browser = XynologBrowser::new(XynologBrowserConfig {
         storage,
-        session_factory: Arc::new(HttpSessionFactory::new(http.clone(), None)),
+        session_factory: Arc::new(HttpSessionFactory::new(
+            http.clone(),
+            ClientTiming::default(),
+            TransportTiming::default(),
+            None,
+        )),
     })?;
 
     // A person signs in at the issuer the knowledge base trusts, in their

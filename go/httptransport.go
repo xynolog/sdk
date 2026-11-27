@@ -20,11 +20,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
 	"github.com/xynolog/sdk/go/internal/required"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // TokenRefresher renews a token the gateway refused. It is asked once for a
@@ -58,7 +58,7 @@ type HTTPTransportConfig struct {
 	// HTTP is what the requests are made with.
 	HTTP *http.Client
 	// Timing is the timing the transport keeps.
-	Timing Timing
+	Timing TransportTiming
 	// Random is what the jitter of the stream's reconnects and of an emit's
 	// retries is drawn from, as EqualJitter draws it.
 	Random *rand.Rand
@@ -75,7 +75,7 @@ type transportShared struct {
 	// same one.
 	clientID string
 	global   []bus.Channel
-	timing   Timing
+	timing   TransportTiming
 	random   *rand.Rand
 	hub      *FrameHub
 	router   *ReplyRouter
@@ -86,7 +86,7 @@ type transportShared struct {
 // background as soon as there is a token. Close stops it.
 type HTTPTransport struct {
 	shared   *transportShared
-	state    *Variable[ConnectionState]
+	state    *Variable[api.ConnectionState]
 	commands chan<- command
 	stopped  <-chan struct{}
 
@@ -111,9 +111,9 @@ func NewHTTPTransport(config HTTPTransportConfig) *HTTPTransport {
 		random:    config.Random,
 		hub:       NewFrameHub(),
 		router:    NewReplyRouter(),
-		failures:  kept.NewTelling[*TransportError](config.Timing.ErrorsKeptForFirstReaderCount),
+		failures:  kept.NewTelling[*TransportError](timing.ErrorsKeptForFirstReaderCount),
 	}
-	state := NewVariable(ConnectionStateInitial)
+	state := NewVariable(api.ConnectionStateInitial)
 	s := newStream(shared, state, config.Bookmarks)
 	stopped := make(chan struct{})
 	go s.run(stopped)
@@ -229,14 +229,14 @@ func (t *HTTPTransport) TrackReply(correlationID string, channels ...bus.Channel
 	return t.shared.router.Track(correlationID, channels)
 }
 
-func (t *HTTPTransport) State() Watched[ConnectionState] { return t.state.Reading() }
+func (t *HTTPTransport) State() Watched[api.ConnectionState] { return t.state.Reading() }
 
 // Failures tells told each failure the transport meets from now on: what a
 // server refused, and what the gateway never answered, each before it is
 // returned to its caller, until stop or the transport closes. The first
-// listener is told first the latest ErrorsKeptForFirstReaderCount (Timing)
-// since the transport was made; one who comes after the transport has closed,
-// nothing.
+// listener is told first the latest errorsKeptForFirstReaderCount
+// (protocol/specs/src/client/timing.json) since the transport was made; one who
+// comes after the transport has closed, nothing.
 func (t *HTTPTransport) Failures(told func(*TransportError)) (stop func()) {
 	return t.shared.failures.Listen(told)
 }
@@ -282,7 +282,7 @@ type emitted struct {
 func (s *transportShared) emit(ctx context.Context, body api.BusEmitRequest) (int, bool, error) {
 	encoded, err := json.Marshal(body)
 	if err != nil {
-		return 0, false, s.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an emit on %s that does not serialize: %v", body.Channel, err), TransportErrorCodeError))
+		return 0, false, s.failures.Report(transportErrorWithoutResponse(fmt.Sprintf("an emit on %s that does not serialize: %v", body.Channel, err), api.TransportErrorCodeError))
 	}
 	key := uuid.NewString()
 	token := s.token.Value()
@@ -293,7 +293,7 @@ func (s *transportShared) emit(ctx context.Context, body api.BusEmitRequest) (in
 			func(ctx context.Context) (emitted, error) { return s.emitOnce(ctx, sent, key, encoded) },
 			func(err error) bool {
 				var refused *TransportError
-				if !errors.As(err, &refused) || refused.Code == TransportErrorCodeUnauthorized {
+				if !errors.As(err, &refused) || refused.Code == api.TransportErrorCodeUnauthorized {
 					return false
 				}
 				status, ok := refused.Status()
@@ -317,7 +317,7 @@ func (s *transportShared) emit(ctx context.Context, body api.BusEmitRequest) (in
 			return 0, false, ctx.Err()
 		}
 		var refused *TransportError
-		if errors.As(err, &refused) && refused.Code == TransportErrorCodeUnauthorized && !renewed {
+		if errors.As(err, &refused) && refused.Code == api.TransportErrorCodeUnauthorized && !renewed {
 			if fresh, ok := s.renewal(ctx, sent); ok {
 				token, renewed = fresh, true
 				continue
@@ -332,11 +332,11 @@ func (s *transportShared) emit(ctx context.Context, body api.BusEmitRequest) (in
 
 // emitOnce is one attempt of an emit whose Idempotency-Key is key.
 func (s *transportShared) emitOnce(ctx context.Context, token, key string, body []byte) (emitted, error) {
-	attempt, cancel := context.WithTimeout(ctx, s.timing.EmitTimeout)
+	attempt, cancel := context.WithTimeout(ctx, timing.EmitTimeout)
 	defer cancel()
 	request, err := http.NewRequestWithContext(attempt, RouteEmitOnBus.Method, s.baseURL+RouteEmitOnBus.Path, bytes.NewReader(body))
 	if err != nil {
-		return emitted{}, transportErrorWithoutResponse(fmt.Sprintf("%s cannot be asked: %v", RouteEmitOnBus.Path, err), TransportErrorCodeError)
+		return emitted{}, transportErrorWithoutResponse(fmt.Sprintf("%s cannot be asked: %v", RouteEmitOnBus.Path, err), api.TransportErrorCodeError)
 	}
 	request.Header.Set("Content-Type", routeEmitOnBusSends)
 	request.Header.Set("Authorization", "Bearer "+token)
@@ -347,7 +347,7 @@ func (s *transportShared) emitOnce(ctx context.Context, token, key string, body 
 		if ctx.Err() != nil {
 			return emitted{}, ctx.Err()
 		}
-		return emitted{}, transportErrorWithoutResponse(fmt.Sprintf("%s got no answer: %v", RouteEmitOnBus.Path, err), TransportErrorCodeUnavailable)
+		return emitted{}, transportErrorWithoutResponse(fmt.Sprintf("%s got no answer: %v", RouteEmitOnBus.Path, err), api.TransportErrorCodeUnavailable)
 	}
 	defer response.Body.Close()
 	answered, readErr := io.ReadAll(response.Body)

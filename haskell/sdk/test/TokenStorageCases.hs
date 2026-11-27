@@ -17,7 +17,6 @@ import Data.Text qualified as Text
 import Data.Text.Encoding (decodeUtf8)
 import System.FilePath ((</>))
 import Xynolog.SessionStorage qualified as Storage
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Tokens qualified as Tokens
 
 require :: String -> Bool -> IO ()
@@ -49,7 +48,7 @@ tokenStorageCases root = do
         (Nothing, Just (String value)) -> pure value
         _ -> ioError (userError "schedule case needs claims or a token")
       _ -> ioError (userError "schedule case is not an object")
-    require "token renewal schedule differs from the shared table" (Tokens.refreshDelay Timing.protocolSettings token now == expected)
+    require "token renewal schedule differs from the shared table" (Tokens.refreshDelay token now == expected)
   forM_ (array (member "tokenExpiry" table)) $ \row -> do
     token <- readValue (member "token" row)
     expiry <- readValue (member "exp" row) :: IO (Maybe Scientific)

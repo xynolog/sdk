@@ -5,10 +5,8 @@ type entry
 
 exception Invalid_store
 
-type platform = Macos | Windows | Other
-
 val state_directory :
-  platform:platform ->
+  platform:Enums.System.t ->
   home:string option ->
   xdg_state_home:string option ->
   local_app_data:string option ->

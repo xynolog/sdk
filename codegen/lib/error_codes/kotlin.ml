@@ -18,7 +18,7 @@ let variant code =
 let vocabulary ~docs (v : Table.vocabulary) =
   let taken = Hashtbl.create 16 in
   K.class_ ~about:(K.Doc docs)
-    ~annotations:[ K.annotation "Generated" ]
+    ~annotations:[ K.annotation "Generated"; K.annotation "Serializable" ]
     ~visibility:K.Public
     ~constructor:
       (K.constructor
@@ -34,7 +34,10 @@ let vocabulary ~docs (v : Table.vocabulary) =
            if Hashtbl.mem taken constant then
              Names.refuse "%s: two codes would both be %s" v.go_name constant;
            Hashtbl.replace taken constant ();
-           K.entry ~about:(K.Block c.docs) ~args:[ K.Str c.code ] constant)
+           K.entry ~about:(K.Block c.docs)
+             ~annotations:
+               [ K.annotation ~args:[ K.arg (K.Str c.code) ] "SerialName" ]
+             ~args:[ K.Str c.code ] constant)
          v.codes)
     K.Enum_class v.go_name
 
@@ -56,7 +59,9 @@ let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
     ~name:"ErrorCodes"
     ~imports:
       (List.sort_uniq String.compare
-         ("xynolog.Generated" :: Kotlin_sdk.Types.imports_of types code_type))
+         ("xynolog.Generated" :: "kotlinx.serialization.SerialName"
+        :: "kotlinx.serialization.Serializable"
+         :: Kotlin_sdk.Types.imports_of types code_type))
     ([
        vocabulary
          ~docs:
@@ -134,4 +139,40 @@ let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
           ~visibility:K.Internal ~type_:(K.Type bus)
           ~value:(K.Same_line (member bus t.unrecognized))
           "UNRECOGNIZED_FAILURE";
+        K.class_
+          ~about:
+            (K.Doc
+               "A gateway refusal of a limit that is a transport code too: its \
+                status, its `LimitRefusal` code, and the transport code it is.")
+          ~annotations:[ K.annotation "Generated" ]
+          ~visibility:K.Public
+          ~constructor:
+            (K.constructor
+               (List.map
+                  (fun (name, type_) ->
+                    K.param
+                      ~binding:
+                        (K.Bound { visibility = K.Public; mutable_ = false })
+                      name (K.Type type_))
+                  [
+                    ("status", "Int");
+                    ("code", "String");
+                    ("transport", transport);
+                  ]))
+          K.Data_class "LimitRefusalTransportCode";
+        K.property
+          ~about:
+            (K.Doc
+               "Each gateway refusal of a limit that is a transport code too.")
+          ~visibility:K.Public
+          ~type_:(K.Generic ("List", [ K.Type "LimitRefusalTransportCode" ]))
+          ~value:
+            (K.Same_line
+               (K.call (K.Name "listOf")
+                  (List.map
+                     (fun (status, limit, (c : Table.code)) ->
+                       K.call (K.Name "LimitRefusalTransportCode")
+                         [ K.Int status; K.Str limit; member transport c ])
+                     t.limit_refusals)))
+          "LIMIT_REFUSAL_TRANSPORT_CODES";
       ])

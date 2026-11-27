@@ -57,7 +57,7 @@ type wire struct {
 	// held is the holds subscribe-resource took, per resource, newest last.
 	held map[string][]func()
 	// reported is the state last reported.
-	reported xynolog.ConnectionState
+	reported api.ConnectionState
 	// reporters is what reports what the client observes; stopReporting ends
 	// the ones that do not end with the transport.
 	reporters     sync.WaitGroup
@@ -83,7 +83,7 @@ func (w *wire) current() (*client, error) {
 
 // report reports the state the transport is in, unless it is the one last
 // reported.
-func (w *wire) report(state xynolog.ConnectionState) {
+func (w *wire) report(state api.ConnectionState) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if w.reported != state {
@@ -186,58 +186,6 @@ func (w *wire) Run(ctx context.Context, id uint64, op string, args protocol.Argu
 	return nil, protocol.Misused("%s is not an operation of this driver", op)
 }
 
-// timing is the client's timing, with what the case overrides.
-func timing(args protocol.Arguments) (xynolog.Timing, error) {
-	timing := xynolog.DefaultTiming()
-	raw, given := args["timing"]
-	if !given {
-		return timing, nil
-	}
-	var stated map[string]json.RawMessage
-	if json.Unmarshal(raw, &stated) != nil {
-		return timing, protocol.Misused("timing must be an object")
-	}
-	ms := func(name string) (time.Duration, error) {
-		n, err := protocol.Count(protocol.Arguments(stated), name)
-		return time.Duration(n) * time.Millisecond, err
-	}
-	for name := range stated {
-		var err error
-		switch name {
-		case "reconnectMs":
-			timing.Reconnect, err = ms(name)
-		case "lazyRemoveMs":
-			timing.LazyRemove, err = ms(name)
-		case "lingerMs":
-			timing.Linger, err = ms(name)
-		case "seenEventIdsCount":
-			var n uint64
-			n, err = protocol.Count(protocol.Arguments(stated), name)
-			timing.SeenEventIdsCount = int(n)
-		case "emitRetry":
-			var budget map[string]json.RawMessage
-			if json.Unmarshal(stated[name], &budget) != nil {
-				return timing, protocol.Misused("emitRetry must be an object")
-			}
-			attempts, err1 := protocol.Count(protocol.Arguments(budget), "attempts")
-			initial, err2 := protocol.Count(protocol.Arguments(budget), "initialDelayMs")
-			maximum, err3 := protocol.Count(protocol.Arguments(budget), "maxDelayMs")
-			for _, e := range []error{err1, err2, err3} {
-				if e != nil {
-					return timing, e
-				}
-			}
-			timing.EmitRetry = api.RetryBudget{Attempts: int(attempts), InitialDelayMs: int(initial), MaxDelayMs: int(maximum)}
-		default:
-			return timing, protocol.Misused("this driver cannot override %s", name)
-		}
-		if err != nil {
-			return timing, err
-		}
-	}
-	return timing, nil
-}
-
 func (w *wire) open(args protocol.Arguments) (any, error) {
 	w.mu.Lock()
 	opened := w.client != nil
@@ -245,8 +193,8 @@ func (w *wire) open(args protocol.Arguments) (any, error) {
 	if opened {
 		return nil, protocol.Misused("a transport is already open")
 	}
-	timing, err := timing(args)
-	if err != nil {
+	timing := xynolog.DefaultTransportTiming()
+	if err := protocol.Timing(args, nil, &timing, nil); err != nil {
 		return nil, err
 	}
 	baseURL, err := protocol.Text(args, "baseUrl")

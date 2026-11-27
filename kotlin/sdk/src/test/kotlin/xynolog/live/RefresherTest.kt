@@ -29,9 +29,9 @@ import xynolog.channels.RESOURCE_SCOPED_CHANNELS
 import xynolog.errors.BusRequestError
 import xynolog.identifiers.AnnotationId
 import xynolog.namespaces.Windows
-import xynolog.transport.ConnectionState
 import xynolog.transport.Frame
 import xynolog.types.Annotation
+import xynolog.types.ConnectionState
 import xynolog.types.wireJson
 
 /** How long the asks an event causes are given to be made. */

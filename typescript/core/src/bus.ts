@@ -29,8 +29,8 @@ import {
   USER_FIELD,
   type EventMap,
 } from './bus-protocol';
-import type { BusEnvelope, BusFrame, TraceCarrier } from './event-bus';
-import type { ConnectionState } from './transport';
+import type { BusEnvelope, BusFrame } from './event-bus';
+import type { ConnectionState, TraceCarrier } from './payload-types';
 import { BUS_OPERATIONS, type BusOperationKey } from './bus-operations';
 import {
   BusRequestError,

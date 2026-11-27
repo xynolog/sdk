@@ -95,7 +95,7 @@ func aRequestNobodyAnswersFailsAtItsDeadlineOnTheClientsClock(timeoutMs: Int?) a
   let refusal = try #require(error as? ClaimRefusal, "it failed with \(String(describing: error))")
   #expect(refusal.code == .busTimeout)
   #expect(
-    refusal.detail
+    refusal.message
       == "Bus request timed out after \(claimTimeoutMs)ms on \(Operations.jobClaim.result.name)")
   reading.cancel()
   await claims.stop()

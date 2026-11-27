@@ -325,7 +325,7 @@ func TestATokenThatNamesNoIssuerIsNotKept(t *testing.T) {
 	held := heldFor(1)
 	held.Access = "eyJhbGciOiJub25lIn0." + base64.RawURLEncoding.EncodeToString(payload) + ".c2ln"
 	var refused *SignInError
-	if err := store.Entry("local").Keep(context.Background(), held); !errors.As(err, &refused) || refused.Code != SignInErrorCodeExchange {
+	if err := store.Entry("local").Keep(context.Background(), held); !errors.As(err, &refused) || refused.Code != api.SignInErrorCodeExchange {
 		t.Errorf("kept, or refused otherwise: %v", err)
 	}
 	if _, kept, _ := store.SignIn("local"); kept {

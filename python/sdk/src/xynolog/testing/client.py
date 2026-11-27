@@ -10,11 +10,12 @@ from dataclasses import dataclass
 from typing import ClassVar, Final, TypedDict, Unpack, final
 
 from xynolog.channels import BRIDGED_CHANNELS
-from xynolog.client import CachePersistence, ClientTiming, XynologClient
+from xynolog.client import CachePersistence, XynologClient
 from xynolog.session import MemorySignIn, SignInKept, XynologSession
 from xynolog.testing.content import InMemoryContent
 from xynolog.testing.gateway import StubGateway
 from xynolog.testing.transport import FaultyTransport
+from xynolog.timing import ClientTiming
 from xynolog.types import HttpEndpoint, KbTarget
 from xynolog.watched import Variable
 

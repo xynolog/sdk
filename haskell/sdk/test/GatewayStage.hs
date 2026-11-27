@@ -27,7 +27,7 @@ import Xynolog.Http qualified as Http
 import Xynolog.Http.Routes (HttpRoute (..), routePath)
 import Xynolog.Identity qualified as Identity
 import Xynolog.Retry (RetryOptions (..))
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types hiding (BrowseKbResult, BrowseResourceResult)
 import Xynolog.Types qualified as Types
 
@@ -67,8 +67,8 @@ newStage =
 
 -- | What reaches the stage: every request answered by it, the clock the controlled one, and the stream's global
 -- channels the bus's. A session or the registry's factory replaces the token reader, the renewer and the base.
-stageHttp :: Stage -> Time.ControlledTime -> Timing.Settings -> IO Http.HttpOptions
-stageHttp stage time timing = do
+stageHttp :: Stage -> Time.ControlledTime -> IO Http.HttpOptions
+stageHttp stage time = do
   connections <- streamingPeer (answer stage)
   ids <- newTVarIO (0 :: Word32)
   pure
@@ -78,7 +78,7 @@ stageHttp stage time timing = do
         (ioError (userError "the stage's token reader was not replaced"))
         (const (ioError (userError "the stage's renewer was not replaced")))
         (RetryOptions (Time.now time) (Time.waitUntil time) (pure 0))
-        timing
+        Settings.protocolTransportTiming
         (UUID.fromWords 0 0 0 <$> atomically (modifyTVar' ids (+ 1) >> readTVar ids))
         (Set.fromList Channels.globalChannels)
         (pure Map.empty)
@@ -96,7 +96,7 @@ domainOf key = key <> ".example.test"
 -- | A sign-in of the stage's issuer, naming the person whose key is given, or nobody.
 signInOf :: Text -> Text -> Text -> Maybe Text -> StoredSession
 signInOf clientId access refresh person =
-  StoredSession {storedSessionAccess = access, storedSessionClientId = clientId, storedSessionPersonKey = person, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = (Just "http://issuer.test/revoke"), storedSessionTokenEndpoint = "http://issuer.test/token"}
+  StoredSession {storedSessionAccess = AccessToken access, storedSessionClientId = clientId, storedSessionPersonKey = person, storedSessionRefresh = refresh, storedSessionRevocationEndpoint = (Just "http://issuer.test/revoke"), storedSessionTokenEndpoint = "http://issuer.test/token"}
 
 answer :: Stage -> Bytes.ByteString -> (Bytes.ByteString -> STM ()) -> STM () -> IO ()
 answer stage request write hangUp = dispatch (decodeUtf8 (Char8.takeWhile (/= '?') (route request)))

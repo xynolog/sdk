@@ -21,6 +21,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 func TestTheIdsRememberedAreTheLastOnesDelivered(t *testing.T) {
@@ -45,12 +46,14 @@ func TestTheIdsRememberedAreTheLastOnesDelivered(t *testing.T) {
 }
 
 func TestTheBackoffWaitsBetweenHalfItsCapAndItsCap(t *testing.T) {
-	timing := DefaultTiming()
-	timing.Reconnect = 100 * time.Millisecond
-	timing.MaxReconnect = time.Second
-	s := newStream(&transportShared{timing: timing}, NewVariable(ConnectionStateInitial), nil)
-	for attempt, limit := range []time.Duration{100, 200, 400, 800, 1000, 1000} {
-		limit *= time.Millisecond
+	doubling := DefaultTransportTiming()
+	doubling.Reconnect = 100 * time.Millisecond
+	s := newStream(&transportShared{timing: doubling}, NewVariable(api.ConnectionStateInitial), nil)
+	limits := []time.Duration{100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200}
+	for i := range limits {
+		limits[i] *= time.Millisecond
+	}
+	for attempt, limit := range append(limits, timing.MaxReconnect, timing.MaxReconnect) {
 		wait := s.backoff()
 		if wait < limit/2 || wait > limit {
 			t.Errorf("attempt %d waits %v; its cap is %v", attempt, wait, limit)
@@ -176,11 +179,10 @@ func (g *stubGateway) client() (*HTTPTransport, *http.Client) {
 // renews it with refresher, with timing a test does not wait out, and the
 // HTTP client it was made with.
 func transportTo(url string, token *Variable[string], refresher TokenRefresher) (*HTTPTransport, *http.Client) {
-	timing := DefaultTiming()
-	timing.Reconnect = 20 * time.Millisecond
-	timing.LazyRemove = 20 * time.Millisecond
-	timing.ReconnectDebounce = 10 * time.Millisecond
-	timing.Linger = 20 * time.Millisecond
+	quick := DefaultTransportTiming()
+	quick.Reconnect = 20 * time.Millisecond
+	quick.LazyRemove = 20 * time.Millisecond
+	quick.Linger = 20 * time.Millisecond
 	httpClient := &http.Client{Transport: &http.Transport{}}
 	return NewHTTPTransport(HTTPTransportConfig{
 		BaseURL:   url,
@@ -188,7 +190,7 @@ func transportTo(url string, token *Variable[string], refresher TokenRefresher) 
 		Refresher: refresher,
 		Channels:  []bus.Channel{bus.BeckonFocus.Channel()},
 		HTTP:      httpClient,
-		Timing:    timing,
+		Timing:    quick,
 	}), httpClient
 }
 
@@ -211,14 +213,14 @@ func TestAListenerTakenAfterTheFirstConnectWasRefusedStillHearsTheRefusal(t *tes
 	defer transport.Close()
 	// The first connect is refused and the next opens, all before anything
 	// listens to the failures: the refusal is reported while no one listens.
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	if gateway.subscribes() != 2 {
 		t.Fatalf("%d subscribes arrived, want 2", gateway.subscribes())
 	}
 
 	refused := firstFailure(t, transport)
 	status, stated := refused.Status()
-	if refused.Code != TransportErrorCodeUnavailable || !stated || status != http.StatusServiceUnavailable {
+	if refused.Code != api.TransportErrorCodeUnavailable || !stated || status != http.StatusServiceUnavailable {
 		t.Errorf("the refusal is heard as %q, %d (%v)", refused.Code, status, stated)
 	}
 }
@@ -261,15 +263,15 @@ func TestARefusedOpenIsReportedInTheGatewaysWords(t *testing.T) {
 func TestARefusalWhoseBodyNeverEndsIsReportedAtTheRequestDeadline(t *testing.T) {
 	gateway := newStubGateway(t)
 	gateway.unfinished = 1
-	timing := DefaultTiming()
-	timing.Reconnect = 20 * time.Millisecond
-	timing.HttpRequestTimeout = 200 * time.Millisecond
+	quick := DefaultTransportTiming()
+	quick.Reconnect = 20 * time.Millisecond
+	quick.HttpRequestTimeout = 200 * time.Millisecond
 	transport := NewHTTPTransport(HTTPTransportConfig{
 		BaseURL:  gateway.URL,
 		Token:    NewVariable("a-token"),
 		Channels: []bus.Channel{bus.BeckonFocus.Channel()},
 		HTTP:     &http.Client{Transport: &http.Transport{}},
-		Timing:   timing,
+		Timing:   quick,
 	})
 	defer transport.Close()
 	refused := firstFailure(t, transport)
@@ -278,7 +280,7 @@ func TestARefusalWhoseBodyNeverEndsIsReportedAtTheRequestDeadline(t *testing.T) 
 		t.Errorf("the refusal is heard as %q, %d (%v)", refused.Message, status, stated)
 	}
 	until(t, "the stream to open on the subscribe after the refused one", func() bool {
-		return transport.State().Value() == ConnectionStateOpen
+		return transport.State().Value() == api.ConnectionStateOpen
 	})
 }
 
@@ -288,22 +290,22 @@ func TestARefusalWhoseBodyNeverEndsIsReportedAtTheRequestDeadline(t *testing.T) 
 func TestAnOpenTheGatewayNeverAnswersFailsAtItsDeadlineAndIsMadeAgain(t *testing.T) {
 	gateway := newStubGateway(t)
 	gateway.unanswered = 1
-	timing := DefaultTiming()
-	timing.Reconnect = 20 * time.Millisecond
-	timing.StreamOpenTimeout = 200 * time.Millisecond
+	quick := DefaultTransportTiming()
+	quick.Reconnect = 20 * time.Millisecond
+	quick.StreamOpenTimeout = 200 * time.Millisecond
 	transport := NewHTTPTransport(HTTPTransportConfig{
 		BaseURL:  gateway.URL,
 		Token:    NewVariable("a-token"),
 		Channels: []bus.Channel{bus.BeckonFocus.Channel()},
 		HTTP:     &http.Client{Transport: &http.Transport{}},
-		Timing:   timing,
+		Timing:   quick,
 	})
 	defer transport.Close()
 	started := time.Now()
 	until(t, "the stream to open on the subscribe after the unanswered one", func() bool {
-		return transport.State().Value() == ConnectionStateOpen
+		return transport.State().Value() == api.ConnectionStateOpen
 	})
-	if waited := time.Since(started); waited < timing.StreamOpenTimeout {
+	if waited := time.Since(started); waited < quick.StreamOpenTimeout {
 		t.Errorf("the stream opened %v after it started, before the unanswered open's deadline", waited)
 	}
 	if gateway.subscribes() != 2 {
@@ -325,7 +327,7 @@ func TestNothingTheTransportStartedOutlivesClose(t *testing.T) {
 		for range frames {
 		}
 	}()
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	// A handoff: a second connection opens beside the first, which lingers.
 	release := transport.SubscribeToResource(mustResource(t, "res-1"))
 	until(t, "the handoff's connect", func() bool { return gateway.subscribes() == 2 })
@@ -337,7 +339,7 @@ func TestNothingTheTransportStartedOutlivesClose(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("a listener's sequence did not end when the transport closed")
 	}
-	if transport.State().Value() != ConnectionStateClosed {
+	if transport.State().Value() != api.ConnectionStateClosed {
 		t.Errorf("the state is %s after Close", transport.State().Value())
 	}
 	httpClient.CloseIdleConnections()
@@ -368,7 +370,10 @@ func TestALineThatNamesNoChannelIsToldToTheFailureReportAndTheStreamGoesOn(t *te
 		}
 	}()
 	defer transport.SubscribeToResource(mustResource(t, "res-1"))()
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
+	// The stream opened again for the scope: what is counted from here on is no
+	// subscription's doing.
+	until(t, "a subscription of the scope", func() bool { _, ok := gateway.asked(1); return ok })
 	subscribes := func() int {
 		gateway.mu.Lock()
 		defer gateway.mu.Unlock()
@@ -393,7 +398,7 @@ func TestALineThatNamesNoChannelIsToldToTheFailureReportAndTheStreamGoesOn(t *te
 		select {
 		case failure := <-told:
 			_, stated := failure.Status()
-			if want := "the stream carried what is not a frame: " + said; failure.Code != TransportErrorCodeError || stated || failure.Message != want {
+			if want := "the stream carried what is not a frame: " + said; failure.Code != api.TransportErrorCodeError || stated || failure.Message != want {
 				t.Errorf("told %q (%v) %q, want %q", failure.Code, stated, failure.Message, want)
 			}
 		case <-time.After(5 * time.Second):
@@ -420,7 +425,7 @@ func TestAChannelTheStreamCannotDeliverIsRefusedAsUnsubscribed(t *testing.T) {
 	defer transport.Close()
 	_, err := transport.Frames(context.Background(), bus.BeckonHover.Channel())
 	var refused *BusRequestError
-	if !errors.As(err, &refused) || refused.Code != BusRequestErrorCodeUnsubscribed {
+	if !errors.As(err, &refused) || refused.Code != api.BusRequestErrorCodeUnsubscribed {
 		t.Errorf("a channel the stream does not carry is refused with %v", err)
 	}
 }
@@ -567,7 +572,7 @@ func TestATransportMakesItsStreamItsEmitsItsRequestsAndItsContentWithItsCallersC
 	})
 	defer transport.Close()
 
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	if _, _, err := transport.Emit(context.Background(), bus.BeckonFocus.Channel(), map[string]any{}, Envelope{}); err != nil {
 		t.Fatalf("emit: %v", err)
 	}
@@ -662,7 +667,7 @@ func TestARefusedConnectTellsItsRefresherTheTokenItSent(t *testing.T) {
 	transport, _ := transportTo(gateway.URL, gateway.token, refresher)
 	defer transport.Close()
 
-	until(t, "the stream to open", func() bool { return transport.State().Value() == ConnectionStateOpen })
+	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
 	if told := refresher.told(); !slices.Equal(told, []string{tokenSent}) {
 		t.Errorf("the refresher was told %q was refused, want [%q], the token the connect sent", told, tokenSent)
 	}
@@ -681,8 +686,9 @@ func TestA429RefusesTheCredentialOnlyByALimitRefusalNamingRefusalRate(t *testing
 		`{"error":"refused","code":"refusal-rate","hint":null}`: false,
 		`{"code":"refusal-rate"}`:                               false,
 	} {
-		if got := refusesCredential(http.StatusTooManyRequests, []byte(body)); got != refuses {
-			t.Errorf("a 429 answering %s refuses the credential: %v, want %v", body, got, refuses)
+		code, got := limitRefusalTransportCode(http.StatusTooManyRequests, []byte(body))
+		if got != refuses || (got && code != api.TransportErrorCodeUnauthorized) {
+			t.Errorf("a 429 answering %s refuses the credential: %v (%q), want %v", body, got, code, refuses)
 		}
 	}
 }

@@ -29,8 +29,9 @@ use xynolog::testing::{
     create_test_client,
 };
 use xynolog::timing::SAVE_DEBOUNCE;
-use xynolog::transport::{ConnectionState, Envelope, Frame, STREAM_BACKLOG};
+use xynolog::transport::{Envelope, Frame, STREAM_BACKLOG};
 use xynolog::types::BusFrame;
+use xynolog::types::ConnectionState;
 use xynolog::types::{BrowseResourcesRequest, MatchResourcesResponse, ResourceSearchFilters};
 
 const WINDOW: Duration = Duration::from_millis(100);
@@ -133,7 +134,7 @@ fn answers(
 fn options(persistence: Option<CachePersistence>) -> ClientOptions {
     ClientOptions {
         timing: ClientTiming {
-            bus_request: Duration::from_secs(1),
+            bus_request_timeout: Duration::from_secs(1),
             invalidation_window: WINDOW,
             ..ClientTiming::default()
         },
@@ -1177,8 +1178,8 @@ async fn a_search_asks_for_its_text_among_the_resources_its_filters_admit() {
     assert_eq!(
         searched(&transport),
         [
-            json!({ "search": "cat", "limit": 100, "offset": 0 }),
-            json!({ "search": "cat", "archived": false, "entityType": "Person", "limit": 5, "offset": 0 }),
+            json!({ "search": "cat" }),
+            json!({ "search": "cat", "archived": false, "entityType": "Person", "limit": 5 }),
         ]
     );
     // A list is asked for with no text, and of another operation.
@@ -1194,7 +1195,7 @@ async fn a_search_asks_for_its_text_among_the_resources_its_filters_admit() {
             .filter(|entry| entry.channel == "browse:resources-requested")
             .map(|entry| Value::Object(entry.payload.clone()))
             .collect::<Vec<_>>(),
-        [json!({ "limit": 100, "offset": 0 })]
+        [json!({})]
     );
 }
 
@@ -1276,9 +1277,9 @@ async fn a_search_is_kept_per_text_and_set_of_filters_and_every_search_held_is_a
     );
     let again = searched(&transport);
     for search in [
-        json!({ "search": "cat", "limit": 100, "offset": 0 }),
-        json!({ "search": "cat", "entityType": "Person", "limit": 100, "offset": 0 }),
-        json!({ "search": "dog", "limit": 100, "offset": 0 }),
+        json!({ "search": "cat" }),
+        json!({ "search": "cat", "entityType": "Person" }),
+        json!({ "search": "dog" }),
     ] {
         assert_eq!(
             again[before..]
@@ -1628,7 +1629,7 @@ fn l1_l2_a_watcher_is_given_a_value_or_a_failure_and_a_read_settles_under_every_
                 transport: Some(transport),
                 client: ClientOptions {
                     timing: ClientTiming {
-                        bus_request: TIMEOUT,
+                        bus_request_timeout: TIMEOUT,
                         ..ClientTiming::default()
                     },
                     cache_persistence: None,

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Xynolog;
 using Xynolog.Errors;
 using Xynolog.Http;
@@ -10,12 +11,12 @@ using Xynolog.Types;
 internal sealed class WorkerDriver : IDisposable
 {
     private static readonly ActivitySource Activities = new("xynolog");
-    private static readonly JsonSerializerOptions TimingJson = new() { PropertyNameCaseInsensitive = true };
-    private static readonly JsonSerializerOptions CamelJson = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     private readonly object gate = new();
     private readonly List<IDisposable> scopes = [];
     private XynologClient? client;
     private Claims? claims;
+    /// <summary>The waits <c>open</c> stated of those its claims keep, as <see cref="ClaimOptions"/> names them.</summary>
+    private JsonObject claimWaits = new();
     private Held? held;
 
     internal async Task RunAsync(JsonElement args)
@@ -28,11 +29,14 @@ internal sealed class WorkerDriver : IDisposable
             {
                 case "open":
                     if (client is not null) throw new InvalidOperationException("A client is already open.");
-                    var timing = args.TryGetProperty("timing", out var values) ? values.Deserialize<Timing>(TimingJson) : null;
+                    var rows = StatedTiming.Rows(args);
+                    var clientTiming = StatedTiming.Read<ClientTiming>(StatedTiming.Take<ClientTiming>(rows));
+                    claimWaits = StatedTiming.Take<ClaimOptions>(rows);
+                    var timing = StatedTiming.Read<TransportTiming>(rows);
                     var commits = args.TryGetProperty("commits", out var enabled) && enabled.GetBoolean();
                     var channels = commits ? WorkerRules.JobClaimChannels.Concat(WorkerRules.JobCommitChannels) : WorkerRules.JobClaimChannels;
                     var transport = new HttpTransport(Text(args, "baseUrl"), Text(args, "token"), channels, timing);
-                    client = new XynologClient(transport);
+                    client = new XynologClient(transport, timing: clientTiming);
                     _ = ReportStatesAsync(transport);
                     _ = ReportErrorsAsync(transport);
                     break;
@@ -42,7 +46,9 @@ internal sealed class WorkerDriver : IDisposable
                     break;
                 case "claim":
                     if (claims is not null) throw new InvalidOperationException("This worker already claims.");
-                    claims = (client ?? throw new InvalidOperationException("No client is open.")).Job.Claim(new ClaimOptions { Accepts = Required<JobFilter[]>(args, "accepts") });
+                    var options = claimWaits.DeepClone().AsObject();
+                    options.Add("accepts", JsonSerializer.SerializeToNode(Required<JobFilter[]>(args, "accepts")));
+                    claims = (client ?? throw new InvalidOperationException("No client is open.")).Job.Claim(StatedTiming.Read<ClaimOptions>(options));
                     _ = ReportJobsAsync(claims);
                     _ = ReportRefusalsAsync(claims);
                     _ = ReportStallsAsync(claims);
@@ -57,7 +63,7 @@ internal sealed class WorkerDriver : IDisposable
                 case "sync": break;
                 default: await SayForJobAsync(args).ConfigureAwait(false); break;
             }
-            WireDriver.Say(Lines.Ok(id, JsonSerializer.SerializeToElement(answer, CamelJson)));
+            WireDriver.Say(Lines.Ok(id, JsonSerializer.SerializeToElement(answer)));
         }
         catch (XynologError error) { WireDriver.Say(Lines.Failed(id, error)); }
         catch (Exception error) { WireDriver.Say(Lines.Misuse(id, error)); }
@@ -77,17 +83,7 @@ internal sealed class WorkerDriver : IDisposable
             {
                 held?.Dispose();
                 held = new Held(job, span, cancellation);
-                WireDriver.Say(Lines.Claimed(JsonSerializer.SerializeToElement(new
-                {
-                    jobId = job.JobId,
-                    jobType = job.JobType,
-                    resourceId = job.ResourceId,
-                    @params = job.Params,
-                    completedUnits = job.CompletedUnits,
-                    unitCursors = job.UnitCursors,
-                    retryCount = job.RetryCount,
-                    maxRetries = job.MaxRetries,
-                }, WireDriver.Json)));
+                WireDriver.Say(Lines.Claimed(job.Record));
             }
         }
     }
@@ -131,8 +127,11 @@ internal sealed class WorkerDriver : IDisposable
                     await job.ProgressAsync(new JobProgress { Percentage = args.GetProperty("percentage").GetDouble(), Message = message }).ConfigureAwait(false);
                     break;
                 case "checkpoint":
-                    await job.CheckpointAsync(Required<string[]>(args, "completedUnits"),
-                        Optional<Dictionary<string, UnitCursor>>(args, "unitCursors")).ConfigureAwait(false);
+                    await job.CheckpointAsync(new JobCheckpoint
+                    {
+                        CompletedUnits = Required<string[]>(args, "completedUnits"),
+                        UnitCursors = Optional<Dictionary<string, UnitCursor>>(args, "unitCursors"),
+                    }).ConfigureAwait(false);
                     break;
                 case "commit":
                     await job.CommitAsync(ResourceId.Parse(Text(args, "resourceId")), Required<Annotation[]>(args, "annotations")).ConfigureAwait(false);
@@ -142,12 +141,19 @@ internal sealed class WorkerDriver : IDisposable
                     else if (job is HeldYieldJob yield) await yield.CompleteAsync(Required<YieldJobResult>(args, "result")).ConfigureAwait(false);
                     break;
                 case "fail":
-                    var kind = args.TryGetProperty("failureClass", out var failure) ? failure.Deserialize<FailureClass>() : (FailureClass?)null;
-                    await job.FailAsync(Text(args, "error"), kind, Optional<string[]>(args, "completedUnits"),
-                        Optional<Dictionary<string, UnitCursor>>(args, "unitCursors")).ConfigureAwait(false);
+                    await job.FailAsync(Text(args, "error"), new JobFailure
+                    {
+                        FailureClass = args.TryGetProperty("failureClass", out var failureClass) ? failureClass.Deserialize<FailureClass>() : null,
+                        CompletedUnits = Optional<string[]>(args, "completedUnits"),
+                        UnitCursors = Optional<Dictionary<string, UnitCursor>>(args, "unitCursors"),
+                    }).ConfigureAwait(false);
                     break;
                 case "cancel":
-                    await job.CancelAsync(Optional<string[]>(args, "completedUnits")).ConfigureAwait(false);
+                    await job.CancelAsync(new JobReached
+                    {
+                        CompletedUnits = Optional<string[]>(args, "completedUnits"),
+                        UnitCursors = Optional<Dictionary<string, UnitCursor>>(args, "unitCursors"),
+                    }).ConfigureAwait(false);
                     break;
                 default: throw new InvalidOperationException("Unknown worker operation.");
             }

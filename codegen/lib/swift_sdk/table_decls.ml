@@ -241,7 +241,62 @@ let typing_rows ~key type_ = function
 
 (* Timings *)
 
-(* Each entry a constant, a retry budget the model of client/RetryBudget.json. *)
+(* A record of what a caller may set: a property per entry, whose default is
+   the entry's constant. *)
+let timing_record (entries : Timing.Table.t) record =
+  let members = Timing.Table.members record entries in
+  let type_ (entry : Timing.Table.entry) =
+    match entry.value with
+    | Duration _ | Count _ -> S.Named "Int"
+    | Budget _ -> S.Named "RetryBudget"
+  in
+  let property (entry : Timing.Table.entry) =
+    decl ~doc:[ entry.docs ] [ "public" ]
+      (S.Property
+         {
+           var = true;
+           name = entry.name;
+           type_ = Some (type_ entry);
+           value = None;
+         })
+  in
+  let param (entry : Timing.Table.entry) =
+    {
+      S.label = None;
+      name = entry.name;
+      type_ = type_ entry;
+      default = Some (member (name "Timings") entry.name);
+    }
+  in
+  decl
+    ~doc:[ Timing.Table.record_docs record ]
+    [ "public" ]
+    (S.Struct
+       {
+         name = Timing.Table.record_name record;
+         generics = [];
+         inherits = [ S.Named "Sendable" ];
+         layout = S.Lines;
+         members =
+           List.map property members
+           @ [
+               decl [ "public" ]
+                 (S.Init
+                    {
+                      params = List.map param members;
+                      throws = false;
+                      body =
+                        M.line_block
+                          (List.map
+                             (fun (entry : Timing.Table.entry) ->
+                               M.assign (M.self_ entry.name) (name entry.name))
+                             members);
+                    });
+             ];
+       })
+
+(* Each entry a constant, a retry budget the model of client/RetryBudget.json;
+   then the records of what a caller may set. *)
 let timings (entries : Timing.Table.t) =
   [
     decl [ "public" ]
@@ -268,6 +323,7 @@ let timings (entries : Timing.Table.t) =
                entries;
          });
   ]
+  @ List.map (timing_record entries) Timing.Table.records
 
 (* Error codes *)
 
@@ -395,6 +451,25 @@ let error_codes models ~shapes (codes : Error_codes.Table.t) =
       constant [ "internal" ] "unrecognizedBusFailure"
         (Some (S.Named codes.bus.name))
         (case codes.unrecognized.code);
+      constant
+        ~doc:
+          [
+            "Each gateway refusal of a limit that is a transport code too: its \
+             status, its LimitRefusal code, and the transport code it is.";
+          ]
+        [ "internal" ] "limitRefusalTransportCodes"
+        (Some
+           (S.Array_of
+              (S.Tuple_of
+                 [
+                   S.Named "Int"; S.Named "String"; S.Named codes.transport.name;
+                 ])))
+        (S.Array
+           ( S.Lines,
+             List.map
+               (fun (status, limit, (c : Error_codes.Table.code)) ->
+                 S.Tuple [ S.Int status; S.String limit; case c.code ])
+               codes.limit_refusals ));
     ]
 
 (* What each schema requires, as Sources/Xynolog/Bus/Required.swift reads it *)
@@ -1331,13 +1406,7 @@ let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
   let metadata =
     [
       ("eventId", string_schema);
-      ( "trace",
-        D.Node
-          {
-            (D.node [ "type"; "additionalProperties" ]) with
-            type_ = Some (D.One Schema.Object);
-            additional_properties = Some string_schema;
-          } );
+      ("trace", D.Ref { name = "TraceCarrier"; description = None });
     ]
   in
   let fields =
@@ -1378,7 +1447,7 @@ let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
                           {
                             label = None;
                             name = "trace";
-                            type_ = S.Optional (M.dictionary_of string_type);
+                            type_ = S.Optional (S.Named "TraceCarrier");
                             default = None;
                           };
                           {

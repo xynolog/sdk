@@ -27,6 +27,7 @@ import Xynolog.Delegation qualified as Delegation
 import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (BusRequestError (..), TransportError (..))
 import Xynolog.Internal.Generated.Schemas (schemas)
+import Xynolog.Internal.Generated.TimingValues (timingValues)
 import Xynolog.Internal.StateTasks qualified as Tasks
 import Xynolog.Internal.Transport qualified as Local
 import Xynolog.Retry (RetryOptions (..))
@@ -36,7 +37,7 @@ import Xynolog.State.Mark qualified as Mark
 import Xynolog.State.Match qualified as Match
 import Xynolog.State.Yield qualified as Yield
 import Xynolog.StateValue qualified as State
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -116,8 +117,8 @@ makeUnit client time kind inputs = case kind of
           ( \name args -> case name of
               "gatherAnnotation" -> do
                 identity <- decode (member "annotationId" args)
-                options <- decode (Object (KM.delete "annotationId" (objectFields args)))
-                Gather.gatherAnnotation unit identity (Just options)
+                options <- traverse decode (KM.lookup "options" (objectFields args))
+                Gather.gatherAnnotation unit identity options
               "gatherResource" -> do
                 identity <- decode (member "resourceId" args)
                 options <- decode (Object (KM.delete "resourceId" (objectFields args)))
@@ -140,7 +141,7 @@ makeUnit client time kind inputs = case kind of
       )
   "mark" -> do
     identity <- decode (member "resourceId" inputs)
-    unit <- Mark.newMarkStateUnit client identity (RetryOptions (Time.now time) (Time.waitUntil time) (pure 0)) Timing.protocolSettings
+    unit <- Mark.newMarkStateUnit client identity (RetryOptions (Time.now time) (Time.waitUntil time) (pure 0))
     pure
       ( unitOf
           [ property "pendingAnnotation" (Mark.pendingAnnotation unit),
@@ -219,9 +220,9 @@ makeRig time config = do
         pure (Just 1)
   (carrier, input) <- Transport.newTransport (Transport.TransportOptions "local://state-unit-cases" (Set.fromList Channel.channelNames) send (Tasks.dispose tasks))
   atomically (putTMVar inputCell input)
-  Transport.setState input Transport.Connecting
-  Transport.setState input Transport.Open
-  client <- Client.newClient carrier content Nothing clock Timing.protocolSettings Nothing
+  Transport.setState input Transport.ConnectionStateConnecting
+  Transport.setState input Transport.ConnectionStateOpen
+  client <- Client.newClient carrier content Nothing clock Settings.protocolClientTiming Nothing
   pure (Rig client input sent replies tasks)
   where
     unexpected :: IO result
@@ -247,7 +248,7 @@ actorCases root = do
       duration (Number number) = toRational number
       duration value =
         let named = text (member "timing" value)
-            timing = member named (toJSON Timing.protocolSettings)
+            timing = member named (toJSON timingValues)
          in duration timing * maybe 1 duration (optional "times" value) + maybe 0 duration (optional "plusMs" value)
   forM_ rows $ \row -> do
     result <- timeout 20000000 $ do

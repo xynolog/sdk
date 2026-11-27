@@ -16,7 +16,7 @@ public sealed partial class TransportTests
     [InlineData("{\"version\":1,\"kbs\":[{\"host\":\"localhost\",\"port\":1}]}", DiscoveryAbsentReason.Invalid)]
     [InlineData("{\"version\":1,\"kbs\":[{\"host\":\"localhost\",\"port\":0,\"placement\":\"local\",\"did\":\"did:web:a.test\",\"managedBy\":\"launcher\"}]}", DiscoveryAbsentReason.Invalid)]
     public void DiscoveryRejectsAnEntireInvalidDocument(string text, DiscoveryAbsentReason reason) =>
-        Assert.Equal(reason, Assert.IsType<Absent>(LauncherDiscovery.ParseDiscoveryDocument(text)).Reason);
+        Assert.Equal(reason, Assert.IsType<DiscoveryState.DiscoveryAbsent>(LauncherDiscovery.ParseDiscoveryDocument(text)).Value.Reason);
 
     [Fact]
     public void DiscoveryIntervalIsTheSharedOne()
@@ -24,7 +24,7 @@ public sealed partial class TransportTests
         using var timings = ReadSpec("client/timing.json");
         Assert.Equal(timings.RootElement.GetProperty("timing").EnumerateArray().Single(row => Text(row, "name") == "discoveryIntervalMs")
             .GetProperty("value").GetInt32(), LauncherDiscovery.DiscoveryInterval.TotalMilliseconds);
-        Assert.Empty(Assert.IsType<Managed>(LauncherDiscovery.ParseDiscoveryDocument("""{"version":1,"kbs":[]}""")).Kbs);
+        Assert.Empty(Assert.IsType<DiscoveryState.DiscoveryManaged>(LauncherDiscovery.ParseDiscoveryDocument("""{"version":1,"kbs":[]}""")).Value.Kbs);
     }
 
     [Fact]
@@ -47,10 +47,10 @@ public sealed partial class TransportTests
             return Task.FromResult(response);
         };
         var discovery = LauncherDiscovery.HttpDiscovery("https://launcher.test/discovery/kbs.json", http);
-        Assert.IsType<Managed>(await discovery.ReadAsync());
-        Assert.IsType<Unchanged>(await discovery.ReadAsync());
-        Assert.Equal(DiscoveryAbsentReason.Invalid, Assert.IsType<Absent>(await discovery.ReadAsync()).Reason);
-        Assert.IsType<Managed>(await discovery.ReadAsync());
+        Assert.IsType<DiscoveryRead.DiscoveryManaged>(await discovery.ReadAsync());
+        Assert.IsType<DiscoveryRead.DiscoveryUnchanged>(await discovery.ReadAsync());
+        Assert.Equal(DiscoveryAbsentReason.Invalid, Assert.IsType<DiscoveryRead.DiscoveryAbsent>(await discovery.ReadAsync()).Value.Reason);
+        Assert.IsType<DiscoveryRead.DiscoveryManaged>(await discovery.ReadAsync());
     }
 
     [Fact]
@@ -59,19 +59,21 @@ public sealed partial class TransportTests
         var clock = new TestClock();
         var period = TimeSpan.FromSeconds(2);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        var discovery = new ScriptedDiscovery(new Unchanged(), new Absent(DiscoveryAbsentReason.NotFound), new Managed([]));
+        var discovery = new ScriptedDiscovery(new DiscoveryRead.DiscoveryUnchanged(new DiscoveryUnchanged()),
+            new DiscoveryRead.DiscoveryAbsent(new DiscoveryAbsent { Reason = DiscoveryAbsentReason.NotFound }),
+            new DiscoveryRead.DiscoveryManaged(new DiscoveryManaged { Kbs = [] }));
         await using var events = LauncherDiscovery.SubscribeDiscovery(discovery, period, clock).GetAsyncEnumerator(deadline.Token);
         var first = events.MoveNextAsync().AsTask();
         await clock.WaitForAsync(period);
         Assert.False(first.IsCompleted);
         clock.Advance(period);
         Assert.True(await first);
-        Assert.IsType<Absent>(events.Current.State);
+        Assert.IsType<DiscoveryState.DiscoveryAbsent>(events.Current.State);
         var second = events.MoveNextAsync().AsTask();
         await clock.WaitForAsync(period);
         clock.Advance(period);
         Assert.True(await second);
-        Assert.Empty(Assert.IsType<Managed>(events.Current.State).Kbs);
+        Assert.Empty(Assert.IsType<DiscoveryState.DiscoveryManaged>(events.Current.State).Value.Kbs);
     }
 
     private sealed class ScriptedDiscovery(params DiscoveryRead[] answers) : DiscoveryTransport
@@ -83,7 +85,7 @@ public sealed partial class TransportTests
     [Fact]
     public void DiscoveryUsesAddressesAndReportsEveryClaimant()
     {
-        var read = Assert.IsType<Managed>(LauncherDiscovery.ParseDiscoveryDocument("""
+        var read = Assert.IsType<DiscoveryState.DiscoveryManaged>(LauncherDiscovery.ParseDiscoveryDocument("""
             {"version":1,"kbs":[
               {"host":"localhost","port":4110,"placement":"local","did":"did:web:shared.test","managedBy":"launcher"},
               {"host":"localhost","port":4111,"placement":"codespace","did":"did:web:shared.test","managedBy":"launcher"},
@@ -93,9 +95,10 @@ public sealed partial class TransportTests
         var first = Assert.IsType<DiscoveryDiff>(LauncherDiscovery.Difference(null, read));
         Assert.Equal(3, first.Added.Count);
         Assert.Equal("localhost:4111", Assert.Single(first.Duplicated));
-        Assert.Null(LauncherDiscovery.Difference(read, new Managed(read.Kbs.Reverse().ToArray())));
-        var absent = Assert.IsType<DiscoveryDiff>(LauncherDiscovery.Difference(read, new Absent(DiscoveryAbsentReason.NotFound)));
+        Assert.Null(LauncherDiscovery.Difference(read, new DiscoveryState.DiscoveryManaged(new DiscoveryManaged { Kbs = read.Value.Kbs.Reverse().ToArray() })));
+        var absent = Assert.IsType<DiscoveryDiff>(LauncherDiscovery.Difference(read,
+            new DiscoveryState.DiscoveryAbsent(new DiscoveryAbsent { Reason = DiscoveryAbsentReason.NotFound })));
         Assert.Equal(3, absent.Removed.Count);
-        Assert.IsType<Absent>(absent.State);
+        Assert.IsType<DiscoveryState.DiscoveryAbsent>(absent.State);
     }
 }

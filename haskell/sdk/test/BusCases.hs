@@ -36,7 +36,7 @@ body (Object fields) = BusFramePayload fields
 body _ = error "test payload is not an object"
 
 ready :: Transport.TransportInput -> IO ()
-ready input = Transport.setState input Transport.Connecting >> Transport.setState input Transport.Open
+ready input = Transport.setState input Transport.ConnectionStateConnecting >> Transport.setState input Transport.ConnectionStateOpen
 
 -- The failure report's first observation is a marker reported after a request settled, so the
 -- request's refusal was never published to it.
@@ -315,7 +315,9 @@ scopesAndFrames event = rig (const (pure Nothing)) (pure ()) $ \transport input 
   other <- either (ioError . userError) pure (mkResourceId "scope-two")
   user <- either (ioError . userError) pure (mkUserId "did:web:example.org:users:alice")
   let carrier = TraceCarrier "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01" (Just "vendor=one")
-      payload = case event of Object fields -> Object (KM.insert (Key.fromText userField) (toJSON user) (KM.insert (Key.fromText traceField) (toJSON carrier) fields)); _ -> error "event fixture is not an object"
+      traced trace = case event of Object fields -> Object (KM.insert (Key.fromText userField) (toJSON user) (KM.insert (Key.fromText traceField) (toJSON trace) fields)); _ -> error "event fixture is not an object"
+      payload = traced carrier
+      refusedTrace = traced (carrier {traceCarrierTracestate = Just ""})
       frame scope value = BusFrame (channelName MarkAdded) Nothing (body value) (Just scope)
       bus = Bus.newBus options transport
   one <- Transport.subscribeToResource transport resource
@@ -331,14 +333,18 @@ scopesAndFrames event = rig (const (pure Nothing)) (pure ()) $ \transport input 
     Transport.receive input (frame other payload)
     Transport.receive input (frame resource (Object KM.empty))
     Transport.receive input (frame resource payload)
-    seen <- Stream.toList_ (Stream.take 2 values)
+    Transport.receive input (frame resource refusedTrace)
+    seen <- Stream.toList_ (Stream.take 3 values)
     case seen of
-      [Bus.Refused refusal, Bus.Heard delivered] -> do
+      [Bus.Refused refusal, Bus.Heard delivered, Bus.Heard untraced] -> do
         require "missing member refusal lost its path" (Bus.reason (Bus.fault refusal) == FrameRefusalReasonLacks && Bus.member (Bus.fault refusal) /= "")
         require "frame lost its authenticated emitter" (Bus.emittedBy delivered == Just user)
         require "frame lost its trace carrier" (Transport.frameTrace (Bus.deliveredFrame delivered) == Just carrier)
         let raw = busFramePayloadAdditionalProperties (busFramePayload (Transport.wireFrame (Bus.deliveredFrame delivered)))
         require "trace metadata remained in the delivered payload" (not (KM.member (Key.fromText traceField) raw))
+        require "a trace carrier the required table refuses carried a trace" (Transport.frameTrace (Bus.deliveredFrame untraced) == Nothing)
+        let refusedRaw = busFramePayloadAdditionalProperties (busFramePayload (Transport.wireFrame (Bus.deliveredFrame untraced)))
+        require "a refused trace carrier remained in the delivered payload" (not (KM.member (Key.fromText traceField) refusedRaw))
       _ -> ioError (userError "typed frame refusal stopped the stream or lost order")
   (_, attachedAfter, _, _) <- atomically (Transport.subscriptions input)
   require "typed observation leaked its scope" (null attachedAfter)
@@ -354,13 +360,13 @@ lifecycle = do
     observations <- State.watch (Transport.state transport) $ \values -> do
       ready input
       Stream.toList_ (Stream.take 3 values)
-    require "state watcher lost its initial value or ordering" (observations == [Transport.Initial, Transport.Connecting, Transport.Open])
+    require "state watcher lost its initial value or ordering" (observations == [Transport.ConnectionStateInitial, Transport.ConnectionStateConnecting, Transport.ConnectionStateOpen])
     handover <- State.watch (Transport.state transport) $ \values -> do
-      Transport.setState input Transport.Open
-      Transport.setState input Transport.Reconnecting
+      Transport.setState input Transport.ConnectionStateOpen
+      Transport.setState input Transport.ConnectionStateReconnecting
       Stream.toList_ (Stream.take 2 values)
-    require "an unchanged stream advertised a false reopen" (handover == [Transport.Open, Transport.Reconnecting])
-    Transport.setState input Transport.Connecting >> Transport.setState input Transport.Open
+    require "an unchanged stream advertised a false reopen" (handover == [Transport.ConnectionStateOpen, Transport.ConnectionStateReconnecting])
+    Transport.setState input Transport.ConnectionStateConnecting >> Transport.setState input Transport.ConnectionStateOpen
     ended <- newEmptyTMVarIO
     release <- Transport.on transport (channelName BeckonFocus) (\_ -> atomically (putTMVar ended ()) >> Transport.dispose transport)
     Transport.receive input (BusFrame (channelName BeckonFocus) Nothing (BusFramePayload KM.empty) Nothing)
@@ -370,9 +376,9 @@ lifecycle = do
     count <- readTVarIO closed
     require "owned callback disposal deadlocked or closed more than once" (count == 1)
     final <- atomically (State.current (Transport.state transport))
-    require "closed state was not retained" (final == Transport.Closed)
+    require "closed state was not retained" (final == Transport.ConnectionStateClosed)
     replay <- State.watch (Transport.state transport) Stream.toList_
-    require "closed state observation did not complete" (replay == [Transport.Closed])
+    require "closed state observation did not complete" (replay == [Transport.ConnectionStateClosed])
   -- Cancelling one close waiter does not abandon the transport's teardown.
   entered <- newEmptyTMVarIO
   finish <- newEmptyTMVarIO

@@ -39,7 +39,6 @@ import Xynolog.SessionStorage qualified as Storage
 import Xynolog.StateValue qualified as State
 import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
-import Xynolog.Transport.Facts (connectionStateName)
 import Xynolog.Types
   ( ConformanceDriverLine (..),
     ConformanceDriverLineCompleted (..),
@@ -54,6 +53,7 @@ import Xynolog.Types
     ConformanceDriverLineEmissionEmissionStateReadyStatus (..),
     ConformanceDriverLineErrorStream (..),
     ConformanceDriverLineState (..),
+    connectionStateText,
   )
 import Xynolog.Yield qualified as Yield
 
@@ -122,8 +122,15 @@ open driver args = do
   when (maybe False (const True) prior && not wasClosed) (throwIO (Misuse "a client is already open"))
   address <- need args "baseUrl"
   token <- need args "token"
-  overrides <- maybe (Object KM.empty) id <$> optional args "timing"
-  timing <- either (throwIO . Misuse) pure (Timing.withOverrides overrides)
+  stated <- maybe KM.empty id <$> optional args "timing"
+  -- A name neither record holds is the transport record's to refuse.
+  let clientMembers = case toJSON Timing.protocolClientTiming of
+        Object fields -> fields
+        _ -> error "ClientTiming is not an object"
+      forClient = KM.filterWithKey (\name _ -> KM.member name clientMembers) stated
+      overriding record = either (throwIO . Misuse) pure . Timing.withOverrides record . Object
+  clientTiming <- overriding Timing.protocolClientTiming forClient
+  transportTiming <- overriding Timing.protocolTransportTiming (KM.difference stated forClient)
   persisted <- maybe False id <$> optional args "persist"
   let options =
         Http.HttpOptions
@@ -132,20 +139,20 @@ open driver args = do
           (pure (Just token))
           (const (pure Nothing))
           (Retry.RetryOptions now waitUntil (randomRIO (0, 1)))
-          timing
+          transportTiming
           UUID.nextRandom
           (Set.fromList Channels.globalChannels)
           (pure Map.empty)
           (\_ _ -> pure ())
       persistence = if persisted then Just (Client.CachePersistence (storage driver) "conformance" "conformance" (realToFrac . (* 1000) <$> getPOSIXTime)) else Nothing
-  client <- Client.fromHttp options persistence
+  client <- Client.fromHttp options clientTiming persistence
   atomically $ do writeTVar (current driver) (Just client); writeTVar (closed driver) False; writeTVar (observers driver) Map.empty; writeTVar (reported driver) Nothing
   void
     $ launch driver
     $ State.watch
       (Client.state client)
       ( Stream.mapM_ $ \state -> do
-          let name = connectionStateName state
+          let name = connectionStateText state
           changed <- atomically $ do before <- readTVar (reported driver); writeTVar (reported driver) (Just name); pure (before /= Just name)
           when changed (say driver (ConformanceDriverLineState (MkConformanceDriverLineState name)))
       )
