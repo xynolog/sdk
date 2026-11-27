@@ -288,9 +288,25 @@ func refuseRequest(fake *xynologtest.FaultyTransport, request xynologtest.Reques
 	fake.Deliver(xynolog.Frame{Channel: replies.Failure, Envelope: xynolog.Envelope{CorrelationID: request.CorrelationID}, Payload: refusal(request.Channel)})
 }
 
-// liveQuery is a live query, whatever it shows.
-type liveQuery interface {
-	States(ctx context.Context) iter.Seq[xynolog.CacheState]
+// aState is a state of a live query, whatever it shows.
+type aState interface {
+	Status() api.CacheStatus
+}
+
+// liveQuery is a live query's states, whatever it shows.
+type liveQuery func(ctx context.Context) iter.Seq[aState]
+
+// statesOf is q's states, as a live query's, whatever it shows.
+func statesOf[T any](q *xynolog.Cached[T]) liveQuery {
+	return func(ctx context.Context) iter.Seq[aState] {
+		return func(yield func(aState) bool) {
+			for state := range q.States(ctx) {
+				if !yield(state) {
+					return
+				}
+			}
+		}
+	}
 }
 
 // aQuery is a live query, whatever it shows, and a read of it.
@@ -301,7 +317,7 @@ type aQuery struct {
 }
 
 func queryOf[T any](name string, q *xynolog.Cached[T]) aQuery {
-	return aQuery{name: name, query: q, read: func(ctx context.Context) error {
+	return aQuery{name: name, query: statesOf(q), read: func(ctx context.Context) error {
 		_, err := q.Fresh(ctx)
 		return err
 	}}
@@ -353,13 +369,13 @@ func eachQuery(t *testing.T, c *xynolog.Client) map[xynolog.CacheQuery]aQuery {
 
 // stateOrEnd is what one pull of a watcher gave.
 type stateOrEnd struct {
-	state xynolog.CacheState
+	state aState
 	ok    bool
 }
 
 // watcher is one watcher of a live query: its states, pulled one at a time.
 type watcher struct {
-	next    func() (xynolog.CacheState, bool)
+	next    func() (aState, bool)
 	stop    func()
 	cancel  context.CancelFunc
 	pending chan stateOrEnd
@@ -367,10 +383,16 @@ type watcher struct {
 
 // watch is a watcher of query. Its first pull is what asks, and what takes
 // the scope the query holds.
-func watch(t *testing.T, query liveQuery) *watcher {
+func watch[T any](t *testing.T, query *xynolog.Cached[T]) *watcher {
+	t.Helper()
+	return watchStates(t, statesOf(query))
+}
+
+// watchStates is watch, of a live query whatever it shows.
+func watchStates(t *testing.T, query liveQuery) *watcher {
 	t.Helper()
 	ctx, cancel := context.WithCancel(context.Background())
-	next, stop := iter.Pull(query.States(ctx))
+	next, stop := iter.Pull(query(ctx))
 	w := &watcher{next: next, stop: stop, cancel: cancel}
 	t.Cleanup(w.close)
 	return w
@@ -390,7 +412,7 @@ func (w *watcher) pull() chan stateOrEnd {
 
 // now is the state the watcher is given next, which is to be there already or
 // soon.
-func (w *watcher) now(t *testing.T) xynolog.CacheState {
+func (w *watcher) now(t *testing.T) aState {
 	t.Helper()
 	select {
 	case got := <-w.pull():
@@ -443,13 +465,13 @@ func (w *watcher) close() {
 
 // untilReady is the watcher's next value: Pending states before it are passed
 // over, and a failure fails the test.
-func untilReady(t *testing.T, w *watcher) xynolog.CacheState {
+func untilReady(t *testing.T, w *watcher) aState {
 	t.Helper()
 	for {
-		switch state := w.now(t).(type) {
-		case xynolog.Pending:
-		case xynolog.Failed:
-			t.Fatalf("the query failed: %v", state.Err)
+		switch state := w.now(t); state.Status() {
+		case api.CacheStatusPending:
+		case api.CacheStatusFailed:
+			t.Fatalf("the query failed: %#v", state)
 		default:
 			return state
 		}
@@ -458,12 +480,12 @@ func untilReady(t *testing.T, w *watcher) xynolog.CacheState {
 
 // untilFailed is the watcher's next failure: Pending states before it are
 // passed over, and a value fails the test.
-func untilFailed(t *testing.T, w *watcher) xynolog.Failed {
+func untilFailed(t *testing.T, w *watcher) aState {
 	t.Helper()
 	for {
-		switch state := w.now(t).(type) {
-		case xynolog.Pending:
-		case xynolog.Failed:
+		switch state := w.now(t); state.Status() {
+		case api.CacheStatusPending:
+		case api.CacheStatusFailed:
 			return state
 		default:
 			t.Fatalf("the query has a value, %#v, where a failure was to be", state)
@@ -471,20 +493,30 @@ func untilFailed(t *testing.T, w *watcher) xynolog.Failed {
 	}
 }
 
-func isPending(t *testing.T, state xynolog.CacheState) {
+func isPending(t *testing.T, state aState) {
 	t.Helper()
-	if _, ok := state.(xynolog.Pending); !ok {
+	if state.Status() != api.CacheStatusPending {
 		t.Fatalf("the state is %#v, not pending", state)
 	}
 }
 
-func valueIn[T any](t *testing.T, state xynolog.CacheState) T {
+func valueIn[T any](t *testing.T, state aState) T {
 	t.Helper()
 	ready, ok := state.(xynolog.Ready[T])
 	if !ok {
 		t.Fatalf("the state is %#v, not a value of %T", state, ready.Value)
 	}
 	return ready.Value
+}
+
+// failureIn is the error a failed state of a query of T holds.
+func failureIn[T any](t *testing.T, state aState) error {
+	t.Helper()
+	failed, ok := state.(xynolog.Failed[T])
+	if !ok {
+		t.Fatalf("the state is %#v, not a failure of a query of %T", state, *new(T))
+	}
+	return failed.Error
 }
 
 // modifiedOf is when an annotation was last modified; "never" when it was not.
@@ -548,7 +580,7 @@ func TestWatchingAQueryOfAResourceHoldsItsScopeUntilTheWatcherLeaves(t *testing.
 		queryOf("events", c.Browse.Events(res2)),
 		queryOf("references", c.Gather.ReferencedBy(res2)),
 	} {
-		watching := watch(t, of.query)
+		watching := watchStates(t, of.query)
 		watching.now(t)
 		if holds := w.transport.Holds(res2); holds != 1 {
 			t.Fatalf("watching the %s holds its resource's scope %d times", of.name, holds)
@@ -567,7 +599,7 @@ func TestWatchingAQueryOfAResourceHoldsItsScopeUntilTheWatcherLeaves(t *testing.
 		queryOf("tag schemas", c.Browse.TagSchemas()),
 		queryOf("engines", c.Browse.Engines()),
 	} {
-		watch(t, of.query).now(t)
+		watchStates(t, of.query).now(t)
 		if holds := w.transport.Holds(res1) + w.transport.Holds(res2); holds != 0 {
 			t.Fatalf("watching the %s holds a scope", of.name)
 		}
@@ -784,8 +816,8 @@ func TestEnginesThatFailAreAFailedStateWhateverTheirHoldersReportAndAReadOfThemF
 		t.Fatalf("the read failed with %v, want the engines' refusal", err)
 	}
 	live := watch(t, w.client.Browse.Engines())
-	if failed := untilFailed(t, live); codeOf(failed.Err) != string(api.BusRequestErrorCodeRejected) {
-		t.Fatalf("the engines failed with %v, want their refusal", failed.Err)
+	if failed := failureIn[api.EnginesWithLimits](t, untilFailed(t, live)); codeOf(failed) != string(api.BusRequestErrorCodeRejected) {
+		t.Fatalf("the engines failed with %v, want their refusal", failed)
 	}
 	live.close()
 	// A closed client's engines are nobody's to watch.

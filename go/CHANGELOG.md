@@ -48,6 +48,16 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `CacheState` is `CacheState[V]`, the state of a live query of a `V`, and
+  says which state it is with `Status()`, an `api.CacheStatus`. `Pending` and
+  `Failed` are `Pending[V]` and `Failed[V]`, and a failure's error is
+  `Failed[V].Error`, where it was `Err`.
+- A map whose schema names its keys by a schema of their own is keyed by that
+  schema's type: `InferenceSpec.Providers` is a
+  `map[InferenceProvider]Provider`, and `ServiceTelemetryTelemetry.Sdk` is
+  keyed by `ServiceTelemetryTelemetrySpansItemServicesItem`.
+- Each `DiscoveryAbsentReason` constant says what it means, as
+  `client/discovery-absent.json` says it.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary

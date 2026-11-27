@@ -15,7 +15,7 @@ let spec ?(identifiers = []) schemas : T.spec =
     [
       Typing.make
         (Fixture.definitions schemas)
-        ~roots:(List.map fst schemas) ~identifiers ~keys:[];
+        ~roots:(List.map fst schemas) ~identifiers ~value_docs:[];
     ]
 
 let generated ?identifiers schemas =

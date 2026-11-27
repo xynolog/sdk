@@ -67,6 +67,8 @@ let values_of v =
   | Some (Boolean_schema _) | None ->
       refuse "the schema validated states no additionalProperties"
 
+let keys_of v = stated "propertyNames" (layer "propertyNames" v).property_names
+
 (* The [i]th member of the union [v] states. *)
 let member_of i v =
   let l = layer "a union" v in
@@ -141,11 +143,7 @@ let rec named state name =
       generic "IReadOnlyList"
         [ type_of state name "Item" (items, items_of (validated state name)) ]
   | T.Map { key; value } ->
-      generic "IReadOnlyDictionary"
-        [
-          (match key with Some key -> named state key | None -> C.T "string");
-          type_of state name "Value" (value, values_of (validated state name));
-        ]
+      map_of state name "" key value (validated state name)
   | form -> (
       match plain state form with
       | Some type_ -> type_
@@ -155,6 +153,18 @@ let rec named state name =
             Hashtbl.replace state.written name
               (declare state name form d.composition (validated state name)));
           C.T (types ^ name))
+
+(* A dictionary of [owner]'s [property], each of its keys a [key] (text,
+   where it says none), of what [value] admits. *)
+and map_of state owner property key value validated =
+  generic "IReadOnlyDictionary"
+    [
+      (match key with
+      | Some key ->
+          type_of state owner (property ^ "Key") (key, keys_of validated)
+      | None -> C.T "string");
+      type_of state owner (property ^ "Value") (value, values_of validated);
+    ]
 
 (* A model of its own written in place, named as [Typing] names it. *)
 and inline state owner property (i : T.inline) validated =
@@ -196,12 +206,8 @@ and in_place state owner property (i : T.inline) validated =
   | T.Enum { base = Some T.Number; _ }, None -> T "double"
   | (T.Empty _ as form), None when T.holds_none form -> inline ()
   | T.Empty _, None -> element
-  | T.Map { value; _ }, None ->
-      generic "IReadOnlyDictionary"
-        [
-          T "string";
-          type_of state owner (property ^ "Value") (value, values_of validated);
-        ]
+  | T.Map { key; value }, None ->
+      map_of state owner property key value validated
   | ( ( T.Enum { base = None | Some (T.Code _); _ }
       | T.Alias _ | T.Identifier _ | T.Json ),
       None ) ->

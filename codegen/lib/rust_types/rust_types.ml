@@ -195,7 +195,7 @@ let sign_in (spec : Spec.t) =
         (Generate.items
            (Typing.make
               (Definitions.alone ~ids:spec.ids ~name:"SignIn" schema)
-              ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[])
+              ~roots:[ "SignIn" ] ~identifiers:[] ~value_docs:[])
            ~accessors:[]);
   }
 
@@ -302,6 +302,7 @@ let control (spec : Spec.t) =
         ~header:(regenerate ("protocol/specs/src/" ^ control_table))
         (Generate.enumeration "ControlSender"
            (List.map sender [ C.Client; C.Launcher ])
+           None
            [ "Which side of the control API sends a notification." ]
         @ List.concat_map (method_items spec) t.methods
         @ List.concat_map (notification_items spec) t.notifications

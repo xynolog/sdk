@@ -1584,10 +1584,28 @@ export interface components {
      * means.
      */
     DiscoveryAbsentReason:
+      /**
+       * There is no document where it was looked for: no file, an HTTP status
+       * that is not success, or a page that is not JSON.
+       */
       | 'not-found'
+      /** There is a document, and it is not JSON. */
       | 'not-json'
+      /**
+       * It is JSON, and not a discovery document: one entry that is not what
+       * the schema says makes the whole document invalid, since a partial
+       * reading would hide a running knowledge base without a trace.
+       */
       | 'invalid'
+      /**
+       * It is a discovery document of a version this client does not speak, and
+       * is not read in part.
+       */
       | 'unsupported-version'
+      /**
+       * It could not be read at all: the file could not be opened or decoded,
+       * or the request got no answer by its deadline.
+       */
       | 'unreadable';
     /**
      * The launcher's KB discovery document — the schema authority for
@@ -8198,7 +8216,9 @@ export interface tables {
      * transports it uses, or of a transport it uses part of, the rows it
      * exports.
      */
-    sdk: { [key: string]: string[] };
+    sdk: Partial<
+      Record<ServiceTelemetryTelemetrySpansItemServicesItem, string[]>
+    >;
     resource: ServiceTelemetryTelemetryResourceItem[];
     spans: ServiceTelemetryTelemetrySpansItem[];
     metrics: ServiceTelemetryTelemetryMetricsItem[];
@@ -11049,7 +11069,12 @@ export type IdentifiersKindsOthersItem = {
 /** The providers, and the engine for each job and each Librarian actor. */
 export type InferenceSpec = {
   /** Each provider an engine names, and how it is reached. */
-  providers: { [key: string]: components['schemas']['Provider'] };
+  providers: Partial<
+    Record<
+      components['schemas']['InferenceProvider'],
+      components['schemas']['Provider']
+    >
+  >;
   /**
    * The engine each job is done with when software does it, and the engine each
    * Librarian actor asks.

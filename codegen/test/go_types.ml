@@ -8,7 +8,8 @@ open Fixture
 let generated ?(identifiers = []) schemas root =
   let { G.decls; _ } =
     G.generate
-      (Typing.make (definitions schemas) ~roots:[ root ] ~identifiers ~keys:[])
+      (Typing.make (definitions schemas) ~roots:[ root ] ~identifiers
+         ~value_docs:[])
   in
   String.concat "\n\n" (List.map Go_syntax.decl decls)
 

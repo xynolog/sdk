@@ -4,8 +4,9 @@
 
 module Xynolog.Internal.Generated.Models.ServiceEnvironmentBootRefusals (ServiceEnvironmentBootRefusals (..), ServiceEnvironmentBootRefusalsMembersItem (..), ServiceEnvironmentBootRefusalsRefusalsItem (..), ServiceTelemetryTelemetrySpansItemServicesItem (..), serviceTelemetryTelemetrySpansItemServicesItemText) where
 
-import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
+import Data.Aeson (FromJSON (..), FromJSONKey (..), FromJSONKeyFunction (..), ToJSON (..), ToJSONKey (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Aeson.Types (toJSONKeyText)
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 
@@ -45,7 +46,7 @@ instance FromJSON ServiceEnvironmentBootRefusalsRefusalsItem where parseJSON = c
 
 instance ToJSON ServiceEnvironmentBootRefusalsRefusalsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (serviceEnvironmentBootRefusalsRefusalsItemName value))], [("situation", toJSON (serviceEnvironmentBootRefusalsRefusalsItemSituation value))], [("refusal", toJSON (serviceEnvironmentBootRefusalsRefusalsItemRefusal value))]]))
 
-data ServiceTelemetryTelemetrySpansItemServicesItem = ServiceTelemetryTelemetrySpansItemServicesItemArchivist | ServiceTelemetryTelemetrySpansItemServicesItemDispatcher | ServiceTelemetryTelemetrySpansItemServicesItemGateway | ServiceTelemetryTelemetrySpansItemServicesItemLibrarian | ServiceTelemetryTelemetrySpansItemServicesItemSmelter | ServiceTelemetryTelemetrySpansItemServicesItemWeaver | ServiceTelemetryTelemetrySpansItemServicesItemWorker deriving (Eq, Show)
+data ServiceTelemetryTelemetrySpansItemServicesItem = ServiceTelemetryTelemetrySpansItemServicesItemArchivist | ServiceTelemetryTelemetrySpansItemServicesItemDispatcher | ServiceTelemetryTelemetrySpansItemServicesItemGateway | ServiceTelemetryTelemetrySpansItemServicesItemLibrarian | ServiceTelemetryTelemetrySpansItemServicesItemSmelter | ServiceTelemetryTelemetrySpansItemServicesItemWeaver | ServiceTelemetryTelemetrySpansItemServicesItemWorker deriving (Eq, Ord, Show)
 
 instance FromJSON ServiceTelemetryTelemetrySpansItemServicesItem where parseJSON = checked "ServiceTelemetryTelemetrySpansItemServicesItem" $ \value -> if value == String "archivist" then pure ServiceTelemetryTelemetrySpansItemServicesItemArchivist else if value == String "dispatcher" then pure ServiceTelemetryTelemetrySpansItemServicesItemDispatcher else if value == String "gateway" then pure ServiceTelemetryTelemetrySpansItemServicesItemGateway else if value == String "librarian" then pure ServiceTelemetryTelemetrySpansItemServicesItemLibrarian else if value == String "smelter" then pure ServiceTelemetryTelemetrySpansItemServicesItemSmelter else if value == String "weaver" then pure ServiceTelemetryTelemetrySpansItemServicesItemWeaver else if value == String "worker" then pure ServiceTelemetryTelemetrySpansItemServicesItemWorker else fail "unknown enumeration member"
 
@@ -66,3 +67,7 @@ serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpan
 serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemSmelter = "smelter"
 serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemWeaver = "weaver"
 serviceTelemetryTelemetrySpansItemServicesItemText ServiceTelemetryTelemetrySpansItemServicesItemWorker = "worker"
+
+instance FromJSONKey ServiceTelemetryTelemetrySpansItemServicesItem where fromJSONKey = FromJSONKeyTextParser (parseJSON . String)
+
+instance ToJSONKey ServiceTelemetryTelemetrySpansItemServicesItem where toJSONKey = toJSONKeyText serviceTelemetryTelemetrySpansItemServicesItemText

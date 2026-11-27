@@ -7,6 +7,6 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record InferenceSpec
 {
-    [global::Xynolog.Serialization.Wire("providers")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, global::Xynolog.Types.Provider> Providers { get; init; }
+    [global::Xynolog.Serialization.Wire("providers")] public required global::System.Collections.Generic.IReadOnlyDictionary<global::Xynolog.Types.InferenceProvider, global::Xynolog.Types.Provider> Providers { get; init; }
     [global::Xynolog.Serialization.Wire("engines")] public required global::Xynolog.Types.ArchivistEngines Engines { get; init; }
 }

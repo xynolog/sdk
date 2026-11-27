@@ -264,6 +264,46 @@ let closed_cases () =
             one_of = Some [ layer (closing [ object_ [ ("b", text) ] ]); text ];
           }))
 
+(* [Normalize.shape_only] keeps a map's keys where a schema of their own
+   names them, which is their type, and drops a bound on them, which only a
+   validator reads; [Normalize.dropped] names only what it drops. *)
+let shape_cases () =
+  let map_keyed keys =
+    layer
+      {
+        Schema.empty with
+        type_ = Some [ Object ];
+        property_names = Some keys;
+        additional_properties = Some text;
+      }
+  in
+  let by_name = map_keyed (named "Key") in
+  let bounded =
+    map_keyed (layer { text_layer with pattern = Some "^[a-z]+$" })
+  in
+  let shape =
+    Alcotest.testable
+      (fun f s ->
+        Format.pp_print_string f (Yojson.Safe.to_string (Schema.runtime s)))
+      ( = )
+  in
+  Alcotest.check shape "keys named by a schema of their own are kept" by_name
+    (Normalize.shape_only by_name);
+  Alcotest.check shape "keys a bound states are dropped"
+    (layer
+       {
+         Schema.empty with
+         type_ = Some [ Object ];
+         additional_properties = Some text;
+       })
+    (Normalize.shape_only bounded);
+  Alcotest.(check (list string))
+    "only the bound is dropped" []
+    (Normalize.dropped by_name);
+  Alcotest.(check (list string))
+    "the bound is named" [ "propertyNames" ]
+    (Normalize.dropped bounded)
+
 let () =
   Alcotest.run "merges"
     [
@@ -275,5 +315,10 @@ let () =
         [
           Alcotest.test_case "unevaluatedProperties closes one object" `Quick
             closed_cases;
+        ] );
+      ( "shape only",
+        [
+          Alcotest.test_case "a map's keys are kept where they are a type"
+            `Quick shape_cases;
         ] );
     ]

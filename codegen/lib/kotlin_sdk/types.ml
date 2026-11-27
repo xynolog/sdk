@@ -243,13 +243,15 @@ and in_place st what (i : T.inline) =
       None ) ->
       refuse "%s: a schema shape the generator does not know" what
 
-(* A map, keyed by the schema [key] names (text, when it names none), of
-   what [value] admits. *)
+(* A map, each of its keys a [key] (text, where it says none), of what
+   [value] admits. *)
 and map_of st what key value =
   K.Generic
     ( "kotlin.collections.Map",
       [
-        (match key with Some key -> t (named st key) | None -> t "String");
+        (match key with
+        | Some key -> type_of st (what ^ ".key") key
+        | None -> t "String");
         type_of st what value;
       ] )
 
@@ -272,8 +274,8 @@ and declaration st name (form : T.form) about : written =
   in
   match form with
   | T.Union u -> union_declaration st name u about
-  | T.Enum { base = Some (T.Text _); values } ->
-      enum_declaration name values about
+  | T.Enum { base = Some (T.Text _); values; docs } ->
+      enum_declaration name values docs about
   | T.Enum
       { values = [ ((Schema.Int_literal _ | Schema.Bool_literal _) as v) ]; _ }
     ->
@@ -305,10 +307,11 @@ and declaration st name (form : T.form) about : written =
   | T.Alias _ | T.Identifier _ | T.Json ->
       refuse "%s: a schema shape the generator does not know" name
 
-and enum_declaration name values about =
+and enum_declaration name values docs about =
+  let about_of i = Option.map (fun docs -> K.Doc (List.nth docs i)) docs in
   let entries =
     List.fold_left
-      (fun entries value ->
+      (fun entries (i, value) ->
         let text =
           match value with
           | Schema.String_literal s -> s
@@ -320,11 +323,12 @@ and enum_declaration name values about =
             variant;
         entries
         @ [
-            K.entry
+            K.entry ?about:(about_of i)
               ~annotations:(serial_name ~name:variant text)
               ~args:[ K.Str text ] variant;
           ])
-      [] values
+      []
+      (List.mapi (fun i value -> (i, value)) values)
   in
   Declared
     (fun unions ->

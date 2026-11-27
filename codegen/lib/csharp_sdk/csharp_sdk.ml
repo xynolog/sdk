@@ -553,10 +553,10 @@ let models (spec : Spec.t) =
              ~roots:(List.map fst made)
              ~identifiers:
                (List.map (fun (k : Identifiers.Table.kind) -> k.name) kinds)
-             ~keys:(Definitions.map_keys spec),
+             ~value_docs:(Definitions.value_docs spec),
            Typing.make
              (Definitions.alone ~ids:spec.ids ~name:"SignIn" sign_in)
-             ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[] )
+             ~roots:[ "SignIn" ] ~identifiers:[] ~value_docs:[] )
        with
        | typing, payloads, signed_in ->
            Models.make ~ids:spec.ids

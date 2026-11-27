@@ -36,7 +36,7 @@ let fixture_declaration () =
     M.create
       [
         Typing.make definitions ~roots:[ "FidelityFixture" ] ~identifiers:[]
-          ~keys:[];
+          ~value_docs:[];
       ]
       ~schema:definitions.schema
   in

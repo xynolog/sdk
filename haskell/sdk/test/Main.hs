@@ -10,6 +10,7 @@ import BusLogCases (busLogCases)
 import CacheCases (cacheCases)
 import CacheDocumentCases (cacheDocumentCases)
 import ClientAssertionCases (clientAssertionCases)
+import ClientTypesCensusCases (clientTypesCensusCases)
 import ClockCases (cacheClockCases, clientClockCases, clockCensus, discoveryClockCases, httpClockCases, jobPollClockCases)
 import Control.Applicative ((<|>))
 import Control.Monad (forM, forM_, unless)
@@ -668,6 +669,7 @@ runCases root = do
   frameCases root
   shapeCases root
   textCases root
+  clientTypesCensusCases root
   tokenStorageCases root
   signInStoreCases root
   clientAssertionCases root

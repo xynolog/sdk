@@ -119,7 +119,7 @@ func TestEachRowOfTheRefreshTableDoesWhatItStatesToWhatIsHeld(t *testing.T) {
 			t.Run(name, func(t *testing.T) {
 				w := newLiveWorld(t, liveSetup{window: time.Second})
 				for _, each := range everything(t, w.client) {
-					untilReady(t, watch(t, each.query))
+					untilReady(t, watchStates(t, each.query))
 				}
 				w.everyHolderAsked(t)
 				res1, ann1 := resourceOf(t, "res-1"), annotationIdOf(t, "ann-1")
@@ -149,8 +149,8 @@ func TestEachRowOfTheRefreshTableDoesWhatItStatesToWhatIsHeld(t *testing.T) {
 					}
 				}
 				if slices.Contains(row.Removes, xynolog.CacheQueryAnnotation) {
-					failed, ok := one.now(t).(xynolog.Failed)
-					if !ok || codeOf(failed.Err) != string(api.BusRequestErrorCodeNotFound) {
+					failed, ok := one.now(t).(xynolog.Failed[api.Annotation])
+					if !ok || codeOf(failed.Error) != string(api.BusRequestErrorCodeNotFound) {
 						t.Fatal("the annotation removed is not failed as not found")
 					}
 				}
@@ -347,7 +347,7 @@ func TestAnEventThatCannotBeReadAsksAgainForEverythingHeld(t *testing.T) {
 		t.Run(each.name, func(t *testing.T) {
 			w := newLiveWorld(t, liveSetup{window: time.Second})
 			for _, query := range everything(t, w.client) {
-				untilReady(t, watch(t, query.query))
+				untilReady(t, watchStates(t, query.query))
 			}
 			w.everyHolderAsked(t)
 			annotation := watch(t, w.client.Browse.Annotation(resourceOf(t, "res-1"), annotationIdOf(t, "ann-1")))
@@ -357,7 +357,7 @@ func TestAnEventThatCannotBeReadAsksAgainForEverythingHeld(t *testing.T) {
 			w.asksCome(t, m, each.asks)
 			// A row that asks again for the annotation gives it its value again; any other gives it nothing.
 			if slices.ContainsFunc(asks[xynolog.CacheQueryAnnotation], func(channel string) bool { return each.asks[channel] > 0 }) {
-				if _, failed := annotation.now(t).(xynolog.Failed); failed {
+				if annotation.now(t).Status() == api.CacheStatusFailed {
 					t.Fatal("an event that names no annotation removed one")
 				}
 			} else {
@@ -486,8 +486,8 @@ func TestB13aAnAnnotationThatIsGoneEndsAsNotFoundAndItsNextWatcherAsksNamingItsR
 	// One nobody holds is nobody's to end.
 	w.transport.Deliver(eventOf(t, xynolog.CacheRefreshMarkDeleteOk, "", "res-1", "ann-2"))
 	w.transport.Deliver(eventOf(t, xynolog.CacheRefreshMarkDeleteOk, "", "res-1", "ann-1"))
-	failed, ok := one.now(t).(xynolog.Failed)
-	if !ok || codeOf(failed.Err) != string(api.BusRequestErrorCodeNotFound) || failed.Err.Error() != "Annotation ann-1 was removed" {
+	failed, ok := one.now(t).(xynolog.Failed[api.Annotation])
+	if !ok || codeOf(failed.Error) != string(api.BusRequestErrorCodeNotFound) || failed.Error.Error() != "Annotation ann-1 was removed" {
 		t.Fatalf("the annotation removed is %#v", failed)
 	}
 	time.Sleep(settling)
@@ -497,7 +497,7 @@ func TestB13aAnAnnotationThatIsGoneEndsAsNotFoundAndItsNextWatcherAsksNamingItsR
 
 	// Which resource it was of is kept, so the request an arriving watcher makes can name it.
 	watch(t, w.client.Browse.Annotation(res1, ann1)).now(t)
-	if _, failed := one.now(t).(xynolog.Failed); failed {
+	if one.now(t).Status() == api.CacheStatusFailed {
 		t.Fatal("the annotation is still failed once a watcher arrived")
 	}
 	waitUntil(t, "the arriving watcher's request", time.Second, func() bool { return len(requestsOn(w.transport, annotation)) == asked+1 })
@@ -558,7 +558,7 @@ func TestClosingAClientEndsEveryQuerysWatcherAndFailsEveryReadStillWaitingAsClos
 	queries := everything(t, w.client)
 	var watching []*watcher
 	for _, each := range queries {
-		live := watch(t, each.query)
+		live := watchStates(t, each.query)
 		isPending(t, live.now(t))
 		watching = append(watching, live)
 	}
@@ -590,7 +590,7 @@ func TestClosingAClientEndsEveryQuerysWatcherAndFailsEveryReadStillWaitingAsClos
 	// Closed, it gives a watcher of any query nothing, refuses a read of any as closed, and asks the knowledge base nothing.
 	m := w.mark()
 	for _, each := range everything(t, w.client) {
-		watch(t, each.query).ended(t)
+		watchStates(t, each.query).ended(t)
 		if err := each.read(context.Background()); err == nil || codeOf(err) != string(api.BusRequestErrorCodeClosed) {
 			t.Fatalf("the read of the %s ended with %v, want bus.closed", each.name, err)
 		}

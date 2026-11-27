@@ -12,7 +12,7 @@ val make :
 val observe :
   t ->
   string ->
-  on_state:(Yojson.Safe.t Live_query.state -> unit) ->
+  on_state:(Yojson.Safe.t Live_query.cache_state -> unit) ->
   on_close:(unit -> unit) ->
   unit ->
   unit

@@ -65,6 +65,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A map whose schema names its keys by a schema of their own is keyed by that
+  schema's type: `InferenceSpec::providers` is a
+  `BTreeMap<InferenceProvider, Provider>`, and
+  `ServiceTelemetryTelemetry::sdk` is keyed by
+  `ServiceTelemetryTelemetrySpansItemServicesItem`.
+- Each `DiscoveryAbsentReason` variant says what it means, as
+  `client/discovery-absent.json` says it.
 - What a worker says of itself and of its claims is the generated client
   types, in `xynolog::types` as Protocol states them: `ClaimRefusal`,
   `WorkerVitals` and its `WorkerActiveJob` (where `ActiveJob` was; its job's

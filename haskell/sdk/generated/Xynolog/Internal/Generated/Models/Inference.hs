@@ -6,9 +6,11 @@ module Xynolog.Internal.Generated.Models.Inference (Inference (..), InferenceKin
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ArchivistEngines
+import Xynolog.Internal.Generated.Models.InferenceProvider
 import Xynolog.Internal.Generated.Models.Metadata
 import Xynolog.Internal.Generated.Models.Provider
 import Xynolog.Internal.Generated.Models.StackApiVersion
@@ -35,7 +37,7 @@ inferenceKindText :: InferenceKind -> Text
 inferenceKindText InferenceKindInference = "Inference"
 
 data InferenceSpec = InferenceSpec
-  { inferenceSpecProviders :: KM.KeyMap Provider,
+  { inferenceSpecProviders :: Map.Map InferenceProvider Provider,
     inferenceSpecEngines :: ArchivistEngines
   }
   deriving (Eq, Show)

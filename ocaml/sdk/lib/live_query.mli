@@ -2,7 +2,7 @@
 
 type ('key, 'value) t
 
-type 'value state =
+type 'value cache_state =
   | Pending
   | Ready of 'value
   | Failed of Http_wire.request_code
@@ -21,7 +21,7 @@ val make :
 val observe :
   ('key, 'value) t ->
   'key ->
-  on_state:('value state -> unit) ->
+  on_state:('value cache_state -> unit) ->
   on_close:(unit -> unit) ->
   unit ->
   unit

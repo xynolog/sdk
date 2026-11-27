@@ -37,7 +37,7 @@ let types schemas =
     [
       Typing.make
         (Fixture.definitions schemas)
-        ~roots:(List.map fst schemas) ~identifiers:[] ~keys:[];
+        ~roots:(List.map fst schemas) ~identifiers:[] ~value_docs:[];
     ]
 
 (* ── The channels ──────────────────────────────────────────────────────── *)

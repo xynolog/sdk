@@ -204,13 +204,13 @@ and in_place st what (i : T.inline) =
       if Deviations.text_union u then string_ else declared st i
   | form, None when T.holds_none form -> empty st
   | T.Empty _, None -> G.Map (string_, any)
-  | T.Map { value; _ }, None -> G.Map (string_, type_of st what value)
+  | T.Map { key; value }, None -> map_of st what key value
   | (T.Alias _ | T.Identifier _ | T.Json), None -> shape what
 
 and declaration st name (form : T.form) doc =
   match form with
   | T.Union u -> union_declaration st name u doc
-  | T.Enum { base; values } -> enumeration name base values doc
+  | T.Enum { base; values; docs } -> enumeration name base values docs doc
   | T.Alias ((T.Scalar _ | T.List _) as ty) ->
       [ G.Aliases { doc; specs = [ (name, type_of st name ty) ] } ]
   | T.Record { members; rest } -> structure st name members rest doc
@@ -225,15 +225,21 @@ and declaration st name (form : T.form) doc =
   | T.Map { key; value } ->
       (* A type of its own too: an alias is read by its kind alone, and this
          one states its keys and values. *)
-      let key =
-        match key with Some key -> named_type st key | None -> string_
-      in
-      [ G.Type { doc; name; def = G.Is (G.Map (key, type_of st name value)) } ]
+      [ G.Type { doc; name; def = G.Is (map_of st name key value) } ]
   | T.Alias _ | T.Identifier _ | T.Json -> shape name
 
-(* A named enumeration: its type, a constant per value named after it, and
-   [Valid], whether a value is one of them. *)
-and enumeration name (base : T.scalar option) values doc =
+(* A map whose keys are each a [key], where it says. *)
+and map_of st what key value =
+  G.Map
+    ( (match key with
+      | Some key -> type_of st (what ^ ".key") key
+      | None -> string_),
+      type_of st what value )
+
+(* A named enumeration: its type, a constant per value named after it, each
+   with what it means where a table says, and [Valid], whether a value is one
+   of them. *)
+and enumeration name (base : T.scalar option) values docs doc =
   let base, literal =
     match base with
     | Some (T.Text _) ->
@@ -274,8 +280,14 @@ and enumeration name (base : T.scalar option) values doc =
       {
         doc = G.prose ("The values of " ^ name ^ ".");
         specs =
-          List.map
-            (fun (c, value) -> G.spec ~type_:(named name) c value)
+          List.mapi
+            (fun i (c, value) ->
+              let doc =
+                match docs with
+                | Some docs -> G.prose (c ^ ": " ^ List.nth docs i)
+                | None -> []
+              in
+              G.spec ~doc ~type_:(named name) c value)
             constants;
         spacing = Packed;
       };

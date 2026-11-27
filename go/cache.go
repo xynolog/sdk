@@ -15,18 +15,21 @@ import (
 	"github.com/xynolog/sdk/go/internal/timing"
 )
 
-// CacheState is a key's state, the same for every observer of the key:
-// Pending (no value yet; a fetch may be in flight), Ready (a value, which may
-// be the one shown while a newer is fetched), or Failed (a key with no value
-// whose fetch, and its one retry, failed). Failed is a state, not the end of
-// anything: an observer lives through it, and the next act on the key tries
-// again. Read it with a type switch.
-type CacheState interface {
-	cacheState()
+// CacheState is the state of a key of V, the same for every observer of the
+// key, told apart by its Status: Pending (no value yet; a fetch may be in
+// flight), Ready (a value, which may be the one shown while a newer is
+// fetched), or Failed (a key with no value whose fetch, and its one retry,
+// failed). Failed is a state, not the end of anything: an observer lives
+// through it, and the next act on the key tries again. Read it with a type
+// switch.
+type CacheState[V any] interface {
+	// Status is which state it is.
+	Status() api.CacheStatus
+	cacheStateOf(V)
 }
 
 // Pending is a key with no value yet.
-type Pending struct{}
+type Pending[V any] struct{}
 
 // Ready is a key's value.
 type Ready[V any] struct {
@@ -35,13 +38,17 @@ type Ready[V any] struct {
 
 // Failed is a key with no value, whose fetch for one failed, and failed
 // again; or a key whose entity is gone.
-type Failed struct {
-	Err error
+type Failed[V any] struct {
+	Error error
 }
 
-func (Pending) cacheState()  {}
-func (Ready[V]) cacheState() {}
-func (Failed) cacheState()   {}
+func (Pending[V]) Status() api.CacheStatus { return api.CacheStatusPending }
+func (Ready[V]) Status() api.CacheStatus   { return api.CacheStatusReady }
+func (Failed[V]) Status() api.CacheStatus  { return api.CacheStatusFailed }
+
+func (Pending[V]) cacheStateOf(V) {}
+func (Ready[V]) cacheStateOf(V)   {}
+func (Failed[V]) cacheStateOf(V)  {}
 
 // CachePersister is where a cache keeps its values, so a later one begins
 // with them.
@@ -87,7 +94,7 @@ const (
 
 // cacheKey is one key's: its state, and its current fetch.
 type cacheKey[V any] struct {
-	state CacheState
+	state CacheState[V]
 	// changed is closed when the state changes, and replaced.
 	changed chan struct{}
 	// inFlight is the key's current fetch. One an Invalidate, a Set or a
@@ -98,7 +105,7 @@ type cacheKey[V any] struct {
 
 // known reports whether anything asked for the key and has not let go of it.
 func (k *cacheKey[V]) known() bool {
-	_, pending := k.state.(Pending)
+	_, pending := k.state.(Pending[V])
 	return k.inFlight != nil || !pending
 }
 
@@ -184,14 +191,14 @@ func (c *Cache[K, V]) attach(persister CachePersister[K, V], refused func(error)
 func (c *Cache[K, V]) held(key K) *cacheKey[V] {
 	k, ok := c.keys[key]
 	if !ok {
-		k = &cacheKey[V]{state: Pending{}, changed: make(chan struct{})}
+		k = &cacheKey[V]{state: Pending[V]{}, changed: make(chan struct{})}
 		c.keys[key] = k
 	}
 	return k
 }
 
 // set makes state the key's, and tells its observers. Called with mu held.
-func (k *cacheKey[V]) set(state CacheState) {
+func (k *cacheKey[V]) set(state CacheState[V]) {
 	k.state = state
 	close(k.changed)
 	k.changed = make(chan struct{})
@@ -326,7 +333,7 @@ func (c *Cache[K, V]) failed(key K, k *cacheKey[V], f *flight[V], err error) {
 		c.fetching(key).asked = retryLiveAsk
 	case retryLiveAsk:
 		if _, ready := k.state.(Ready[V]); !ready {
-			k.set(Failed{Err: err})
+			k.set(Failed[V]{Error: err})
 		}
 	}
 }
@@ -342,8 +349,8 @@ func retried(err error) bool {
 // closed or ctx is done. Observing is what asks, once the sequence is
 // ranged over: a key with nothing is fetched, a failed key is tried again,
 // and a value an earlier cache kept is asked for anew while it is shown.
-func (c *Cache[K, V]) Observe(ctx context.Context, key K) iter.Seq[CacheState] {
-	return func(yield func(CacheState) bool) {
+func (c *Cache[K, V]) Observe(ctx context.Context, key K) iter.Seq[CacheState[V]] {
+	return func(yield func(CacheState[V]) bool) {
 		c.mu.Lock()
 		if c.closed {
 			c.mu.Unlock()
@@ -353,9 +360,9 @@ func (c *Cache[K, V]) Observe(ctx context.Context, key K) iter.Seq[CacheState] {
 		k := c.held(key)
 		asks := false
 		switch k.state.(type) {
-		case Failed:
+		case Failed[V]:
 			// An observer arriving at a failed key starts over, for everyone: a fetch is in flight for all of them.
-			k.set(Pending{})
+			k.set(Pending[V]{})
 			asks = true
 		case Ready[V]:
 			asks = wasKept
@@ -470,8 +477,8 @@ func (c *Cache[K, V]) Invalidate(key K) {
 	}
 	k := c.held(key)
 	k.inFlight = nil
-	if _, failed := k.state.(Failed); failed {
-		k.set(Pending{})
+	if _, failed := k.state.(Failed[V]); failed {
+		k.set(Pending[V]{})
 	}
 	c.revalidate(key)
 }
@@ -494,7 +501,7 @@ func (c *Cache[K, V]) Remove(key K, gone error) {
 	}
 	k := c.held(key)
 	k.inFlight = nil
-	k.set(Failed{Err: gone})
+	k.set(Failed[V]{Error: gone})
 	c.oweASave()
 }
 

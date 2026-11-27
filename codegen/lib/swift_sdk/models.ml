@@ -130,6 +130,7 @@ type t = {
       (** A schema as the writer of tables reads it, by its name. *)
   written : (string, S.decl option) Hashtbl.t;
       (** Each declaration by its name; [None] while it is being written. *)
+  keys : string list;  (** The types a map's members are named by. *)
 }
 
 (* The declarations of [typings], the first of which types what a writer of
@@ -153,6 +154,7 @@ let create (typings : T.t list) ~schema =
         defined = first.defined;
         schema;
         written = Hashtbl.create 1024;
+        keys = List.concat_map T.keys typings;
       }
 
 (* The one schema an [allOf] names, which Swift holds as that schema, what
@@ -212,7 +214,9 @@ and in_place t what (i : T.inline) =
 
 and map_of t what key value =
   S.Dictionary_of
-    ( (match key with Some key -> S.Named key | None -> string_type),
+    ( (match key with
+      | Some key -> type_of t (what ^ ".key") key
+      | None -> string_type),
       type_of t what value )
 
 (* A schema the writer of tables states at [owner]'s [part], as its Swift
@@ -239,9 +243,10 @@ and declaration t ~modifiers n (form : T.form) composition =
   | _, Some r -> alias (named t r)
   | T.Union u, None when Deviations.text_union u -> alias string_type
   | T.Union u, None -> union t ~modifiers n u
-  | T.Enum { base; values }, None ->
-      enumeration ~modifiers n values
+  | T.Enum { base; values; docs }, None ->
+      enumeration ~modifiers n values docs
         ~text:(match base with Some (T.Text _) -> true | _ -> false)
+        ~key:(List.mem n t.keys)
   | T.Empty { rest = T.Open; _ }, None -> alias (dictionary_of json_value)
   | T.Map { key; value }, None -> alias (map_of t n key value)
   | T.Alias ty, None -> alias (type_of t n ty)
@@ -424,13 +429,18 @@ and object_ t ~modifiers n (members : T.member list) ~rest ~closed =
 
 (* An enumeration of [values]: of text when [text], else of one integer or
    boolean. *)
-and enumeration ~modifiers n values ~text =
+and enumeration ~modifiers n values docs ~text ~key =
   if values = [] then refuse "%s: empty enumeration" n;
   if text then
     let seen = Hashtbl.create 16 in
+    let doc i =
+      match docs with
+      | Some docs -> Text.wrapped ~lead:"  /// " ~width:100 (List.nth docs i)
+      | None -> []
+    in
     let cases =
-      List.map
-        (fun value ->
+      List.mapi
+        (fun i value ->
           let text =
             match value with
             | Schema.String_literal text -> text
@@ -441,7 +451,8 @@ and enumeration ~modifiers n values ~text =
           if Hashtbl.mem seen label then
             refuse "%s: duplicate Swift enum case %s" n label;
           Hashtbl.replace seen label ();
-          decl [] (S.Case { name = label; value = S.Raw (S.String text) }))
+          decl ~doc:(doc i) []
+            (S.Case { name = label; value = S.Raw (S.String text) }))
         values
     in
     decl modifiers
@@ -449,12 +460,14 @@ and enumeration ~modifiers n values ~text =
          {
            name = n;
            inherits =
-             [
-               string_type;
-               S.Named "Codable";
-               S.Named "Sendable";
-               S.Named "CaseIterable";
-             ];
+             ([
+                string_type;
+                S.Named "Codable";
+                S.Named "Sendable";
+                S.Named "CaseIterable";
+              ]
+             (* A dictionary keyed by one is a JSON object of its words. *)
+             @ if key then [ S.Named "CodingKeyRepresentable" ] else []);
            layout = S.Lines;
            members = cases;
          })

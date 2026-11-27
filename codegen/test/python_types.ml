@@ -5,11 +5,11 @@ open Xynolog_codegen
 open Fixture
 
 (* The module for [schemas] beside a kind of id, K. *)
-let written ?(keys = []) schemas =
+let written schemas =
   let schemas = ("K", {|{"type": "string"}|}) :: schemas in
   Python_types.module_
     (Typing.make (definitions schemas) ~roots:(List.map fst schemas)
-       ~identifiers:[ "K" ] ~keys)
+       ~identifiers:[ "K" ] ~value_docs:[])
 
 let one json = written [ ("S", json) ]
 
@@ -31,7 +31,6 @@ let cases =
     case "a map named by its keys' schema is keyed by that type" (fun () ->
         let code =
           written
-            ~keys:[ ("Where", "K") ]
             [
               ( "Where",
                 {|{"type": "object", "propertyNames": {"$ref": "./K.json"}, "additionalProperties": {"type": "integer"}}|}

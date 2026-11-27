@@ -28,7 +28,7 @@ import (
 // read, not changed.
 type Cached[T any] struct {
 	fresh      func(ctx context.Context) (T, error)
-	watch      func(ctx context.Context) iter.Seq[CacheState]
+	watch      func(ctx context.Context) iter.Seq[CacheState[T]]
 	invalidate func()
 	// hold takes the scope of the resource the query is of, and gives what
 	// lets it go; nil for a query of no resource.
@@ -40,11 +40,11 @@ func (q *Cached[T]) Fresh(ctx context.Context) (T, error) {
 	return q.fresh(ctx)
 }
 
-// States is the query's state now and each state after it: Pending,
-// Ready[T] or Failed, until ctx is done, the loop stops, or the client
+// States is the query's state now and each state after it: Pending[T],
+// Ready[T] or Failed[T], until ctx is done, the loop stops, or the client
 // closes. An observer that falls behind is given the latest state.
-func (q *Cached[T]) States(ctx context.Context) iter.Seq[CacheState] {
-	return func(yield func(CacheState) bool) {
+func (q *Cached[T]) States(ctx context.Context) iter.Seq[CacheState[T]] {
+	return func(yield func(CacheState[T]) bool) {
 		// The scope first, so the events that refresh the key are already coming when its value arrives.
 		if q.hold != nil {
 			release := q.hold()
@@ -66,11 +66,14 @@ func (q *Cached[T]) Invalidate() {
 
 // shown is a state of a cache's value V, as a state of what a query shows of
 // it.
-func shown[V, T any](state CacheState, view func(V) T) CacheState {
-	if ready, ok := state.(Ready[V]); ok {
-		return Ready[T]{Value: view(ready.Value)}
+func shown[V, T any](state CacheState[V], view func(V) T) CacheState[T] {
+	switch s := state.(type) {
+	case Ready[V]:
+		return Ready[T]{Value: view(s.Value)}
+	case Failed[V]:
+		return Failed[T]{Error: s.Error}
 	}
-	return state
+	return Pending[T]{}
 }
 
 // itself is a value as it is: the view of a query that shows its cache's
@@ -90,8 +93,8 @@ func keyed[K comparable, V, T any](l *links, c *Cache[K, V], key K, view func(V)
 			}
 			return view(value), nil
 		},
-		watch: func(ctx context.Context) iter.Seq[CacheState] {
-			return func(yield func(CacheState) bool) {
+		watch: func(ctx context.Context) iter.Seq[CacheState[T]] {
+			return func(yield func(CacheState[T]) bool) {
 				for state := range c.Observe(ctx, key) {
 					if !yield(shown(state, view)) {
 						return

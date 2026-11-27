@@ -110,7 +110,7 @@ let swift_files ~root (spec : Spec.t) =
           Typing.of_spec spec ~tables:(read_tables spec);
           Typing.make
             (D.alone ~ids:spec.ids ~name:"SignIn" sign_in)
-            ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[];
+            ~roots:[ "SignIn" ] ~identifiers:[] ~value_docs:[];
         ]
         ~schema:bundle.definitions.schema
     in

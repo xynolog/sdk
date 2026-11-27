@@ -6,6 +6,7 @@ module Xynolog.Internal.Generated.Models.ServiceTelemetryTelemetry (ServiceTelem
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
+import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.ConformanceCase
@@ -14,7 +15,7 @@ import Xynolog.Internal.Generated.Models.ServiceEnvironmentBootRefusals
 
 data ServiceTelemetryTelemetry = ServiceTelemetryTelemetry
   { serviceTelemetryTelemetryComment :: Text,
-    serviceTelemetryTelemetrySdk :: KM.KeyMap [Text],
+    serviceTelemetryTelemetrySdk :: Map.Map ServiceTelemetryTelemetrySpansItemServicesItem [Text],
     serviceTelemetryTelemetryResource :: [ServiceTelemetryTelemetryResourceItem],
     serviceTelemetryTelemetrySpans :: [ServiceTelemetryTelemetrySpansItem],
     serviceTelemetryTelemetryMetrics :: [ServiceTelemetryTelemetryMetricsItem]

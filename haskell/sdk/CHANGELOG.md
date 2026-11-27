@@ -54,6 +54,12 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A map whose schema names its keys by a schema of their own is keyed by that
+  schema's type: `inferenceSpecProviders` is a
+  `Map InferenceProvider Provider`, and `serviceTelemetryTelemetrySdk` is
+  keyed by `ServiceTelemetryTelemetrySpansItemServicesItem`, where each was a
+  `KeyMap`. An enumeration a map is keyed by is `Ord`, `FromJSONKey` and
+  `ToJSONKey`.
 - A held job keeps the `HeldJobRecord` its claim handed it, and `jobId`,
   `jobType`, `resourceId`, `params`, `completedUnits`, `unitCursors`,
   `retryCount` and `maxRetries` are read from it through

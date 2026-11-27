@@ -28,7 +28,7 @@ let made_at ?(identifiers = []) ?(payloads = []) roots =
          (roots
          @ List.map (fun (name, text) -> (name, file name, text)) payloads))
       ~roots:(List.map (fun (name, _, _) -> name) roots @ List.map fst payloads)
-      ~identifiers ~keys:[]
+      ~identifiers ~value_docs:[]
   with
   | typing ->
       M.make ~ids ~typings:[ typing ]

@@ -290,7 +290,18 @@ internal sealed class WireEnumConverter<T> : JsonConverter<T>
         using var document = JsonDocument.ParseValue(ref reader);
         var root = document.RootElement;
         WireJson.Validate(Schema, root);
-        var text = root.GetString();
+        return Constant(root.GetString());
+    }
+
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) => writer.WriteStringValue(Wire(value));
+
+    /// <summary>A member's name of a map keyed by the enumeration, which the map's schema validates.</summary>
+    public override T ReadAsPropertyName(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options) => Constant(reader.GetString());
+
+    public override void WriteAsPropertyName(Utf8JsonWriter writer, T value, JsonSerializerOptions options) => writer.WritePropertyName(Wire(value));
+
+    private static T Constant(string? text)
+    {
         foreach (var (constant, wire) in Constants)
         {
             if (wire == text)
@@ -300,8 +311,6 @@ internal sealed class WireEnumConverter<T> : JsonConverter<T>
         }
         throw new JsonException("Unknown enumeration value.");
     }
-
-    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) => writer.WriteStringValue(Wire(value));
 
     /// <summary>The string <paramref name="value"/> is on the wire.</summary>
     internal static string Wire(T value)

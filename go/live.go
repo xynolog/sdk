@@ -297,8 +297,8 @@ func (v *live) enginesWithLimits() *Cached[api.EnginesWithLimits] {
 // engineStates is the engines' state, joined with what each key holder has
 // reported: a holder that has not answered delays only its own engines'
 // limits. A state is given when it differs from the one before.
-func (v *live) engineStates(ctx context.Context) iter.Seq[CacheState] {
-	return func(yield func(CacheState) bool) {
+func (v *live) engineStates(ctx context.Context) iter.Seq[CacheState[api.EnginesWithLimits]] {
+	return func(yield func(CacheState[api.EnginesWithLimits]) bool) {
 		ctx, stop := context.WithCancel(ctx)
 		defer stop()
 		var mu sync.Mutex
@@ -309,7 +309,7 @@ func (v *live) engineStates(ctx context.Context) iter.Seq[CacheState] {
 			default:
 			}
 		}
-		var engines CacheState
+		var engines CacheState[[]api.EngineEntry]
 		keyHolders := holders()
 		reported := make([][]api.EngineLimits, len(keyHolders))
 		ended := false
@@ -358,7 +358,7 @@ func (v *live) engineStates(ctx context.Context) iter.Seq[CacheState] {
 				}()
 			}
 		}()
-		var last CacheState
+		var last CacheState[api.EnginesWithLimits]
 		for {
 			select {
 			case <-changed:

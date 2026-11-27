@@ -63,6 +63,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `Live_query.state` is `Live_query.cache_state`, as Protocol's
+  `client/types/CacheState.json` names a live query's state.
 - A schema a `$ref` names at a place within a file is one record, named
   where that place is stated, wherever it is referred to: every error
   vocabulary of `Errors_codes` whose codes state only their docs is

@@ -32,7 +32,7 @@ func TestTheCacheKeepsTheStateUnitAxioms(t *testing.T) {
 		},
 		// One key observed, and what moves a key.
 		Surfaces: func(unit *xynolog.Cache[string, int]) []xynologtest.Surface {
-			return []xynologtest.Surface{xynologtest.Events(func(ctx context.Context) iter.Seq[xynolog.CacheState] { return unit.Observe(ctx, "a") })}
+			return []xynologtest.Surface{xynologtest.Events(func(ctx context.Context) iter.Seq[xynolog.CacheState[int]] { return unit.Observe(ctx, "a") })}
 		},
 		Invocations: func(unit *xynolog.Cache[string, int]) []func() {
 			return []func(){func() { unit.Set("a", 1) }, func() { unit.Invalidate("a") }, unit.InvalidateAll}
