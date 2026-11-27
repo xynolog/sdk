@@ -92,6 +92,14 @@ writes:
   and the `ClientTiming` and `TransportTiming` a caller sets, with the
   table's values; Haskell's also the `Settings` its own modules read, made
   of those two records over the table's values.
+- `option-defaults`: what a public option of a client is when its caller
+  leaves it out, where the client decides it, from
+  `client/option-defaults.json`, for all nine SDKs. `Option_defaults.Table`
+  holds each row to its option's type, as `client/surface.json` states the
+  method's parameter or the row's own `schema` states it, and a value of a
+  named schema to that schema's members. Each SDK's writer gives a constant
+  per row it takes a default of, and names each other row with why its SDK
+  takes none; a name that is no row of the table is refused.
 - `cache-refresh`: what a client's live queries hold, and what each event on
   the bus, the reopening of a dropped stream and an event that cannot be read
   does to them, from `client/refresh.json`, for the Go, Python, TypeScript
@@ -181,9 +189,9 @@ writes:
   its HTTP transport says, the bus's channels and the namespace methods that
   are one channel or operation each, and the facts of tables no group writes
   for it, with the repository's `LICENSE`, which its package ships. The
-  `required`, `identifiers`, `timing`, `error-codes`, `cache-refresh`,
-  `encodings`, `oauth-clients`, `telemetry`, `sign-in` and `media-types`
-  groups each write the OCaml SDK's module of their own table.
+  `required`, `identifiers`, `timing`, `option-defaults`, `error-codes`,
+  `cache-refresh`, `encodings`, `oauth-clients`, `telemetry`, `sign-in` and
+  `media-types` groups each write the OCaml SDK's module of their own table.
 - `case-data`: each table an SDK's tests run or read, as typed values of the
   model Protocol's reader derives from its schema
   (`Xynolog_protocol_model`), and each schema they read, as its JSON, in the
@@ -221,27 +229,28 @@ writes:
   writes for it; and its manifest, with the repository's `LICENSE`. A
   schema that states a keyword the SDK's validator does not read is refused,
   as is a model module no schema makes any more. The `error-codes`, `timing`,
-  `cache-refresh`, `oauth-clients`, `sign-in`, `media-types`, `stored`,
-  `client-types`, `testing`, `required` and `unicode-case` groups each write
-  the Haskell SDK's module of their own table.
+  `option-defaults`, `cache-refresh`, `oauth-clients`, `sign-in`,
+  `media-types`, `stored`, `client-types`, `testing`, `required` and
+  `unicode-case` groups each write the Haskell SDK's module of their own
+  table.
 - `csharp-sdk`: the C# SDK's models of the component schemas, of the
   schemas it reads beside them and of the records Protocol states in its
   tables (`Table_records`), each with its converter
   (`Csharp_sdk.Models`), every schema they are made from as the SDK
   validates a value against it, the code each of the wire's failure codes
   becomes, and the tables the SDK reads as Protocol writes them. The `bus`,
-  `required`, `unicode-case` and `identifiers` groups each write the C#
-  SDK's file of their own table. `Csharp_syntax` is the C# they are built
-  of, laid out as `dotnet format` leaves it.
+  `required`, `unicode-case`, `identifiers` and `option-defaults` groups
+  each write the C# SDK's file of their own table. `Csharp_syntax` is the
+  C# they are built of, laid out as `dotnet format` leaves it.
 - `kotlin-sdk`: the Kotlin SDK's types of the component schemas and of the
   sign-in store's entry, a file each under `xynolog/types`, and the kinds of
   id in `xynolog/identifiers` (`Kotlin_sdk.Types`), in
   `kotlin/sdk/src/generated/kotlin`; a file there that no schema writes is
   refused. The `bus`, `required`, `unicode-case`, `encodings`,
-  `error-codes`, `timing`, `cache-refresh`, `oauth-clients`, `telemetry`,
-  `sign-in` and `media-types` groups each write the Kotlin SDK's file of
-  their own table. `Kotlin_syntax` is the Kotlin they are built of, laid out
-  as ktlint leaves it.
+  `error-codes`, `timing`, `option-defaults`, `cache-refresh`,
+  `oauth-clients`, `telemetry`, `sign-in` and `media-types` groups each
+  write the Kotlin SDK's file of their own table. `Kotlin_syntax` is the
+  Kotlin they are built of, laid out as ktlint leaves it.
 - `go-types`: the Go SDK's package `api` (`go/api/types_gen.go`), a type for
   every component schema, every record Protocol states in its tables
   (`Table_records`), and every schema they reach but the kinds of id, which

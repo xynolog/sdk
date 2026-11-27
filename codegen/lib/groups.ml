@@ -19,6 +19,7 @@ let writers =
     { name = "encodings"; files = Encodings.files };
     { name = "error-codes"; files = Error_codes.files };
     { name = "timing"; files = Timing.files };
+    { name = "option-defaults"; files = Option_defaults.files };
     { name = "cache-refresh"; files = Cache_refresh.files };
     { name = "identifiers"; files = Identifiers.files };
     { name = "oauth-clients"; files = Oauth_clients.files };

@@ -5,6 +5,7 @@ import Xynolog.Bus qualified as Bus
 import Xynolog.Channels
 import Xynolog.Internal.Cache qualified as Cache
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.OptionDefaults qualified as Option
 import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Queries (cacheOptions, oneReport)
 import Xynolog.Internal.Refresh qualified as Refresh
@@ -36,7 +37,7 @@ resource (GatherNamespace wire timing _) identity options =
   where
     chosen = fromMaybe (GatherResourceOptions {gatherResourceOptionsDepth = Nothing, gatherResourceOptionsExcludeEntityTypes = Nothing, gatherResourceOptionsIncludeContent = Nothing, gatherResourceOptionsIncludeSummary = Nothing, gatherResourceOptionsMaxResources = Nothing}) options
     selected =
-      GatherResourceRequestOptions {gatherResourceRequestOptionsDepth = (fromMaybe 2 (gatherResourceOptionsDepth chosen)), gatherResourceRequestOptionsExcludeEntityTypes = (case gatherResourceOptionsExcludeEntityTypes chosen of Just [] -> Nothing; other -> other), gatherResourceRequestOptionsIncludeContent = (fromMaybe True (gatherResourceOptionsIncludeContent chosen)), gatherResourceRequestOptionsIncludeSummary = (fromMaybe False (gatherResourceOptionsIncludeSummary chosen)), gatherResourceRequestOptionsMaxResources = (fromMaybe 10 (gatherResourceOptionsMaxResources chosen))}
+      GatherResourceRequestOptions {gatherResourceRequestOptionsDepth = (fromMaybe Option.gatherResourceDepth (gatherResourceOptionsDepth chosen)), gatherResourceRequestOptionsExcludeEntityTypes = (case gatherResourceOptionsExcludeEntityTypes chosen of Just [] -> Nothing; other -> other), gatherResourceRequestOptionsIncludeContent = (fromMaybe Option.gatherResourceIncludeContent (gatherResourceOptionsIncludeContent chosen)), gatherResourceRequestOptionsIncludeSummary = (fromMaybe Option.gatherResourceIncludeSummary (gatherResourceOptionsIncludeSummary chosen)), gatherResourceRequestOptionsMaxResources = (fromMaybe Option.gatherResourceMaxResources (gatherResourceOptionsMaxResources chosen))}
 
 referencedBy :: GatherNamespace -> ResourceId -> Cache.Query [GetReferencedByResponseReferencedByItem]
 referencedBy (GatherNamespace _ _ cache) = Cache.query cache

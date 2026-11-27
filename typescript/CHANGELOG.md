@@ -72,6 +72,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What `browse.files`, `gather.resource`, `match.search`,
+  `XynologSession.fromKept` and `createTestSession` take for an option left
+  out is generated from Protocol's `client/option-defaults.json`. The values
+  are as they were.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary

@@ -18,6 +18,7 @@ import { Bus, DEFAULT_CLIENT_TIMING } from '@xynolog/core';
 import { CacheObservable, StreamObservable } from '../awaitable';
 import { createCache, type Cache } from '../cache';
 import { CacheRefresher } from '../cache-refresh';
+import { MATCH_SEARCH_LIMIT } from '../option-defaults';
 import type { MatchNamespace as IMatchNamespace } from './types';
 
 type MatchSearchResult = components['schemas']['MatchSearchResult'];
@@ -156,7 +157,7 @@ export class MatchNamespace implements IMatchNamespace {
             resourceId,
             referenceId,
             context,
-            limit: options?.limit ?? 10,
+            limit: options?.limit ?? MATCH_SEARCH_LIMIT,
             useSemanticScoring: options?.useSemanticScoring,
           },
           // The request's own deadline: the option above is the live query's.

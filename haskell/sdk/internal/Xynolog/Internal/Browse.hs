@@ -54,6 +54,7 @@ import Xynolog.Internal.CacheDocument (Whole (..))
 import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Generated.CachePersistence qualified as Persisted
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.OptionDefaults qualified as Option
 import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Lifetime qualified as Lifetime
 import Xynolog.Internal.Local qualified as Local
@@ -206,7 +207,7 @@ files namespace path sort =
     <$> Bus.request
       (wire namespace)
       BrowseDirectoryRequestedOperation
-      (BrowseDirectoryRequest (fromMaybe "." path) (Just (fromMaybe BrowseDirectoryRequestSortName sort)))
+      (BrowseDirectoryRequest (fromMaybe Option.browseFilesDirPath path) (Just (fromMaybe Option.browseFilesSort sort)))
       (Timing.busRequestTimeoutMs (timing namespace))
 
 kb :: BrowseNamespace -> IO KbDescription

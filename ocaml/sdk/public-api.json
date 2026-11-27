@@ -145,7 +145,7 @@
     "lib/gateway_messages.ml": "25f713862810dc3325fd6068e96c752bc0765e6eaa4ca8956cbe012a22764765",
     "lib/gateway_response_headers.ml": "ec26450be954b4758c1ac2d5e0568cc0d89feb3fecde9097a33c254b32ed6275",
     "lib/gather.ml": "79ce316d7cb74f60d07da80acbf3570d57ba949e4a3fbec81e4da34a6ca9ce6f",
-    "lib/gather_state.ml": "9692d712f4ff45afc4e3791b67a93c2f471cdd8cf5681d809b6cf6a17ba6283b",
+    "lib/gather_state.ml": "4e94866590cf17cbea721e7f69b018209eb884208d93e772920fb6e28c055f26",
     "lib/gather_state.mli": "f5da939b80588f462f13befe2c6974e46448be17e64bb43bfaabfaf848cfe6ae",
     "lib/graph_schema.ml": "60629639fec1c9666f455a28e28eb511500f519c604d138363bd3b6246837c40",
     "lib/held_job_members.ml": "956498482537e526b9c0a187437d0c7342ac30423088d882eff2600fc46d097f",
@@ -187,6 +187,8 @@
     "lib/oauth.ml": "d908e2497f7a14f92a98e35cd9be8b92f717faaa2e20480e703efd6fb8ef09a0",
     "lib/oauth.mli": "b535175120377dd42d5d60ce71dbf893b51839f4fe61db06135f6f525728543d",
     "lib/oauth_facts.ml": "8d318f922bc93b766445f8e0f3f0fc2deb2e9a78244e7553f717d620d69127b2",
+    "lib/option_defaults.ml": "b85fe90bb2d865c7662c44f3c3243d30d905462d2b751fe8e714327f55dcec2c",
+    "lib/option_defaults.mli": "cdc288dd01b8117d836c09964c5bf821228dbc404cca9ba681361fea13144ce6",
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
@@ -268,8 +270,8 @@
     "lib/worker_answer_formats.ml": "da2a821edb0788848608a6195f7fb7f2109cdeac8e29223064da7fcba0efaebe",
     "lib/worker_facts.ml": "2d7077df05d7d6f8099e878b30a29fefadb5d78f4078a57e9aa878cacb81557e",
     "lib/worker_messages.ml": "f1afd7b85f6a93528e39a878d15d51c8047c00320f07417fd85ccef28554cfc7",
-    "lib/xynolog.ml": "ccc4740213b707ba9592ad6a22806169da7e100b90ed81840a1cb5d74976476d",
-    "lib/xynolog.mli": "b0e32d5d046398887addfbf5fa70cc028a1ecc8d19156fe6d088c3d96c6652a8",
+    "lib/xynolog.ml": "91ea5aea384ae9ac0b04674224207d5cc8a8a8fd46949503e5f7167ff2d2007f",
+    "lib/xynolog.mli": "9bf5729696aa7001db35a1ba600ae80c4ee0303a2f6b1292d563b158ff863a08",
     "lib/yield.ml": "ff8a51de25737c5b7efc70837e8494690021c360f93e29c1a35a7b3b8f329a7c",
     "lib/yield.mli": "f1955bb72f1d202e3ff0323ea5ca0053b9b7ad05d944212ddc96aa0e39719cf1",
     "lib/yield_state.ml": "a309edbd34cbc30d13e6d4475e0e8f8ee7c8d025ff851e76daa4e3e03dc72472",
@@ -39835,6 +39837,47 @@
       "kind": "value",
       "path": "Xynolog.Client_timing.transport_defaults",
       "declaration": "val transport_defaults : transport"
+    },
+    {
+      "kind": "module",
+      "path": "Xynolog.Option_defaults",
+      "declaration": "module Option_defaults = Xynolog__.Option_defaults",
+      "alias": "Xynolog__.Option_defaults"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Option_defaults.browse_files_dir_path",
+      "declaration": "val browse_files_dir_path : string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Option_defaults.browse_files_sort",
+      "declaration": "val browse_files_sort : string"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Option_defaults.gather_resource_depth",
+      "declaration": "val gather_resource_depth : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Option_defaults.gather_resource_max_resources",
+      "declaration": "val gather_resource_max_resources : int"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Option_defaults.gather_resource_include_content",
+      "declaration": "val gather_resource_include_content : bool"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Option_defaults.gather_resource_include_summary",
+      "declaration": "val gather_resource_include_summary : bool"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Option_defaults.match_search_limit",
+      "declaration": "val match_search_limit : int"
     },
     {
       "kind": "module",

@@ -51,6 +51,7 @@ module Resources = Resources
 module Refusals = Refusals
 module Retry = Retry
 module Client_timing = Client_timing
+module Option_defaults = Option_defaults
 module Storage_persister = Storage_persister
 module Service_token = Service_token
 module Redirect_sign_in = Redirect_sign_in

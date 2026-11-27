@@ -2,6 +2,7 @@ package xynologtest
 
 import (
 	"context"
+	"encoding/json"
 
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
@@ -11,8 +12,8 @@ import (
 type TestSessionConfig struct {
 	// Client is the test client the session is over.
 	Client TestClientConfig
-	// Kb is the knowledge base the session is with: with none, test-kb at
-	// http://localhost:4000.
+	// Kb is the knowledge base the session is with: with none,
+	// testingCreateTestSessionKb.
 	Kb *api.KbTarget
 	// Kept is where the session's sign-in is kept: a sign-in held there is
 	// the session's at its start. With none, a xynolog.MemorySignIn that holds
@@ -39,15 +40,13 @@ type TestSession struct {
 // client, then the session, and then the transport: the session only uses
 // them.
 func NewTestSession(config TestSessionConfig) (TestSession, error) {
-	client := NewTestClient(config.Client)
-	kb := api.KbTarget{Id: "test-kb", Label: "Test KB"}
+	var kb api.KbTarget
 	if config.Kb != nil {
 		kb = *config.Kb
-	} else if err := kb.Endpoint.From(api.HttpEndpoint{Kind: api.HttpEndpointKindHttp, Host: "localhost", Port: 4000, Protocol: api.HttpEndpointProtocolHttp}); err != nil {
-		// An endpoint of a host, a port and two of the spec's own words always
-		// encodes.
-		panic(err)
+	} else if err := json.Unmarshal([]byte(testingCreateTestSessionKb), &kb); err != nil {
+		return TestSession{}, err
 	}
+	client := NewTestClient(config.Client)
 	kept := config.Kept
 	if kept == nil {
 		kept = &xynolog.MemorySignIn{}

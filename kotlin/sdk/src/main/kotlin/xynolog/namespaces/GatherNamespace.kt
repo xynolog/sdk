@@ -2,6 +2,7 @@
 
 package xynolog.namespaces
 
+import xynolog.OptionDefaults
 import xynolog.Running
 import xynolog.bus.Operations
 import xynolog.cache.Cached
@@ -17,18 +18,6 @@ import xynolog.types.GatherResourceRequestOptions
 import xynolog.types.GatheredContext
 import xynolog.types.GetReferencedByResponseReferencedByItem
 import java.util.concurrent.CompletableFuture
-
-/** How many links out from a resource its context reaches when none is stated. */
-internal const val RESOURCE_DEPTH: Long = 2
-
-/** How many resources a resource's context takes when none is stated. */
-internal const val RESOURCE_LIMIT: Long = 10
-
-/** Whether a resource's context takes its resources' content when that is not stated. */
-internal const val INCLUDES_CONTENT: Boolean = true
-
-/** Whether a resource's context takes a summary when that is not stated. */
-internal const val INCLUDES_SUMMARY: Boolean = false
 
 /** Assembling the context a model is given, and what refers to a resource. */
 public class GatherNamespace internal constructor(private val links: Links, private val live: Live) {
@@ -54,17 +43,16 @@ public class GatherNamespace internal constructor(private val links: Links, priv
     }
 
     /**
-     * The context around a whole resource. With nothing stated in `options`:
-     * two hops of the graph, ten resources, their content, and no summary.
-     * `depth` is how many links out from the resource the graph reaches, 1 to
+     * The context around a whole resource. An option `options` leaves out is
+     * its default of `OptionDefaults`. `depth` is how many links out from the resource the graph reaches, 1 to
      * 3, nearest first. An empty exclusion excludes nothing, and is not sent.
      */
     public suspend fun resource(resourceId: ResourceId, options: GatherResourceOptions = GatherResourceOptions()): GatheredContext {
         val sent = GatherResourceRequestOptions(
-            depth = options.depth ?: RESOURCE_DEPTH,
-            maxResources = options.maxResources ?: RESOURCE_LIMIT,
-            includeContent = options.includeContent ?: INCLUDES_CONTENT,
-            includeSummary = options.includeSummary ?: INCLUDES_SUMMARY,
+            depth = options.depth ?: OptionDefaults.GATHER_RESOURCE_DEPTH,
+            maxResources = options.maxResources ?: OptionDefaults.GATHER_RESOURCE_MAX_RESOURCES,
+            includeContent = options.includeContent ?: OptionDefaults.GATHER_RESOURCE_INCLUDE_CONTENT,
+            includeSummary = options.includeSummary ?: OptionDefaults.GATHER_RESOURCE_INCLUDE_SUMMARY,
             excludeEntityTypes = options.excludeEntityTypes?.takeIf { it.isNotEmpty() },
         )
         return links.request(Operations.GATHER_RESOURCE_REQUESTED, GatherResourceRequest(resourceId = resourceId, options = sent)).response

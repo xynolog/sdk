@@ -19,6 +19,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import xynolog.ClientTiming
 import xynolog.KeptWrites
+import xynolog.OptionDefaults
 import xynolog.Timings
 import xynolog.TransportTiming
 import xynolog.XynologClient
@@ -415,7 +416,7 @@ internal suspend fun sessionStarted(
 public suspend fun sessionFromKept(
     kb: KbTarget,
     kept: SignInKept,
-    validate: Boolean = true,
+    validate: Boolean = OptionDefaults.KEPT_SIGN_IN_SESSION_FROM_KEPT_VALIDATE,
     storage: SessionStorage? = null,
     onAuthFailed: ((SessionEndReason) -> Unit)? = null,
     http: HttpClient = ownHttp,

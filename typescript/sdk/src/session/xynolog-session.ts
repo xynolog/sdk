@@ -94,6 +94,7 @@ import {
   storedSessionOf,
 } from './oauth';
 import { sharedRenewal, type SharedRenewal } from './shared-renewal';
+import { KEPT_SIGN_IN_SESSION_FROM_KEPT_VALIDATE } from '../option-defaults';
 
 export type UserInfo = components['schemas']['UserResponse'];
 
@@ -853,7 +854,8 @@ export class XynologSession implements StateUnit {
    * forgets it there. With nothing kept, the session is signed out: its
    * token is null, and a request made through its client is refused. It
    * asks the gateway who its token is, and so learns who is signed in,
-   * unless `validate` is false; left out, it is true. The
+   * unless `validate` is false; left out, it is
+   * `KEPT_SIGN_IN_SESSION_FROM_KEPT_VALIDATE`. The
    * session's `ready` has resolved when this returns. Gives it with the
    * client it was built with, as `fromHttp` does. The gateway and the issuer
    * are asked with `fetch`, or the runtime's own. `clientTiming` and
@@ -881,7 +883,7 @@ export class XynologSession implements StateUnit {
     fetch?: typeof fetch;
     clientTiming?: Partial<ClientTiming>;
     transportTiming?: Partial<TransportTiming>;
-    /** Whether the session asks the gateway who its token is. True when left out. */
+    /** Whether the session asks the gateway who its token is. Left out, `KEPT_SIGN_IN_SESSION_FROM_KEPT_VALIDATE`. */
     validate?: boolean;
     onAuthFailed?: (reason: SessionEndReason) => void;
   }): Promise<OpenedSession> {
@@ -894,7 +896,7 @@ export class XynologSession implements StateUnit {
     }
     const gateway = kbGatewayUrl(opts.kb.endpoint);
     // A session over a kept sign-in learns whose caches to keep by asking.
-    const asks = opts.validate ?? true;
+    const asks = opts.validate ?? KEPT_SIGN_IN_SESSION_FROM_KEPT_VALIDATE;
     // One renewal at a time. A stream refused and a request refused at the
     // same moment each ask for one, and an issuer that rotates refresh tokens
     // refuses the second grant, which would end a session that was fine.

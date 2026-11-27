@@ -19,11 +19,11 @@ public struct MatchNamespace: Sendable {
         useSemanticScoring: options.useSemanticScoring))
   }
 
-  /// The search `request` asks for, its limit filled where it leaves it out, as
-  /// client/surface.json's `match.search` cases state it.
+  /// The search `request` asks for, its limit filled where it leaves it out with
+  /// `OptionDefaults.matchSearchLimit`.
   func search(_ request: MatchSearchRequest) -> Running<MatchSearchResult> {
     var request = request
-    if request.limit == nil { request.limit = 10 }
+    if request.limit == nil { request.limit = OptionDefaults.matchSearchLimit }
     return Running(lifetime: lifetime) { [request] _ in
       try await wire.request(Operations.matchSearchRequested, request)
     }

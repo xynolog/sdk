@@ -1,4 +1,5 @@
 using Xynolog.Identifiers;
+using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog.Namespaces;
@@ -29,8 +30,8 @@ public sealed class MatchNamespace
             EntityType = filters?.EntityType,
         });
 
-    /// <summary>Searches for the resources the reference could refer to, scored by its gathered context: ten unless the
-    /// options say otherwise, and scored as the service decides unless they say how.</summary>
+    /// <summary>Searches for the resources the reference could refer to, scored by its gathered context: as many as
+    /// <see cref="OptionDefaults.MatchSearchLimit"/> unless the options say otherwise, and scored as the service decides unless they say how.</summary>
     public Running<MatchSearchResult> Search(ResourceId resourceId, AnnotationId referenceId, GatheredContext context,
         MatchSearchOptions? options = null)
     {
@@ -39,7 +40,7 @@ public sealed class MatchNamespace
             ResourceId = resourceId,
             ReferenceId = referenceId,
             Context = context,
-            Limit = options?.Limit ?? 10,
+            Limit = options?.Limit ?? OptionDefaults.MatchSearchLimit,
             UseSemanticScoring = options?.UseSemanticScoring,
         };
         return new((_, cancellation) => wire.RequestAsync(BusOperations.MatchSearchRequested, request, cancellation: cancellation));

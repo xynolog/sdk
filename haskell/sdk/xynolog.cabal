@@ -211,6 +211,7 @@ library internal
     Xynolog.Internal.Digest
     Xynolog.Internal.Generated.HeldJob
     Xynolog.Internal.Generated.WorkerChannels
+    Xynolog.Internal.Generated.OptionDefaults
     Xynolog.Internal.Generated.Models.AboutParams
     Xynolog.Internal.Generated.Models.AboutResult
     Xynolog.Internal.Generated.Models.AccessToken

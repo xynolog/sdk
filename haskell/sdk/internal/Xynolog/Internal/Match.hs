@@ -9,6 +9,7 @@ import Xynolog.Bus qualified as Bus
 import Xynolog.Channels
 import Xynolog.Internal.Cache qualified as Cache
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.OptionDefaults qualified as Option
 import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Local qualified as Local
 import Xynolog.Internal.Queries (cacheOptions, oneReport)
@@ -32,7 +33,7 @@ search (MatchNamespace wire _ timing _) identity reference context options =
     Bus.request
       wire
       MatchSearchRequestedOperation
-      (MatchSearchRequest {matchSearchRequestContext = context, matchSearchRequestLimit = (Just (fromMaybe 10 (matchSearchOptionsLimit chosen))), matchSearchRequestReferenceId = reference, matchSearchRequestResourceId = identity, matchSearchRequestUseSemanticScoring = (matchSearchOptionsUseSemanticScoring chosen)})
+      (MatchSearchRequest {matchSearchRequestContext = context, matchSearchRequestLimit = (Just (fromMaybe Option.matchSearchLimit (matchSearchOptionsLimit chosen))), matchSearchRequestReferenceId = reference, matchSearchRequestResourceId = identity, matchSearchRequestUseSemanticScoring = (matchSearchOptionsUseSemanticScoring chosen)})
       (Timing.busRequestTimeoutMs timing)
   where
     chosen = fromMaybe (MatchSearchOptions Nothing Nothing) options

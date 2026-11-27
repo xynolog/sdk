@@ -2,6 +2,7 @@
 
 from typing import Final, final
 
+from xynolog._option_defaults import MATCH_SEARCH_LIMIT
 from xynolog.cached import Cached, Keyed, itself
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.namespaces.links import Links
@@ -11,10 +12,6 @@ from xynolog.running import Running
 from xynolog.types import GatheredContext, MatchResourcesRequest, MatchResourcesResponse, MatchSearchRequest, MatchSearchResult
 
 __all__ = ["MatchNamespace"]
-
-# What a caller that states nothing is given. Every SDK asks for as many: the
-# cases of protocol/specs/src/client/surface.json hold each to it.
-_CANDIDATES: Final = 10
 
 
 @final
@@ -34,12 +31,15 @@ class MatchNamespace:
         limit: int | None = None,
         use_semantic_scoring: bool | None = None,
     ) -> Running[MatchSearchResult]:
-        """Candidates for a reference, given its gathered context: ten when no limit is stated, scored as the Librarian scores unasked."""
+        """Candidates for a reference, given its gathered context.
+
+        `MATCH_SEARCH_LIMIT` of them when no limit is stated, scored as the Librarian scores unasked.
+        """
         request = MatchSearchRequest(
             resource_id=resource_id,
             reference_id=reference_id,
             context=context,
-            limit=_CANDIDATES if limit is None else limit,
+            limit=MATCH_SEARCH_LIMIT if limit is None else limit,
             use_semantic_scoring=use_semantic_scoring,
         )
         return Running(lambda _: self._links.run(self._links.request(MATCH_SEARCH_REQUESTED, request)))

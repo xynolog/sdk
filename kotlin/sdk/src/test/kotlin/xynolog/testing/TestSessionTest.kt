@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
+import xynolog.OptionDefaults
 import xynolog.session.token
 import xynolog.signin.MemorySignIn
 import xynolog.types.HttpEndpoint
@@ -21,7 +22,7 @@ class TestSessionTest {
         withTimeout(5_000) { made.session.ready() }
         assertSame(made.client, made.session.client)
         assertSame(made.transport, made.client.transport)
-        assertEquals("test-kb", made.session.kb.id)
+        assertEquals(OptionDefaults.TESTING_CREATE_TEST_SESSION_KB, made.session.kb)
         assertEquals(null to null, made.session.token.value to made.session.user.value)
         made.setToken("a-token")
         assertEquals("a-token", made.session.token.value)

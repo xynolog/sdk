@@ -25,6 +25,7 @@ use crate::channels::{
 use crate::client::{CachePersistence, Links, Owner};
 use crate::errors::{BusRequestError, BusRequestErrorCode, SessionErrorCode, XynologError};
 use crate::locked;
+use crate::option_defaults::{BROWSE_FILES_DIR_PATH, BROWSE_FILES_SORT};
 use crate::refresh::CacheQuery;
 use crate::resources::decode_representation;
 use crate::session::{WHOLE_KEY, cache_key};
@@ -946,8 +947,8 @@ impl BrowseNamespace {
         Ok(answer.response)
     }
 
-    /// The entries of a directory of the knowledge base's tree: its root
-    /// when no path is stated, by name when no order is.
+    /// The entries of a directory of the knowledge base's tree. A path or
+    /// an order left out is its default of `option_defaults`.
     pub async fn files(
         &self,
         path: Option<&str>,
@@ -956,8 +957,8 @@ impl BrowseNamespace {
         let answer = self
             .links
             .request::<BrowseDirectoryRequested>(&BrowseDirectoryRequest {
-                path: path.unwrap_or(".").to_owned(),
-                sort: Some(sort.unwrap_or(BrowseDirectoryRequestSort::Name)),
+                path: path.unwrap_or(BROWSE_FILES_DIR_PATH).to_owned(),
+                sort: Some(sort.unwrap_or(BROWSE_FILES_SORT)),
             })
             .await?;
         Ok(answer.response)

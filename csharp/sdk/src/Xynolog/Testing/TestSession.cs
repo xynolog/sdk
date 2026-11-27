@@ -1,5 +1,6 @@
 using Xynolog.Errors;
 using Xynolog.Http;
+using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.Session;
 using Xynolog.SignIn;
@@ -10,7 +11,7 @@ namespace Xynolog.Testing;
 /// <summary>What <see cref="TestSessions.CreateTestSessionAsync"/> builds a session on; each part left out takes a
 /// default.</summary>
 /// <param name="Transport">The scripted transport the client talks to, which stays the caller's; a fresh one when null.</param>
-/// <param name="Kb">The knowledge base the session is to; a local test one when null.</param>
+/// <param name="Kb">The knowledge base the session is to; <see cref="OptionDefaults.TestingCreateTestSessionKb"/> when null.</param>
 /// <param name="Kept">Where the sign-in is kept; in memory when null.</param>
 /// <param name="TimeProvider">The clock the session keeps; the system's when null.</param>
 /// <param name="ClientTiming">The timing the client keeps; the protocol's when null.</param>
@@ -69,12 +70,7 @@ public static class TestSessions
     public static async Task<TestSession> CreateTestSessionAsync(TestSessionOptions? options = null, CancellationToken cancellation = default)
     {
         options ??= new();
-        var kb = options.Kb ?? new KbTarget
-        {
-            Id = "test-kb",
-            Label = "Test KB",
-            Endpoint = new KbEndpoint.HttpEndpoint(new HttpEndpoint { Host = "localhost", Port = 4000, Protocol = HttpEndpointProtocol.Http }),
-        };
+        var kb = options.Kb ?? OptionDefaults.TestingCreateTestSessionKb;
         if (kb.Endpoint is not KbEndpoint.HttpEndpoint(var endpoint))
             throw new SessionError(SessionErrorCode.ConstructFailed, "The test session requires an HTTP endpoint.");
         var origin = Gateway.Origin(endpoint);

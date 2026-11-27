@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.runningFold
+import xynolog.OptionDefaults
 import xynolog.bus.Operations
 import xynolog.cache.Cache
 import xynolog.cache.CacheState
@@ -192,8 +193,8 @@ public class BrowseNamespace internal constructor(private val links: Links, priv
     public fun annotationHistoryFuture(resourceId: ResourceId, annotationId: AnnotationId): CompletableFuture<GetAnnotationHistoryResponse> =
         links.future { annotationHistory(resourceId, annotationId) }
 
-    /** The entries of a directory of the knowledge base's tree: its root when no path is stated, by name when no order is. */
-    public suspend fun files(path: String = ".", sort: BrowseDirectoryRequestSort = BrowseDirectoryRequestSort.Name): BrowseDirectoryResultResponse =
+    /** The entries of a directory of the knowledge base's tree: a path or an order left out is its default of `OptionDefaults`. */
+    public suspend fun files(path: String = OptionDefaults.BROWSE_FILES_DIR_PATH, sort: BrowseDirectoryRequestSort = OptionDefaults.BROWSE_FILES_SORT): BrowseDirectoryResultResponse =
         links.request(Operations.BROWSE_DIRECTORY_REQUESTED, BrowseDirectoryRequest(path = path, sort = sort)).response
 
     /** `files`, for Java. */

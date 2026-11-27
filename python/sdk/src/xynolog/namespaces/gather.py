@@ -3,6 +3,12 @@
 from collections.abc import Sequence
 from typing import Final, final
 
+from xynolog._option_defaults import (
+    GATHER_RESOURCE_DEPTH,
+    GATHER_RESOURCE_INCLUDE_CONTENT,
+    GATHER_RESOURCE_INCLUDE_SUMMARY,
+    GATHER_RESOURCE_MAX_RESOURCES,
+)
 from xynolog.cached import Cached, Keyed, itself
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.model import stated
@@ -21,11 +27,6 @@ from xynolog.types import (
 )
 
 __all__ = ["GatherNamespace"]
-
-# What a caller that states nothing is given. Every SDK sends the same: the
-# cases of protocol/specs/src/client/surface.json hold each to it.
-_DEPTH: Final = 2
-_MAX_RESOURCES: Final = 10
 
 
 @final
@@ -75,17 +76,17 @@ class GatherNamespace:
     ) -> GatheredContext:
         """The context around a whole resource.
 
-        With nothing stated: two hops of the graph, ten resources, their
-        content, and no summary. `depth` is how many links out from the
+        An option left out is its default of `_option_defaults`. `depth` is
+        how many links out from the
         resource the graph reaches, 1 to 3, nearest first: what a resource
         links to and what cites it are both followed. An empty exclusion
         excludes nothing, and is not sent.
         """
         options = GatherResourceRequestOptions(
-            depth=_DEPTH if depth is None else depth,
-            max_resources=_MAX_RESOURCES if max_resources is None else max_resources,
-            include_content=True if include_content is None else include_content,
-            include_summary=False if include_summary is None else include_summary,
+            depth=GATHER_RESOURCE_DEPTH if depth is None else depth,
+            max_resources=GATHER_RESOURCE_MAX_RESOURCES if max_resources is None else max_resources,
+            include_content=GATHER_RESOURCE_INCLUDE_CONTENT if include_content is None else include_content,
+            include_summary=GATHER_RESOURCE_INCLUDE_SUMMARY if include_summary is None else include_summary,
             exclude_entity_types=list(exclude_entity_types) if exclude_entity_types else None,
         )
         gathered = await self._links.request(

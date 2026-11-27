@@ -67,7 +67,10 @@ public struct BrowseNamespace: Sendable {
       BrowseAnnotationHistoryRequest(resourceId: resourceId, annotationId: annotationId)
     ).response
   }
-  public func files(_ dirPath: String = ".", sort: BrowseDirectoryRequestSort = .name)
+  public func files(
+    _ dirPath: String = OptionDefaults.browseFilesDirPath,
+    sort: BrowseDirectoryRequestSort = OptionDefaults.browseFilesSort
+  )
     async throws -> BrowseDirectoryResultResponse
   {
     try await wire.request(

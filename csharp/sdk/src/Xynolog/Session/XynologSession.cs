@@ -1,5 +1,6 @@
 using Xynolog.Errors;
 using Xynolog.Http;
+using Xynolog.Protocol;
 using Xynolog.Registry;
 using Xynolog.SignIn;
 using Xynolog.State;
@@ -49,7 +50,7 @@ public sealed class XynologSession : IStateUnit
     /// null.
     /// </summary>
     public static async Task<OpenedSession> FromKeptAsync(KbTarget kb, ISignInKept kept, ISessionStorage? storage = null,
-        HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null, bool validate = true,
+        HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null, bool validate = OptionDefaults.KeptSignInSessionFromKeptValidate,
         Action<SessionEndReason>? onAuthFailed = null, ClientTiming? clientTiming = null, TransportTiming? transportTiming = null,
         CancellationToken cancellation = default)
     {

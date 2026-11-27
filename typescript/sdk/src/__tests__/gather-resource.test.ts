@@ -12,6 +12,12 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { EventBus, resourceId as makeResourceId } from '@xynolog/core';
 import type { EventMap } from '@xynolog/core';
 import { GatherNamespace } from '../namespaces/gather';
+import {
+  GATHER_RESOURCE_DEPTH,
+  GATHER_RESOURCE_INCLUDE_CONTENT,
+  GATHER_RESOURCE_INCLUDE_SUMMARY,
+  GATHER_RESOURCE_MAX_RESOURCES,
+} from '../option-defaults';
 import { inMemoryTransport } from './helpers/in-memory-transport';
 import { resourceContextFor } from './fixtures/gathered-context';
 
@@ -74,10 +80,10 @@ describe('gather.resource', () => {
     expect(payload).toMatchObject({
       resourceId: rid,
       options: {
-        depth: 2,
-        maxResources: 10,
-        includeContent: true,
-        includeSummary: false,
+        depth: GATHER_RESOURCE_DEPTH,
+        maxResources: GATHER_RESOURCE_MAX_RESOURCES,
+        includeContent: GATHER_RESOURCE_INCLUDE_CONTENT,
+        includeSummary: GATHER_RESOURCE_INCLUDE_SUMMARY,
       },
     });
     const cid = getLastCorrelationId()!;

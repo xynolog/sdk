@@ -8,6 +8,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `OptionDefaults`, what an option the client decides is when its caller
+  leaves it out, generated from Protocol's `client/option-defaults.json`.
 - A type for ten of Protocol's tables that no service keeps, each typed by
   the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
   `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
@@ -59,6 +61,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What browsing files, gathering a resource's context, searching for a match
+  and a session opened over a kept sign-in take for an option left out is
+  `OptionDefaults`. The values are as they were.
 - What a worker says of itself and of its claims is the generated client
   types: `ClaimRefusal` (its text is `message`, where it was `detail`),
   `WorkerVitals` with its `WorkerActiveJob`, and `HeldJobStall` (its

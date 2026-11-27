@@ -14,6 +14,7 @@ from pydantic import JsonValue
 from spec import JsonObject
 from tokens import token
 
+from xynolog._option_defaults import TESTING_CREATE_TEST_SESSION_KB
 from xynolog.bus import Delivered, request
 from xynolog.cache import Pending, Ready
 from xynolog.channels import BECKON_FOCUS, BRIDGED_CHANNELS
@@ -691,7 +692,8 @@ def test_a_test_session_is_a_real_session_over_a_test_client_ready_at_once_and_h
         # What a test runner reads to know this is no class of tests, whatever its name begins with.
         assert TestSession.__test__ is False
         assert isinstance(made.session, XynologSession)
-        assert (made.session.client, made.client.transport, made.session.kb.id) == (made.client, made.transport, "test-kb")
+        assert (made.session.client, made.client.transport) == (made.client, made.transport)
+        assert made.session.kb == TESTING_CREATE_TEST_SESSION_KB
         # Left client first, then the session.
         async with made.session as session, made.client:
             await soon(session.ready())
